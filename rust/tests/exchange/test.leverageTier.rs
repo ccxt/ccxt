@@ -23,7 +23,7 @@ pub fn testLeverageTier(mut exchange: Value, mut skippedProperties: Value, mut m
 }));
         m
     });
-    let mut emptyAllowedFor: Value = Value::List(vec![Value::Str("maintenanceMarginRate".to_string())]);
+    let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("maintenanceMarginRate".to_string())]);
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format.clone(), emptyAllowedFor.clone()]);
     //
     crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("tier".to_string()).clone(), Value::Str("0".to_string()).clone()]);

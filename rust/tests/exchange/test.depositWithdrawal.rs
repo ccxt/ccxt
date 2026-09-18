@@ -38,13 +38,13 @@ pub fn testDepositWithdrawal(mut exchange: Value, mut skippedProperties: Value, 
 }));
         m
     });
-    let mut emptyAllowedFor: Value = Value::List(vec![Value::Str("address".to_string()), Value::Str("addressTo".to_string()), Value::Str("addressFrom".to_string()), Value::Str("tag".to_string()), Value::Str("tagTo".to_string()), Value::Str("tagFrom".to_string())]); // below we still do assertion for to/from
+    let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("address".to_string()), Value::Str("addressTo".to_string()), Value::Str("addressFrom".to_string()), Value::Str("tag".to_string()), Value::Str("tagTo".to_string()), Value::Str("tagFrom".to_string())]); // below we still do assertion for to/from
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format.clone(), emptyAllowedFor.clone()]);
     crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), now.clone()]);
     crate::tests_support::shared::assert_currency_code(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), entry.as_map().and_then(|__m| __m.get("currency")).cloned().unwrap_or(Value::Null).clone(), requestedCode.clone()]);
     //
-    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("status".to_string()).clone(), Value::List(vec![Value::Str("ok".to_string()), Value::Str("pending".to_string()), Value::Str("failed".to_string()), Value::Str("rejected".to_string()), Value::Str("canceled".to_string())]).clone()]);
-    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("type".to_string()).clone(), Value::List(vec![Value::Str("deposit".to_string()), Value::Str("withdrawal".to_string())]).clone()]);
+    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("status".to_string()).clone(), Value::from(vec![Value::Str("ok".to_string()), Value::Str("pending".to_string()), Value::Str("failed".to_string()), Value::Str("rejected".to_string()), Value::Str("canceled".to_string())]).clone()]);
+    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("type".to_string()).clone(), Value::from(vec![Value::Str("deposit".to_string()), Value::Str("withdrawal".to_string())]).clone()]);
     crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("amount".to_string()).clone(), Value::Str("0".to_string()).clone()]);
     crate::tests_support::shared::assert_fee_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("fee".to_string()).clone()]);
     if (entry.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str() == Some("deposit")) {

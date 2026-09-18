@@ -20,13 +20,13 @@ fn helperDefaultInputDict() -> Value {
         m.insert("i".to_string(), Value::Int(1));
         m.insert("f".to_string(), Value::Float(0.123));
         m.insert("bool".to_string(), Value::Bool(true));
-        m.insert("list".to_string(), Value::List(vec![Value::Int(1), Value::Int(2), Value::Int(3)]));
+        m.insert("list".to_string(), Value::from(vec![Value::Int(1), Value::Int(2), Value::Int(3)]));
         m.insert("dict".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("a".to_string(), Value::Int(1));
     m
 }));
-        m.insert("listOfDicts".to_string(), Value::List(vec![Value::Map({
+        m.insert("listOfDicts".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("a".to_string(), Value::Int(1));
     m
@@ -37,7 +37,7 @@ fn helperDefaultInputDict() -> Value {
         m.insert("zeroString".to_string(), Value::Str("0".to_string()));
         m.insert("undefined".to_string(), Value::Null);
         m.insert("emptyString".to_string(), Value::Str("".to_string()));
-        m.insert("randomList".to_string(), Value::List(vec![Value::Str("Hi".to_string()), Value::Int(4)]));
+        m.insert("randomList".to_string(), Value::from(vec![Value::Str("Hi".to_string()), Value::Int(4)]));
         m.insert("floatNumeric".to_string(), Value::Float(0.123));
         m.insert("floatString".to_string(), Value::Str("0.123".to_string()));
         m.insert("longInt".to_string(), Value::Int(123456789012345));
@@ -55,7 +55,7 @@ pub fn testSafeString() {
         m
     }));
     let mut inputDict: Value = helperDefaultInputDict();
-    let mut inputList: Value = Value::List(vec![Value::Str("Hi".to_string()), Value::Int(2)]);
+    let mut inputList: Value = Value::from(vec![Value::Str("Hi".to_string()), Value::Int(2)]);
     // safeString
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string(inputDict.clone(), Value::Str("i".to_string()), &[]).as_str() == Some("1")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string(inputDict.clone(), Value::Str("f".to_string()), &[]).as_str() == Some("0.123")))));
@@ -89,14 +89,14 @@ pub fn testSafeString() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string2(inputList.clone(), Value::Int(2), Value::Int(0), &[]).as_str() == Some("Hi")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string2(inputList.clone(), Value::Int(2), Value::Str("emptyString".to_string()), &[]) == Value::Null))));
     // safeStringN
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("i".to_string())]), &[]).as_str() == Some("1")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("f".to_string())]), &[]).as_str() == Some("0.123")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("str".to_string())]), &[]).as_str() == Some("heLlo")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("strNumber".to_string())]), &[]).as_str() == Some("3")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("emptyString".to_string())]), &[]) == Value::Null))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_n(inputList.clone(), Value::List(vec![Value::Int(3), Value::Int(2), Value::Int(0)]), &[]).as_str() == Some("Hi")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("i".to_string())]), &[]).as_str() == Some("1")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("f".to_string())]), &[]).as_str() == Some("0.123")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("str".to_string())]), &[]).as_str() == Some("heLlo")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("strNumber".to_string())]), &[]).as_str() == Some("3")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("emptyString".to_string())]), &[]) == Value::Null))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_n(inputList.clone(), Value::from(vec![Value::Int(3), Value::Int(2), Value::Int(0)]), &[]).as_str() == Some("Hi")))));
     // With defaults
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("nonexistent".to_string())]), &[Value::Str("MiXed_Case".to_string())]).as_str() == Some("MiXed_Case")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("nonexistent".to_string())]), &[Value::Str("MiXed_Case".to_string())]).as_str() == Some("MiXed_Case")))));
     // safeStringLower
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower(inputDict.clone(), Value::Str("i".to_string()), &[]).as_str() == Some("1")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower(inputDict.clone(), Value::Str("f".to_string()), &[]).as_str() == Some("0.123")))));
@@ -116,14 +116,14 @@ pub fn testSafeString() {
     // With defaults
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower2(inputDict.clone(), Value::Str("a".to_string()), Value::Str("nonexistent".to_string()), &[Value::Str("MiXed_Case".to_string())]).as_str() == Some("MiXed_Case")))));
     // safeStringLowerN
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("i".to_string())]), &[]).as_str() == Some("1")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("f".to_string())]), &[]).as_str() == Some("0.123")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("str".to_string())]), &[]).as_str() == Some("hello")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("emptyString".to_string())]), &[]) == Value::Null))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("strNumber".to_string())]), &[]).as_str() == Some("3")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower_n(inputList.clone(), Value::List(vec![Value::Int(3), Value::Int(2), Value::Int(0)]), &[]).as_str() == Some("hi")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("i".to_string())]), &[]).as_str() == Some("1")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("f".to_string())]), &[]).as_str() == Some("0.123")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("str".to_string())]), &[]).as_str() == Some("hello")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("emptyString".to_string())]), &[]) == Value::Null))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("strNumber".to_string())]), &[]).as_str() == Some("3")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower_n(inputList.clone(), Value::from(vec![Value::Int(3), Value::Int(2), Value::Int(0)]), &[]).as_str() == Some("hi")))));
     // With defaults
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("nonexistent".to_string())]), &[Value::Str("MiXed_Case".to_string())]).as_str() == Some("MiXed_Case")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_lower_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("nonexistent".to_string())]), &[Value::Str("MiXed_Case".to_string())]).as_str() == Some("MiXed_Case")))));
     // safeStringUpper
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper(inputDict.clone(), Value::Str("i".to_string()), &[]).as_str() == Some("1")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper(inputDict.clone(), Value::Str("f".to_string()), &[]).as_str() == Some("0.123")))));
@@ -143,14 +143,14 @@ pub fn testSafeString() {
     // With defaults
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper2(inputDict.clone(), Value::Str("a".to_string()), Value::Str("nonexistent".to_string()), &[Value::Str("MiXed_Case".to_string())]).as_str() == Some("MiXed_Case")))));
     // safeStringUpperN
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("i".to_string())]), &[]).as_str() == Some("1")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("f".to_string())]), &[]).as_str() == Some("0.123")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("str".to_string())]), &[]).as_str() == Some("HELLO")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("emptyString".to_string())]), &[]) == Value::Null))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("strNumber".to_string())]), &[]).as_str() == Some("3")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper_n(inputList.clone(), Value::List(vec![Value::Int(3), Value::Int(2), Value::Int(0)]), &[]).as_str() == Some("HI")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("i".to_string())]), &[]).as_str() == Some("1")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("f".to_string())]), &[]).as_str() == Some("0.123")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("str".to_string())]), &[]).as_str() == Some("HELLO")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("emptyString".to_string())]), &[]) == Value::Null))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("strNumber".to_string())]), &[]).as_str() == Some("3")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper_n(inputList.clone(), Value::from(vec![Value::Int(3), Value::Int(2), Value::Int(0)]), &[]).as_str() == Some("HI")))));
     // With defaults
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("nonexistent".to_string())]), &[Value::Str("MiXed_Case".to_string())]).as_str() == Some("MiXed_Case")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_string_upper_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("nonexistent".to_string())]), &[Value::Str("MiXed_Case".to_string())]).as_str() == Some("MiXed_Case")))));
 }
 pub fn testSafeValue() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
@@ -159,13 +159,13 @@ pub fn testSafeValue() {
         m
     }));
     let mut inputDict: Value = helperDefaultInputDict();
-    let mut inputList: Value = Value::List(vec![Value::Str("Hi".to_string()), Value::Int(2)]);
+    let mut inputList: Value = Value::from(vec![Value::Str("Hi".to_string()), Value::Int(2)]);
     let mut compareDict: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("a".to_string(), Value::Int(1));
         m
     });
-    let mut compareList: Value = Value::List(vec![Value::Int(1), Value::Int(2), Value::Int(3)]);
+    let mut compareList: Value = Value::from(vec![Value::Int(1), Value::Int(2), Value::Int(3)]);
     // safeValue
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.safe_value(inputDict.clone(), Value::Str("i".to_string()), &[]), &Value::Int(1))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.safe_value(inputDict.clone(), Value::Str("f".to_string()), &[]), &Value::Float(0.123))))));
@@ -187,15 +187,15 @@ pub fn testSafeValue() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.safe_value2(inputDict.clone(), Value::Str("a".to_string()), Value::Str("strNumber".to_string()), &[]), &Value::Str("3".to_string()))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_value2(inputList.clone(), Value::Int(2), Value::Int(0), &[]).as_str() == Some("Hi")))));
     // safeValueN
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.safe_value_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("i".to_string())]), &[]), &Value::Int(1))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.safe_value_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("f".to_string())]), &[]), &Value::Float(0.123))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.safe_value_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("bool".to_string())]), &[]), &Value::Bool(true))))));
-    assert!(ccxt::runtime::is_true(&(equals(exchange.safe_value_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("list".to_string())]), &[]), compareList.clone()))));
-    dictObject = exchange.safe_value_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("dict".to_string())]), &[]);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.safe_value_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("i".to_string())]), &[]), &Value::Int(1))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.safe_value_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("f".to_string())]), &[]), &Value::Float(0.123))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.safe_value_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("bool".to_string())]), &[]), &Value::Bool(true))))));
+    assert!(ccxt::runtime::is_true(&(equals(exchange.safe_value_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("list".to_string())]), &[]), compareList.clone()))));
+    dictObject = exchange.safe_value_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("dict".to_string())]), &[]);
     assert!(ccxt::runtime::is_true(&(equals(dictObject.clone(), compareDict.clone()))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_value_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("str".to_string())]), &[]).as_str() == Some("heLlo")))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.safe_value_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("strNumber".to_string())]), &[]), &Value::Str("3".to_string()))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_value_n(inputList.clone(), Value::List(vec![Value::Int(3), Value::Int(2), Value::Int(0)]), &[]).as_str() == Some("Hi")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_value_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("str".to_string())]), &[]).as_str() == Some("heLlo")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.safe_value_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("strNumber".to_string())]), &[]), &Value::Str("3".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_value_n(inputList.clone(), Value::from(vec![Value::Int(3), Value::Int(2), Value::Int(0)]), &[]).as_str() == Some("Hi")))));
 }
 pub fn testSafeDict() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
@@ -204,7 +204,7 @@ pub fn testSafeDict() {
         m
     }));
     let mut inputDict: Value = helperDefaultInputDict();
-    let mut inputList: Value = Value::List(vec![Value::Str("Hi".to_string()), Value::Int(2)]);
+    let mut inputList: Value = Value::from(vec![Value::Str("Hi".to_string()), Value::Int(2)]);
     let mut compareDict: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("a".to_string(), Value::Int(1));
@@ -224,11 +224,11 @@ pub fn testSafeDict() {
     // @ts-expect-error
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_dict2(inputList.clone(), Value::Int(2), Value::Int(1), &[]) == Value::Null))));
     // safeDictN
-    dictObject = exchange.safe_dict_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("dict".to_string())]), &[]);
+    dictObject = exchange.safe_dict_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("dict".to_string())]), &[]);
     assert!(ccxt::runtime::is_true(&(equals(dictObject.clone(), compareDict.clone()))));
-    listObject = exchange.safe_dict_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("list".to_string())]), &[]);
+    listObject = exchange.safe_dict_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("list".to_string())]), &[]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(listObject == Value::Null))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_dict_n(inputList.clone(), Value::List(vec![Value::Int(3), Value::Int(2), Value::Int(1)]), &[]) == Value::Null))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_dict_n(inputList.clone(), Value::from(vec![Value::Int(3), Value::Int(2), Value::Int(1)]), &[]) == Value::Null))));
 }
 pub fn testSafeList() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
@@ -237,7 +237,7 @@ pub fn testSafeList() {
         m
     }));
     let mut inputDict: Value = helperDefaultInputDict();
-    let mut inputList: Value = Value::List(vec![Value::Str("Hi".to_string()), Value::Int(2)]);
+    let mut inputList: Value = Value::from(vec![Value::Str("Hi".to_string()), Value::Int(2)]);
     // safeList
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_list(inputDict.clone(), Value::Str("dict".to_string()), &[]) == Value::Null))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_list(inputList.clone(), Value::Int(1), &[]) == Value::Null))));
@@ -252,8 +252,8 @@ pub fn testSafeList() {
     // @ts-expect-error
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_list2(inputList.clone(), Value::Int(2), Value::Int(1), &[]) == Value::Null))));
     // safeListN
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_list_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("dict".to_string())]), &[]) == Value::Null))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_list_n(inputList.clone(), Value::List(vec![Value::Int(3), Value::Int(2), Value::Int(1)]), &[]) == Value::Null))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_list_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("dict".to_string())]), &[]) == Value::Null))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_list_n(inputList.clone(), Value::from(vec![Value::Int(3), Value::Int(2), Value::Int(1)]), &[]) == Value::Null))));
 }
 pub fn testSafeInteger() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
@@ -263,7 +263,7 @@ pub fn testSafeInteger() {
     }));
     // safeInteger
     let mut inputDict: Value = helperDefaultInputDict();
-    let mut inputList: Value = Value::List(vec![Value::Str("Hi".to_string()), Value::Int(2)]);
+    let mut inputList: Value = Value::from(vec![Value::Str("Hi".to_string()), Value::Int(2)]);
     let mut factor: Value = Value::Int(10);
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer(inputDict.clone(), Value::Str("i".to_string()), &[]).as_f64() == Some(1.0)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer(inputDict.clone(), Value::Str("f".to_string()), &[]).as_f64() == Some(0.0)))));
@@ -275,10 +275,10 @@ pub fn testSafeInteger() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer2(inputDict.clone(), Value::Str("a".to_string()), Value::Str("strNumber".to_string()), &[]).as_f64() == Some(3.0)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer2(inputList.clone(), Value::Int(2), Value::Int(1), &[]).as_f64() == Some(2.0)))));
     // safeIntegerN
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("i".to_string())]), &[]).as_f64() == Some(1.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("f".to_string())]), &[]).as_f64() == Some(0.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("strNumber".to_string())]), &[]).as_f64() == Some(3.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_n(inputList.clone(), Value::List(vec![Value::Int(3), Value::Int(2), Value::Int(1)]), &[]).as_f64() == Some(2.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("i".to_string())]), &[]).as_f64() == Some(1.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("f".to_string())]), &[]).as_f64() == Some(0.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("strNumber".to_string())]), &[]).as_f64() == Some(3.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_n(inputList.clone(), Value::from(vec![Value::Int(3), Value::Int(2), Value::Int(1)]), &[]).as_f64() == Some(2.0)))));
     // safeIntegerOmitZero
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_omit_zero(inputDict.clone(), Value::Str("i".to_string()), &[]).as_f64() == Some(1.0)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_omit_zero(inputDict.clone(), Value::Str("f".to_string()), &[]) == Value::Null))));
@@ -303,12 +303,12 @@ pub fn testSafeInteger() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_product2(inputDict.clone(), Value::Str("a".to_string()), Value::Str("tiny".to_string()), Value::Float(0.000001), &[]).as_f64() == Some(0.0)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_product2(inputDict.clone(), Value::Str("a".to_string()), Value::Str("largeInt".to_string()), Value::Int(1000), &[]).as_f64() == Some(1000000000000000000.0)))));
     // safeIntegerProductN
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_product_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("i".to_string())]), factor.clone(), &[]).as_f64() == Some(10.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_product_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("f".to_string())]), factor.clone(), &[]).as_f64() == Some(1.0))))); // NB the result is 1
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_product_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("strNumber".to_string())]), factor.clone(), &[]).as_f64() == Some(30.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_product_n(inputList.clone(), Value::List(vec![Value::Int(3), Value::Int(2), Value::Int(1)]), factor.clone(), &[]).as_f64() == Some(20.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_product_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("tiny".to_string())]), Value::Float(0.000001), &[]).as_f64() == Some(0.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_product_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("largeInt".to_string())]), Value::Int(1000), &[]).as_f64() == Some(1000000000000000000.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_product_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("i".to_string())]), factor.clone(), &[]).as_f64() == Some(10.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_product_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("f".to_string())]), factor.clone(), &[]).as_f64() == Some(1.0))))); // NB the result is 1
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_product_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("strNumber".to_string())]), factor.clone(), &[]).as_f64() == Some(30.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_product_n(inputList.clone(), Value::from(vec![Value::Int(3), Value::Int(2), Value::Int(1)]), factor.clone(), &[]).as_f64() == Some(20.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_product_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("tiny".to_string())]), Value::Float(0.000001), &[]).as_f64() == Some(0.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_integer_product_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("largeInt".to_string())]), Value::Int(1000), &[]).as_f64() == Some(1000000000000000000.0)))));
 }
 pub fn testSafeTimestamp() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
@@ -317,7 +317,7 @@ pub fn testSafeTimestamp() {
         m
     }));
     let mut inputDict: Value = helperDefaultInputDict();
-    let mut inputList: Value = Value::List(vec![Value::Str("Hi".to_string()), Value::Int(2)]);
+    let mut inputList: Value = Value::from(vec![Value::Str("Hi".to_string()), Value::Int(2)]);
     // safeTimestamp
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_timestamp(inputDict.clone(), Value::Str("i".to_string()), &[]).as_f64() == Some(1000.0)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_timestamp(inputDict.clone(), Value::Str("f".to_string()), &[]).as_f64() == Some(123.0)))));
@@ -332,11 +332,11 @@ pub fn testSafeTimestamp() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_timestamp2(inputList.clone(), Value::Int(2), Value::Int(1), &[]).as_f64() == Some(2000.0)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_timestamp2(inputDict.clone(), Value::Str("a".to_string()), Value::Str("largeInt".to_string()), &[]).as_f64() == Some(1000000000000000000.0)))));
     // safeTimestampN
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_timestamp_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("i".to_string())]), &[]).as_f64() == Some(1000.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_timestamp_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("f".to_string())]), &[]).as_f64() == Some(123.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_timestamp_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("strNumber".to_string())]), &[]).as_f64() == Some(3000.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_timestamp_n(inputList.clone(), Value::List(vec![Value::Int(3), Value::Int(2), Value::Int(1)]), &[]).as_f64() == Some(2000.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_timestamp_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("largeInt".to_string())]), &[]).as_f64() == Some(1000000000000000000.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_timestamp_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("i".to_string())]), &[]).as_f64() == Some(1000.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_timestamp_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("f".to_string())]), &[]).as_f64() == Some(123.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_timestamp_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("strNumber".to_string())]), &[]).as_f64() == Some(3000.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_timestamp_n(inputList.clone(), Value::from(vec![Value::Int(3), Value::Int(2), Value::Int(1)]), &[]).as_f64() == Some(2000.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_timestamp_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("largeInt".to_string())]), &[]).as_f64() == Some(1000000000000000000.0)))));
 }
 pub fn testSafeFloat() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
@@ -345,7 +345,7 @@ pub fn testSafeFloat() {
         m
     }));
     let mut inputDict: Value = helperDefaultInputDict();
-    let mut inputList: Value = Value::List(vec![Value::Str("Hi".to_string()), Value::Int(2)]);
+    let mut inputList: Value = Value::from(vec![Value::Str("Hi".to_string()), Value::Int(2)]);
     // safeFloat
     // @ts-expect-error
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_float(inputDict.clone(), Value::Str("i".to_string()), &[]).as_f64() == ccxt::runtime::parse_float(&Value::Int(1)).as_f64()))));
@@ -364,12 +364,12 @@ pub fn testSafeFloat() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_float2(inputList.clone(), Value::Int(2), Value::Int(1), &[]).as_f64() == ccxt::runtime::parse_float(&Value::Int(2)).as_f64()))));
     // safeFloatN
     // @ts-expect-error
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_float_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("i".to_string())]), &[]).as_f64() == ccxt::runtime::parse_float(&Value::Int(1)).as_f64()))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_float_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("f".to_string())]), &[]).as_f64() == Some(0.123)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_float_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("i".to_string())]), &[]).as_f64() == ccxt::runtime::parse_float(&Value::Int(1)).as_f64()))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_float_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("f".to_string())]), &[]).as_f64() == Some(0.123)))));
     // @ts-expect-error
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_float_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("strNumber".to_string())]), &[]).as_f64() == ccxt::runtime::parse_float(&Value::Int(3)).as_f64()))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_float_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("strNumber".to_string())]), &[]).as_f64() == ccxt::runtime::parse_float(&Value::Int(3)).as_f64()))));
     // @ts-expect-error
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_float_n(inputList.clone(), Value::List(vec![Value::Int(3), Value::Int(2), Value::Int(1)]), &[]).as_f64() == ccxt::runtime::parse_float(&Value::Int(2)).as_f64()))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_float_n(inputList.clone(), Value::from(vec![Value::Int(3), Value::Int(2), Value::Int(1)]), &[]).as_f64() == ccxt::runtime::parse_float(&Value::Int(2)).as_f64()))));
     // safeFloat - negative paths (missing key, empty string, non-numeric string, undefined container)
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_float(inputDict.clone(), Value::Str("nonexistent".to_string()), &[]) == Value::Null))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_float(inputDict.clone(), Value::Str("nonexistent".to_string()), &[Value::Int(5)]).as_f64() == Some(5.0)))));
@@ -386,12 +386,12 @@ pub fn testSafeFloat() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_float2(inputDict.clone(), Value::Str("nonexistent".to_string()), Value::Str("nonexistent2".to_string()), &[Value::Int(9)]).as_f64() == Some(9.0)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_float2(Value::Null, Value::Str("i".to_string()), Value::Str("f".to_string()), &[]) == Value::Null))));
     // safeFloatN - negative paths
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_float_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("nonexistent".to_string())]), &[]) == Value::Null))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_float_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("emptyString".to_string())]), &[]) == Value::Null))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_float_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("str".to_string())]), &[]) == Value::Null))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_float_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("nonexistent".to_string())]), &[Value::Int(11)]).as_f64() == Some(11.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_float_n(Value::Null, Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("i".to_string())]), &[]) == Value::Null))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_float_n(inputList.clone(), Value::List(vec![Value::Int(5), Value::Int(6)]), &[]) == Value::Null))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_float_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("nonexistent".to_string())]), &[]) == Value::Null))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_float_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("emptyString".to_string())]), &[]) == Value::Null))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_float_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("str".to_string())]), &[]) == Value::Null))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_float_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("nonexistent".to_string())]), &[Value::Int(11)]).as_f64() == Some(11.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_float_n(Value::Null, Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("i".to_string())]), &[]) == Value::Null))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_float_n(inputList.clone(), Value::from(vec![Value::Int(5), Value::Int(6)]), &[]) == Value::Null))));
 }
 pub fn testSafeNumber() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
@@ -400,7 +400,7 @@ pub fn testSafeNumber() {
         m
     }));
     let mut inputDict: Value = helperDefaultInputDict();
-    let mut inputList: Value = Value::List(vec![Value::Str("Hi".to_string()), Value::Int(2)]);
+    let mut inputList: Value = Value::from(vec![Value::Str("Hi".to_string()), Value::Int(2)]);
     // safeNumber
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_number(inputDict.clone(), Value::Str("i".to_string()), &[]).as_f64() == exchange.parse_number(Value::Int(1), &[]).as_f64()))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_number(inputDict.clone(), Value::Str("f".to_string()), &[]).as_f64() == exchange.parse_number(Value::Float(0.123), &[]).as_f64()))));
@@ -416,10 +416,10 @@ pub fn testSafeNumber() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_number2(inputDict.clone(), Value::Str("a".to_string()), Value::Str("strNumber".to_string()), &[]).as_f64() == exchange.parse_number(Value::Int(3), &[]).as_f64()))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_number2(inputList.clone(), Value::Int(2), Value::Int(1), &[]).as_f64() == exchange.parse_number(Value::Int(2), &[]).as_f64()))));
     // safeNumberN
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_number_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("i".to_string())]), &[]).as_f64() == exchange.parse_number(Value::Int(1), &[]).as_f64()))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_number_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("f".to_string())]), &[]).as_f64() == exchange.parse_number(Value::Float(0.123), &[]).as_f64()))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_number_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("strNumber".to_string())]), &[]).as_f64() == exchange.parse_number(Value::Int(3), &[]).as_f64()))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_number_n(inputList.clone(), Value::List(vec![Value::Int(3), Value::Int(2), Value::Int(1)]), &[]).as_f64() == exchange.parse_number(Value::Int(2), &[]).as_f64()))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_number_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("i".to_string())]), &[]).as_f64() == exchange.parse_number(Value::Int(1), &[]).as_f64()))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_number_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("f".to_string())]), &[]).as_f64() == exchange.parse_number(Value::Float(0.123), &[]).as_f64()))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_number_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("strNumber".to_string())]), &[]).as_f64() == exchange.parse_number(Value::Int(3), &[]).as_f64()))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_number_n(inputList.clone(), Value::from(vec![Value::Int(3), Value::Int(2), Value::Int(1)]), &[]).as_f64() == exchange.parse_number(Value::Int(2), &[]).as_f64()))));
     // safeNumberOmitZero
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_number_omit_zero(inputDict.clone(), Value::Str("zeroNumeric".to_string()), &[]) == Value::Null))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_number_omit_zero(inputDict.clone(), Value::Str("zeroString".to_string()), &[]) == Value::Null))));
@@ -435,7 +435,7 @@ pub fn testSafeBool() {
         m
     }));
     let mut inputDict: Value = helperDefaultInputDict();
-    let mut inputList: Value = Value::List(vec![Value::Str("Hi".to_string()), Value::Int(2)]);
+    let mut inputList: Value = Value::from(vec![Value::Str("Hi".to_string()), Value::Int(2)]);
     // safeBool
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_bool(inputDict.clone(), Value::Str("bool".to_string()), &[]).as_bool() == Some(true)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_bool(inputList.clone(), Value::Int(1), &[]) == Value::Null))));
@@ -443,8 +443,8 @@ pub fn testSafeBool() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_bool2(inputDict.clone(), Value::Str("a".to_string()), Value::Str("bool".to_string()), &[]).as_bool() == Some(true)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_bool2(inputList.clone(), Value::Int(2), Value::Int(1), &[]) == Value::Null))));
     // safeBoolN
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_bool_n(inputDict.clone(), Value::List(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("bool".to_string())]), &[]).as_bool() == Some(true)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_bool_n(inputList.clone(), Value::List(vec![Value::Int(3), Value::Int(2), Value::Int(1)]), &[]) == Value::Null))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_bool_n(inputDict.clone(), Value::from(vec![Value::Str("a".to_string()), Value::Str("b".to_string()), Value::Str("bool".to_string())]), &[]).as_bool() == Some(true)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.safe_bool_n(inputList.clone(), Value::from(vec![Value::Int(3), Value::Int(2), Value::Int(1)]), &[]) == Value::Null))));
 }
 pub fn testCacheSafeCalls() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
@@ -465,7 +465,7 @@ pub fn testCacheSafeCalls() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(get_array_length(&arrayCache).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));
     // Test cache types - ArrayCacheByTimestamp
     let mut arrayCacheByTimestamp = ArrayCacheByTimestamp::new(Value::Int(100));
-    arrayCacheByTimestamp.append(Value::List(vec![Value::Int(1000), Value::Int(50000), Value::Int(1), Value::Int(2), Value::Int(3)]));
+    arrayCacheByTimestamp.append(Value::from(vec![Value::Int(1000), Value::Int(50000), Value::Int(1), Value::Int(2), Value::Int(3)]));
     let mut arrayCacheByTimestampData: Value = exchange.safe_value(arrayCacheByTimestamp.clone(), Value::Str("Data".to_string()), &[]);
     let mut cacheByTimestampData: Value = (if (arrayCacheByTimestampData != Value::Null) { arrayCacheByTimestampData.clone() } else { arrayCacheByTimestamp.clone() });
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_greater_than(&get_array_length(&cacheByTimestampData), &Value::Int(0))))));

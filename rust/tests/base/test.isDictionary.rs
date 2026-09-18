@@ -21,7 +21,7 @@ pub fn testIsDictionary() {
     m
 })).as_bool() == Some(true)))));
     // populated list is not a dict
-    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.is_dictionary(Value::List(vec![Value::Int(1), Value::Int(2), Value::Int(3)])).as_bool() == Some(false)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.is_dictionary(Value::from(vec![Value::Int(1), Value::Int(2), Value::Int(3)])).as_bool() == Some(false)))));
     // null is not a dict, in js typeof null is object so the explicit
     // null check matters, see https://github.com/ccxt/ccxt/pull/29704
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.is_dictionary(Value::Null).as_bool() == Some(false)))));

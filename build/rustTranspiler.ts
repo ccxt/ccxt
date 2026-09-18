@@ -2455,7 +2455,7 @@ class RustTranspilerBuilder {
             // `Value::<Variant>(…)` we skip; otherwise we inject one.
             const endsWithValueExpr =
                 /\bValue::Null\s*$/.test(trimmed)
-                || /\bValue::[A-Z]\w*\s*\([^()]*\)\s*$/.test(trimmed);
+                || /\bValue::(?:[A-Z]\w*|from)\s*\([^()]*\)\s*$/.test(trimmed);
             if (!endsWithValueExpr) {
                 out += content.slice(cursor, j);
                 out += '\n    Value::Null\n';
@@ -4719,9 +4719,10 @@ class RustTranspilerBuilder {
      * args (paren-balanced — handles nested calls in element positions).
      */
     cloneInArrayLiterals(content: string): string {
-        // The AST transpiler emits `Value::List(vec![...])` (a fn alias
-        // for Array). Match either spelling.
-        const markers = ['Value::Array(vec![', 'Value::List(vec!['];
+        // The AST transpiler emits `Value::from(vec![...])` (the
+        // `From<Vec<Value>>` impl; older builds emitted the `Value::List`
+        // fn alias). Match either spelling.
+        const markers = ['Value::Array(vec![', 'Value::List(vec![', 'Value::from(vec!['];
         let i = 0;
         let out = '';
         while (i < content.length) {
@@ -9365,20 +9366,20 @@ impl std::ops::DerefMut for ${coreName} {
             // reads, so each frame routes correctly and the final asserted
             // structure reflects all deltas.
             content = content.replace(
-                /let mut promises: Value = Value::List\(vec!\[callExchangeMethodDynamically\(&mut exchange, (.+?)\), (self\.inject_ws_messages\(.+?\))\.await\]\);/,
+                /let mut promises: Value = Value::(?:List|from)\(vec!\[callExchangeMethodDynamically\(&mut exchange, (.+?)\), (self\.inject_ws_messages\(.+?\))\.await\]\);/,
                 'preloadWsMessages(exchange.clone(), url.clone(), messages.clone()); '
                 + 'let mut __w = callExchangeMethodDynamically(&mut exchange, $1).await; '
                 + 'let mut __g = 0; '
                 + 'while is_true(&wsHasQueuedMessages(exchange.clone(), url.clone())) && __g < 500 { '
                 + '__w = callExchangeMethodDynamically(&mut exchange, $1).await; __g += 1; } '
-                + 'let mut promises: Value = Value::List(vec![__w, Value::Bool(true)]);',
+                + 'let mut promises: Value = Value::from(vec![__w, Value::Bool(true)]);',
             );
             // Static-WS-test parsedResponses (sequence) case: inject + watch-loop
             // are both `&mut self` and can't join. Pre-load the mock queue, then
             // run the sequence watcher which drains one frame per watch call.
             content = content.replace(
-                /let mut promises: Value = Value::List\(vec!\[self\.inject_ws_messages\(.+?\)\.await, (self\.watch_and_assert_sequence\(.+?\))\.await\]\);/,
-                'preloadWsMessages(exchange.clone(), url.clone(), messages.clone()); let mut promises: Value = Value::List(vec![Value::Bool(true), $1.await]);',
+                /let mut promises: Value = Value::(?:List|from)\(vec!\[self\.inject_ws_messages\(.+?\)\.await, (self\.watch_and_assert_sequence\(.+?\))\.await\]\);/,
+                'preloadWsMessages(exchange.clone(), url.clone(), messages.clone()); let mut promises: Value = Value::from(vec![Value::Bool(true), $1.await]);',
             );
             // `extend_exchange_options` takes `&mut self` — hoist any arg
             // that also reads the receiver out of the call.

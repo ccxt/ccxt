@@ -17,8 +17,8 @@ pub fn testExtend() {
     let mut obj1: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("a".to_string(), Value::Int(1));
-            m.insert("b".to_string(), Value::List(vec![Value::Int(1), Value::Int(2)]));
-            m.insert("c".to_string(), Value::List(vec![Value::Map({
+            m.insert("b".to_string(), Value::from(vec![Value::Int(1), Value::Int(2)]));
+            m.insert("c".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("test1".to_string(), Value::Int(1));
         m.insert("test2".to_string(), Value::Int(1));
@@ -29,8 +29,8 @@ pub fn testExtend() {
             m.insert("sub".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("a".to_string(), Value::Int(1));
-        m.insert("b".to_string(), Value::List(vec![Value::Int(1), Value::Int(2)]));
-        m.insert("c".to_string(), Value::List(vec![Value::Map({
+        m.insert("b".to_string(), Value::from(vec![Value::Int(1), Value::Int(2)]));
+        m.insert("c".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("test1".to_string(), Value::Int(1));
         m.insert("test2".to_string(), Value::Int(2));
@@ -47,8 +47,8 @@ pub fn testExtend() {
     let mut obj2: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("a".to_string(), Value::Int(2));
-            m.insert("b".to_string(), Value::List(vec![Value::Int(3), Value::Int(4)]));
-            m.insert("c".to_string(), Value::List(vec![Value::Map({
+            m.insert("b".to_string(), Value::from(vec![Value::Int(3), Value::Int(4)]));
+            m.insert("c".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("test1".to_string(), Value::Int(2));
         m.insert("test3".to_string(), Value::Int(3));
@@ -59,8 +59,8 @@ pub fn testExtend() {
             m.insert("sub".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("a".to_string(), Value::Int(2));
-        m.insert("b".to_string(), Value::List(vec![Value::Int(3), Value::Int(4)]));
-        m.insert("c".to_string(), Value::List(vec![Value::Map({
+        m.insert("b".to_string(), Value::from(vec![Value::Int(3), Value::Int(4)]));
+        m.insert("c".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("test1".to_string(), Value::Int(2));
         m.insert("test3".to_string(), Value::Int(3));
@@ -96,8 +96,8 @@ pub fn testExtend() {
     let mut obj3: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("a".to_string(), Value::Int(3));
-            m.insert("b".to_string(), Value::List(vec![Value::Int(5), Value::Int(6)]));
-            m.insert("c".to_string(), Value::List(vec![Value::Map({
+            m.insert("b".to_string(), Value::from(vec![Value::Int(5), Value::Int(6)]));
+            m.insert("c".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("test1".to_string(), Value::Int(3));
         m.insert("test4".to_string(), Value::Int(4));
