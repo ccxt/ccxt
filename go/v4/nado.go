@@ -3704,11 +3704,11 @@ func (this *Nado) CreateSubaccount(walletAddress any, optionalArgs ...any) any {
 		subaccount = "default"
 	}
 	var address string = ToLower(this.Remove0xPrefix(walletAddress))
-	if !IsEqual(GetArrayLength(address), 40) {
+	if !IsEqual(len(address), 40) {
 		panic(BadRequest(this.Id + " createOrder() requires a 20-byte walletAddress"))
 	}
 	var encoded string = this.Remove0xPrefix(this.StringToBase16(subaccount))
-	if GetArrayLength(encoded) > 24 {
+	if len(encoded) > 24 {
 		panic(BadRequest(this.Id + " createOrder() subaccount must fit in 12 bytes"))
 	}
 	return Add("0x"+address, this.PadHex(encoded, 24, false))

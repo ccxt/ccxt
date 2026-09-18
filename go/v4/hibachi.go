@@ -2288,7 +2288,7 @@ func (this *Hibachi) Sign(path any, optionalArgs ...any) any {
 	if IsEqual(method, "GET") {
 		var request any = this.Omit(params, this.ExtractParams(path))
 		var query string = this.Urlencode(request)
-		if GetLength(query) != 0 {
+		if len(query) != 0 {
 			url = Add(url, "?"+query)
 		}
 	}

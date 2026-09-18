@@ -4015,7 +4015,7 @@ func (this *Deepcoin) Sign(path any, optionalArgs ...any) any {
 	var requestPath any = path
 	if IsEqual(method, "GET") {
 		var query string = this.Urlencode(params)
-		if GetLength(query) > 0 {
+		if len(query) > 0 {
 			requestPath = Add(requestPath, "?"+query)
 		}
 	}

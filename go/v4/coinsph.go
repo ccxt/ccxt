@@ -2840,7 +2840,7 @@ func (this *Coinsph) UrlEncodeQuery(optionalArgs ...any) any {
 		}
 	}
 	var encodedQuery string = this.Urlencode(query)
-	if GetLength(encodedQuery) != 0 {
+	if len(encodedQuery) != 0 {
 		return Add(encodedQuery+"&", encodedArrayParams)
 	} else {
 		return encodedArrayParams
