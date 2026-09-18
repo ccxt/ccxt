@@ -533,7 +533,7 @@ func (this *testMainClass) testSafeBody(ch chan any, methodName any, exchange cc
 									// wait and retry again
 									// (increase wait time on every retry)
 
-									retRes45824 := (<-exchange.Sleep(Multiply((Add(i, 1)), 1000)))
+									retRes45824 := (<-exchange.Sleep(Multiply((i + 1), 1000)))
 									PanicOnError(retRes45824)
 								}
 							} else {

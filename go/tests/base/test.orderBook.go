@@ -31,7 +31,7 @@ func TestOrderBook(exchange ccxt.ICoreExchange, skippedProperties any, method an
 	for i := 0; i < bidsLength; i++ {
 		var currentBidString any = exchange.SafeString(GetValue(bids, i), 0)
 		if !(InOp(skippedProperties, "compareToNextItem")) {
-			var nextI any = Add(i, 1)
+			var nextI any = i + 1
 			if IsGreaterThan(bidsLength, nextI) {
 				var nextBidString any = exchange.SafeString(GetValue(bids, nextI), 0)
 				Assert(ccxt.Precise.StringGt(currentBidString, nextBidString), Add(Add(Add(Add("current bid should be > than the next one: ", currentBidString), ">"), nextBidString), logText))
@@ -48,7 +48,7 @@ func TestOrderBook(exchange ccxt.ICoreExchange, skippedProperties any, method an
 	for i := 0; i < asksLength; i++ {
 		var currentAskString any = exchange.SafeString(GetValue(asks, i), 0)
 		if !(InOp(skippedProperties, "compareToNextItem")) {
-			var nextI any = Add(i, 1)
+			var nextI any = i + 1
 			if IsGreaterThan(asksLength, nextI) {
 				var nextAskString any = exchange.SafeString(GetValue(asks, nextI), 0)
 				Assert(ccxt.Precise.StringLt(currentAskString, nextAskString), Add(Add(Add(Add("current ask should be < than the next one: ", currentAskString), "<"), nextAskString), logText))

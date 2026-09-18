@@ -440,7 +440,7 @@ func (this *Bullish) SeparateBidsOrAsks(entry any) any {
 			continue
 		}
 		var price *string = this.SafeString(entry, i)
-		var amount *string = this.SafeString(entry, ccxt.Add(i, 1))
+		var amount *string = this.SafeString(entry, i+1)
 		ccxt.AppendToArray(&result, []any{price, amount})
 	}
 	return result

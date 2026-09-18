@@ -272,7 +272,7 @@ func (this *Bitstamp) GetCacheIndex(orderbook any, deltas any) any {
 		var delta any = ccxt.GetValue(deltas, i)
 		var deltaNonce *int64 = this.SafeInteger(delta, "microtimestamp")
 		if deltaNonce == nonce || (deltaNonce != nil && nonce != nil && *deltaNonce == *nonce) {
-			return ccxt.Add(i, 1)
+			return i + 1
 		}
 	}
 	return ccxt.GetArrayLength(deltas)
