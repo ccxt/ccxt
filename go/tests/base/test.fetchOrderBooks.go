@@ -24,7 +24,7 @@ func testFetchOrderBooksBody(ch chan any, exchange ccxt.ICoreExchange, skippedPr
 	var orderBookKeys []string = ObjectKeys(orderBooks)
 	Assert(IsGreaterThan(GetArrayLength(orderBookKeys), 0), Add(Add(Add(exchange.GetId(), " "), method), " returned 0 length data"))
 	for i := 0; IsLessThan(i, GetArrayLength(orderBookKeys)); i++ {
-		var symbolInner any = GetValue(orderBookKeys, i)
+		var symbolInner string = GetValue(orderBookKeys, i).(string)
 		TestOrderBook(exchange, skippedProperties, method, GetValue(orderBooks, symbolInner), symbolInner)
 	}
 

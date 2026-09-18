@@ -490,6 +490,7 @@ func (e *BaseExchange) UrlencodeBase64(s any) string {
 }
 
 func Base64urlencode(s any) string {
+	s = derefScalar(s)
 	var str string
 	if stringVal, ok := s.(string); ok {
 		str = stringToBase64(stringVal)

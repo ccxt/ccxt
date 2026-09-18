@@ -250,7 +250,9 @@ func ExtendMap(aa any, bb ...any) map[string]any {
 	return outDict
 }
 
-func (this *BaseExchange) DeepExtend2(objs ...any) any {
+// DeepExtend2 always returns the merged dict (a non-map obj panics on the assertion below, so no
+// other type can escape), hence the concrete map[string]any return instead of `any`.
+func (this *BaseExchange) DeepExtend2(objs ...any) map[string]any {
 	outDict := make(map[string]any)
 	for _, obj := range objs {
 		if obj == nil {

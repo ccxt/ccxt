@@ -583,7 +583,7 @@ public partial class coinbaseinternational : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         object limitVar = limit;
         timeframeVar ??= "1m";
         limitVar ??= 100;
@@ -1266,7 +1266,7 @@ public partial class coinbaseinternational : Exchange
      */
     public async override Task<ccxt.Position> FetchPosition(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -1300,7 +1300,7 @@ public partial class coinbaseinternational : Exchange
         return ccxt.BaseExchange.ToPosition(this.parsePosition(position));
     }
 
-    public override object parsePosition(object position, object market = null)
+    public override Dictionary<string, object> parsePosition(object position, object market = null)
     {
         //
         //    {
@@ -1505,7 +1505,7 @@ public partial class coinbaseinternational : Exchange
         };
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         //    {
@@ -1865,7 +1865,7 @@ public partial class coinbaseinternational : Exchange
         return ccxt.BaseExchange.ToTicker(this.parseTicker(ticker, market));
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         //    {
@@ -2052,8 +2052,8 @@ public partial class coinbaseinternational : Exchange
         Dictionary<string, object> market = this.market(symbol);
         string typeId = ((string)type).ToUpper();
         double? triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "stop_price"});
-        object clientOrderIdprefix = this.safeString(this.options, "brokerId", "nfqkvdjp");
-        object clientOrderId = add(add(clientOrderIdprefix, "-"), this.uuid());
+        string clientOrderIdprefix = ((string)this.safeString(this.options, "brokerId", "nfqkvdjp"));
+        string? clientOrderId = add(add(clientOrderIdprefix, "-"), this.uuid());
         clientOrderId = slice(clientOrderId, 0, 17);
         if (isTrue(isEqual(side, null)))
         {
@@ -2140,7 +2140,7 @@ public partial class coinbaseinternational : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         //    {

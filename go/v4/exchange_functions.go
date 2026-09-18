@@ -248,7 +248,9 @@ func (this *BaseExchange) ToArray(a any) []any {
 
 // arrayConcat concatenates two slices. Elements are copied through reflection so any slice type
 // works (e.g. ObjectKeys returns []string in Go, which a direct .([]any) assertion would panic on).
-func (this *BaseExchange) ArrayConcat(aa, bb any) any {
+// TS `arrayConcat (a: any[], b: any[])` is always an array, so the Go twin reports `[]any`
+// instead of boxing it back into `any` (nil when an operand is not a slice, as before).
+func (this *BaseExchange) ArrayConcat(aa, bb any) []any {
 	if aa != nil && bb != nil && reflect.TypeOf(aa).Kind() == reflect.Slice && reflect.TypeOf(bb).Kind() == reflect.Slice {
 		va := reflect.ValueOf(aa)
 		vb := reflect.ValueOf(bb)

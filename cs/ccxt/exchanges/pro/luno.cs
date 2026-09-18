@@ -112,14 +112,14 @@ public partial class luno : ccxt.luno
         for (int i = 0; isLessThan(i, getArrayLength(rawTrades)); postFixIncrement(ref i))
         {
             object rawTrade = getValue(rawTrades, i);
-            object trade = this.parseTrade(rawTrade, market);
+            Dictionary<string, object> trade = this.parseTrade(rawTrade, market);
             callDynamically(stored, "append", new object[] {trade});
         }
         ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.trades, symbol), messageHash});
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // watchTrades (public)

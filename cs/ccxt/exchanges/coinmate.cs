@@ -619,7 +619,7 @@ public partial class coinmate : Exchange
         };
         Dictionary<string, object> response = await this.publicGetOrderBook(this.extend(request, parameters));
         IDictionary<string, object> orderbook = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object timestamp = this.safeTimestamp(orderbook, "timestamp");
+        Int64? timestamp = this.safeTimestamp(orderbook, "timestamp");
         return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderbook, getValue(market, "symbol"), timestamp, "bids", "asks", "price", "amount"));
     }
 
@@ -708,13 +708,13 @@ public partial class coinmate : Exchange
         for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             Dictionary<string, object> market = this.market(getValue(keys, i));
-            object ticker = this.parseTicker(this.safeValue(data, getValue(keys, i)), market);
+            Dictionary<string, object> ticker = this.parseTicker(this.safeValue(data, getValue(keys, i)), market);
             ((IDictionary<string,object>)result)[(string)getValue(market, "symbol")] = ticker;
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbols));
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         //     {
@@ -729,7 +729,7 @@ public partial class coinmate : Exchange
         //         "timestamp": "1708074485"
         //     }
         //
-        object timestamp = this.safeTimestamp(ticker, "timestamp");
+        Int64? timestamp = this.safeTimestamp(ticker, "timestamp");
         double? last = this.safeNumber(ticker, "last");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", this.safeString(market, "symbol") },
@@ -1024,7 +1024,7 @@ public partial class coinmate : Exchange
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(data, null, since, limitVar));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // fetchMyTrades (private)
@@ -1248,7 +1248,7 @@ public partial class coinmate : Exchange
         return this.safeString(types, ((string)type), type);
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // limit sell

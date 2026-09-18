@@ -18,13 +18,13 @@ func testWatchOrderBookForSymbolsBody(ch chan any, exchange ccxt.ICoreExchange, 
 	// loop has to be bounded by the deadline alone. waiting for every requested
 	// symbol to be seen would hang forever whenever one of them stays idle.
 	var maxIdleTime int = 5000
-	var currentTime any = exchange.Milliseconds()
+	var currentTime int64 = exchange.Milliseconds()
 	var deadline any = Add(currentTime, 15000)
 	var idle bool = false
 	for (IsLessThan(currentTime, deadline)) && !idle {
 		var response any = nil
 		var succeeded bool = true
-		var startTime any = exchange.Milliseconds()
+		var startTime int64 = exchange.Milliseconds()
 
 		{
 			func() (ret_ any) {
@@ -56,7 +56,7 @@ func testWatchOrderBookForSymbolsBody(ch chan any, exchange ccxt.ICoreExchange, 
 		if (succeeded == true) && (!IsEqual(response, nil)) {
 			TestOrderBook(exchange, skippedProperties, method, response, nil)
 			AssertInArray(exchange, skippedProperties, method, response, "symbol", symbols)
-			var elapsed any = Subtract(currentTime, startTime)
+			var elapsed int64 = Subtract(currentTime, startTime).(int64)
 			if IsGreaterThan(elapsed, maxIdleTime) {
 				idle = true
 			}

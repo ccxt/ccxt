@@ -125,9 +125,9 @@ public partial class kraken : ccxt.kraken
             ((IDictionary<string,object>)getValue(request, "params"))["limit_price"] = this.parseToNumeric(this.priceToPrecision(symbol, price));
         }
         bool isMarket = (isEqual(type, "market"));
-        object postOnly = null;
+        bool? postOnly = null;
         IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isMarket, false, parameters);
-        postOnly = ((IList<object>)postOnlyparametersVariable)[0];
+        postOnly = (bool?)((IList<object>)postOnlyparametersVariable)[0];
         parameters = ((IList<object>)postOnlyparametersVariable)[1];
         if (isTrue(isEqual(postOnly, true)))
         {
@@ -322,7 +322,7 @@ public partial class kraken : ccxt.kraken
         object token = await this.authenticate();
         Dictionary<string, object> market = this.market(symbol);
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "privateV2");
-        object requestId = this.requestId();
+        Int64 requestId = ((Int64)this.requestId());
         string messageHash = ((string)this.numberToString(requestId));
         object request = new Dictionary<string, object>() {
             { "method", "add_order" },
@@ -370,7 +370,7 @@ public partial class kraken : ccxt.kraken
         //     }
         //
         IDictionary<string, object> result = this.safeDict(message, "result", new Dictionary<string, object>() {});
-        object order = this.parseOrder(result);
+        Dictionary<string, object> order = this.parseOrder(result);
         string? messageHash = this.safeString2(message, "reqid", "req_id");
         callDynamically(client as WebSocketClient, "resolve", new object[] {order, messageHash});
     }
@@ -395,7 +395,7 @@ public partial class kraken : ccxt.kraken
         await this.loadMarkets();
         object token = await this.authenticate();
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "privateV2");
-        object requestId = this.requestId();
+        Int64 requestId = ((Int64)this.requestId());
         string messageHash = ((string)this.numberToString(requestId));
         object request = new Dictionary<string, object>() {
             { "method", "amend_order" },
@@ -432,7 +432,7 @@ public partial class kraken : ccxt.kraken
         await this.loadMarkets();
         object token = await this.authenticate();
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "privateV2");
-        object requestId = this.requestId();
+        Int64 requestId = ((Int64)this.requestId());
         string messageHash = ((string)this.numberToString(requestId));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "cancel_order" },
@@ -465,7 +465,7 @@ public partial class kraken : ccxt.kraken
         await this.loadMarkets();
         object token = await this.authenticate();
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "privateV2");
-        object requestId = this.requestId();
+        Int64 requestId = ((Int64)this.requestId());
         string messageHash = ((string)this.numberToString(requestId));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "cancel_order" },
@@ -515,7 +515,7 @@ public partial class kraken : ccxt.kraken
         await this.loadMarkets();
         object token = await this.authenticate();
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "privateV2");
-        object requestId = this.requestId();
+        Int64 requestId = ((Int64)this.requestId());
         string messageHash = ((string)this.numberToString(requestId));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "cancel_all" },
@@ -705,7 +705,7 @@ public partial class kraken : ccxt.kraken
     {
         // their support said that reqid must be an int32, not documented
         this.lockId();
-        object reqid = this.sum(this.safeInteger(this.options, "reqid", 0), 1);
+        Int64 reqid = ((Int64)this.sum(this.safeInteger(this.options, "reqid", 0), 1));
         ((IDictionary<string,object>)this.options)["reqid"] = reqid;
         this.unlockId();
         return reqid;
@@ -722,7 +722,7 @@ public partial class kraken : ccxt.kraken
      */
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbolVar = this.symbol(symbolVar);
@@ -882,7 +882,7 @@ public partial class kraken : ccxt.kraken
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object symbolVar = symbol;
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -891,7 +891,7 @@ public partial class kraken : ccxt.kraken
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "publicV2");
-        object requestId = this.requestId();
+        Int64 requestId = ((Int64)this.requestId());
         string? messageHash = ((string)this.getMessageHash("ohlcv", null, symbolVar));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "method", "subscribe" },
@@ -920,7 +920,7 @@ public partial class kraken : ccxt.kraken
         if (isTrue(isTrue((isEqual(marketsByWsName, null))) || isTrue(reload)))
         {
             marketsByWsName = new Dictionary<string, object>() {};
-            object symbols = this.symbols; // do not cast `as string[]`: this.symbols is List<Object> in Java, and List<Object>->List<String> is an illegal cast
+            List<object> symbols = this.symbols; // do not cast `as string[]`: this.symbols is List<Object> in Java, and List<Object>->List<String> is an illegal cast
             if (isTrue(!isEqual(symbols, null)))
             {
                 for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
@@ -1263,7 +1263,7 @@ public partial class kraken : ccxt.kraken
             messageHash = add(messageHash, add(":", symbol));
         }
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "privateV2");
-        object requestId = this.requestId();
+        Int64 requestId = ((Int64)this.requestId());
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "params", new Dictionary<string, object>() {
@@ -1349,7 +1349,7 @@ public partial class kraken : ccxt.kraken
             for (int i = 0; isLessThan(i, getArrayLength(allTrades)); postFixIncrement(ref i))
             {
                 IDictionary<string, object> trade = this.safeDict(allTrades, i, new Dictionary<string, object>() {});
-                object parsed = this.parseWsTrade(trade);
+                Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsTrade(trade));
                 callDynamically(stored, "append", new object[] {parsed});
                 string symbol = ((string)getValue(parsed, "symbol"));
                 ((IDictionary<string,object>)symbols)[(string)symbol] = true;
@@ -1359,7 +1359,7 @@ public partial class kraken : ccxt.kraken
             List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
             for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
             {
-                object messageHash = add(add(name, ":"), getValue(keys, i));
+                string messageHash = add(add(name, ":"), getValue(keys, i));
                 callDynamically(client as WebSocketClient, "resolve", new object[] {this.myTrades, messageHash});
             }
         }
@@ -1487,9 +1487,9 @@ public partial class kraken : ccxt.kraken
             {
                 IDictionary<string, object> order = this.safeDict(allOrders, i, new Dictionary<string, object>() {});
                 string? id = this.safeString(order, "order_id");
-                object parsed = this.parseWsOrder(order);
+                Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsOrder(order));
                 string? symbol = this.safeString(order, "symbol");
-                object previousOrders = this.safeValue((stored as ArrayCache).hashmap, symbol);
+                Dictionary<string, object> previousOrders = ((Dictionary<string, object>)this.safeValue((stored as ArrayCache).hashmap, symbol));
                 object previousOrder = this.safeValue(previousOrders, id);
                 object newOrder = parsed;
                 if (isTrue(!isEqual(previousOrder, null)))
@@ -1518,7 +1518,7 @@ public partial class kraken : ccxt.kraken
             List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
             for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
             {
-                object messageHash = add(add(name, ":"), getValue(keys, i));
+                string messageHash = add(add(name, ":"), getValue(keys, i));
                 callDynamically(client as WebSocketClient, "resolve", new object[] {this.orders, messageHash});
             }
         }
@@ -1647,7 +1647,7 @@ public partial class kraken : ccxt.kraken
         object token = await this.authenticate();
         string messageHash = "balances";
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "privateV2");
-        object requestId = this.requestId();
+        Int64 requestId = ((Int64)this.requestId());
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "req_id", requestId },
@@ -1783,7 +1783,7 @@ public partial class kraken : ccxt.kraken
         {
             string? requestId = this.safeString2(message, "reqid", "req_id");
             object broad = getValue(getValue(this.exceptions, "ws"), "broad");
-            object broadKey = this.findBroadlyMatchedKey(broad, errorMessage);
+            string? broadKey = this.findBroadlyMatchedKey(broad, errorMessage);
             object exception = null;
             if (isTrue(isEqual(broadKey, null)))
             {

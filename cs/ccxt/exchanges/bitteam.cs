@@ -814,7 +814,7 @@ public partial class bitteam : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -925,7 +925,7 @@ public partial class bitteam : Exchange
         //     }
         //
         Int64? timestamp = this.safeInteger(response, "timestamp");
-        object orderbook = this.parseOrderBook(response, symbol, timestamp);
+        Dictionary<string, object> orderbook = ((Dictionary<string, object>)this.parseOrderBook(response, symbol, timestamp));
         return ccxt.BaseExchange.ToOrderBook(orderbook);
     }
 
@@ -1327,7 +1327,7 @@ public partial class bitteam : Exchange
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market));
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // fetchOrders
@@ -1418,7 +1418,7 @@ public partial class bitteam : Exchange
         string? marketId = this.safeString(order, "pair");
         market = this.safeMarket(marketId, market);
         string? clientOrderId = this.safeString(order, "orderCid");
-        object timestamp = null;
+        Int64? timestamp = null;
         string? createdAt = this.safeString(order, "createdAt");
         if (isTrue(!isEqual(createdAt, null)))
         {
@@ -1566,7 +1566,7 @@ public partial class bitteam : Exchange
         for (int i = 0; isLessThan(i, getArrayLength(rawTickers)); postFixIncrement(ref i))
         {
             object rawTicker = getValue(rawTickers, i);
-            object ticker = this.parseTicker(rawTicker);
+            Dictionary<string, object> ticker = this.parseTicker(rawTicker);
             ((IList<object>)tickers).Add(ticker);
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(tickers, "symbol", symbols));
@@ -1781,7 +1781,7 @@ public partial class bitteam : Exchange
         return ccxt.BaseExchange.ToTicker(this.parseTicker(pair, market));
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         // fetchTicker
@@ -2127,7 +2127,7 @@ public partial class bitteam : Exchange
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades

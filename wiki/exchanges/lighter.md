@@ -1082,14 +1082,15 @@ lighter.watchMyTrades (symbol?, since?, limit?, params?)
 unsubscribe from the account trades channel
 
 **Kind**: instance method of [<code>lighter</code>](#lighter)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
+**Returns**: <code>any</code> - status of the unwatch request
 
 **See**: https://apidocs.lighter.xyz/docs/websocket-reference#account-all-trades  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | No | unified market symbol |
+| symbol | <code>string</code> | No | not supported by lighter.unWatchMyTrades, the account trades channel covers every market |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.accountIndex | <code>string</code> | No | account index |
 
 
 ```javascript

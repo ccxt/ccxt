@@ -44,7 +44,7 @@ func TestOptionsNetworks(exchange ccxt.ICoreExchange, skippedProperties any) {
 		// 3) ensure that the same network-id is not assigned to multiple networkCodes
 		var collectedNetworkIds any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(networkCodes)); i++ {
-			var networkCode any = GetValue(networkCodes, i)
+			var networkCode string = GetValue(networkCodes, i).(string)
 			var networkId any = GetValue(GetValue(exchange.GetOptions(), "networks"), networkCode)
 			if !EvalTruthy(exchange.InArray(networkCode, allowedUnifiedAliases)) {
 				Assert(!EvalTruthy(exchange.InArray(networkId, collectedNetworkIds)), Add(Add("exchange.options[\"networks\"] should not contain multiple non-unified networkCodes (in the list of unified-networks) with the same networkId: \"", networkId), "\""))
@@ -60,7 +60,7 @@ func TestOptionsNetworks(exchange ccxt.ICoreExchange, skippedProperties any) {
 		}
 		// 5) test networkCodeToId & networkIdToCode
 		for i := 0; IsLessThan(i, GetArrayLength(networkCodes)); i++ {
-			var networkCode any = GetValue(networkCodes, i)
+			var networkCode string = GetValue(networkCodes, i).(string)
 			var networkId any = GetValue(GetValue(exchange.GetOptions(), "networks"), networkCode)
 			// check networkCodeToId
 			var networkIdConverted any = exchange.NetworkCodeToId(networkCode)

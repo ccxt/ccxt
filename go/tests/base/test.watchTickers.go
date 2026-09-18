@@ -31,7 +31,7 @@ func testWatchTickersHelperBody(ch chan any, exchange ccxt.ICoreExchange, skippe
 	argParams := GetArg(optionalArgs, 0, map[string]any{})
 	_ = argParams
 	var method string = "watchTickers"
-	var now any = exchange.Milliseconds()
+	var now int64 = exchange.Milliseconds()
 	var ends any = Add(now, 15000)
 	var maxIdleTime int = 5000
 	var idle bool = false
@@ -39,7 +39,7 @@ func testWatchTickersHelperBody(ch chan any, exchange ccxt.ICoreExchange, skippe
 		var response any = map[string]any{}
 		var success bool = true
 		var shouldReturn bool = false
-		var startTime any = exchange.Milliseconds()
+		var startTime int64 = exchange.Milliseconds()
 
 		{
 			func() (ret_ any) {

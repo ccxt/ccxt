@@ -3107,6 +3107,9 @@ class bithumb(Exchange, ImplicitAPI):
         queryKeysLength = len(queryKeys)
         hasQuery = (queryKeysLength > 0)
         if api == 'public':
+            headers = {
+                'OPEN-API-PARTNER': 'CCXT',
+            }
             if hasQuery:
                 url += '?' + self.urlencode(query)
         else:
@@ -3115,6 +3118,7 @@ class bithumb(Exchange, ImplicitAPI):
             if isVersionedApi:
                 headers = {
                     'Accept': 'application/json',
+                    'OPEN-API-PARTNER': 'CCXT',
                 }
                 request = {
                     'access_key': self.apiKey,
@@ -3153,6 +3157,7 @@ class bithumb(Exchange, ImplicitAPI):
                     'Api-Key': self.apiKey,
                     'Api-Sign': signature64,
                     'Api-Nonce': nonce,
+                    'OPEN-API-PARTNER': 'CCXT',
                 }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 

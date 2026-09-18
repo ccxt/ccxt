@@ -6,12 +6,13 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.pacifica import ImplicitAPI
 import math
-from ccxt.base.types import Balances, Currency, Int, LedgerEntry, Leverage, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currency, Int, LedgerEntry, Leverage, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -2828,10 +2829,11 @@ class pacifica(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         symbols = self.market_symbols(symbols)
-        swapMarkets = await self.fetch_swap_markets()
-        return self.parse_open_interests(swapMarkets, symbols)
+        response = await self.publicGetInfoPrices(params)
+        data = self.safe_list(response, 'data', [])
+        return self.parse_open_interests(data, symbols)
 
-    async def fetch_open_interest(self, symbol: str, params={}):
+    async def fetch_open_interest(self, symbol: str, params={}) -> OpenInterest:
         """
         retrieves the open interest of a contract trading pair
 
@@ -2841,11 +2843,14 @@ class pacifica(Exchange, ImplicitAPI):
         :param dict [params]: exchange specific parameters
         :returns dict: an `open interest structure <https://docs.ccxt.com/?id=open-interest-structure>`
         """
-        symbol = self.symbol(symbol)
         if self.markets is None:
             await self.load_markets()
+        symbol = self.symbol(symbol)
         ois = await self.fetch_open_interests([symbol], params)
-        return ois[symbol]
+        oi = self.safe_dict(ois, symbol)
+        if oi is None:
+            raise BadSymbol(self.id + ' fetchOpenInterest() could not find open interest for ' + symbol)
+        return oi
 
     def parse_open_interest(self, interest: object, market: Market = None):
         #

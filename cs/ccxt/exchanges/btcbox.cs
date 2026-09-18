@@ -272,12 +272,12 @@ public partial class btcbox : Exchange
         {
             string? marketId = ((string)getValue(marketIds, i));
             List<object> symbolParts = ((string)marketId).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
-            object baseCurr = this.safeString(symbolParts, 0, "");
+            string baseCurr = ((string)this.safeString(symbolParts, 0, ""));
             string? quote = this.safeString(symbolParts, 1, "");
             string quoteId = ((string)quote).ToLower();
             string id = ((string)baseCurr).ToLower();
             IDictionary<string, object> res = this.safeDict(response1, marketId, new Dictionary<string, object>() {});
-            object symbol = add(add(baseCurr, "/"), quote);
+            string symbol = add(add(baseCurr, "/"), quote);
             double? fee = ((bool) isTrue((isEqual(id, "BTC")))) ? this.parseNumber("0.0005") : this.parseNumber("0.0010");
             IDictionary<string, object> details = this.safeDict(result2Data, id, new Dictionary<string, object>() {});
             IDictionary<string, object> tradeDetails = this.safeDict(details, "trade", new Dictionary<string, object>() {});
@@ -467,7 +467,7 @@ public partial class btcbox : Exchange
         return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, getValue(market, "symbol")));
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         string? symbol = this.safeSymbol(null, market);
         string? last = this.safeString(ticker, "last");
@@ -541,7 +541,7 @@ public partial class btcbox : Exchange
         return ccxt.BaseExchange.ToTickers(this.parseTickers(response, symbols));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades (public)
@@ -554,7 +554,7 @@ public partial class btcbox : Exchange
         //          "type":"buy"
         //      }
         //
-        object timestamp = this.safeTimestamp(trade, "date");
+        Int64? timestamp = this.safeTimestamp(trade, "date");
         market = this.safeMarket(null, market);
         string? id = this.safeString(trade, "tid");
         string? priceString = this.safeString(trade, "price");
@@ -667,7 +667,7 @@ public partial class btcbox : Exchange
      */
     public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -706,7 +706,7 @@ public partial class btcbox : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         //     {
@@ -780,7 +780,7 @@ public partial class btcbox : Exchange
      */
     public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {

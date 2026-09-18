@@ -441,7 +441,7 @@ public partial class mercado : Exchange
         return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, getValue(market, "symbol")));
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         //     {
@@ -456,7 +456,7 @@ public partial class mercado : Exchange
         //     }
         //
         string? symbol = this.safeSymbol(null, market);
-        object timestamp = this.safeTimestamp(ticker, "date");
+        Int64? timestamp = this.safeTimestamp(ticker, "date");
         string? last = this.safeString(ticker, "last");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
@@ -520,9 +520,9 @@ public partial class mercado : Exchange
         return ccxt.BaseExchange.ToTicker(this.parseTicker(ticker, market));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
-        object timestamp = this.safeTimestamp2(trade, "date", "executed_timestamp");
+        Int64? timestamp = this.safeTimestamp2(trade, "date", "executed_timestamp");
         market = this.safeMarket(null, market);
         string? id = this.safeString2(trade, "tid", "operation_id");
         object type = null;
@@ -762,7 +762,7 @@ public partial class mercado : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         //     {
@@ -799,7 +799,7 @@ public partial class mercado : Exchange
         string? status = this.parseOrderStatus(this.safeString(order, "status"));
         string? marketId = this.safeString(order, "coin_pair");
         market = this.safeMarket(marketId, market);
-        object timestamp = this.safeTimestamp(order, "created_timestamp");
+        Int64? timestamp = this.safeTimestamp(order, "created_timestamp");
         Dictionary<string, object> fee = new Dictionary<string, object>() {
             { "cost", this.safeString(order, "fee") },
             { "currency", getValue(market, "quote") },
@@ -809,7 +809,7 @@ public partial class mercado : Exchange
         string? average = this.safeString(order, "executed_price_avg");
         string? amount = this.safeString(order, "quantity");
         string? filled = this.safeString(order, "executed_quantity");
-        object lastTradeTimestamp = this.safeTimestamp(order, "updated_timestamp");
+        Int64? lastTradeTimestamp = this.safeTimestamp(order, "updated_timestamp");
         object rawTrades = this.safeValue(order, "operations", new List<object>() {});
         object symbol = getValue(market, "symbol");
         return this.safeOrder(new Dictionary<string, object>() {
@@ -1008,7 +1008,7 @@ public partial class mercado : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         object limitVar = limit;
         timeframeVar ??= "15m";
         parameters ??= new Dictionary<string, object>();

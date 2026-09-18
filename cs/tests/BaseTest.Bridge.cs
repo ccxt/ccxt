@@ -144,7 +144,8 @@ public partial class BaseTest
     public static object hash(object request2, Delegate algorithm2 = null, object digest2 = null) => Exchange.Hash(request2, algorithm2, digest2);
     public static string hmac(object request2, object secret2, Delegate algorithm2 = null, string digest = "hex") => Exchange.Hmac(request2, secret2, algorithm2, digest);
     public static string rsa(object request, object secret, Delegate alg = null) => Exchange.Rsa(request, secret, alg);
-    public static object ecdsa(object request, object secret, Delegate alg = null, Delegate stub = null) => Exchange.Ecdsa(request, secret, alg, stub);
+    // mirrors the base signature, which now names the { r, s, v } dictionary Ecdsa builds
+    public static Dictionary<string, object> ecdsa(object request, object secret, Delegate alg = null, Delegate stub = null) => Exchange.Ecdsa(request, secret, alg, stub);
     public string jwt(object data, object secret, Delegate alg = null, bool isRsa = false) => Exchange.Jwt(data, secret, alg, isRsa);
     public static object crc32(object str, object signed2 = null) => Exchange.Crc32(str, signed2);
     public static string sha1() => "sha1";
@@ -243,6 +244,9 @@ public partial class BaseTest
 
         // hand-written C#-only: dual-stack (IPv4 + IPv6) transport checks (offline)
         testDualStack();
+
+        // hand-written C#-only: the reflective await must rebox typed dict lists for the untyped pipeline (offline)
+        await testFromTypedRebox();
 
         // Run throttler performance test
         await testThrottlerPerformance();
