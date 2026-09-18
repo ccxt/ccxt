@@ -1231,7 +1231,7 @@ public partial class bitmex : ccxt.bitmex
                 }
                 Dictionary<string, object> order = this.parseOrder(rawOrder);
                 callDynamically(stored, "append", new object[] {order});
-                object symbol = GetValue(order, "symbol");
+                string? symbol = ((string)GetValue(order, "symbol"));
                 symbols[(string)((string)symbol)] = true;
             }
             callDynamically(client, "resolve", new object[] {this.orders, messageHash});

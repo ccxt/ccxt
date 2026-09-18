@@ -437,7 +437,7 @@ public partial class p2b : ccxt.p2b
         {
             ticker = this.parseTicker(tickerData, market);
         }
-        object symbol = GetValue(ticker, "symbol");
+        string? symbol = ((string)GetValue(ticker, "symbol"));
         ((IDictionary<string,object>)this.tickers)[(string)((string)symbol)] = ticker;
         object messageHash = add(add(messageHashStart, "::"), symbol);
         callDynamically(client, "resolve", new object[] {ticker, messageHash});

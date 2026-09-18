@@ -987,7 +987,7 @@ public partial class gate : ccxt.gate
             string? marketId = this.safeString(rawTicker, "s");
             Dictionary<string, object> market = this.safeMarket(marketId, null, "_", marketType);
             Dictionary<string, object> parsedItem = this.parseTicker(rawTicker, market);
-            object symbol = GetValue(parsedItem, "symbol");
+            string? symbol = ((string)GetValue(parsedItem, "symbol"));
             if (isTicker)
             {
                 if ((symbol != null))
@@ -1805,7 +1805,7 @@ public partial class gate : ccxt.gate
         if ((market != null))
         {
             messageHash = add(messageHash, add(":", GetValue(market, "id")));
-            object mid = GetValue(market, "id");
+            string? mid = ((string)GetValue(market, "id"));
             if ((mid != null))
             {
                 payload = new List<object>() {mid};

@@ -833,7 +833,7 @@ public partial class xt : ccxt.xt
             Int64? timestamp = this.safeInteger(data, "t");
             fundingRate["timestamp"] = timestamp;
             fundingRate["datetime"] = this.iso8601(timestamp);
-            object symbol = GetValue(fundingRate, "symbol");
+            string? symbol = ((string)GetValue(fundingRate, "symbol"));
             ((IDictionary<string,object>)this.fundingRates)[(string)((string)symbol)] = fundingRate;
             object eventVar = this.safeString(message, "event");
             object messageHash = add(eventVar, "::contract");
@@ -1008,7 +1008,7 @@ public partial class xt : ccxt.xt
             string? cv = this.safeString(data, "cv");
             bool isSpot = (cv != null);
             Dictionary<string, object> ticker = this.parseTicker(data);
-            object symbol = GetValue(ticker, "symbol");
+            string? symbol = ((string)GetValue(ticker, "symbol"));
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
@@ -1099,7 +1099,7 @@ public partial class xt : ccxt.xt
         {
             object tickerData = getValue(data, i);
             Dictionary<string, object> ticker = this.parseTicker(tickerData);
-            object symbol = GetValue(ticker, "symbol");
+            string? symbol = ((string)GetValue(ticker, "symbol"));
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
@@ -1672,7 +1672,7 @@ public partial class xt : ccxt.xt
             this.myTrades = stored;
         }
         Dictionary<string, object> parsedTrade = this.parseTrade(data);
-        object tradeSymbol = GetValue(parsedTrade, "symbol");
+        string? tradeSymbol = ((string)GetValue(parsedTrade, "symbol"));
         if ((tradeSymbol == null))
         {
             return;

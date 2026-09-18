@@ -978,7 +978,7 @@ public partial class extended : Exchange
             Dictionary<string, object> market = this.safeMarket(marketId);
             IDictionary<string, object> stats = this.safeDict(marketData, "marketStats", new Dictionary<string, object>() {});
             Dictionary<string, object> ticker = this.parseTicker(stats, market);
-            object symbol = GetValue(ticker, "symbol");
+            string? symbol = ((string)GetValue(ticker, "symbol"));
             if ((symbol != null))
             {
                 tickers[(string)symbol] = ticker;

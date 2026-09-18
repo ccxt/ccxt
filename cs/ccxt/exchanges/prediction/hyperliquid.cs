@@ -2332,8 +2332,8 @@ public partial class hyperliquid : PredictionExchange
         Dictionary<string, object> signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
         // assign to a bare local before padStart — `expr['key'].padStart()` leaks an undefined
         // padStart() call in the PHP transpiler (it only rewrites padStart on a bare identifier)
-        object rRaw = GetValue(signature, "r");
-        object sRaw = GetValue(signature, "s");
+        string? rRaw = ((string)GetValue(signature, "r"));
+        string? sRaw = ((string)GetValue(signature, "s"));
         object r = (rRaw as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         object s = (sRaw as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         return new Dictionary<string, object>() {

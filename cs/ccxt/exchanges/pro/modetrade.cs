@@ -378,7 +378,7 @@ public partial class modetrade : ccxt.modetrade
             Dictionary<string, object> ticker = this.parseWsBidAsk(this.extend(getValue(data, i), new Dictionary<string, object>() {
                 { "ts", timestamp },
             }));
-            object symbol = GetValue(ticker, "symbol");
+            string? symbol = ((string)GetValue(ticker, "symbol"));
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;

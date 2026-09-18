@@ -366,7 +366,7 @@ public partial class deribit : ccxt.deribit
         IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
         IDictionary<string, object> data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> ticker = this.parseWsBidAsk(data);
-        object symbol = GetValue(ticker, "symbol");
+        string? symbol = ((string)GetValue(ticker, "symbol"));
         ((IDictionary<string,object>)this.bidsasks)[(string)((string)symbol)] = ticker;
         string? messageHash = this.safeString(parameters, "channel");
         callDynamically(client, "resolve", new object[] {ticker, messageHash});

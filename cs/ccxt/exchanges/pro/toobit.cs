@@ -556,7 +556,7 @@ public partial class toobit : ccxt.toobit
         {
             object ticker = getValue(data, i);
             Dictionary<string, object> parsed = this.parseWsTicker(ticker);
-            object symbol = GetValue(parsed, "symbol");
+            string? symbol = ((string)GetValue(parsed, "symbol"));
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)this.tickers)[(string)symbol] = parsed;

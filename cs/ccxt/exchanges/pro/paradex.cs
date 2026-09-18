@@ -160,7 +160,7 @@ public partial class paradex : ccxt.paradex
         IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
         IDictionary<string, object> data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> parsedTrade = this.parseTrade(data);
-        object symbol = GetValue(parsedTrade, "symbol");
+        string? symbol = ((string)GetValue(parsedTrade, "symbol"));
         string? messageHash = this.safeString(parameters, "channel");
         object stored = this.safeValue(this.trades, symbol);
         if ((stored == null))
@@ -597,7 +597,7 @@ public partial class paradex : ccxt.paradex
         IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
         IDictionary<string, object> data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> fundingRate = this.parseFundingRateWs(data);
-        object symbol = GetValue(fundingRate, "symbol");
+        string? symbol = ((string)GetValue(fundingRate, "symbol"));
         ((IDictionary<string,object>)this.fundingRates)[(string)((string)symbol)] = fundingRate;
         object channel = this.safeString(parameters, "channel");
         object messageHash = add(add(channel, "."), symbol);

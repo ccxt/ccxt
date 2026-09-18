@@ -178,7 +178,7 @@ public partial class gemini : ccxt.gemini
         //     }
         //
         Dictionary<string, object> trade = this.parseWsTrade(message);
-        object symbol = GetValue(trade, "symbol");
+        string? symbol = ((string)GetValue(trade, "symbol"));
         Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
         object stored = this.safeValue(this.trades, symbol);
         if ((stored == null))

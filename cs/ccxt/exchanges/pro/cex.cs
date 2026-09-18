@@ -398,7 +398,7 @@ public partial class cex : ccxt.cex
         //
         object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> ticker = this.parseWsTicker(data);
-        object symbol = GetValue(ticker, "symbol");
+        string? symbol = ((string)GetValue(ticker, "symbol"));
         if ((symbol == null))
         {
             return;

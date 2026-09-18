@@ -5264,6 +5264,74 @@ function marketRowBoolReadType (csharp, initializer) {
 // The DICT keys (`precision` / `limits` / `info`) have no table: `info` has a STRING writer on a
 // market row (independentreserve) plus 58 any-typed ones, and limits/precision have zero
 // declaration sites — census, proof and reject reasons: REPORT.md + tools/S23/market-row-types.mjs.
+//
+// ---- U07: a checker-proven string value read off a proven dictionary receiver --------------
+// `const r = signature['r']`, `const symbol = ticker['symbol']` — the receiver's own declaration
+// is a string-keyed dictionary this module typed (S63 above), so the printer binds the static
+// twin `GetValue(recv, "r")`, which hands back the raw box at that key. Where the TS checker
+// resolves the read through the receiver's declared type to a string — `string`, a
+// string-literal union, `Str = string | undefined` — every writer the type system admits at
+// that key hands back a string or nothing, exactly the box the market-row string keys name
+// (MARKET_ROW_STRING_KEYS). The local is then `string?` behind the `(string)` cast: the cast
+// names the box (null off a missing key / a null receiver, `(string)null` -> null, exactly the
+// read GetValue does today), and csharpLocalIsSafeToRetype still vetoes every use shape that
+// would move an overload (a `string?` left `+` operand, a ref sink, a delete key).
+//
+// Census (base d847892a6; tools/U07/u07-sites.py + u07-ts-census.mjs): the exchange tree carries
+// 186 `object X = GetValue(recv, "lit")` sites; 167 of them read a literal key the checker types
+// as string/Str (the other 19: 12 `any`, 6 `Bool` — weex firstMarket['contract'] — and 1
+// `Dictionary<any>`, all of which keep `object`). u07-producers.py + u07-producercensus.mjs: the
+// 22 producer methods the accepted receivers come from (parseTicker / parseWsTicker /
+// parseWsBidAsk / parseTrade / parseWsTrade / parseWsMyTrade / parseOrder / parseWsOrder /
+// parseTradingFee / parseFundingRate[Ws] / parseWsPosition / parseCurrency / safeMarket /
+// market / currency / getMarketFromClientAndMessage / parseLedgerComment / orderToTrade /
+// ecdsa) hold 1,278 writes at those keys, 1,268 of them checker-typed string / Str /
+// string-literal / undefined. The 10 non-string-typed values (pro/hitbtc parseWsOrderTrade
+// boxes a market ROW at 'symbol', pro/bitrue `any` symbols, four currency-id / networks `any`s)
+// all sit in (venue, producer, key) groups that NO accepted site reads — 0 of the 137 accepted
+// groups overlap (u07-audit). `signature`'s producer is the hand-written Ecdsa
+// (Exchange.Crypto.cs), whose "r"/"s" are ToHex strings and "v" a recovery int: the read of "v"
+// is a number and stays `object`.
+function typedDictStringReadType (csharp, initializer) {
+    // the same receiver proof the printer's S63 twin uses, so this only names reads the emitted
+    // call already binds to GetValue(IDictionary<string, object>, string)
+    if (typedDictElementAccessReceiver (csharp, initializer) === undefined) {
+        return undefined;
+    }
+    if (elementAccessLiteralKey (initializer.argumentExpression) === undefined) {
+        return undefined;
+    }
+    if (typeof csharp.getChecker !== 'function') {
+        return undefined;
+    }
+    let elementType;
+    try {
+        elementType = csharp.getChecker ().getTypeAtLocation (initializer);
+    } catch (e) {
+        return undefined;
+    }
+    return typeIsStringOrNullish (elementType) ? 'string' : undefined;
+}
+
+// is the checker's type a string, or a union whose every member is a string / a string literal
+// / undefined / null? (`Str = string | undefined`, a literal union like MarketType). `any`,
+// `unknown`, `number`, `bool`, a dictionary and a mixed union all answer false.
+function typeIsStringOrNullish (type) {
+    if (type === undefined) {
+        return false;
+    }
+    const STRINGISH = ts.TypeFlags.String | ts.TypeFlags.StringLiteral;
+    const NULLISH = ts.TypeFlags.Undefined | ts.TypeFlags.Null;
+    if ((type.flags & STRINGISH) !== 0) {
+        return true;
+    }
+    if ((type.flags & ts.TypeFlags.Union) !== 0 && Array.isArray (type.types)) {
+        return type.types.length > 0
+            && type.types.every ((member) => ((member.flags & (STRINGISH | NULLISH)) !== 0))
+            && type.types.some ((member) => (member.flags & STRINGISH) !== 0);
+    }
+    return false;
+}
 // ---- describe()-literal url reads ------------------------------------------------------
 // `const x = this.urls['api']['ws']` prints `object x = getValue(getValue(this.urls, "api"),
 // "ws")`. `this.urls` is filled by Exchange.Options.cs#initializeProperties from
@@ -5713,6 +5781,12 @@ function csharpLocalTypeOf (csharp, declaration, context) {
             // null-exact unboxing Exchange.BaseMethods.cs#safeBool* prints
             csharpType = 'bool?';
             cast = 'bool?';
+        } else if (typedDictStringReadType (csharp, declaration.initializer) === 'string') {
+            // `const r = signature['r']`: a proven dictionary receiver (the printer binds the
+            // static twin GetValue) whose key the TS checker resolves to a string — the value is
+            // a string or null, the box the `(string)` cast names (see the family comment above)
+            csharpType = 'string?';
+            cast = 'string';
         } else if (urlsDescribeStringProducer (declaration.initializer)) {
             // `const x = this.urls['api']['ws']`: the describe() literal spells that leaf as a
             // string, so the getValue chain's box is a string or null — same cast as above

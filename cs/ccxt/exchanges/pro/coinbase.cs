@@ -519,7 +519,7 @@ public partial class coinbase : ccxt.coinbase
                 Dictionary<string, object> result = this.parseWsTicker(ticker);
                 result["timestamp"] = timestamp;
                 result["datetime"] = datetime;
-                object symbol = GetValue(result, "symbol");
+                string? symbol = ((string)GetValue(result, "symbol"));
                 if ((symbol != null))
                 {
                     ((IDictionary<string,object>)this.tickers)[(string)symbol] = result;

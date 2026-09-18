@@ -1219,7 +1219,7 @@ public partial class coinex : ccxt.coinex
             { "status", this.safeString(data, "event") },
         }, this.safeDict2(data, "order", "stop", new Dictionary<string, object>() {}));
         Dictionary<string, object> parsedOrder = this.parseWsOrder(order);
-        object symbol = GetValue(parsedOrder, "symbol");
+        string? symbol = ((string)GetValue(parsedOrder, "symbol"));
         Dictionary<string, object> market = this.market(symbol);
         if (isEqual(this.orders, null))
         {
@@ -1453,7 +1453,7 @@ public partial class coinex : ccxt.coinex
         //
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> parsedTicker = this.parseWsBidAsk(data);
-        object symbol = GetValue(parsedTicker, "symbol");
+        string? symbol = ((string)GetValue(parsedTicker, "symbol"));
         ((IDictionary<string,object>)this.bidsasks)[(string)((string)symbol)] = parsedTicker;
         string messageHash = add("bidsasks:", symbol);
         callDynamically(client, "resolve", new object[] {parsedTicker, messageHash});

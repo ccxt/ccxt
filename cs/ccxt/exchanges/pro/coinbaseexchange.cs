@@ -479,7 +479,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         if ((marketId != null))
         {
             Dictionary<string, object> trade = this.parseWsTrade(message);
-            object symbol = GetValue(trade, "symbol");
+            string? symbol = ((string)GetValue(trade, "symbol"));
             // the exchange sends type = 'match'
             // but requires 'matches' upon subscribing
             // therefore we resolve 'matches' here instead of 'match'
@@ -899,7 +899,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         if ((marketId != null))
         {
             Dictionary<string, object> ticker = this.parseTicker(message);
-            object symbol = GetValue(ticker, "symbol");
+            string? symbol = ((string)GetValue(ticker, "symbol"));
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;

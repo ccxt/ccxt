@@ -3443,8 +3443,8 @@ public partial class polymarket : PredictionExchange
     {
         Dictionary<string, object> signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
         // assign before padStart so the PHP str_pad regex matches (it only handles a bare identifier)
-        object rRaw = GetValue(signature, "r");
-        object sRaw = GetValue(signature, "s");
+        string? rRaw = ((string)GetValue(signature, "r"));
+        string? sRaw = ((string)GetValue(signature, "s"));
         object r = (rRaw as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         object s = (sRaw as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         return new Dictionary<string, object>() {

@@ -1661,7 +1661,7 @@ public partial class bybit : ccxt.bybit
                 }
                 parsed = this.parseTrade(rawTrade);
             }
-            object symbol = GetValue(parsed, "symbol");
+            string? symbol = ((string)GetValue(parsed, "symbol"));
             if ((symbol == null))
             {
                 continue;
@@ -2254,7 +2254,7 @@ public partial class bybit : ccxt.bybit
             // } else {
             //     parsed = this.parseOrder (rawOrders[i]);
             // }
-            object symbol = GetValue(parsed, "symbol");
+            string? symbol = ((string)GetValue(parsed, "symbol"));
             if ((symbol == null))
             {
                 continue;

@@ -2276,7 +2276,7 @@ public partial class xt : Exchange
         for (int i = 0; isLessThan(i, tickers.Count); postFixIncrement(ref i))
         {
             Dictionary<string, object> ticker = this.parseTicker(getValue(tickers, i), market);
-            object symbol = GetValue(ticker, "symbol");
+            string? symbol = ((string)GetValue(ticker, "symbol"));
             if ((symbol != null))
             {
                 result[(string)symbol] = ticker;
@@ -2379,7 +2379,7 @@ public partial class xt : Exchange
             string marketType = isContract ? "contract" : "spot";
             Dictionary<string, object> marketInner = this.safeMarket(marketId, market, "_", marketType);
             Dictionary<string, object> ticker = this.parseTicker(rawTicker, marketInner);
-            object symbol = GetValue(ticker, "symbol");
+            string? symbol = ((string)GetValue(ticker, "symbol"));
             if ((symbol != null))
             {
                 result[(string)symbol] = ticker;

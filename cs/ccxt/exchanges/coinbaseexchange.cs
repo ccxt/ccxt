@@ -2479,7 +2479,7 @@ public partial class coinbaseexchange : Exchange
             ((IDictionary<string,object>)this.options)["coinbaseAccounts"] = accounts; // cache it
             ((IDictionary<string,object>)this.options)["coinbaseAccountsByCurrencyId"] = this.indexBy(accounts, "currency");
         }
-        object currencyId = GetValue(currency, "id");
+        string? currencyId = ((string)GetValue(currency, "id"));
         object account = this.safeValue(getValue(this.options, "coinbaseAccountsByCurrencyId"), currencyId);
         if ((account == null))
         {

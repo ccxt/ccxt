@@ -1539,7 +1539,7 @@ public partial class nado : ccxt.nado
         }
         ccxt.pro.ArrayCache trades = this.myTrades;
         callDynamically(trades, "append", new object[] {trade});
-        object symbol = GetValue(trade, "symbol");
+        string? symbol = ((string)GetValue(trade, "symbol"));
         callDynamically(client, "resolve", new object[] {trades, "myTrades"});
         callDynamically(client, "resolve", new object[] {trades, add("myTrades:", symbol)});
     }
@@ -1665,7 +1665,7 @@ public partial class nado : ccxt.nado
         }
         ccxt.pro.ArrayCache orders = this.orders;
         callDynamically(orders, "append", new object[] {order});
-        object symbol = GetValue(order, "symbol");
+        string? symbol = ((string)GetValue(order, "symbol"));
         callDynamically(client, "resolve", new object[] {orders, "orders"});
         callDynamically(client, "resolve", new object[] {orders, add("orders:", symbol)});
     }
@@ -1763,7 +1763,7 @@ public partial class nado : ccxt.nado
         {
             callDynamically(positions, "append", new object[] {position});
         }
-        object symbol = GetValue(position, "symbol");
+        string? symbol = ((string)GetValue(position, "symbol"));
         callDynamically(client, "resolve", new object[] {positions, "positions"});
         callDynamically(client, "resolve", new object[] {positions, add("positions:", symbol)});
     }

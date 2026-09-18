@@ -843,7 +843,7 @@ public partial class pacifica : ccxt.pacifica
         {
             object rawTrade = getValue(data, i);
             Dictionary<string, object> parsed = this.parseWsTrade(rawTrade);
-            object symbol = GetValue(parsed, "symbol");
+            string? symbol = ((string)GetValue(parsed, "symbol"));
             if ((symbol != null))
             {
                 symbols[(string)symbol] = true;

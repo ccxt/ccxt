@@ -1538,7 +1538,7 @@ public partial class delta : Exchange
                 continue;
             }
             Dictionary<string, object> ticker = this.parseTicker(rawTicker);
-            object symbol = GetValue(ticker, "symbol");
+            string? symbol = ((string)GetValue(ticker, "symbol"));
             if ((symbol != null))
             {
                 result[(string)symbol] = ticker;

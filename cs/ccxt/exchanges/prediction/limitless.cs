@@ -2546,8 +2546,8 @@ public partial class limitless : PredictionExchange
     public virtual object signHash(object hash, object privateKey)
     {
         Dictionary<string, object> signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
-        object r = GetValue(signature, "r");
-        object s = GetValue(signature, "s");
+        string? r = ((string)GetValue(signature, "r"));
+        string? s = ((string)GetValue(signature, "s"));
         string v = this.intToBase16(this.sum(27, GetValue(signature, "v")));
         object rPadded = (r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         object sPadded = (s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));

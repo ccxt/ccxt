@@ -322,7 +322,7 @@ public partial class bydfi : ccxt.bydfi
         //     }
         //
         Dictionary<string, object> ticker = this.parseTicker(message);
-        object symbol = GetValue(ticker, "symbol");
+        string? symbol = ((string)GetValue(ticker, "symbol"));
         string messageHash = add("ticker::", symbol);
         ((IDictionary<string,object>)this.tickers)[(string)((string)symbol)] = ticker;
         callDynamically(client, "resolve", new object[] {getValue(this.tickers, ((string)symbol)), messageHash});

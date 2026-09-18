@@ -728,7 +728,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         {
             object rawTrade = getValue(data, i);
             Dictionary<string, object> parsed = this.parseWsTrade(rawTrade);
-            object symbol = GetValue(parsed, "symbol");
+            string? symbol = ((string)GetValue(parsed, "symbol"));
             symbols[(string)((string)symbol)] = true;
             callDynamically(trades, "append", new object[] {parsed});
         }

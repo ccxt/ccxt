@@ -103,7 +103,7 @@ public partial class alpaca : ccxt.alpaca
         //    ]
         //
         Dictionary<string, object> ticker = this.parseTicker(message);
-        object symbol = GetValue(ticker, "symbol");
+        string? symbol = ((string)GetValue(ticker, "symbol"));
         string messageHash = add("ticker:", symbol);
         if ((symbol != null))
         {
