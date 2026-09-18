@@ -861,7 +861,7 @@ public partial class myriad : PredictionExchange
             throw new ExchangeError ((string)(this.id + " signEvmTransaction() missing rHex")) ;
         }
         int rHexLength = ((string)rHex).Length;
-        if (!isEqual((mod(rHexLength, 2)), 0))
+        if (!isEqual((((Int64)rHexLength % 2L)), 0))
         {
             rHex = ("0" + rHex);
         }
@@ -870,7 +870,7 @@ public partial class myriad : PredictionExchange
             throw new ExchangeError ((string)(this.id + " signEvmTransaction() missing sHex")) ;
         }
         int sHexLength = ((string)sHex).Length;
-        if (!isEqual((mod(sHexLength, 2)), 0))
+        if (!isEqual((((Int64)sHexLength % 2L)), 0))
         {
             sHex = ("0" + sHex);
         }
