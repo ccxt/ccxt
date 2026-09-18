@@ -201,7 +201,7 @@ public partial class grvt : ccxt.grvt
             { "selectors", rawHashes },
         };
         object ticker = await this.subscribeMultiple(messageHashes, this.extend(parameters, request), rawHashes);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             Dictionary<string, object> tickers = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)tickers)[(string)getValue(ticker, "symbol")] = ticker;
@@ -359,7 +359,7 @@ public partial class grvt : ccxt.grvt
             { "selectors", rawHashes },
         };
         object trades = await this.subscribeMultiple(messageHashes, this.extend(parameters, request), rawHashes);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             object first = this.safeValue(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
@@ -482,7 +482,7 @@ public partial class grvt : ccxt.grvt
         var symbol = ((IList<object>) symboltimeframestoredVariable)[0];
         var timeframe = ((IList<object>) symboltimeframestoredVariable)[1];
         var stored = ((IList<object>) symboltimeframestoredVariable)[2];
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limit = callDynamically(stored, "getLimit", new object[] {symbol, limit});
         }
@@ -763,7 +763,7 @@ public partial class grvt : ccxt.grvt
             { "selectors", rawHashes },
         };
         object trades = await this.subscribeMultiple(messageHashes, this.extend(request, parameters), messageHashes, false);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbol, limitVar});
         }
@@ -866,7 +866,7 @@ public partial class grvt : ccxt.grvt
             { "selectors", rawHashes },
         };
         object newPositions = await this.subscribeMultiple(messageHashes, this.extend(request, parameters), rawHashes, false);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToPositionList(newPositions);
         }
@@ -961,7 +961,7 @@ public partial class grvt : ccxt.grvt
             { "selectors", rawHashes },
         };
         object orders = await this.subscribeMultiple(messageHashes, this.extend(request, parameters), rawHashes, false);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(orders, "getLimit", new object[] {symbol, limitVar});
         }

@@ -2768,7 +2768,7 @@ public partial class hitbtc : Exchange
         {
             ((IDictionary<string,object>)request)["reduce_only"] = reduceOnly;
         }
-        if (isTrue(isPostOnly))
+        if (isPostOnly)
         {
             ((IDictionary<string,object>)request)["post_only"] = true;
         }

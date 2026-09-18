@@ -276,7 +276,7 @@ public partial class bitvavo : ccxt.bitvavo
         }
         symbolVar = this.symbol(symbolVar);
         object trades = await this.watchPublic("trades", symbolVar, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -352,7 +352,7 @@ public partial class bitvavo : ccxt.bitvavo
         };
         Dictionary<string, object> message = this.extend(request, parameters);
         object trades = await this.watchMultiple(url, messageHashes, message, messageHashes);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             object first = this.safeValue(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
@@ -451,7 +451,7 @@ public partial class bitvavo : ccxt.bitvavo
         };
         Dictionary<string, object> message = this.extend(request, parameters);
         object ohlcv = await this.watch(url, messageHash, message, messageHash);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -578,7 +578,7 @@ public partial class bitvavo : ccxt.bitvavo
         var symbol = ((IList<object>) symboltimeframecandlesVariable)[0];
         var timeframe = ((IList<object>) symboltimeframecandlesVariable)[1];
         var candles = ((IList<object>) symboltimeframecandlesVariable)[2];
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limit = callDynamically(candles, "getLimit", new object[] {symbol, limit});
         }
@@ -1104,7 +1104,7 @@ public partial class bitvavo : ccxt.bitvavo
 }} },
         };
         object orders = await this.watch(url, messageHash, request, messageHash);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -1149,7 +1149,7 @@ public partial class bitvavo : ccxt.bitvavo
 }} },
         };
         object trades = await this.watch(url, messageHash, request, messageHash);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }

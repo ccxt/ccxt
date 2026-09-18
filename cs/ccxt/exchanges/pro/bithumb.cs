@@ -185,7 +185,7 @@ public partial class bithumb : ccxt.bithumb
             message = this.extend(message, parameters);
         }
         object newTicker = await this.watchMultiple(url, messageHashes, message, messageHashes);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             Dictionary<string, object> result = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)result)[(string)getValue(newTicker, "symbol")] = newTicker;
@@ -646,7 +646,7 @@ public partial class bithumb : ccxt.bithumb
             request = this.extend(request, parameters);
         }
         object trades = await this.watch(url, messageHash, request, messageHash);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -1027,7 +1027,7 @@ public partial class bithumb : ccxt.bithumb
             messageHash = add(add(messageHash, ":"), symbolVar);
         }
         object orders = await this.watch(url, messageHash, request, messageHash);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
         }

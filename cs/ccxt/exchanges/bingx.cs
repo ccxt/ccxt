@@ -2444,7 +2444,7 @@ public partial class bingx : Exchange
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         bool isInverse = ((bool) ((market != null))) ? (isEqual(getValue(market, "inverse"), true)) : (isEqual(subType, "inverse"));
-        if (isTrue(isInverse))
+        if (isInverse)
         {
             throw new NotSupported ((string)(this.id + " fetchFundingHistory() is not supported for inverse swap markets")) ;
         }

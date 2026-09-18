@@ -61,7 +61,7 @@ public partial class dydx : ccxt.dydx
             { "id", getValue(market, "id") },
         };
         object trades = await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbol, limitVar});
         }
@@ -319,7 +319,7 @@ public partial class dydx : ccxt.dydx
             { "id", add(add(getValue(market, "id"), "/"), resolution) },
         };
         object ohlcv = await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbol, limitVar});
         }

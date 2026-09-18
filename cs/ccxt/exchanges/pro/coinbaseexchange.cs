@@ -165,7 +165,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         string channel = "ticker";
         string messageHash = "ticker";
         object ticker = await this.subscribeMultiple(channel, symbols, messageHash, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             Dictionary<string, object> result = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)result)[(string)getValue(ticker, "symbol")] = ticker;
@@ -196,7 +196,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         symbolVar = this.symbol(symbolVar);
         string name = "matches";
         object trades = await this.subscribe(name, symbolVar, name, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -229,7 +229,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         symbols = this.marketSymbols(symbols);
         string name = "matches";
         object trades = await this.subscribeMultiple(name, symbols, name, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             object first = this.safeValue(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
@@ -266,7 +266,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         string messageHash = "myTrades";
         object authentication = this.authenticate();
         object trades = await this.subscribe(name, symbolVar, messageHash, this.extend(parameters, authentication));
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -296,7 +296,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         string messageHash = "myTrades";
         object authentication = this.authenticate();
         object trades = await this.subscribeMultiple(name, symbols, messageHash, this.extend(parameters, authentication));
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             object first = this.safeValue(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
@@ -328,7 +328,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         string messageHash = "orders";
         object authentication = this.authenticate();
         object orders = await this.subscribeMultiple(name, symbols, messageHash, this.extend(parameters, authentication));
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             object first = this.safeValue(orders, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
@@ -365,7 +365,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         string messageHash = "orders";
         object authentication = this.authenticate();
         object orders = await this.subscribe(name, symbolVar, messageHash, this.extend(parameters, authentication));
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
         }

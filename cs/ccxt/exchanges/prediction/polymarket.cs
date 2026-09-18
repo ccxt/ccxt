@@ -3926,7 +3926,7 @@ public partial class polymarket : PredictionExchange
             messageHash = add("orders::", outcomeVar);
         }
         object orders = await this.subscribeUserChannel(messageHash, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(orders, "getLimit", new object[] {outcomeVar, limitVar});
         }
@@ -3958,7 +3958,7 @@ public partial class polymarket : PredictionExchange
             messageHash = add("myTrades::", outcomeVar);
         }
         object trades = await this.subscribeUserChannel(messageHash, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {outcomeVar, limitVar});
         }

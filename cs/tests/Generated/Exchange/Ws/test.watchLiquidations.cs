@@ -46,7 +46,7 @@ public partial class testMainClass : BaseTest
                 }
             } catch(Exception e)
             {
-                if (!isTrue((e is NetworkError)))
+                if (!(e is NetworkError))
                 {
                     throw e;
                 }

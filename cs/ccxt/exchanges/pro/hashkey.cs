@@ -104,7 +104,7 @@ public partial class hashkey : ccxt.hashkey
         string topic = ("kline_" + interval);
         string messageHash = add((add("ohlcv:", symbolVar) + ":"), timeframeVar);
         object ohlcv = await this.wathPublic(market, topic, messageHash, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -272,7 +272,7 @@ public partial class hashkey : ccxt.hashkey
         string topic = "trade";
         string messageHash = add("trades:", symbolVar);
         object trades = await this.wathPublic(market, topic, messageHash, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -431,7 +431,7 @@ public partial class hashkey : ccxt.hashkey
             messageHash = add(add(messageHash, ":"), symbolVar);
         }
         object orders = await this.watchPrivate(messageHash);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -571,7 +571,7 @@ public partial class hashkey : ccxt.hashkey
             messageHash = messageHash + add(":", symbolVar);
         }
         object trades = await this.watchPrivate(messageHash);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -712,7 +712,7 @@ public partial class hashkey : ccxt.hashkey
         }
         object url = this.getPrivateUrl(listenKey);
         object positions = await this.watchMultiple(url, messageHashes, null, messageHashes);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToPositionList(positions);
         }

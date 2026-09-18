@@ -574,7 +574,7 @@ public partial class backpack : ccxt.backpack
         var symbol = ((IList<object>) symboltimeframecandlesVariable)[0];
         var timeframe = ((IList<object>) symboltimeframecandlesVariable)[1];
         var candles = ((IList<object>) symboltimeframecandlesVariable)[2];
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limit = callDynamically(candles, "getLimit", new object[] {symbol, limit});
         }
@@ -751,7 +751,7 @@ public partial class backpack : ccxt.backpack
             ((IList<object>)messageHashes).Add(add("trades:", symbol));
         }
         object trades = await this.watchPublic(topics, messageHashes, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             object first = this.safeValue(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
@@ -1136,7 +1136,7 @@ public partial class backpack : ccxt.backpack
             messageHash = add("orders:", symbolVar);
         }
         object orders = await this.watchPrivate(new List<object>() {topic}, new List<object>() {messageHash}, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -1356,7 +1356,7 @@ public partial class backpack : ccxt.backpack
             ((IList<object>)topics).Add("account.positionUpdate");
         }
         object positions = await this.watchPrivate(topics, messageHashes, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToPositionList(positions);
         }

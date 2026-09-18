@@ -1713,7 +1713,7 @@ public partial class bitvavo : Exchange
         {
             ((IDictionary<string,object>)request)["timeInForce"] = timeInForce;
         }
-        if (isTrue(postOnly))
+        if (postOnly)
         {
             ((IDictionary<string,object>)request)["postOnly"] = true;
         }

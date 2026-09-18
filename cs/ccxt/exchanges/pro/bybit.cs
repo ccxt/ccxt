@@ -458,7 +458,7 @@ public partial class bybit : ccxt.bybit
             ((IList<object>)messageHashes).Add(add("ticker:", getValue(symbols, i)));
         }
         object ticker = await this.watchTopics(url, messageHashes, topics, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             Dictionary<string, object> result = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)result)[(string)getValue(ticker, "symbol")] = ticker;
@@ -701,7 +701,7 @@ public partial class bybit : ccxt.bybit
             ((IList<object>)messageHashes).Add(add("bidask:", getValue(symbols, i)));
         }
         object ticker = await this.watchTopics(url, messageHashes, topics, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToTickers(ticker);
         }
@@ -789,7 +789,7 @@ public partial class bybit : ccxt.bybit
         var symbol = ((IList<object>) symboltimeframestoredVariable)[0];
         var timeframe = ((IList<object>) symboltimeframestoredVariable)[1];
         var stored = ((IList<object>) symboltimeframestoredVariable)[2];
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limit = callDynamically(stored, "getLimit", new object[] {symbol, limit});
         }
@@ -1228,7 +1228,7 @@ public partial class bybit : ccxt.bybit
             ((IList<object>)messageHashes).Add(messageHash);
         }
         object trades = await this.watchTopics(url, messageHashes, topics, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             object first = this.safeValue(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
@@ -1468,7 +1468,7 @@ public partial class bybit : ccxt.bybit
             topic = "execution.fast";
         }
         object trades = await this.watchTopics(url, new List<object>() {messageHash}, new List<object>() {topic}, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -1721,7 +1721,7 @@ public partial class bybit : ccxt.bybit
         }
         List<object> topics = new List<object>() {"position"};
         object newPositions = await this.watchTopics(url, new List<object>() {messageHash}, topics, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToPositionList(newPositions);
         }
@@ -1927,7 +1927,7 @@ public partial class bybit : ccxt.bybit
         string messageHash = add("liquidations::", symbolVar);
         object topic = add(add(method, "."), getValue(market, "id"));
         object newLiquidation = await this.watchTopics(url, new List<object>() {messageHash}, new List<object>() {topic}, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToLiquidationList(newLiquidation);
         }
@@ -2076,7 +2076,7 @@ public partial class bybit : ccxt.bybit
         };
         object topics = this.safeValue(topicsByMarket, this.getPrivateType(url));
         object orders = await this.watchTopics(url, new List<object>() {messageHash}, topics, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -2829,7 +2829,7 @@ public partial class bybit : ccxt.bybit
                 if ((reqId != null))
                 {
                     ((WebSocketClient)client).reject(error, reqId);
-                } else if (isTrue(error is AuthenticationError))
+                } else if (error is AuthenticationError)
                 {
                     string authenticatedHash = "authenticated";
                     ((WebSocketClient)client).reject(error, authenticatedHash);

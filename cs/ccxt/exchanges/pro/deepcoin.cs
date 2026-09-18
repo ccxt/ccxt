@@ -428,7 +428,7 @@ public partial class deepcoin : ccxt.deepcoin
         Dictionary<string, object> market = this.market(symbol);
         string messageHash = add(("trades" + "::"), getValue(market, "symbol"));
         object trades = await this.watchPublic(market, messageHash, "2", parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbol, limitVar});
         }
@@ -614,7 +614,7 @@ public partial class deepcoin : ccxt.deepcoin
         string messageHash = add((add(("ohlcv" + "::"), symbolVar) + "::"), timeframeVar);
         string suffix = ("_" + interval);
         object ohlcv = await this.watchPublic(market, messageHash, "11", parameters, suffix);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -978,7 +978,7 @@ public partial class deepcoin : ccxt.deepcoin
             messageHash = messageHash + add("::", symbolVar);
         }
         object trades = await this.watchPrivate(messageHash, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -1067,7 +1067,7 @@ public partial class deepcoin : ccxt.deepcoin
             messageHash = messageHash + add("::", symbolVar);
         }
         object orders = await this.watchPrivate(messageHash, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -1230,7 +1230,7 @@ public partial class deepcoin : ccxt.deepcoin
         }
         object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "?listenKey="), listenKey);
         object positions = await this.watchMultiple(url, messageHashes, parameters, new List<object>() {"private"});
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToPositionList(positions);
         }

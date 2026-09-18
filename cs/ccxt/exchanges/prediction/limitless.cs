@@ -2464,7 +2464,7 @@ public partial class limitless : PredictionExchange
             { "marketSlug", slug },
             { "orderType", timeInForce },
         };
-        if (isTrue(postOnly))
+        if (postOnly)
         {
             ((IDictionary<string,object>)request)["postOnly"] = postOnly;
         }

@@ -154,7 +154,7 @@ public partial class bitopro : ccxt.bitopro
         symbolVar = getValue(market, "symbol");
         string messageHash = add(("TRADE" + ":"), symbolVar);
         object trades = await this.watchPublic("trades", messageHash, getValue(market, "id"));
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -232,7 +232,7 @@ public partial class bitopro : ccxt.bitopro
         object url = add(add(getValue(getValue(this.urls, "ws"), "private"), "/"), "user-trades");
         this.authenticate(url);
         object trades = await this.watch(url, messageHash, null, messageHash);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbol, limitVar});
         }

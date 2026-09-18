@@ -2828,7 +2828,7 @@ public partial class okx : Exchange
             { "settleId", settleId },
             { "type", type },
             { "spot", spot },
-            { "margin", spot && isTrue(leverageAboveOne) },
+            { "margin", spot && leverageAboveOne },
             { "swap", swap },
             { "future", future },
             { "option", option },
@@ -2938,7 +2938,7 @@ public partial class okx : Exchange
             {
                 continue;
             }
-            if (isTrue(this.isSandboxModeEnabled))
+            if (this.isSandboxModeEnabled)
             {
                 string? instFamily = this.safeString(data, "instFamily", "");
                 if (((string)instFamily).StartsWith(((string)"TEST")))
@@ -4414,7 +4414,7 @@ public partial class okx : Exchange
                 ((IDictionary<string,object>)request)["px"] = this.priceToPrecision(symbol, price);
             }
         }
-        if (isTrue(postOnly))
+        if (postOnly)
         {
             ((IDictionary<string,object>)request)["ordType"] = "post_only";
         } else if (ioc && !marketIOC)

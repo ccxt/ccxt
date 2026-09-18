@@ -2133,7 +2133,7 @@ public partial class hyperliquid : Exchange
                 }
             } catch(Exception e)
             {
-                if (isTrue(e is InvalidProxySettings))
+                if (e is InvalidProxySettings)
                 {
                     throw e;
                 }

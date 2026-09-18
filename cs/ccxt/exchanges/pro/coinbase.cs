@@ -375,7 +375,7 @@ public partial class coinbase : ccxt.coinbase
         }
         string name = "ticker_batch";
         object ticker = await this.subscribeMultiple(name, false, symbols, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             Dictionary<string, object> tickers = new Dictionary<string, object>() {};
             object symbol = getValue(ticker, "symbol");
@@ -602,7 +602,7 @@ public partial class coinbase : ccxt.coinbase
         symbolVar = this.symbol(symbolVar);
         string name = "market_trades";
         object trades = await this.subscribe(name, false, symbolVar, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -650,7 +650,7 @@ public partial class coinbase : ccxt.coinbase
         }
         string name = "market_trades";
         object trades = await this.subscribeMultiple(name, false, symbols, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
@@ -700,7 +700,7 @@ public partial class coinbase : ccxt.coinbase
         }
         string name = "user";
         object orders = await this.subscribe(name, true, symbol, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(orders, "getLimit", new object[] {symbol, limitVar});
         }

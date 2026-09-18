@@ -396,7 +396,7 @@ public partial class hitbtc : ccxt.hitbtc
             } },
         };
         object newTickers = await this.subscribePublic(name, "tickers", symbols, this.deepExtend(request, parameters));
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             if (!((newTickers is IList<object>) || (newTickers.GetType().IsGenericType && newTickers.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
@@ -557,7 +557,7 @@ public partial class hitbtc : ccxt.hitbtc
             } },
         };
         object newTickers = await this.subscribePublic(name, "bidask", symbols, this.deepExtend(request, parameters));
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             if (!((newTickers is IList<object>) || (newTickers.GetType().IsGenericType && newTickers.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
@@ -650,7 +650,7 @@ public partial class hitbtc : ccxt.hitbtc
         }
         string name = "trades";
         object trades = await this.subscribePublic(name, "trades", new List<object>() {symbol}, this.deepExtend(request, parameters));
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbol, limitVar});
         }
@@ -798,7 +798,7 @@ public partial class hitbtc : ccxt.hitbtc
             ((IDictionary<string,object>)((IDictionary<string,object>)request)["params"])["limit"] = limitVar;
         }
         object ohlcv = await this.subscribePublic(name, "candles", new List<object>() {symbol}, this.deepExtend(request, parameters));
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbol, limitVar});
         }
@@ -927,7 +927,7 @@ public partial class hitbtc : ccxt.hitbtc
             { "future", "futures_subscribe" },
         });
         object orders = await this.subscribePrivate(name, symbol, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(orders, "getLimit", new object[] {symbol, limitVar});
         }
@@ -1588,7 +1588,7 @@ public partial class hitbtc : ccxt.hitbtc
                 throw new ExchangeError ((string)feedback) ;
             } catch(Exception e)
             {
-                if (isTrue(e is AuthenticationError))
+                if (e is AuthenticationError)
                 {
                     string messageHash = "authenticated";
                     ((WebSocketClient)client).reject(e, messageHash);

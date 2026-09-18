@@ -1814,7 +1814,7 @@ public partial class whitebit : Exchange
                 }
             } catch(Exception error)
             {
-                if (!isTrue((error is OrderNotFound)))
+                if (!(error is OrderNotFound))
                 {
                     throw error;
                 }
@@ -1845,7 +1845,7 @@ public partial class whitebit : Exchange
                 }
             } catch(Exception error)
             {
-                if (!isTrue((error is OrderNotFound)))
+                if (!(error is OrderNotFound))
                 {
                     throw error;
                 }
@@ -2469,7 +2469,7 @@ public partial class whitebit : Exchange
         }
         bool postOnly = this.isPostOnly(isMarketOrder, false, parameters);
         bool ioc = ((timeInForce == "IOC"));
-        if (isStopOrder && (isTrue(postOnly) || ioc))
+        if (isStopOrder && (postOnly || ioc))
         {
             throw new NotSupported ((string)(this.id + " createOrder() does not support postOnly or timeInForce IOC for stop orders")) ;
         }
@@ -2480,7 +2480,7 @@ public partial class whitebit : Exchange
         IList<object> marginModequeryVariable = (IList<object>)this.handleMarginModeAndParams("createOrder", parameters);
         var marginMode = ((IList<object>) marginModequeryVariable)[0];
         var query = ((IList<object>) marginModequeryVariable)[1];
-        if (isTrue(postOnly))
+        if (postOnly)
         {
             ((IDictionary<string,object>)request)["postOnly"] = true;
         }

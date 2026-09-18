@@ -1418,7 +1418,7 @@ public partial class upbit : Exchange
         string? timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
         string? selfTradePrevention = this.safeString2(parameters, "selfTradePrevention", "smp_type");
         bool? test = this.safeBool(parameters, "test", false);
-        if (isTrue(postOnly) && ((selfTradePrevention != null)))
+        if (postOnly && ((selfTradePrevention != null)))
         {
             throw new ExchangeError ((string)(this.id + " createOrder() does not support post_only and selfTradePrevention simultaneously.")) ;
         }
@@ -1487,7 +1487,7 @@ public partial class upbit : Exchange
         {
             ((IDictionary<string,object>)request)["identifier"] = clientOrderId;
         }
-        if (isTrue(postOnly))
+        if (postOnly)
         {
             if (!isEqual(getValue(request, "ord_type"), "limit"))
             {
@@ -1617,7 +1617,7 @@ public partial class upbit : Exchange
         bool postOnly = this.isPostOnly(isEqual(type, "market"), false, parameters);
         string? timeInForce = this.safeStringLower2(parameters, "newTimeInForce", "new_time_in_force");
         string? selfTradePrevention = this.safeString2(parameters, "selfTradePrevention", "new_smp_type");
-        if (isTrue(postOnly) && ((selfTradePrevention != null)))
+        if (postOnly && ((selfTradePrevention != null)))
         {
             throw new ExchangeError ((string)(this.id + " editOrder() does not support post_only and selfTradePrevention simultaneously.")) ;
         }
@@ -1686,7 +1686,7 @@ public partial class upbit : Exchange
         {
             ((IDictionary<string,object>)request)["new_smp_type"] = selfTradePrevention;
         }
-        if (isTrue(postOnly))
+        if (postOnly)
         {
             if (!isEqual(getValue(request, "new_ord_type"), "limit"))
             {

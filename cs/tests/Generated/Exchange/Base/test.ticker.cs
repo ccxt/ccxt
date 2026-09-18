@@ -90,7 +90,7 @@ public partial class testMainClass : BaseTest
         // only check "above zero" values if exchange is not supposed to have exotic index markets
         bool isStandardMarket = ((market != null) && isTrue(exchange.inArray(getValue(market, "type"), new List<object>() {"spot", "swap", "future", "option"})));
         bool valuesShouldBePositive = isStandardMarket; // || (market === undefined) atm, no check for index markets
-        if (isTrue(valuesShouldBePositive) && !(inOp(skippedProperties, "positiveValues")))
+        if (valuesShouldBePositive && !(inOp(skippedProperties, "positiveValues")))
         {
             testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, "open", "0");
             testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, "high", "0");
@@ -236,7 +236,7 @@ public partial class testMainClass : BaseTest
             // assert (low !== undefined, 'vwap is defined, but low is not' + logText);
             // assert (vwap >= low && vwap <= high)
             // todo: calc compare
-            assert(!isTrue(valuesShouldBePositive) || isTrue(Precise.stringGe(vwap, "0")), add("vwap is not greater than zero", logText));
+            assert(!valuesShouldBePositive || isTrue(Precise.stringGe(vwap, "0")), add("vwap is not greater than zero", logText));
             if ((baseVolume != null))
             {
                 assert((quoteVolume != null), add("baseVolume & vwap is defined, but quoteVolume is not", logText));

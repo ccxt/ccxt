@@ -2247,7 +2247,7 @@ public partial class bybit : Exchange
      */
     public override void enableDemoTrading(object enable)
     {
-        if (isTrue(this.isSandboxModeEnabled))
+        if (this.isSandboxModeEnabled)
         {
             throw new NotSupported ((string)(this.id + " demo trading does not support in sandbox environment")) ;
         }

@@ -346,7 +346,7 @@ public partial class cex : ccxt.cex
         {
             return await this.WatchTickers(symbols, parameters);
         }
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             Dictionary<string, object> result = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)result)[(string)tickerSymbol] = ticker;
@@ -545,7 +545,7 @@ public partial class cex : ccxt.cex
         };
         Dictionary<string, object> request = this.deepExtend(message, parameters);
         object orders = await this.watch(url, messageHash, request, messageHash, request);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -1214,7 +1214,7 @@ public partial class cex : ccxt.cex
             { "rooms", new List<object>() {add((add("pair-", getValue(market, "baseId")) + "-"), getValue(market, "quoteId"))} },
         };
         object ohlcv = await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar});
         }

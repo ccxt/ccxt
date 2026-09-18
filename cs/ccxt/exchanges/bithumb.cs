@@ -1898,7 +1898,7 @@ public partial class bithumb : Exchange
         IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isEqual(type, "market"), false, parameters);
         postOnly = (bool)((IList<object>)postOnlyparametersVariable)[0];
         parameters = ((IList<object>)postOnlyparametersVariable)[1];
-        if (isTrue(postOnly) || (isEqual(timeInForce, "PO")))
+        if (postOnly || (isEqual(timeInForce, "PO")))
         {
             ((IDictionary<string,object>)request)["time_in_force"] = "post_only";
             parameters = this.omit(parameters, "postOnly");

@@ -221,7 +221,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         }
         symbols = this.marketSymbols(symbols, null, false);
         object ticker = await this.watchMultiHelper("ticker", "ticker", symbols, null, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             Dictionary<string, object> result = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)result)[(string)getValue(ticker, "symbol")] = ticker;
@@ -243,7 +243,7 @@ public partial class krakenfutures : ccxt.krakenfutures
     {
         parameters ??= new Dictionary<string, object>();
         object ticker = await this.watchMultiHelper("bidask", "ticker_lite", symbols, null, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             Dictionary<string, object> result = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)result)[(string)getValue(ticker, "symbol")] = ticker;
@@ -285,7 +285,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         object trades = await this.watchMultiHelper("trade", "trade", symbols, null, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             List<object> first = this.safeList(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
@@ -336,7 +336,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         }
         messageHash = ("positions" + messageHash);
         object newPositions = await this.subscribePrivate("open_positions", messageHash, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToPositionList(newPositions);
         }
@@ -520,7 +520,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             messageHash = messageHash + add(":", getValue(market, "symbol"));
         }
         object orders = await this.subscribePrivate(name, messageHash, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(orders, "getLimit", new object[] {symbol, limitVar});
         }
@@ -554,7 +554,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             messageHash = messageHash + add(":", getValue(market, "symbol"));
         }
         object trades = await this.subscribePrivate(name, messageHash, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbol, limitVar});
         }

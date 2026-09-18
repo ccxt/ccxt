@@ -1542,7 +1542,7 @@ public partial class apex : Exchange
         }
         if (!isMarket)
         {
-            if (isTrue(postOnly))
+            if (postOnly)
             {
                 timeInForce = "POST_ONLY";
             } else if (isEqual(timeInForce, "ioc"))

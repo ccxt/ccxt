@@ -720,7 +720,7 @@ public partial class pacifica : Exchange
 
     public async virtual Task<object> handleBuilderFeeApproval()
     {
-        if (isTrue(this.isSandboxModeEnabled))
+        if (this.isSandboxModeEnabled)
         {
             return false;
         }
@@ -3996,7 +3996,7 @@ public partial class pacifica : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         bool isTestnet = this.isSandboxModeEnabled;
-        string urlKey = ((bool) isTrue((isTestnet))) ? "test" : "api";
+        string urlKey = ((bool) (isTestnet)) ? "test" : "api";
         object host = this.implodeHostname(getValue(getValue(this.urls, urlKey), api));
         object url = add(add(add(add(host, "/api/"), this.version), "/"), this.implodeParams(path, parameters));
         parameters = this.omit(parameters, this.extractParams(path));
@@ -4101,7 +4101,7 @@ public partial class pacifica : Exchange
         {
             throw new ArgumentsRequired ((string)(add((this.id + " action: "), operationType) + " postActionRequest() requires \"operationType\"")) ;
         }
-        if (!isTrue(this.isSandboxModeEnabled))
+        if (!this.isSandboxModeEnabled)
         {
             object useBuilder = this.handleOption("postActionRequest", "builderFee", true);
             object builderCode = null;

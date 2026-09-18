@@ -267,7 +267,7 @@ public partial class testMainClass : BaseTest
             bool isNonSpot = !isEqual(spot, true); // such high precision is only allowed in contract markets
             bool isPrice = isEqual(priceOrAmountKey, "price");
             bool isTickSize5 = Precise.stringEq("5", exchange.safeString(getValue(market, "precision"), priceOrAmountKey));
-            if (isNonSpot && isPrice && isExclusivePair && isTrue(isTickSize5))
+            if (isNonSpot && isPrice && isExclusivePair && isTickSize5)
             {
                 continue;
             }

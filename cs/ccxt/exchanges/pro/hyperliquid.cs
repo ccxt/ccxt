@@ -467,7 +467,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             ((IDictionary<string,object>)((IDictionary<string,object>)request)["subscription"])["dex"] = defaultDex;
         }
         object tickers = await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(tickers, "symbol", symbols));
         }
@@ -549,7 +549,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         }
         string subscribeHash = ("subscribe:userFills::" + ((string)userAddress).ToLower());
         object trades = await this.watch(url, messageHash, message, subscribeHash);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -776,7 +776,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         };
         Dictionary<string, object> message = this.extend(request, parameters);
         object trades = await this.watch(url, messageHash, message, messageHash);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -967,7 +967,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         string messageHash = add((add("candles:", timeframeVar) + ":"), symbolVar);
         Dictionary<string, object> message = this.extend(request, parameters);
         object ohlcv = await this.watch(url, messageHash, message, messageHash);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -1381,7 +1381,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         this.setPositionsCache(client as WebSocketClient, symbols);
         object cache = this.positions;
         object newPositions = await this.watch(url, messageHash, message, topic);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToPositionList(newPositions);
         }
@@ -1527,7 +1527,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         }
         string subscribeHash = ("subscribe:orderUpdates::" + ((string)userAddress).ToLower());
         object orders = await this.watch(url, messageHash, message, subscribeHash);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
         }

@@ -455,7 +455,7 @@ public partial class binance : ccxt.binance
             { "id", requestId },
         };
         object newLiquidations = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), subscriptionHashes, subscribe);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToLiquidationList(newLiquidations);
         }
@@ -678,7 +678,7 @@ public partial class binance : ccxt.binance
         object url = this.getPrivateWsUrl(type, listenKey);
         object message = null;
         object newLiquidations = await this.watchMultiple(url, messageHashes, message, new List<object>() {type});
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToLiquidationList(newLiquidations);
         }
@@ -1176,7 +1176,7 @@ public partial class binance : ccxt.binance
         // symbol and stalls the orderbook future (delivery/option ids are
         // unique, so the swap hint resolves those correctly too)
         bool isSpot = this.isSpotUrl(client);
-        string marketType = ((bool) isTrue(isSpot)) ? "spot" : "swap";
+        string marketType = ((bool) isSpot) ? "spot" : "swap";
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         string? symbol = ((string)getValue(market, "symbol"));
         string messageHash = ("orderbook::" + symbol);
@@ -1441,7 +1441,7 @@ public partial class binance : ccxt.binance
             { "id", requestId },
         };
         object trades = await this.watchMultiple(url, messageHashes, this.extend(request, query), messageHashes, subscribe);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             object first = this.safeValue(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
@@ -1772,7 +1772,7 @@ public partial class binance : ccxt.binance
         // resolve the market from the transport url — an ambiguous id like
         // BTCUSDT maps to both the spot and the linear swap market
         bool isSpot = this.isSpotUrl(client);
-        string marketType = ((bool) isTrue(isSpot)) ? "spot" : "contract";
+        string marketType = ((bool) isSpot) ? "spot" : "contract";
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         string? symbol = ((string)getValue(market, "symbol"));
         string messageHash = ("trade::" + symbol);
@@ -1886,7 +1886,7 @@ public partial class binance : ccxt.binance
             var stockSymbol = ((IList<object>) stockSymbolstockTimeframestockCandlesVariable)[0];
             var stockTimeframe = ((IList<object>) stockSymbolstockTimeframestockCandlesVariable)[1];
             var stockCandles = ((IList<object>) stockSymbolstockTimeframestockCandlesVariable)[2];
-            if (isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = callDynamically(stockCandles, "getLimit", new object[] {stockSymbol, limit});
             }
@@ -1958,7 +1958,7 @@ public partial class binance : ccxt.binance
         var symbol = ((IList<object>) symboltimeframecandlesVariable)[0];
         var timeframe = ((IList<object>) symboltimeframecandlesVariable)[1];
         var candles = ((IList<object>) symboltimeframecandlesVariable)[2];
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limit = callDynamically(candles, "getLimit", new object[] {symbol, limit});
         }
@@ -2132,7 +2132,7 @@ public partial class binance : ccxt.binance
         // resolve the market from the transport url — an ambiguous id like
         // BTCUSDT maps to both the spot and the linear swap market
         bool isSpot = this.isSpotUrl(client);
-        string marketType = ((bool) isTrue(isSpot)) ? "spot" : "contract";
+        string marketType = ((bool) isSpot) ? "spot" : "contract";
         string? symbol = this.safeSymbol(marketId, null, null, marketType);
         string messageHash = ((("ohlcv::" + symbol) + "::") + unifiedTimeframe);
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
@@ -2384,7 +2384,7 @@ public partial class binance : ccxt.binance
         channelName = ((IList<object>)channelNameparametersVariable)[0];
         parameters = ((IList<object>)channelNameparametersVariable)[1];
         object newTickers = await this.watchMultiTickerHelper("watchMarkPrices", channelName, symbols, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToTickers(newTickers);
         }
@@ -2422,7 +2422,7 @@ public partial class binance : ccxt.binance
             }
             symbols = this.marketSymbols(symbols, null, false, false, true);
             object stockResult = await this.watchStockMarketStream(new List<object>() {"price"}, new List<object>() {"stock:price"}, parameters);
-            if (isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 return ccxt.BaseExchange.ToTickers(stockResult);
             }
@@ -2437,7 +2437,7 @@ public partial class binance : ccxt.binance
             throw new BadRequest ((string)(this.id + " deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead")) ;
         }
         object newTickers = await this.watchMultiTickerHelper("watchTickers", channelName, symbols, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToTickers(newTickers);
         }
@@ -2586,7 +2586,7 @@ public partial class binance : ccxt.binance
                 ((IList<object>)stockMessageHashes).Add(add("stock:quote:", getValue(symbols, i)));
             }
             object stockResult = await this.watchStockMarketStream(stockStreams, stockMessageHashes, parameters);
-            if (isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 return ccxt.BaseExchange.ToTickers(stockResult);
             }
@@ -2594,7 +2594,7 @@ public partial class binance : ccxt.binance
         }
         symbols = this.marketSymbols(symbols, null, true, false, true);
         object result = await this.watchMultiTickerHelper("watchBidsAsks", "bookTicker", symbols, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToTickers(result);
         }
@@ -3103,7 +3103,7 @@ public partial class binance : ccxt.binance
             // option id, may override it, see https://github.com/ccxt/ccxt/issues/29728
             object tickerMarketById = ((bool) (isEqual(numTickerMarkets, 1))) ? this.safeValue(tickerMarketsByIdList, 0) : null;
             bool isSpot = this.isSpotUrl(client);
-            string tickerFallbackType = ((bool) isTrue(isSpot)) ? "spot" : "contract";
+            string tickerFallbackType = ((bool) isSpot) ? "spot" : "contract";
             object tickerMarketType = ((bool) ((tickerMarketById != null))) ? getValue(tickerMarketById, "type") : tickerFallbackType;
             Dictionary<string, object> parsedTicker = ((Dictionary<string, object>)this.parseWsTicker(ticker, tickerMarketType));
             object symbol = getValue(parsedTicker, "symbol");
@@ -4005,7 +4005,7 @@ public partial class binance : ccxt.binance
             } else if (isEqual(type, "option"))
             {
                 bool? demoMode = this.safeBool(this.options, "enableDemoTrading", false);
-                if (((demoMode == true)) || isTrue(this.isSandboxModeEnabled))
+                if (((demoMode == true)) || this.isSandboxModeEnabled)
                 {
                     throw new NotSupported ((string)(this.id + " watchBalance() does not support option markets in demo/testnet mode")) ;
                 }
@@ -4960,7 +4960,7 @@ public partial class binance : ccxt.binance
                 { "id", stockRequestId },
             };
             object stockOrders = await this.watch(stockUrl, stockMessageHash, this.extend(stockRequest, stockQuery), stockMessageHash, stockSubscribe);
-            if (isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limitVar = callDynamically(stockOrders, "getLimit", new object[] {symbolVar, limitVar});
             }
@@ -5012,7 +5012,7 @@ public partial class binance : ccxt.binance
             } else if (isEqual(type, "option"))
             {
                 bool? demoMode = this.safeBool(this.options, "enableDemoTrading", false);
-                if (((demoMode == true)) || isTrue(this.isSandboxModeEnabled))
+                if (((demoMode == true)) || this.isSandboxModeEnabled)
                 {
                     throw new NotSupported ((string)(this.id + " watchOrders() does not support option markets in demo/testnet mode")) ;
                 }
@@ -5025,7 +5025,7 @@ public partial class binance : ccxt.binance
         this.setPositionsCache(client as WebSocketClient, type, null, isPortfolioMargin);
         object message = null;
         object orders = await this.watch(url, messageHash, message, type);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -5664,7 +5664,7 @@ public partial class binance : ccxt.binance
         } else if (isEqual(type, "option"))
         {
             bool? demoMode = this.safeBool(this.options, "enableDemoTrading", false);
-            if (((demoMode == true)) || isTrue(this.isSandboxModeEnabled))
+            if (((demoMode == true)) || this.isSandboxModeEnabled)
             {
                 throw new NotSupported ((string)(this.id + " watchPositions() does not support option markets in demo/testnet mode")) ;
             }
@@ -5683,7 +5683,7 @@ public partial class binance : ccxt.binance
             return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true));
         }
         object newPositions = await this.watch(url, messageHash, null, type);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToPositionList(newPositions);
         }
@@ -6175,7 +6175,7 @@ public partial class binance : ccxt.binance
             } else if (isEqual(type, "option"))
             {
                 bool? demoMode = this.safeBool(this.options, "enableDemoTrading", false);
-                if (((demoMode == true)) || isTrue(this.isSandboxModeEnabled))
+                if (((demoMode == true)) || this.isSandboxModeEnabled)
                 {
                     throw new NotSupported ((string)(this.id + " watchMyTrades() does not support option markets in demo/testnet mode")) ;
                 }
@@ -6188,7 +6188,7 @@ public partial class binance : ccxt.binance
         this.setPositionsCache(client as WebSocketClient, type, null, isPortfolioMargin);
         object message = null;
         object trades = await this.watch(url, messageHash, message, type);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }

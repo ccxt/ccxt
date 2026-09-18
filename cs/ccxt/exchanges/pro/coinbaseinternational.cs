@@ -227,7 +227,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         }
         object fundingRate = await this.subscribeMultiple("RISK", symbols, parameters);
         string? symbol = this.safeString(fundingRate, "symbol");
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             Dictionary<string, object> result = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)result)[(string)((string)symbol)] = fundingRate;
@@ -298,7 +298,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         channel = ((IList<object>)channelparametersVariable)[0];
         parameters = ((IList<object>)channelparametersVariable)[1];
         object ticker = await this.subscribe(channel, symbols, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             Dictionary<string, object> result = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)result)[(string)getValue(ticker, "symbol")] = ticker;
@@ -522,7 +522,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         IDictionary<string, object> options = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
         string? interval = this.safeString(options, timeframeVar, timeframeVar);
         object ohlcv = await this.subscribe(interval, new List<object>() {symbolVar}, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -608,7 +608,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         }
         symbols = this.marketSymbols(symbols, null, false, true, true);
         object trades = await this.subscribeMultiple("MATCH", symbols, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");

@@ -1049,7 +1049,7 @@ public partial class woo : Exchange
         bool? inverse = null;
         bool margin = true;
         bool contract = swap;
-        if (isTrue(contract))
+        if (contract)
         {
             margin = false;
             settleId = this.safeString(parts, 2);
@@ -1745,7 +1745,7 @@ public partial class woo : Exchange
         ((IDictionary<string,object>)request)["type"] = orderType; // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
         if (!isConditional)
         {
-            if (isTrue(postOnly))
+            if (postOnly)
             {
                 ((IDictionary<string,object>)request)["type"] = "POST_ONLY";
             } else if ((timeInForce == "fok"))

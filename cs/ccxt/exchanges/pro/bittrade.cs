@@ -167,7 +167,7 @@ public partial class bittrade : ccxt.bittrade
             { "params", parameters },
         };
         object trades = await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -267,7 +267,7 @@ public partial class bittrade : ccxt.bittrade
             { "params", parameters },
         };
         object ohlcv = await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar});
         }

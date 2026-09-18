@@ -234,7 +234,7 @@ public partial class poloniex : ccxt.poloniex
         }
         string uppercaseSide = ((string)side).ToUpper();
         bool isPostOnly = this.isPostOnly((uppercaseType == "MARKET"), (uppercaseType == "LIMIT_MAKER"), parameters);
-        if (isTrue(isPostOnly))
+        if (isPostOnly)
         {
             uppercaseType = "LIMIT_MAKER";
         }
@@ -409,7 +409,7 @@ public partial class poloniex : ccxt.poloniex
             throw new BadRequest ((string)add((this.id + " watchOHLCV cannot take a timeframe of "), timeframeVar)) ;
         }
         object ohlcv = await this.subscribe(channel, channel, false, new List<object>() {symbol}, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbol, limitVar});
         }
@@ -457,7 +457,7 @@ public partial class poloniex : ccxt.poloniex
         string name = "ticker";
         symbols = this.marketSymbols(symbols);
         object newTickers = await this.subscribe(name, name, false, symbols, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToTickers(newTickers);
         }
@@ -519,7 +519,7 @@ public partial class poloniex : ccxt.poloniex
             }
         }
         object trades = await this.watchMultiple(url, messageHashes, request, messageHashes);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             object first = this.safeValue(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
@@ -582,7 +582,7 @@ public partial class poloniex : ccxt.poloniex
         }
         List<object> symbols = ((bool) (isEqual(symbolVar, null))) ? null : new List<object>() {symbolVar};
         object orders = await this.subscribe(name, name, true, symbols, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -618,7 +618,7 @@ public partial class poloniex : ccxt.poloniex
         }
         List<object> symbols = ((bool) (isEqual(symbolVar, null))) ? null : new List<object>() {symbolVar};
         object trades = await this.subscribe(name, messageHash, true, symbols, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -1472,7 +1472,7 @@ public partial class poloniex : ccxt.poloniex
                 throw new ExchangeError ((string)feedback) ;
             } catch(Exception e)
             {
-                if (isTrue(e is AuthenticationError))
+                if (e is AuthenticationError)
                 {
                     string messageHash = "authenticated";
                     ((WebSocketClient)client).reject(e, messageHash);

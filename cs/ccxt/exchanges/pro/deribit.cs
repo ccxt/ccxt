@@ -251,7 +251,7 @@ public partial class deribit : ccxt.deribit
         };
         Dictionary<string, object> request = this.deepExtend(message, parameters);
         object newTickers = await this.watchMultiple(url, channels, request, channels, request);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             Dictionary<string, object> tickers = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)tickers)[(string)getValue(newTickers, "symbol")] = newTickers;
@@ -335,7 +335,7 @@ public partial class deribit : ccxt.deribit
         };
         Dictionary<string, object> request = this.deepExtend(message, parameters);
         object newTickers = await this.watchMultiple(url, channels, request, channels, request);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             Dictionary<string, object> tickers = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)tickers)[(string)getValue(newTickers, "symbol")] = newTickers;
@@ -433,7 +433,7 @@ public partial class deribit : ccxt.deribit
             await this.authenticate();
         }
         object trades = await this.watchMultipleWrapper("trades", interval, symbols, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
@@ -814,7 +814,7 @@ public partial class deribit : ccxt.deribit
         };
         Dictionary<string, object> request = this.deepExtend(message, parameters);
         object orders = await this.watch(url, channel, request, channel, request);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -932,7 +932,7 @@ public partial class deribit : ccxt.deribit
         var symbol = ((IList<object>) symboltimeframecandlesVariable)[0];
         var timeframe = ((IList<object>) symboltimeframecandlesVariable)[1];
         var candles = ((IList<object>) symboltimeframecandlesVariable)[2];
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limit = callDynamically(candles, "getLimit", new object[] {symbol, limit});
         }

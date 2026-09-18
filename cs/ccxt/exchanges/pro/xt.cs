@@ -410,7 +410,7 @@ public partial class xt : ccxt.xt
             market = this.market(getValue(symbols, 0));
         }
         object tickers = await this.subscribe(name, "public", "watchTickers", market, symbols, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToTickers(tickers);
         }
@@ -444,7 +444,7 @@ public partial class xt : ccxt.xt
         }
         string messageHash = ("unsubscribe::" + name);
         object tickers = await this.unSubscribe(messageHash, name, "public", "unWatchTickers", "ticker", null, symbols, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             return tickers;
         }
@@ -477,7 +477,7 @@ public partial class xt : ccxt.xt
         Dictionary<string, object> market = this.market(symbol);
         string name = add((add("kline@", getValue(market, "id")) + ","), timeframeVar);
         object ohlcv = await this.subscribe(name, "public", "watchOHLCV", market, null, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbol, limitVar});
         }
@@ -536,7 +536,7 @@ public partial class xt : ccxt.xt
         Dictionary<string, object> market = this.market(symbol);
         string name = add("trade@", getValue(market, "id"));
         object trades = await this.subscribe(name, "public", "watchTrades", market, null, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbol, limitVar});
         }
@@ -658,7 +658,7 @@ public partial class xt : ccxt.xt
             market = this.market(symbol);
         }
         object orders = await this.subscribe(name, "private", "watchOrders", market, null, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(orders, "getLimit", new object[] {symbol, limitVar});
         }
@@ -692,7 +692,7 @@ public partial class xt : ccxt.xt
             market = this.market(symbol);
         }
         object trades = await this.subscribe(name, "private", "watchMyTrades", market, null, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbol, limitVar});
         }
@@ -750,7 +750,7 @@ public partial class xt : ccxt.xt
         }
         string name = "position";
         object newPositions = await this.subscribe(name, "private", "watchPositions", null, null, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToPositionList(newPositions);
         }

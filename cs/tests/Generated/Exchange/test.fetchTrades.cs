@@ -76,7 +76,7 @@ public partial class testMainClass : BaseTest
             bool isSamePrice = Precise.stringEq(price, lastPrice);
             bool isSameSide = isEqual(side, lastSide);
             // we are only interested in trades that have: same timestamp, same side, but different(!) price
-            if (isSameTs && isSameSide && !isTrue(isSamePrice))
+            if (isSameTs && isSameSide && !isSamePrice)
             {
                 Dictionary<string, object> pair = new Dictionary<string, object>() {
                     { "previous", lastTrade },
@@ -84,10 +84,10 @@ public partial class testMainClass : BaseTest
                 };
                 bool priceIncreasing = Precise.stringGt(price, lastPrice);
                 bool priceDecreasing = Precise.stringLt(price, lastPrice);
-                if (isTrue(priceIncreasing))
+                if (priceIncreasing)
                 {
                     assert(isEqual(side, "buy"), add("Price is increasing, but side is not `buy`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip", testSharedMethods.logTemplate(exchange, method, pair)));
-                } else if (isTrue(priceDecreasing))
+                } else if (priceDecreasing)
                 {
                     assert(isEqual(side, "sell"), add("Price is decreasing, but side is not `sell`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip", testSharedMethods.logTemplate(exchange, method, pair)));
                 }

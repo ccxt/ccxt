@@ -151,7 +151,7 @@ public partial class bullish : ccxt.bullish
             { "symbol", getValue(market, "id") },
         };
         object trades = await this.watchPublic(url, messageHash, request, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbol, limitVar});
         }
@@ -431,7 +431,7 @@ public partial class bullish : ccxt.bullish
             parameters = this.omit(parameters, "tradingAccountId");
         }
         object orders = await this.watchPrivate(messageHash, subscribeHash, request, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -565,7 +565,7 @@ public partial class bullish : ccxt.bullish
             parameters = this.omit(parameters, "tradingAccountId");
         }
         object trades = await this.watchPrivate(messageHash, subscribeHash, request, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
@@ -791,7 +791,7 @@ public partial class bullish : ccxt.bullish
             { "topic", "derivativesPositionsV2" },
         };
         object positions = await this.watchPrivate(messageHash, subscribeHash, request, parameters);
-        if (isTrue(this.newUpdates))
+        if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToPositionList(positions);
         }

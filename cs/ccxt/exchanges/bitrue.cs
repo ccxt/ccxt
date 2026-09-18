@@ -2188,7 +2188,7 @@ public partial class bitrue : Exchange
             bool isMarket = (uppercaseType == "MARKET");
             string? timeInForce = this.safeStringLower(parameters, "timeInForce");
             bool postOnly = this.isPostOnly(isMarket, null, parameters);
-            if (isTrue(postOnly))
+            if (postOnly)
             {
                 ((IDictionary<string,object>)request)["type"] = "POST_ONLY";
             } else if ((timeInForce == "fok"))

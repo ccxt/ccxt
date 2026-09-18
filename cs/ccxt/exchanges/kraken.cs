@@ -4092,7 +4092,7 @@ public partial class kraken : Exchange
             bool isBatchOrder = (isEqual(path, "AddOrderBatch"));
             this.checkRequiredCredentials();
             string nonce = ((object)this.nonce()).ToString();
-            if (isCancelOrderBatch || isTrue(isTriggerPercent) || isBatchOrder)
+            if (isCancelOrderBatch || isTriggerPercent || isBatchOrder)
             {
                 body = this.json(this.extend(new Dictionary<string, object>() {
                     { "nonce", nonce },
@@ -4114,7 +4114,7 @@ public partial class kraken : Exchange
                 { "API-Key", this.apiKey },
                 { "API-Sign", signature },
             };
-            if (isCancelOrderBatch || isTrue(isTriggerPercent) || isBatchOrder)
+            if (isCancelOrderBatch || isTriggerPercent || isBatchOrder)
             {
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
             } else

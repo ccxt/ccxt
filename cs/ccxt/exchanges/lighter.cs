@@ -991,7 +991,7 @@ public partial class lighter : Exchange
         {
             ((IDictionary<string,object>)request)["is_ask"] = 1;
         }
-        if (isTrue(postOnly))
+        if (postOnly)
         {
             timeInForceNum = 2;
             orderExpiry = -1;

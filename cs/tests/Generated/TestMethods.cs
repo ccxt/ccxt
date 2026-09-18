@@ -2154,7 +2154,7 @@ public partial class testMainClass
             }
         } catch(Exception e)
         {
-            if (!isTrue((e is InvalidProxySettings)))
+            if (!(e is InvalidProxySettings))
             {
                 throw e;
             }

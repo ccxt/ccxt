@@ -2980,7 +2980,7 @@ public partial class extended : Exchange
         string? fee = this.safeString(parameters, "fee", "0.0005");
         object builderFeeRate = null;
         object builderId = null;
-        if (isTrue(this.isSandboxModeEnabled))
+        if (this.isSandboxModeEnabled)
         {
             builderFeeRate = this.safeString2(parameters, "builderFeeRate", "defaultBuilderFeeRate");
             builderId = this.safeString2(parameters, "builderId", "defaultBuilderId");

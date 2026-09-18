@@ -1771,7 +1771,7 @@ public partial class bitstamp : Exchange
             if ((amountString != null))
             {
                 bool isAmountNeg = Precise.stringLt(amountString, "0");
-                if (isTrue(isAmountNeg))
+                if (isAmountNeg)
                 {
                     side = "sell";
                     amountString = Precise.stringNeg(amountString);
