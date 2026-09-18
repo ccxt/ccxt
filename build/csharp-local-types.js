@@ -6041,6 +6041,12 @@ function destructuredStringElementProof (declaration, idNode, assignment, name) 
 // `string?` local, handleParamBool/2 + handleHfAndParams a `bool?` local, handleParamInteger/2
 // an `Int64?` local, handlePostOnly a bool LITERAL. The value is the helper's own local (or
 // literal), so the cast names the box that already exists; nothing else can reach the slot.
+// U16 (lighter only, the two names below): slot 0 is `this.parseToInt (x)` on the single
+// return path of each definition (`return new List<object> {this.parseToInt (x), parameters}`),
+// and Exchange.BaseMethods.cs#parseToInt is declared `Int64?` — the slot holds a boxed Int64
+// or null, nothing else. The `(Int64?)` read cast names that box; `let x: Int = undefined`
+// targets keep the null-init join's rule (the write join is not consulted for a scalar
+// annotation), so an extra unprovable write of the name still rejects the declaration.
 export const DESTRUCTURED_ELEMENT0_TYPES = {
     'handleParamString': 'string?',
     'handleParamString2': 'string?',
@@ -6052,6 +6058,8 @@ export const DESTRUCTURED_ELEMENT0_TYPES = {
     'handleParamInteger': 'Int64?',
     'handleParamInteger2': 'Int64?',
     'handlePostOnly': 'bool',
+    'handleAccountIndex': 'Int64?',
+    'handleApiKeyIndex': 'Int64?',
 };
 
 // S28: element 0 of `[ value, params ] = this.helper (...)` for a LITERAL-initialised target.
@@ -6092,7 +6100,11 @@ export function recordDestructuredWriteType (scope, printedName, csharpType) {
 
 // is `[ ..., x, ... ] = this.helper (...)` a write the cast makes type-correct?
 function destructuredWriteIsCastable (csharp, index, declaration, idNode, assignment, csharpType) {
-    const right = assignment.right;
+    // `[ x, params ] = await this.helper (...)` prints the same element reads (`var tmp =
+    // await ...; x = tmp[0];`), so the awaited pair is the same tuple the proof below names.
+    // Every audited helper but handleAccountIndex / handleApiKeyIndex is sync, so no
+    // sync-helper site can newly fire through this unwrap.
+    const right = (assignment.right?.kind === ts.SyntaxKind.AwaitExpression) ? assignment.right.expression : assignment.right;
     if (right?.kind !== ts.SyntaxKind.CallExpression) {
         return false;
     }

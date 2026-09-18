@@ -885,9 +885,9 @@ public partial class lighter : ccxt.lighter
         {
             await this.loadMarkets();
         }
-        object accountIndex = null;
+        Int64? accountIndex = null;
         var accountIndexparametersVariable = await this.handleAccountIndex(parameters, "watchMyTrades", "accountIndex", "account_index");
-        accountIndex = ((IList<object>)accountIndexparametersVariable)[0];
+        accountIndex = (Int64?)((IList<object>)accountIndexparametersVariable)[0];
         parameters = ((IList<object>)accountIndexparametersVariable)[1];
         string? messageHash = this.getMessageHash("myTrades");
         if (!isEqual(symbolVar, null))
@@ -924,9 +924,9 @@ public partial class lighter : ccxt.lighter
         {
             throw new NotSupported (add(this.id, " unWatchMyTrades() does not support a symbol argument, the account trades channel covers every market, unWatch from all markets only")) ;
         }
-        object accountIndex = null;
+        Int64? accountIndex = null;
         var accountIndexparametersVariable = await this.handleAccountIndex(parameters, "unWatchMyTrades", "accountIndex", "account_index");
-        accountIndex = ((IList<object>)accountIndexparametersVariable)[0];
+        accountIndex = (Int64?)((IList<object>)accountIndexparametersVariable)[0];
         parameters = ((IList<object>)accountIndexparametersVariable)[1];
         string? subMessageHash = this.getMessageHash("myTrades");
         string messageHash = add("unsubscribe:", subMessageHash);
@@ -1101,9 +1101,9 @@ public partial class lighter : ccxt.lighter
         IList<object> typeparametersVariable = (IList<object>)this.handleParamString(parameters, "type", defaultType);
         type = (string)typeparametersVariable[0];
         parameters = typeparametersVariable[1];
-        object accountIndex = null;
+        Int64? accountIndex = null;
         var accountIndexparametersVariable = await this.handleAccountIndex(parameters, "watchBalance", "accountIndex", "account_index");
-        accountIndex = ((IList<object>)accountIndexparametersVariable)[0];
+        accountIndex = (Int64?)((IList<object>)accountIndexparametersVariable)[0];
         parameters = ((IList<object>)accountIndexparametersVariable)[1];
         string? messageHash = this.getMessageHash("balances", null, type);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
@@ -1235,9 +1235,9 @@ public partial class lighter : ccxt.lighter
         {
             await this.loadMarkets();
         }
-        object accountIndex = null;
+        Int64? accountIndex = null;
         var accountIndexparametersVariable = await this.handleAccountIndex(parameters, "watchOrders", "accountIndex", "account_index");
-        accountIndex = ((IList<object>)accountIndexparametersVariable)[0];
+        accountIndex = (Int64?)((IList<object>)accountIndexparametersVariable)[0];
         parameters = ((IList<object>)accountIndexparametersVariable)[1];
         string? messageHash = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
@@ -1275,9 +1275,9 @@ public partial class lighter : ccxt.lighter
         {
             await this.loadMarkets();
         }
-        object accountIndex = null;
+        Int64? accountIndex = null;
         var accountIndexparametersVariable = await this.handleAccountIndex(parameters, "unWatchOrders", "accountIndex", "account_index");
-        accountIndex = ((IList<object>)accountIndexparametersVariable)[0];
+        accountIndex = (Int64?)((IList<object>)accountIndexparametersVariable)[0];
         parameters = ((IList<object>)accountIndexparametersVariable)[1];
         string? subMessageHash = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
