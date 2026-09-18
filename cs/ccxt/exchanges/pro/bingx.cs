@@ -2047,7 +2047,7 @@ public partial class bingx : ccxt.bingx
         if (e == "ORDER_TRADE_UPDATE")
         {
             this.handleOrder(client, (Dictionary<string, object>)message);
-            object data = this.safeValue(message, "o", new Dictionary<string, object>() {});
+            IDictionary<string, object> data = this.safeDict(message, "o", new Dictionary<string, object>() {});
             string? type = this.safeString(data, "x");
             string? status = this.safeString(data, "X");
             if (((type == "TRADE")) && (status == "FILLED"))

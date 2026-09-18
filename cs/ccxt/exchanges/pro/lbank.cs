@@ -700,7 +700,7 @@ public partial class lbank : ccxt.lbank
         //         "TS": "2024-01-19T23:05:18.548"
         //     }
         //
-        object orderUpdate = this.safeValue(order, "orderUpdate", new Dictionary<string, object>() {});
+        IDictionary<string, object> orderUpdate = this.safeDict(order, "orderUpdate", new Dictionary<string, object>() {});
         string? rawType = this.safeString(orderUpdate, "type", "");
         List<object> typeParts = rawType.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
         string? side = this.safeString(typeParts, 0);

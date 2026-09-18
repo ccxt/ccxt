@@ -1376,7 +1376,7 @@ export default class bitstamp extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const ohlc = this.safeList (data, 'ohlc', []);
         return this.parseOHLCVs (ohlc, market, timeframe, since, limit);
     }

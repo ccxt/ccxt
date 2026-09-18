@@ -4224,7 +4224,7 @@ public partial class deribit : Exchange
         Int64? timestamp = this.safeInteger(greeks, "timestamp");
         string? marketId = this.safeString(greeks, "instrument_name");
         string? symbol = this.safeSymbol(marketId, market);
-        object stats = this.safeValue(greeks, "greeks", new Dictionary<string, object>() {});
+        IDictionary<string, object> stats = this.safeDict(greeks, "greeks", new Dictionary<string, object>() {});
         return new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },

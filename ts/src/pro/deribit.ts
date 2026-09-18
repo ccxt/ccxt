@@ -1053,7 +1053,7 @@ export default class deribit extends deribitRest {
             }
             throw new NotSupported (this.id + ' no handler found for this message ' + this.json (message));
         }
-        const result = this.safeValue (message, 'result', {});
+        const result = this.safeDict (message, 'result', {});
         const accessToken = this.safeString (result, 'access_token');
         if (accessToken !== undefined) {
             this.handleAuthenticationMessage (client, message);

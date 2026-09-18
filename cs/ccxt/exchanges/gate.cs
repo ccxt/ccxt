@@ -5630,7 +5630,7 @@ public partial class gate : Exchange
             string? side = this.safeString(rawOrder, "side");
             object amount = this.safeValue(rawOrder, "amount");
             object price = this.safeValue(rawOrder, "price");
-            object orderParams = this.safeValue(rawOrder, "params", new Dictionary<string, object>() {});
+            IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             Dictionary<string, object> extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             object triggerValue = this.safeValueN(orderParams, new List<object>() {"triggerPrice", "stopPrice", "takeProfitPrice", "stopLossPrice"});
             if ((triggerValue != null))
@@ -6370,7 +6370,7 @@ public partial class gate : Exchange
             });
         }
         object put = this.safeValue2(order, "put", "initial", new Dictionary<string, object>() {});
-        object trigger = this.safeValue(order, "trigger", new Dictionary<string, object>() {});
+        IDictionary<string, object> trigger = this.safeDict(order, "trigger", new Dictionary<string, object>() {});
         string? contract = this.safeString(put, "contract");
         string? type = this.safeString(put, "type");
         string? timeInForce = this.safeStringUpper2(put, "time_in_force", "tif");
@@ -9036,7 +9036,7 @@ public partial class gate : Exchange
             //
             response = await this.privateOptionsGetMySettlements(this.extend(request, parameters));
         }
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object data = this.safeValue(result, "list", new List<object>() {});
         object settlements = this.parseSettlements(data, market);
         List<object> sorted = this.sortBy(settlements, "timestamp");

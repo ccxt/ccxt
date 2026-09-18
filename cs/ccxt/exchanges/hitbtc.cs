@@ -1560,7 +1560,7 @@ public partial class hitbtc : Exchange
         }
         if ((feeCostString != null))
         {
-            object info = this.safeValue(market, "info", new Dictionary<string, object>() {});
+            IDictionary<string, object> info = this.safeDict(market, "info", new Dictionary<string, object>() {});
             string? feeCurrency = this.safeString(info, "fee_currency");
             string? feeCurrencyCode = this.safeCurrencyCode(feeCurrency);
             fee = new Dictionary<string, object>() {
@@ -1708,7 +1708,7 @@ public partial class hitbtc : Exchange
         Int64? updated = this.parse8601(this.safeString(transaction, "updated_at"));
         string? type = this.parseTransactionType(this.safeString(transaction, "type"));
         string? status = this.parseTransactionStatus(this.safeString(transaction, "status"));
-        object native = this.safeValue(transaction, "native", new Dictionary<string, object>() {});
+        IDictionary<string, object> native = this.safeDict(transaction, "native", new Dictionary<string, object>() {});
         string? currencyId = this.safeString(native, "currency");
         string? code = this.safeCurrencyCode(currencyId);
         string? txhash = this.safeString(native, "hash");

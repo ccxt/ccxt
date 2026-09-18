@@ -2789,7 +2789,7 @@ public partial class bybit : ccxt.bybit
             if (((success != null)) && (!isEqual(success, true)))
             {
                 string? ret_msg = this.safeString(message, "ret_msg");
-                object request = this.safeValue(message, "request", new Dictionary<string, object>() {});
+                IDictionary<string, object> request = this.safeDict(message, "request", new Dictionary<string, object>() {});
                 string? op = this.safeString(request, "op");
                 if ((op == "auth"))
                 {

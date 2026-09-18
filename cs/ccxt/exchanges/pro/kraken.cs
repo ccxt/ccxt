@@ -927,7 +927,7 @@ public partial class kraken : ccxt.kraken
                 {
                     string? symbol = ((string)getValue(symbols, i));
                     Dictionary<string, object> market = this.market(symbol);
-                    object info = this.safeValue(market, "info", new Dictionary<string, object>() {});
+                    IDictionary<string, object> info = this.safeDict(market, "info", new Dictionary<string, object>() {});
                     string wsName = ((string)this.safeString(info, "wsname"));
                     ((IDictionary<string,object>)marketsByWsName)[wsName] = market;
                 }

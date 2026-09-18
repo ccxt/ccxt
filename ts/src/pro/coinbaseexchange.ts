@@ -669,7 +669,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
                 if (sequence === undefined) {
                     return;
                 }
-                const previousInfo = this.safeValue (previousOrder, 'info', {});
+                const previousInfo = this.safeDict (previousOrder, 'info', {});
                 const previousSequence = this.safeInteger (previousInfo, 'sequence');
                 if ((previousSequence === undefined) || (sequence > previousSequence)) {
                     if (type === 'match') {

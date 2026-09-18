@@ -4280,7 +4280,7 @@ export default class bitget extends Exchange {
             request['category'] = productType;
             response = await this.publicUtaGetV3MarketFills (this.extend (request, params));
         } else if (market['spot'] === true) {
-            const spotOptions = this.safeValue (options, 'spot', {});
+            const spotOptions = this.safeDict (options, 'spot', {});
             const defaultSpotMethod = this.safeString (spotOptions, 'method', 'publicSpotGetV2SpotMarketFillsHistory');
             const spotMethod = this.safeString (params, 'method', defaultSpotMethod);
             params = this.omit (params, 'method');
@@ -4294,7 +4294,7 @@ export default class bitget extends Exchange {
                 response = await this.publicSpotGetV2SpotMarketFills (this.extend (request, params));
             }
         } else {
-            const swapOptions = this.safeValue (options, 'swap', {});
+            const swapOptions = this.safeDict (options, 'swap', {});
             const defaultSwapMethod = this.safeString (swapOptions, 'method', 'publicMixGetV2MixMarketFillsHistory');
             const swapMethod = this.safeString (params, 'method', defaultSwapMethod);
             params = this.omit (params, 'method');

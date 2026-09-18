@@ -1832,7 +1832,7 @@ public partial class bitmex : ccxt.bitmex
         string? error = this.safeString(message, "error");
         if ((error != null))
         {
-            object request = this.safeValue(message, "request", new Dictionary<string, object>() {});
+            IDictionary<string, object> request = this.safeDict(message, "request", new Dictionary<string, object>() {});
             List<object> args = this.safeList(request, "args", new List<object>() {});
             int numArgs = args.Count;
             if (isGreaterThan(numArgs, 0))
@@ -1913,7 +1913,7 @@ public partial class bitmex : ccxt.bitmex
             object method = this.safeValue(methods, table);
             if ((method == null))
             {
-                object request = this.safeValue(message, "request", new Dictionary<string, object>() {});
+                IDictionary<string, object> request = this.safeDict(message, "request", new Dictionary<string, object>() {});
                 object op = this.safeValue(request, "op");
                 if (isEqual(op, "authKeyExpires"))
                 {

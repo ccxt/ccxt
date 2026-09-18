@@ -473,7 +473,7 @@ export default class bitteam extends Exchange {
         const currenciesValuedInUsd = this.handleOption ('fetchMarkets', 'currenciesValuedInUsd', {});
         const quoteInUsd = this.safeBool (currenciesValuedInUsd, quote, false);
         if (quoteInUsd === true) {
-            const settings = this.safeValue (market, 'settings', {});
+            const settings = this.safeDict (market, 'settings', {});
             minCost = this.safeNumber (settings, 'limit_usd');
         }
         return this.safeMarketStructure ({
@@ -666,7 +666,7 @@ export default class bitteam extends Exchange {
         const code = this.safeCurrencyCode (id);
         const active = this.safeBool (currency, 'active', false);
         const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'precision')));
-        const txLimits = this.safeValue (currency, 'txLimits', {});
+        const txLimits = this.safeDict (currency, 'txLimits', {});
         const minWithdraw = this.safeString (txLimits, 'minWithdraw');
         const maxWithdraw = this.safeString (txLimits, 'maxWithdraw');
         const minDeposit = this.safeString (txLimits, 'minDeposit');

@@ -2049,7 +2049,7 @@ export default class woo extends Exchange {
             //     }
             //
         }
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const orders = this.safeList (data, 'rows', []);
         return this.parseOrders (orders, market, since, limit);
     }

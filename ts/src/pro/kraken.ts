@@ -831,7 +831,7 @@ export default class kraken extends krakenRest {
                 for (let i = 0; i < symbols.length; i++) {
                     const symbol = symbols[i];
                     const market = this.market (symbol);
-                    const info = this.safeValue (market, 'info', {});
+                    const info = this.safeDict (market, 'info', {});
                     const wsName = this.safeString (info, 'wsname') as string;
                     marketsByWsName[wsName] = market;
                 }

@@ -457,9 +457,9 @@ public partial class upbit : Exchange
         //         }
         //     }
         //
-        object memberInfo = this.safeValue(response, "member_level", new Dictionary<string, object>() {});
-        object currencyInfo = this.safeValue(response, "currency", new Dictionary<string, object>() {});
-        object withdrawLimits = this.safeValue(response, "withdraw_limit", new Dictionary<string, object>() {});
+        IDictionary<string, object> memberInfo = this.safeDict(response, "member_level", new Dictionary<string, object>() {});
+        IDictionary<string, object> currencyInfo = this.safeDict(response, "currency", new Dictionary<string, object>() {});
+        IDictionary<string, object> withdrawLimits = this.safeDict(response, "withdraw_limit", new Dictionary<string, object>() {});
         object canWithdraw = this.safeValue(withdrawLimits, "can_withdraw");
         string? walletState = this.safeString(currencyInfo, "wallet_state");
         object walletLocked = this.safeValue(memberInfo, "wallet_locked");

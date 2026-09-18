@@ -367,7 +367,7 @@ public partial class okx : ccxt.okx
         //         ]
         //     }
         //
-        IDictionary<string, object> arg = ((IDictionary<string, object>)this.safeValue(message, "arg", new Dictionary<string, object>() {}));
+        IDictionary<string, object> arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
         object channel = this.safeString(arg, "channel");
         string? marketId = this.safeString(arg, "instId");
         string? symbol = this.safeSymbol(marketId);
@@ -692,7 +692,7 @@ public partial class okx : ccxt.okx
         //     }
         //
         this.handleBidAsk(client, message);
-        IDictionary<string, object> arg = ((IDictionary<string, object>)this.safeValue(message, "arg", new Dictionary<string, object>() {}));
+        IDictionary<string, object> arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
         string? marketId = this.safeString(arg, "instId");
         Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
         string? symbol = ((string)GetValue(market, "symbol"));
@@ -1340,7 +1340,7 @@ public partial class okx : ccxt.okx
         //         ]
         //     }
         //
-        IDictionary<string, object> arg = ((IDictionary<string, object>)this.safeValue(message, "arg", new Dictionary<string, object>() {}));
+        IDictionary<string, object> arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
         object channel = this.safeString(arg, "channel");
         if ((channel == null))
         {
@@ -1946,7 +1946,7 @@ public partial class okx : ccxt.okx
         //         ]
         //     }
         //
-        IDictionary<string, object> arg = ((IDictionary<string, object>)this.safeValue(message, "arg", new Dictionary<string, object>() {}));
+        IDictionary<string, object> arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
         string? channel = this.safeString(arg, "channel");
         object balance = this.parseTradingBalance(message);
         Dictionary<string, object> newBalance = this.deepExtend(this.balance, balance);
@@ -2172,7 +2172,7 @@ public partial class okx : ccxt.okx
         //        }]
         //    }
         //
-        IDictionary<string, object> arg = ((IDictionary<string, object>)this.safeValue(message, "arg", new Dictionary<string, object>() {}));
+        IDictionary<string, object> arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
         string? marketId = this.safeString(arg, "instId");
         Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
         string? symbol = ((string)GetValue(market, "symbol"));
@@ -2337,7 +2337,7 @@ public partial class okx : ccxt.okx
         //     }
         //
         this.handleMyTrades(client, message);
-        IDictionary<string, object> arg = ((IDictionary<string, object>)this.safeValue(message, "arg", new Dictionary<string, object>() {}));
+        IDictionary<string, object> arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
         object channel = this.safeString(arg, "channel");
         List<object> orders = this.safeList(message, "data", new List<object>() {});
         int ordersLength = orders.Count;
@@ -2425,7 +2425,7 @@ public partial class okx : ccxt.okx
         //         ]
         //     }
         //
-        IDictionary<string, object> arg = ((IDictionary<string, object>)this.safeValue(message, "arg", new Dictionary<string, object>() {}));
+        IDictionary<string, object> arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
         object channel = this.safeString(arg, "channel");
         List<object> rawOrders = this.safeList(message, "data", new List<object>() {});
         List<object> filteredOrders = new List<object>() {};
@@ -2944,7 +2944,7 @@ public partial class okx : ccxt.okx
             }
         } else
         {
-            IDictionary<string, object> arg = ((IDictionary<string, object>)this.safeValue(message, "arg", new Dictionary<string, object>() {}));
+            IDictionary<string, object> arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
             string? channel = this.safeString(arg, "channel");
             if ((channel == null))
             {

@@ -473,7 +473,7 @@ export default class alpaca extends alpacaRest {
         //        }
         //      }
         //
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeDict (message, 'data', {});
         const rawOrder = this.safeValue (data, 'order', {});
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
@@ -534,7 +534,7 @@ export default class alpaca extends alpacaRest {
         //        }
         //      }
         //
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeDict (message, 'data', {});
         const event = this.safeString (data, 'event');
         if (event !== 'fill' && event !== 'partial_fill') {
             return;
@@ -750,7 +750,7 @@ export default class alpaca extends alpacaRest {
         //    }
         //
         const T = this.safeString (message, 'T');
-        const data = this.safeValue (message, 'data', {});
+        const data = this.safeDict (message, 'data', {});
         const status = this.safeString (data, 'status');
         if (T === 'success' || status === 'authorized') {
             const promise = client.futures['authenticated'];

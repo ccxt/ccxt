@@ -899,7 +899,7 @@ export default class hollaex extends Exchange {
         //         ...
         //     }
         //
-        const firstTier = this.safeValue (response, '1', {});
+        const firstTier = this.safeDict (response, '1', {});
         const fees = this.safeValue (firstTier, 'fees', {});
         const makerFees = this.safeValue (fees, 'maker', {});
         const takerFees = this.safeValue (fees, 'taker', {});
@@ -1303,7 +1303,7 @@ export default class hollaex extends Exchange {
         const amount = this.safeString (order, 'size');
         const filled = this.safeString (order, 'filled');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const meta = this.safeValue (order, 'meta', {});
+        const meta = this.safeDict (order, 'meta', {});
         const postOnly = this.safeBool (meta, 'post_only', false);
         return this.safeOrder ({
             'id': id,
@@ -1359,7 +1359,7 @@ export default class hollaex extends Exchange {
             // 'meta': {}, // other options such as post_only
         };
         const triggerPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'stop' ]);
-        const meta = this.safeValue (params, 'meta', {});
+        const meta = this.safeDict (params, 'meta', {});
         const exchangeSpecificParam = this.safeBool (meta, 'post_only', false);
         const isMarketOrder = type === 'market';
         const postOnly = this.isPostOnly (isMarketOrder, exchangeSpecificParam, params);

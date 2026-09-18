@@ -4276,7 +4276,7 @@ public partial class bitmex : Exchange
         }
         if (isGreaterThanOrEqual(code, 400))
         {
-            object error = this.safeValue(response, "error", new Dictionary<string, object>() {});
+            IDictionary<string, object> error = this.safeDict(response, "error", new Dictionary<string, object>() {});
             string? message = this.safeString(error, "message");
             string feedback = add(add(this.id, " "), body);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);

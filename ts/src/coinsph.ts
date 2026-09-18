@@ -819,9 +819,9 @@ export default class coinsph extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const limits = this.indexBy (this.safeList (market, 'filters', []), 'filterType');
-            const amountLimits = this.safeValue (limits, 'LOT_SIZE', {});
-            const priceLimits = this.safeValue (limits, 'PRICE_FILTER', {});
-            const costLimits = this.safeValue (limits, 'NOTIONAL', {});
+            const amountLimits = this.safeDict (limits, 'LOT_SIZE', {});
+            const priceLimits = this.safeDict (limits, 'PRICE_FILTER', {});
+            const costLimits = this.safeDict (limits, 'NOTIONAL', {});
             result.push ({
                 'id': id,
                 'symbol': base + '/' + quote,

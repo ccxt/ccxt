@@ -1072,12 +1072,12 @@ public partial class whitebit : Exchange
             string? currency = ((string)getValue(currenciesIds, i));
             IDictionary<string, object> data = this.safeDict(response, currency, new Dictionary<string, object>() {});
             string? code = this.safeCurrencyCode(currency);
-            object withdraw = this.safeValue(data, "withdraw", new Dictionary<string, object>() {});
+            IDictionary<string, object> withdraw = this.safeDict(data, "withdraw", new Dictionary<string, object>() {});
             if ((code != null))
             {
                 withdrawFees[(string)code] = this.safeString(withdraw, "fixed");
             }
-            object deposit = this.safeValue(data, "deposit", new Dictionary<string, object>() {});
+            IDictionary<string, object> deposit = this.safeDict(data, "deposit", new Dictionary<string, object>() {});
             if ((code != null))
             {
                 depositFees[(string)code] = this.safeString(deposit, "fixed");
@@ -3439,7 +3439,7 @@ public partial class whitebit : Exchange
         //     }
         //
         string? url = this.safeString(response, "url");
-        IDictionary<string, object> account = ((IDictionary<string, object>)this.safeValue(response, "account", new Dictionary<string, object>() {}));
+        IDictionary<string, object> account = this.safeDict(response, "account", new Dictionary<string, object>() {});
         string? address = this.safeString(account, "address", url);
         string? tag = this.safeString(account, "memo");
         this.checkAddress(address);

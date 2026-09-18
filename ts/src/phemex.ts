@@ -2119,7 +2119,7 @@ export default class phemex extends Exchange {
         //
         const result: Dict = { 'info': response };
         const data = this.safeValue (response, 'data', {});
-        const balance = this.safeValue (data, 'account', {});
+        const balance = this.safeDict (data, 'account', {});
         const currencyId = this.safeString (balance, 'currency');
         const code = this.safeCurrencyCode (currencyId);
         const currency = this.currency (code);

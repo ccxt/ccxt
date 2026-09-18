@@ -4868,7 +4868,7 @@ export default class mexc extends Exchange {
             const networks = this.safeDict (currency, 'networks', {});
             if ((networkUnified !== undefined) && (networkUnified in networks)) {
                 const network = (networkUnified === undefined) ? {} : this.safeDict (networks, networkUnified, {});
-                const networkInfo = this.safeValue (network, 'info', {});
+                const networkInfo = this.safeDict (network, 'info', {});
                 networkId = this.safeString (networkInfo, 'network');
             } else {
                 networkId = this.networkCodeToId (networkCode, code);
@@ -4922,7 +4922,7 @@ export default class mexc extends Exchange {
         const networks = this.safeDict (currency, 'networks', {});
         if ((networkUnified !== undefined) && (networkUnified in networks)) {
             const network = (networkUnified === undefined) ? {} : this.safeDict (networks, networkUnified, {});
-            const networkInfo = this.safeValue (network, 'info', {});
+            const networkInfo = this.safeDict (network, 'info', {});
             networkId = this.safeString (networkInfo, 'network');
         } else {
             networkId = this.networkCodeToId (networkCode, code);
