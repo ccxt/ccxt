@@ -9585,7 +9585,7 @@ public class Htx extends HtxApi
                             String clientOrderId = this.safeString(parameters, "client-order-id");
                             if (java.util.Objects.equals(clientOrderId, null))
                             {
-                                ((Map<String, Object>)parameters).put("client-order-id", Helpers.add(id, this.uuid()));
+                                ((Map<String, Object>)parameters).put("client-order-id", (id + this.uuid()));
                             }
                         }
                     }

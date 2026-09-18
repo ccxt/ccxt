@@ -7735,7 +7735,7 @@ final Object finalMarket = market;
                 url = (url + ("/" + type));
             }
         }
-        url = Helpers.add(url, Helpers.add((("/" + version) + "/"), path));
+        url = (url + Helpers.add((("/" + version) + "/"), path));
         parameters = this.omit(parameters, this.extractParams(path));
         ((Map<String, Object>)parameters).put("timestamp", this.nonce());
         parameters = this.keysort(parameters);
@@ -7773,7 +7773,7 @@ final Object finalMarket = market;
             } else
             {
                 Object query = this.urlencode(parsedParams, true);
-                url = Helpers.add(url, Helpers.add(((("?" + query) + "&") + "signature="), signature));
+                url = (url + Helpers.add(((("?" + query) + "&") + "signature="), signature));
             }
         }
         final Object finalUrl = url;

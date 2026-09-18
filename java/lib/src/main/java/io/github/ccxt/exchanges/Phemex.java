@@ -3227,7 +3227,7 @@ public class Phemex extends PhemexApi
                 String brokerId = this.safeString(this.options, "brokerId", "CCXT123456");
                 if (!java.util.Objects.equals(brokerId, null))
                 {
-                    ((Map<String, Object>)request).put("clOrdID", Helpers.add(brokerId, this.uuid16()));
+                    ((Map<String, Object>)request).put("clOrdID", (brokerId + this.uuid16()));
                 }
             } else
             {
@@ -5642,7 +5642,7 @@ final Object finalI = i;
                     if (java.util.Objects.equals(this.safeString(parameters, "clOrdID"), null))
                     {
                         String id = this.safeString(this.options, "brokerId", "CCXT123456");
-                        ((Map<String, Object>)parameters).put("clOrdID", Helpers.add(id, this.uuid16()));
+                        ((Map<String, Object>)parameters).put("clOrdID", (id + this.uuid16()));
                     }
                 }
                 payload = this.json(parameters);

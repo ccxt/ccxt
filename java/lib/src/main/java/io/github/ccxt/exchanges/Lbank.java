@@ -3724,7 +3724,7 @@ public class Lbank extends LbankApi
         {
             this.checkRequiredCredentials();
             Object timestamp = String.valueOf(this.milliseconds());
-            Object echostr = Helpers.add(this.uuid22(), this.uuid16());
+            Object echostr = (this.uuid22() + this.uuid16());
             query = this.extend(new HashMap<String, Object>() {{
                 put( "api_key", Lbank.this.apiKey );
             }}, query);

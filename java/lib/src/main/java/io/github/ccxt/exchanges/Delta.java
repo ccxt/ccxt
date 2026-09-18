@@ -493,7 +493,7 @@ public class Delta extends DeltaApi
         final Object finalExpiry = expiry;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
             put( "id", Helpers.add((Helpers.add((Helpers.add(Helpers.add(finalOptionType, "-"), finalBase) + "-"), strike) + "-"), finalExpiry) );
-            put( "symbol", Helpers.add((Helpers.add((Helpers.add((((Helpers.add(Helpers.add(finalBase, "/"), quote) + ":") + settle) + "-"), finalExpiry) + "-"), strike) + "-"), finalOptionType) );
+            put( "symbol", Helpers.add((Helpers.add((Helpers.add(((((Helpers.add(finalBase, "/") + quote) + ":") + settle) + "-"), finalExpiry) + "-"), strike) + "-"), finalOptionType) );
             put( "base", finalBase );
             put( "quote", quote );
             put( "settle", settle );
@@ -4732,8 +4732,8 @@ public class Delta extends DeltaApi
                 if (((List<?>)Helpers.objectKeys(query)).size() > 0)
                 {
                     String queryString = ("?" + this.urlencode(query));
-                    auth = Helpers.add(auth, queryString);
-                    url = Helpers.add(url, queryString);
+                    auth = (auth + queryString);
+                    url = (url + queryString);
                 }
             } else
             {

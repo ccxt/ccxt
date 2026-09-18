@@ -3198,7 +3198,7 @@ public class Hashkey extends HashkeyApi
         {
             suffix = "_CLOSE";
         }
-        ((Map<String, Object>)request).put("side", Helpers.add(((String)((String)side)).toUpperCase(), suffix));
+        ((Map<String, Object>)request).put("side", (((String)((String)side)).toUpperCase() + suffix));
         String timeInForce = null;
         List<Object> timeInForceparametersVariable = (List<Object>) this.handleParamString(parameters, "timeInForce");
         timeInForce = (String) ((List<Object>) timeInForceparametersVariable).get(0);

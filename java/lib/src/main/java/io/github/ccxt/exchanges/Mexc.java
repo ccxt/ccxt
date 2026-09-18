@@ -5865,7 +5865,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                 if (!java.util.Objects.equals(rawNetwork, null))
                 {
                     parameters = this.omit(parameters, "network");
-                    ((Map<String, Object>)request).put("coin", Helpers.add(Helpers.add(((Map<String, Object>)request).get("coin"), "-"), rawNetwork));
+                    ((Map<String, Object>)request).put("coin", (Helpers.add(((Map<String, Object>)request).get("coin"), "-") + rawNetwork));
                 }
             }
             if (!java.util.Objects.equals(since, null))

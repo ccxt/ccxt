@@ -4031,7 +4031,7 @@ public class Bitmex extends BitmexApi
         Object symbol = baseSymbol;
         if (!java.util.Objects.equals(quoteSymbol, null))
         {
-            symbol = ((Helpers.add(Helpers.add(baseSymbol, "/"), quoteSymbol) + ":") + quoteSymbol);
+            symbol = (((Helpers.add(baseSymbol, "/") + quoteSymbol) + ":") + quoteSymbol);
         }
         Double openInterest = this.safeNumber(interest, "openInterest");
         Double openValue = this.safeNumber(interest, "openValue");

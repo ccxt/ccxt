@@ -393,7 +393,7 @@ public class Mercado extends MercadoApi
                 {
                     continue;
                 }
-                Object id = Helpers.add(quote, base);
+                Object id = (quote + base);
     final Object finalBase = base;
                 final Object finalQuote = quote;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{

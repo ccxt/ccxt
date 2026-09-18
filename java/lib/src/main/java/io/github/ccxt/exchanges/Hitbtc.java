@@ -4714,7 +4714,7 @@ public class Hitbtc extends HitbtcApi
             if ((!java.util.Objects.equals(queryLength, null)) && (!Helpers.isEqual(queryLength, 0)))
             {
                 getRequest = ("?" + this.urlencode(query));
-                url = Helpers.add(url, getRequest);
+                url = (url + getRequest);
             }
         } else
         {

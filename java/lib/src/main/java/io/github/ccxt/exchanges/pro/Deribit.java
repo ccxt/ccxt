@@ -1312,7 +1312,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
                 this.checkRequiredCredentials();
                 Object requestId = this.requestId();
                 String lineBreak = "\n"; // eslint-disable-line quotes
-                Object signature = this.hmac(this.encode(Helpers.add(Helpers.add(Helpers.add(timeString, lineBreak), nonce), lineBreak)), this.encode(this.secret), sha256());
+                Object signature = this.hmac(this.encode((((timeString + lineBreak) + nonce) + lineBreak)), this.encode(this.secret), sha256());
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "jsonrpc", "2.0" );
                     put( "id", requestId );

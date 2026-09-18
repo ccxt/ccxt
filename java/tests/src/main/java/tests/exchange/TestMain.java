@@ -1311,26 +1311,26 @@ public class TestMain extends BaseTest
         // validates one PredictionEvent structure (id, event handle, markets each carrying an
         // outcomes list, and the optional typed fields when present)
         String logText = Helpers.add(" event: ", exchange.json(eventVar));
-        Assert(java.util.Objects.equals(exchange.isDictionary(eventVar), true), Helpers.add(Helpers.add(exchange.id, " event should be a dict"), logText));
-        Assert(!java.util.Objects.equals(exchange.safeString(eventVar, "id"), null), Helpers.add(Helpers.add(exchange.id, " event missing id"), logText));
-        Assert(!java.util.Objects.equals(exchange.safeString(eventVar, "event"), null), Helpers.add(Helpers.add(exchange.id, " event missing the unified event handle"), logText));
+        Assert(java.util.Objects.equals(exchange.isDictionary(eventVar), true), (Helpers.add(exchange.id, " event should be a dict") + logText));
+        Assert(!java.util.Objects.equals(exchange.safeString(eventVar, "id"), null), (Helpers.add(exchange.id, " event missing id") + logText));
+        Assert(!java.util.Objects.equals(exchange.safeString(eventVar, "event"), null), (Helpers.add(exchange.id, " event missing the unified event handle") + logText));
         Object markets = exchange.safeList(eventVar, "markets");
-        Assert(!java.util.Objects.equals(markets, null), Helpers.add(Helpers.add(exchange.id, " event missing markets"), logText));
+        Assert(!java.util.Objects.equals(markets, null), (Helpers.add(exchange.id, " event missing markets") + logText));
         Object marketsLength = Helpers.getArrayLength(markets);
-        Assert(java.util.Objects.equals(exchange.safeString(eventVar, "symbol"), null), Helpers.add(Helpers.add(exchange.id, " event must not carry the deprecated symbol key"), logText));
+        Assert(java.util.Objects.equals(exchange.safeString(eventVar, "symbol"), null), (Helpers.add(exchange.id, " event must not carry the deprecated symbol key") + logText));
         for (var i = 0; Helpers.isLessThan(i, marketsLength); i++)
         {
             Object market = Helpers.GetValue(markets, i);
-            Assert(java.util.Objects.equals(exchange.isDictionary(market), true), Helpers.add(Helpers.add(exchange.id, " event market should be a dict"), logText));
-            Assert(!java.util.Objects.equals(exchange.safeString(market, "market"), null), Helpers.add(Helpers.add(exchange.id, " event market missing the unified market handle"), logText));
+            Assert(java.util.Objects.equals(exchange.isDictionary(market), true), (Helpers.add(exchange.id, " event market should be a dict") + logText));
+            Assert(!java.util.Objects.equals(exchange.safeString(market, "market"), null), (Helpers.add(exchange.id, " event market missing the unified market handle") + logText));
             // 'symbol' is deprecated on prediction structures — the unified 'market' handle is the identity
-            Assert(java.util.Objects.equals(exchange.safeString(market, "symbol"), null), Helpers.add(Helpers.add(exchange.id, " event market must not carry the deprecated symbol key"), logText));
+            Assert(java.util.Objects.equals(exchange.safeString(market, "symbol"), null), (Helpers.add(exchange.id, " event market must not carry the deprecated symbol key") + logText));
             Object outcomes = exchange.safeList(market, "outcomes");
-            Assert(!java.util.Objects.equals(outcomes, null), Helpers.add(Helpers.add(exchange.id, " event market missing outcomes"), logText));
+            Assert(!java.util.Objects.equals(outcomes, null), (Helpers.add(exchange.id, " event market missing outcomes") + logText));
             Object outcomesLength = Helpers.getArrayLength(outcomes);
             for (var j = 0; Helpers.isLessThan(j, outcomesLength); j++)
             {
-                Assert(java.util.Objects.equals(exchange.safeString(Helpers.GetValue(outcomes, j), "symbol"), null), Helpers.add(Helpers.add(exchange.id, " event outcome must not carry the deprecated symbol key"), logText));
+                Assert(java.util.Objects.equals(exchange.safeString(Helpers.GetValue(outcomes, j), "symbol"), null), (Helpers.add(exchange.id, " event outcome must not carry the deprecated symbol key") + logText));
             }
         }
         // optional typed fields must have the right type when present
@@ -1339,15 +1339,15 @@ public class TestMain extends BaseTest
         {
             // typeof check, not `=== true || === false` — the latter transpiles to `== False`
             // in Python, which ruff rejects (E712)
-            Assert((active instanceof Boolean), Helpers.add(Helpers.add(exchange.id, " event active must be a bool"), logText));
+            Assert((active instanceof Boolean), (Helpers.add(exchange.id, " event active must be a bool") + logText));
         }
         Object tags = exchange.safeValue(eventVar, "tags");
         if (!java.util.Objects.equals(tags, null))
         {
-            Assert(Helpers.isArray(tags), Helpers.add(Helpers.add(exchange.id, " event tags must be a list"), logText));
+            Assert(Helpers.isArray(tags), (Helpers.add(exchange.id, " event tags must be a list") + logText));
         }
         Object info = exchange.safeValue(eventVar, "info");
-        Assert(!java.util.Objects.equals(info, null), Helpers.add(Helpers.add(exchange.id, " event missing info"), logText));
+        Assert(!java.util.Objects.equals(info, null), (Helpers.add(exchange.id, " event missing info") + logText));
         return true;
     }
 
@@ -1808,7 +1808,7 @@ public class TestMain extends BaseTest
                     break;
                 }
                 res = (res + "/");
-                res = Helpers.add(res, current);
+                res = (res + current);
             }
         }
         return res;

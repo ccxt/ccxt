@@ -2676,7 +2676,7 @@ final Object finalId = id;
             }
             String trailingAmountString = (((!java.util.Objects.equals(trailingAmount, null)))) ? ("+" + trailingAmount) : null; // must use + for this
             String offset = this.safeString(parameters, "offset", "-"); // can use + or - for this
-            Object trailingLimitAmountString = (((!java.util.Objects.equals(trailingLimitAmount, null)))) ? Helpers.add(offset, this.numberToString(trailingLimitAmount)) : null;
+            Object trailingLimitAmountString = (((!java.util.Objects.equals(trailingLimitAmount, null)))) ? (offset + this.numberToString(trailingLimitAmount)) : null;
             String trailingActivationPriceType = this.safeString(parameters, "trigger", "last");
             ((Map<String, Object>)request).put("trigger", trailingActivationPriceType);
             if (Boolean.TRUE.equals(isLimitOrder) || (!java.util.Objects.equals(trailingLimitAmount, null)) || (!java.util.Objects.equals(trailingLimitPercent, null)))
@@ -2684,7 +2684,7 @@ final Object finalId = id;
                 ((Map<String, Object>)request).put("ordertype", "trailing-stop-limit");
                 if (!java.util.Objects.equals(trailingLimitPercent, null))
                 {
-                    Object trailingLimitPercentString = ((Helpers.isTrue((((String)trailingLimitPercent).endsWith(((String)"%")))))) ? (Helpers.add(offset, trailingLimitPercent)) : ((Helpers.add(offset, trailingLimitPercent) + "%"));
+                    Object trailingLimitPercentString = ((Helpers.isTrue((((String)trailingLimitPercent).endsWith(((String)"%")))))) ? ((offset + trailingLimitPercent)) : (((offset + trailingLimitPercent) + "%"));
                     ((Map<String, Object>)request).put("price", trailingPercentString);
                     ((Map<String, Object>)request).put("price2", trailingLimitPercentString);
                 } else if (!java.util.Objects.equals(trailingLimitAmount, null))
@@ -2828,7 +2828,7 @@ final Object finalId = id;
                 parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent", "offset")));
                 if (!java.util.Objects.equals(offset, null))
                 {
-                    allTriggerPrices = Helpers.add(offset, allTriggerPrices);
+                    allTriggerPrices = (offset + allTriggerPrices);
                     ((Map<String, Object>)request).put("trigger_price", allTriggerPrices);
                 } else
                 {

@@ -454,7 +454,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             String name = "ticker";
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
-            Object topic = Helpers.add(Helpers.add(((Map<String, Object>)market).get("id"), "@"), name);
+            Object topic = (Helpers.add(((Map<String, Object>)market).get("id"), "@") + name);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
@@ -841,7 +841,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String interval = this.safeString(this.timeframes, timeframe, timeframe);
             String name = "kline";
-            Object topic = ((Helpers.add(Helpers.add(((Map<String, Object>)market).get("id"), "@"), name) + "_") + interval);
+            Object topic = (((Helpers.add(((Map<String, Object>)market).get("id"), "@") + name) + "_") + interval);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
@@ -883,7 +883,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             String interval = this.safeString(this.timeframes, timeframe, timeframe);
             Object topic = "ohlcv";
             String name = "kline";
-            Object subHash = ((Helpers.add(Helpers.add(((Map<String, Object>)market).get("id"), "@"), name) + "_") + interval);
+            Object subHash = (((Helpers.add(((Map<String, Object>)market).get("id"), "@") + name) + "_") + interval);
             ((Map<String, Object>)parameters).put("symbolsAndTimeframes", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("symbol"), timeframe)))));
             return (this.unwatchPublic(subHash, ((Map<String, Object>)market).get("symbol"), topic, parameters)).join();
         });

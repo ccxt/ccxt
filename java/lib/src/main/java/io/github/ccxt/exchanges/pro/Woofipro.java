@@ -147,7 +147,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             }
             String name = "orderbook";
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object topic = Helpers.add(Helpers.add(((Map<String, Object>)market).get("id"), "@"), name);
+            Object topic = (Helpers.add(((Map<String, Object>)market).get("id"), "@") + name);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
@@ -220,7 +220,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             String name = "ticker";
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
-            Object topic = Helpers.add(Helpers.add(((Map<String, Object>)market).get("id"), "@"), name);
+            Object topic = (Helpers.add(((Map<String, Object>)market).get("id"), "@") + name);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
@@ -493,7 +493,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String interval = this.safeString(this.timeframes, timeframe, timeframe);
             String name = "kline";
-            Object topic = ((Helpers.add(Helpers.add(((Map<String, Object>)market).get("id"), "@"), name) + "_") + interval);
+            Object topic = (((Helpers.add(((Map<String, Object>)market).get("id"), "@") + name) + "_") + interval);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );

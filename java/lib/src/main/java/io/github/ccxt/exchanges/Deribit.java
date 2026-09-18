@@ -873,7 +873,7 @@ public class Deribit extends DeribitApi
         Object datetime = this.convertExpireDate(expiry);
         Long timestamp = this.parse8601(datetime);
         Object id = Helpers.add((Helpers.add((Helpers.add((base + "-"), this.convertExpireDateToMarketIdDate(expiry)) + "-"), strike) + "-"), optionType);
-        Object symbolExpired = Helpers.add((Helpers.add((Helpers.add((Helpers.add((Helpers.add(Helpers.add(splitBase, "/"), quote) + ":"), settle) + "-"), expiry) + "-"), strike) + "-"), optionType);
+        Object symbolExpired = Helpers.add((Helpers.add((Helpers.add((Helpers.add(((Helpers.add(splitBase, "/") + quote) + ":"), settle) + "-"), expiry) + "-"), strike) + "-"), optionType);
         final Object finalBase = base;
         final Object finalQuote = quote;
         final Object finalSettle = settle;

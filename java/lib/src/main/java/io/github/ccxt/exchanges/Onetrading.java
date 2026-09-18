@@ -1198,7 +1198,7 @@ public class Onetrading extends OnetradingApi
         {
             throw new ExchangeError((this.id + " parseOHLCV() missing period/unit")) ;
         }
-        Object timeframe = Helpers.add(period, lowercaseUnit);
+        Object timeframe = (period + lowercaseUnit);
         int durationInSeconds = this.parseTimeframe(timeframe);
         Object duration = Helpers.multiply(durationInSeconds, 1000);
         Long timestamp = this.parse8601(this.safeString(ohlcv, "time"));

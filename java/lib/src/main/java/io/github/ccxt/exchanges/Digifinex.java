@@ -2362,7 +2362,7 @@ public class Digifinex extends DigifinexApi
             {
                 ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
             }
-            ((Map<String, Object>)request).put("type", Helpers.add(side, suffix));
+            ((Map<String, Object>)request).put("type", (side + suffix));
             // limit orders require the amount in the base currency, market orders require the amount in the quote currency
             Object quantity = null;
             Object createMarketBuyOrderRequiresPrice = true;

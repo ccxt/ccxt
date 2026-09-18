@@ -515,7 +515,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             String messageHash = "myTrades";
             if (!java.util.Objects.equals(market, null))
             {
-                messageHash = Helpers.add(messageHash, Helpers.add(":", symbol));
+                messageHash = (messageHash + Helpers.add(":", symbol));
                 ((List<Object>)subscribedSymbols).add(((Map<String, Object>)market).get("id"));
             } else
             {

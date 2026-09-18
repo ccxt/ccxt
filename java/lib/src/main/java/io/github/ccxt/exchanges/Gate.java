@@ -2090,8 +2090,8 @@ public class Gate extends GateApi
         final Object finalExpiry = expiry;
         final Object finalOptionType = optionType;
         return new HashMap<String, Object>() {{
-            put( "id", Helpers.add((Helpers.add((Helpers.add(((Helpers.add(Helpers.add(finalBase, "_"), quote) + "-") + "20"), finalExpiry) + "-"), strike) + "-"), finalOptionType) );
-            put( "symbol", Helpers.add((Helpers.add((Helpers.add((((Helpers.add(Helpers.add(finalBase, "/"), quote) + ":") + settle) + "-"), finalExpiry) + "-"), strike) + "-"), finalOptionType) );
+            put( "id", Helpers.add((Helpers.add((Helpers.add((((Helpers.add(finalBase, "_") + quote) + "-") + "20"), finalExpiry) + "-"), strike) + "-"), finalOptionType) );
+            put( "symbol", Helpers.add((Helpers.add((Helpers.add(((((Helpers.add(finalBase, "/") + quote) + ":") + settle) + "-"), finalExpiry) + "-"), strike) + "-"), finalOptionType) );
             put( "base", finalBase );
             put( "quote", quote );
             put( "settle", settle );
@@ -9076,7 +9076,7 @@ final Object finalI = i;
             path = this.implodeParams(path, parameters);
         }
         String endPart = (((java.util.Objects.equals(path, "")))) ? "" : (Helpers.add("/", path));
-        Object entirePath = Helpers.add(Helpers.add("/", type), endPart);
+        Object entirePath = (Helpers.add("/", type) + endPart);
         if ((java.util.Objects.equals(type, "subAccounts")) || (java.util.Objects.equals(type, "withdrawals")))
         {
             entirePath = endPart;

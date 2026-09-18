@@ -1,6 +1,7 @@
 import { Transpiler } from 'ast-transpiler';
 import { getProgramBatch } from './worker-program-batch.js';
 import { patchJavaLocalTypes } from './javaTranspiler.js';
+import { installJavaExpressionTypeResolver } from './javaTranspiler.js';
 import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, patchJavaStringReceiverCasts, patchJavaMapChannelStringCasts, patchJavaConsumerStringCasts, installJavaDeclaredLocalTypes } from './java-local-types.js';
 import log from 'ololog'
 
@@ -50,6 +51,9 @@ export default async ({ transpilerConfig, configKey, file, files, roots }: JavaW
         patchJavaStringReceiverCasts (cachedTranspiler);
         // java-09: last-installed declaration observer (same order as the main thread)
         installJavaDeclaredLocalTypes (cachedTranspiler);
+        // java-13: the same printed-Java String proof the main thread installs at the end
+        // of setupTranspiler() — both print paths must emit byte-identical Java
+        installJavaExpressionTypeResolver (cachedTranspiler);
         cachedConfigKey = key;
     }
     const transpiler = cachedTranspiler;

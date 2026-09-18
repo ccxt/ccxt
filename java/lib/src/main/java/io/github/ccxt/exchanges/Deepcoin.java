@@ -799,7 +799,7 @@ public class Deepcoin extends DeepcoinApi
             Object market = Helpers.GetValue(result, symbol);
             if ((!java.util.Objects.equals(market, null)) && (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)))
             {
-                Object additionalId = Helpers.add(this.safeString(market, "baseId", ""), this.safeString(market, "quoteId", ""));
+                Object additionalId = (this.safeString(market, "baseId", "") + this.safeString(market, "quoteId", ""));
                 if (!java.util.Objects.equals(this.markets_by_id, null))
                 {
                     Helpers.addElementToObject(this.markets_by_id, additionalId, new ArrayList<Object>(Arrays.asList(market))); // some endpoints return swap market id as base+quote

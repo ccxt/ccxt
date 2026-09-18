@@ -256,7 +256,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             type = ((List<Object>) typeparametersVariable).get(0);
             parameters = ((List<Object>) typeparametersVariable).get(1);
             Object isContract = (!java.util.Objects.equals(type, "spot"));
-            Object id = Helpers.add(this.numberToString(this.milliseconds()), name); // call back ID
+            Object id = (this.numberToString(this.milliseconds()) + name); // call back ID
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", ((Boolean.TRUE.equals(isContract))) ? "SUBSCRIBE" : "subscribe" );
                 put( "id", id );
@@ -332,7 +332,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             type = ((List<Object>) typeparametersVariable).get(0);
             parameters = ((List<Object>) typeparametersVariable).get(1);
             Object isContract = (!java.util.Objects.equals(type, "spot"));
-            Object id = Helpers.add(this.numberToString(this.milliseconds()), name); // call back ID
+            Object id = (this.numberToString(this.milliseconds()) + name); // call back ID
             Map<String, Object> unsubscribe = new HashMap<String, Object>() {{
                 put( "method", ((Boolean.TRUE.equals(isContract))) ? "UNSUBSCRIBE" : "unsubscribe" );
                 put( "id", id );

@@ -3954,7 +3954,7 @@ public class Bithumb extends BithumbApi
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
         String endpoint = ("/" + this.implodeParams(path, parameters));
-        Object url = Helpers.add(this.implodeHostname(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api)), endpoint);
+        Object url = (this.implodeHostname(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api)) + endpoint);
         Object query = this.omit(parameters, this.extractParams(path));
         Object queryKeys = Helpers.objectKeys(query);
         Object queryKeysLength = ((List<?>)queryKeys).size();

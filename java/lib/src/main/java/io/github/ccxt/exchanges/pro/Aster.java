@@ -2158,7 +2158,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             (this.authenticate(type, parameters)).join();
             if (!java.util.Objects.equals(market, null))
             {
-                messageHash = Helpers.add(messageHash, Helpers.add("::", symbol));
+                messageHash = (messageHash + Helpers.add("::", symbol));
             }
             Object url = this.getPrivateUrl(type);
             Client client = this.client(url);
@@ -2213,7 +2213,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             (this.authenticate(type, parameters)).join();
             if (!java.util.Objects.equals(market, null))
             {
-                messageHash = Helpers.add(messageHash, Helpers.add("::", symbol));
+                messageHash = (messageHash + Helpers.add("::", symbol));
             }
             Object url = this.getPrivateUrl(type);
             Client client = this.client(url);

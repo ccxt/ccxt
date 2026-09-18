@@ -1102,7 +1102,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             Object timestamp = String.valueOf(this.milliseconds());
             String request_path = "/ws/accounts";
             String http_method = "GET";
-            Object messageString = (Helpers.add(Helpers.add(timestamp, http_method), request_path));
+            Object messageString = (((timestamp + http_method) + request_path));
             Object signature = this.hmac(this.encode(messageString), this.encode(this.stringToBase64(this.secret)), sha256(), "base64");
             String messageHash = "authenticated";
             Client client = this.client(url);

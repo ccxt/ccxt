@@ -1093,6 +1093,126 @@ export function patchJavaLocalTypes (transpiler: any): void {
     printer._localTypesPatched = true;
 }
 
+// ===== java-13: the printed-Java String proof the `+` concat anchor needs =====
+//
+// `x + y` prints Helpers.add(x, y) unless one operand's printed text is statically a
+// String — javac compiles `+` only when one side is. The generator proves string
+// literals and the concats it prints itself; the two operand families only this layer
+// can prove are
+//
+//   * a local whose FINAL emitted declaration is `String <name> = ` — every local-typing
+//     slice rewrites the declaration text, so the proof is an observer of that text
+//     (the same trick java-local-types.js#observeJavaStringDeclaration uses, with this
+//     wrapper installed LAST so it sees what the whole chain emitted);
+//   * a call to a hand-written `public String` runtime method (BaseExchange accessors,
+//     the Precise string statics).
+//
+// javaExpressionTypeResolver hands both to the generator, whose javaProvableString then
+// emits the native concat (ast-transpiler src/javaTranspiler.ts). Anything unproven
+// returns undefined and keeps the helper.
+//
+// Every name below is a hand-written Java method declared `public String` /
+// `public static String` in java/lib/src/main/java/io/github/ccxt (BaseExchange,
+// base/SafeMethods, base/Strings, base/Time, base/NumberHelpers, base/Precise) and is
+// not redeclared with another return type anywhere in the generated tree (grepped:
+// only Kraken.java redeclares safeCurrencyCode, also as String).
+const JAVA_STRING_RUNTIME_METHODS = new Set ([
+    'safeString', 'safeString2', 'safeStringN', 'safeStringUpper', 'safeStringLower',
+    'uuid22', 'capitalize', 'numberToString', 'decimalToPrecision', 'safeCurrencyCode',
+    'yymmdd', 'yyyymmdd',
+]);
+const JAVA_STRING_PRECISE_METHODS = new Set ([
+    'stringMul', 'stringDiv', 'stringSub', 'stringAdd', 'stringOr', 'stringMax',
+    'stringMin', 'stringAbs', 'stringNeg', 'stringMod',
+]);
+
+// the printed Java type of an expression, or undefined when this layer cannot prove it
+function javaPrintedExpressionType (printer: any, emittedStringLocals: WeakSet<any>, node: any): string | undefined {
+    if (node === undefined) {
+        return undefined;
+    }
+    let current = node;
+    while (current.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        current = current.expression;
+    }
+    if (current.kind === ts.SyntaxKind.StringLiteral || current.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral) {
+        return 'String';
+    }
+    if (current.kind === ts.SyntaxKind.Identifier) {
+        let declaration;
+        try {
+            declaration = printer.getChecker ().getSymbolAtLocation (current)?.valueDeclaration;
+        } catch (e) {
+            return undefined;
+        }
+        if (declaration === undefined || !emittedStringLocals.has (declaration)) {
+            return undefined;
+        }
+        // the Java printer renames the identifiers captured by an object literal in place
+        // (`baseId` -> `finalBaseId`, declared `final Object finalBaseId = baseId`), so a
+        // renamed use site is NOT the type the local's own declaration was emitted with
+        if (String (current.escapedText) !== String (declaration.name?.escapedText)) {
+            return undefined;
+        }
+        return 'String';
+    }
+    if (current.kind === ts.SyntaxKind.CallExpression) {
+        const callee = current.expression;
+        if (callee?.kind === ts.SyntaxKind.PropertyAccessExpression) {
+            const receiver = callee.expression;
+            const name = String (callee.name?.escapedText);
+            const onThis = receiver?.kind === ts.SyntaxKind.ThisKeyword || receiver?.kind === ts.SyntaxKind.SuperKeyword;
+            if (onThis && JAVA_STRING_RUNTIME_METHODS.has (name)) {
+                return 'String';
+            }
+            if (receiver?.kind === ts.SyntaxKind.Identifier && receiver.escapedText === 'Precise' && JAVA_STRING_PRECISE_METHODS.has (name)) {
+                return 'String';
+            }
+        }
+    }
+    return undefined;
+}
+
+// install the resolver the generator reads (printer.javaExpressionTypeResolver). Installed
+// LAST in the main thread and in every worker so the declaration observer below sees the
+// final text of the whole local-typing chain.
+export function installJavaExpressionTypeResolver (transpiler: any): void {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaExpressionTypeResolverInstalled) {
+        return;
+    }
+    const emittedStringLocals = new WeakSet<any> ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node: any, identation: number) {
+        const printed = upstream (node, identation);
+        try {
+            const declarations = node?.declarations;
+            if (declarations !== undefined && declarations.length === 1) {
+                const declaration = declarations[0];
+                if (declaration.name?.kind === ts.SyntaxKind.Identifier && declaration.initializer !== undefined) {
+                    // a pro/prediction declaration the ws post-process rewrites back to
+                    // `Object` is not a String at the use sites either (same guard the
+                    // SS-03 `+` acceptance uses: wsPostProcessReverts)
+                    if (!wsPostProcessReverts (declaration)) {
+                        const iden = printer.getIden (identation);
+                        const printedName = printer.printNode (declaration.name, 0);
+                        const marker = `${iden}String ${printedName} = `;
+                        const at = printed.lastIndexOf (marker);
+                        if (at !== -1 && (at === 0 || printed.charAt (at - 1) === '\n')) {
+                            emittedStringLocals.add (declaration);
+                        }
+                    }
+                }
+            }
+        } catch (e) {
+            // never break a print on an observer error
+        }
+        return printed;
+    };
+    printer.javaExpressionTypeResolver = (node: any) => javaPrintedExpressionType (printer, emittedStringLocals, node);
+    printer._javaExpressionTypeResolverInstalled = true;
+}
+
 // ===== SS-02 census: safeString-family locals with later writes (env-gated) =====
 //
 // Read-only instrumentation for the SS-02 slice — one JSON line per local whose
@@ -1617,6 +1737,10 @@ class NewTranspiler {
         // prints `x.get("lit")`. Installed LAST so the observer sees the final text
         // (also applied per worker thread in java-worker.ts)
         installJavaDeclaredLocalTypes(this.transpiler);
+        // java-13: hand the generator the printed-Java String proof for a `+` concat
+        // anchor (declared-String locals + hand-written String runtime calls) — installed
+        // LAST for the same reason (also applied per worker thread in java-worker.ts)
+        installJavaExpressionTypeResolver(this.transpiler);
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a

@@ -7174,7 +7174,7 @@ final Object finalMarket = market;
         {
             if (Boolean.TRUE.equals(signed))
             {
-                payload = Helpers.add(Helpers.add("/", this.version), request);
+                payload = (Helpers.add("/", this.version) + request);
             } else
             {
                 payload = ((Helpers.add("/", this.version) + "/public") + request);

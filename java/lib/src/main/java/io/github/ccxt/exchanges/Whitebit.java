@@ -2642,7 +2642,7 @@ public class Whitebit extends WhitebitApi
                 String brokerId = this.safeString(this.options, "brokerId");
                 if (!java.util.Objects.equals(brokerId, null))
                 {
-                    ((Map<String, Object>)request).put("clientOrderId", Helpers.add(brokerId, this.uuid16()));
+                    ((Map<String, Object>)request).put("clientOrderId", (brokerId + this.uuid16()));
                 }
             } else
             {
@@ -5351,7 +5351,7 @@ public class Whitebit extends WhitebitApi
             this.checkRequiredCredentials();
             Object nonce = String.valueOf(this.nonce());
             Object secret = this.encode(this.secret);
-            Object request = Helpers.add(Helpers.add((("/" + "api") + "/"), version), pathWithParams);
+            Object request = (Helpers.add((("/" + "api") + "/"), version) + pathWithParams);
             List<Object> nonceWindowrequestParamsVariable = (List<Object>) this.handleOptionAndParams(parameters, "sign", "nonceWindow", false);
             var nonceWindow = ((List<Object>) nonceWindowrequestParamsVariable).get(0);
             var requestParams = ((List<Object>) nonceWindowrequestParamsVariable).get(1);
