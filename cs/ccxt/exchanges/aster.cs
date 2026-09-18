@@ -1683,7 +1683,7 @@ public partial class aster : Exchange
         }
         object response = null;
         bool sinceDefined = !isEqual(since, null);
-        bool untilDefined = (inOp(parameters, "until"));
+        bool untilDefined = (((IDictionary<string, object>)parameters).ContainsKey("until"));
         if (sinceDefined)
         {
             ((IDictionary<string,object>)request)["startTime"] = since;

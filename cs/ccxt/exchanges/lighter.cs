@@ -1111,7 +1111,7 @@ public partial class lighter : Exchange
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchNonce() requires accountIndex and apiKeyIndex.")) ;
         }
-        if (inOp(parameters, "nonce"))
+        if (((IDictionary<string, object>)parameters).ContainsKey("nonce"))
         {
             return ccxt.BaseExchange.ToInt64Value(this.safeInteger(parameters, "nonce"));
         }

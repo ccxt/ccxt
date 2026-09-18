@@ -3079,7 +3079,7 @@ public partial class htx : Exchange
         {
             market = this.market(first);
         }
-        bool isSubTypeRequested = (inOp(parameters, "subType")) || (inOp(parameters, "business_type"));
+        bool isSubTypeRequested = (((IDictionary<string, object>)parameters).ContainsKey("subType")) || (((IDictionary<string, object>)parameters).ContainsKey("business_type"));
         string? type = null;
         object subType = null;
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchTickers", market, parameters);

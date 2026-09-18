@@ -3089,7 +3089,7 @@ public partial class xt : Exchange
         symbolVar = getValue(market, "symbol");
         if (isEqual(getValue(market, "spot"), true))
         {
-            bool isTrailing = (inOp(parameters, "trailingPercent")) || (inOp(parameters, "trailingAmount")) || (inOp(parameters, "trailingTriggerPrice"));
+            bool isTrailing = (((IDictionary<string, object>)parameters).ContainsKey("trailingPercent")) || (((IDictionary<string, object>)parameters).ContainsKey("trailingAmount")) || (((IDictionary<string, object>)parameters).ContainsKey("trailingTriggerPrice"));
             if (isTrailing)
             {
                 throw new NotSupported ((string)(this.id + " createOrder() trailing orders are only supported on swap markets")) ;

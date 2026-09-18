@@ -1961,7 +1961,7 @@ public partial class bitopro : Exchange
             { "amount", this.numberToString(amount) },
             { "address", address },
         };
-        if (inOp(parameters, "network"))
+        if (((IDictionary<string, object>)parameters).ContainsKey("network"))
         {
             IDictionary<string, object> networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
             string? requestedNetwork = this.safeStringUpper(parameters, "network");

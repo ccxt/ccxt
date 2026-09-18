@@ -810,13 +810,13 @@ public partial class coinsph : Exchange
     public override object calculateRateLimiterCost(object api, object method, object path, object parameters, object config = null)
     {
         config ??= new Dictionary<string, object>();
-        if ((inOp(config, "noSymbol")) && !(inOp(parameters, "symbol")))
+        if ((((IDictionary<string, object>)config).ContainsKey("noSymbol")) && !(inOp(parameters, "symbol")))
         {
             return ((IDictionary<string,object>)config)["noSymbol"];
-        } else if ((inOp(config, "noSymbolAndNoSymbols")) && !(inOp(parameters, "symbol")) && !(inOp(parameters, "symbols")))
+        } else if ((((IDictionary<string, object>)config).ContainsKey("noSymbolAndNoSymbols")) && !(inOp(parameters, "symbol")) && !(inOp(parameters, "symbols")))
         {
             return ((IDictionary<string,object>)config)["noSymbolAndNoSymbols"];
-        } else if ((inOp(config, "byNumberOfSymbols")) && (inOp(parameters, "symbols")))
+        } else if ((((IDictionary<string, object>)config).ContainsKey("byNumberOfSymbols")) && (inOp(parameters, "symbols")))
         {
             object symbols = getValue(parameters, "symbols");
             int symbolsAmount = getArrayLength(symbols);
@@ -829,7 +829,7 @@ public partial class coinsph : Exchange
                     return getValue(entry, 1);
                 }
             }
-        } else if ((inOp(config, "byLimit")) && (inOp(parameters, "limit")))
+        } else if ((((IDictionary<string, object>)config).ContainsKey("byLimit")) && (inOp(parameters, "limit")))
         {
             object limit = getValue(parameters, "limit");
             List<object> byLimit = this.safeList(config, "byLimit", new List<object>() {});

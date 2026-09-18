@@ -9901,18 +9901,18 @@ public partial class kucoin : Exchange
         parameters = ((IList<object>)transferTypeparametersVariable)[1];
         if (isEqual(transferType, "PARENT_TO_SUB"))
         {
-            if (!(inOp(parameters, "toUserId")))
+            if (!(((IDictionary<string, object>)parameters).ContainsKey("toUserId")))
             {
                 throw new ExchangeError ((string)(this.id + " transfer() requires a toUserId param for PARENT_TO_SUB transfers")) ;
             }
         } else if (isEqual(transferType, "SUB_TO_PARENT"))
         {
-            if (!(inOp(parameters, "fromUserId")))
+            if (!(((IDictionary<string, object>)parameters).ContainsKey("fromUserId")))
             {
                 throw new ExchangeError ((string)(this.id + " transfer() requires a fromUserId param for SUB_TO_PARENT transfers")) ;
             }
         }
-        if (!(inOp(parameters, "clientOid")))
+        if (!(((IDictionary<string, object>)parameters).ContainsKey("clientOid")))
         {
             ((IDictionary<string,object>)request)["clientOid"] = this.uuid();
         }
@@ -10504,13 +10504,13 @@ public partial class kucoin : Exchange
         IDictionary<string, object> methodVersions = this.safeDict(apiVersions, method, new Dictionary<string, object>() {});
         string? defaultVersion = this.safeString(methodVersions, path, getValue(this.options, "version"));
         string? version = this.safeString(parameters, "version", defaultVersion);
-        if ((version == "v3") && (inOp(config, "v3")))
+        if ((version == "v3") && (((IDictionary<string, object>)config).ContainsKey("v3")))
         {
             return ((IDictionary<string,object>)config)["v3"];
-        } else if ((version == "v2") && (inOp(config, "v2")))
+        } else if ((version == "v2") && (((IDictionary<string, object>)config).ContainsKey("v2")))
         {
             return ((IDictionary<string,object>)config)["v2"];
-        } else if ((version == "v1") && (inOp(config, "v1")))
+        } else if ((version == "v1") && (((IDictionary<string, object>)config).ContainsKey("v1")))
         {
             return ((IDictionary<string,object>)config)["v1"];
         }

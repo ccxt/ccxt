@@ -3817,7 +3817,7 @@ public partial class kraken : Exchange
         IList<object> tagparametersVariable = (IList<object>)this.handleWithdrawTagAndParams(tagVar, parameters);
         tagVar = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
-        if (inOp(parameters, "key"))
+        if (((IDictionary<string, object>)parameters).ContainsKey("key"))
         {
             await this.loadMarkets();
             Dictionary<string, object> currency = this.currency(((string)code));

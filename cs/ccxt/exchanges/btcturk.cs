@@ -905,10 +905,10 @@ public partial class btcturk : Exchange
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
-        if (inOp(parameters, "clientOrderId"))
+        if (((IDictionary<string, object>)parameters).ContainsKey("clientOrderId"))
         {
             ((IDictionary<string,object>)request)["newClientOrderId"] = ((IDictionary<string,object>)parameters)["clientOrderId"];
-        } else if (!(inOp(parameters, "newClientOrderId")))
+        } else if (!(((IDictionary<string, object>)parameters).ContainsKey("newClientOrderId")))
         {
             ((IDictionary<string,object>)request)["newClientOrderId"] = this.uuid();
         }

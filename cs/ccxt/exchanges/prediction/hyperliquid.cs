@@ -2607,7 +2607,7 @@ public partial class hyperliquid : PredictionExchange
     public override object calculateRateLimiterCost(object api, object method, object path, object parameters, object config = null)
     {
         config ??= new Dictionary<string, object>();
-        if ((inOp(config, "byType")) && (inOp(parameters, "type")))
+        if ((((IDictionary<string, object>)config).ContainsKey("byType")) && (inOp(parameters, "type")))
         {
             object type = getValue(parameters, "type");
             object byType = ((IDictionary<string,object>)config)["byType"];

@@ -3042,7 +3042,7 @@ public partial class bitvavo : Exchange
     public override object calculateRateLimiterCost(object api, object method, object path, object parameters, object config = null)
     {
         config ??= new Dictionary<string, object>();
-        if ((inOp(config, "noMarket")) && !(inOp(parameters, "market")))
+        if ((((IDictionary<string, object>)config).ContainsKey("noMarket")) && !(inOp(parameters, "market")))
         {
             return ((IDictionary<string,object>)config)["noMarket"];
         }
