@@ -3951,14 +3951,14 @@ public class Bitget extends BitgetApi
                     spot = true;
                     pricePrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "pricePrecision")));
                     amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "quantityPrecision")));
-                    Object hasCrossMargin = this.inArray(marketId, ((Map<String, Object>)this.options).get("crossMarginPairsData"));
-                    Object hasIsolatedMargin = this.inArray(marketId, ((Map<String, Object>)this.options).get("isolatedMarginPairsData"));
+                    boolean hasCrossMargin = this.inArray(marketId, ((Map<String, Object>)this.options).get("crossMarginPairsData"));
+                    boolean hasIsolatedMargin = this.inArray(marketId, ((Map<String, Object>)this.options).get("isolatedMarginPairsData"));
                     final Object finalHasCrossMargin = hasCrossMargin;
                     marginModes = new HashMap<String, Object>() {{
                         put( "cross", finalHasCrossMargin );
                         put( "isolated", hasIsolatedMargin );
                     }};
-                    isMarginTradingAllowed = Helpers.isTrue(hasCrossMargin) || Helpers.isTrue(hasIsolatedMargin);
+                    isMarginTradingAllowed = hasCrossMargin || hasIsolatedMargin;
                 } else
                 {
                     if (java.util.Objects.equals(symbolType, "perpetual"))
@@ -4485,7 +4485,7 @@ public class Bitget extends BitgetApi
 }});
         }
         Boolean active = (java.util.Objects.equals(withdraw, true)) && (java.util.Objects.equals(deposit, true));
-        Object isFiat = this.inArray(code, fiatCurrencies);
+        boolean isFiat = this.inArray(code, fiatCurrencies);
         final Object finalDeposit = deposit;
         final Object finalWithdraw = withdraw;
         return this.safeCurrencyStructure(new HashMap<String, Object>() {{
@@ -4493,7 +4493,7 @@ public class Bitget extends BitgetApi
             put( "id", id );
             put( "code", code );
             put( "networks", networks );
-            put( "type", ((Helpers.isTrue(isFiat))) ? "fiat" : "crypto" );
+            put( "type", ((isFiat)) ? "fiat" : "crypto" );
             put( "name", null );
             put( "active", active );
             put( "deposit", finalDeposit );

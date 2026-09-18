@@ -2211,18 +2211,18 @@ public class Kucoin extends KucoinApi
             List<Object> defaultTypes = new ArrayList<Object>(Arrays.asList("spot", "swap", "future", "contract"));
             Map<String, Object> fetchMarketsOptions = (Map<String, Object>) this.safeDict(this.options, "fetchMarkets");
             Object types = this.safeList(fetchMarketsOptions, "types", defaultTypes);
-            Object credentialsSet = this.checkRequiredCredentials(false);
-            Boolean requestMarginables = Helpers.isTrue(credentialsSet) && Helpers.isTrue(this.safeBool(parameters, "marginables", true));
+            boolean credentialsSet = Helpers.isTrue(this.checkRequiredCredentials(false));
+            Boolean requestMarginables = credentialsSet && Helpers.isTrue(this.safeBool(parameters, "marginables", true));
             parameters = this.omit(parameters, "marginables");
             Boolean fetchContractMarkets = false;
             if (Helpers.isTrue(this.inArray("swap", types)) || Helpers.isTrue(this.inArray("future", types)) || Helpers.isTrue(this.inArray("contract", types)))
             {
                 fetchContractMarkets = true;
             }
-            Object fetchSpotMarkets = this.inArray("spot", types);
-            fetchTickersFees = Helpers.isTrue(fetchTickersFees) && Helpers.isTrue(fetchSpotMarkets); // tickers and fees are only fetched for spot markets
+            boolean fetchSpotMarkets = this.inArray("spot", types);
+            fetchTickersFees = Helpers.isTrue(fetchTickersFees) && fetchSpotMarkets; // tickers and fees are only fetched for spot markets
             List<Object> promises = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(fetchSpotMarkets))
+            if (fetchSpotMarkets)
             {
                 ((List<Object>)promises).add(this.publicGetSymbols(parameters));
             }
@@ -2275,19 +2275,19 @@ public class Kucoin extends KucoinApi
             {
                 ((List<Object>)promises).add(this.fetchContractMarkets(parameters));
             }
-            if (Helpers.isTrue(credentialsSet))
+            if (credentialsSet)
             {
                 // load migration status for account
                 ((List<Object>)promises).add(this.loadMigrationStatus());
             }
             Object responses = (Helpers.promiseAll(promises)).join();
-            Object symbolsData = ((Helpers.isTrue(fetchSpotMarkets))) ? this.safeList(Helpers.GetValue(responses, 0), "data", new ArrayList<Object>(Arrays.asList())) : new ArrayList<Object>(Arrays.asList());
+            Object symbolsData = ((fetchSpotMarkets)) ? this.safeList(Helpers.GetValue(responses, 0), "data", new ArrayList<Object>(Arrays.asList())) : new ArrayList<Object>(Arrays.asList());
             Object crossIndex = 0;
             Object isolatedIndex = 0;
             Object tickersIndex = 0;
             Object contractIndex = 0;
             Object nextIndex = 0;
-            if (Helpers.isTrue(fetchSpotMarkets))
+            if (fetchSpotMarkets)
             {
                 nextIndex = 1;
             }
@@ -4637,7 +4637,7 @@ public class Kucoin extends KucoinApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
-            Object isAuthenticated = this.checkRequiredCredentials(false);
+            boolean isAuthenticated = Helpers.isTrue(this.checkRequiredCredentials(false));
             Object uta = false;
             List<Object> utaparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrderBook", "uta", uta);
             uta = ((List<Object>) utaparametersVariable).get(0);
@@ -4707,7 +4707,7 @@ public class Kucoin extends KucoinApi
                 {
                     throw new BadRequest((this.id + " fetchOrderBook() limit argument must be 20 or 100")) ;
                 }
-            } else if (!Helpers.isTrue(isAuthenticated) || !java.util.Objects.equals(limit, null))
+            } else if (!isAuthenticated || !java.util.Objects.equals(limit, null))
             {
                 if (Helpers.isEqual(level, 2))
                 {
@@ -10445,14 +10445,14 @@ public class Kucoin extends KucoinApi
             Object fromId = this.convertTypeToAccount(fromAccount);
             Object toId = this.convertTypeToAccount(toAccount);
             Object exchangeIds = (((java.util.Objects.equals(this.ids, null)))) ? new ArrayList<Object>(Arrays.asList()) : this.ids;
-            Object fromIsolated = this.inArray(fromId, exchangeIds);
-            Object toIsolated = this.inArray(toId, exchangeIds);
-            if (Helpers.isTrue(fromIsolated))
+            boolean fromIsolated = this.inArray(fromId, exchangeIds);
+            boolean toIsolated = this.inArray(toId, exchangeIds);
+            if (fromIsolated)
             {
                 ((Map<String, Object>)request).put("fromAccountSymbol", fromId);
                 fromId = "ISOLATED";
             }
-            if (Helpers.isTrue(toIsolated))
+            if (toIsolated)
             {
                 ((Map<String, Object>)request).put("toAccountSymbol", toId);
                 toId = "ISOLATED";
@@ -10543,14 +10543,14 @@ public class Kucoin extends KucoinApi
             Object fromId = this.convertTypeToAccount(fromAccount);
             Object toId = this.convertTypeToAccount(toAccount);
             Object exchangeIds = (((java.util.Objects.equals(this.ids, null)))) ? new ArrayList<Object>(Arrays.asList()) : this.ids;
-            Object fromIsolated = this.inArray(fromId, exchangeIds);
-            Object toIsolated = this.inArray(toId, exchangeIds);
-            if (Helpers.isTrue(fromIsolated))
+            boolean fromIsolated = this.inArray(fromId, exchangeIds);
+            boolean toIsolated = this.inArray(toId, exchangeIds);
+            if (fromIsolated)
             {
                 ((Map<String, Object>)request).put("fromAccountTag", fromId);
                 fromId = "isolated";
             }
-            if (Helpers.isTrue(toIsolated))
+            if (toIsolated)
             {
                 ((Map<String, Object>)request).put("toAccountTag", toId);
                 toId = "isolated";
