@@ -79,7 +79,7 @@ export // rust-05: the five `safe_*_k` helpers below take `obj: Value` BY VALUE,
 // argument is only needed when that local is read again later.
 const RUST_BY_VALUE_OBJ_CALL = /\bself\.safe_(?:number|value|bool|list|dict)_k\(/;
 
-export class RustTranspilerBuilder {
+export export class RustTranspilerBuilder {
 
     transpiler!: Transpiler;
 
@@ -6189,6 +6189,13 @@ export class RustTranspilerBuilder {
 `;
     }
 
+    /// Tail of a dynamic-dispatch `args` list as a slice: `&args[..]` for the
+    /// whole list, `&args[N.min(args.len())..]` for the tail. Same slice the
+    /// old `&args.get(N..).unwrap_or(&[]).to_vec()[..]` passed, without the copy.
+    dispatchSliceArg(index: number): string {
+        return index === 0 ? '&args[..]' : `&args[${index}.min(args.len())..]`;
+    }
+
     /// The prediction-only `call_dynamic_prediction_base` trait default: a
     /// `match` over prediction base method names, falling through to the
     /// Exchange `call_dynamic_base`. A prediction Core's `call_dynamic` ends
@@ -6214,7 +6221,7 @@ export class RustTranspilerBuilder {
                 if (paramKinds[i] === 'value') {
                     callArgs.push(`args.get(${i}).cloned().unwrap_or(crate::Value::Null)`);
                 } else if (paramKinds[i] === 'slice') {
-                    callArgs.push(`&args.get(${i}..).unwrap_or(&[]).to_vec()[..]`);
+                    callArgs.push(this.dispatchSliceArg(i));
                 }
             }
             // Every arm is a prediction base method; several override an
@@ -6263,7 +6270,7 @@ ${arms.join('\n')}
                 if (paramKinds[i] === 'value') {
                     callArgs.push(`args.get(${i}).cloned().unwrap_or(crate::Value::Null)`);
                 } else if (paramKinds[i] === 'slice') {
-                    callArgs.push(`&args.get(${i}..).unwrap_or(&[]).to_vec()[..]`);
+                    callArgs.push(this.dispatchSliceArg(i));
                 }
             }
             const recv = collide.has(name)
@@ -6340,10 +6347,8 @@ ${arms.join('\n')}
                     // Pull args[i] (cloned), defaulting to Null.
                     callArgs.push(`args.get(${i}).cloned().unwrap_or(crate::Value::Null)`);
                 } else if (paramKinds[i] === 'slice') {
-                    // Pass the remaining args as a slice. We make a
-                    // local Vec to avoid lifetime issues against `args`.
-                    const start = i;
-                    callArgs.push(`&args.get(${start}..).unwrap_or(&[]).to_vec()[..]`);
+                    // Pass the remaining args as a slice of `args` itself.
+                    callArgs.push(this.dispatchSliceArg(i));
                 }
             }
             const callExpr = `self.${name}(${callArgs.join(', ')})${isAsync ? '.await' : ''}`;
@@ -6382,7 +6387,7 @@ ${isBase
                 if (paramKinds[i] === 'value') {
                     callArgs.push(`args.get(${i}).cloned().unwrap_or(crate::Value::Null)`);
                 } else if (paramKinds[i] === 'slice') {
-                    callArgs.push(`&args.get(${i}..).unwrap_or(&[]).to_vec()[..]`);
+                    callArgs.push(this.dispatchSliceArg(i));
                 }
             }
             arms.push(`                "${name}" => ${isVoid ? `{ self.${name}(${callArgs.join(', ')})${isAsync ? '.await' : ''}; crate::Value::Null }` : `self.${name}(${callArgs.join(', ')})${isAsync ? '.await' : ''}`},`);
@@ -6460,7 +6465,7 @@ ${fallthrough}
             if (kinds.some(k => k === 'other')) continue;
             seen.add(name);
             const callArgs = kinds.map((k, i) => k === 'slice'
-                ? `&args.get(${i}..).unwrap_or(&[]).to_vec()[..]`
+                ? this.dispatchSliceArg(i)
                 : `args.get(${i}).cloned().unwrap_or(crate::Value::Null)`);
             const call = `self.${name}(${callArgs.join(', ')})`;
             arms.push(isVoid
