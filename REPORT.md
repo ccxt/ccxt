@@ -87,9 +87,11 @@ files=62 pairs=75 unexpected=3
 
 ```
 ccxt-farm build --targets cs --wait
-HEAD 7e08c64191f209eecebb639f2ab9207103fa6bcb job=648 exit=0 branch_update=unchanged generator=404e9daa7f0ab58d085ed04aaa61a19546dfeda2
+typed-tree commit 7e08c64191f209eecebb639f2ab9207103fa6bcb  job=648 exit=0 branch_update=unchanged generator=404e9daa7f0ab58d085ed04aaa61a19546dfeda2
 ```
-(exit=0, no warnings from the diff; `generator=` is the base pin.)
+(exit=0, no warnings from the diff; `generator=` is the base pin.) The REPORT.md-only commit on top
+was re-gated the same way — `REPORT.md` is not a build input, so the farm compiles the identical tree;
+`ccxt-farm status <tip>` resolves that job for the tip sha recorded in the unit hand-back.
 
 ## Survey — what the caller does next (all 443 family sites, `tools/U27/report_table.py`)
 
