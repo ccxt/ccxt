@@ -3310,7 +3310,7 @@ export default class krakenfutures extends Exchange {
                 updates.push (update);
             }
         }
-        const positions = this.parsePositions (updates, symbols, params);
+        const positions = this.parsePositions (updates, symbols);
         return this.filterBySinceLimit (positions, since, limit);
     }
 
@@ -3381,12 +3381,22 @@ export default class krakenfutures extends Exchange {
             timestamp = this.parse8601 (datetime);
         }
         let side = this.safeString (position, 'side');
-        if (side === undefined) {
-            // the event describes the position it acted on: a close or a decrease
-            // leaves the old size, an open or an increase carries the new one
+        let entryPrice = this.safeString (position, 'price');
+        let contracts = this.safeString (position, 'size');
+        if (isHistory) {
+            // the event describes the position it acted on: an open or an increase
+            // describes the new position, a close, a decrease or a reversal the old
+            // one together with the size that was closed
+            const describesNewPosition = (positionChange === 'open') || (positionChange === 'increase');
             let signedSize = this.safeString (position, 'oldPosition');
-            if (Precise.stringEq (signedSize, '0')) {
+            entryPrice = this.safeString (position, 'oldAverageEntryPrice');
+            contracts = this.safeString (position, 'executionSize');
+            if (describesNewPosition) {
                 signedSize = this.safeString (position, 'newPosition');
+                entryPrice = this.safeString (position, 'newAverageEntryPrice');
+                contracts = Precise.stringAbs (signedSize);
+            } else if (positionChange === 'reverse') {
+                contracts = Precise.stringAbs (signedSize); // a reversal closes the whole old position
             }
             if (Precise.stringGt (signedSize, '0')) {
                 side = 'long';
@@ -3406,12 +3416,12 @@ export default class krakenfutures extends Exchange {
             'initialMarginPercentage': undefined,
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
-            'entryPrice': this.safeNumber2 (position, 'price', 'oldAverageEntryPrice'),
+            'entryPrice': this.parseNumber (entryPrice),
             'notional': undefined,
             'leverage': leverage,
             'unrealizedPnl': this.safeNumber (position, 'unrealizedPnl'),
             'realizedPnl': this.safeNumber (position, 'realizedPnL'),
-            'contracts': this.safeNumber2 (position, 'size', 'executionSize'),
+            'contracts': this.parseNumber (contracts),
             'contractSize': this.safeNumber (market, 'contractSize'),
             'marginRatio': undefined,
             'liquidationPrice': undefined,

@@ -5,6 +5,20 @@
     "methods": {
         "fetchPositionsHistory": [
             {
+                "description": "opening events describe the new position, the exchange filters are not merged into the structures",
+                "method": "fetchPositionsHistory",
+                "url": "https://futures.kraken.com/api/history/v3/positions?closed=true&opened=true",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "opened": true
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "since maps to since with ascending sort and until maps to before",
                 "method": "fetchPositionsHistory",
                 "url": "https://futures.kraken.com/api/history/v3/positions?closed=true&since=1789000000000&sort=asc&before=1790000000000",
