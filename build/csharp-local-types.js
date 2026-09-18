@@ -3119,7 +3119,7 @@ function wsCacheElementSourceOk (node) {
 }
 
 // `this.trades[key]` — the ws trade cache's element read
-function wsCacheElementAccessReadType (node) {
+function wsCacheElementReadType (node) {
     if (node?.kind !== ts.SyntaxKind.ElementAccessExpression) {
         return undefined;
     }
@@ -3551,7 +3551,7 @@ function wsCacheMemberElementBoxUncached (csharp, sourceFile, member) {
 }
 
 // `object <name> = this.safeValue (this.<member>, <key>)` (no default) -> the file's box
-function wsCacheElementReadType (csharp, initializer) {
+function wsCacheMemberReadType (csharp, initializer) {
     if (initializer?.kind !== ts.SyntaxKind.CallExpression) {
         return undefined;
     }
@@ -7812,7 +7812,7 @@ function csharpLocalTypeOf (csharp, declaration, context) {
     let safeValueTwin = (csharpType === undefined) ? safeValueTwinCastType (declaration.initializer) : undefined;
     let safeValueTwinShape;
     // the two ws read families (see the family comment above)
-    const wsCacheElementBox = (csharpType === undefined) ? wsCacheElementReadType (csharp, declaration.initializer) : undefined;
+    const wsCacheElementBox = (csharpType === undefined) ? wsCacheMemberReadType (csharp, declaration.initializer) : undefined;
     const handlerTableBox = (csharpType === undefined) ? handlerTableReadType (csharp, declaration.initializer, ctx) : undefined;
     // the typed-core funnel: the funnel call the pass will build around this awaited core carries
     // the box its typed overload returns (typedCoreFunnelType), so the declaration names it with no
@@ -7838,7 +7838,7 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         // `this.trades[key]` / `this.ohlcvs[symmetric-read]` — the ws member cache element reads
         // (see CSHARP_LOCAL_WS_CACHE_ELEMENT_TYPES): getValue's own C# type is `object`, so the
         // proven element box is named behind the exact cast back
-        const wsCacheElement = (elementType === undefined) ? (wsCacheElementAccessReadType (declaration.initializer) ?? wsOhlcvsBucketReadType (declaration.initializer)) : undefined;
+        const wsCacheElement = (elementType === undefined) ? (wsCacheElementReadType (declaration.initializer) ?? wsOhlcvsBucketReadType (declaration.initializer)) : undefined;
         // the ws order book subscriber core (`const orderbook = await this.watch (...)` +
         // `return orderbook.limit ()`): the resolve proof is wsOrderBookWatchType above
         const wsOrderBookType = wsOrderBookWatchType (declaration);
@@ -8051,7 +8051,7 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         const copyEdges = (copyType !== undefined && copyType === csharpType && (copyType === 'Dictionary<string, object>' || copyType === 'IDictionary<string, object>')) ? COPY_WIDENING_EDGES : undefined;
         // a read of a retyped ws cache member: the later cache-setup writes store an
         // ArrayCache constructor, which needs an edge to the declaration's own type to join
-        const cacheElementType = wsCacheElementReadType (csharp, declaration.initializer);
+        const cacheElementType = wsCacheMemberReadType (csharp, declaration.initializer);
         const cacheMemberEdges = (csharpType === 'ccxt.pro.ArrayCache' && wsCacheMemberRead (declaration.initializer)) ? CACHE_MEMBER_WIDENING_EDGES
             : (cacheElementType !== undefined && cacheElementType !== 'IDictionary<string, object>') ? cacheElementWideningEdges (cacheElementType) : undefined;
         // join the initializer with every later write, widening only along box-identical edges
