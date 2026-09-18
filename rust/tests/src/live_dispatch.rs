@@ -111,8 +111,17 @@ type WriteOptionsFn = fn(*mut (), Value);
 /// Writes a canned HTTP response into the cached Core's `mock_response`.
 /// Used by static *response* tests: `setFetchResponse` stashes the JSON
 /// payload on the snapshot, and the next dispatch pushes it to the Core
-/// so `fetch_typed` returns it without hitting the network. Single-use —
-/// `fetch_typed` clears `mock_response` once consumed.
+/// so every `fetch_typed` within that dispatch returns it without network I/O
+/// (including subsequent pagination requests). The next REST dispatch replaces
+/// the Core's mock with the next fixture's payload, or Null when none is set.
+///
+/// "REST dispatch" is load-bearing: the push at the `write_mock` call site sits
+/// inside `dispatch`'s `if !is_ws_method` pre-flight block, so a `watch*` /
+/// `unWatch*` dispatch neither replaces nor clears the Core's mock. That is
+/// sound today only because the WS suites never set a fixture — if a `watch*`
+/// case ever calls `setFetchResponse`, the clear has to move out of that guard,
+/// or a stale payload will leak into the following dispatch and also keep
+/// `request_typed` skipping `throttle` on that Core.
 type WriteMockFn = fn(*mut (), Value);
 
 /// Per-Core typed drop. Necessary because `*mut ()` erases the type, so
