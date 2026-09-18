@@ -5,15 +5,20 @@
 // The pass turns the `&self` encoding of a nested-key write
 // (`get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &k1)`)
 // into a real mutable field borrow once the enclosing method is `&mut self`.
-// Every "native" case fails on a tree where the pass is not installed (the
-// unsafe cast is still in the output).
-import { RustTranspilerBuilder } from './rustTranspiler.js';
+// The "native" cases below fail on a tree where the pass is not installed (the
+// unsafe cast is still in the output); the "keeps the cast" cases fail if the
+// receiver or the `self`-conflict guard is loosened.
+import * as rustTranspiler from './rustTranspiler.js';
 
-const t = new RustTranspilerBuilder();
+const Builder: any = (rustTranspiler as any).RustTranspilerBuilder;
+const t: any = Builder ? new Builder() : null;
+// Absent pass (pre-change tree) -> identity, so the emission checks fail below.
+const run = (source: string): string =>
+    (t && typeof t.nativeMutSelfCoerceMutSites === 'function') ? t.nativeMutSelfCoerceMutSites(source) : source;
 
 let failures = 0;
 const check = (name: string, source: string, expected: string[], forbidden: string[] = []) => {
-    const output: string = (t as any).nativeMutSelfCoerceMutSites(source);
+    const output: string = run(source);
     const ok = expected.every(e => output.includes(e)) && forbidden.every(f => !output.includes(f));
     console.log((ok ? 'ok   ' : 'FAIL ') + name);
     if (!ok) {
