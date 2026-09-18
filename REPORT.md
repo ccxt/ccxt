@@ -119,8 +119,10 @@ the scan rejects keeps `object` (a site that stays `object` is not a diff line).
 * `ccxt-farm build --targets cs --wait` for the code commit `7896b235e0b`
   (`HEAD 7896b235e0b6ee6519a930e2e8c963bb42b42ac4 job=669 exit=0 branch_update=unchanged
   generator=404e9daa7f0ab58d085ed04aaa61a19546dfeda2`; `buildCS`: `Build succeeded. 0 Warning(s)
-  0 Error(s)`; `ccxt-farm status 669` → `state: succeeded, exit_code: 0, skipped_exchanges: 76`);
-  re-run for the tip that carries this report (below).
+  0 Error(s)`; `ccxt-farm status 669` → `state: succeeded, exit_code: 0, skipped_exchanges: 76`).
+* The report commit is farm-built as well (`HEAD c8c823e2118 job=681 exit=0
+  branch_update=unchanged`); every commit after the code commit touches `REPORT.md` only, which is
+  not a build input, and `branch_update=unchanged` re-confirms the fixed point on each of them.
 * Tooling left in `campaigns/cs90/tools/U04/`: `census.py`, `sites.py`, `writers.py`,
   `writer_boxes.py`, `check_writers.py`, `bucket_elem.py`, `inheritance.py`, `preflight.py`,
   `ohlcvs_buckets.py`, `dict_casts.py`. Nothing new under `build/`.
