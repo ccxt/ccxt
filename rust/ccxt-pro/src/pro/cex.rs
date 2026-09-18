@@ -483,7 +483,7 @@ impl CexCore {
                 if (subscriptionKey.as_str() == subscriptionHash.as_str()) {
                     continue;
                 }
-                subscriptionKey = slice(&subscriptionKey, &Value::Int(0), &Value::Int(3));
+                subscriptionKey = subscriptionKey.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(3); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::Str).unwrap_or(Value::Null);
                 if (subscriptionKey.as_str() == Some("old")) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchTrades() only supports watching one symbol at a time.".to_string()))));
                 }

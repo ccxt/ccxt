@@ -1862,7 +1862,7 @@ impl HibachiCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut withdrawAddress: Value = slice(&address, &Value::Int(-40), &Value::Null);
+        let mut withdrawAddress: Value = address.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 40).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::Str).unwrap_or(Value::Null);
         // Get the withdraw fees
         let mut exchangeInfo: Value = self.public_get_market_exchange_info(&[params.clone()]).await;
         // {

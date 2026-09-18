@@ -1512,7 +1512,7 @@ impl PhemexCore {
         let mut contractSize: Value = Value::Null;
         if (settle.as_str() == Some("USDT")) {
             contractSize = self.parse_number(Value::Str("1".to_string()), &[]);
-        }  else if (get_index_of(&contractSizeString, &Value::Str(" ".to_string())).as_f64() != Value::Int(-1).as_f64()) {
+        }  else if (Value::Int(contractSizeString.as_str().and_then(|__s| __s.find(" ")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() != Value::Int(-1).as_f64()) {
             // "1 USD"
             // "0.005 ETH"
             let mut parts: Value = split(&contractSizeString, &Value::Str(" ".to_string()));

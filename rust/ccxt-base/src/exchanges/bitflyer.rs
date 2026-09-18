@@ -649,16 +649,16 @@ impl BitflyerCore {
                     // no alias:
                     // { product_code: 'BTCJPY11MAR2022', market_type: 'Futures' }
                     // TODO this will break if there are products with 4 chars
-                    baseId = slice(&id, &Value::Int(0), &Value::Int(3));
-                    quoteId = slice(&id, &Value::Int(3), &Value::Int(6));
+                    baseId = id.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(3); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::Str).unwrap_or(Value::Null);
+                    quoteId = id.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(3); let __j = __l.min(6); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::Str).unwrap_or(Value::Null);
                     // last 9 chars are expiry date
-                    let mut expiryDate: Value = slice(&id, &Value::Int(-9), &Value::Null);
+                    let mut expiryDate: Value = id.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 9).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::Str).unwrap_or(Value::Null);
                     expiry = self.parse_expiry_date(expiryDate.clone());
                 }  else {
                     let mut splitAlias: Value = split(&alias, &Value::Str("_".to_string()));
                     let mut currencyIds: Value = self.safe_string(splitAlias.clone(), Value::Int(0), &[]);
-                    baseId = slice(&currencyIds, &Value::Int(0), &Value::Int(-3));
-                    quoteId = slice(&currencyIds, &Value::Int(-3), &Value::Null);
+                    baseId = currencyIds.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = (__l - 3).max(0); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::Str).unwrap_or(Value::Null);
+                    quoteId = currencyIds.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 3).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::Str).unwrap_or(Value::Null);
                     let mut splitId: Value = split(&id, &currencyIds);
                     let mut expiryDate: Value = self.safe_string(splitId.clone(), Value::Int(1), &[]);
                     expiry = self.parse_expiry_date(expiryDate.clone());

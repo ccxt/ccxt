@@ -1853,7 +1853,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut type_var: Value = self.safe_string_k(market.clone(), "market_type", &[]);
             type_var = (if is_true(&(Value::Bool(type_var.as_str() == Some("perp")))) { Value::Str("swap".to_string()) } else { type_var.clone() });
             let mut baseId: Value = self.safe_string_k(market.clone(), "symbol", &[]);
-            if (baseId != Value::Null) && (get_index_of(&baseId, &Value::Str("/".to_string())).as_f64() != Value::Int(-1).as_f64()) {
+            if (baseId != Value::Null) && (Value::Int(baseId.as_str().and_then(|__s| __s.find("/")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() != Value::Int(-1).as_f64()) {
                 baseId = split(&baseId, &Value::Str("/".to_string())).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
             }
             let mut quoteId: Value = Value::Str("USDC".to_string());
@@ -3172,10 +3172,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut stopLossPrice: Value = Value::Null;
         let mut takeProfitPrice: Value = Value::Null;
         if (type_var != Value::Null) {
-            if get_index_of(&type_var, &Value::Str("stop-loss".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if Value::Int(type_var.as_str().and_then(|__s| __s.find("stop-loss")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                 stopLossPrice = triggerPrice.clone();
             }
-            if get_index_of(&type_var, &Value::Str("take-profit".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if Value::Int(type_var.as_str().and_then(|__s| __s.find("take-profit")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                 takeProfitPrice = triggerPrice.clone();
             }
         }

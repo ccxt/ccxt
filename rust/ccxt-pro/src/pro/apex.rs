@@ -961,7 +961,7 @@ impl ApexCore {
         let mut timeframeId: Value = self.safe_string(topicParts.clone(), Value::Int(1), &[]);
         let mut timeframe: Value = self.find_timeframe(timeframeId.clone(), &[]);
         let mut marketId: Value = self.safe_string(topicParts.clone(), (match (&(topicLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
-        let mut isSpot: bool = get_index_of(&get_value(&client, &Value::Str("url".to_string())), &Value::Str("spot".to_string())).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN);
+        let mut isSpot: bool = Value::Int(get_value(&client, &Value::Str("url".to_string())).as_str().and_then(|__s| __s.find("spot")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN);
         let mut marketType: Value = (if isSpot { Value::Str("spot".to_string()) } else { Value::Str("contract".to_string()) });
         let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, marketType.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -1461,7 +1461,7 @@ impl ApexCore {
                 // is still active and delivering data on this socket. Without
                 // this short-circuit the catch-clause's `client.reject(&[Value::from(error.clone()), // messageHash])` rejects every in-flight future on the connection
                 // because apex doesn't echo a `reqId` on these warnings.
-                if (ret_msg != Value::Null) && get_index_of(&ret_msg, &Value::Str("already subscribed".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+                if (ret_msg != Value::Null) && Value::Int(ret_msg.as_str().and_then(|__s| __s.find("already subscribed")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                     return Value::Bool(false);
                 }
                 if (op.as_str() == Some("auth")) {

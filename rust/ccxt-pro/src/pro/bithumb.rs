@@ -616,7 +616,7 @@ impl BithumbCore {
         }
         let mut date: Value = self.safe_string_k(ticker.clone(), "date", &[Value::Str("".to_string())]);
         let mut time: Value = self.safe_string_k(ticker.clone(), "time", &[Value::Str("".to_string())]);
-        let mut kstDatetime: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", slice(&date, &Value::Int(0), &Value::Int(4)), Value::Str("-".to_string()))), slice(&date, &Value::Int(4), &Value::Int(6)))), Value::Str("-".to_string()))), slice(&date, &Value::Int(6), &Value::Int(8)))), Value::Str("T".to_string()))), slice(&time, &Value::Int(0), &Value::Int(2)))), Value::Str(":".to_string()))), slice(&time, &Value::Int(2), &Value::Int(4)))), Value::Str(":".to_string()))), slice(&time, &Value::Int(4), &Value::Int(6))));
+        let mut kstDatetime: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", date.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(4); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::Str).unwrap_or(Value::Null), Value::Str("-".to_string()))), date.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(4); let __j = __l.min(6); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::Str).unwrap_or(Value::Null))), Value::Str("-".to_string()))), date.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(6); let __j = __l.min(8); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::Str).unwrap_or(Value::Null))), Value::Str("T".to_string()))), time.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(2); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::Str).unwrap_or(Value::Null))), Value::Str(":".to_string()))), time.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(2); let __j = __l.min(4); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::Str).unwrap_or(Value::Null))), Value::Str(":".to_string()))), time.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(4); let __j = __l.min(6); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::Str).unwrap_or(Value::Null)));
         // date/time are the exchange's local KST wall-clock, not UTC — shift -9h like parseWsTrade
         let mut timestamp: Value = self.parse8601(kstDatetime.clone());
         if (timestamp != Value::Null) {
@@ -768,7 +768,7 @@ impl BithumbCore {
             if (timestampStr == Value::Null) {
                 return;
             }
-            let mut legacyTimestamp: Value = self.parse_to_int(slice(&timestampStr, &Value::Int(0), &Value::Int(13)));
+            let mut legacyTimestamp: Value = self.parse_to_int(timestampStr.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(13); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::Str).unwrap_or(Value::Null));
             if !is_true(&(Value::Bool(in_op(&self.orderbooks, &legacySymbol)))) {
                 let mut ob: Value = self.order_book(&[]);
                 add_element_to_object(&mut ob, &Value::Str("symbol".to_string()), legacySymbol.clone());
@@ -829,7 +829,7 @@ impl BithumbCore {
         let mut gen2TimestampStr: Value = self.safe_string2(message.clone(), Value::Str("timestamp".to_string()), Value::Str("datetime".to_string()), &[]);
         let mut timestamp: Value = Value::Null;
         if (gen2TimestampStr != Value::Null) {
-            timestamp = self.parse_to_int(slice(&gen2TimestampStr, &Value::Int(0), &Value::Int(13)));
+            timestamp = self.parse_to_int(gen2TimestampStr.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(13); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::Str).unwrap_or(Value::Null));
         }
         if (timestamp == Value::Null) {
             timestamp = self.milliseconds();

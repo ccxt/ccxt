@@ -1360,7 +1360,7 @@ impl BullishCore {
                 expiryDatetime = self.safe_string_k(market.clone(), "expiryDatetime", &[]);
                 let mut idParts: Value = split(&id, &Value::Str("-".to_string()));
                 let mut datePart: Value = self.safe_string(idParts.clone(), Value::Int(2), &[]);
-                let mut dateYmd: Value = slice(&datePart, &Value::Int(2), &Value::Null);
+                let mut dateYmd: Value = datePart.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(2); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::Str).unwrap_or(Value::Null);
                 symbol = Value::Str(format!("{}{}", symbol, Value::Str(format!("{}{}", Value::Str("-".to_string()), dateYmd))));
                 if (type_var.as_str() == Some("future")) {
                     future = Value::Bool(true);

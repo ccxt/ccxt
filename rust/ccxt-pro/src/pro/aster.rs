@@ -402,7 +402,7 @@ impl AsterCore {
 }
 
     pub fn get_account_type_from_url(&self, mut url: Value) -> Value {
-        if get_index_of(&url, &Value::Str("fstream".to_string())).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
+        if Value::Int(url.as_str().and_then(|__s| __s.find("fstream")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
             return Value::Str("swap".to_string());
         }
         return Value::Str("spot".to_string());
@@ -2530,7 +2530,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut messageHash: Value = Value::Str("myTrades".to_string());
         let mut executionType: Value = self.safe_string_k(message.clone(), "x", &[]);
         if (executionType.as_str() == Some("TRADE")) {
-            let mut isSwap: bool = get_index_of(&get_value(&client, &Value::Str("url".to_string())), &Value::Str("fstream".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN);
+            let mut isSwap: bool = Value::Int(get_value(&client, &Value::Str("url".to_string())).as_str().and_then(|__s| __s.find("fstream")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN);
             let mut type_var: Value = (if isSwap { Value::Str("swap".to_string()) } else { Value::Str("spot".to_string()) });
             let mut fakeMarket: Value = self.safe_market_structure(&[Value::Map({
                 let mut m = indexmap::IndexMap::new();

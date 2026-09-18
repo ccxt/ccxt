@@ -746,7 +746,7 @@ impl MyriadCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if get_index_of(&id, &Value::Str(":".to_string())).as_f64().unwrap_or(f64::NAN) < Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if Value::Int(id.as_str().and_then(|__s| __s.find(":")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) < Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             let mut rawQuestion: Value = self.fetch_raw_question_by_id(id.clone(), &[params.clone()]).await;
             let mut orderBookEvent: Value = self.parse_event(rawQuestion.clone());
             self.index_event_outcomes(orderBookEvent.clone());
@@ -1955,7 +1955,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (scaled == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" toOrderbookWei() missing scaled".to_string()))));
         }
-        let mut dotIndex: Value = get_index_of(&scaled, &Value::Str(".".to_string()));
+        let mut dotIndex: Value = Value::Int(scaled.as_str().and_then(|__s| __s.find(".")).map(|__i| __i as i64).unwrap_or(-1));
         if (scaled == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" toOrderbookWei() missing scaled".to_string()))));
         }
@@ -4118,7 +4118,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             rawMarkets = self.safe_list(responses.clone(), Value::Int(0), &[Value::List(vec![])]);
             rawQuestions = self.safe_list(responses.clone(), Value::Int(1), &[Value::List(vec![])]);
         }  else if (eventId != Value::Null) {
-            if get_index_of(&eventId, &Value::Str(":".to_string())).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
+            if Value::Int(eventId.as_str().and_then(|__s| __s.find(":")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
                 let mut rawMarket: Value = self.fetch_raw_market_by_id(eventId.clone(), &[rest.clone()]).await;
                 rawMarkets = Value::List(vec![rawMarket.clone()]);
             }  else {
@@ -5177,9 +5177,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // the channel pushes a signed share delta per fill/redeem/split/merge (no absolute balance);
         // apply it to the REST-seeded balance keyed by outcome id to maintain a running contracts figure
         let mut deltaStr: Value = self.safe_string_k(data.clone(), "delta", &[Value::Str("0".to_string())]);
-        let mut firstChar: Value = slice(&deltaStr, &Value::Int(0), &Value::Int(1));
+        let mut firstChar: Value = deltaStr.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(1); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::Str).unwrap_or(Value::Null);
         if (firstChar.as_str() == Some("+")) {
-            deltaStr = slice(&deltaStr, &Value::Int(1), &Value::Null);
+            deltaStr = deltaStr.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(1); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::Str).unwrap_or(Value::Null);
         }
         let mut deltaShares: Value = crate::precise::Precise::stringDiv(&deltaStr, &Value::Str("1000000000000000000".to_string()));
         let mut contracts: Value = Value::Null;

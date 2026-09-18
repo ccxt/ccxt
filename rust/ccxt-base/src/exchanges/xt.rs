@@ -7736,7 +7736,7 @@ impl XtCore {
                 if (body == Value::Null) {
                     panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), Value::Str(" sign() returned empty body".to_string()))));
                 }
-                if get_index_of(&payload, &Value::Str("future".to_string())).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
+                if Value::Int(payload.as_str().and_then(|__s| __s.find("future")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
                     add_element_to_object(&mut body, &Value::Str("clientMedia".to_string()), id.clone());
                     if (body == Value::Null) {
                         panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), Value::Str(" sign() returned empty body".to_string()))));

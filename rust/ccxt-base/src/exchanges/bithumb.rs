@@ -902,7 +902,7 @@ impl BithumbCore {
 
     pub fn get_gen2_market_id(&self, mut market: Value) -> Value {
         let mut marketId: Value = self.safe_string_k(market.clone(), "id", &[]);
-        if is_true(&(Value::Bool(marketId != Value::Null))) && is_true(&(get_index_of(&marketId, &Value::Str("-".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN))) {
+        if is_true(&(Value::Bool(marketId != Value::Null))) && is_true(&(Value::Int(marketId.as_str().and_then(|__s| __s.find("-")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN))) {
             return marketId;
         }
         let mut quoteId: Value = self.safe_string2(market.clone(), Value::Str("quoteId".to_string()), Value::Str("quote".to_string()), &[]);
@@ -2917,7 +2917,7 @@ impl BithumbCore {
         let mut datetime: Value = self.safe_string_k(order.clone(), "created_at", &[]);
         let mut timestamp: Value = Value::Null;
         if (datetime != Value::Null) {
-            if get_index_of(&datetime, &Value::Str("+09:00".to_string())).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
+            if Value::Int(datetime.as_str().and_then(|__s| __s.find("+09:00")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
                 let mut normalized: Value = replace_str(&datetime, &Value::Str("+09:00".to_string()), &Value::Str("Z".to_string()));
                 let mut normalizedTimestamp: Value = self.parse8601(normalized.clone());
                 if (normalizedTimestamp != Value::Null) {
@@ -3584,7 +3584,7 @@ impl BithumbCore {
         currency = self.safe_currency(currencyId.clone(), &[currency.clone()]);
         let mut datetime: Value = self.safe_string_k(transaction.clone(), "created_at", &[]);
         let mut timestamp: Value = self.parse8601(datetime.clone());
-        if is_true(&(Value::Bool(datetime != Value::Null))) && is_true(&(get_index_of(&datetime, &Value::Str("+09:00".to_string())).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN))) {
+        if is_true(&(Value::Bool(datetime != Value::Null))) && is_true(&(Value::Int(datetime.as_str().and_then(|__s| __s.find("+09:00")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN))) {
             let mut normalized: Value = replace_str(&datetime, &Value::Str("+09:00".to_string()), &Value::Str("Z".to_string()));
             let mut normalizedTimestamp: Value = self.parse8601(normalized.clone());
             if (normalizedTimestamp != Value::Null) {

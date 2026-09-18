@@ -2490,7 +2490,7 @@ impl CoinbaseinternationalCore {
         let mut triggerPrice: Value = self.safe_number_n(params.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("stop_price".to_string())]), &[]);
         let mut clientOrderIdprefix: Value = self.safe_string_k(self.options.clone(), "brokerId", &[Value::Str("nfqkvdjp".to_string())]);
         let mut clientOrderId: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", clientOrderIdprefix, Value::Str("-".to_string()))), self.uuid(&[])));
-        clientOrderId = slice(&clientOrderId, &Value::Int(0), &Value::Int(17));
+        clientOrderId = clientOrderId.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(17); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::Str).unwrap_or(Value::Null);
         if (side == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a side argument".to_string()))));
         }

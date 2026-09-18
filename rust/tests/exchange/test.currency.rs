@@ -85,7 +85,7 @@ pub fn testCurrency(mut exchange: Value, mut skippedProperties: Value, mut metho
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut message: Value = exchange.exception_message(e.clone());
         // check structure if key is numeric, not string
-        if get_index_of(&message, &Value::Str("\"id\" key".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if Value::Int(message.as_str().and_then(|__s| __s.find("\"id\" key")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             // @ts-ignore
             add_element_to_object(&mut format, &Value::Str("id".to_string()), Value::Int(123));
             crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format.clone(), emptyAllowedFor.clone()]);

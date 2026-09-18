@@ -450,7 +450,7 @@ impl OkxCore {
         let mut isBusiness: bool = access.as_str() == Some("business");
         let mut isPublic: bool = access.as_str() == Some("public");
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        if isBusiness || is_true(&(get_index_of(&channel, &Value::Str("candle".to_string())).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN))) || is_true(&(Value::Bool(channel.as_str() == Some("orders-algo")))) {
+        if isBusiness || is_true(&(Value::Int(channel.as_str().and_then(|__s| __s.find("candle")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN))) || is_true(&(Value::Bool(channel.as_str() == Some("orders-algo")))) {
             return Value::Str(format!("{}{}", add(&url, &Value::Str("/business".to_string())), sandboxSuffix));
         }  else if isPublic {
             return Value::Str(format!("{}{}", add(&url, &Value::Str("/public".to_string())), sandboxSuffix));
@@ -3593,7 +3593,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             });
             let mut method: Value = self.safe_value(methods.clone(), channel.clone(), &[]);
             if (method == Value::Null) {
-                if (get_index_of(&channel, &Value::Str("candle".to_string())).as_f64() == Some(0.0)) {
+                if (Value::Int(channel.as_str().and_then(|__s| __s.find("candle")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
                     self.handle_ohlcv(client.clone(), message.clone());
                 }
             }  else {
@@ -3665,7 +3665,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.handle_un_subscription_trades(client.clone(), symbol.clone(), channel.clone());
         }  else if is_true(&Value::Bool(starts_with(&channel, &Value::Str("bbo".to_string())))) || is_true(&Value::Bool(starts_with(&channel, &Value::Str("book".to_string())))) {
             self.handle_unsubscription_order_book(client.clone(), symbol.clone(), channel.clone());
-        }  else if get_index_of(&channel, &Value::Str("tickers".to_string())).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
+        }  else if Value::Int(channel.as_str().and_then(|__s| __s.find("tickers")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
             self.handle_unsubscription_ticker(client.clone(), symbol.clone(), channel.clone());
         }  else if is_true(&Value::Bool(starts_with(&channel, &Value::Str("candle".to_string())))) {
             self.handle_unsubscription_ohlcv(client.clone(), symbol.clone(), channel.clone());

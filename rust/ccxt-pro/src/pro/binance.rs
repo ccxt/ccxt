@@ -664,7 +664,7 @@ impl BinanceCore {
 }
 
     pub fn is_spot_url(&self, mut client: Value) -> Value {
-        return Value::Bool(is_true(&(get_index_of(&get_value(&client, &Value::Str("url".to_string())), &Value::Str("/stream".to_string())).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN))) || is_true(&(get_index_of(&get_value(&client, &Value::Str("url".to_string())), &Value::Str("demo-stream".to_string())).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN))));
+        return Value::Bool(is_true(&(Value::Int(get_value(&client, &Value::Str("url".to_string())).as_str().and_then(|__s| __s.find("/stream")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN))) || is_true(&(Value::Int(get_value(&client, &Value::Str("url".to_string())).as_str().and_then(|__s| __s.find("demo-stream")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN))));
 
     Value::Null
 }
@@ -774,7 +774,7 @@ impl BinanceCore {
         }
         let mut safeQuote: Value = (if is_true(&(Value::Bool(quote == Value::Null))) { Value::Str("USDC".to_string()) } else { quote.clone() });
         let mut parsed: Value = self.safe_symbol(stockSymbol.clone(), &[Value::Null, Value::Str("/".to_string()), Value::Str("spot".to_string())]);
-        if is_true(&(Value::Bool(parsed != Value::Null))) && is_true(&(get_index_of(&parsed, &Value::Str("/".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN))) {
+        if is_true(&(Value::Bool(parsed != Value::Null))) && is_true(&(Value::Int(parsed.as_str().and_then(|__s| __s.find("/")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN))) {
             return parsed;
         }
         return Value::Str(format!("{}{}", Value::Str(format!("{}{}", stockSymbol, Value::Str("/".to_string()))), safeQuote));
@@ -3680,7 +3680,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         extendedParams = self.keysort(extendedParams.clone(), &[]);
         let mut query: Value = self.rawencode(extendedParams.clone(), &[]);
         let mut signature: Value = Value::Null;
-        if get_index_of(&self.secret, &Value::Str("PRIVATE KEY".to_string())).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
+        if Value::Int(self.secret.as_str().and_then(|__s| __s.find("PRIVATE KEY")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
             if Value::Int(self.secret.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(120).as_f64().unwrap_or(f64::NAN) {
                 signature = rsa(query.clone(), self.secret.clone(), Value::Str("sha256".to_string()));
             }  else {
@@ -5782,8 +5782,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         if (event.as_str() == Some("orderReport")) {
             let mut baseAssetCode: Value = self.safe_string_k(order.clone(), "b", &[]);
             let mut stockBaseSymbol: Value = baseAssetCode.clone();
-            if is_true(&(Value::Bool(stockBaseSymbol != Value::Null))) && is_true(&(Value::Bool(get_index_of(&stockBaseSymbol, &Value::Str("EQ_".to_string())).as_f64() == Some(0.0)))) {
-                stockBaseSymbol = slice(&stockBaseSymbol, &Value::Int(3), &Value::Null);
+            if is_true(&(Value::Bool(stockBaseSymbol != Value::Null))) && is_true(&(Value::Bool(Value::Int(stockBaseSymbol.as_str().and_then(|__s| __s.find("EQ_")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)))) {
+                stockBaseSymbol = stockBaseSymbol.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(3); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::Str).unwrap_or(Value::Null);
             }
             if (stockBaseSymbol == Value::Null) {
                 stockBaseSymbol = self.safe_string_k(order.clone(), "symbol", &[]);

@@ -2204,7 +2204,7 @@ impl HyperliquidCore {
         let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[Value::Str("".to_string())]);
         if (channel.as_str() == Some("error")) {
             let mut ret_msg: Value = self.safe_string_k(message.clone(), "data", &[Value::Str("".to_string())]);
-            if get_index_of(&ret_msg, &Value::Str("Already subscribed".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if Value::Int(ret_msg.as_str().and_then(|__s| __s.find("Already subscribed")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                 return Value::Bool(true);
             }
             let mut error = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), ret_msg)));
