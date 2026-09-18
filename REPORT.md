@@ -262,17 +262,27 @@ tree: exactly the 3 files above, 12 lines.
 Classifier probe re-run after the change: 64 → **60** undecided literal-init declarations, no
 newly-undecided site (`tools/U39/u39-probe.mjs`).
 
-Farm (dotnet is farm-only): `ccxt-farm build --targets cs --wait` on the work commit — the job id
-and exit code are recorded in §6 (filled in by the follow-up report commit, the U26 convention).
-No `build/csharpTranspiler.ts`, ast-transpiler src or hand-written base file touched, so no
-`hotspot:` line applies; the only hot file is the shared classifier `build/csharp-local-types.js`
-(3 additive edits).
+Farm (dotnet is farm-only): `ccxt-farm build --targets cs --wait` on the work commit —
+**job 829, exit=0, `branch_update=unchanged`, `buildCS` step `0 Warning(s) 0 Error(s)`,
+`generator=404e9daa7f0ab58d085ed04aaa61a19546dfeda2`** (see §6). No `build/csharpTranspiler.ts`,
+ast-transpiler src or hand-written base file touched, so no `hotspot:` line applies; the only hot
+file is the shared classifier `build/csharp-local-types.js` (3 additive edits).
 
 ## 6. Farm evidence
 
 ```
-PENDING — recorded by the follow-up REPORT.md commit after the farm gate.
+ccxt-farm build --targets cs --wait
+farm: job 829 admitted on slot 7 (targets=cs (cli) transpile_force=0)
+HEAD 997c38cf5b865a670e9548f2d7ec4d662737d150 job=829 exit=0 branch_update=unchanged generator=404e9daa7f0ab58d085ed04aaa61a19546dfeda2
+
+ccxt-farm log 829 --step buildCS --tail 40
+  Build succeeded.
+    0 Warning(s)
+    0 Error(s)
 ```
+
+Work commit (the gated sha): `997c38cf5b865a670e9548f2d7ec4d662737d150`. `branch_update=unchanged`
+on a non-`--force` build is the farm's own fixed-point proof for this tree.
 
 ## 7. Residual risk
 
