@@ -2434,7 +2434,7 @@ impl ToobitCore {
                 m.insert("datetime".to_string(), Value::Null);
             m
         });
-        let mut balances: Value = self.safe_list_k(response, "balances", &[response.clone()]);
+        let mut balances: Value = self.safe_list_k(response.clone(), "balances", &[response.clone()]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1093: bool = true;

@@ -1060,7 +1060,7 @@ impl MexcCore {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let mut rawOhlcv: Value = self.safe_value_k(d, "k", &[d.clone()]);
+            let mut rawOhlcv: Value = self.safe_value_k(d.clone(), "k", &[d.clone()]);
             let mut timeframeId: Value = self.safe_string2(rawOhlcv.clone(), Value::Str("i".to_string()), Value::Str("interval".to_string()), &[]);
             let mut timeframes: Value = self.safe_value_k(self.options.clone(), "timeframes", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();

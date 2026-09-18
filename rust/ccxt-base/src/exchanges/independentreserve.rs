@@ -1412,7 +1412,7 @@ impl IndependentreserveCore {
         m.insert("info".to_string(), self.safe_value_k(fee.clone(), "info", &[]));
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("maker".to_string(), self.safe_number_k(fee.clone(), "fee", &[]));
-        m.insert("taker".to_string(), self.safe_number_k(fee, "fee", &[]));
+        m.insert("taker".to_string(), self.safe_number_k(fee.clone(), "fee", &[]));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(true));
     m

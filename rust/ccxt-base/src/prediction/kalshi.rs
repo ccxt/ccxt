@@ -875,7 +875,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 response = Value::Null;
             }
             if (response != Value::Null) {
-                let mut rawMarket: Value = self.safe_dict_k(response, "market", &[response.clone()]);
+                let mut rawMarket: Value = self.safe_dict_k(response.clone(), "market", &[response.clone()]);
                 let mut parsed: Value = self.parse_market(rawMarket.clone());
                 if (self.markets.clone() == Value::Null) {
                     { let __t = self.create_safe_dictionary(&[]); self.markets = __t; }
@@ -1378,7 +1378,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         }
         //     }
         //
-        let mut raw: Value = self.safe_value_k(response, "market", &[response.clone()]);
+        let mut raw: Value = self.safe_value_k(response.clone(), "market", &[response.clone()]);
         return self.parse_prediction_ticker(raw.clone(), &[outcomeObj.clone()]);
 
     Value::Null
@@ -1439,7 +1439,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.kalshi_public_get_markets_ticker(&[__ws_arg_2]).await;
-        let mut raw: Value = self.safe_dict_k(response, "market", &[response.clone()]);
+        let mut raw: Value = self.safe_dict_k(response.clone(), "market", &[response.clone()]);
         return self.parse_prediction_open_interest(raw.clone(), &[outcomeObj.clone()]);
 
     Value::Null
@@ -1762,7 +1762,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         }
         //     }
         //
-        let mut book: Value = self.safe_value_k(response, "orderbook_fp", &[response.clone()]);
+        let mut book: Value = self.safe_value_k(response.clone(), "orderbook_fp", &[response.clone()]);
         let mut timestamp: Value = self.milliseconds();
         // Kalshi uses YES-side perspective: `yes` = bids, `no` = asks (inverted)
         let mut rawYes: Value = self.safe_list_k(book.clone(), "yes_dollars", &[Value::List(vec![])]);
@@ -2763,7 +2763,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         }), &[params.clone()]);
         let mut response: Value = self.kalshi_private_get_portfolio_orders_order_id(&[__ws_arg_11]).await;
-        return self.parse_prediction_order(self.safe_value_k(response, "order", &[response.clone()]), &[]);
+        return self.parse_prediction_order(self.safe_value_k(response.clone(), "order", &[response.clone()]), &[]);
 
     Value::Null
 }
@@ -3045,7 +3045,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut response: Value = self.kalshi_private_delete_portfolio_events_orders_order_id(&[__ws_arg_13]).await;
         // the delete response is minimal (no ticker/action/id/status): pass the resolved outcome so
         // the parser can fill outcome/outcomeId/market/label, then backfill the id and canceled status
-        let mut order: Value = self.parse_prediction_order(self.safe_dict_k(response, "order", &[response.clone()]), &[outcomeObj.clone()]);
+        let mut order: Value = self.parse_prediction_order(self.safe_dict_k(response.clone(), "order", &[response.clone()]), &[outcomeObj.clone()]);
         if (order.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null) == Value::Null) {
             add_element_to_object(&mut order, &Value::Str("id".to_string()), id.clone());
         }

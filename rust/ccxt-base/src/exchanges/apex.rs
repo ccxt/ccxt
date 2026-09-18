@@ -948,7 +948,7 @@ impl ApexCore {
 }));
         m.insert("deposit".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(chain, "minDeposit", &[]));
+        m.insert("min".to_string(), self.safe_number_k(chain.clone(), "minDeposit", &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));

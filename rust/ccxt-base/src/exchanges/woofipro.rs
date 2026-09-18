@@ -3685,7 +3685,7 @@ impl WoofiproCore {
         //     }
         // }
         //
-        let mut orders: Value = self.safe_dict_k(response, "data", &[response.clone()]);
+        let mut orders: Value = self.safe_dict_k(response.clone(), "data", &[response.clone()]);
         let mut parsedOrders: Value = (if is_true(&(Value::Bool(orders == Value::Null))) { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3794,7 +3794,7 @@ impl WoofiproCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_value_k(response, "data", &[response.clone()]);
+        let mut data: Value = self.safe_value_k(response.clone(), "data", &[response.clone()]);
         let mut orders: Value = self.safe_list_k(data, "rows", &[]);
         return self.parse_orders(orders.clone(), &[market.clone(), since.clone(), limit.clone()]);
 

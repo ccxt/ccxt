@@ -3155,7 +3155,7 @@ impl BtseCore {
             response = self.private_get_futures_api_v3_trade_orders(&[__ws_arg_16]).await;
         }
         // accept a bare order dict, a data envelope and a one element array
-        let mut order: Value = self.safe_value_k(response, "data", &[response.clone()]);
+        let mut order: Value = self.safe_value_k(response.clone(), "data", &[response.clone()]);
         if is_true(&Value::Bool(is_array(&order))) {
             order = self.safe_dict(order.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

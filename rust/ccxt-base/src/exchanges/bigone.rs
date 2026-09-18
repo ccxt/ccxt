@@ -911,7 +911,7 @@ impl BigoneCore {
         //     ],
         // }
         //
-        let mut currenciesData: Value = self.safe_list_k(data, "data", &[Value::List(vec![])]);
+        let mut currenciesData: Value = self.safe_list_k(data.clone(), "data", &[Value::List(vec![])]);
         return self.parse_currencies(currenciesData.clone());
 
     Value::Null

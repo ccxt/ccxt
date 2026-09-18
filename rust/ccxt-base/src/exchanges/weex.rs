@@ -4681,7 +4681,7 @@ impl WeexCore {
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("id".to_string(), self.safe_string_k(income.clone(), "billId", &[]));
-        m.insert("amount".to_string(), self.safe_number_k(income, "income", &[]));
+        m.insert("amount".to_string(), self.safe_number_k(income.clone(), "income", &[]));
     m
 });
 

@@ -396,7 +396,7 @@ impl HyperliquidCore {
         })]);
         let mut requestId: Value = self.safe_string_k(wrapped.clone(), "requestId", &[]);
         let mut response: Value = self.watch(url.clone(), requestId.clone(), &[request.clone(), requestId.clone()]).await;
-        let mut responseOjb: Value = self.safe_dict_k(response, "response", &[Value::Map({
+        let mut responseOjb: Value = self.safe_dict_k(response.clone(), "response", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -500,7 +500,7 @@ impl HyperliquidCore {
         let mut requestId: Value = self.safe_string_k(wrapped.clone(), "requestId", &[]);
         let mut response: Value = self.watch(url.clone(), requestId.clone(), &[request.clone(), requestId.clone()]).await;
         // response is the same as in this.editOrder
-        let mut responseObject: Value = self.safe_dict_k(response, "response", &[Value::Map({
+        let mut responseObject: Value = self.safe_dict_k(response.clone(), "response", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -550,7 +550,7 @@ impl HyperliquidCore {
         })]);
         let mut requestId: Value = self.safe_string_k(wrapped.clone(), "requestId", &[]);
         let mut response: Value = self.watch(url.clone(), requestId.clone(), &[wsRequest.clone(), requestId.clone()]).await;
-        let mut responseObj: Value = self.safe_dict_k(response, "response", &[Value::Map({
+        let mut responseObj: Value = self.safe_dict_k(response.clone(), "response", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);

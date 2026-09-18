@@ -4335,7 +4335,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            rawBalance = self.safe_list_k(result.clone(), "assets", &[Value::List(vec![])]);
+            rawBalance = self.safe_list_k(result, "assets", &[Value::List(vec![])]);
         }
         let mut parsedBalances: Value = self.parent.parse_balance_custom(rawBalance.clone(), &[]);
         client.resolve(&[parsedBalances.clone(), messageHash.clone()]);

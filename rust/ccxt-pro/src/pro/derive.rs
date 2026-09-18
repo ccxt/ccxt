@@ -807,7 +807,7 @@ impl DeriveCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut topic: Value = self.safe_value_k(params, "channel", &[]);
+        let mut topic: Value = self.safe_value_k(params.clone(), "channel", &[]);
         let mut parsedTopic: Value = split(&topic, &Value::Str(".".to_string()));
         let mut marketId: Value = self.safe_string(parsedTopic.clone(), Value::Int(1), &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
@@ -993,7 +993,7 @@ impl DeriveCore {
         //
         let mut params: Value = self.safe_dict_k(message, "params", &[]);
         let mut topic: Value = self.safe_string_k(params.clone(), "channel", &[]);
-        let mut rawOrders: Value = self.safe_list_k(params, "data", &[Value::List(vec![])]);
+        let mut rawOrders: Value = self.safe_list_k(params.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_322: bool = true;
@@ -1104,7 +1104,7 @@ impl DeriveCore {
         }
         let mut params: Value = self.safe_dict_k(message.clone(), "params", &[]);
         let mut topic: Value = self.safe_string_k(params.clone(), "channel", &[]);
-        let mut rawTrades: Value = self.safe_list_k(params, "data", &[Value::List(vec![])]);
+        let mut rawTrades: Value = self.safe_list_k(params.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_323: bool = true;

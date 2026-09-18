@@ -1750,7 +1750,7 @@ impl DeepcoinCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut items: Value = self.safe_list_k(data, "data", &[Value::List(vec![])]);
+        let mut items: Value = self.safe_list_k(data.clone(), "data", &[Value::List(vec![])]);
         let mut transactionParams: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("deposit".to_string()));
@@ -1816,7 +1816,7 @@ impl DeepcoinCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut items: Value = self.safe_list_k(data, "data", &[Value::List(vec![])]);
+        let mut items: Value = self.safe_list_k(data.clone(), "data", &[Value::List(vec![])]);
         let mut transactionParams: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("withdrawal".to_string()));

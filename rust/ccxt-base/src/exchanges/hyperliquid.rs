@@ -1379,7 +1379,7 @@ impl HyperliquidCore {
             let mut mappedBase: Value = self.safe_currency_code(mappedBaseName.clone(), &[]);
             let mut mappedQuote: Value = self.safe_currency_code(mappedQuoteId.clone(), &[]);
             let mut mappedSymbol: Value = add(&add(&mappedBase, &Value::Str("/".to_string())), &mappedQuote);
-            let mut innerBaseTokenInfo: Value = self.safe_dict_k(baseTokenInfo, "spec", &[baseTokenInfo.clone()]);
+            let mut innerBaseTokenInfo: Value = self.safe_dict_k(baseTokenInfo.clone(), "spec", &[baseTokenInfo.clone()]);
             // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
             let mut amountPrecisionStr: Value = self.safe_string_k(innerBaseTokenInfo.clone(), "szDecimals", &[]);
             let mut amountPrecision: Value = crate::runtime::parse_int(&amountPrecisionStr);

@@ -3226,7 +3226,7 @@ impl ModetradeCore {
         //     }
         // }
         //
-        let mut orders: Value = self.safe_dict_k(response, "data", &[response.clone()]);
+        let mut orders: Value = self.safe_dict_k(response.clone(), "data", &[response.clone()]);
         return self.parse_order(orders.clone(), &[market.clone()]);
 
     Value::Null
@@ -3331,7 +3331,7 @@ impl ModetradeCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_value_k(response, "data", &[response.clone()]);
+        let mut data: Value = self.safe_value_k(response.clone(), "data", &[response.clone()]);
         let mut orders: Value = self.safe_list_k(data, "rows", &[Value::List(vec![])]);
         return self.parse_orders(orders.clone(), &[market.clone(), since.clone(), limit.clone()]);
 

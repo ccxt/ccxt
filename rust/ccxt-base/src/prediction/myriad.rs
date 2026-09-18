@@ -3778,7 +3778,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 })]);
             chart = self.safe_value(chartsDict.clone(), bucketKey.clone(), &[]);
         }
-        let mut pointsList: Value = self.safe_list_k(chart, "prices", &[self.safe_list(chart.clone(), Value::Str("data".to_string()), &[chart.clone()])]);
+        let mut pointsList: Value = self.safe_list_k(chart.clone(), "prices", &[self.safe_list(chart.clone(), Value::Str("data".to_string()), &[chart.clone()])]);
         let mut points: Value = (if is_true(&(Value::Bool(pointsList != Value::Null))) { pointsList.clone() } else { Value::List(vec![]) });
         let mut pointsLength: Value = Value::Int(points.len() as i64);
         if (pointsLength.as_f64() == Some(0.0)) {

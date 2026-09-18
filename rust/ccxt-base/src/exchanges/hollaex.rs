@@ -2557,7 +2557,7 @@ impl HollaexCore {
                     panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" requires a networkCode argument".to_string())))));
                 }
                 let mut networkCodeUpper: Value = to_upper(&networkCode); // default to the upper case network code
-                let mut withdrawalFee: Value = self.safe_number_k(value, "value", &[]);
+                let mut withdrawalFee: Value = self.safe_number_k(value.clone(), "value", &[]);
                 add_element_to_object(get_value_mut(&mut result, &Value::Str("networks".to_string())), &networkCodeUpper, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("deposit".to_string(), Value::Null);

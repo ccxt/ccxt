@@ -1038,7 +1038,7 @@ impl HyperliquidCore {
         if (!is_string(&response)) && !is_true(&Value::Bool(is_array(&response))) {
             allMids = response.clone();
         }
-        let mut mids: Value = self.safe_dict_k(allMids, "mids", &[allMids.clone()]);
+        let mut mids: Value = self.safe_dict_k(allMids.clone(), "mids", &[allMids.clone()]);
         let mut tickers: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1474,7 +1474,7 @@ impl HyperliquidCore {
         if (!is_string(&midsResponse)) && !is_true(&Value::Bool(is_array(&midsResponse))) {
             allMids = midsResponse.clone();
         }
-        let mut mids: Value = self.safe_dict_k(allMids, "mids", &[allMids.clone()]);
+        let mut mids: Value = self.safe_dict_k(allMids.clone(), "mids", &[allMids.clone()]);
         let mut positions: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -2017,7 +2017,7 @@ impl HyperliquidCore {
             add_element_to_object(&mut request, &Value::Str("vaultAddress".to_string()), vaultAddress.clone());
         }
         let mut response: Value = self.private_post_exchange(&[request.clone()]).await;
-        let mut innerResponse: Value = self.safe_dict_k(response, "response", &[]);
+        let mut innerResponse: Value = self.safe_dict_k(response.clone(), "response", &[]);
         let mut data: Value = self.safe_dict_k(innerResponse, "data", &[]);
         let mut statuses: Value = self.safe_list_k(data, "statuses", &[Value::List(vec![])]);
         let mut outcomeSymbol: Value = self.safe_string_k(outcomeObj.clone(), "outcome", &[outcome.clone()]);
@@ -2249,7 +2249,7 @@ impl HyperliquidCore {
         if (!is_string(&response)) && !is_true(&Value::Bool(is_array(&response))) {
             orderStatus = response.clone();
         }
-        let mut orderWrapper: Value = self.safe_dict_k(orderStatus, "order", &[orderStatus.clone()]);
+        let mut orderWrapper: Value = self.safe_dict_k(orderStatus.clone(), "order", &[orderStatus.clone()]);
         let mut parsed: Value = self.parse_prediction_order(orderWrapper.clone(), &[Value::Null]);
         if (outcome != Value::Null) {
             self.load_outcome(outcome.clone(), &[]).await;
@@ -3152,7 +3152,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         // Check for error statuses in order responses
-        let mut responsePayload: Value = self.safe_dict_k(response, "response", &[Value::Map({
+        let mut responsePayload: Value = self.safe_dict_k(response.clone(), "response", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);

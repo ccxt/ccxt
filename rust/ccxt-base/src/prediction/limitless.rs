@@ -1389,7 +1389,7 @@ impl LimitlessCore {
             }  else {
                 append_to_array(&mut markets, self.parse_market(rawMarket.clone()));
             }
-            let mut marketInfo: Value = self.safe_dict_k(rawMarket, "info", &[rawMarket.clone()]);
+            let mut marketInfo: Value = self.safe_dict_k(rawMarket.clone(), "info", &[rawMarket.clone()]);
             // use volumeFormatted (human units) — the raw `volume` is 1e-6 fixed-point, which would
             // make the event volume 1,000,000x too big and useless for cross-venue ranking
             totalVolume = self.sum(&[totalVolume.clone(), self.safe_number_k(marketInfo, "volumeFormatted", &[Value::Int(0)])]);
@@ -2078,7 +2078,7 @@ impl LimitlessCore {
         if is_true(&Value::Bool(is_array(&response))) {
             responseRows = response.clone();
         }
-        let mut rawHistoryList: Value = self.safe_list_k(response, "data", &[self.safe_list(response.clone(), Value::Str("prices".to_string()), &[responseRows.clone()])]);
+        let mut rawHistoryList: Value = self.safe_list_k(response.clone(), "data", &[self.safe_list(response.clone(), Value::Str("prices".to_string()), &[responseRows.clone()])]);
         let mut rawHistory: Value = (if is_true(&(Value::Bool(rawHistoryList != Value::Null))) { rawHistoryList.clone() } else { Value::List(vec![]) });
         let mut history: Value = rawHistory.clone();
         let mut rawHistoryLength: Value = Value::Int(rawHistory.len() as i64);

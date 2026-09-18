@@ -3871,7 +3871,7 @@ impl PolymarketCore {
                     })]).await;
                 }
                 if (detailedEvent != Value::Null) {
-                    eventForParsing = self.safe_value_k(detailedEvent, "event", &[detailedEvent.clone()]);
+                    eventForParsing = self.safe_value_k(detailedEvent.clone(), "event", &[detailedEvent.clone()]);
                     ccxtMarkets = self.parse_event_to_markets(eventForParsing.clone());
                 }
             }

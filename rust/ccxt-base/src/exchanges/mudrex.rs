@@ -1293,7 +1293,7 @@ impl MudrexCore {
         }
         let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_patch_futures_orders_order_id(&[__ws_arg_11]).await;
-        let mut data: Value = self.safe_dict_k(response, "data", &[response.clone()]);
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[response.clone()]);
         return self.parse_order(data.clone(), &[market.clone()]);
 
     Value::Null
@@ -1422,7 +1422,7 @@ impl MudrexCore {
         });
         let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_delete_futures_orders_order_id(&[__ws_arg_12]).await;
-        let mut data: Value = self.safe_dict_k(response, "data", &[response.clone()]);
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[response.clone()]);
         return self.parse_order(data.clone(), &[market.clone()]);
 
     Value::Null
@@ -1458,7 +1458,7 @@ impl MudrexCore {
         });
         let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_get_futures_orders_order_id(&[__ws_arg_13]).await;
-        let mut data: Value = self.safe_dict_k(response, "data", &[response.clone()]);
+        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[response.clone()]);
         return self.parse_order(data.clone(), &[market.clone()]);
 
     Value::Null

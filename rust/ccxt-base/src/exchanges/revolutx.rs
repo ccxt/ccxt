@@ -595,7 +595,7 @@ impl RevolutxCore {
         //         }
         //     }
         //
-        let mut markets: Value = self.safe_dict_k(response, "data", &[response.clone()]);
+        let mut markets: Value = self.safe_dict_k(response.clone(), "data", &[response.clone()]);
         let mut keys: Value = object_keys(&markets);
         let mut result: Value = Value::List(vec![]);
         {
@@ -716,7 +716,7 @@ impl RevolutxCore {
         //         "USD": { "symbol": "$", "name": "US Dollar", "scale": 2, "asset_type": "fiat", "status": "active" }
         //     }
         //
-        let mut currencies: Value = self.safe_dict_k(response, "data", &[response.clone()]);
+        let mut currencies: Value = self.safe_dict_k(response.clone(), "data", &[response.clone()]);
         let mut keys: Value = object_keys(&currencies);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
