@@ -987,13 +987,13 @@ public partial class deribit : Exchange
         });
     }
 
-    public virtual object codeFromOptions(object methodName, object parameters = null)
+    public virtual string? codeFromOptions(object methodName, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object defaultCode = this.safeValue(this.options, "code", "BTC");
         object options = this.safeValue(this.options, methodName, new Dictionary<string, object>() {});
         object code = this.safeValue(options, "code", defaultCode);
-        return this.safeValue(parameters, "code", code);
+        return ((string?)((object)(this.safeValue(parameters, "code", code))));
     }
 
     /**
@@ -2082,7 +2082,7 @@ public partial class deribit : Exchange
         {
             await this.loadMarkets();
         }
-        object code = this.codeFromOptions("fetchTradingFees", parameters);
+        string? code = this.codeFromOptions("fetchTradingFees", parameters);
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", GetValue(currency, "id") },
@@ -2793,7 +2793,7 @@ public partial class deribit : Exchange
         Dictionary<string, object> response = null;
         if (isEqual(symbol, null))
         {
-            object code = this.codeFromOptions("fetchOpenOrders", parameters);
+            string? code = this.codeFromOptions("fetchOpenOrders", parameters);
             Dictionary<string, object> currency = this.currency(((string)code));
             request["currency"] = GetValue(currency, "id");
             response = await this.privateGetGetOpenOrdersByCurrency(this.extend(request, parameters));
@@ -2838,7 +2838,7 @@ public partial class deribit : Exchange
         }
         if (isEqual(symbol, null))
         {
-            object code = this.codeFromOptions("fetchClosedOrders", parameters);
+            string? code = this.codeFromOptions("fetchClosedOrders", parameters);
             Dictionary<string, object> currency = this.currency(((string)code));
             request["currency"] = GetValue(currency, "id");
             response = await this.privateGetGetOrderHistoryByCurrency(this.extend(request, parameters));
@@ -2944,7 +2944,7 @@ public partial class deribit : Exchange
         Dictionary<string, object> response = null;
         if (isEqual(symbol, null))
         {
-            object code = this.codeFromOptions("fetchMyTrades", parameters);
+            string? code = this.codeFromOptions("fetchMyTrades", parameters);
             Dictionary<string, object> currency = this.currency(((string)code));
             request["currency"] = GetValue(currency, "id");
             if (isEqual(since, null))

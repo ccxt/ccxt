@@ -1958,7 +1958,7 @@ public partial class PredictionExchange : BaseExchange
             return "";
         }
         // left-pads a 20-byte address to a 32-byte ABI word (24 leading zero bytes)
-        object stripped = this.remove0xPrefix(address);
+        string stripped = this.remove0xPrefix(address);
         return add("000000000000000000000000", stripped);
     }
 
@@ -2030,7 +2030,7 @@ public partial class PredictionExchange : BaseExchange
         {
             return "";
         }
-        object h = this.remove0xPrefix(hexValue);
+        string? h = this.remove0xPrefix(hexValue);
         object start = 0;
         int total = getArrayLength(h);
         while ((isLessThan(start, total)) && (isEqual(slice(h, start, add(start, 1)), "0")))
@@ -2038,12 +2038,12 @@ public partial class PredictionExchange : BaseExchange
             start = add(start, 1);
         }
         h = slice(h, start, null);
-        if (isEqual(h, ""))
+        if (h == "")
         {
             return "";
         }
         h = this.padHexToEven(h);
-        return ((string?)((object)(h)));
+        return h;
     }
 
     // eslint-disable-next-line no-unused-vars

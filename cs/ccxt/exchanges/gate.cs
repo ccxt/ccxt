@@ -6024,7 +6024,7 @@ public partial class gate : Exchange
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("editOrder", market, parameters);
         marketType = (string)marketTypeparametersVariable[0];
         parameters = marketTypeparametersVariable[1];
-        object account = this.convertTypeToAccount(marketType);
+        string? account = this.convertTypeToAccount(marketType);
         object isUnifiedAccount = false;
         IList<object> isUnifiedAccountparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "editOrder", "unifiedAccount");
         isUnifiedAccount = isUnifiedAccountparametersVariable[0];
@@ -6034,7 +6034,7 @@ public partial class gate : Exchange
             account = "unified";
         }
         bool isLimitOrder = (isEqual(type, "limit"));
-        if (isEqual(account, "spot"))
+        if (account == "spot")
         {
             if (!isLimitOrder)
             {
@@ -7413,8 +7413,8 @@ public partial class gate : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(code);
-        object fromId = this.convertTypeToAccount(fromAccount);
-        object toId = this.convertTypeToAccount(toAccount);
+        string? fromId = this.convertTypeToAccount(fromAccount);
+        string? toId = this.convertTypeToAccount(toAccount);
         string? truncated = this.currencyToPrecision(code, amount);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", GetValue(currency, "id") },
@@ -7436,7 +7436,7 @@ public partial class gate : Exchange
         {
             request["to"] = toId;
         }
-        if (isEqual(fromId, "margin") || isEqual(toId, "margin"))
+        if (fromId == "margin" || toId == "margin")
         {
             string? symbol = this.safeString2(parameters, "symbol", "currency_pair");
             if ((symbol == null))
@@ -7447,7 +7447,7 @@ public partial class gate : Exchange
             request["currency_pair"] = GetValue(market, "id");
             parameters = this.omit(parameters, "symbol");
         }
-        if ((isEqual(toId, "futures")) || (isEqual(toId, "delivery")) || (isEqual(fromId, "futures")) || (isEqual(fromId, "delivery")))
+        if ((toId == "futures") || (toId == "delivery") || (fromId == "futures") || (fromId == "delivery"))
         {
             request["settle"] = GetValue(currency, "id"); // todo: currencies have network-junctions
         }

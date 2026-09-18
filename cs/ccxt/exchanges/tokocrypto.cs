@@ -2817,10 +2817,10 @@ public partial class tokocrypto : Exchange
         IList<object> networkCodequeryVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
         var networkCode = networkCodequeryVariable[0];
         var query = networkCodequeryVariable[1];
-        object networkId = this.networkCodeToId(networkCode, code);
+        string? networkId = this.networkCodeToId(networkCode, code);
         if ((networkId != null))
         {
-            request["network"] = ((string)networkId).ToUpper();
+            request["network"] = networkId.ToUpper();
         }
         Dictionary<string, object> response = await this.privatePostOpenV1Withdraws(this.extend(request, query));
         //

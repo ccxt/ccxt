@@ -1067,7 +1067,7 @@ public partial class pacifica : Exchange
         IList<object> userAccountparametersVariable = (IList<object>)this.handleOriginAndSingleAddress("fetchLeverage", parameters);
         userAccount = (string)userAccountparametersVariable[0];
         parameters = userAccountparametersVariable[1];
-        object cacheAddress = this.walletAddress;
+        string cacheAddress = this.walletAddress;
         object settings = null;
         if (isEqual(userAccount, cacheAddress))
         {
@@ -1213,7 +1213,7 @@ public partial class pacifica : Exchange
         IList<object> userAccountparametersVariable = (IList<object>)this.handleOriginAndSingleAddress("fetchMarginMode", parameters);
         userAccount = (string)userAccountparametersVariable[0];
         parameters = userAccountparametersVariable[1];
-        object cacheAddress = this.walletAddress;
+        string cacheAddress = this.walletAddress;
         object settings = null;
         if (isEqual(userAccount, cacheAddress))
         {
@@ -3949,7 +3949,7 @@ public partial class pacifica : Exchange
         {
             return new List<object>() {address, parameters};
         }
-        object address1 = this.walletAddress;
+        string address1 = this.walletAddress;
         if ((address1 != null))
         {
             return new List<object>() {address1, parameters};

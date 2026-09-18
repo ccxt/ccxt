@@ -4367,15 +4367,15 @@ public partial class htx : Exchange
         return ((string?)((object)(base.networkIdToCode(networkTitle, currencyCode))));
     }
 
-    public override object networkCodeToId(object networkCode, object currencyCode = null)
+    public override string? networkCodeToId(object networkCode, object currencyCode = null)
     {
         if (isEqual(networkCode, null))
         {
-            return null;
+            return ((string?)((object)(null)));
         }
         if (isEqual(currencyCode, null))
         {
-            return base.networkCodeToId(networkCode);
+            return ((string?)((object)(base.networkCodeToId(networkCode))));
         }
         List<object> keys = new List<object>(((IDictionary<string,object>)getValue(this.options, "networkChainIdsByNames")).Keys);
         int keysLength = keys.Count;
@@ -4386,11 +4386,11 @@ public partial class htx : Exchange
         IDictionary<string, object> uniqueNetworkIds = this.safeDict(getValue(this.options, "networkChainIdsByNames"), currencyCode, new Dictionary<string, object>() {});
         if (inOp(uniqueNetworkIds, networkCode))
         {
-            return getValue(uniqueNetworkIds, networkCode);
+            return ((string?)((object)(getValue(uniqueNetworkIds, networkCode))));
         } else
         {
             object networkTitle = base.networkCodeToId(networkCode, currencyCode);
-            return this.safeValue(uniqueNetworkIds, networkTitle, networkTitle);
+            return ((string?)((object)(this.safeValue(uniqueNetworkIds, networkTitle, networkTitle))));
         }
     }
 
@@ -8292,18 +8292,18 @@ public partial class htx : Exchange
         subType = (string)subTypeparametersVariable[0];
         parameters = subTypeparametersVariable[1];
         object fromAccountId = this.convertTypeToAccount(fromAccount);
-        object toAccountId = this.convertTypeToAccount(toAccount);
-        bool toCross = isEqual(toAccountId, "cross");
+        string? toAccountId = this.convertTypeToAccount(toAccount);
+        bool toCross = toAccountId == "cross";
         bool fromCross = isEqual(fromAccountId, "cross");
         bool toIsolated = ((!isEqual(this.ids, null)) && this.inArray(toAccountId, this.ids));
         bool fromIsolated = ((!isEqual(this.ids, null)) && this.inArray(fromAccountId, this.ids));
         bool fromSpot = isEqual(fromAccountId, "pro");
-        bool toSpot = isEqual(toAccountId, "pro");
+        bool toSpot = toAccountId == "pro";
         if (fromSpot && toSpot)
         {
             throw new BadRequest (add(add(add(add(this.id, " transfer () cannot make a transfer between "), fromAccount), " and "), toAccount)) ;
         }
-        bool fromOrToFuturesAccount = (isEqual(fromAccountId, "futures")) || (isEqual(toAccountId, "futures"));
+        bool fromOrToFuturesAccount = (isEqual(fromAccountId, "futures")) || (toAccountId == "futures");
         Dictionary<string, object> response = null;
         if (fromOrToFuturesAccount)
         {

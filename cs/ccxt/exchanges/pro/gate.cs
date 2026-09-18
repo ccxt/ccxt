@@ -179,7 +179,7 @@ public partial class gate : ccxt.gate
         symbolVar = GetValue(market, "symbol");
         object messageType = this.getTypeByMarket(market);
         object channel = add(messageType, ".order_place");
-        object url = this.getUrlByMarket(market);
+        string? url = this.getUrlByMarket(market);
         ((IDictionary<string,object>)parameters)["textIsRequired"] = true;
         Dictionary<string, object> request = this.createOrderRequest(symbolVar, type, side, amount, price, parameters);
         await this.authenticate(url, messageType);
@@ -214,7 +214,7 @@ public partial class gate : ccxt.gate
         // todo add swap support
         object messageType = this.getTypeByMarket(market);
         object channel = add(messageType, ".order_batch_place");
-        object url = this.getUrlByMarket(market);
+        string? url = this.getUrlByMarket(market);
         await this.authenticate(url, messageType);
         object rawOrders = await this.requestPrivate(url, request, channel);
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(rawOrders, market));
@@ -249,7 +249,7 @@ public partial class gate : ccxt.gate
         IList<object> channelparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "cancelAllOrdersWs", "channel", channel);
         channel = channelparametersVariable[0];
         parameters = channelparametersVariable[1];
-        object url = this.getUrlByMarket(market);
+        string? url = this.getUrlByMarket(market);
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         IList<object> typequeryVariable = (IList<object>)this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
         var type = typequeryVariable[0];
@@ -292,7 +292,7 @@ public partial class gate : ccxt.gate
         var requestParams = ((IList<object>) requestrequestParamsVariable)[1];
         object messageType = this.getTypeByMarket(market);
         object channel = add(messageType, ".order_cancel");
-        object url = this.getUrlByMarket(market);
+        string? url = this.getUrlByMarket(market);
         await this.authenticate(url, messageType);
         ((IDictionary<string,object>)request)["order_id"] = id.ToString();
         object res = await this.requestPrivate(url, this.extend(request, requestParams), channel);
@@ -325,7 +325,7 @@ public partial class gate : ccxt.gate
         Dictionary<string, object> extendedRequest = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
         object messageType = this.getTypeByMarket(market);
         object channel = add(messageType, ".order_amend");
-        object url = this.getUrlByMarket(market);
+        string? url = this.getUrlByMarket(market);
         await this.authenticate(url, messageType);
         object rawOrder = await this.requestPrivate(url, extendedRequest, channel);
         return ccxt.BaseExchange.ToOrder(this.parseOrder(rawOrder, market));
@@ -359,7 +359,7 @@ public partial class gate : ccxt.gate
         var requestParams = ((IList<object>) requestrequestParamsVariable)[1];
         object messageType = this.getTypeByMarket(market);
         object channel = add(messageType, ".order_status");
-        object url = this.getUrlByMarket(market);
+        string? url = this.getUrlByMarket(market);
         await this.authenticate(url, messageType);
         object rawOrder = await this.requestPrivate(url, this.extend(request, requestParams), channel);
         return ccxt.BaseExchange.ToOrder(this.parseOrder(rawOrder, market));
@@ -437,7 +437,7 @@ public partial class gate : ccxt.gate
         object newRequest = this.omit(request, new List<object>() {"settle"});
         object messageType = this.getTypeByMarket(market);
         object channel = add(messageType, ".order_list");
-        object url = this.getUrlByMarket(market);
+        string? url = this.getUrlByMarket(market);
         await this.authenticate(url, messageType);
         object rawOrders = await this.requestPrivate(url, this.extend(newRequest, requestParams), channel);
         IList<object> orders = this.parseOrders(rawOrders, market);
@@ -471,7 +471,7 @@ public partial class gate : ccxt.gate
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = GetValue(market, "symbol");
         string? marketId = ((string)GetValue(market, "id"));
-        object url = this.getUrlByMarket(market);
+        string? url = this.getUrlByMarket(market);
         bool isEuUrl = isGreaterThanOrEqual(getIndexOf(url, "gateeu"), 0);
         bool isNonEuSpot = (isEqual(GetValue(market, "spot"), true)) && !isEuUrl;
         string intervalDefault = isNonEuSpot ? "50" : "100ms";
@@ -534,7 +534,7 @@ public partial class gate : ccxt.gate
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object url = this.getUrlByMarket(market);
+        string? url = this.getUrlByMarket(market);
         symbol = GetValue(market, "symbol");
         string? marketId = ((string)GetValue(market, "id"));
         bool isEuUrl = isGreaterThanOrEqual(getIndexOf(url, "gateeu"), 0);
@@ -939,7 +939,7 @@ public partial class gate : ccxt.gate
         IList<object> channelNameparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, callerMethodName, "method");
         channelName = channelNameparametersVariable[0];
         parameters = channelNameparametersVariable[1];
-        object url = this.getUrlByMarket(market);
+        string? url = this.getUrlByMarket(market);
         object channel = add(add(messageType, "."), channelName);
         if (isEqual(callerMethodName, null))
         {
@@ -1059,7 +1059,7 @@ public partial class gate : ccxt.gate
             object symbol = getValue(symbols, i);
             ((IList<object>)messageHashes).Add(add("trades:", symbol));
         }
-        object url = this.getUrlByMarket(market);
+        string? url = this.getUrlByMarket(market);
         object trades = await this.subscribePublicMultiple(url, messageHashes, marketIds, channel, parameters);
         if (isTrue(this.newUpdates))
         {
@@ -1098,7 +1098,7 @@ public partial class gate : ccxt.gate
             ((IList<object>)subMessageHashes).Add(add("trades:", symbol));
             ((IList<object>)messageHashes).Add(add("unsubscribe:trades:", symbol));
         }
-        object url = this.getUrlByMarket(market);
+        string? url = this.getUrlByMarket(market);
         return await this.unSubscribePublicMultiple(url, "trades", symbols, messageHashes, subMessageHashes, marketIds, channel, parameters);
     }
 
@@ -1193,7 +1193,7 @@ public partial class gate : ccxt.gate
         object messageType = this.getTypeByMarket(market);
         object channel = add(messageType, ".candlesticks");
         string messageHash = add(add(add("candles:", interval), ":"), GetValue(market, "symbol"));
-        object url = this.getUrlByMarket(market);
+        string? url = this.getUrlByMarket(market);
         List<object> payload = new List<object>() {interval, marketId};
         object ohlcv = await this.subscribePublic(url, messageHash, payload, channel, parameters);
         if (isTrue(this.newUpdates))
@@ -1305,14 +1305,14 @@ public partial class gate : ccxt.gate
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("watchMyTrades", market, parameters);
         subType = (string)subTypeparametersVariable[0];
         parameters = subTypeparametersVariable[1];
-        object messageType = this.getSupportedMapping(type, new Dictionary<string, object>() {
+        string messageType = this.getSupportedMapping(type, new Dictionary<string, object>() {
             { "spot", "spot" },
             { "margin", "spot" },
             { "future", "futures" },
             { "swap", "futures" },
             { "option", "options" },
         });
-        object channel = add(messageType, ".usertrades");
+        string channel = add(messageType, ".usertrades");
         string messageHash = "myTrades";
         if (!isEqual(symbol, null))
         {
@@ -1417,7 +1417,7 @@ public partial class gate : ccxt.gate
         bool isInverse = (subType == "inverse");
         object url = this.getUrlByMarketType(type, isInverse);
         bool requiresUid = (!isEqual(type, "spot"));
-        object channelType = this.getSupportedMapping(type, new Dictionary<string, object>() {
+        string channelType = this.getSupportedMapping(type, new Dictionary<string, object>() {
             { "spot", "spot" },
             { "margin", "spot" },
             { "future", "futures" },
@@ -1425,7 +1425,7 @@ public partial class gate : ccxt.gate
             { "option", "options" },
         });
         // todo: add correct margin support
-        object channel = add(channelType, ".balances");
+        string channel = add(channelType, ".balances");
         object messageHash = add(type, ".balance");
         return ccxt.BaseExchange.ToBalances(await this.subscribePrivate(url, messageHash, null, channel, parameters, requiresUid));
     }
@@ -1518,12 +1518,12 @@ public partial class gate : ccxt.gate
         string channel = ((string)this.safeString(message, "channel"));
         List<object> parts = channel.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
         string? rawType = this.safeString(parts, 0);
-        object channelType = this.getSupportedMapping(rawType, new Dictionary<string, object>() {
+        string channelType = this.getSupportedMapping(rawType, new Dictionary<string, object>() {
             { "spot", "spot" },
             { "futures", "swap" },
             { "options", "option" },
         });
-        object messageHash = add(channelType, ".balance");
+        string messageHash = add(channelType, ".balance");
         this.balance = this.safeBalance(this.balance);
         callDynamically(client, "resolve", new object[] {this.balance, messageHash});
     }
@@ -1564,7 +1564,7 @@ public partial class gate : ccxt.gate
         {
             type = "swap";
         }
-        object typeId = this.getSupportedMapping(type, new Dictionary<string, object>() {
+        string typeId = this.getSupportedMapping(type, new Dictionary<string, object>() {
             { "future", "futures" },
             { "swap", "futures" },
             { "option", "options" },
@@ -1578,7 +1578,7 @@ public partial class gate : ccxt.gate
             }
             messageHash = add(messageHash, add("::", String.Join(",", ((IList<object>)symbols).ToArray())));
         }
-        object channel = add(typeId, ".positions");
+        string channel = add(typeId, ".positions");
         string? subType = null;
         IList<object> subTypequeryVariable = (IList<object>)this.handleSubTypeAndParams("watchPositions", market, query);
         subType = (string)subTypequeryVariable[0];
@@ -1777,7 +1777,7 @@ public partial class gate : ccxt.gate
         IList<object> typequeryVariable = (IList<object>)this.handleMarketTypeAndParams("watchOrders", market, parameters);
         type = (string)typequeryVariable[0];
         query = typequeryVariable[1];
-        object typeId = this.getSupportedMapping(type, new Dictionary<string, object>() {
+        string typeId = this.getSupportedMapping(type, new Dictionary<string, object>() {
             { "spot", "spot" },
             { "margin", "spot" },
             { "future", "futures" },
@@ -1788,7 +1788,7 @@ public partial class gate : ccxt.gate
         IList<object> isTriggerqueryVariable = (IList<object>)this.handleParamBool2(query, "trigger", "stop", false);
         isTrigger = (bool?)isTriggerqueryVariable[0];
         query = isTriggerqueryVariable[1];
-        if ((isEqual(isTrigger, true)) && (isEqual(typeId, "options")))
+        if ((isEqual(isTrigger, true)) && (typeId == "options"))
         {
             throw new NotSupported (add(this.id, " watchOrders() does not support trigger orders for options, see https://github.com/ccxt/ccxt/issues/27202")) ;
         }
@@ -1797,9 +1797,9 @@ public partial class gate : ccxt.gate
         string suffix = ".orders";
         if (isEqual(isTrigger, true))
         {
-            suffix = (isEqual(typeId, "spot")) ? ".priceorders" : ".autoorders";
+            suffix = (typeId == "spot") ? ".priceorders" : ".autoorders";
         }
-        object channel = add(typeId, suffix);
+        string channel = add(typeId, suffix);
         string messageHash = (isEqual(isTrigger, true)) ? "triggerOrders" : "orders";
         List<object> payload = new List<object>() {add("!", "all")};
         if ((market != null))
@@ -1965,7 +1965,7 @@ public partial class gate : ccxt.gate
         IList<object> typequeryVariable = (IList<object>)this.handleMarketTypeAndParams("watchMyLiquidationsForSymbols", market, parameters);
         type = (string)typequeryVariable[0];
         query = typequeryVariable[1];
-        object typeId = this.getSupportedMapping(type, new Dictionary<string, object>() {
+        string typeId = this.getSupportedMapping(type, new Dictionary<string, object>() {
             { "future", "futures" },
             { "swap", "futures" },
             { "option", "options" },
@@ -1980,7 +1980,7 @@ public partial class gate : ccxt.gate
         string messageHash = "";
         if (isTrue(this.isEmpty(symbols)))
         {
-            if (!isEqual(typeId, "futures") && !isInverse)
+            if (typeId != "futures" && !isInverse)
             {
                 throw new BadRequest (add(this.id, " watchMyLiquidationsForSymbols() does not support listening to all symbols, you must call watchMyLiquidations() instead for each symbol you wish to watch.")) ;
             }
@@ -1996,7 +1996,7 @@ public partial class gate : ccxt.gate
             messageHash = add("myLiquidations::", getValue(symbols, 0));
             ((IList<object>)payload).Add(GetValue(market, "id"));
         }
-        object channel = add(typeId, ".liquidates");
+        string channel = add(typeId, ".liquidates");
         object newLiquidations = await this.subscribePrivate(url, messageHash, payload, channel, query, true);
         if (isTrue(this.newUpdates))
         {
@@ -2459,15 +2459,15 @@ public partial class gate : ccxt.gate
         }
     }
 
-    public virtual object getUrlByMarket(object market)
+    public virtual string? getUrlByMarket(object market)
     {
         object baseUrl = getValue(getValue(this.urls, "api"), getValue(market, "type"));
         if (isEqual(getValue(market, "contract"), true))
         {
-            return (isEqual(getValue(market, "linear"), true)) ? getValue(baseUrl, "usdt") : getValue(baseUrl, "btc");
+            return ((string?)((object)((isEqual(getValue(market, "linear"), true)) ? getValue(baseUrl, "usdt") : getValue(baseUrl, "btc"))));
         } else
         {
-            return baseUrl;
+            return ((string?)((object)(baseUrl)));
         }
     }
 

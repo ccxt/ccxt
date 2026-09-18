@@ -2359,7 +2359,7 @@ public partial class gemini : Exchange
         {
             throw new ArgumentsRequired (add(this.id, " fetchDepositAddresses() requires a network parameter")) ;
         }
-        object networkId = this.networkCodeToId(networkCode, GetValue(currency, "code"));
+        string? networkId = this.networkCodeToId(networkCode, GetValue(currency, "code"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "network", networkId },
         };

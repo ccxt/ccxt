@@ -3538,7 +3538,7 @@ public partial class bitmex : Exchange
         }
         Dictionary<string, object> currency = this.currency(code);
         parameters = this.omit(parameters, "network");
-        object parsedNetwork = this.networkCodeToId(networkCode, GetValue(currency, "code"));
+        string? parsedNetwork = this.networkCodeToId(networkCode, GetValue(currency, "code"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", GetValue(currency, "id") },
             { "network", parsedNetwork },

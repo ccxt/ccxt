@@ -2975,10 +2975,10 @@ public partial class kucoin : Exchange
         parameters = networkCodeparametersVariable[1];
         if ((networkCode != null))
         {
-            object _netIdTmp = this.networkCodeToId(networkCode, GetValue(currency, "code"));
+            string? _netIdTmp = this.networkCodeToId(networkCode, GetValue(currency, "code"));
             if ((_netIdTmp != null))
             {
-                request["chain"] = ((string)_netIdTmp).ToLower();
+                request["chain"] = _netIdTmp.ToLower();
             }
         }
         Dictionary<string, object> response = await this.privateGetWithdrawalsQuotas(this.extend(request, parameters));
@@ -3015,10 +3015,10 @@ public partial class kucoin : Exchange
         parameters = networkCodeparametersVariable[1];
         if ((networkCode != null))
         {
-            object _netIdTmp = this.networkCodeToId(networkCode, GetValue(currency, "code"));
+            string? _netIdTmp = this.networkCodeToId(networkCode, GetValue(currency, "code"));
             if ((_netIdTmp != null))
             {
-                request["chain"] = ((string)_netIdTmp).ToLower();
+                request["chain"] = _netIdTmp.ToLower();
             }
         }
         Dictionary<string, object> response = await this.privateGetWithdrawalsQuotas(this.extend(request, parameters));
@@ -4203,10 +4203,10 @@ public partial class kucoin : Exchange
         parameters = networkCodeparametersVariable[1];
         if ((networkCode != null))
         {
-            object _netIdTmp = this.networkCodeToId(networkCode, GetValue(currency, "code"));
+            string? _netIdTmp = this.networkCodeToId(networkCode, GetValue(currency, "code"));
             if ((_netIdTmp != null))
             {
-                request["chain"] = ((string)_netIdTmp).ToLower();
+                request["chain"] = _netIdTmp.ToLower();
             }
         }
         object version = getValue(getValue(getValue(getValue(this.options, "versions"), "private"), "GET"), "deposit-addresses");
@@ -4327,10 +4327,10 @@ public partial class kucoin : Exchange
             parameters = networkCodeparametersVariable[1];
             if ((networkCode != null))
             {
-                object _netIdTmp = this.networkCodeToId(networkCode, code);
+                string? _netIdTmp = this.networkCodeToId(networkCode, code);
                 if ((_netIdTmp != null))
                 {
-                    request["chain"] = ((string)_netIdTmp).ToLower();
+                    request["chain"] = _netIdTmp.ToLower();
                 }
             }
             //
@@ -8747,10 +8747,10 @@ public partial class kucoin : Exchange
         parameters = networkCodeparametersVariable[1];
         if ((networkCode != null))
         {
-            object _netIdTmp = this.networkCodeToId(networkCode, GetValue(currency, "code"));
+            string? _netIdTmp = this.networkCodeToId(networkCode, GetValue(currency, "code"));
             if ((_netIdTmp != null))
             {
-                request["chain"] = ((string)_netIdTmp).ToLower();
+                request["chain"] = _netIdTmp.ToLower();
             }
         }
         string? amountString = this.currencyToPrecision(code, amount, networkCode);
@@ -9824,8 +9824,8 @@ public partial class kucoin : Exchange
         clientOid = clientOidparametersVariable[0];
         parameters = clientOidparametersVariable[1];
         request["clientOid"] = clientOid;
-        object fromId = this.convertTypeToAccount(fromAccount);
-        object toId = this.convertTypeToAccount(toAccount);
+        string? fromId = this.convertTypeToAccount(fromAccount);
+        string? toId = this.convertTypeToAccount(toAccount);
         List<object> exchangeIds = (isEqual(this.ids, null)) ? new List<object>() {} : this.ids;
         bool fromIsolated = this.inArray(fromId, exchangeIds);
         bool toIsolated = this.inArray(toId, exchangeIds);
@@ -9842,8 +9842,8 @@ public partial class kucoin : Exchange
         IDictionary<string, object> utaAccountsByType = this.safeDict(this.options, "utaAccountsByType", new Dictionary<string, object>() {});
         fromId = this.safeString(utaAccountsByType, fromId, fromId);
         toId = this.safeString(utaAccountsByType, toId, toId);
-        request["fromAccountType"] = ((string)fromId).ToUpper();
-        request["toAccountType"] = ((string)toId).ToUpper();
+        request["fromAccountType"] = fromId.ToUpper();
+        request["toAccountType"] = toId.ToUpper();
         Dictionary<string, object> types = new Dictionary<string, object>() {
             { "INTERNAL", "0" },
             { "PARENT_TO_SUB", "1" },
@@ -9917,8 +9917,8 @@ public partial class kucoin : Exchange
         {
             request["clientOid"] = this.uuid();
         }
-        object fromId = this.convertTypeToAccount(fromAccount);
-        object toId = this.convertTypeToAccount(toAccount);
+        string? fromId = this.convertTypeToAccount(fromAccount);
+        string? toId = this.convertTypeToAccount(toAccount);
         List<object> exchangeIds = (isEqual(this.ids, null)) ? new List<object>() {} : this.ids;
         bool fromIsolated = this.inArray(fromId, exchangeIds);
         bool toIsolated = this.inArray(toId, exchangeIds);
@@ -9944,8 +9944,8 @@ public partial class kucoin : Exchange
         } else
         {
             request["type"] = transferType;
-            request["fromAccountType"] = ((string)fromId).ToUpper();
-            request["toAccountType"] = ((string)toId).ToUpper();
+            request["fromAccountType"] = fromId.ToUpper();
+            request["toAccountType"] = toId.ToUpper();
             //
             //     {
             //         "code": "200000",

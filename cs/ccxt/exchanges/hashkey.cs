@@ -1304,7 +1304,7 @@ public partial class hashkey : Exchange
         {
             object network = getValue(networks, j);
             string? networkId = this.safeString(network, "chainType");
-            object networkCode = this.networkCodeToId(networkId, code);
+            string? networkCode = this.networkCodeToId(networkId, code);
             if ((networkCode != null))
             {
                 parsedNetworks[(string)networkCode] = new Dictionary<string, object>() {

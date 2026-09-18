@@ -620,7 +620,7 @@ public partial class lighter : Exchange
         parameters = accountIndexparametersVariable[1];
         if (isEqual(accountIndex, null))
         {
-            object walletAddress = this.walletAddress;
+            string walletAddress = this.walletAddress;
             if (!isEqual(this.privateKey, null))
             {
                 if (((string)this.privateKey).Length > 66)
@@ -629,7 +629,7 @@ public partial class lighter : Exchange
                 }
                 walletAddress = this.ethGetAddressFromPrivateKey(this.privateKey);
             }
-            if ((walletAddress == null) || isEqual(walletAddress, ""))
+            if ((walletAddress == null) || walletAddress == "")
             {
                 throw new ArgumentsRequired (add(add(add(add(add(add(add(this.id, " "), methodName1), "() requires an "), optionName1), "/"), optionName2), " parameter or walletAddress to fetch accountIndex. Alternatively set privateKey in credentials to enable automatic walletAddress detection.")) ;
             }

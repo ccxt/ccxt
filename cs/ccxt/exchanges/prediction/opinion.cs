@@ -1184,7 +1184,7 @@ public partial class opinion : PredictionExchange
             { "signatureType", signatureType },
         };
         string signature = this.signOpinionOrder(order, exchangeAddress);
-        object signatureNo0x = this.remove0xPrefix(signature);
+        string signatureNo0x = this.remove0xPrefix(signature);
         Dictionary<string, object> orderBody = this.extend(new Dictionary<string, object>() {
             { "salt", salt },
             { "maker", maker },

@@ -40,7 +40,10 @@ public partial class BaseExchange
         return bytes;
     }
 
-    public virtual object remove0xPrefix(object str2)
+    // U33: both return paths hand back `str`, the `(string)str2` unbox taken at the top of the
+    // body (a non-string argument throws there, before either return), so the signature names
+    // the box the value already has.
+    public virtual string remove0xPrefix(object str2)
     {
         var str = (string)str2;
         if (str.StartsWith("0x"))
