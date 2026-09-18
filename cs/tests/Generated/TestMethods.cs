@@ -330,7 +330,7 @@ public partial class testMainClass
             }
             return true;
         }
-        string argsStringified = (add("(", exchange.json(args)) + ")"); // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
+        string argsStringified = (("(" + (exchange.json(args))) + ")"); // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
         dump(this.addPadding("[INFO] TESTING", 25), name, methodName, argsStringified);
         if (isTrue(isSync()))
         {
@@ -439,7 +439,7 @@ public partial class testMainClass
                 object isAuthError = (e is AuthenticationError);
                 object isNotSupported = (e is NotSupported);
                 object isOperationFailed = (e is OperationFailed); // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "OperationFailed", "InvalidNonce", ...
-                string lastUrlMsg = ((bool) isTrue(this.wsTests)) ? "" : (add(" (Last url: ", this.getLastRequestUrl(exchange)) + " )");
+                string lastUrlMsg = ((bool) isTrue(this.wsTests)) ? "" : ((" (Last url: " + (this.getLastRequestUrl(exchange))) + " )");
                 if (isTrue(isOperationFailed))
                 {
                     // if last retry was gone with same `tempFailure` error, then let's eventually return false
@@ -626,7 +626,7 @@ public partial class testMainClass
         }
         if (isTrue(this.info))
         {
-            dump(this.addPadding(add((("[INFO] END " + testPrefixString) + " "), exchange.id), 25));
+            dump(this.addPadding(((("[INFO] END " + testPrefixString) + " ") + (exchange.id)), 25));
         }
         return true;
     }
@@ -1238,7 +1238,7 @@ public partial class testMainClass
     {
         // validates one PredictionEvent structure (id, event handle, markets each carrying an
         // outcomes list, and the optional typed fields when present)
-        string logText = add(" event: ", exchange.json(eventVar));
+        string logText = (" event: " + (exchange.json(eventVar)));
         assert(isEqual(exchange.isDictionary(eventVar), true), add(add(exchange.id, " event should be a dict"), logText));
         assert(!isEqual(exchange.safeString(eventVar, "id"), null), add(add(exchange.id, " event missing id"), logText));
         assert(!isEqual(exchange.safeString(eventVar, "event"), null), add(add(exchange.id, " event missing the unified event handle"), logText));
@@ -1333,12 +1333,12 @@ public partial class testMainClass
         try
         {
             order = await callExchangeMethodDynamically(exchange, "createOrder", new List<object>() {outcome, "limit", "buy", amount, price});
-            assert((order != null), add("createOrder returned undefined for ", exchange.id));
-            assert(isEqual(exchange.isDictionary(order), true), add("createOrder did not return an order structure for ", exchange.id));
+            assert((order != null), ("createOrder returned undefined for " + (exchange.id)));
+            assert(isEqual(exchange.isDictionary(order), true), ("createOrder did not return an order structure for " + (exchange.id)));
             placedId = exchange.safeString(order, "id");
-            assert((placedId != null), add("createOrder returned no order id for ", exchange.id));
+            assert((placedId != null), ("createOrder returned no order id for " + (exchange.id)));
             object returnedOutcome = exchange.safeString(order, "outcome");
-            assert(((returnedOutcome == null)) || (isEqual(returnedOutcome, outcome)), add((add((add("createOrder outcome \"", exchange.json(returnedOutcome)) + "\" should match requested \""), outcome) + "\" for "), exchange.id));
+            assert(((returnedOutcome == null)) || (isEqual(returnedOutcome, outcome)), ((((("createOrder outcome \"" + (exchange.json(returnedOutcome))) + "\" should match requested \"") + (outcome)) + "\" for ") + (exchange.id)));
         } catch(Exception e)
         {
             failure = exceptionMessage(e);
@@ -1490,7 +1490,7 @@ public partial class testMainClass
         // if exception was set, then throw it
         if ((exceptionMessageString != null))
         {
-            string errorMessage = add((add("[TEST_FAILURE] Failed ", proxyTestName) + " : "), exceptionMessageString);
+            string errorMessage = ((("[TEST_FAILURE] Failed " + (proxyTestName)) + " : ") + (exceptionMessageString));
             // temporary comment the below, because c# transpilation failure
             // throw new Exchange Error (errorMessage.toString ());
             dump(("[TEST_WARNING]" + errorMessage));
@@ -1504,12 +1504,12 @@ public partial class testMainClass
         if (isEqual(exchange.id, "binance"))
         {
             assert(isEqual(exchange.hostname, null) || isEqual(exchange.hostname, ""), "binance.com hostname should be empty");
-            assert(isEqual(getValue(getValue(exchange.urls, "api"), "public"), "https://api.binance.com/api/v3"), add("https://api.binance.com/api/v3 does not match: ", getValue(getValue(exchange.urls, "api"), "public")));
-            assert((inOp(getValue(getValue(exchange.api, "sapi"), "get"), "lending/union/account")), add("SAPI should contain the endpoint lending/union/account, ", jsonStringify(getValue(getValue(exchange.api, "sapi"), "get"))));
+            assert(isEqual(getValue(getValue(exchange.urls, "api"), "public"), "https://api.binance.com/api/v3"), ("https://api.binance.com/api/v3 does not match: " + (getValue(getValue(exchange.urls, "api"), "public"))));
+            assert((inOp(getValue(getValue(exchange.api, "sapi"), "get"), "lending/union/account")), ("SAPI should contain the endpoint lending/union/account, " + (jsonStringify(getValue(getValue(exchange.api, "sapi"), "get")))));
         } else if (isEqual(exchange.id, "binanceus"))
         {
-            assert(isEqual(exchange.hostname, "binance.us"), add("binance.us hostname does not match ", exchange.hostname));
-            assert(isEqual(getValue(getValue(exchange.urls, "api"), "public"), "https://api.binance.us/api/v3"), add("https://api.binance.us/api/v3 does not match: ", getValue(getValue(exchange.urls, "api"), "public")));
+            assert(isEqual(exchange.hostname, "binance.us"), ("binance.us hostname does not match " + (exchange.hostname)));
+            assert(isEqual(getValue(getValue(exchange.urls, "api"), "public"), "https://api.binance.us/api/v3"), ("https://api.binance.us/api/v3 does not match: " + (getValue(getValue(exchange.urls, "api"), "public"))));
         }
     }
 
@@ -1612,9 +1612,9 @@ public partial class testMainClass
         object errorMessage = message;
         if (!isEqual(key, null))
         {
-            errorMessage = (add("[", key) + "]");
+            errorMessage = (("[" + (key)) + "]");
         }
-        errorMessage = add(errorMessage, add((add(" computed: ", storedString) + " stored: "), calculatedString));
+        errorMessage = add(errorMessage, (((" computed: " + (storedString)) + " stored: ") + (calculatedString)));
         assert(cond, errorMessage);
     }
 
@@ -1657,7 +1657,7 @@ public partial class testMainClass
             object path = add(add(folder, targetExchange), ".json");
             if (!isTrue(ioFileExists(path)))
             {
-                dump(add("[WARN] tests not found: ", path));
+                dump(("[WARN] tests not found: " + (path)));
                 return null;
             }
             ((IDictionary<string,object>)result)[(string)targetExchange] = ioFileRead(path);
@@ -1875,7 +1875,7 @@ public partial class testMainClass
                     {
                         continue;
                     }
-                    this.assertStaticError(false, add("output key missing: ", key), storedOutput, newOutput);
+                    this.assertStaticError(false, ("output key missing: " + (key)), storedOutput, newOutput);
                 }
                 object storedValue = getValue(storedOutput, key);
                 object newValue = getValue(newOutput, key);
@@ -2024,7 +2024,7 @@ public partial class testMainClass
             if (isTrue(this.info))
             {
                 object errorMessage = add(add(add(add(this.varToString(newOutput), "(calculated)"), " != "), this.varToString(storedOutput)), "(stored)");
-                dump(add("[TEST_FAILURE_DETAIL]", errorMessage));
+                dump(("[TEST_FAILURE_DETAIL]" + (errorMessage)));
             }
             throw e;
         }
@@ -2185,7 +2185,7 @@ public partial class testMainClass
         } catch(Exception e)
         {
             this.requestTestsFailed = true;
-            string errorMessage = add((add(((add(((add(((add("[", this.lang) + "][STATIC_REQUEST]") + "["), exchange.id) + "]") + "["), method) + "]") + "["), getValue(data, "description")) + "]"), exceptionMessage(e));
+            string errorMessage = (((((((((((("[" + (this.lang)) + "][STATIC_REQUEST]") + "[") + (exchange.id)) + "]") + "[") + (method)) + "]") + "[") + (getValue(data, "description"))) + "]") + (exceptionMessage(e)));
             dump(("[TEST_FAILURE]" + errorMessage));
         }
         return true;
@@ -2224,7 +2224,7 @@ public partial class testMainClass
         } catch(Exception e)
         {
             this.responseTestsFailed = true;
-            string errorMessage = add((add(((add(((add(((add("[", this.lang) + "][STATIC_RESPONSE]") + "["), exchange.id) + "]") + "["), method) + "]") + "["), getValue(data, "description")) + "]"), exceptionMessage(e));
+            string errorMessage = (((((((((((("[" + (this.lang)) + "][STATIC_RESPONSE]") + "[") + (exchange.id)) + "]") + "[") + (method)) + "]") + "[") + (getValue(data, "description"))) + "]") + (exceptionMessage(e)));
             dump(("[TEST_FAILURE]" + errorMessage));
         }
         setFetchResponse(exchange, null); // reset state
@@ -2322,7 +2322,7 @@ public partial class testMainClass
         object sentMessages = getWsSentMessages(exchange, url);
         int sentLength = getArrayLength(sentMessages);
         int expectedLength = getArrayLength(expectedSent);
-        assert((sentLength == expectedLength), add((((("sent ws messages count mismatch: sent " + ((object)sentLength).ToString()) + ", expected ") + ((object)expectedLength).ToString()) + " "), jsonStringify(sentMessages)));
+        assert((sentLength == expectedLength), ((((("sent ws messages count mismatch: sent " + ((object)sentLength).ToString()) + ", expected ") + ((object)expectedLength).ToString()) + " ") + (jsonStringify(sentMessages))));
         for (int i = 0; isLessThan(i, expectedLength); postFixIncrement(ref i))
         {
             object unifiedSent = jsonParse(jsonStringify(getValue(sentMessages, i)));
@@ -2375,7 +2375,7 @@ public partial class testMainClass
         } catch(Exception e)
         {
             this.staticWsTestsFailed = true;
-            string errorMessage = add((add(((add(((add(((add("[", this.lang) + "][STATIC_WS]") + "["), exchange.id) + "]") + "["), method) + "]") + "["), getValue(data, "description")) + "]"), exceptionMessage(e));
+            string errorMessage = (((((((((((("[" + (this.lang)) + "][STATIC_WS]") + "[") + (exchange.id)) + "]") + "[") + (method)) + "]") + "[") + (getValue(data, "description"))) + "]") + (exceptionMessage(e)));
             dump(("[TEST_FAILURE]" + errorMessage));
         }
         setFetchResponse(exchange, null); // reset state
@@ -2803,43 +2803,43 @@ public partial class testMainClass
         object isAsyncOnly = exchange.safeBool(exchangeData, "asyncOnly", false);
         if ((isEqual(isAsyncOnly, true)) && isTrue(isSync()))
         {
-            dump((add("[TEST_WARNING] Exchange ", exchangeName) + " is async-only, skipped by the sync test harness"));
+            dump((("[TEST_WARNING] Exchange " + (exchangeName)) + " is async-only, skipped by the sync test harness"));
             return true;
         }
         object isDisabledPy = exchange.safeBool(exchangeData, "disabledPy", false);
         if ((isEqual(isDisabledPy, true)) && (isEqual(this.lang, "PY")))
         {
-            dump((add("[TEST_WARNING] Exchange ", exchangeName) + " is disabled in python"));
+            dump((("[TEST_WARNING] Exchange " + (exchangeName)) + " is disabled in python"));
             return true;
         }
         object isDisabledPHP = exchange.safeBool(exchangeData, "disabledPHP", false);
         if ((isEqual(isDisabledPHP, true)) && (isEqual(this.lang, "PHP")))
         {
-            dump((add("[TEST_WARNING] Exchange ", exchangeName) + " is disabled in php"));
+            dump((("[TEST_WARNING] Exchange " + (exchangeName)) + " is disabled in php"));
             return true;
         }
         object isDisabledCSharp = exchange.safeBool(exchangeData, "disabledCS", false);
         if ((isEqual(isDisabledCSharp, true)) && (isEqual(this.lang, "C#")))
         {
-            dump((add("[TEST_WARNING] Exchange ", exchangeName) + " is disabled in c#"));
+            dump((("[TEST_WARNING] Exchange " + (exchangeName)) + " is disabled in c#"));
             return true;
         }
         object isDisabledGO = exchange.safeBool(exchangeData, "disabledGO", false);
         if ((isEqual(isDisabledGO, true)) && (isEqual(this.lang, "GO")))
         {
-            dump((add("[TEST_WARNING] Exchange ", exchangeName) + " is disabled in go"));
+            dump((("[TEST_WARNING] Exchange " + (exchangeName)) + " is disabled in go"));
             return true;
         }
         object isDisabledRust = exchange.safeBool(exchangeData, "disabledRS", false);
         if (isTrue(isDisabledRust) && (isEqual(this.lang, "RUST")))
         {
-            dump((add("[TEST_WARNING] Exchange ", exchangeName) + " is disabled in rust"));
+            dump((("[TEST_WARNING] Exchange " + (exchangeName)) + " is disabled in rust"));
             return true;
         }
         object isDisabledJava = exchange.safeBool(exchangeData, "disabledJava", false);
         if ((isEqual(isDisabledJava, true)) && (isEqual(this.lang, "java")))
         {
-            dump((add("[TEST_WARNING] Exchange ", exchangeName) + " is disabled in java"));
+            dump((("[TEST_WARNING] Exchange " + (exchangeName)) + " is disabled in java"));
             return true;
         }
         return false;
@@ -2871,11 +2871,11 @@ public partial class testMainClass
         object sum = 0;
         if (!isEqual(targetExchange, null) && !isEqual(targetExchange, ""))
         {
-            dump(add("[INFO:MAIN] Exchange to test: ", targetExchange));
+            dump(("[INFO:MAIN] Exchange to test: " + (targetExchange)));
         }
         if (!isEqual(testName, null) && !isEqual(testName, ""))
         {
-            dump(add("[INFO:MAIN] Testing only: ", testName));
+            dump(("[INFO:MAIN] Testing only: " + (testName)));
         }
         for (int i = 0; i < exchanges.Count; postFixIncrement(ref i))
         {
@@ -2914,7 +2914,7 @@ public partial class testMainClass
             {
                 this.responseTestsFailed = true;
             }
-            string errorMessage = add((add("[", this.lang) + "][STATIC_REQUEST]"), exceptionMessage(e));
+            string errorMessage = ((("[" + (this.lang)) + "][STATIC_REQUEST]") + (exceptionMessage(e)));
             dump(("[TEST_FAILURE]" + errorMessage));
         }
         if (isTrue(this.requestTestsFailed) || isTrue(this.responseTestsFailed) || isTrue(this.staticWsTestsFailed))
@@ -2923,7 +2923,7 @@ public partial class testMainClass
         } else
         {
             string prefix = ((bool) isTrue((isSync()))) ? "[SYNC]" : "";
-            string successMessage = (add((((((add("[", this.lang) + "]") + prefix) + "[TEST_SUCCESS] ") + ((object)sum).ToString()) + " static "), type) + " tests passed.");
+            string successMessage = (((((((("[" + (this.lang)) + "]") + prefix) + "[TEST_SUCCESS] ") + ((object)sum).ToString()) + " static ") + (type)) + " tests passed.");
             dump(("[INFO]" + successMessage));
         }
         return true;  // required in c#
@@ -2960,7 +2960,7 @@ public partial class testMainClass
         //  -----------------------------------------------------------------------------
         List<object> promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack(), this.testToobit(), this.testWeex(), this.testFoxbit(), this.testBithumb()};
         await promiseAll(promises);
-        string successMessage = (add("[", this.lang) + "][TEST_SUCCESS] brokerId tests passed.");
+        string successMessage = (("[" + (this.lang)) + "][TEST_SUCCESS] brokerId tests passed.");
         dump(("[INFO]" + successMessage));
         exitScript(0);
         return true;
@@ -2982,7 +2982,7 @@ public partial class testMainClass
         }
         object clientOrderId = getValue(spotOrderRequest, "newClientOrderId");
         string spotIdString = ((object)spotId).ToString();
-        assert((((string)clientOrderId).StartsWith(((string)spotIdString)) == true), ((add("binance - spot clientOrderId: ", clientOrderId) + " does not start with spotId") + spotIdString));
+        assert((((string)clientOrderId).StartsWith(((string)spotIdString)) == true), ((("binance - spot clientOrderId: " + (clientOrderId)) + " does not start with spotId") + spotIdString));
         object swapOrderRequest = new Dictionary<string, object>() {};
         try
         {
@@ -3002,10 +3002,10 @@ public partial class testMainClass
         // linear swap
         object clientOrderIdSwap = getValue(swapOrderRequest, "newClientOrderId");
         string swapIdString = ((object)swapId).ToString();
-        assert((((string)clientOrderIdSwap).StartsWith(((string)swapIdString)) == true), ((add("binance - swap clientOrderId: ", clientOrderIdSwap) + " does not start with swapId") + swapIdString));
+        assert((((string)clientOrderIdSwap).StartsWith(((string)swapIdString)) == true), ((("binance - swap clientOrderId: " + (clientOrderIdSwap)) + " does not start with swapId") + swapIdString));
         // inverse swap
         object clientOrderIdInverse = getValue(swapInverseOrderRequest, "newClientOrderId");
-        assert((((string)clientOrderIdInverse).StartsWith(((string)inverseSwapId)) == true), ((add("binance - swap clientOrderIdInverse: ", clientOrderIdInverse) + " does not start with swapId") + inverseSwapId));
+        assert((((string)clientOrderIdInverse).StartsWith(((string)inverseSwapId)) == true), ((("binance - swap clientOrderIdInverse: " + (clientOrderIdInverse)) + " does not start with swapId") + inverseSwapId));
         // linear swap conditional order
         object swapAlgoOrderRequest = new Dictionary<string, object>() {};
         try
@@ -3018,7 +3018,7 @@ public partial class testMainClass
             assert(algoOrderIdDefined, "binance - swap clientOrderId needs to be sent as algoOrderId but algoOrderId is not defined");
             object clientAlgoIdSwap = getValue(swapAlgoOrderRequest, "clientAlgoId");
             string swapAlgoIdString = ((object)swapId).ToString();
-            assert((((string)clientAlgoIdSwap).StartsWith(((string)swapAlgoIdString)) == true), ((add("binance - swap clientOrderId: ", clientAlgoIdSwap) + " does not start with swapId") + swapAlgoIdString));
+            assert((((string)clientAlgoIdSwap).StartsWith(((string)swapAlgoIdString)) == true), ((("binance - swap clientOrderId: " + (clientAlgoIdSwap)) + " does not start with swapId") + swapAlgoIdString));
         } catch(Exception e)
         {
             swapAlgoOrderRequest = this.urlencodedToDict(exchange.last_request_body);
@@ -3048,7 +3048,7 @@ public partial class testMainClass
         {
             object current = getValue(batchOrders, i);
             object currentClientOrderId = getValue(current, "newClientOrderId");
-            assert((((string)currentClientOrderId).StartsWith(((string)swapIdString)) == true), ((add("binance createOrders - clientOrderId: ", currentClientOrderId) + " does not start with swapId") + swapIdString));
+            assert((((string)currentClientOrderId).StartsWith(((string)swapIdString)) == true), ((("binance createOrders - clientOrderId: " + (currentClientOrderId)) + " does not start with swapId") + swapIdString));
         }
         if (!isTrue(isSync()))
         {
@@ -3071,9 +3071,9 @@ public partial class testMainClass
         }
         object clientOrderId = getValue(getValue(spotOrderRequest, 0), "clOrdId"); // returns order inside array
         string idString = ((object)id).ToString();
-        assert((((string)clientOrderId).StartsWith(((string)idString)) == true), ((add("okx - spot clientOrderId: ", clientOrderId) + " does not start with id: ") + idString));
+        assert((((string)clientOrderId).StartsWith(((string)idString)) == true), ((("okx - spot clientOrderId: " + (clientOrderId)) + " does not start with id: ") + idString));
         object spotTag = getValue(getValue(spotOrderRequest, 0), "tag");
-        assert(isEqual(spotTag, id), add((("okx - id: " + id) + " different from spot tag: "), spotTag));
+        assert(isEqual(spotTag, id), ((("okx - id: " + id) + " different from spot tag: ") + (spotTag)));
         object swapOrderRequest = new Dictionary<string, object>() {};
         try
         {
@@ -3083,9 +3083,9 @@ public partial class testMainClass
             swapOrderRequest = jsonParse(exchange.last_request_body);
         }
         object clientOrderIdSwap = getValue(getValue(swapOrderRequest, 0), "clOrdId");
-        assert((((string)clientOrderIdSwap).StartsWith(((string)idString)) == true), ((add("okx - swap clientOrderId: ", clientOrderIdSwap) + " does not start with id: ") + idString));
+        assert((((string)clientOrderIdSwap).StartsWith(((string)idString)) == true), ((("okx - swap clientOrderId: " + (clientOrderIdSwap)) + " does not start with id: ") + idString));
         object swapTag = getValue(getValue(swapOrderRequest, 0), "tag");
-        assert(isEqual(swapTag, id), add((("okx - id: " + id) + " different from swap tag: "), swapTag));
+        assert(isEqual(swapTag, id), ((("okx - id: " + id) + " different from swap tag: ") + (swapTag)));
         if (!isTrue(isSync()))
         {
             await close(exchange);
@@ -3107,7 +3107,7 @@ public partial class testMainClass
             request = jsonParse(exchange.last_request_body);
         }
         object brokerId = getValue(getValue(request, "params"), "broker_id");
-        assert(isEqual(brokerId, id), add((("cryptocom - id: " + id) + " different from  broker_id: "), brokerId));
+        assert(isEqual(brokerId, id), ((("cryptocom - id: " + id) + " different from  broker_id: ") + (brokerId)));
         if (!isTrue(isSync()))
         {
             await close(exchange);
@@ -3188,12 +3188,12 @@ public partial class testMainClass
         object reqHeaders = new Dictionary<string, object>() {};
         object spotId = getValue(getValue(getValue(exchange.options, "partner"), "spot"), "id");
         object spotKey = getValue(getValue(getValue(exchange.options, "partner"), "spot"), "key");
-        assert(isEqual(spotId, "ccxt"), (add("kucoin - id: ", spotId) + " not in options"));
-        assert(isEqual(spotKey, "9e58cc35-5b5e-4133-92ec-166e3f077cb8"), (add("kucoin - key: ", spotKey) + " not in options."));
+        assert(isEqual(spotId, "ccxt"), (("kucoin - id: " + (spotId)) + " not in options"));
+        assert(isEqual(spotKey, "9e58cc35-5b5e-4133-92ec-166e3f077cb8"), (("kucoin - key: " + (spotKey)) + " not in options."));
         object futureId = getValue(getValue(getValue(exchange.options, "partner"), "future"), "id");
         object futureKey = getValue(getValue(getValue(exchange.options, "partner"), "future"), "key");
-        assert(isEqual(futureId, "ccxtfutures"), (add("kucoin - id: ", futureId) + " not in options."));
-        assert(isEqual(futureKey, "1b327198-f30c-4f14-a0ac-918871282f15"), (add("kucoin - key: ", futureKey) + " not in options."));
+        assert(isEqual(futureId, "ccxtfutures"), (("kucoin - id: " + (futureId)) + " not in options."));
+        assert(isEqual(futureKey, "1b327198-f30c-4f14-a0ac-918871282f15"), (("kucoin - key: " + (futureKey)) + " not in options."));
         try
         {
             await exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000);
@@ -3247,8 +3247,8 @@ public partial class testMainClass
         string id = "ccxtfutures";
         object futureId = getValue(getValue(getValue(exchange.options, "partner"), "future"), "id");
         object futureKey = getValue(getValue(getValue(exchange.options, "partner"), "future"), "key");
-        assert(isEqual(futureId, id), (add("kucoinfutures - id: ", futureId) + " not in options."));
-        assert(isEqual(futureKey, "1b327198-f30c-4f14-a0ac-918871282f15"), (add("kucoinfutures - key: ", futureKey) + " not in options."));
+        assert(isEqual(futureId, id), (("kucoinfutures - id: " + (futureId)) + " not in options."));
+        assert(isEqual(futureKey, "1b327198-f30c-4f14-a0ac-918871282f15"), (("kucoinfutures - key: " + (futureKey)) + " not in options."));
         try
         {
             ((IDictionary<string,object>)exchange.options)["uta"] = false;
@@ -3332,7 +3332,7 @@ public partial class testMainClass
         }
         object clientOrderId = getValue(spotOrderRequest, "client-order-id");
         string idString = ((object)id).ToString();
-        assert((((string)clientOrderId).StartsWith(((string)idString)) == true), ((add("htx - spot clientOrderId ", clientOrderId) + " does not start with id: ") + idString));
+        assert((((string)clientOrderId).StartsWith(((string)idString)) == true), ((("htx - spot clientOrderId " + (clientOrderId)) + " does not start with id: ") + idString));
         // swap test
         object swapOrderRequest = new Dictionary<string, object>() {};
         try
@@ -3351,9 +3351,9 @@ public partial class testMainClass
             swapInverseOrderRequest = jsonParse(exchange.last_request_body);
         }
         object clientOrderIdSwap = getValue(swapOrderRequest, "channel_code");
-        assert((((string)clientOrderIdSwap).StartsWith(((string)idString)) == true), ((add("htx - swap channel_code ", clientOrderIdSwap) + " does not start with id: ") + idString));
+        assert((((string)clientOrderIdSwap).StartsWith(((string)idString)) == true), ((("htx - swap channel_code " + (clientOrderIdSwap)) + " does not start with id: ") + idString));
         object clientOrderIdInverse = getValue(swapInverseOrderRequest, "channel_code");
-        assert((((string)clientOrderIdInverse).StartsWith(((string)idString)) == true), ((add("htx - swap inverse channel_code ", clientOrderIdInverse) + " does not start with id: ") + idString));
+        assert((((string)clientOrderIdInverse).StartsWith(((string)idString)) == true), ((("htx - swap inverse channel_code " + (clientOrderIdInverse)) + " does not start with id: ") + idString));
         if (!isTrue(isSync()))
         {
             await close(exchange);
@@ -3376,7 +3376,7 @@ public partial class testMainClass
         }
         object brokerId = getValue(spotOrderRequest, "broker_id");
         string idString = ((object)id).ToString();
-        assert((((string)brokerId).StartsWith(((string)idString)) == true), ((add("woo - broker_id: ", brokerId) + " does not start with id: ") + idString));
+        assert((((string)brokerId).StartsWith(((string)idString)) == true), ((("woo - broker_id: " + (brokerId)) + " does not start with id: ") + idString));
         // swap test
         object stopOrderRequest = new Dictionary<string, object>() {};
         try
@@ -3389,7 +3389,7 @@ public partial class testMainClass
             stopOrderRequest = jsonParse(exchange.last_request_body);
         }
         object clientOrderIdStop = getValue(stopOrderRequest, "brokerId");
-        assert((((string)clientOrderIdStop).StartsWith(((string)idString)) == true), ((add("woo - brokerId: ", clientOrderIdStop) + " does not start with id: ") + idString));
+        assert((((string)clientOrderIdStop).StartsWith(((string)idString)) == true), ((("woo - brokerId: " + (clientOrderIdStop)) + " does not start with id: ") + idString));
         if (!isTrue(isSync()))
         {
             await close(exchange);
@@ -3412,7 +3412,7 @@ public partial class testMainClass
         }
         object clientOrderId = getValue(spotOrderRequest, "client_id");
         string idString = ((object)id).ToString();
-        assert((((string)clientOrderId).StartsWith(((string)idString)) == true), ((add("coinex - clientOrderId: ", clientOrderId) + " does not start with id: ") + idString));
+        assert((((string)clientOrderId).StartsWith(((string)idString)) == true), ((("coinex - clientOrderId: " + (clientOrderId)) + " does not start with id: ") + idString));
         if (!isTrue(isSync()))
         {
             await close(exchange);
@@ -3456,7 +3456,7 @@ public partial class testMainClass
         }
         object clientOrderId = getValue(request, "clOrdID");
         string idString = ((object)id).ToString();
-        assert((((string)clientOrderId).StartsWith(((string)idString)) == true), ((add("phemex - clOrdID: ", clientOrderId) + " does not start with id: ") + idString));
+        assert((((string)clientOrderId).StartsWith(((string)idString)) == true), ((("phemex - clOrdID: " + (clientOrderId)) + " does not start with id: ") + idString));
         if (!isTrue(isSync()))
         {
             await close(exchange);
@@ -3478,7 +3478,7 @@ public partial class testMainClass
         }
         object brokerId = getValue(request, "brokerId");
         string idString = ((object)id).ToString();
-        assert((((string)brokerId).StartsWith(((string)idString)) == true), ((add("blofin - brokerId: ", brokerId) + " does not start with id: ") + idString));
+        assert((((string)brokerId).StartsWith(((string)idString)) == true), ((("blofin - brokerId: " + (brokerId)) + " does not start with id: ") + idString));
         if (!isTrue(isSync()))
         {
             await close(exchange);
@@ -3566,7 +3566,7 @@ public partial class testMainClass
             request = jsonParse(exchange.last_request_body);
         }
         object brokerId = getValue(request, "order_tag");
-        assert(isEqual(brokerId, id), add((("woofipro - id: " + id) + " different from  broker_id: "), brokerId));
+        assert(isEqual(brokerId, id), ((("woofipro - id: " + id) + " different from  broker_id: ") + (brokerId)));
         if (!isTrue(isSync()))
         {
             await close(exchange);
@@ -3587,7 +3587,7 @@ public partial class testMainClass
             spotOrderRequest = jsonParse(exchange.last_request_body);
         }
         object spotMedia = getValue(spotOrderRequest, "media");
-        assert(isEqual(spotMedia, id), add((("xt - id: " + id) + " different from swap tag: "), spotMedia));
+        assert(isEqual(spotMedia, id), ((("xt - id: " + id) + " different from swap tag: ") + (spotMedia)));
         object swapOrderRequest = new Dictionary<string, object>() {};
         try
         {
@@ -3597,7 +3597,7 @@ public partial class testMainClass
             swapOrderRequest = jsonParse(exchange.last_request_body);
         }
         object swapMedia = getValue(swapOrderRequest, "clientMedia");
-        assert(isEqual(swapMedia, id), add((("xt - id: " + id) + " different from swap tag: "), swapMedia));
+        assert(isEqual(swapMedia, id), ((("xt - id: " + id) + " different from swap tag: ") + (swapMedia)));
         if (!isTrue(isSync()))
         {
             await close(exchange);
@@ -3750,7 +3750,7 @@ public partial class testMainClass
             request = jsonParse(exchange.last_request_body);
         }
         object brokerId = getValue(request, "order_tag");
-        assert(isEqual(brokerId, id), add((("modetrade - id: " + id) + " different from  broker_id: "), brokerId));
+        assert(isEqual(brokerId, id), ((("modetrade - id: " + id) + " different from  broker_id: ") + (brokerId)));
         if (!isTrue(isSync()))
         {
             await close(exchange);
@@ -3816,7 +3816,7 @@ public partial class testMainClass
             request = jsonParse(exchange.last_request_body);
         }
         object clientOrderId = getValue(request, "newClientOrderId");
-        assert((((string)clientOrderId).StartsWith(((string)id)) == true), ((add("weex - newClientOrderId: ", clientOrderId) + " for spot order does not start with id: ") + id));
+        assert((((string)clientOrderId).StartsWith(((string)id)) == true), ((("weex - newClientOrderId: " + (clientOrderId)) + " for spot order does not start with id: ") + id));
         try
         {
             await exchange.CreateOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000);
@@ -3825,7 +3825,7 @@ public partial class testMainClass
             request = jsonParse(exchange.last_request_body);
         }
         clientOrderId = getValue(request, "newClientOrderId");
-        assert((((string)clientOrderId).StartsWith(((string)id)) == true), ((add("weex - newClientOrderId: ", clientOrderId) + " for swap order does not start with id: ") + id));
+        assert((((string)clientOrderId).StartsWith(((string)id)) == true), ((("weex - newClientOrderId: " + (clientOrderId)) + " for swap order does not start with id: ") + id));
     }
 
     public async virtual Task<object> testFoxbit()
@@ -3843,7 +3843,7 @@ public partial class testMainClass
         }
         assert(isEqual(getValue(reqHeaders, "X-FB-CLIENT"), id), (("foxbit - id: " + id) + " not in headers."));
         object version = exchange.getCcxtVersion();
-        assert(isEqual(getValue(reqHeaders, "X-FB-CLIENT-VERSION"), version), (add("foxbit - version: ", version) + " not in headers."));
+        assert(isEqual(getValue(reqHeaders, "X-FB-CLIENT-VERSION"), version), (("foxbit - version: " + (version)) + " not in headers."));
         if (!isTrue(isSync()))
         {
             await close(exchange);

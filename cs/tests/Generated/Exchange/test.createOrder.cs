@@ -15,7 +15,7 @@ public partial class testMainClass : BaseTest
         if (debugCreateOrder)
         {
             // for c# fix, extra step to convert them to string
-            string msg = add((add(((" >>>>> testCreateOrder [" + ((object)(getValue(exchange, "id"))).ToString()) + " : "), symbol) + "] "), message);
+            string msg = (((((" >>>>> testCreateOrder [" + ((object)(getValue(exchange, "id"))).ToString()) + " : ") + (symbol)) + "] ") + (message));
             Console.WriteLine(msg);
         }
         return true;
@@ -38,7 +38,7 @@ public partial class testMainClass : BaseTest
         object initialBaseBalance = getValue(getValue(balance, getValue(market, "base")), "free");
         object initialQuoteBalance = getValue(getValue(balance, getValue(market, "quote")), "free");
         assert((initialQuoteBalance != null), add(add(add(logPrefix, " - testing account not have balance of"), getValue(market, "quote")), " in fetchBalance() which is required to test"));
-        tcoDebug(exchange, symbol, add((add((add((((add("fetched balance for ", symbol) + " : ") + ((object)initialBaseBalance).ToString()) + " "), getValue(market, "base")) + "/"), initialQuoteBalance) + " "), getValue(market, "quote")));
+        tcoDebug(exchange, symbol, ((((((((("fetched balance for " + (symbol)) + " : ") + ((object)initialBaseBalance).ToString()) + " ") + (getValue(market, "base"))) + "/") + (initialQuoteBalance)) + " ") + (getValue(market, "quote"))));
         var bestBidbestAskVariable = await testSharedMethods.fetchBestBidAsk(exchange, "createOrder", symbol);
         var bestBid = ((IList<object>) bestBidbestAskVariable)[0];
         var bestAsk = ((IList<object>) bestBidbestAskVariable)[1];
@@ -194,7 +194,7 @@ public partial class testMainClass : BaseTest
         {
             throw new Exception ((string)add(logPrefix, " cancelOrders method is not unified yet, coming soon...")) ;
         }
-        tcoDebug(exchange, symbol, add((("canceled order using " + usedMethod) + ":"), getValue(cancelResult, "id")));
+        tcoDebug(exchange, symbol, ((("canceled order using " + usedMethod) + ":") + (getValue(cancelResult, "id"))));
         // todo:
         // testSharedMethods.assertOrderState (exchange, skippedProperties, 'cancelOrder', cancelResult, 'canceled', false);
         // testSharedMethods.assertOrderState (exchange, skippedProperties, 'cancelOrder', cancelResult, 'closed', true);
@@ -206,7 +206,7 @@ public partial class testMainClass : BaseTest
     {
         parameters ??= new Dictionary<string, object>();
         skippedProperties ??= new Dictionary<string, object>();
-        tcoDebug(exchange, symbol, add((add((add((add((add("Executing createOrder ", orderType) + " "), side) + " "), amount) + " "), price) + " "), exchange.json(parameters)));
+        tcoDebug(exchange, symbol, ((((((((("Executing createOrder " + (orderType)) + " ") + (side)) + " ") + (amount)) + " ") + (price)) + " ") + (exchange.json(parameters))));
         object order = await invokeExchangeDynamically(exchange, "createOrder", symbol, orderType, side, amount, price, parameters);
         try
         {

@@ -2260,7 +2260,7 @@ public partial class BaseExchange
         // Validate that both exchanges are of the same type
         if (!isEqual(this.id, sourceExchange.id))
         {
-            throw new ArgumentsRequired ((string)(add((this.id + " shareMarkets() can only share markets with exchanges of the same type (got "), getValue(sourceExchange, "id")) + ")")) ;
+            throw new ArgumentsRequired ((string)(((this.id + " shareMarkets() can only share markets with exchanges of the same type (got ") + (getValue(sourceExchange, "id"))) + ")")) ;
         }
         // Validate that source exchange has loaded markets
         if ((isEqual(sourceExchange.markets, null)) || (isEqual(sourceExchange.markets, null)))
@@ -2882,7 +2882,7 @@ public partial class BaseExchange
             id = this.numberToString(timestamp);
             if (!isEqual(side, null))
             {
-                id = add(id, add("-", side));
+                id = add(id, ("-" + (side)));
             }
             if (!isEqual(amount, null))
             {
@@ -2894,7 +2894,7 @@ public partial class BaseExchange
             }
             if (!isEqual(takerOrMaker, null))
             {
-                id = add(id, add("-", takerOrMaker));
+                id = add(id, ("-" + (takerOrMaker)));
             }
         }
         return ((string?)((object)(id)));
@@ -3020,7 +3020,7 @@ public partial class BaseExchange
 
     public virtual object stringToBase16(object str)
     {
-        return add("0x", this.binaryToBase16(this.base64ToBinary(this.stringToBase64(str))));
+        return ("0x" + (this.binaryToBase16(this.base64ToBinary(this.stringToBase64(str)))));
     }
 
     public virtual List<object> reduceFeesByCurrency(object fees)
@@ -3450,7 +3450,7 @@ public partial class BaseExchange
             }
         } catch(Exception e)
         {
-            errorMessage = (add((this.id + " "), method) + "() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.");
+            errorMessage = (((this.id + " ") + (method)) + "() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.");
         }
         if ((muteOnFailure == true))
         {
@@ -3558,7 +3558,7 @@ public partial class BaseExchange
             {
                 if (!isEqual(getValue(market, "type"), marketType))
                 {
-                    throw new BadRequest ((string)(add((add((this.id + " symbols must be of the same type, either "), marketType) + " or "), getValue(market, "type")) + ".")) ;
+                    throw new BadRequest ((string)(((((this.id + " symbols must be of the same type, either ") + (marketType)) + " or ") + (getValue(market, "type"))) + ".")) ;
                 }
             }
             if (isTrue(sameSubTypeOnly) && (!isEqual(isLinearSubType, null)))
@@ -3570,7 +3570,7 @@ public partial class BaseExchange
             }
             if (!isEqual(type, null) && !isEqual(getValue(market, "type"), type))
             {
-                throw new BadRequest ((string)(add((this.id + " symbols must be of the same type "), type) + ". If the type is incorrect you can change it in options or the params of the request")) ;
+                throw new BadRequest ((string)(((this.id + " symbols must be of the same type ") + (type)) + ". If the type is incorrect you can change it in options or the params of the request")) ;
             }
             marketType = getValue(market, "type");
             if (!isEqual(getValue(market, "spot"), true))
@@ -3876,7 +3876,7 @@ public partial class BaseExchange
         {
             if ((responseNetworksLength == 0))
             {
-                throw new NotSupported ((string)add((add((this.id + " - "), networkCode) + " network did not return any result for "), currencyCode)) ;
+                throw new NotSupported ((string)((((this.id + " - ") + (networkCode)) + " network did not return any result for ") + (currencyCode))) ;
             } else
             {
                 // if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
@@ -3886,14 +3886,14 @@ public partial class BaseExchange
                     chosenNetworkId = networkIdOrCode;
                 } else
                 {
-                    throw new NotSupported ((string)((add((add((this.id + " - "), networkIdOrCode) + " network was not found for "), currencyCode) + ", use one of ") + String.Join(", ", ((IList<object>)availableNetworkIds).ToArray()))) ;
+                    throw new NotSupported ((string)((((((this.id + " - ") + (networkIdOrCode)) + " network was not found for ") + (currencyCode)) + ", use one of ") + String.Join(", ", ((IList<object>)availableNetworkIds).ToArray()))) ;
                 }
             }
         } else
         {
             if ((responseNetworksLength == 0))
             {
-                throw new NotSupported ((string)add((this.id + " - no networks were returned for "), currencyCode)) ;
+                throw new NotSupported ((string)((this.id + " - no networks were returned for ") + (currencyCode))) ;
             } else
             {
                 // if networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
@@ -4716,7 +4716,7 @@ public partial class BaseExchange
                     {
                         if (isEqual(market, null))
                         {
-                            throw new ArgumentsRequired ((string)(add((this.id + " safeMarket() requires a fourth argument for "), marketId) + " to disambiguate between different markets with the same market id")) ;
+                            throw new ArgumentsRequired ((string)(((this.id + " safeMarket() requires a fourth argument for ") + (marketId)) + " to disambiguate between different markets with the same market id")) ;
                         } else
                         {
                             marketType = getValue(market, "type");
@@ -4926,7 +4926,7 @@ public partial class BaseExchange
             return getValue(mapping, key);
         } else
         {
-            throw new NotSupported ((string)(add((this.id + " "), key) + " does not have a value in mapping")) ;
+            throw new NotSupported ((string)(((this.id + " ") + (key)) + " does not have a value in mapping")) ;
         }
     }
 
@@ -4942,7 +4942,7 @@ public partial class BaseExchange
         object rate = this.safeValue(borrowRates, code);
         if ((rate == null))
         {
-            throw new ExchangeError ((string)add((this.id + " fetchCrossBorrowRate() could not find the borrow rate for currency code "), code)) ;
+            throw new ExchangeError ((string)((this.id + " fetchCrossBorrowRate() could not find the borrow rate for currency code ") + (code))) ;
         }
         return ccxt.BaseExchange.ToCrossBorrowRate(rate);
     }
@@ -4959,7 +4959,7 @@ public partial class BaseExchange
         IDictionary<string, object> rate = this.safeDict(borrowRates, symbol);
         if ((rate == null))
         {
-            throw new ExchangeError ((string)add((this.id + " fetchIsolatedBorrowRate() could not find the borrow rate for market symbol "), symbol)) ;
+            throw new ExchangeError ((string)((this.id + " fetchIsolatedBorrowRate() could not find the borrow rate for market symbol ") + (symbol))) ;
         }
         return ccxt.BaseExchange.ToIsolatedBorrowRate(rate);
     }
@@ -4971,7 +4971,7 @@ public partial class BaseExchange
         if (isEqual(value, null))
         {
             object errorMessage = ((bool) (!isEqual(message, null))) ? message : "value is required";
-            throw new ArgumentsRequired ((string)add((this.id + " "), errorMessage)) ;
+            throw new ArgumentsRequired ((string)((this.id + " ") + (errorMessage))) ;
         }
         return value;
     }
@@ -5276,7 +5276,7 @@ public partial class BaseExchange
             IDictionary<string, object> rank = this.safeDict(ranks, 0);
             if ((rank == null))
             {
-                throw new NullResponse ((string)add((this.id + " fetchPositionsADLRank() could not find a rank for "), symbolVar)) ;
+                throw new NullResponse ((string)((this.id + " fetchPositionsADLRank() could not find a rank for ") + (symbolVar))) ;
             } else
             {
                 return ccxt.BaseExchange.ToADL(rank);
@@ -5496,7 +5496,7 @@ public partial class BaseExchange
             object depositAddress = this.safeValue(depositAddresses, code);
             if ((depositAddress == null))
             {
-                throw new InvalidAddress ((string)(add((this.id + " fetchDepositAddress() could not find a deposit address for "), code) + ", make sure you have created a corresponding deposit address in your wallet on the exchange website")) ;
+                throw new InvalidAddress ((string)(((this.id + " fetchDepositAddress() could not find a deposit address for ") + (code)) + ", make sure you have created a corresponding deposit address in your wallet on the exchange website")) ;
             } else
             {
                 return ccxt.BaseExchange.ToDepositAddress(depositAddress);
@@ -5602,7 +5602,7 @@ public partial class BaseExchange
                 return ccxt.BaseExchange.ToDict(getValue(currenciesById, code));
             }
         }
-        throw new ExchangeError ((string)add((this.id + " does not have currency code "), code)) ;
+        throw new ExchangeError ((string)((this.id + " does not have currency code ") + (code))) ;
     }
 
     public virtual Dictionary<string, object> market(object symbol)
@@ -5637,7 +5637,7 @@ public partial class BaseExchange
         {
             return this.createExpiredOptionMarket(symbol);
         }
-        throw new BadSymbol ((string)add((this.id + " does not have market symbol "), symbol)) ;
+        throw new BadSymbol ((string)((this.id + " does not have market symbol ") + (symbol))) ;
     }
 
     public virtual Dictionary<string, object> createExpiredOptionMarket(object symbol)
@@ -5710,7 +5710,7 @@ public partial class BaseExchange
         string result = this.decimalToPrecision(price, ROUND, getValue(getValue(market, "precision"), "price"), this.precisionMode, this.paddingMode);
         if (isEqual(result, "0"))
         {
-            throw new InvalidOrder ((string)((add((this.id + " price of "), getValue(market, "symbol")) + " must be greater than minimum price precision of ") + this.numberToString(getValue(getValue(market, "precision"), "price")))) ;
+            throw new InvalidOrder ((string)((((this.id + " price of ") + (getValue(market, "symbol"))) + " must be greater than minimum price precision of ") + this.numberToString(getValue(getValue(market, "precision"), "price")))) ;
         }
         return result;
     }
@@ -5725,7 +5725,7 @@ public partial class BaseExchange
         string result = this.decimalToPrecision(amount, TRUNCATE, getValue(getValue(market, "precision"), "amount"), this.precisionMode, this.paddingMode);
         if (isEqual(result, "0"))
         {
-            throw new InvalidOrder ((string)((add((this.id + " amount of "), getValue(market, "symbol")) + " must be greater than minimum amount precision of ") + this.numberToString(getValue(getValue(market, "precision"), "amount")))) ;
+            throw new InvalidOrder ((string)((((this.id + " amount of ") + (getValue(market, "symbol"))) + " must be greater than minimum amount precision of ") + this.numberToString(getValue(getValue(market, "precision"), "amount")))) ;
         }
         return result;
     }
@@ -6402,7 +6402,7 @@ public partial class BaseExchange
             object rate = this.safeValue(rates, symbolVar);
             if ((rate == null))
             {
-                throw new NullResponse ((string)add((this.id + " fetchFundingRate () returned no data for "), symbolVar)) ;
+                throw new NullResponse ((string)((this.id + " fetchFundingRate () returned no data for ") + (symbolVar))) ;
             } else
             {
                 return ccxt.BaseExchange.ToFundingRate(rate);
@@ -6430,7 +6430,7 @@ public partial class BaseExchange
             object rate = this.safeValue(rates, symbolVar);
             if ((rate == null))
             {
-                throw new NullResponse ((string)add((this.id + " fetchFundingInterval() returned no data for "), symbolVar)) ;
+                throw new NullResponse ((string)((this.id + " fetchFundingInterval() returned no data for ") + (symbolVar))) ;
             } else
             {
                 return ccxt.BaseExchange.ToFundingRate(rate);
@@ -6590,7 +6590,7 @@ public partial class BaseExchange
         if ((isEqual(argument, null)) || ((optionsLength > 0) && (!(this.inArray(argument, options)))))
         {
             string messageOptions = String.Join(", ", ((IList<object>)options).ToArray());
-            string message = (add((add((this.id + " "), methodName) + "() requires a "), argumentName) + " argument");
+            string message = (((((this.id + " ") + (methodName)) + "() requires a ") + (argumentName)) + " argument");
             if ((messageOptions != ""))
             {
                 message = message + (((", one of " + "(") + messageOptions) + ")");
@@ -6610,10 +6610,10 @@ public partial class BaseExchange
          */
         if ((isEqual(marginMode, "isolated")) && (isEqual(symbol, null)))
         {
-            throw new ArgumentsRequired ((string)(add((this.id + " "), methodName) + "() requires a symbol argument for isolated margin")) ;
+            throw new ArgumentsRequired ((string)(((this.id + " ") + (methodName)) + "() requires a symbol argument for isolated margin")) ;
         } else if ((isEqual(marginMode, "cross")) && (!isEqual(symbol, null)))
         {
-            throw new ArgumentsRequired ((string)(add((this.id + " "), methodName) + "() cannot have a symbol argument for cross margin")) ;
+            throw new ArgumentsRequired ((string)(((this.id + " ") + (methodName)) + "() cannot have a symbol argument for cross margin")) ;
         }
     }
 
@@ -6903,7 +6903,7 @@ public partial class BaseExchange
                     int responseLength = getArrayLength(response);
                     if (isTrue(this.verbose))
                     {
-                        string backwardMessage = ((add((("Dynamic pagination call " + this.numberToString(calls)) + " method "), method) + " response length ") + this.numberToString(responseLength));
+                        string backwardMessage = ((((("Dynamic pagination call " + this.numberToString(calls)) + " method ") + (method)) + " response length ") + this.numberToString(responseLength));
                         if (!isEqual(paginationTimestamp, null))
                         {
                             backwardMessage = backwardMessage + (" timestamp " + this.numberToString(paginationTimestamp));
@@ -6933,7 +6933,7 @@ public partial class BaseExchange
                     int responseLength = getArrayLength(response);
                     if (isTrue(this.verbose))
                     {
-                        string forwardMessage = ((add((("Dynamic pagination call " + this.numberToString(calls)) + " method "), method) + " response length ") + this.numberToString(responseLength));
+                        string forwardMessage = ((((("Dynamic pagination call " + this.numberToString(calls)) + " method ") + (method)) + " response length ") + this.numberToString(responseLength));
                         if (!isEqual(paginationTimestamp, null))
                         {
                             forwardMessage = forwardMessage + (" timestamp " + this.numberToString(paginationTimestamp));
@@ -7153,7 +7153,7 @@ public partial class BaseExchange
                 {
                     object cursorString = ((bool) (isEqual(cursorValue, null))) ? "" : cursorValue;
                     object iteration = (add(i, 1));
-                    string cursorMessage = add((((add((("Cursor pagination call " + ((object)iteration).ToString()) + " method "), method) + " response length ") + ((object)responseLength).ToString()) + " cursor "), cursorString);
+                    string cursorMessage = ((((((("Cursor pagination call " + ((object)iteration).ToString()) + " method ") + (method)) + " response length ") + ((object)responseLength).ToString()) + " cursor ") + (cursorString));
                     this.log(cursorMessage);
                 }
                 if ((responseLength == 0))
@@ -7235,7 +7235,7 @@ public partial class BaseExchange
                 if (isTrue(this.verbose))
                 {
                     string iteration = ((object)(add(i, 1))).ToString();
-                    string incrementalMessage = ((add((("Incremental pagination call " + iteration) + " method "), method) + " response length ") + ((object)responseLength).ToString());
+                    string incrementalMessage = ((((("Incremental pagination call " + iteration) + " method ") + (method)) + " response length ") + ((object)responseLength).ToString());
                     this.log(incrementalMessage);
                 }
                 if ((responseLength == 0))
@@ -7654,7 +7654,7 @@ public partial class BaseExchange
         // if exchange omits first zero and provides i.e. '3JAN24' instead of '03JAN24'
         if ((((string)date).Length == 6))
         {
-            date = add("0", date);
+            date = ("0" + (date));
         }
         string? year = slice(date, 0, 2);
         string? monthName = slice(date, 2, 5);
@@ -7757,7 +7757,7 @@ public partial class BaseExchange
             }
             if ((!isEqual(subHash, null)) && (inOp(client.futures, subHash)))
             {
-                var error = new UnsubscribeError(add((this.id + " "), subHash));
+                var error = new UnsubscribeError(((this.id + " ") + (subHash)));
                 client.reject(error, subHash);
             }
         } else

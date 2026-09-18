@@ -114,7 +114,7 @@ public partial class Exchange
             IDictionary<string, object> ticker = this.safeDict(tickers, symbolVar);
             if ((ticker == null))
             {
-                throw new NullResponse ((string)add((this.id + " fetchMarkPrices() could not find a ticker for "), symbolVar)) ;
+                throw new NullResponse ((string)((this.id + " fetchMarkPrices() could not find a ticker for ") + (symbolVar))) ;
             } else
             {
                 return ccxt.BaseExchange.ToTicker(ticker);
@@ -589,7 +589,7 @@ public partial class Exchange
             IDictionary<string, object> ticker = this.safeDict(tickers, symbolVar);
             if ((ticker == null))
             {
-                throw new NullResponse ((string)add((this.id + " fetchTickerWs() could not find a ticker for "), symbolVar)) ;
+                throw new NullResponse ((string)((this.id + " fetchTickerWs() could not find a ticker for ") + (symbolVar))) ;
             } else
             {
                 return ccxt.BaseExchange.ToTicker(ticker);
@@ -749,7 +749,7 @@ public partial class Exchange
             IDictionary<string, object> ticker = this.safeDict(tickers, symbolVar);
             if ((ticker == null))
             {
-                throw new NullResponse ((string)add((this.id + " fetchTickers() could not find a ticker for "), symbolVar)) ;
+                throw new NullResponse ((string)((this.id + " fetchTickers() could not find a ticker for ") + (symbolVar))) ;
             } else
             {
                 return ccxt.BaseExchange.ToTicker(ticker);

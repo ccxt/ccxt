@@ -3735,7 +3735,7 @@ public partial class bitget : Exchange
                 ((IList<object>)promises).Add(this.publicMarginGetV2MarginCurrencies(parameters));
             } else
             {
-                throw new NotSupported ((string)(add((this.id + " does not support "), type) + " market")) ;
+                throw new NotSupported ((string)(((this.id + " does not support ") + (type)) + " market")) ;
             }
         }
         List<object> results = await promiseAll(promises);
@@ -4464,7 +4464,7 @@ public partial class bitget : Exchange
             response = await this.privateMarginGetV2MarginCrossedTierData(this.extend(request, parameters));
         } else
         {
-            throw new BadRequest ((string)add((this.id + " fetchMarketLeverageTiers() symbol does not support market "), getValue(market, "symbol"))) ;
+            throw new BadRequest ((string)((this.id + " fetchMarketLeverageTiers() symbol does not support market ") + (getValue(market, "symbol")))) ;
         }
         //
         // swap and future
@@ -8403,7 +8403,7 @@ public partial class bitget : Exchange
         {
             if ((!isEqual(getValue(market, "swap"), true)) && (!isEqual(getValue(market, "future"), true)))
             {
-                throw new NotSupported ((string)(add((this.id + " editOrder() does not support "), getValue(market, "type")) + " orders")) ;
+                throw new NotSupported ((string)(((this.id + " editOrder() does not support ") + (getValue(market, "type"))) + " orders")) ;
             }
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
             ((IDictionary<string,object>)request)["productType"] = productType;
@@ -8634,7 +8634,7 @@ public partial class bitget : Exchange
             }
         } else
         {
-            throw new NotSupported ((string)(add((this.id + " cancelOrder() does not support "), getValue(market, "type")) + " orders")) ;
+            throw new NotSupported ((string)(((this.id + " cancelOrder() does not support ") + (getValue(market, "type"))) + " orders")) ;
         }
         //
         // spot, swap, future and spot margin
@@ -9037,7 +9037,7 @@ public partial class bitget : Exchange
             response = await this.privateMixGetV2MixOrderDetail(this.extend(request, parameters));
         } else
         {
-            throw new NotSupported ((string)(add((this.id + " fetchOrder() does not support "), getValue(market, "type")) + " orders")) ;
+            throw new NotSupported ((string)(((this.id + " fetchOrder() does not support ") + (getValue(market, "type"))) + " orders")) ;
         }
         //
         // spot
@@ -9166,7 +9166,7 @@ public partial class bitget : Exchange
         int dataListLength = dataList.Count;
         if ((dataListLength == 0))
         {
-            throw new OrderNotFound ((string)((add((this.id + " fetchOrder() could not find order id "), id) + " in ") + this.json(response))) ;
+            throw new OrderNotFound ((string)((((this.id + " fetchOrder() could not find order id ") + (id)) + " in ") + this.json(response))) ;
         }
         IDictionary<string, object> first = this.safeDict(dataList, 0, new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToOrder(this.parseOrder(first, market));
@@ -14066,7 +14066,7 @@ public partial class bitget : Exchange
         //     {"order_id":"513468410013679613","client_oid":null,"symbol":"ethusd","result":false,"err_code":"order_no_exist_error","err_msg":"订单不存在！"}
         //
         string? message = this.safeString2(response, "err_msg", "msg");
-        string feedback = add((this.id + " "), body);
+        string feedback = ((this.id + " ") + (body));
         bool nonEmptyMessage = (((message != null)) && ((message != "")) && ((message != "success")));
         if (nonEmptyMessage)
         {
@@ -14116,7 +14116,7 @@ public partial class bitget : Exchange
         {
             this.checkRequiredCredentials();
             string timestamp = ((object)this.nonce()).ToString();
-            object auth = add(add(timestamp, method), payload);
+            object auth = ((timestamp + (method)) + payload);
             if (isEqual(method, "POST"))
             {
                 body = this.json(parameters);

@@ -4415,7 +4415,7 @@ public partial class binance : Exchange
                 return this.createExpiredOptionMarket(symbol);
             }
         }
-        throw new BadSymbol ((string)add((this.id + " does not have market symbol "), symbol)) ;
+        throw new BadSymbol ((string)((this.id + " does not have market symbol ") + (symbol))) ;
     }
 
     public override Dictionary<string, object> safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)
@@ -5004,7 +5004,7 @@ public partial class binance : Exchange
                 }
             } else
             {
-                throw new ExchangeError ((string)(add((this.id + " fetchMarkets() this.options fetchMarkets \""), marketType) + "\" is not a supported market type")) ;
+                throw new ExchangeError ((string)(((this.id + " fetchMarkets() this.options fetchMarkets \"") + (marketType)) + "\" is not a supported market type")) ;
             }
         }
         List<object> results = await promiseAll(promisesRaw);
@@ -5776,7 +5776,7 @@ public partial class binance : Exchange
                         object id = this.marketId(symbol);
                         if ((id != null))
                         {
-                            symbols = add(symbols, add(",", id));
+                            symbols = add(symbols, ("," + (id)));
                         }
                     }
                 } else
@@ -6382,7 +6382,7 @@ public partial class binance : Exchange
             bool? stock = this.safeBool(symbolMarket, "stock", false);
             if ((stock == true))
             {
-                throw new NotSupported ((string)(add((add((this.id + " "), methodName) + "() does not support tokenized stock symbols ("), getValue(symbols, i)) + "), the equity quote endpoint accepts a single symbol per request, use fetchTicker() instead")) ;
+                throw new NotSupported ((string)(((((this.id + " ") + (methodName)) + "() does not support tokenized stock symbols (") + (getValue(symbols, i))) + "), the equity quote endpoint accepts a single symbol per request, use fetchTicker() instead")) ;
             }
         }
     }
@@ -7480,7 +7480,7 @@ public partial class binance : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(getValue(market, "spot"), true))
         {
-            throw new NotSupported ((string)(add((this.id + " editSpotOrder() does not support "), getValue(market, "type")) + " orders")) ;
+            throw new NotSupported ((string)(((this.id + " editSpotOrder() does not support ") + (getValue(market, "type"))) + " orders")) ;
         }
         Dictionary<string, object> payload = this.editSpotOrderRequest(id, symbol, type, side, amount, price, parameters);
         Dictionary<string, object> response = await this.privatePostOrderCancelReplace(payload);
@@ -7587,10 +7587,10 @@ public partial class binance : Exchange
         {
             if (!isEqual(initialUppercaseType, uppercaseType))
             {
-                throw new InvalidOrder ((string)(add((add((this.id + " triggerPrice parameter is not allowed for "), symbol) + " "), type) + " orders")) ;
+                throw new InvalidOrder ((string)(((((this.id + " triggerPrice parameter is not allowed for ") + (symbol)) + " ") + (type)) + " orders")) ;
             } else
             {
-                throw new InvalidOrder ((string)(add((add((this.id + " "), type) + " is not a valid order type for the "), symbol) + " market")) ;
+                throw new InvalidOrder ((string)(((((this.id + " ") + (type)) + " is not a valid order type for the ") + (symbol)) + " market")) ;
             }
         }
         if ((clientOrderId == null))
@@ -7665,7 +7665,7 @@ public partial class binance : Exchange
         {
             if (isEqual(price, null))
             {
-                throw new InvalidOrder ((string)(add((this.id + " editOrder() requires a price argument for a "), type) + " order")) ;
+                throw new InvalidOrder ((string)(((this.id + " editOrder() requires a price argument for a ") + (type)) + " order")) ;
             }
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
@@ -7677,7 +7677,7 @@ public partial class binance : Exchange
         {
             if (isEqual(triggerPrice, null))
             {
-                throw new InvalidOrder ((string)(add((this.id + " editOrder() requires a triggerPrice extra param for a "), type) + " order")) ;
+                throw new InvalidOrder ((string)(((this.id + " editOrder() requires a triggerPrice extra param for a ") + (type)) + " order")) ;
             } else
             {
                 ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, triggerPrice);
@@ -7716,7 +7716,7 @@ public partial class binance : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(getValue(market, "contract"), true))
         {
-            throw new NotSupported ((string)(add((this.id + " editContractOrder() does not support "), getValue(market, "type")) + " orders")) ;
+            throw new NotSupported ((string)(((this.id + " editContractOrder() does not support ") + (getValue(market, "type"))) + " orders")) ;
         }
         if (isEqual(side, null))
         {
@@ -7852,7 +7852,7 @@ public partial class binance : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (isEqual(getValue(market, "option"), true))
         {
-            throw new NotSupported ((string)(add((this.id + " editOrder() does not support "), getValue(market, "type")) + " orders")) ;
+            throw new NotSupported ((string)(((this.id + " editOrder() does not support ") + (getValue(market, "type"))) + " orders")) ;
         }
         if (isEqual(getValue(market, "spot"), true))
         {
@@ -7908,7 +7908,7 @@ public partial class binance : Exchange
         Dictionary<string, object> market = this.market(getValue(orderSymbols, 0));
         if ((isEqual(getValue(market, "spot"), true)) || (isEqual(getValue(market, "option"), true)))
         {
-            throw new NotSupported ((string)(add((this.id + " editOrders() does not support "), getValue(market, "type")) + " orders")) ;
+            throw new NotSupported ((string)(((this.id + " editOrders() does not support ") + (getValue(market, "type"))) + " orders")) ;
         }
         object response = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -8732,7 +8732,7 @@ public partial class binance : Exchange
         Dictionary<string, object> market = this.market(getValue(orderSymbols, 0));
         if (isEqual(getValue(market, "spot"), true))
         {
-            throw new NotSupported ((string)(add((this.id + " createOrders() does not support "), getValue(market, "type")) + " orders")) ;
+            throw new NotSupported ((string)(((this.id + " createOrders() does not support ") + (getValue(market, "type"))) + " orders")) ;
         }
         object response = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -9032,7 +9032,7 @@ public partial class binance : Exchange
                     parameters = this.omit(parameters, "stopLossOrTakeProfit");
                     if (((stopLossOrTakeProfit != "stopLoss")) && ((stopLossOrTakeProfit != "takeProfit")))
                     {
-                        throw new InvalidOrder ((string)(add(this.id, symbol) + " trailingPercent orders require a stopLossOrTakeProfit parameter of either stopLoss or takeProfit")) ;
+                        throw new InvalidOrder ((string)((this.id + (symbol)) + " trailingPercent orders require a stopLossOrTakeProfit parameter of either stopLoss or takeProfit")) ;
                     }
                     if (isMarketOrder)
                     {
@@ -9092,7 +9092,7 @@ public partial class binance : Exchange
         {
             if (isEqual(type, "market"))
             {
-                throw new InvalidOrder ((string)(add((add((this.id + " "), type) + " is not a valid order type for the "), symbol) + " market")) ;
+                throw new InvalidOrder ((string)(((((this.id + " ") + (type)) + " is not a valid order type for the ") + (symbol)) + " market")) ;
             }
         } else
         {
@@ -9105,10 +9105,10 @@ public partial class binance : Exchange
             {
                 if (!isEqual(initialUppercaseType, uppercaseType))
                 {
-                    throw new InvalidOrder ((string)(add((add((this.id + " triggerPrice parameter is not allowed for "), symbol) + " "), type) + " orders")) ;
+                    throw new InvalidOrder ((string)(((((this.id + " triggerPrice parameter is not allowed for ") + (symbol)) + " ") + (type)) + " orders")) ;
                 } else
                 {
-                    throw new InvalidOrder ((string)(add((add((this.id + " "), type) + " is not a valid order type for the "), symbol) + " market")) ;
+                    throw new InvalidOrder ((string)(((((this.id + " ") + (type)) + " is not a valid order type for the ") + (symbol)) + " market")) ;
                 }
             }
         }
@@ -9325,7 +9325,7 @@ public partial class binance : Exchange
             }
             if ((trailingPercent == null))
             {
-                throw new InvalidOrder ((string)(add((this.id + " createOrder() requires a trailingPercent param for a "), type) + " order")) ;
+                throw new InvalidOrder ((string)(((this.id + " createOrder() requires a trailingPercent param for a ") + (type)) + " order")) ;
             }
         }
         if (quantityIsRequired)
@@ -9344,7 +9344,7 @@ public partial class binance : Exchange
         {
             if (isEqual(price, null))
             {
-                throw new InvalidOrder ((string)(add((this.id + " createOrder() requires a price argument for a "), type) + " order")) ;
+                throw new InvalidOrder ((string)(((this.id + " createOrder() requires a price argument for a ") + (type)) + " order")) ;
             }
             string? pricePrecision = this.safeString(getValue(market, "precision"), "price");
             bool isPricePrecisionAvailable = ((pricePrecision != null));
@@ -9362,14 +9362,14 @@ public partial class binance : Exchange
             {
                 if ((stopPrice == null))
                 {
-                    throw new InvalidOrder ((string)(add((this.id + " createOrder() requires a triggerPrice extra param for a "), type) + " order")) ;
+                    throw new InvalidOrder ((string)(((this.id + " createOrder() requires a triggerPrice extra param for a ") + (type)) + " order")) ;
                 }
             } else
             {
                 // check for delta price as well
                 if ((trailingDelta == null) && (stopPrice == null) && (trailingPercent == null))
                 {
-                    throw new InvalidOrder ((string)(add((this.id + " createOrder() requires a triggerPrice, trailingDelta or trailingPercent param for a "), type) + " order")) ;
+                    throw new InvalidOrder ((string)(((this.id + " createOrder() requires a triggerPrice, trailingDelta or trailingPercent param for a ") + (type)) + " order")) ;
                 }
             }
             if ((stopPrice != null))
@@ -12088,14 +12088,14 @@ public partial class binance : Exchange
             {
                 if ((symbol == null))
                 {
-                    throw new ArgumentsRequired ((string)add((this.id + " transfer () requires params[\"symbol\"] when fromAccount is "), fromAccount)) ;
+                    throw new ArgumentsRequired ((string)((this.id + " transfer () requires params[\"symbol\"] when fromAccount is ") + (fromAccount))) ;
                 }
             }
             if ((toId == "ISOLATED"))
             {
                 if ((symbol == null))
                 {
-                    throw new ArgumentsRequired ((string)add((this.id + " transfer () requires params[\"symbol\"] when toAccount is "), toAccount)) ;
+                    throw new ArgumentsRequired ((string)((this.id + " transfer () requires params[\"symbol\"] when toAccount is ") + (toAccount))) ;
                 }
             }
             IDictionary<string, object> accountsById = this.safeDict(this.options, "accountsById", new Dictionary<string, object>() {});
@@ -12120,7 +12120,7 @@ public partial class binance : Exchange
                 bool prohibitedWithIsolated = fromFuture || toFuture || funding || option;
                 if ((fromIsolated || toIsolated) && prohibitedWithIsolated)
                 {
-                    throw new BadRequest ((string)add((add((this.id + " transfer () does not allow transfers between "), fromAccount) + " and "), toAccount)) ;
+                    throw new BadRequest ((string)((((this.id + " transfer () does not allow transfers between ") + (fromAccount)) + " and ") + (toAccount))) ;
                 } else if (toSpot && fromIsolated)
                 {
                     fromId = "ISOLATED_MARGIN";
@@ -14309,7 +14309,7 @@ public partial class binance : Exchange
             return await this.FetchOptionPositions(symbols, parameters);
         } else
         {
-            throw new NotSupported ((string)(add((this.id + ".options[\"fetchPositions\"][\"method\"] or params[\"method\"] = \""), defaultMethod) + "\" is invalid, please choose between \"account\", \"positionRisk\" and \"option\"")) ;
+            throw new NotSupported ((string)(((this.id + ".options[\"fetchPositions\"][\"method\"] or params[\"method\"] = \"") + (defaultMethod)) + "\" is invalid, please choose between \"account\", \"positionRisk\" and \"option\"")) ;
         }
     }
 
@@ -15535,10 +15535,10 @@ public partial class binance : Exchange
         object urls = this.urls;
         if (!(inOp(getValue(urls, "api"), api)))
         {
-            throw new NotSupported ((string)(add((this.id + " does not have a testnet/sandbox URL for "), api) + " endpoints")) ;
+            throw new NotSupported ((string)(((this.id + " does not have a testnet/sandbox URL for ") + (api)) + " endpoints")) ;
         }
         object url = getValue(getValue(this.urls, "api"), api);
-        url = add(url, add("/", path));
+        url = add(url, ("/" + (path)));
         if (isEqual(path, "historicalTrades"))
         {
             if ((!isEqual(this.apiKey, null)) && (!isEqual(this.apiKey, "")))
@@ -15658,7 +15658,7 @@ public partial class binance : Exchange
                         List<object> newClientOrderIds = new List<object>() {};
                         for (int i = 0; i < origclientorderidlistLength; postFixIncrement(ref i))
                         {
-                            ((IList<object>)newClientOrderIds).Add((add("%22", getValue(origclientorderidlist, i)) + "%22"));
+                            ((IList<object>)newClientOrderIds).Add((("%22" + (getValue(origclientorderidlist, i))) + "%22"));
                         }
                         query = add(add(add(add(query, "&"), "origclientorderidlist=%5B"), String.Join("%2C", ((IList<object>)newClientOrderIds).ToArray())), "%5D");
                     }
@@ -15684,13 +15684,13 @@ public partial class binance : Exchange
             {
                 signature = this.hmac(this.encode(query), this.encode(this.secret), sha256);
             }
-            query = add(query, add(("&" + "signature="), signature));
+            query = add(query, (("&" + "signature=") + (signature)));
             headers = new Dictionary<string, object>() {
                 { "X-MBX-APIKEY", this.apiKey },
             };
             if ((isEqual(method, "GET")) || (isEqual(method, "DELETE")))
             {
-                url = add(url, add("?", query));
+                url = add(url, ("?" + (query)));
             } else
             {
                 body = query;
@@ -15747,7 +15747,7 @@ public partial class binance : Exchange
     {
         if ((isEqual(code, 418)) || (isEqual(code, 429)))
         {
-            throw new DDoSProtection ((string)add((add((((this.id + " ") + ((object)code).ToString()) + " "), reason) + " "), body)) ;
+            throw new DDoSProtection ((string)((((((this.id + " ") + ((object)code).ToString()) + " ") + (reason)) + " ") + (body))) ;
         }
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block contains legacy checks against message patterns in "msg" property
@@ -15756,15 +15756,15 @@ public partial class binance : Exchange
         {
             if (getIndexOf(body, "Price * QTY is zero or less") >= 0)
             {
-                throw new InvalidOrder ((string)add((this.id + " order cost = amount * price is zero or less "), body)) ;
+                throw new InvalidOrder ((string)((this.id + " order cost = amount * price is zero or less ") + (body))) ;
             }
             if (getIndexOf(body, "LOT_SIZE") >= 0)
             {
-                throw new InvalidOrder ((string)add((this.id + " order amount should be evenly divisible by lot size "), body)) ;
+                throw new InvalidOrder ((string)((this.id + " order amount should be evenly divisible by lot size ") + (body))) ;
             }
             if (getIndexOf(body, "PRICE_FILTER") >= 0)
             {
-                throw new InvalidOrder ((string)add((this.id + " order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use this.priceToPrecision (symbol, amount) "), body)) ;
+                throw new InvalidOrder ((string)((this.id + " order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use this.priceToPrecision (symbol, amount) ") + (body))) ;
             }
         }
         if (isEqual(response, null))
@@ -15816,9 +15816,9 @@ public partial class binance : Exchange
             // on a temporary ban, the API key is valid, but disabled for a while
             if (((error == "-2015")) && (isEqual(getValue(this.options, "hasAlreadyAuthenticatedSuccessfully"), true)))
             {
-                throw new DDoSProtection ((string)add((this.id + " "), body)) ;
+                throw new DDoSProtection ((string)((this.id + " ") + (body))) ;
             }
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             if ((message == "No need to change margin type."))
             {
                 throw new MarginModeAlreadySet ((string)feedback) ;
@@ -15829,7 +15829,7 @@ public partial class binance : Exchange
         }
         if ((success != true))
         {
-            throw new ExchangeError ((string)add((this.id + " "), body)) ;
+            throw new ExchangeError ((string)((this.id + " ") + (body))) ;
         }
         if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
@@ -15841,8 +15841,8 @@ public partial class binance : Exchange
                 string? errorCode = this.safeString(element, "code");
                 if ((errorCode != null))
                 {
-                    this.throwExactlyMatchedException(this.getExceptionsByUrl(url, "exact"), errorCode, add((this.id + " "), body));
-                    this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, add((this.id + " "), body));
+                    this.throwExactlyMatchedException(this.getExceptionsByUrl(url, "exact"), errorCode, ((this.id + " ") + (body)));
+                    this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, ((this.id + " ") + (body)));
                 }
             }
         }
@@ -16782,7 +16782,7 @@ public partial class binance : Exchange
             ((IDictionary<string,object>)request)["underlyingAsset"] = getValue(market, "baseId");
             if (isEqual(getValue(market, "expiry"), null))
             {
-                throw new NotSupported ((string)add((this.id + " fetchOpenInterest does not support "), symbolVar)) ;
+                throw new NotSupported ((string)((this.id + " fetchOpenInterest does not support ") + (symbolVar))) ;
             }
             ((IDictionary<string,object>)request)["expiration"] = this.yymmdd(getValue(market, "expiry"));
         } else
@@ -16842,7 +16842,7 @@ public partial class binance : Exchange
                     return ccxt.BaseExchange.ToOpenInterest(item);
                 }
             }
-            throw new NullResponse ((string)add((this.id + " fetchOpenInterest() could not find open interest for "), symbolVar)) ;
+            throw new NullResponse ((string)((this.id + " fetchOpenInterest() could not find open interest for ") + (symbolVar))) ;
         } else
         {
             return ccxt.BaseExchange.ToOpenInterest(this.parseOpenInterest(response, market));
@@ -17627,7 +17627,7 @@ public partial class binance : Exchange
             response = await this.dapiPrivateGetPositionMarginHistory(this.extend(request, parameters));
         } else
         {
-            throw new BadRequest ((string)add((this.id + " fetchMarginAdjustmentHistory () is not supported for markets of type "), getValue(market, "type"))) ;
+            throw new BadRequest ((string)((this.id + " fetchMarginAdjustmentHistory () is not supported for markets of type ") + (getValue(market, "type")))) ;
         }
         //
         //    [
