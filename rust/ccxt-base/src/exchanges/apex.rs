@@ -913,7 +913,7 @@ impl ApexCore {
         {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_218: bool = true;
-            while { if !__for_first_218 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_218 = false; is_less_than(&j, &get_array_length(&chains)) } {
+            while { if !__for_first_218 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_218 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&chains).as_f64().unwrap_or(f64::NAN) } {
             let mut chain: Value = get_value(&chains, &j);
             let mut chain: Value = get_value(&chains, &j);
             let mut tokens: Value = self.safe_list_k(chain.clone(), "tokens", &[Value::List(vec![])]);
@@ -1812,7 +1812,7 @@ impl ApexCore {
                     let mut markets: Value = get_value(&marketsById, &newMarketId);
                     let mut markets: Value = get_value(&marketsById, &newMarketId);
                     let mut numMarkets: Value = get_array_length(&markets);
-                    if is_greater_than(&numMarkets, &Value::Int(0)) {
+                    if numMarkets.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                         if is_equal(&crate::value::get_value_k(&get_value(&get_value(&marketsById, &newMarketId), &Value::Int(0)), "id2"), &marketId) {
                             market = get_value(&get_value(&marketsById, &newMarketId), &Value::Int(0));
                         }

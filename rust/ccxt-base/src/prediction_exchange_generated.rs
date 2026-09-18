@@ -2430,7 +2430,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut h: Value = self.remove0x_prefix(hexValue.clone());
         let mut start: Value = Value::Int(0);
         let mut total: Value = get_array_length(&h);
-        while (is_less_than(&start, &total)) && (is_equal(&slice(&h, &start, &(match (&(start), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })), &Value::Str("0".to_string()))) {
+        while is_true(&(start.as_f64().unwrap_or(f64::NAN) < total.as_f64().unwrap_or(f64::NAN))) && (is_equal(&slice(&h, &start, &(match (&(start), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })), &Value::Str("0".to_string()))) {
             start = (match (&(start), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
         }
         h = slice(&h, &start, &Value::Null);

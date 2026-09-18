@@ -3846,7 +3846,7 @@ impl NadoCore {
             panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a 20-byte walletAddress".to_string())))));
         }
         let mut encoded: Value = self.remove0x_prefix(self.string_to_base16(subaccount.clone()));
-        if is_greater_than(&get_array_length(&encoded), &Value::Int(24)) {
+        if get_array_length(&encoded).as_f64().unwrap_or(f64::NAN) > Value::Int(24).as_f64().unwrap_or(f64::NAN) {
             panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() subaccount must fit in 12 bytes".to_string())))));
         }
         return Value::Str(format!("{}{}", add(&Value::Str("0x".to_string()), &address), self.pad_hex(encoded.clone(), Value::Int(24), &[Value::Bool(false)])));

@@ -1525,7 +1525,7 @@ impl KrakenCore {
         {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_432: bool = true;
-            while { if !__for_first_432 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_432 = false; is_less_than(&j, &get_array_length(&deltas)) } {
+            while { if !__for_first_432 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_432 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&deltas).as_f64().unwrap_or(f64::NAN) } {
             let mut delta: Value = get_value(&deltas, &j);
             let mut delta: Value = get_value(&deltas, &j);
             let mut price: Value = self.safe_number_k(delta.clone(), "price", &[]);

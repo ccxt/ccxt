@@ -965,14 +965,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut startIndex: Value = Value::Int(0);
         while startIndex.as_f64().unwrap_or(f64::NAN) < tickersLength.as_f64().unwrap_or(f64::NAN) {
             let mut endIndex: Value = self.sum(&[startIndex.clone(), chunkSize.clone()]);
-            if is_greater_than(&endIndex, &tickersLength) {
+            if endIndex.as_f64().unwrap_or(f64::NAN) > tickersLength.as_f64().unwrap_or(f64::NAN) {
                 endIndex = tickersLength.clone();
             }
             let mut chunk: Value = Value::List(vec![]);
             {
                                 let mut i: Value = startIndex.clone();
                 let mut __for_first_1222: bool = true;
-                while { if !__for_first_1222 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1222 = false; is_less_than(&i, &endIndex) } {
+                while { if !__for_first_1222 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1222 = false; i.as_f64().unwrap_or(f64::NAN) < endIndex.as_f64().unwrap_or(f64::NAN) } {
                 append_to_array(&mut chunk, get_value(&tickers, &i));
             }
             }
@@ -1671,14 +1671,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut startIndex: Value = Value::Int(0);
         while startIndex.as_f64().unwrap_or(f64::NAN) < tickersLength.as_f64().unwrap_or(f64::NAN) {
             let mut endIndex: Value = self.sum(&[startIndex.clone(), chunkSize.clone()]);
-            if is_greater_than(&endIndex, &tickersLength) {
+            if endIndex.as_f64().unwrap_or(f64::NAN) > tickersLength.as_f64().unwrap_or(f64::NAN) {
                 endIndex = tickersLength.clone();
             }
             let mut chunk: Value = Value::List(vec![]);
             {
                                 let mut i: Value = startIndex.clone();
                 let mut __for_first_1228: bool = true;
-                while { if !__for_first_1228 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1228 = false; is_less_than(&i, &endIndex) } {
+                while { if !__for_first_1228 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1228 = false; i.as_f64().unwrap_or(f64::NAN) < endIndex.as_f64().unwrap_or(f64::NAN) } {
                 append_to_array(&mut chunk, get_value(&tickers, &i));
             }
             }
@@ -1706,7 +1706,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 {
                                         let mut j: Value = Value::Int(0);
                     let mut __for_first_1229: bool = true;
-                    while { if !__for_first_1229 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1229 = false; is_less_than(&j, &get_array_length(&grouped)) } {
+                    while { if !__for_first_1229 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1229 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&grouped).as_f64().unwrap_or(f64::NAN) } {
                     let mut ticker: Value = self.parse_prediction_ticker(raw.clone(), &[get_value(&grouped, &j)]);
                     let mut symbolKey: Value = self.safe_string_k(ticker.clone(), "outcome", &[]);
                     if (symbolKey != Value::Null) {
@@ -1887,7 +1887,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             add_element_to_object(&mut request, &Value::Str("start_ts".to_string()), sinceS.clone());
             if (limit != Value::Null) {
                 let mut end: Value = self.sum(&[sinceS.clone(), (match (&(limit), &(tf)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
-                add_element_to_object(&mut request, &Value::Str("end_ts".to_string()), (if (is_less_than(&end, &now)) { end.clone() } else { now.clone() }));
+                add_element_to_object(&mut request, &Value::Str("end_ts".to_string()), (if is_true(&(end.as_f64().unwrap_or(f64::NAN) < now.as_f64().unwrap_or(f64::NAN))) { end.clone() } else { now.clone() }));
             }  else {
                 // the candlesticks endpoint requires end_ts - default to now
                 add_element_to_object(&mut request, &Value::Str("end_ts".to_string()), now.clone());
@@ -3201,7 +3201,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             {
                                 let mut mi: Value = Value::Int(0);
                 let mut __for_first_1245: bool = true;
-                while { if !__for_first_1245 { mi = (match (&(mi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1245 = false; is_less_than(&mi, &parsedMarketsLength) } {
+                while { if !__for_first_1245 { mi = (match (&(mi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1245 = false; mi.as_f64().unwrap_or(f64::NAN) < parsedMarketsLength.as_f64().unwrap_or(f64::NAN) } {
                 let mut m: Value = get_value(&parsedMarkets, &mi);
                 let mut m: Value = get_value(&parsedMarkets, &mi);
                 add_element_to_object(&mut self.markets, &crate::value::get_value_k(&m, "market"), m.clone());

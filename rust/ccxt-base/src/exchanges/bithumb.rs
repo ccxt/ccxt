@@ -1204,7 +1204,7 @@ impl BithumbCore {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_369: bool = true;
-                while { if !__for_first_369 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_369 = false; is_less_than(&i, &get_array_length(&response)) } {
+                while { if !__for_first_369 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_369 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
                 let mut entry: Value = get_value(&response, &i);
                 let mut entry: Value = get_value(&response, &i);
                 let mut account: Value = self.account();
@@ -4058,7 +4058,7 @@ impl BithumbCore {
             return Value::Null;
         }
         let mut finalNumberStr: Value = numberStr.clone();
-        while is_greater_than(&get_index_of(&finalNumberStr, &Value::Str(",".to_string())), &Value::Int(-1)) {
+        while get_index_of(&finalNumberStr, &Value::Str(",".to_string())).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
             finalNumberStr = replace_str(&finalNumberStr, &Value::Str(",".to_string()), &Value::Str("".to_string()));
         }
         return finalNumberStr;

@@ -489,7 +489,7 @@ impl BittradeCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_162: bool = true;
-            while { if !__for_first_162 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_162 = false; is_less_than(&i, &get_array_length(&data)) } {
+            while { if !__for_first_162 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_162 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&data).as_f64().unwrap_or(f64::NAN) } {
             let mut trade: Value = self.parse_trade(get_value(&data, &i), &[market.clone()]);
             tradesCache.append(trade.clone());
         }
@@ -758,7 +758,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_164: bool = true;
-            while { if !__for_first_164 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_164 = false; is_less_than(&i, &get_array_length(&deltas)) } {
+            while { if !__for_first_164 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_164 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&deltas).as_f64().unwrap_or(f64::NAN) } {
             self.handle_delta(bookside.clone(), get_value(&deltas, &i));
         }
         }
@@ -794,7 +794,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if is_true(&(Value::Bool(prevSeqNum == Value::Null))) || is_true(&(Value::Bool(seqNum == Value::Null))) {
             return orderbook;
         }
-        if (is_less_than_or_equal(&prevSeqNum, &crate::value::get_value_k(&orderbook, "nonce"))) && (is_greater_than(&seqNum, &crate::value::get_value_k(&orderbook, "nonce"))) {
+        if (is_less_than_or_equal(&prevSeqNum, &crate::value::get_value_k(&orderbook, "nonce"))) && is_true(&(seqNum.as_f64().unwrap_or(f64::NAN) > crate::value::get_value_k(&orderbook, "nonce").as_f64().unwrap_or(f64::NAN))) {
             let mut asks: Value = self.safe_value_k(tick.clone(), "asks", &[Value::List(vec![])]);
             let mut bids: Value = self.safe_value_k(tick.clone(), "bids", &[Value::List(vec![])]);
             self.handle_deltas(crate::value::get_value_k(&orderbook, "asks"), asks.clone());

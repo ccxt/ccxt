@@ -1306,7 +1306,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //     }
         //
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "mt", &[Value::Int(0)]);
-        if is_greater_than(&timestamp, &crate::value::get_value_k(&orderbook, "timestamp")) {
+        if timestamp.as_f64().unwrap_or(f64::NAN) > crate::value::get_value_k(&orderbook, "timestamp").as_f64().unwrap_or(f64::NAN) {
             let mut response: Value = self.safe_list_k(message.clone(), "r", &[Value::List(vec![])]);
             self.handle_deltas(orderbook.clone(), response.clone());
             add_element_to_object(&mut orderbook, &Value::Str("timestamp".to_string()), timestamp.clone());

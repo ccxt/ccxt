@@ -2726,7 +2726,7 @@ impl ZebpayCore {
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
         params = self.omit(params.clone(), Value::Str("defaultType".to_string()), &[]);
-        let mut isV1: bool = is_greater_than(&get_index_of(&path, &Value::Str("v1/".to_string())), &Value::Int(-1));
+        let mut isV1: bool = get_index_of(&path, &Value::Str("v1/".to_string())).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN);
         let mut marketType: Value = (if isV1 { Value::Str("swap".to_string()) } else { Value::Str("spot".to_string()) });
         let mut url: Value = get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &marketType);
         let mut tail: Value = Value::Str(format!("{}{}", Value::Str("/api/".to_string()), self.implode_params(path.clone(), params.clone())));

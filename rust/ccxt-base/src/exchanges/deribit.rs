@@ -4870,7 +4870,7 @@ impl DeribitCore {
     pub fn add_pagination_cursor_to_result(&self, mut cursor: Value, mut data: Value) -> Value {
         if (cursor != Value::Null) {
             let mut dataLength: Value = get_array_length(&data);
-            if is_greater_than(&dataLength, &Value::Int(0)) {
+            if dataLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                 let mut first: Value = get_value(&data, &Value::Int(0));
                 let mut last: Value = get_value(&data, &subtract(&dataLength, &Value::Int(1)));
                 add_element_to_object(&mut first, &Value::Str("continuation".to_string()), cursor.clone());

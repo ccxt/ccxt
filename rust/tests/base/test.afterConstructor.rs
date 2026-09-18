@@ -219,7 +219,7 @@ fn helperTestProperties() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.prop(&&Value::Str("has".to_string())) != Value::Null))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.prop(&&Value::Str("api".to_string())) == Value::Null))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.prop(&&Value::Str("features".to_string())) == Value::Null))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_greater_than_or_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("minFundingAddressLength".to_string())), &Value::Int(1))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("minFundingAddressLength".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(1).as_f64().unwrap_or(f64::NAN)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("isSandboxModeEnabled".to_string())), &Value::Bool(false))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("enableRateLimit".to_string())), &Value::Bool(true))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("rateLimiterAlgorithm".to_string())).as_str() == Some("leakyBucket")))));

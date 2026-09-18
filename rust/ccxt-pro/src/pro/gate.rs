@@ -864,7 +864,7 @@ impl GateCore {
         symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut marketId: Value = market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
         let mut url: Value = self.get_url_by_market(market.clone());
-        let mut isEuUrl: bool = is_greater_than_or_equal(&get_index_of(&url, &Value::Str("gateeu".to_string())), &Value::Int(0));
+        let mut isEuUrl: bool = get_index_of(&url, &Value::Str("gateeu".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN);
         let mut isNonEuSpot: bool = is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)))) && !isEuUrl;
         let mut intervalDefault: Value = (if isNonEuSpot { Value::Str("50".to_string()) } else { Value::Str("100ms".to_string()) });
         let mut intervalqueryVariable = self.handle_option_and_params(params.clone(), Value::Str("watchOrderBook".to_string()), Value::Str("interval".to_string()), &[intervalDefault.clone()]);
@@ -928,7 +928,7 @@ impl GateCore {
         let mut url: Value = self.get_url_by_market(market.clone());
         symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut marketId: Value = market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
-        let mut isEuUrl: bool = is_greater_than_or_equal(&get_index_of(&url, &Value::Str("gateeu".to_string())), &Value::Int(0));
+        let mut isEuUrl: bool = get_index_of(&url, &Value::Str("gateeu".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN);
         let mut isNonEuSpot: bool = is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)))) && !isEuUrl;
         let mut intervalDefault: Value = (if isNonEuSpot { Value::Str("50".to_string()) } else { Value::Str("100ms".to_string()) });
         let mut interval: Value = intervalDefault.clone();
@@ -1156,7 +1156,7 @@ impl GateCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_338: bool = true;
-            while { if !__for_first_338 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_338 = false; is_less_than(&i, &get_array_length(&cache)) } {
+            while { if !__for_first_338 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_338 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&cache).as_f64().unwrap_or(f64::NAN) } {
             let mut delta: Value = get_value(&cache, &i);
             let mut delta: Value = get_value(&cache, &i);
             let mut deltaStart: Value = self.safe_integer_k(delta.clone(), "U", &[]);
@@ -1175,7 +1175,7 @@ impl GateCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_339: bool = true;
-            while { if !__for_first_339 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_339 = false; is_less_than(&i, &get_array_length(&bidAsks)) } {
+            while { if !__for_first_339 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_339 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&bidAsks).as_f64().unwrap_or(f64::NAN) } {
             let mut bidAsk: Value = get_value(&bidAsks, &i);
             let mut bidAsk: Value = get_value(&bidAsks, &i);
             if is_true(&Value::Bool(is_array(&bidAsk))) {
@@ -1672,7 +1672,7 @@ impl GateCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_345: bool = true;
-            while { if !__for_first_345 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_345 = false; is_less_than(&i, &get_array_length(&result)) } {
+            while { if !__for_first_345 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_345 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&result).as_f64().unwrap_or(f64::NAN) } {
             let mut ohlcv: Value = get_value(&result, &i);
             let mut ohlcv: Value = get_value(&result, &i);
             let mut subscription: Value = self.safe_string_k(ohlcv.clone(), "n", &[Value::Str("".to_string())]);

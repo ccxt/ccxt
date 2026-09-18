@@ -3282,7 +3282,7 @@ impl TokocryptoCore {
             }
             if is_true(&(Value::Bool(api.as_str() == Some("sapi")))) && is_true(&(Value::Bool(path.as_str() == Some("asset/dust")))) {
                 query = self.urlencode_with_array_repeat(extendedParams.clone());
-            }  else if is_true(&(Value::Bool(path.as_str() == Some("batchOrders")))) || (is_greater_than_or_equal(&get_index_of(&path, &Value::Str("sub-account".to_string())), &Value::Int(0))) || is_true(&(Value::Bool(path.as_str() == Some("capital/withdraw/apply")))) || (is_greater_than_or_equal(&get_index_of(&path, &Value::Str("staking".to_string())), &Value::Int(0))) {
+            }  else if is_true(&(Value::Bool(path.as_str() == Some("batchOrders")))) || is_true(&(get_index_of(&path, &Value::Str("sub-account".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN))) || is_true(&(Value::Bool(path.as_str() == Some("capital/withdraw/apply")))) || is_true(&(get_index_of(&path, &Value::Str("staking".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN))) {
                 query = self.rawencode(extendedParams.clone(), &[]);
             }  else {
                 query = self.urlencode(extendedParams.clone(), &[]);

@@ -2012,9 +2012,9 @@ impl LunoCore {
             panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLedger() require both params 'max_row' and 'min_row' or neither to be defined".to_string())))));
         }
         if (limit != Value::Null) && subtract(&max_row, &min_row).as_f64().unwrap_or(f64::NAN) > limit.as_f64().unwrap_or(f64::NAN) {
-            if is_less_than_or_equal(&max_row, &Value::Int(0)) {
+            if max_row.as_f64().unwrap_or(f64::NAN) <= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                 min_row = subtract(&max_row, &limit);
-            }  else if is_greater_than(&min_row, &Value::Int(0)) {
+            }  else if min_row.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                 max_row = add(&min_row, &limit);
             }
         }
