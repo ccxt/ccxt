@@ -295,7 +295,7 @@ public partial class bydfi : ccxt.bydfi
         var client = this.client(url);
         IDictionary<string, object> subscriptions = client.subscriptions;
         List<object> messageHashes = new List<object>() {};
-        List<object> keys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
+        List<object> keys = new List<object>(subscriptions.Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
             string? key = ((string)getValue(keys, i));

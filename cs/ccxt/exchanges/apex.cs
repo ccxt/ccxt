@@ -621,7 +621,7 @@ public partial class apex : Exchange
                 }
             }
         }
-        List<object> networkKeys = new List<object>(((IDictionary<string,object>)networks).Keys);
+        List<object> networkKeys = new List<object>(networks.Keys);
         int networksLength = networkKeys.Count;
         bool emptyChains = (networksLength == 0); // non-functional coins
         bool? valueForEmpty = emptyChains ? false : null;

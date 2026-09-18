@@ -517,7 +517,7 @@ public partial class bullish : ccxt.bullish
             }
             string messageHash = "orders";
             callDynamically(client, "resolve", new object[] {orders, messageHash});
-            List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
+            List<object> keys = new List<object>(symbols.Keys);
             for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
             {
                 string? hashSymbol = ((string)getValue(keys, i));
@@ -644,7 +644,7 @@ public partial class bullish : ccxt.bullish
             }
             string messageHash = "myTrades";
             callDynamically(client, "resolve", new object[] {trades, messageHash});
-            List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
+            List<object> keys = new List<object>(symbols.Keys);
             for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
             {
                 string? hashSymbol = ((string)getValue(keys, i));

@@ -439,7 +439,7 @@ public partial class limitless : PredictionExchange
             }
         }
         Dictionary<string, object> eventsDict = new Dictionary<string, object>() {};
-        List<object> eventKeys = new List<object>(((IDictionary<string,object>)eventGroups).Keys);
+        List<object> eventKeys = new List<object>(eventGroups.Keys);
         for (int i = 0; isLessThan(i, eventKeys.Count); postFixIncrement(ref i))
         {
             string? eventKey = ((string)getValue(eventKeys, i));
@@ -564,7 +564,7 @@ public partial class limitless : PredictionExchange
             { "price", 0.001 },
         };
         List<object> outcomes = new List<object>() {};
-        List<object> tokenEntries = new List<object>(((IDictionary<string,object>)tokens).Keys);
+        List<object> tokenEntries = new List<object>(tokens.Keys);
         for (int i = 0; isLessThan(i, tokenEntries.Count); postFixIncrement(ref i))
         {
             string? outcomeLabel = ((string)getValue(tokenEntries, i));
@@ -3391,7 +3391,7 @@ public partial class limitless : PredictionExchange
             }
         }
         List<object> result = new List<object>() {};
-        List<object> eventKeys = new List<object>(((IDictionary<string,object>)eventGroups).Keys);
+        List<object> eventKeys = new List<object>(eventGroups.Keys);
         int eventKeysLength = eventKeys.Count;
         for (int i = 0; isLessThan(i, eventKeysLength); postFixIncrement(ref i))
         {

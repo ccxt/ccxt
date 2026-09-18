@@ -561,7 +561,7 @@ public partial class coinmate : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        List<object> currencyIds = new List<object>(((IDictionary<string,object>)balances).Keys);
+        List<object> currencyIds = new List<object>(balances.Keys);
         for (int i = 0; isLessThan(i, currencyIds.Count); postFixIncrement(ref i))
         {
             string? currencyId = ((string)getValue(currencyIds, i));
@@ -703,7 +703,7 @@ public partial class coinmate : Exchange
         //     }
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        List<object> keys = new List<object>(((IDictionary<string,object>)data).Keys);
+        List<object> keys = new List<object>(data.Keys);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
@@ -916,7 +916,7 @@ public partial class coinmate : Exchange
         string? method = this.safeString(methods, code);
         if ((method == null))
         {
-            List<object> allowedCurrencies = new List<object>(((IDictionary<string,object>)methods).Keys);
+            List<object> allowedCurrencies = new List<object>(methods.Keys);
             throw new ExchangeError (add(add(this.id, " withdraw() only allows withdrawing the following currencies: "), String.Join(", ", allowedCurrencies.ToArray()))) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {

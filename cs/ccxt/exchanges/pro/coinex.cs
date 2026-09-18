@@ -275,7 +275,7 @@ public partial class coinex : ccxt.coinex
         // coinex throws a closes the websocket when subscribing over 1422 currencies, therefore we filter out inactive currencies
         List<object> activeCurrencies = this.filterBy(this.currencies_by_id, "active", true);
         Dictionary<string, object> activeCurrenciesById = this.indexBy(activeCurrencies, "id");
-        List<object> currencies = new List<object>(((IDictionary<string,object>)activeCurrenciesById).Keys);
+        List<object> currencies = new List<object>(activeCurrenciesById.Keys);
         if ((currencies == null))
         {
             currencies = new List<object>() {};
@@ -902,7 +902,7 @@ public partial class coinex : ccxt.coinex
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams(callerMethodName, market, parameters);
         type = (string)typeparametersVariable[0];
         parameters = typeparametersVariable[1];
-        List<object> marketList = new List<object>(((IDictionary<string,object>)watchOrderBookSubscriptions).Values);
+        List<object> marketList = new List<object>(watchOrderBookSubscriptions.Values);
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "method", "depth.subscribe" },
             { "params", new Dictionary<string, object>() {

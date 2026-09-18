@@ -4667,7 +4667,7 @@ public partial class htx : Exchange
                             subResult[(string)code] = this.parseMarginBalanceHelper(balance, code, subResult);
                         }
                     }
-                    List<object> subCodes = new List<object>(((IDictionary<string,object>)subResult).Keys);
+                    List<object> subCodes = new List<object>(subResult.Keys);
                     for (int j = 0; isLessThan(j, subCodes.Count); postFixIncrement(ref j))
                     {
                         string? subCode = ((string)getValue(subCodes, j));

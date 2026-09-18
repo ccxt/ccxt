@@ -1345,7 +1345,7 @@ public partial class weex : ccxt.weex
             callDynamically(trades, "append", new object[] {parsed});
         }
         string messageHash = "myTrades";
-        List<object> symbolKeys = new List<object>(((IDictionary<string,object>)symbols).Keys);
+        List<object> symbolKeys = new List<object>(symbols.Keys);
         Dictionary<string, object> market = this.getMarketFromSymbols(symbolKeys);
         if (isEqual(GetValue(market, "contract"), true))
         {
@@ -1580,7 +1580,7 @@ public partial class weex : ccxt.weex
             }
         }
         string messageHash = "orders";
-        List<object> symbolKeys = new List<object>(((IDictionary<string,object>)symbols).Keys);
+        List<object> symbolKeys = new List<object>(symbols.Keys);
         Dictionary<string, object> market = this.getMarketFromSymbols(symbolKeys);
         if (isEqual(GetValue(market, "contract"), true))
         {

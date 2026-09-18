@@ -558,7 +558,7 @@ public partial class bitvavo : ccxt.bitvavo
             ((IList<object>)messageHashes).Add(add(add(add(add(add("multi:", name), "@"), GetValue(market, "id")), "_"), interval));
         }
         List<object> channels = new List<object>() {};
-        List<object> intervals = new List<object>(((IDictionary<string,object>)marketIdsByInterval).Keys);
+        List<object> intervals = new List<object>(marketIdsByInterval.Keys);
         for (int i = 0; isLessThan(i, intervals.Count); postFixIncrement(ref i))
         {
             string? interval = ((string)getValue(intervals, i));
@@ -640,7 +640,7 @@ public partial class bitvavo : ccxt.bitvavo
             ((IList<object>)subMessageHashes).Add(add(add(add(add(add("multi:", name), "@"), GetValue(market, "id")), "_"), interval));
         }
         List<object> channels = new List<object>() {};
-        List<object> intervals = new List<object>(((IDictionary<string,object>)marketIdsByInterval).Keys);
+        List<object> intervals = new List<object>(marketIdsByInterval.Keys);
         for (int i = 0; isLessThan(i, intervals.Count); postFixIncrement(ref i))
         {
             string? interval = ((string)getValue(intervals, i));
@@ -1962,7 +1962,7 @@ public partial class bitvavo : ccxt.bitvavo
         Dictionary<string, object> methods = new Dictionary<string, object>() {
             { "book", this.handleOrderBookSubscriptions },
         };
-        List<object> names = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
+        List<object> names = new List<object>(subscriptions.Keys);
         for (int i = 0; isLessThan(i, names.Count); postFixIncrement(ref i))
         {
             string? name = ((string)getValue(names, i));

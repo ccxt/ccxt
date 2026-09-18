@@ -378,7 +378,7 @@ public partial class testMainClass
             { "depositWithdraw", new List<object>() {"fetchDepositsWithdrawals", "fetchDeposits", "fetchWithdrawals"} },
             { "depositWithdrawFee", new List<object>() {"fetchDepositWithdrawFee", "fetchDepositWithdrawFees"} },
         };
-        List<object> objectNames = new List<object>(((IDictionary<string,object>)objectSkips).Keys);
+        List<object> objectNames = new List<object>(objectSkips.Keys);
         for (int i = 0; isLessThan(i, objectNames.Count); postFixIncrement(ref i))
         {
             string? objectName = ((string)getValue(objectNames, i));

@@ -1038,7 +1038,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         if (isGreaterThan(length, 0))
         {
             callDynamically(client, "resolve", new object[] {this.orders, messageHash});
-            List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
+            List<object> keys = new List<object>(symbols.Keys);
             for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
             {
                 string? symbol = ((string)getValue(keys, i));
@@ -1608,7 +1608,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         if ((flexFutures != null))
         {
             IDictionary<string, object> flexFutureCurrencies = this.safeDict(flexFutures, "currencies", new Dictionary<string, object>() {});
-            List<object> flexFuturesKeys = new List<object>(((IDictionary<string,object>)flexFutureCurrencies).Keys); // multi-collateral margin account
+            List<object> flexFuturesKeys = new List<object>(flexFutureCurrencies.Keys); // multi-collateral margin account
             Dictionary<string, object> flexFuturesResult = new Dictionary<string, object>() {
                 { "info", message },
                 { "timestamp", timestamp },
@@ -1681,7 +1681,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             }
             callDynamically(stored, "append", new object[] {parsedTrade});
         }
-        List<object> tradeSymbolKeys = new List<object>(((IDictionary<string,object>)tradeSymbols).Keys);
+        List<object> tradeSymbolKeys = new List<object>(tradeSymbols.Keys);
         for (int i = 0; isLessThan(i, tradeSymbolKeys.Count); postFixIncrement(ref i))
         {
             string? symbol = ((string)getValue(tradeSymbolKeys, i));

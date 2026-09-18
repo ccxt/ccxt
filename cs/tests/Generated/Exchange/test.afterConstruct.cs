@@ -31,7 +31,7 @@ public partial class testMainClass : BaseTest
             }
             // 1) ensure 'networks' dictionary exists in options
             assert(exchange.isDictionary(networks), "exchange.options[\"networks\"] is not a dict");
-            if (((new List<object>(((IDictionary<string,object>)networks).Keys)).Count == 0))
+            if (((new List<object>(networks.Keys)).Count == 0))
             {
                 return;
             }

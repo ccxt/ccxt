@@ -602,7 +602,7 @@ public partial class mercado : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        List<object> currencyIds = new List<object>(((IDictionary<string,object>)balances).Keys);
+        List<object> currencyIds = new List<object>(balances.Keys);
         for (int i = 0; isLessThan(i, currencyIds.Count); postFixIncrement(ref i))
         {
             string? currencyId = ((string)getValue(currencyIds, i));

@@ -338,7 +338,7 @@ public partial class blockchaincom : Exchange
         //
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> markets = await this.publicGetSymbols(parameters);
-        List<object> marketIds = new List<object>(((IDictionary<string,object>)markets).Keys);
+        List<object> marketIds = new List<object>(markets.Keys);
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, marketIds.Count); postFixIncrement(ref i))
         {
@@ -713,11 +713,11 @@ public partial class blockchaincom : Exchange
         }
         bool priceRequired = false;
         bool stopPriceRequired = false;
-        if (isEqual(((IDictionary<string,object>)request)["ordType"], "LIMIT") || isEqual(((IDictionary<string,object>)request)["ordType"], "STOPLIMIT"))
+        if (isEqual(request["ordType"], "LIMIT") || isEqual(request["ordType"], "STOPLIMIT"))
         {
             priceRequired = true;
         }
-        if (isEqual(((IDictionary<string,object>)request)["ordType"], "STOP") || isEqual(((IDictionary<string,object>)request)["ordType"], "STOPLIMIT"))
+        if (isEqual(request["ordType"], "STOP") || isEqual(request["ordType"], "STOPLIMIT"))
         {
             stopPriceRequired = true;
         }

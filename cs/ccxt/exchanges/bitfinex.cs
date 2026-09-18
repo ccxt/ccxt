@@ -1090,9 +1090,9 @@ public partial class bitfinex : Exchange
             { "marginables", this.safeList(response, 10, new List<object>() {}) },
         };
         Dictionary<string, object> indexedNetworks = new Dictionary<string, object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(((IDictionary<string,object>)indexed)["networks"])); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(indexed["networks"])); postFixIncrement(ref i))
         {
-            object networkObj = getValue(((IDictionary<string,object>)indexed)["networks"], i);
+            object networkObj = getValue(indexed["networks"], i);
             string? networkId = this.safeString(networkObj, 0);
             List<object> valuesList = this.safeList(networkObj, 1);
             string? networkName = this.safeString(valuesList, 0);
@@ -1228,7 +1228,7 @@ public partial class bitfinex : Exchange
         string? accountType = this.safeString(accountsByType, requestedType, requestedType);
         if ((accountType == null))
         {
-            List<object> keys = new List<object>(((IDictionary<string,object>)accountsByType).Keys);
+            List<object> keys = new List<object>(accountsByType.Keys);
             throw new ExchangeError (add(add(this.id, " fetchBalance() type parameter must be one of "), String.Join(", ", keys.ToArray()))) ;
         }
         bool isDerivative = requestedType == "derivatives";
@@ -1292,13 +1292,13 @@ public partial class bitfinex : Exchange
         string? fromId = this.safeString(accountsByType, fromAccount);
         if ((fromId == null))
         {
-            List<object> keys = new List<object>(((IDictionary<string,object>)accountsByType).Keys);
+            List<object> keys = new List<object>(accountsByType.Keys);
             throw new ArgumentsRequired (add(add(this.id, " transfer() fromAccount must be one of "), String.Join(", ", keys.ToArray()))) ;
         }
         string? toId = this.safeString(accountsByType, toAccount);
         if ((toId == null))
         {
-            List<object> keys = new List<object>(((IDictionary<string,object>)accountsByType).Keys);
+            List<object> keys = new List<object>(accountsByType.Keys);
             throw new ArgumentsRequired (add(add(this.id, " transfer() toAccount must be one of "), String.Join(", ", keys.ToArray()))) ;
         }
         Dictionary<string, object> currency = this.currency(code);
@@ -1480,8 +1480,8 @@ public partial class bitfinex : Exchange
             string side = isTrue(Precise.stringGt(signedAmount, "0")) ? "bids" : "asks";
             ((IList<object>)getValue(result, side)).Add(new List<object>() {price, this.parseNumber(amount)});
         }
-        result["bids"] = this.sortBy(((IDictionary<string,object>)result)["bids"], 0, true);
-        result["asks"] = this.sortBy(((IDictionary<string,object>)result)["asks"], 0);
+        result["bids"] = this.sortBy(result["bids"], 0, true);
+        result["asks"] = this.sortBy(result["asks"], 0);
         return ccxt.BaseExchange.ToOrderBook(result);
     }
 

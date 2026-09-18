@@ -863,7 +863,7 @@ public partial class hitbtc : Exchange
         //     }
         //
         List<object> result = new List<object>() {};
-        List<object> ids = new List<object>(((IDictionary<string,object>)response).Keys);
+        List<object> ids = new List<object>(response.Keys);
         for (int i = 0; isLessThan(i, ids.Count); postFixIncrement(ref i))
         {
             string? id = ((string)getValue(ids, i));
@@ -1215,7 +1215,7 @@ public partial class hitbtc : Exchange
             response = await this.privateGetFuturesBalance(parameters);
         } else
         {
-            List<object> keys = new List<object>(((IDictionary<string,object>)accountsByType).Keys);
+            List<object> keys = new List<object>(accountsByType.Keys);
             throw new BadRequest (add(add(this.id, " fetchBalance() type parameter must be one of "), String.Join(", ", keys.ToArray()))) ;
         }
         //
@@ -1310,7 +1310,7 @@ public partial class hitbtc : Exchange
         //     }
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        List<object> keys = new List<object>(((IDictionary<string,object>)response).Keys);
+        List<object> keys = new List<object>(response.Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
             string? marketId = ((string)getValue(keys, i));
@@ -1404,7 +1404,7 @@ public partial class hitbtc : Exchange
         }
         Dictionary<string, object> response = await this.publicGetPublicTrades(this.extend(request, parameters));
         List<object> trades = new List<object>() {};
-        List<object> marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
+        List<object> marketIds = new List<object>(response.Keys);
         for (int i = 0; isLessThan(i, marketIds.Count); postFixIncrement(ref i))
         {
             string? marketId = ((string)getValue(marketIds, i));
@@ -1837,7 +1837,7 @@ public partial class hitbtc : Exchange
         }
         Dictionary<string, object> response = await this.publicGetPublicOrderbook(this.extend(request, parameters));
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        List<object> marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
+        List<object> marketIds = new List<object>(response.Keys);
         for (int i = 0; isLessThan(i, marketIds.Count); postFixIncrement(ref i))
         {
             string? marketId = ((string)getValue(marketIds, i));
@@ -3100,7 +3100,7 @@ public partial class hitbtc : Exchange
         }
         if ((isEqual(fromNetwork, null)) || (isEqual(toNetwork, null)))
         {
-            List<object> keys = new List<object>(((IDictionary<string,object>)networks).Keys);
+            List<object> keys = new List<object>(networks.Keys);
             throw new ArgumentsRequired (add(add(this.id, " convertCurrencyNetwork() requires a fromNetwork parameter and a toNetwork parameter, supported networks are "), String.Join(", ", keys.ToArray()))) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -3226,7 +3226,7 @@ public partial class hitbtc : Exchange
         //         }
         //     }
         //
-        List<object> marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
+        List<object> marketIds = new List<object>(response.Keys);
         Dictionary<string, object> fundingRates = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, marketIds.Count); postFixIncrement(ref i))
         {
@@ -3308,7 +3308,7 @@ public partial class hitbtc : Exchange
         //        ...
         //    }
         //
-        List<object> contracts = new List<object>(((IDictionary<string,object>)response).Keys);
+        List<object> contracts = new List<object>(response.Keys);
         List<object> rates = new List<object>() {};
         for (int i = 0; isLessThan(i, contracts.Count); postFixIncrement(ref i))
         {
@@ -3670,7 +3670,7 @@ public partial class hitbtc : Exchange
         //     }
         //
         List<object> results = new List<object>() {};
-        List<object> markets = new List<object>(((IDictionary<string,object>)response).Keys);
+        List<object> markets = new List<object>(response.Keys);
         for (int i = 0; isLessThan(i, markets.Count); postFixIncrement(ref i))
         {
             string? marketId = ((string)getValue(markets, i));

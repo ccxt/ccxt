@@ -508,7 +508,7 @@ public partial class luno : Exchange
         //
         List<object> currenciesData = this.safeList(response, "data", new List<object>() {});
         Dictionary<string, object> grouped = this.groupBy(currenciesData, "native_currency");
-        List<object> values = new List<object>(((IDictionary<string,object>)grouped).Values);
+        List<object> values = new List<object>(grouped.Values);
         return this.parseCurrencies(values);
     }
 
@@ -1068,7 +1068,7 @@ public partial class luno : Exchange
         Dictionary<string, object> response = await this.publicGetTickers(parameters);
         List<object> rawTickers = this.safeList(response, "tickers", new List<object>() {});
         Dictionary<string, object> tickers = this.indexBy(rawTickers, "pair");
-        List<object> ids = new List<object>(((IDictionary<string,object>)tickers).Keys);
+        List<object> ids = new List<object>(tickers.Keys);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, ids.Count); postFixIncrement(ref i))
         {

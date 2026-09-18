@@ -3085,7 +3085,7 @@ public partial class kucoin : Exchange
                 string? networkCodeNew = this.networkIdToCode(chainId, this.safeString(currencyVar, "code"));
                 if ((networkCodeNew != null))
                 {
-                    ((IDictionary<string,object>)((IDictionary<string,object>)resultNew)["networks"])[(string)networkCodeNew] = new Dictionary<string, object>() {
+                    ((IDictionary<string,object>)resultNew["networks"])[(string)networkCodeNew] = new Dictionary<string, object>() {
                         { "withdraw", new Dictionary<string, object>() {
                             { "fee", this.safeNumber2(chain, "withdrawalMinFee", "withdrawMinFee") },
                             { "percentage", false },
@@ -3118,7 +3118,7 @@ public partial class kucoin : Exchange
         string? networkCode = this.networkIdToCode(networkId, getValue(currencyVar, "code"));
         if ((networkCode != null))
         {
-            ((IDictionary<string,object>)((IDictionary<string,object>)result)["networks"])[(string)networkCode] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)result["networks"])[(string)networkCode] = new Dictionary<string, object>() {
                 { "withdraw", minWithdrawFee },
                 { "deposit", new Dictionary<string, object>() {
                     { "fee", null },
@@ -3143,7 +3143,7 @@ public partial class kucoin : Exchange
         string? type = this.safeString(accountsByType, requestedType);
         if ((type == null))
         {
-            List<object> keys = new List<object>(((IDictionary<string,object>)accountsByType).Keys);
+            List<object> keys = new List<object>(accountsByType.Keys);
             throw new ExchangeError (add(add(this.id, " isFuturesMethod() type must be one of "), String.Join(", ", keys.ToArray()))) ;
         }
         parameters = this.omit(parameters, "type");
@@ -10924,7 +10924,7 @@ public partial class kucoin : Exchange
                 ((IList<object>)borrowRateHistoriesCode).Add(borrowRateStructure);
             }
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)borrowRateHistories).Keys);
+        List<object> keys = new List<object>(borrowRateHistories.Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
             string? code = ((string)getValue(keys, i));

@@ -1850,10 +1850,10 @@ public partial class opinion : PredictionExchange
             { "apiKey", this.safeString(response, "apiKey") },
             { "walletAddress", this.safeString(response, "walletAddress") },
         };
-        ((IDictionary<string,object>)this.options)["apiKey"] = ((IDictionary<string,object>)creds)["apiKey"];
+        ((IDictionary<string,object>)this.options)["apiKey"] = creds["apiKey"];
         // checkRequiredCredentials() (called by createOrder()) checks this.apiKey, not
         // options['apiKey'] - keep both in sync, same as deleteApiKey() clearing both
-        this.apiKey = ((string)((IDictionary<string,object>)creds)["apiKey"]);
+        this.apiKey = ((string)creds["apiKey"]);
         return ((Dictionary<string, object>)((object)(creds)));
     }
 

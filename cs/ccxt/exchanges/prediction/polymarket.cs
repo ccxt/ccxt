@@ -1740,7 +1740,7 @@ public partial class polymarket : PredictionExchange
                 buckets[(string)bucketKey] = candle; // reassign after mutation, php arrays are value types
             }
         }
-        List<object> bucketKeys = new List<object>(((IDictionary<string,object>)buckets).Keys);
+        List<object> bucketKeys = new List<object>(buckets.Keys);
         List<object> unsortedCandles = new List<object>() {};
         for (int i = 0; isLessThan(i, bucketKeys.Count); postFixIncrement(ref i))
         {
@@ -1854,7 +1854,7 @@ public partial class polymarket : PredictionExchange
         openInterest["outcome"] = this.safeOutcomeSymbol(null, market);
         openInterest["outcomeId"] = this.safeString(market, "outcomeId");
         openInterest["market"] = this.safeString(market, "market");
-        ((IDictionary<string,object>)openInterest).Remove((string)"symbol");
+        openInterest.Remove((string)"symbol");
         return ((object)openInterest);
     }
 
@@ -3563,9 +3563,9 @@ public partial class polymarket : PredictionExchange
         };
         // cache in options rather than the typed apiKey/secret/password fields so the
         // assignment is valid in the struct-based languages (C#/Go/Java)
-        ((IDictionary<string,object>)this.options)["l2ApiKey"] = ((IDictionary<string,object>)creds)["apiKey"];
-        ((IDictionary<string,object>)this.options)["l2Secret"] = ((IDictionary<string,object>)creds)["secret"];
-        ((IDictionary<string,object>)this.options)["l2Passphrase"] = ((IDictionary<string,object>)creds)["passphrase"];
+        ((IDictionary<string,object>)this.options)["l2ApiKey"] = creds["apiKey"];
+        ((IDictionary<string,object>)this.options)["l2Secret"] = creds["secret"];
+        ((IDictionary<string,object>)this.options)["l2Passphrase"] = creds["passphrase"];
         return ((Dictionary<string, object>)((object)(creds)));
     }
 
@@ -3714,7 +3714,7 @@ public partial class polymarket : PredictionExchange
             ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
             updated[(string)outcome] = true;
         }
-        List<object> updatedSymbols = new List<object>(((IDictionary<string,object>)updated).Keys);
+        List<object> updatedSymbols = new List<object>(updated.Keys);
         for (int k = 0; isLessThan(k, updatedSymbols.Count); postFixIncrement(ref k))
         {
             string? outcome = ((string)getValue(updatedSymbols, k));

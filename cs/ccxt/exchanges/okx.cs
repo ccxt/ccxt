@@ -3022,7 +3022,7 @@ public partial class okx : Exchange
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
         Dictionary<string, object> dataByCurrencyId = this.groupBy(data, "ccy");
-        List<object> currencies = new List<object>(((IDictionary<string,object>)dataByCurrencyId).Values);
+        List<object> currencies = new List<object>(dataByCurrencyId.Values);
         return this.parseCurrencies(currencies);
     }
 
@@ -4537,7 +4537,7 @@ public partial class okx : Exchange
                 }
                 attachAlgoOrd = this.extend(attachAlgoOrd, tpOrder);
             }
-            List<object> attachOrdKeys = new List<object>(((IDictionary<string,object>)attachAlgoOrd).Keys);
+            List<object> attachOrdKeys = new List<object>(attachAlgoOrd.Keys);
             int attachOrdLen = attachOrdKeys.Count;
             if (isGreaterThan(attachOrdLen, 0))
             {
@@ -8821,7 +8821,7 @@ public partial class okx : Exchange
                 ((IList<object>)borrrowRateCode).Add(borrowRateStructure);
             }
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)borrowRateHistories).Keys);
+        List<object> keys = new List<object>(borrowRateHistories.Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
             string? code = ((string)getValue(keys, i));
@@ -9826,7 +9826,7 @@ public partial class okx : Exchange
                 }
             }
         }
-        List<object> depositWithdrawCodes = new List<object>(((IDictionary<string,object>)depositWithdrawFees).Keys);
+        List<object> depositWithdrawCodes = new List<object>(depositWithdrawFees.Keys);
         for (int i = 0; isLessThan(i, depositWithdrawCodes.Count); postFixIncrement(ref i))
         {
             string? code = ((string)getValue(depositWithdrawCodes, i));

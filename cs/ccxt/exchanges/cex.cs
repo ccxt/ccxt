@@ -419,7 +419,7 @@ public partial class cex : Exchange
         double? currencyPrecision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "precision")));
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         IDictionary<string, object> rawNetworks = this.safeDict(rawCurrency, "blockchains", new Dictionary<string, object>() {});
-        List<object> keys = new List<object>(((IDictionary<string,object>)rawNetworks).Keys);
+        List<object> keys = new List<object>(rawNetworks.Keys);
         for (int j = 0; isLessThan(j, keys.Count); postFixIncrement(ref j))
         {
             string? networkId = ((string)getValue(keys, j));

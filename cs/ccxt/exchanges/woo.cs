@@ -1476,7 +1476,7 @@ public partial class woo : Exchange
         List<object> tokenNetworkRows = this.safeList(tokenNetworkResponse, "rows", new List<object>() {});
         Dictionary<string, object> networksById = this.groupBy(tokenNetworkRows, "token");
         Dictionary<string, object> tokensById = this.groupBy(tokenRows, "balance_token");
-        List<object> currencyIds = new List<object>(((IDictionary<string,object>)tokensById).Keys);
+        List<object> currencyIds = new List<object>(tokensById.Keys);
         for (int i = 0; isLessThan(i, currencyIds.Count); postFixIncrement(ref i))
         {
             string? id = ((string)getValue(currencyIds, i));
@@ -1501,7 +1501,7 @@ public partial class woo : Exchange
         string? code = this.safeCurrencyCode(currencyId);
         Dictionary<string, object> tokensByNetworkId = this.indexBy(getValue(rawCurrency, "_tokens_by_id"), "network");
         Dictionary<string, object> chainsByNetworkId = this.indexBy(getValue(rawCurrency, "_networks_by_id"), "network");
-        List<object> keys = new List<object>(((IDictionary<string,object>)chainsByNetworkId).Keys);
+        List<object> keys = new List<object>(chainsByNetworkId.Keys);
         Dictionary<string, object> resultingNetworks = new Dictionary<string, object>() {};
         for (int j = 0; isLessThan(j, keys.Count); postFixIncrement(ref j))
         {
@@ -1829,7 +1829,7 @@ public partial class woo : Exchange
                 { "algoType", "POSITIONAL_TP_SL" },
                 { "childOrders", new List<object>() {} },
             };
-            object childOrders = ((IDictionary<string,object>)outterOrder)["childOrders"];
+            object childOrders = outterOrder["childOrders"];
             string closeSide = (orderSide == "BUY") ? "SELL" : "BUY";
             if (hasStopLoss)
             {

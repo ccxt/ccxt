@@ -1064,7 +1064,7 @@ public partial class whitebit : Exchange
         //           {...}
         //      }
         //
-        List<object> currenciesIds = new List<object>(((IDictionary<string,object>)response).Keys);
+        List<object> currenciesIds = new List<object>(response.Keys);
         Dictionary<string, object> withdrawFees = new Dictionary<string, object>() {};
         Dictionary<string, object> depositFees = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, currenciesIds.Count); postFixIncrement(ref i))
@@ -1242,7 +1242,7 @@ public partial class whitebit : Exchange
                 }
             }
         }
-        List<object> depositWithdrawCodes = new List<object>(((IDictionary<string,object>)depositWithdrawFees).Keys);
+        List<object> depositWithdrawCodes = new List<object>(depositWithdrawFees.Keys);
         for (int i = 0; isLessThan(i, depositWithdrawCodes.Count); postFixIncrement(ref i))
         {
             string? code = ((string)getValue(depositWithdrawCodes, i));
@@ -1570,7 +1570,7 @@ public partial class whitebit : Exchange
                             { "percent", this.safeNumber(getValue(depositFee, "flex"), "percent") },
                         };
                     }
-                    ((IDictionary<string,object>)((IDictionary<string,object>)limits)["deposit"])["fee"] = depositFeeData;
+                    ((IDictionary<string,object>)limits["deposit"])["fee"] = depositFeeData;
                 }
                 if (((withdrawFee != null)) && ((withdrawFee != null)))
                 {
@@ -1585,7 +1585,7 @@ public partial class whitebit : Exchange
                             { "percent", this.safeNumber(getValue(withdrawFee, "flex"), "percent") },
                         };
                     }
-                    ((IDictionary<string,object>)((IDictionary<string,object>)limits)["withdraw"])["fee"] = withdrawFeeData;
+                    ((IDictionary<string,object>)limits["withdraw"])["fee"] = withdrawFeeData;
                 }
             }
             // Add network-specific limits if available
@@ -1827,7 +1827,7 @@ public partial class whitebit : Exchange
             {
                 Dictionary<string, object> response = await this.v4PrivatePostTradeAccountOrderHistory(this.extend(request, parameters));
                 // Search for order in executed orders response (object format)
-                List<object> marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
+                List<object> marketIds = new List<object>(response.Keys);
                 for (int i = 0; isLessThan(i, marketIds.Count); postFixIncrement(ref i))
                 {
                     string? marketId = ((string)getValue(marketIds, i));
@@ -1975,7 +1975,7 @@ public partial class whitebit : Exchange
         {
             return ccxt.BaseExchange.ToTickers(this.parseTickers(resultList, symbols));
         }
-        List<object> marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
+        List<object> marketIds = new List<object>(response.Keys);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, marketIds.Count); postFixIncrement(ref i))
         {
@@ -3017,7 +3017,7 @@ public partial class whitebit : Exchange
         //         ],
         //     }
         //
-        List<object> marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
+        List<object> marketIds = new List<object>(response.Keys);
         IList<object> results = new List<object>() {};
         for (int i = 0; isLessThan(i, marketIds.Count); postFixIncrement(ref i))
         {
@@ -4970,7 +4970,7 @@ public partial class whitebit : Exchange
                 } else
                 {
                     IDictionary<string, object> errorObject = this.safeDict(response, "errors", new Dictionary<string, object>() {});
-                    List<object> errorKeys = new List<object>(((IDictionary<string,object>)errorObject).Keys);
+                    List<object> errorKeys = new List<object>(errorObject.Keys);
                     int errorsLength = errorKeys.Count;
                     if (isGreaterThan(errorsLength, 0))
                     {
@@ -4989,7 +4989,7 @@ public partial class whitebit : Exchange
             if ((success != true))
             {
                 IDictionary<string, object> errMsg = this.safeDict(response, "message", new Dictionary<string, object>() {});
-                List<object> errKeys = new List<object>(((IDictionary<string,object>)errMsg).Keys);
+                List<object> errKeys = new List<object>(errMsg.Keys);
                 int errKeysLength = errKeys.Count;
                 object errorInfo = body;
                 if (isGreaterThan(errKeysLength, 0))

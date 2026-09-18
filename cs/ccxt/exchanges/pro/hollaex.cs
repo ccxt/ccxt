@@ -285,7 +285,7 @@ public partial class hollaex : ccxt.hollaex
         }
         // non-symbol specific
         callDynamically(client, "resolve", new object[] {this.myTrades, channel});
-        List<object> keys = new List<object>(((IDictionary<string,object>)marketIds).Keys);
+        List<object> keys = new List<object>(marketIds.Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
             string? marketId = ((string)getValue(keys, i));
@@ -427,7 +427,7 @@ public partial class hollaex : ccxt.hollaex
         }
         // non-symbol specific
         callDynamically(client, "resolve", new object[] {this.orders, channel});
-        List<object> keys = new List<object>(((IDictionary<string,object>)marketIds).Keys);
+        List<object> keys = new List<object>(marketIds.Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
             string? marketId = ((string)getValue(keys, i));

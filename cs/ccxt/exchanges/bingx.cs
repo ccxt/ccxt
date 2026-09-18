@@ -3660,8 +3660,8 @@ public partial class bingx : Exchange
             if (isTwapOrder)
             {
                 Dictionary<string, object> twapRequest = new Dictionary<string, object>() {
-                    { "symbol", ((IDictionary<string,object>)request)["symbol"] },
-                    { "side", ((IDictionary<string,object>)request)["side"] },
+                    { "symbol", request["symbol"] },
+                    { "side", request["side"] },
                     { "positionSide", (isEqual(side, "buy")) ? "LONG" : "SHORT" },
                     { "triggerPrice", this.parseToNumeric(this.priceToPrecision(symbol, triggerPrice)) },
                     { "totalAmount", this.parseToNumeric(this.amountToPrecision(symbol, amount)) },
@@ -6344,7 +6344,7 @@ public partial class bingx : Exchange
         // currencie structure
         //
         IDictionary<string, object> networks = this.safeDict(fee, "networks", new Dictionary<string, object>() {});
-        List<object> networkCodes = new List<object>(((IDictionary<string,object>)networks).Keys);
+        List<object> networkCodes = new List<object>(networks.Keys);
         int networksLength = networkCodes.Count;
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", networks },
@@ -6364,7 +6364,7 @@ public partial class bingx : Exchange
             {
                 string? networkCode = ((string)getValue(networkCodes, i));
                 object network = getValue(networks, networkCode);
-                ((IDictionary<string,object>)((IDictionary<string,object>)result)["networks"])[(string)networkCode] = new Dictionary<string, object>() {
+                ((IDictionary<string,object>)result["networks"])[(string)networkCode] = new Dictionary<string, object>() {
                     { "deposit", new Dictionary<string, object>() {
                         { "fee", null },
                         { "percentage", null },
@@ -6376,8 +6376,8 @@ public partial class bingx : Exchange
                 };
                 if ((networksLength == 1))
                 {
-                    ((IDictionary<string,object>)((IDictionary<string,object>)result)["withdraw"])["fee"] = this.safeNumber(network, "withdrawFee");
-                    ((IDictionary<string,object>)((IDictionary<string,object>)result)["withdraw"])["percentage"] = false;
+                    ((IDictionary<string,object>)result["withdraw"])["fee"] = this.safeNumber(network, "withdrawFee");
+                    ((IDictionary<string,object>)result["withdraw"])["percentage"] = false;
                 }
             }
         }
@@ -6402,7 +6402,7 @@ public partial class bingx : Exchange
         }
         IDictionary<string, object> response = await this.fetchCurrencies(parameters);
         Dictionary<string, object> depositWithdrawFees = new Dictionary<string, object>() {};
-        List<object> responseCodes = new List<object>(((IDictionary<string,object>)response).Keys);
+        List<object> responseCodes = new List<object>(response.Keys);
         for (int i = 0; isLessThan(i, responseCodes.Count); postFixIncrement(ref i))
         {
             string? code = ((string)getValue(responseCodes, i));

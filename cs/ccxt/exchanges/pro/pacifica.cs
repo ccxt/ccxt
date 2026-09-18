@@ -850,7 +850,7 @@ public partial class pacifica : ccxt.pacifica
             }
             callDynamically(trades, "append", new object[] {parsed});
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
+        List<object> keys = new List<object>(symbols.Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
             string currentMessageHash = add("myTrades:", getValue(keys, i));
@@ -1345,7 +1345,7 @@ public partial class pacifica : ccxt.pacifica
                 marketSymbols[(string)symbol] = true;
             }
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)marketSymbols).Keys);
+        List<object> keys = new List<object>(marketSymbols.Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
             string? symbol = ((string)getValue(keys, i));
@@ -1557,7 +1557,7 @@ public partial class pacifica : ccxt.pacifica
             this.handleWsPost(client, (Dictionary<string, object>)message);
             return;
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)methods).Keys);
+        List<object> keys = new List<object>(methods.Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
             string? key = ((string)getValue(keys, i));
@@ -1604,7 +1604,7 @@ public partial class pacifica : ccxt.pacifica
             { "id", requestId },
             { "params", new Dictionary<string, object>() {} },
         };
-        ((IDictionary<string,object>)((IDictionary<string,object>)payload)["params"])[(string)operationType] = request;
+        ((IDictionary<string,object>)payload["params"])[(string)operationType] = request;
         return ((Dictionary<string, object>)((object)(payload)));
     }
 

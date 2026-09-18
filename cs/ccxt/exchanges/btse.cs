@@ -1247,7 +1247,7 @@ public partial class btse : Exchange
                 frees[(string)code] = Precise.stringAdd(this.safeString(frees, code, "0"), this.safeString2(row, "availableAmount", "available"));
             }
         }
-        List<object> codes = new List<object>(((IDictionary<string,object>)totals).Keys);
+        List<object> codes = new List<object>(totals.Keys);
         for (int i = 0; isLessThan(i, codes.Count); postFixIncrement(ref i))
         {
             string? code = ((string)getValue(codes, i));
@@ -1344,7 +1344,7 @@ public partial class btse : Exchange
         // the exchange only provides the cap of each risk tier, so the floor
         // is derived from the previous tier: 0 for the first tier, and the
         // previous tier's maxNotional for every subsequent tier
-        List<object> symbolKeys = new List<object>(((IDictionary<string,object>)result).Keys);
+        List<object> symbolKeys = new List<object>(result.Keys);
         for (int i = 0; isLessThan(i, symbolKeys.Count); postFixIncrement(ref i))
         {
             string? symbolKey = ((string)getValue(symbolKeys, i));

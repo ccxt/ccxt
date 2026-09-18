@@ -3238,7 +3238,7 @@ public partial class kucoin : ccxt.kucoin
         }
         object cache = (this.positions as ArrayCache).hashmap;
         IDictionary<string, object> symbolCache = this.safeDict(cache, symbol, new Dictionary<string, object>() {});
-        List<object> values = new List<object>(((IDictionary<string,object>)symbolCache).Values);
+        List<object> values = new List<object>(symbolCache.Values);
         return this.safeValue(values, 0);
     }
 
@@ -3418,13 +3418,13 @@ public partial class kucoin : ccxt.kucoin
         string messageHash = add("position:", symbol);
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> newPosition = this.parsePosition(data);
-        List<object> keys = new List<object>(((IDictionary<string,object>)newPosition).Keys);
+        List<object> keys = new List<object>(newPosition.Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
             string? key = ((string)getValue(keys, i));
             if (isEqual(getValue(newPosition, key), null))
             {
-                ((IDictionary<string,object>)newPosition).Remove((string)key);
+                newPosition.Remove((string)key);
             }
         }
         Dictionary<string, object> position = this.extend(currentPosition, newPosition);
@@ -3469,13 +3469,13 @@ public partial class kucoin : ccxt.kucoin
         object cache = this.positions;
         object currentPosition = this.getCurrentPosition(symbol);
         Dictionary<string, object> newPosition = this.parseWsUtaPosition(data);
-        List<object> keys = new List<object>(((IDictionary<string,object>)newPosition).Keys);
+        List<object> keys = new List<object>(newPosition.Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
             string? key = ((string)getValue(keys, i));
             if (isEqual(getValue(newPosition, key), null))
             {
-                ((IDictionary<string,object>)newPosition).Remove((string)key);
+                newPosition.Remove((string)key);
             }
         }
         Dictionary<string, object> position = this.extend(currentPosition, newPosition);

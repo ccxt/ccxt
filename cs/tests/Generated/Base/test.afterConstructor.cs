@@ -71,7 +71,7 @@ public partial class BaseTest
             //
             // CASE B: when sandbox is enabled
             //
-            ((IDictionary<string,object>)((IDictionary<string,object>)opts)["options"])["sandbox"] = true;
+            ((IDictionary<string,object>)opts["options"])["sandbox"] = true;
             var exchange4 = new ccxt.Exchange(opts);
             helperTestSandboxState(exchange4, true);
             exchange4.setSandboxMode(false);

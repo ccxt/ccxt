@@ -916,8 +916,8 @@ public partial class mudrex : Exchange
         IDictionary<string, object> data = this.safeDict(response, "data", response);
         // the create response omits the order/trigger type, so parse a merged copy - the base derivations, like timeInForce, need to see them - then keep the untouched raw payload under info
         Dictionary<string, object> merged = this.extend(data, new Dictionary<string, object>() {
-            { "order_type", ((IDictionary<string,object>)request)["order_type"] },
-            { "trigger_type", ((IDictionary<string,object>)request)["trigger_type"] },
+            { "order_type", request["order_type"] },
+            { "trigger_type", request["trigger_type"] },
         });
         Dictionary<string, object> order = this.parseOrder(merged, market);
         order["info"] = data;

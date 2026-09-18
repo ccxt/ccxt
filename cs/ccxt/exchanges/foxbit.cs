@@ -1165,17 +1165,17 @@ public partial class foxbit : Exchange
                 {
                     request["time_in_force"] = timeInForce;
                 }
-                ((IDictionary<string,object>)orderParams).Remove((string)"timeInForce");
+                orderParams.Remove((string)"timeInForce");
             }
             if ((postOnly == true))
             {
                 request["post_only"] = true;
-                ((IDictionary<string,object>)orderParams).Remove((string)"postOnly");
+                orderParams.Remove((string)"postOnly");
             }
             if (!isEqual(triggerPrice, null))
             {
                 request["stop_price"] = this.priceToPrecision(symbol, triggerPrice);
-                ((IDictionary<string,object>)orderParams).Remove((string)"triggerPrice");
+                orderParams.Remove((string)"triggerPrice");
             }
             if (type == "INSTANT")
             {
@@ -1731,20 +1731,20 @@ public partial class foxbit : Exchange
         };
         if (isEqual(typeVar, "LIMIT") || isEqual(typeVar, "MARKET"))
         {
-            ((IDictionary<string,object>)((IDictionary<string,object>)request)["create"])["quantity"] = this.amountToPrecision(symbol, amount);
+            ((IDictionary<string,object>)request["create"])["quantity"] = this.amountToPrecision(symbol, amount);
             if (isEqual(typeVar, "LIMIT"))
             {
-                ((IDictionary<string,object>)((IDictionary<string,object>)request)["create"])["price"] = this.priceToPrecision(symbol, price);
+                ((IDictionary<string,object>)request["create"])["price"] = this.priceToPrecision(symbol, price);
             }
         }
         if (isEqual(typeVar, "STOP_MARKET"))
         {
-            ((IDictionary<string,object>)((IDictionary<string,object>)request)["create"])["stop_price"] = this.priceToPrecision(symbol, price);
-            ((IDictionary<string,object>)((IDictionary<string,object>)request)["create"])["quantity"] = this.amountToPrecision(symbol, amount);
+            ((IDictionary<string,object>)request["create"])["stop_price"] = this.priceToPrecision(symbol, price);
+            ((IDictionary<string,object>)request["create"])["quantity"] = this.amountToPrecision(symbol, amount);
         }
         if (isEqual(typeVar, "INSTANT"))
         {
-            ((IDictionary<string,object>)((IDictionary<string,object>)request)["create"])["amount"] = this.priceToPrecision(symbol, amount);
+            ((IDictionary<string,object>)request["create"])["amount"] = this.priceToPrecision(symbol, amount);
         }
         Dictionary<string, object> response = await this.v3PrivatePostOrdersCancelReplace(this.extend(request, parameters));
         // {

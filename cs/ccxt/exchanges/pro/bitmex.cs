@@ -485,7 +485,7 @@ public partial class bitmex : ccxt.bitmex
         }
         callDynamically(client, "resolve", new object[] {newLiquidations, "liquidations"});
         Dictionary<string, object> liquidationsBySymbol = this.indexBy(newLiquidations, "symbol");
-        List<object> symbols = new List<object>(((IDictionary<string,object>)liquidationsBySymbol).Keys);
+        List<object> symbols = new List<object>(liquidationsBySymbol.Keys);
         for (int i = 0; isLessThan(i, symbols.Count); postFixIncrement(ref i))
         {
             string? symbol = ((string)getValue(symbols, i));
@@ -689,7 +689,7 @@ public partial class bitmex : ccxt.bitmex
         string table = "trade";
         List<object> data = ((List<object>)this.safeValue(message, "data", new List<object>() {}));
         Dictionary<string, object> dataByMarketIds = this.groupBy(data, "symbol");
-        List<object> marketIds = new List<object>(((IDictionary<string,object>)dataByMarketIds).Keys);
+        List<object> marketIds = new List<object>(dataByMarketIds.Keys);
         for (int i = 0; isLessThan(i, marketIds.Count); postFixIncrement(ref i))
         {
             string? marketId = ((string)getValue(marketIds, i));
@@ -982,7 +982,7 @@ public partial class bitmex : ccxt.bitmex
                 // the ArrayCacheBySymbolBySide index (see issue #29001).
                 string? symbol = this.safeString(position, "symbol");
                 IDictionary<string, object> cachedBySide = this.safeDict((cache as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
-                List<object> cachedSides = new List<object>(((IDictionary<string,object>)cachedBySide).Keys);
+                List<object> cachedSides = new List<object>(cachedBySide.Keys);
                 int sidesLength = cachedSides.Count;
                 if ((sidesLength == 1))
                 {
@@ -1235,7 +1235,7 @@ public partial class bitmex : ccxt.bitmex
                 symbols[(string)((string)symbol)] = true;
             }
             callDynamically(client, "resolve", new object[] {this.orders, messageHash});
-            List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
+            List<object> keys = new List<object>(symbols.Keys);
             for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
             {
                 string? symbol = ((string)getValue(keys, i));
@@ -1369,7 +1369,7 @@ public partial class bitmex : ccxt.bitmex
         {
             callDynamically(client, "resolve", new object[] {stored, messageHash});
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
+        List<object> keys = new List<object>(symbols.Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
             callDynamically(client, "resolve", new object[] {stored, add(add(messageHash, ":"), getValue(keys, i))});
@@ -1623,7 +1623,7 @@ public partial class bitmex : ccxt.bitmex
             callDynamically(stored, "append", new object[] {result});
             results[(string)messageHash] = stored;
         }
-        List<object> messageHashes = new List<object>(((IDictionary<string,object>)results).Keys);
+        List<object> messageHashes = new List<object>(results.Keys);
         for (int i = 0; isLessThan(i, messageHashes.Count); postFixIncrement(ref i))
         {
             string? messageHash = ((string)getValue(messageHashes, i));
@@ -1768,7 +1768,7 @@ public partial class bitmex : ccxt.bitmex
                 ((IDictionary<string,object>)orderbook)["timestamp"] = this.parse8601(datetime);
                 ((IDictionary<string,object>)orderbook)["datetime"] = datetime;
             }
-            List<object> marketIds = new List<object>(((IDictionary<string,object>)numUpdatesByMarketId).Keys);
+            List<object> marketIds = new List<object>(numUpdatesByMarketId.Keys);
             for (int i = 0; isLessThan(i, marketIds.Count); postFixIncrement(ref i))
             {
                 string? marketId = ((string)getValue(marketIds, i));

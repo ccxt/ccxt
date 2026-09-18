@@ -1035,7 +1035,7 @@ public partial class kalshi : PredictionExchange
         }, market);
         openInterest["outcome"] = this.safeOutcomeSymbol(null, market);
         openInterest["outcomeId"] = this.safeString(market, "outcomeId");
-        ((IDictionary<string,object>)openInterest).Remove((string)"symbol");
+        openInterest.Remove((string)"symbol");
         return openInterest;
     }
 

@@ -1995,7 +1995,7 @@ public partial class bitget : ccxt.bitget
                 marketSymbols[(string)symbol] = true;
             }
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)marketSymbols).Keys);
+        List<object> keys = new List<object>(marketSymbols.Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
             string? symbol = ((string)getValue(keys, i));

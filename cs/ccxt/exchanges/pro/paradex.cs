@@ -258,10 +258,10 @@ public partial class paradex : ccxt.paradex
             string? size = this.safeString(insert, "size");
             if (side == "BUY")
             {
-                ((IList<object>)((IDictionary<string,object>)orderbookData)["bids"]).Add(new List<object>() {price, size});
+                ((IList<object>)orderbookData["bids"]).Add(new List<object>() {price, size});
             } else
             {
-                ((IList<object>)((IDictionary<string,object>)orderbookData)["asks"]).Add(new List<object>() {price, size});
+                ((IList<object>)orderbookData["asks"]).Add(new List<object>() {price, size});
             }
         }
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);

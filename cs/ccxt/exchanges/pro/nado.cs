@@ -1158,7 +1158,7 @@ public partial class nado : ccxt.nado
             { "stream", this.deepExtend(stream, parameters) },
             { "id", this.requestId() },
         };
-        string subscribeHash = add("subscribe:", this.json(((IDictionary<string,object>)request)["stream"]));
+        string subscribeHash = add("subscribe:", this.json(request["stream"]));
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "streamType", streamType },
             { "symbol", this.safeString(market, "symbol") },
@@ -1827,7 +1827,7 @@ public partial class nado : ccxt.nado
         //
         Int64? timestamp = this.safeInteger(message, "time");
         IDictionary<string, object> bbos = this.safeDict(message, "bbos", new Dictionary<string, object>() {});
-        List<object> marketIds = new List<object>(((IDictionary<string,object>)bbos).Keys);
+        List<object> marketIds = new List<object>(bbos.Keys);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, marketIds.Count); postFixIncrement(ref i))
         {
@@ -1857,7 +1857,7 @@ public partial class nado : ccxt.nado
     public virtual void handleAllBidsAsks(WebSocketClient client, Dictionary<string, object> message)
     {
         Dictionary<string, object> tickers = this.parseWsAllBidsAsks(message);
-        List<object> symbols = new List<object>(((IDictionary<string,object>)tickers).Keys);
+        List<object> symbols = new List<object>(tickers.Keys);
         for (int i = 0; isLessThan(i, symbols.Count); postFixIncrement(ref i))
         {
             string? symbol = ((string)getValue(symbols, i));

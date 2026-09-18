@@ -653,7 +653,7 @@ public partial class bithumb : Exchange
         } else
         {
             IDictionary<string, object> quoteCurrencies = this.safeDict(this.options, "quoteCurrencies", new Dictionary<string, object>() {});
-            List<object> quotes = new List<object>(((IDictionary<string,object>)quoteCurrencies).Keys);
+            List<object> quotes = new List<object>(quoteCurrencies.Keys);
             List<object> promises = new List<object>() {};
             for (int i = 0; isLessThan(i, quotes.Count); postFixIncrement(ref i))
             {
@@ -668,7 +668,7 @@ public partial class bithumb : Exchange
                 object response = getValue(results, i);
                 IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
                 IDictionary<string, object> extension = this.safeDict(quoteCurrencies, quote, new Dictionary<string, object>() {});
-                List<object> currencyIds = new List<object>(((IDictionary<string,object>)data).Keys);
+                List<object> currencyIds = new List<object>(data.Keys);
                 for (int j = 0; isLessThan(j, currencyIds.Count); postFixIncrement(ref j))
                 {
                     string? currencyId = ((string)getValue(currencyIds, j));
@@ -1250,7 +1250,7 @@ public partial class bithumb : Exchange
         } else
         {
             IDictionary<string, object> quoteCurrencies = this.safeDict(this.options, "quoteCurrencies", new Dictionary<string, object>() {});
-            List<object> quotes = new List<object>(((IDictionary<string,object>)quoteCurrencies).Keys);
+            List<object> quotes = new List<object>(quoteCurrencies.Keys);
             if (!isEqual(symbols, null))
             {
                 Dictionary<string, object> requiredQuotes = new Dictionary<string, object>() {};
@@ -1264,7 +1264,7 @@ public partial class bithumb : Exchange
                         requiredQuotes[(string)quoteId] = true;
                     }
                 }
-                List<object> requiredQuoteIds = new List<object>(((IDictionary<string,object>)requiredQuotes).Keys);
+                List<object> requiredQuoteIds = new List<object>(requiredQuotes.Keys);
                 string? populatedQuotes = this.safeString(requiredQuoteIds, 0);
                 if ((populatedQuotes != null))
                 {

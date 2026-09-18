@@ -409,7 +409,7 @@ public partial class hollaex : Exchange
         //     }
         //
         IDictionary<string, object> pairs = this.safeDict(response, "pairs", new Dictionary<string, object>() {});
-        List<object> keys = new List<object>(((IDictionary<string,object>)pairs).Keys);
+        List<object> keys = new List<object>(pairs.Keys);
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
@@ -551,7 +551,7 @@ public partial class hollaex : Exchange
         //     }
         //
         IDictionary<string, object> coins = this.safeDict(response, "coins", new Dictionary<string, object>() {});
-        List<object> values = new List<object>(((IDictionary<string,object>)coins).Values);
+        List<object> values = new List<object>(coins.Values);
         return this.parseCurrencies(values);
     }
 
@@ -564,7 +564,7 @@ public partial class hollaex : Exchange
         string type = (rawType == "blockchain") ? "crypto" : "other";
         IDictionary<string, object> rawNetworks = this.safeDict(rawCurrency, "withdrawal_fees", new Dictionary<string, object>() {});
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
-        List<object> networkIds = new List<object>(((IDictionary<string,object>)rawNetworks).Keys);
+        List<object> networkIds = new List<object>(rawNetworks.Keys);
         for (int j = 0; isLessThan(j, networkIds.Count); postFixIncrement(ref j))
         {
             string? networkId = ((string)getValue(networkIds, j));
@@ -635,7 +635,7 @@ public partial class hollaex : Exchange
         }
         Dictionary<string, object> response = await this.publicGetOrderbooks(parameters);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        List<object> marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
+        List<object> marketIds = new List<object>(response.Keys);
         for (int i = 0; isLessThan(i, marketIds.Count); postFixIncrement(ref i))
         {
             string? marketId = ((string)getValue(marketIds, i));
@@ -2154,7 +2154,7 @@ public partial class hollaex : Exchange
                 }
                 string networkCodeUpper = networkCode.ToUpper(); // default to the upper case network code
                 double? withdrawalFee = this.safeNumber(value, "value");
-                ((IDictionary<string,object>)((IDictionary<string,object>)result)["networks"])[networkCodeUpper] = new Dictionary<string, object>() {
+                ((IDictionary<string,object>)result["networks"])[networkCodeUpper] = new Dictionary<string, object>() {
                     { "deposit", null },
                     { "withdraw", withdrawalFee },
                 };

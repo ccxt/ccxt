@@ -427,7 +427,7 @@ public partial class coinone : ccxt.coinone
                 DynamicInvoker.InvokeMethod(exacMethod, new object[] { client, message});
                 return;
             }
-            List<object> keys = new List<object>(((IDictionary<string,object>)methods).Keys);
+            List<object> keys = new List<object>(methods.Keys);
             for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
             {
                 string? key = ((string)getValue(keys, i));

@@ -5473,7 +5473,7 @@ public partial class binance : Exchange
         double? stepSize = this.safeNumber(market, "stepSize");
         if (!isEqual(stepSize, null))
         {
-            ((IDictionary<string,object>)((IDictionary<string,object>)entry)["precision"])["amount"] = stepSize;
+            ((IDictionary<string,object>)entry["precision"])["amount"] = stepSize;
         }
         if (filtersByType.ContainsKey("PRICE_FILTER"))
         {
@@ -5482,17 +5482,17 @@ public partial class binance : Exchange
             // since they updated filter types in November 2018
             // https://github.com/ccxt/ccxt/issues/4286
             // therefore limits['price']['max'] doesn't have any meaningful value except undefined
-            ((IDictionary<string,object>)((IDictionary<string,object>)entry)["limits"])["price"] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)entry["limits"])["price"] = new Dictionary<string, object>() {
                 { "min", this.safeNumber(filter, "minPrice") },
                 { "max", this.safeNumber(filter, "maxPrice") },
             };
-            ((IDictionary<string,object>)((IDictionary<string,object>)entry)["precision"])["price"] = this.safeNumber(filter, "tickSize");
+            ((IDictionary<string,object>)entry["precision"])["price"] = this.safeNumber(filter, "tickSize");
         }
         if (filtersByType.ContainsKey("LOT_SIZE"))
         {
             IDictionary<string, object> filter = this.safeDict(filtersByType, "LOT_SIZE", new Dictionary<string, object>() {});
-            ((IDictionary<string,object>)((IDictionary<string,object>)entry)["precision"])["amount"] = this.safeNumber(filter, "stepSize");
-            ((IDictionary<string,object>)((IDictionary<string,object>)entry)["limits"])["amount"] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)entry["precision"])["amount"] = this.safeNumber(filter, "stepSize");
+            ((IDictionary<string,object>)entry["limits"])["amount"] = new Dictionary<string, object>() {
                 { "min", this.safeNumber(filter, "minQty") },
                 { "max", this.safeNumber(filter, "maxQty") },
             };
@@ -5500,7 +5500,7 @@ public partial class binance : Exchange
         if (filtersByType.ContainsKey("MARKET_LOT_SIZE"))
         {
             IDictionary<string, object> filter = this.safeDict(filtersByType, "MARKET_LOT_SIZE", new Dictionary<string, object>() {});
-            ((IDictionary<string,object>)((IDictionary<string,object>)entry)["limits"])["market"] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)entry["limits"])["market"] = new Dictionary<string, object>() {
                 { "min", this.safeNumber(filter, "minQty") },
                 { "max", this.safeNumber(filter, "maxQty") },
             };
@@ -5508,8 +5508,8 @@ public partial class binance : Exchange
         if ((filtersByType.ContainsKey("MIN_NOTIONAL")) || (filtersByType.ContainsKey("NOTIONAL")))
         {
             IDictionary<string, object> filter = this.safeDict2(filtersByType, "MIN_NOTIONAL", "NOTIONAL", new Dictionary<string, object>() {});
-            ((IDictionary<string,object>)getValue(((IDictionary<string,object>)entry)["limits"], "cost"))["min"] = this.safeNumber2(filter, "minNotional", "notional");
-            ((IDictionary<string,object>)getValue(((IDictionary<string,object>)entry)["limits"], "cost"))["max"] = this.safeNumber(filter, "maxNotional");
+            ((IDictionary<string,object>)getValue(entry["limits"], "cost"))["min"] = this.safeNumber2(filter, "minNotional", "notional");
+            ((IDictionary<string,object>)getValue(entry["limits"], "cost"))["max"] = this.safeNumber(filter, "maxNotional");
         }
         return this.safeMarketStructure(entry);
     }
@@ -12218,12 +12218,12 @@ public partial class binance : Exchange
             {
                 if ((fromId == null))
                 {
-                    List<object> keys = new List<object>(((IDictionary<string,object>)accountsByType).Keys);
+                    List<object> keys = new List<object>(accountsByType.Keys);
                     throw new ExchangeError (add(add(this.id, " fromAccount parameter must be one of "), String.Join(", ", keys.ToArray()))) ;
                 }
                 if ((toId == null))
                 {
-                    List<object> keys = new List<object>(((IDictionary<string,object>)accountsByType).Keys);
+                    List<object> keys = new List<object>(accountsByType.Keys);
                     throw new ExchangeError (add(add(this.id, " toAccount parameter must be one of "), String.Join(", ", keys.ToArray()))) ;
                 }
                 type = add(add(fromId, "_"), toId);
@@ -15491,7 +15491,7 @@ public partial class binance : Exchange
         string? networkCode = null;
         Dictionary<string, object> currency = this.currency(((string)currencyCode));
         IDictionary<string, object> networks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
-        List<object> networkCodes = new List<object>(((IDictionary<string,object>)networks).Keys);
+        List<object> networkCodes = new List<object>(networks.Keys);
         for (int i = 0; isLessThan(i, networkCodes.Count); postFixIncrement(ref i))
         {
             string? currentNetworkCode = ((string)getValue(networkCodes, i));

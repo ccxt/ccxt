@@ -2115,7 +2115,7 @@ public partial class nado : Exchange
         //         }
         //     }
         //
-        List<object> tickers = new List<object>(((IDictionary<string,object>)response).Keys);
+        List<object> tickers = new List<object>(response.Keys);
         List<object> rates = new List<object>() {};
         for (int i = 0; isLessThan(i, tickers.Count); postFixIncrement(ref i))
         {
@@ -2212,7 +2212,7 @@ public partial class nado : Exchange
         //         }
         //     }
         //
-        List<object> tickers = new List<object>(((IDictionary<string,object>)response).Keys);
+        List<object> tickers = new List<object>(response.Keys);
         List<object> interests = new List<object>() {};
         for (int i = 0; isLessThan(i, tickers.Count); postFixIncrement(ref i))
         {
@@ -2335,11 +2335,11 @@ public partial class nado : Exchange
         };
         if (!isEqual(limit, null))
         {
-            ((IDictionary<string,object>)((IDictionary<string,object>)request)["candlesticks"])["limit"] = mathMin(limit, 500);
+            ((IDictionary<string,object>)request["candlesticks"])["limit"] = mathMin(limit, 500);
         }
         if (!isEqual(until, null))
         {
-            ((IDictionary<string,object>)((IDictionary<string,object>)request)["candlesticks"])["max_time"] = this.parseToInt(divide(until, 1000));
+            ((IDictionary<string,object>)request["candlesticks"])["max_time"] = this.parseToInt(divide(until, 1000));
         }
         Dictionary<string, object> response = await this.archivePost(this.deepExtend(request, parameters));
         //

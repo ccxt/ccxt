@@ -1605,7 +1605,7 @@ public partial class coinbase : Exchange
         List<object> data = this.safeList(currencies, "data", new List<object>() {});
         Dictionary<string, object> dataById = this.indexBy(data, "id");
         IDictionary<string, object> rates = this.safeDict(this.safeDict(exchangeRates, "data", new Dictionary<string, object>() {}), "rates", new Dictionary<string, object>() {});
-        List<object> baseIds = new List<object>(((IDictionary<string,object>)rates).Keys);
+        List<object> baseIds = new List<object>(rates.Keys);
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, baseIds.Count); postFixIncrement(ref i))
         {
@@ -2237,7 +2237,7 @@ public partial class coinbase : Exchange
         List<object> cryptoData = this.safeList(cryptoResponse, "data", new List<object>() {});
         IDictionary<string, object> ratesData = this.safeDict(ratesResponse, "data", new Dictionary<string, object>() {});
         IDictionary<string, object> rates = this.safeDict(ratesData, "rates", new Dictionary<string, object>() {});
-        List<object> ratesIds = new List<object>(((IDictionary<string,object>)rates).Keys);
+        List<object> ratesIds = new List<object>(rates.Keys);
         List<object> currencies = this.arrayConcat(fiatData, cryptoData);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
@@ -2367,7 +2367,7 @@ public partial class coinbase : Exchange
         IDictionary<string, object> rates = this.safeDict(data, "rates", new Dictionary<string, object>() {});
         string? quoteId = this.safeString(data, "currency");
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        List<object> baseIds = new List<object>(((IDictionary<string,object>)rates).Keys);
+        List<object> baseIds = new List<object>(rates.Keys);
         string delimiter = "-";
         for (int i = 0; isLessThan(i, baseIds.Count); postFixIncrement(ref i))
         {

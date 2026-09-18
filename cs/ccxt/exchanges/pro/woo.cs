@@ -1561,7 +1561,7 @@ public partial class woo : ccxt.woo
         //
         object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
         IDictionary<string, object> rawPositions = this.safeDict(data, "positions", new Dictionary<string, object>() {});
-        List<object> postitionsIds = new List<object>(((IDictionary<string,object>)rawPositions).Keys);
+        List<object> postitionsIds = new List<object>(rawPositions.Keys);
         if (isEqual(this.positions, null))
         {
             this.positions = new ArrayCacheBySymbolBySide();

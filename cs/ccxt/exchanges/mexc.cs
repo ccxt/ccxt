@@ -1368,7 +1368,7 @@ public partial class mexc : Exchange
             //
             //     {}
             //
-            List<object> keys = new List<object>(((IDictionary<string,object>)response).Keys);
+            List<object> keys = new List<object>(response.Keys);
             int length = keys.Count;
             status = (isGreaterThan(length, 0)) ? this.json(response) : "ok";
         } else if (isEqual(marketType, "swap"))
@@ -6102,12 +6102,12 @@ public partial class mexc : Exchange
         string? toId = this.safeString(accounts, toAccount, toAccount);
         if ((fromId == null))
         {
-            List<object> keys = new List<object>(((IDictionary<string,object>)accounts).Keys);
+            List<object> keys = new List<object>(accounts.Keys);
             throw new ExchangeError (add(add(this.id, " fromAccount must be one of "), String.Join(", ", keys.ToArray()))) ;
         }
         if ((toId == null))
         {
-            List<object> keys = new List<object>(((IDictionary<string,object>)accounts).Keys);
+            List<object> keys = new List<object>(accounts.Keys);
             throw new ExchangeError (add(add(this.id, " toAccount must be one of "), String.Join(", ", keys.ToArray()))) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {

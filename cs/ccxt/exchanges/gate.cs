@@ -3553,7 +3553,7 @@ public partial class gate : Exchange
                 string? networkCode = this.networkIdToCode(chainKey, code);
                 if ((networkCode != null))
                 {
-                    ((IDictionary<string,object>)((IDictionary<string,object>)result)["networks"])[(string)networkCode] = new Dictionary<string, object>() {
+                    ((IDictionary<string,object>)result["networks"])[(string)networkCode] = new Dictionary<string, object>() {
                         { "withdraw", new Dictionary<string, object>() {
                             { "fee", this.parseNumber(getValue(withdrawFixOnChains, chainKey)) },
                             { "percentage", false },
@@ -8633,7 +8633,7 @@ public partial class gate : Exchange
             } else
             {
                 IDictionary<string, object> urlQueryParams = this.safeDict(query, "query", new Dictionary<string, object>() {});
-                if ((new List<object>(((IDictionary<string,object>)urlQueryParams).Keys)).Count > 0)
+                if ((new List<object>(urlQueryParams.Keys)).Count > 0)
                 {
                     queryString = this.urlencode(urlQueryParams);
                     url = add(url, add("?", queryString));

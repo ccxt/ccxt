@@ -7867,7 +7867,7 @@ public partial class bitget : Exchange
                     request["executePrice"] = this.priceToPrecision(symbol, price);
                     if (inOp(request, "price"))
                     {
-                        ((IDictionary<string,object>)request).Remove((string)"price");
+                        request.Remove((string)"price");
                     }
                 }
                 if (isEqual(hedged, true))
@@ -12502,7 +12502,7 @@ public partial class bitget : Exchange
             string? networkCode = this.networkIdToCode(networkId, currencyCode);
             if ((networkCode != null))
             {
-                ((IDictionary<string,object>)((IDictionary<string,object>)result)["networks"])[(string)networkCode] = new Dictionary<string, object>() {
+                ((IDictionary<string,object>)result["networks"])[(string)networkCode] = new Dictionary<string, object>() {
                     { "deposit", new Dictionary<string, object>() {
                         { "fee", null },
                         { "percentage", null },
@@ -12515,8 +12515,8 @@ public partial class bitget : Exchange
             }
             if ((chainsLength == 1))
             {
-                ((IDictionary<string,object>)((IDictionary<string,object>)result)["withdraw"])["fee"] = this.safeNumber(chain, "withdrawFee");
-                ((IDictionary<string,object>)((IDictionary<string,object>)result)["withdraw"])["percentage"] = false;
+                ((IDictionary<string,object>)result["withdraw"])["fee"] = this.safeNumber(chain, "withdrawFee");
+                ((IDictionary<string,object>)result["withdraw"])["percentage"] = false;
             }
         }
         return result;

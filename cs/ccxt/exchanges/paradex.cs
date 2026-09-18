@@ -1886,8 +1886,8 @@ public partial class paradex : Exchange
         object signature = this.starknetSign(msg, getValue(account, "privateKey"));
         ((IDictionary<string,object>)parameters)["signature"] = signature;
         ((IDictionary<string,object>)parameters)["account"] = getValue(account, "address");
-        ((IDictionary<string,object>)parameters)["timestamp"] = ((IDictionary<string,object>)req)["timestamp"];
-        ((IDictionary<string,object>)parameters)["expiration"] = ((IDictionary<string,object>)req)["expiration"];
+        ((IDictionary<string,object>)parameters)["timestamp"] = req["timestamp"];
+        ((IDictionary<string,object>)parameters)["expiration"] = req["expiration"];
         Dictionary<string, object> response = await this.privatePostAuth(parameters);
         //
         // {
@@ -2202,7 +2202,7 @@ public partial class paradex : Exchange
         object msg = this.starknetEncodeStructuredData(domain, messageTypes, orderReq, getValue(account, "address"));
         object signature = this.starknetSign(msg, getValue(account, "privateKey"));
         ((IDictionary<string,object>)request)["signature"] = signature;
-        ((IDictionary<string,object>)request)["signature_timestamp"] = ((IDictionary<string,object>)orderReq)["timestamp"];
+        ((IDictionary<string,object>)request)["signature_timestamp"] = orderReq["timestamp"];
         return request;
     }
 

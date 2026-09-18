@@ -1731,7 +1731,7 @@ public partial class hyperliquid : PredictionExchange
                 }
             }
         }
-        List<object> dedupedValues = new List<object>(((IDictionary<string,object>)deduped).Values);
+        List<object> dedupedValues = new List<object>(deduped.Values);
         IList<object> parsed = this.parsePredictionOrders(dedupedValues, null, since);
         string? outcomeHandle = null;
         if (!isEqual(outcome, null))
@@ -2198,7 +2198,7 @@ public partial class hyperliquid : PredictionExchange
             }
         }
         List<object> events = new List<object>() {};
-        List<object> groupKeys = new List<object>(((IDictionary<string,object>)groupMap).Keys);
+        List<object> groupKeys = new List<object>(groupMap.Keys);
         for (int gi = 0; isLessThan(gi, groupKeys.Count); postFixIncrement(ref gi))
         {
             string? key = ((string)getValue(groupKeys, gi));
@@ -2457,10 +2457,10 @@ public partial class hyperliquid : PredictionExchange
         };
         object sig = this.buildApproveBuilderFeeSig(payload);
         Dictionary<string, object> action = new Dictionary<string, object>() {
-            { "hyperliquidChain", ((IDictionary<string,object>)payload)["hyperliquidChain"] },
+            { "hyperliquidChain", payload["hyperliquidChain"] },
             { "signatureChainId", "0x66eee" },
-            { "maxFeeRate", ((IDictionary<string,object>)payload)["maxFeeRate"] },
-            { "builder", ((IDictionary<string,object>)payload)["builder"] },
+            { "maxFeeRate", payload["maxFeeRate"] },
+            { "builder", payload["builder"] },
             { "nonce", nonce },
             { "type", "approveBuilderFee" },
         };

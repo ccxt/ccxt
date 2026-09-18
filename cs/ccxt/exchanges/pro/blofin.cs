@@ -933,7 +933,7 @@ public partial class blofin : ccxt.blofin
             method = this.safeValue(methods, channelName);
             if (((method == null)) && (getIndexOf(((string)channelName), "candle") >= 0))
             {
-                method = ((IDictionary<string,object>)methods)["candle"];
+                method = methods["candle"];
             }
         }
         if ((method != null))

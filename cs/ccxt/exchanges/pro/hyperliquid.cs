@@ -463,8 +463,8 @@ public partial class hyperliquid : ccxt.hyperliquid
         {
             parameters = this.omit(parameters, "dex");
             messageHash = add("tickers:", defaultDex);
-            ((IDictionary<string,object>)((IDictionary<string,object>)request)["subscription"])["type"] = "allMids";
-            ((IDictionary<string,object>)((IDictionary<string,object>)request)["subscription"])["dex"] = defaultDex;
+            ((IDictionary<string,object>)request["subscription"])["type"] = "allMids";
+            ((IDictionary<string,object>)request["subscription"])["dex"] = defaultDex;
         }
         object tickers = await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
         if (isTrue(this.newUpdates))
@@ -615,7 +615,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         IDictionary<string, object> mids = this.safeDict(data, "mids", new Dictionary<string, object>() {});
         if ((mids != null))
         {
-            List<object> keys = new List<object>(((IDictionary<string,object>)mids).Keys);
+            List<object> keys = new List<object>(mids.Keys);
             for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
             {
                 string? name = ((string)getValue(keys, i));
@@ -732,7 +732,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             symbols[(string)((string)symbol)] = true;
             callDynamically(trades, "append", new object[] {parsed});
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
+        List<object> keys = new List<object>(symbols.Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
             string currentMessageHash = add("myTrades:", getValue(keys, i));
@@ -1616,7 +1616,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             string? symbol = this.safeString(order, "symbol");
             marketSymbols[(string)((string)symbol)] = true;
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)marketSymbols).Keys);
+        List<object> keys = new List<object>(marketSymbols.Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
             string? symbol = ((string)getValue(keys, i));
@@ -1965,7 +1965,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             DynamicInvoker.InvokeMethod(exacMethod, new object[] { client, message});
             return;
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)methods).Keys);
+        List<object> keys = new List<object>(methods.Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
             string? key = ((string)getValue(keys, i));

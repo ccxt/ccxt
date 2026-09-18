@@ -100,8 +100,8 @@ public partial class BaseTest
             Assert(isEqual(getValue(simpleClone, "z"), null), "clone A: z");
             ((IDictionary<string,object>)simpleClone)["x"] = 999;
             ((IDictionary<string,object>)simpleClone)["y"] = "mutated";
-            Assert(isEqual(((IDictionary<string,object>)simpleOrig)["x"], 1), "clone A: mutating clone must not change original x");
-            Assert(isEqual(((IDictionary<string,object>)simpleOrig)["y"], "hello"), "clone A: mutating clone must not change original y");
+            Assert(isEqual(simpleOrig["x"], 1), "clone A: mutating clone must not change original x");
+            Assert(isEqual(simpleOrig["y"], "hello"), "clone A: mutating clone must not change original y");
             // mutating the original must not affect an already-taken clone
             simpleOrig["x"] = 42;
             Assert(isEqual(getValue(simpleClone, "x"), 999), "clone A: mutating original must not change clone x");
@@ -117,7 +117,7 @@ public partial class BaseTest
             object nestedClone = exchange.clone(nestedOrig);
             // top-level scalar: independent
             ((IDictionary<string,object>)nestedClone)["top"] = "cloned";
-            Assert(isEqual(((IDictionary<string,object>)nestedOrig)["top"], "original"), "clone B: top-level scalar independence – original unchanged");
+            Assert(isEqual(nestedOrig["top"], "original"), "clone B: top-level scalar independence – original unchanged");
             Assert(isEqual(getValue(nestedClone, "top"), "cloned"), "clone B: top-level scalar independence – clone updated");
             nestedOrig["top"] = "changed_orig";
             Assert(isEqual(getValue(nestedClone, "top"), "cloned"), "clone B: changing original top must not affect clone");
@@ -141,7 +141,7 @@ public partial class BaseTest
             Assert(isEqual(getValue(undefClone, "absent"), null), "clone D: undefined value preserved");
             // mutate clone – original untouched
             ((IDictionary<string,object>)undefClone)["present"] = "no";
-            Assert(isEqual(((IDictionary<string,object>)withUndef)["present"], "yes"), "clone D: mutating clone must not change original");
+            Assert(isEqual(withUndef["present"], "yes"), "clone D: mutating clone must not change original");
             // -------------------------------------------------------------------------
             // --- test E: multi-step: clone → mutate clone → re-clone original → compare ---
             Dictionary<string, object> masterOrig = new Dictionary<string, object>() {
@@ -153,7 +153,7 @@ public partial class BaseTest
             ((IDictionary<string,object>)clone1)["a"] = 100;
             ((IDictionary<string,object>)clone1)["d"] = 999; // add extra key
             // original still pristine
-            Assert(isEqual(((IDictionary<string,object>)masterOrig)["a"], 1), "clone E: original a untouched after clone1 mutation");
+            Assert(isEqual(masterOrig["a"], 1), "clone E: original a untouched after clone1 mutation");
             Assert(!(inOp(masterOrig, "d")), "clone E: extra key must not appear in original");
             // second independent clone from the still-pristine original
             object clone2 = exchange.clone(masterOrig);
@@ -162,6 +162,6 @@ public partial class BaseTest
             // mutate clone2 differently
             ((IDictionary<string,object>)clone2)["b"] = 200;
             Assert(isEqual(getValue(clone1, "b"), 2), "clone E: clone1.b unaffected by clone2 mutation");
-            Assert(isEqual(((IDictionary<string,object>)masterOrig)["b"], 2), "clone E: original.b unaffected by clone2 mutation");
+            Assert(isEqual(masterOrig["b"], 2), "clone E: original.b unaffected by clone2 mutation");
         }
 }

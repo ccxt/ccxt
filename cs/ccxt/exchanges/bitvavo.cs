@@ -2918,9 +2918,9 @@ public partial class bitvavo : Exchange
         string? networkCode = this.networkIdToCode(networkId, currencyCode);
         if ((networkCode != null))
         {
-            ((IDictionary<string,object>)((IDictionary<string,object>)result)["networks"])[(string)networkCode] = new Dictionary<string, object>() {
-                { "deposit", ((IDictionary<string,object>)result)["deposit"] },
-                { "withdraw", ((IDictionary<string,object>)result)["withdraw"] },
+            ((IDictionary<string,object>)result["networks"])[(string)networkCode] = new Dictionary<string, object>() {
+                { "deposit", result["deposit"] },
+                { "withdraw", result["withdraw"] },
             };
         }
         return result;
