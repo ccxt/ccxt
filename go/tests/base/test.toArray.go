@@ -20,8 +20,8 @@ func TestToArray() {
 		"a": "x",
 		"b": 2,
 	}
-	var result1 any = exchange.ToArray(obj1)
-	var result2 any = exchange.ToArray(obj2)
+	var result1 []any = exchange.ToArray(obj1)
+	var result2 []any = exchange.ToArray(obj2)
 	// we can't guarantee order of values in GO lang
 	// assertDeepEqual (exchange, undefined, 'testToArray', exchange.toArray (obj1), [ 1, 3, 2 ]);
 	// assertDeepEqual (exchange, undefined, 'testToArray', exchange.toArray (obj2), [ 'x', 2 ]);
