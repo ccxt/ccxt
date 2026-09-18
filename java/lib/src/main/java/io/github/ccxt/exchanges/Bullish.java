@@ -3453,7 +3453,7 @@ public class Bullish extends BullishApi
             // current endpoint requires both since and until parameters
             if (java.util.Objects.equals(startTimestamp, null))
             {
-                startTimestamp = Helpers.subtract(now, ((((1000L * 60L) * 60L) * 24L) * 90L)); // Only the last 90 days of data is available for querying
+                startTimestamp = (now - ((((1000L * 60L) * 60L) * 24L) * 90L)); // Only the last 90 days of data is available for querying
             }
             if (java.util.Objects.equals(until, null))
             {

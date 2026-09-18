@@ -1462,7 +1462,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             Long lastAuthenticatedTime = this.safeInteger(((Map<String, Object>)this.options).get("ws"), "lastAuthenticatedTime", 0);
             Long listenKeyRefreshRate = this.safeInteger(((Map<String, Object>)this.options).get("ws"), "listenKeyRefreshRate", 1200000);
             Object delay = this.sum(listenKeyRefreshRate, 10000);
-            if (Helpers.isGreaterThan(Helpers.subtract(time, lastAuthenticatedTime), delay))
+            if (Helpers.isGreaterThan((time - lastAuthenticatedTime), delay))
             {
                 this.checkRequiredCredentials();
                 // single-flight leader election on a never-dialed client, see

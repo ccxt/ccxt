@@ -1143,7 +1143,7 @@ public class Bigone extends BigoneApi
             {
                 throw new ExchangeError((this.id + " fetchTime() missing timestamp")) ;
             }
-            return this.parseToInt(Helpers.divide(timestamp, 1000000));
+            return this.parseToInt((((double) timestamp) / ((double) 1000000)));
         }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }

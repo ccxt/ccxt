@@ -1371,7 +1371,7 @@ public class Bitstamp extends BitstampApi
             Long timestamp = this.safeInteger(options, "timestamp");
             Long expires = this.safeInteger(options, "expires", 1000);
             Long now = this.milliseconds();
-            if ((java.util.Objects.equals(timestamp, null)) || (Helpers.isGreaterThan((Helpers.subtract(now, timestamp)), expires)))
+            if ((java.util.Objects.equals(timestamp, null)) || (Helpers.isGreaterThan(((now - timestamp)), expires)))
             {
                 List<Object> response = (this.publicGetMarkets(parameters)).join();
                 //
@@ -1528,7 +1528,7 @@ public class Bitstamp extends BitstampApi
             {
                 throw new ExchangeError((this.id + " fetchOrderBook() missing microtimestamp")) ;
             }
-            Long timestamp = this.parseToInt(Helpers.divide(microtimestamp, 1000));
+            Long timestamp = this.parseToInt((((double) microtimestamp) / ((double) 1000)));
             Object orderbook = this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"), timestamp);
             ((Map<String, Object>)orderbook).put("nonce", microtimestamp);
             return orderbook;

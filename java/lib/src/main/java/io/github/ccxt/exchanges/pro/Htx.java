@@ -708,7 +708,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                         Object delayTime = 1000;
                         if ((!java.util.Objects.equals(lastTimestamp, null)) && (!java.util.Objects.equals(snapshotTimestamp, null)))
                         {
-                            delayTime = this.sum(1000, Helpers.subtract(lastTimestamp, snapshotTimestamp));
+                            delayTime = this.sum(1000, (lastTimestamp - snapshotTimestamp));
                         }
                         Helpers.addElementToObject(subscription, "numAttempts", numAttempts);
                         ((Map)client.subscriptions).put((String)messageHash, subscription);

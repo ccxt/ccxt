@@ -403,7 +403,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long microseconds = this.safeInteger(ticker, "E", 0);
-        Long timestamp = this.parseToInt(Helpers.divide(microseconds, 1000));
+        Long timestamp = this.parseToInt((((double) microseconds) / ((double) 1000)));
         String marketId = this.safeString(ticker, "s");
         market = this.safeMarket(marketId, market);
         String symbol = this.safeSymbol(marketId, market);
@@ -550,7 +550,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         market = this.safeMarket(marketId, market);
         String symbol = this.safeString(market, "symbol");
         Long microseconds = this.safeInteger(ticker, "E", 0);
-        Long timestamp = this.parseToInt(Helpers.divide(microseconds, 1000));
+        Long timestamp = this.parseToInt((((double) microseconds) / ((double) 1000)));
         String ask = this.safeString(ticker, "a");
         String askVolume = this.safeString(ticker, "A");
         String bid = this.safeString(ticker, "b");
@@ -967,7 +967,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long microseconds = this.safeInteger(trade, "E", 0);
-        Long timestamp = this.parseToInt(Helpers.divide(microseconds, 1000));
+        Long timestamp = this.parseToInt((((double) microseconds) / ((double) 1000)));
         String id = this.safeString(trade, "t");
         String marketId = this.safeString(trade, "s");
         market = this.safeMarket(marketId, market);
@@ -1225,7 +1225,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         {
             return Helpers.opNeg(1);
         }
-        if (Helpers.isLessThan(nonce, Helpers.subtract(firstDeltaStart, 1)))
+        if (Helpers.isLessThan(nonce, (firstDeltaStart - 1L)))
         {
             return Helpers.opNeg(1);
         }
@@ -1238,7 +1238,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             {
                 return Helpers.getArrayLength(cache);
             }
-            if ((Helpers.isGreaterThanOrEqual(nonce, Helpers.subtract(deltaStart, 1))) && (Helpers.isLessThan(nonce, deltaEnd)))
+            if ((Helpers.isGreaterThanOrEqual(nonce, (deltaStart - 1L))) && (Helpers.isLessThan(nonce, deltaEnd)))
             {
                 return i;
             }
@@ -1408,7 +1408,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         String id = this.safeString(order, "i");
         String clientOrderId = this.safeString(order, "c");
         Long microseconds = this.safeInteger(order, "E", 0);
-        Long timestamp = this.parseToInt(Helpers.divide(microseconds, 1000));
+        Long timestamp = this.parseToInt((((double) microseconds) / ((double) 1000)));
         String status = this.parseWsOrderStatus(this.safeString(order, "X"), market);
         String marketId = this.safeString(order, "s");
         market = this.safeMarket(marketId, market);
@@ -1606,7 +1606,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         Object cache = this.positions;
         Object parsedPosition = this.parseWsPosition(data);
         Long microseconds = this.safeInteger(data, "E", 0);
-        Long timestamp = this.parseToInt(Helpers.divide(microseconds, 1000));
+        Long timestamp = this.parseToInt((((double) microseconds) / ((double) 1000)));
         Helpers.addElementToObject(parsedPosition, "timestamp", timestamp);
         Helpers.addElementToObject(parsedPosition, "datetime", this.iso8601(timestamp));
         Helpers.callDynamically(cache, "append", new Object[]{parsedPosition});
@@ -1665,7 +1665,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             side = null;
         }
         Long microseconds = this.safeInteger(position, "E", 0);
-        Long timestamp = this.parseToInt(Helpers.divide(microseconds, 1000));
+        Long timestamp = this.parseToInt((((double) microseconds) / ((double) 1000)));
         Double maintenanceMarginPercentage = this.safeNumber(position, "m");
         Double initialMarginPercentage = this.safeNumber(position, "f");
         final Object finalSide = side;

@@ -4661,7 +4661,7 @@ public class Gate extends GateApi
             Long until = this.safeInteger(parameters, "until");
             if (!java.util.Objects.equals(until, null))
             {
-                until = this.parseToInt(Helpers.divide(until, 1000));
+                until = this.parseToInt((((double) until) / ((double) 1000)));
                 parameters = this.omit(parameters, "until");
             }
             if (!java.util.Objects.equals(since, null))
@@ -4798,7 +4798,7 @@ public class Gate extends GateApi
             if (!java.util.Objects.equals(until, null))
             {
                 parameters = this.omit(parameters, "until");
-                ((Map<String, Object>)request).put("to", this.parseToInt(Helpers.divide(until, 1000)));
+                ((Map<String, Object>)request).put("to", this.parseToInt((((double) until) / ((double) 1000))));
             }
             List<Object> response = (this.publicFuturesGetSettleFundingRate(this.extend(request, parameters))).join();
             //
@@ -5147,7 +5147,7 @@ public class Gate extends GateApi
             }
             if (!java.util.Objects.equals(until, null))
             {
-                ((Map<String, Object>)request).put("to", this.parseToInt(Helpers.divide(until, 1000)));
+                ((Map<String, Object>)request).put("to", this.parseToInt((((double) until) / ((double) 1000))));
             }
             Object response = null;
             if (java.util.Objects.equals(type, "spot") || java.util.Objects.equals(type, "margin"))
@@ -7106,7 +7106,7 @@ final Object finalRebate = rebate;
             if (!java.util.Objects.equals(until, null))
             {
                 parameters = this.omit(parameters, "until");
-                ((Map<String, Object>)request).put("to", this.parseToInt(Helpers.divide(until, 1000)));
+                ((Map<String, Object>)request).put("to", this.parseToInt((((double) until) / ((double) 1000))));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -7166,7 +7166,7 @@ final Object finalRebate = rebate;
             if (!java.util.Objects.equals(until, null))
             {
                 parameters = this.omit(parameters, "until");
-                ((Map<String, Object>)request).put("to", this.parseToInt(Helpers.divide(until, 1000)));
+                ((Map<String, Object>)request).put("to", this.parseToInt((((double) until) / ((double) 1000))));
             }
         }
         List<Object> lastIdfinalParamsVariable = (List<Object>) this.handleParamString2(parameters, "lastId", "last_id");
@@ -10818,7 +10818,7 @@ final Object finalI = i;
             }
             if (!java.util.Objects.equals(until, null))
             {
-                ((Map<String, Object>)request).put("to", this.parseToInt(Helpers.divide(until, 1000)));
+                ((Map<String, Object>)request).put("to", this.parseToInt((((double) until) / ((double) 1000))));
             }
             Object response = null;
             if (java.util.Objects.equals(marketType, "swap"))

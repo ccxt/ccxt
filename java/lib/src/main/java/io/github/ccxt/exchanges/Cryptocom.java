@@ -3950,7 +3950,7 @@ public class Cryptocom extends CryptocomApi
         Object fundingTimestamp = null;
         if (!java.util.Objects.equals(timestamp, null))
         {
-            fundingTimestamp = Helpers.multiply(Math.ceil(Double.parseDouble(Helpers.toString(Helpers.divide(timestamp, 3600000)))), 3600000); // end of the next hour
+            fundingTimestamp = Helpers.multiply(Math.ceil(Double.parseDouble(Helpers.toString((((double) timestamp) / ((double) 3600000))))), 3600000); // end of the next hour
         }
         final Object finalTimestamp = timestamp;
         final Object finalFundingTimestamp = fundingTimestamp;
