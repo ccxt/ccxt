@@ -125,7 +125,7 @@ public partial class ndax : ccxt.ndax
      */
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         Int64? omsId = this.safeInteger(this.options, "omsId", 1);
@@ -134,7 +134,7 @@ public partial class ndax : ccxt.ndax
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         string name = "SubscribeTrades";
         string messageHash = add(add(name, ":"), GetValue(market, "id"));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
@@ -228,8 +228,8 @@ public partial class ndax : ccxt.ndax
      */
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
-        object timeframeVar = timeframe;
+        string symbolVar = symbol;
+        string timeframeVar = timeframe;
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -239,7 +239,7 @@ public partial class ndax : ccxt.ndax
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         string name = "SubscribeTicker";
         string messageHash = add(add(add(add(name, ":"), timeframeVar), ":"), GetValue(market, "id"));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
@@ -394,7 +394,7 @@ public partial class ndax : ccxt.ndax
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         Int64? omsId = this.safeInteger(this.options, "omsId", 1);
@@ -403,7 +403,7 @@ public partial class ndax : ccxt.ndax
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         string name = "SubscribeLevel2";
         string messageHash = add(add(name, ":"), GetValue(market, "id"));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));

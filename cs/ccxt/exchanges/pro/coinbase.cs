@@ -739,7 +739,7 @@ public partial class coinbase : ccxt.coinbase
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -747,7 +747,7 @@ public partial class coinbase : ccxt.coinbase
         }
         string name = "level2";
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         object orderbook = await this.subscribe(name, false, symbolVar, parameters);
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }

@@ -137,7 +137,7 @@ public partial class hollaex : ccxt.hollaex
      */
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -145,7 +145,7 @@ public partial class hollaex : ccxt.hollaex
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         string messageHash = add(add("trade", ":"), GetValue(market, "id"));
         object trades = await this.watchPublic(messageHash, parameters);
         if (isTrue(this.newUpdates))
@@ -207,7 +207,7 @@ public partial class hollaex : ccxt.hollaex
      */
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -219,7 +219,7 @@ public partial class hollaex : ccxt.hollaex
         if (!isEqual(symbolVar, null))
         {
             market = this.market(symbolVar);
-            symbolVar = GetValue(market, "symbol");
+            symbolVar = ((string)GetValue(market, "symbol"));
             messageHash = add(messageHash, add(":", GetValue(market, "id")));
         }
         object trades = await this.watchPrivate(messageHash, parameters);
@@ -307,7 +307,7 @@ public partial class hollaex : ccxt.hollaex
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -319,7 +319,7 @@ public partial class hollaex : ccxt.hollaex
         if (!isEqual(symbolVar, null))
         {
             market = this.market(symbolVar);
-            symbolVar = GetValue(market, "symbol");
+            symbolVar = ((string)GetValue(market, "symbol"));
             messageHash = add(messageHash, add(":", GetValue(market, "id")));
         }
         object orders = await this.watchPrivate(messageHash, parameters);

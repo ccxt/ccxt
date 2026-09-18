@@ -431,7 +431,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         string name = "level2";
         if (isEqual(this.markets, null))
@@ -439,7 +439,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         string messageHash = add(add(name, ":"), GetValue(market, "id"));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {

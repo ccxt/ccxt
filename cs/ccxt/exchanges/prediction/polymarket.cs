@@ -1641,7 +1641,7 @@ public partial class polymarket : PredictionExchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string outcome, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         object limitVar = limit;
         // hoisted keys list: chaining join onto Object.keys breaks the python transpiler
         timeframeVar ??= "1m";

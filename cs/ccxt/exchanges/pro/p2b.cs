@@ -96,7 +96,7 @@ public partial class p2b : ccxt.p2b
      */
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         object limitVar = limit;
         timeframeVar ??= "15m";
         parameters ??= new Dictionary<string, object>();
@@ -134,7 +134,7 @@ public partial class p2b : ccxt.p2b
      */
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -146,7 +146,7 @@ public partial class p2b : ccxt.p2b
         name = nameparametersVariable[0];
         parameters = nameparametersVariable[1];
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         ((IDictionary<string,object>)getValue(this.options, "tickerSubs"))[(string)((string)GetValue(market, "id"))] = true; // we need to re-subscribe to all tickers upon watching a new ticker
         object tickerSubs = getValue(this.options, "tickerSubs");
         List<object> request = new List<object>(((IDictionary<string,object>)tickerSubs).Keys);

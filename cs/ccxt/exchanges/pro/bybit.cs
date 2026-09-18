@@ -404,14 +404,14 @@ public partial class bybit : ccxt.bybit
      */
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         string messageHash = add("ticker:", symbolVar);
         object url = await this.getUrlByMarketType(symbolVar, false, "watchTicker", parameters);
         parameters = this.cleanParams(parameters);
@@ -1910,14 +1910,14 @@ public partial class bybit : ccxt.bybit
      */
     public async override Task<List<ccxt.Liquidation>> WatchLiquidations(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         object url = await this.getUrlByMarketType(symbolVar, false, "watchLiquidations", parameters);
         parameters = this.cleanParams(parameters);
         object method = null;

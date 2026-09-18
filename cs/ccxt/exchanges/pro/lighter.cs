@@ -218,14 +218,14 @@ public partial class lighter : ccxt.lighter
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "channel", add("order_book/", GetValue(market, "id")) },
         };
@@ -350,14 +350,14 @@ public partial class lighter : ccxt.lighter
      */
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "channel", add("market_stats/", GetValue(market, "id")) },
         };
@@ -878,7 +878,7 @@ public partial class lighter : ccxt.lighter
      */
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -893,7 +893,7 @@ public partial class lighter : ccxt.lighter
         if (!isEqual(symbolVar, null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = GetValue(market, "symbol");
+            symbolVar = ((string)GetValue(market, "symbol"));
             messageHash = this.getMessageHash("myTrades", symbolVar);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {

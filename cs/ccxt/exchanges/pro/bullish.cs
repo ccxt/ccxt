@@ -98,7 +98,7 @@ public partial class bullish : ccxt.bullish
             { "params", request },
             { "id", id },
         };
-        string? fullUrl = ((string)add(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), url));
+        object fullUrl = add(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), url);
         return await this.watch(fullUrl, messageHash, this.deepExtend(message, parameters), messageHash);
     }
 
@@ -196,7 +196,7 @@ public partial class bullish : ccxt.bullish
             var tradesArrayCache = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArrayCache;
         }
-        ccxt.pro.ArrayCache tradesArray = ((ccxt.pro.ArrayCache)getValue(this.trades, symbol));
+        object tradesArray = getValue(this.trades, symbol);
         for (int i = 0; isLessThan(i, trades?.Count ?? 0); postFixIncrement(ref i))
         {
             callDynamically(tradesArray, "append", new object[] {getValue(trades, i)});
@@ -217,15 +217,15 @@ public partial class bullish : ccxt.bullish
      */
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
-        string? url = ((string)add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), "/trading-api/v1/market-data/tick/"), GetValue(market, "id")));
+        symbolVar = ((string)GetValue(market, "symbol"));
+        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), "/trading-api/v1/market-data/tick/"), GetValue(market, "id"));
         string messageHash = add("ticker::", symbolVar);
         return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, parameters, messageHash));  // no need to send a subscribe message, the server sends a ticker update on connect
     }

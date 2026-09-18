@@ -461,7 +461,7 @@ public partial class gate : ccxt.gate
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -469,7 +469,7 @@ public partial class gate : ccxt.gate
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         string? marketId = ((string)GetValue(market, "id"));
         object url = this.getUrlByMarket(market);
         bool isEuUrl = isGreaterThanOrEqual(getIndexOf(url, "gateeu"), 0);
@@ -829,14 +829,14 @@ public partial class gate : ccxt.gate
      */
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchTicker";
         object result = ccxt.BaseExchange.FromTickers(await this.WatchTickers(new List<object>() {symbolVar}, parameters));
         return ccxt.BaseExchange.ToTicker(this.safeValue(result, symbolVar));
@@ -1176,7 +1176,7 @@ public partial class gate : ccxt.gate
      */
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         string timeframeVar = timeframe;
         object limitVar = limit;
         timeframeVar ??= "1m";
@@ -1187,7 +1187,7 @@ public partial class gate : ccxt.gate
         }
         // todo add options support
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         string? marketId = ((string)GetValue(market, "id"));
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         object messageType = this.getTypeByMarket(market);

@@ -83,7 +83,7 @@ public partial class modetrade : ccxt.modetrade
         {
             id = this.accountId;
         }
-        string? url = ((string)add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), "/"), id));
+        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), "/"), id);
         Int64 requestId = ((Int64)this.requestId(url));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "id", requestId },
@@ -111,7 +111,7 @@ public partial class modetrade : ccxt.modetrade
         }
         string name = "orderbook";
         Dictionary<string, object> market = this.market(symbol);
-        string? topic = ((string)add(add(GetValue(market, "id"), "@"), name));
+        object topic = add(add(GetValue(market, "id"), "@"), name);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
             { "topic", topic },
@@ -171,7 +171,7 @@ public partial class modetrade : ccxt.modetrade
      */
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -179,8 +179,8 @@ public partial class modetrade : ccxt.modetrade
         }
         string name = "ticker";
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
-        string? topic = ((string)add(add(GetValue(market, "id"), "@"), name));
+        symbolVar = ((string)GetValue(market, "symbol"));
+        object topic = add(add(GetValue(market, "id"), "@"), name);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
             { "topic", topic },
@@ -378,7 +378,7 @@ public partial class modetrade : ccxt.modetrade
             Dictionary<string, object> ticker = this.parseWsBidAsk(this.extend(getValue(data, i), new Dictionary<string, object>() {
                 { "ts", timestamp },
             }));
-            string? symbol = ((string)GetValue(ticker, "symbol"));
+            object symbol = GetValue(ticker, "symbol");
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
@@ -435,7 +435,7 @@ public partial class modetrade : ccxt.modetrade
         Dictionary<string, object> market = this.market(symbol);
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         string name = "kline";
-        string? topic = ((string)add(add(add(add(GetValue(market, "id"), "@"), name), "_"), interval));
+        object topic = add(add(add(add(GetValue(market, "id"), "@"), name), "_"), interval);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
             { "topic", topic },
@@ -489,7 +489,7 @@ public partial class modetrade : ccxt.modetrade
             stored = new ArrayCacheByTimestamp(limit);
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
         }
-        ccxt.pro.ArrayCache ohlcvCache = ((ccxt.pro.ArrayCache)getValue(getValue(this.ohlcvs, symbol), timeframe));
+        object ohlcvCache = getValue(getValue(this.ohlcvs, symbol), timeframe);
         callDynamically(ohlcvCache, "append", new object[] {parsed});
         callDynamically(client, "resolve", new object[] {ohlcvCache, topic});
     }
@@ -507,7 +507,7 @@ public partial class modetrade : ccxt.modetrade
      */
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -515,8 +515,8 @@ public partial class modetrade : ccxt.modetrade
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
-        string? topic = ((string)add(GetValue(market, "id"), "@trade"));
+        symbolVar = ((string)GetValue(market, "symbol"));
+        object topic = add(GetValue(market, "id"), "@trade");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
             { "topic", topic },
@@ -559,7 +559,7 @@ public partial class modetrade : ccxt.modetrade
             var stored = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
-        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)getValue(this.trades, symbol));
+        object trades = getValue(this.trades, symbol);
         callDynamically(trades, "append", new object[] {trade});
         ((IDictionary<string,object>)this.trades)[(string)symbol] = trades;
         callDynamically(client, "resolve", new object[] {trades, topic});
@@ -605,7 +605,7 @@ public partial class modetrade : ccxt.modetrade
         //
         string? marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market);
-        string? symbol = ((string)getValue(market, "symbol"));
+        object symbol = getValue(market, "symbol");
         string? price = this.safeString2(trade, "executedPrice", "price");
         string? amount = this.safeString2(trade, "executedQuantity", "size");
         string? cost = Precise.stringMul(price, amount);
@@ -675,7 +675,7 @@ public partial class modetrade : ccxt.modetrade
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        string? url = ((string)add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "/"), this.accountId));
+        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "/"), this.accountId);
         var client = this.client(url);
         string messageHash = "authenticated";
         string eventVar = "auth";
@@ -710,7 +710,7 @@ public partial class modetrade : ccxt.modetrade
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate(parameters);
-        string? url = ((string)add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "/"), this.accountId));
+        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "/"), this.accountId);
         Int64 requestId = ((Int64)this.requestId(url));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "id", requestId },
@@ -723,7 +723,7 @@ public partial class modetrade : ccxt.modetrade
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate(parameters);
-        string? url = ((string)add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "/"), this.accountId));
+        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "/"), this.accountId);
         Int64 requestId = ((Int64)this.requestId(url));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "id", requestId },
@@ -747,7 +747,7 @@ public partial class modetrade : ccxt.modetrade
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -761,7 +761,7 @@ public partial class modetrade : ccxt.modetrade
         if (!isEqual(symbolVar, null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = GetValue(market, "symbol");
+            symbolVar = ((string)GetValue(market, "symbol"));
             messageHash = add(messageHash, add(":", symbolVar));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -792,7 +792,7 @@ public partial class modetrade : ccxt.modetrade
      */
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -806,7 +806,7 @@ public partial class modetrade : ccxt.modetrade
         if (!isEqual(symbolVar, null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = GetValue(market, "symbol");
+            symbolVar = ((string)GetValue(market, "symbol"));
             messageHash = add(messageHash, add(":", symbolVar));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -892,7 +892,7 @@ public partial class modetrade : ccxt.modetrade
         string? orderId = this.safeString(order, "orderId");
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
-        string? symbol = ((string)getValue(market, "symbol"));
+        object symbol = getValue(market, "symbol");
         Int64? timestamp = this.safeInteger(order, "timestamp");
         Dictionary<string, object> fee = new Dictionary<string, object>() {
             { "cost", this.safeString(order, "totalFee") },
@@ -985,7 +985,7 @@ public partial class modetrade : ccxt.modetrade
             {
                 object order = getValue(data, i);
                 string? tradeIdStr = this.safeString(data, "tradeId");
-                string? tradeId = ((tradeIdStr == null)) ? null : this.omitZero(tradeIdStr);
+                object tradeId = ((tradeIdStr == null)) ? null : this.omitZero(tradeIdStr);
                 if ((tradeId != null))
                 {
                     this.handleMyTrade(client, order);
@@ -996,7 +996,7 @@ public partial class modetrade : ccxt.modetrade
         {
             // executionreport
             string? tradeIdStr = this.safeString(data, "tradeId");
-            string? tradeId = ((tradeIdStr == null)) ? null : this.omitZero(tradeIdStr);
+            object tradeId = ((tradeIdStr == null)) ? null : this.omitZero(tradeIdStr);
             if ((tradeId != null))
             {
                 this.handleMyTrade(client, data);
@@ -1122,7 +1122,7 @@ public partial class modetrade : ccxt.modetrade
         {
             ((IList<object>)messageHashes).Add("positions");
         }
-        string? url = ((string)add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "/"), this.accountId));
+        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "/"), this.accountId);
         var client = this.client(url);
         this.setPositionsCache(client, symbols);
         object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
@@ -1168,7 +1168,7 @@ public partial class modetrade : ccxt.modetrade
         object cache = this.positions;
         for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
-            IDictionary<string, object> position = ((IDictionary<string, object>)getValue(positions, i));
+            object position = getValue(positions, i);
             string? contracts = this.safeString(position, "contracts", "0");
             if (isTrue(Precise.stringGt(contracts, "0")))
             {

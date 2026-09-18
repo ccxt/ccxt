@@ -138,7 +138,7 @@ public partial class cex : ccxt.cex
      */
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         string? currentSymbol = this.safeString(getValue(this.options, "watchTrades"), "symbol");
         if ((currentSymbol != null) && !isEqual(currentSymbol, symbolVar))
@@ -151,7 +151,7 @@ public partial class cex : ccxt.cex
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         string messageHash = "trades";
         string subscriptionHash = add("old:", symbolVar);
@@ -286,14 +286,14 @@ public partial class cex : ccxt.cex
      */
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         string messageHash = add("ticker:", symbolVar);
         string? method = this.safeString(parameters, "method", "private"); // default to private because the specified ticker is received quicker
@@ -520,7 +520,7 @@ public partial class cex : ccxt.cex
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbolVar, null))
@@ -534,7 +534,7 @@ public partial class cex : ccxt.cex
         await this.authenticate(parameters);
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         string messageHash = add("orders:", symbolVar);
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "e", "open-orders" },
@@ -1050,7 +1050,7 @@ public partial class cex : ccxt.cex
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -1058,7 +1058,7 @@ public partial class cex : ccxt.cex
         }
         await this.authenticate();
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         string messageHash = add("orderbook:", symbolVar);
         object depth = (isEqual(limit, null)) ? 0 : limit;
@@ -1195,7 +1195,7 @@ public partial class cex : ccxt.cex
      */
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         string timeframeVar = timeframe;
         object limitVar = limit;
         timeframeVar ??= "1m";
@@ -1205,7 +1205,7 @@ public partial class cex : ccxt.cex
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         string messageHash = add("ohlcv:", symbolVar);
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {

@@ -63,14 +63,14 @@ public partial class bitstamp : ccxt.bitstamp
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         string messageHash = add("orderbook:", symbolVar);
         string channel = add("diff_order_book_", GetValue(market, "id"));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
@@ -261,7 +261,7 @@ public partial class bitstamp : ccxt.bitstamp
      */
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -269,7 +269,7 @@ public partial class bitstamp : ccxt.bitstamp
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         string messageHash = add("trades:", symbolVar);
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         string channel = add("live_trades_", GetValue(market, "id"));
@@ -412,14 +412,14 @@ public partial class bitstamp : ccxt.bitstamp
      */
     public async override Task<ccxt.FundingRate> WatchFundingRate(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         string messageHash = add("fundingRate:", symbolVar);
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         string channel = add("funding_rate_", GetValue(market, "id"));
@@ -476,7 +476,7 @@ public partial class bitstamp : ccxt.bitstamp
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbolVar, null))
@@ -488,7 +488,7 @@ public partial class bitstamp : ccxt.bitstamp
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         string channel = "private-my_orders";
         string messageHash = add(add(channel, "_"), GetValue(market, "id"));
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
@@ -545,7 +545,7 @@ public partial class bitstamp : ccxt.bitstamp
      */
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbolVar, null))
@@ -557,7 +557,7 @@ public partial class bitstamp : ccxt.bitstamp
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         string channel = "private-my_trades";
         string messageHash = add(add(channel, "_"), GetValue(market, "id"));
         Dictionary<string, object> subscription = new Dictionary<string, object>() {

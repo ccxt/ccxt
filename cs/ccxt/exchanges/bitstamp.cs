@@ -3327,12 +3327,12 @@ public partial class bitstamp : Exchange
      */
     public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
     {
-        object tagVar = tag;
+        string tagVar = tag;
         // For fiat withdrawals please provide all required additional parameters in the 'params'
         // Check https://www.bitstamp.net/api/ under 'Open bank withdrawal' for list and description.
         parameters ??= new Dictionary<string, object>();
         IList<object> tagparametersVariable = (IList<object>)this.handleWithdrawTagAndParams(tagVar, parameters);
-        tagVar = tagparametersVariable[0];
+        tagVar = ((string)tagparametersVariable[0]);
         parameters = tagparametersVariable[1];
         if (isEqual(this.markets, null))
         {

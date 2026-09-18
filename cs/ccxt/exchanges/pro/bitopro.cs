@@ -63,7 +63,7 @@ public partial class bitopro : ccxt.bitopro
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (!isEqual(limit, null))
         {
@@ -77,7 +77,7 @@ public partial class bitopro : ccxt.bitopro
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         string messageHash = add(add("ORDER_BOOK", ":"), symbolVar);
         object endPart = null;
         if (isEqual(limit, null))
@@ -143,7 +143,7 @@ public partial class bitopro : ccxt.bitopro
      */
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -151,7 +151,7 @@ public partial class bitopro : ccxt.bitopro
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         string messageHash = add(add("TRADE", ":"), symbolVar);
         object trades = await this.watchPublic("trades", messageHash, GetValue(market, "id"));
         if (isTrue(this.newUpdates))
@@ -377,14 +377,14 @@ public partial class bitopro : ccxt.bitopro
      */
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         string messageHash = add(add("TICKER", ":"), symbolVar);
         return ccxt.BaseExchange.ToTicker(await this.watchPublic("tickers", messageHash, GetValue(market, "id")));
     }

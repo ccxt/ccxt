@@ -364,7 +364,7 @@ public partial class paradex : ccxt.paradex
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -377,7 +377,7 @@ public partial class paradex : ccxt.paradex
         if (!isEqual(symbolVar, null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = GetValue(market, "symbol");
+            symbolVar = ((string)GetValue(market, "symbol"));
             channel = add(channel, GetValue(market, "id"));
             messageHash = add(messageHash, add(":", symbolVar));
         } else

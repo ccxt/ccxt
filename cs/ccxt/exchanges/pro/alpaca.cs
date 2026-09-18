@@ -165,7 +165,7 @@ public partial class alpaca : ccxt.alpaca
      */
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         object timeframeVar = timeframe;
         object limitVar = limit;
         timeframeVar ??= "1m";
@@ -177,7 +177,7 @@ public partial class alpaca : ccxt.alpaca
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "action", "subscribe" },
             { "bars", new List<object>() {GetValue(market, "id")} },
@@ -234,7 +234,7 @@ public partial class alpaca : ccxt.alpaca
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "crypto"));
         await this.authenticate(url);
@@ -243,7 +243,7 @@ public partial class alpaca : ccxt.alpaca
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         string messageHash = add(add("orderbook", ":"), symbolVar);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "action", "subscribe" },
@@ -331,7 +331,7 @@ public partial class alpaca : ccxt.alpaca
      */
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "crypto"));
@@ -341,7 +341,7 @@ public partial class alpaca : ccxt.alpaca
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         string messageHash = add("trade:", symbolVar);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "action", "subscribe" },
@@ -438,7 +438,7 @@ public partial class alpaca : ccxt.alpaca
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "trading"));
@@ -451,7 +451,7 @@ public partial class alpaca : ccxt.alpaca
         if (!isEqual(symbolVar, null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = GetValue(market, "symbol");
+            symbolVar = ((string)GetValue(market, "symbol"));
             messageHash = add("orders:", symbolVar);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {

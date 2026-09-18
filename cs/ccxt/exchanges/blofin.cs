@@ -2402,7 +2402,7 @@ public partial class blofin : Exchange
      */
     public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
     {
-        object tagVar = tag;
+        string tagVar = tag;
         // LIVE API vs DOCS quirks, verified against the venue 2026-09-14:
         // - addrType is documented optional but the live venue rejects
         //   on-chain withdrawals without it: 152001 "Parameter addrType
@@ -2415,7 +2415,7 @@ public partial class blofin : Exchange
         //   error table documents the message as "Parameter {} error"
         parameters ??= new Dictionary<string, object>();
         IList<object> tagparametersVariable = (IList<object>)this.handleWithdrawTagAndParams(tagVar, parameters);
-        tagVar = tagparametersVariable[0];
+        tagVar = ((string)tagparametersVariable[0]);
         parameters = tagparametersVariable[1];
         await this.loadMarkets();
         Dictionary<string, object> currency = this.currency(code);

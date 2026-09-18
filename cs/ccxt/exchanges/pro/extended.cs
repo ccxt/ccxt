@@ -56,14 +56,14 @@ public partial class extended : ccxt.extended
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         string messageHash = add("orderbook:", symbolVar);
         string query = this.urlencode(parameters);
         object url = add(add(getValue(getValue(this.urls, "api"), "ws"), "/orderbooks/"), GetValue(market, "id"));
@@ -194,7 +194,7 @@ public partial class extended : ccxt.extended
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -205,7 +205,7 @@ public partial class extended : ccxt.extended
         if (!isEqual(symbolVar, null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = GetValue(market, "symbol");
+            symbolVar = ((string)GetValue(market, "symbol"));
             messageHash = add(messageHash, add(":", symbolVar));
         }
         object orders = await this.watchPrivate(messageHash, new Dictionary<string, object>() {
@@ -315,7 +315,7 @@ public partial class extended : ccxt.extended
      */
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -326,7 +326,7 @@ public partial class extended : ccxt.extended
         if (!isEqual(symbolVar, null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = GetValue(market, "symbol");
+            symbolVar = ((string)GetValue(market, "symbol"));
             messageHash = add(messageHash, add(":", symbolVar));
         }
         object trades = await this.watchPrivate(messageHash, new Dictionary<string, object>() {
@@ -590,14 +590,14 @@ public partial class extended : ccxt.extended
      */
     public async override Task<ccxt.FundingRate> WatchFundingRate(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         string messageHash = add("fundingRate:", symbolVar);
         string query = this.urlencode(parameters);
         object url = add(add(getValue(getValue(this.urls, "api"), "ws"), "/funding/"), GetValue(market, "id"));
@@ -668,14 +668,14 @@ public partial class extended : ccxt.extended
      */
     public async override Task<ccxt.Ticker> WatchMarkPrice(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         string messageHash = add("markPrice:", symbolVar);
         string query = this.urlencode(parameters);
         object url = add(add(getValue(getValue(this.urls, "api"), "ws"), "/prices/mark/"), GetValue(market, "id"));
@@ -734,7 +734,7 @@ public partial class extended : ccxt.extended
      */
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -742,7 +742,7 @@ public partial class extended : ccxt.extended
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         string messageHash = add("trades:", symbolVar);
         string query = this.urlencode(parameters);
         object url = add(add(getValue(getValue(this.urls, "api"), "ws"), "/publicTrades/"), GetValue(market, "id"));
@@ -830,8 +830,8 @@ public partial class extended : ccxt.extended
      */
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
-        object timeframeVar = timeframe;
+        string symbolVar = symbol;
+        string timeframeVar = timeframe;
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -840,7 +840,7 @@ public partial class extended : ccxt.extended
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         string? price = this.safeString(parameters, "price");
         string? candleType = this.safeString(parameters, "candleType");
         if ((candleType == null))

@@ -250,14 +250,14 @@ public partial class hyperliquid : ccxt.hyperliquid
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         string messageHash = add("orderbook:", symbolVar);
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -367,14 +367,14 @@ public partial class hyperliquid : ccxt.hyperliquid
      */
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         // the single-symbolVar path subscribes to the per-coin context channel, which hyperliquid
         // pushes at block cadence with full ticker fields (mark, oracle, funding, volume),
         // instead of the aggregate allMids broadcast that only carries mids and arrives at the
@@ -756,7 +756,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      */
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -764,7 +764,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         string messageHash = add("trade:", symbolVar);
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -944,8 +944,8 @@ public partial class hyperliquid : ccxt.hyperliquid
      */
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
-        object timeframeVar = timeframe;
+        string symbolVar = symbol;
+        string timeframeVar = timeframe;
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -954,7 +954,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
@@ -986,7 +986,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      */
     public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -1487,7 +1487,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -1503,7 +1503,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         if (!isEqual(symbolVar, null))
         {
             market = this.market(symbolVar);
-            symbolVar = GetValue(market, "symbol");
+            symbolVar = ((string)GetValue(market, "symbol"));
             messageHash = add(add(messageHash, ":"), symbolVar);
         }
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
