@@ -1261,10 +1261,10 @@ public partial class coinbaseexchange : Exchange
         string? feeRate = null;
         string? takerOrMaker = null;
         string? cost = null;
-        object feeCurrencyId = this.safeStringLower(market, "quoteId");
+        string? feeCurrencyId = this.safeStringLower(market, "quoteId");
         if ((feeCurrencyId != null))
         {
-            object costField = add(feeCurrencyId, "_value");
+            string costField = add(feeCurrencyId, "_value");
             cost = this.safeString(trade, costField);
             string? liquidity = this.safeString(trade, "liquidity");
             if ((liquidity != null))

@@ -231,12 +231,12 @@ public partial class mudrex : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> apiUrls = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
-        object bs = this.safeString(apiUrls, api);
+        string? bs = this.safeString(apiUrls, api);
         if ((bs == null))
         {
             throw new ExchangeError (add(add(this.id, " unknown API namespace: "), api)) ;
         }
-        object url = add(add(bs, "/"), this.implodeParams(path, parameters));
+        string url = add(add(bs, "/"), this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         Dictionary<string, object> requestHeaders = new Dictionary<string, object>() {};
         if (!isEqual(headers, null))
@@ -621,14 +621,14 @@ public partial class mudrex : Exchange
     public override Dictionary<string, object> parseMarket(object asset)
     {
         string? ms = this.safeString(asset, "symbol");
-        object bs = ms;
+        string? bs = ms;
         if ((ms != null) && ((string)ms).EndsWith("USDT"))
         {
             bs = slice(ms, 0, -4);
         }
         string quote = "USDT";
         string settle = "USDT";
-        object symbol = null;
+        string? symbol = null;
         if ((bs != null))
         {
             symbol = add(add(add(add(bs, "/"), quote), ":"), settle);

@@ -357,13 +357,13 @@ public partial class mercado : Exchange
             object coin = getValue(coins, i);
             object baseId = coin;
             string quoteId = "BRL";
-            object bs = this.safeCurrencyCode(baseId);
-            object quote = this.safeCurrencyCode(quoteId);
+            string? bs = this.safeCurrencyCode(baseId);
+            string? quote = this.safeCurrencyCode(quoteId);
             if (((bs == null)) || ((quote == null)))
             {
                 continue;
             }
-            object id = add(quote, bs);
+            string id = add(quote, bs);
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", add(add(bs, "/"), quote) },

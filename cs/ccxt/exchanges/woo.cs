@@ -4111,8 +4111,8 @@ public partial class woo : Exchange
         Int64? nextFundingTimestamp = this.safeInteger2(fundingRate, "nextFundingTime", "fundingTs");
         Int64? estFundingRateTimestamp = this.safeInteger(fundingRate, "estFundingRateTimestamp");
         Int64? lastFundingRateTimestamp = this.safeInteger(fundingRate, "lastFundingRateTimestamp");
-        object intervalString = this.safeString(fundingRate, "estFundingIntervalHours");
-        object interval = null;
+        string? intervalString = this.safeString(fundingRate, "estFundingIntervalHours");
+        string? interval = null;
         if ((intervalString != null))
         {
             interval = add(intervalString, "h");

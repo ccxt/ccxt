@@ -650,10 +650,10 @@ public partial class bitflyer : Exchange
         //          "commission": 0,
         //      },
         //
-        object side = this.safeStringLower(trade, "side");
+        string? side = this.safeStringLower(trade, "side");
         if ((side != null))
         {
-            if (((string)side).Length < 1)
+            if (side.Length < 1)
             {
                 side = null;
             }
@@ -661,7 +661,7 @@ public partial class bitflyer : Exchange
         object order = null;
         if ((side != null))
         {
-            object idInner = add(side, "_child_order_acceptance_id");
+            string idInner = add(side, "_child_order_acceptance_id");
             if (inOp(trade, idInner))
             {
                 order = getValue(trade, idInner);

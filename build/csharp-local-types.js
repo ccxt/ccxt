@@ -4907,7 +4907,7 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
                     // (stringPlusOperandIsProvablyString), and the selected add(string, *)
                     // overload is declared `string`, so the write is assignable by
                     // construction. Every other compound operator stays `object`.
-                    if (!(op === ts.SyntaxKind.PlusEqualsToken && stringPlusOperandIsProvablyString (csharp, n, csharpType, context))) {
+                    if (!(op === ts.SyntaxKind.PlusEqualsToken && (stringPlusOperandIsProvablyString (csharp, n, csharpType, context) || stringPlusOperandIsNonNullAtUse (csharp, scope, declaration, varName, n, csharpType, context)))) {
                         return false;
                     }
                 }
@@ -4921,9 +4921,14 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
             // object overload's (string) cast (InvalidCastException) — both stay
             // `object`. A non-nullable `string` local with a provably non-null string
             // right operand is accepted: it can never be null and
-            // add(string, string) == add(object, object) for every input.
+            // add(string, string) == add(object, object) for every input. A `string?`
+            // local is accepted on the same proof when the value THIS read receives is
+            // proven non-null by a dominating null test / non-null write
+            // (stringPlusOperandIsNonNullAtUse) — the null case the divergence needs
+            // cannot arise there.
             if (isString && isLeftPlusOperand (n)) {
-                if (!stringPlusOperandIsProvablyString (csharp, n, csharpType, context)) {
+                if (!stringPlusOperandIsProvablyString (csharp, n, csharpType, context)
+                        && !stringPlusOperandIsNonNullAtUse (csharp, scope, declaration, varName, n, csharpType, context)) {
                     return false;
                 }
             }
@@ -4948,7 +4953,8 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
             // `(x) + y` prints `add((x), y)`: the parentheses keep x's static type
             const value = unwrapParens (n);
             if (isString && isLeftPlusOperand (value)) {
-                if (!stringPlusOperandIsProvablyString (csharp, value, csharpType, context)) {
+                if (!stringPlusOperandIsProvablyString (csharp, value, csharpType, context)
+                        && !stringPlusOperandIsNonNullAtUse (csharp, scope, declaration, varName, value, csharpType, context)) {
                     return false;
                 }
             }
@@ -5158,6 +5164,273 @@ function stringPlusOperandIsProvablyString (csharp, value, csharpType, context) 
     // where the object overload's `(string)b` cast is exact on a string box (null included).
     const right = csharpTypeOfValue (csharp, parent.right, context);
     return right === 'string' || right === 'string?';
+}
+
+// The same LEFT-operand rule for a `string?` local: the only divergence from the untyped
+// `object` declaration is the null box (add(object, object) returns null, add(string, *)
+// returns the right operand). When the value THIS read receives is proven non-null, both
+// spellings compute the same concatenation, so the declaration may still name the string
+// box. The proof is syntactic and local to the read:
+//   - the read sits in the then-branch of an `if` whose condition is a conjunction of
+//     `x !== undefined` / `x != null` tests and one of them is this binding, or
+//   - a preceding statement of one of the read's own statement lists is an unconditional
+//     exit guarded by a disjunction of `x === undefined` / `x == null` tests (the
+//     early-`continue` market-row guards), or a plain `x = <value>` write whose value the
+//     module proves a NON-null string,
+// and no other write to the binding happens between that proof and the read. Anything else
+// (a conditional write, a compound assignment, an unknown value, an ambiguous binding) keeps
+// the local `object`, exactly as before.
+function stringPlusOperandIsNonNullAtUse (csharp, scope, declaration, name, value, csharpType, context) {
+    if (csharpType === 'string') {
+        // the non-null spelling has its own rule (stringPlusOperandIsProvablyString); this
+        // proof exists for the nullable spelling only — and keeping it out of the `string`
+        // scan also keeps the retry below from recursing back into here
+        return false;
+    }
+    const parent = value.parent;
+    if (parent?.kind !== ts.SyntaxKind.BinaryExpression || parent.left !== value) {
+        return false;
+    }
+    const op = parent.operatorToken.kind;
+    if (op !== ts.SyntaxKind.PlusToken && op !== ts.SyntaxKind.PlusEqualsToken) {
+        return false;
+    }
+    // the right operand must still be a string box: a non-string right would bind
+    // add(string, object), whose ToString() diverges from the object overload's (string) cast
+    const right = csharpTypeOfValue (csharp, parent.right, context);
+    if (right !== 'string' && right !== 'string?') {
+        return false;
+    }
+    // a local whose own initializer is a safeString* with a proven non-null default keeps the
+    // STRONGER non-null `string` spelling the retry in csharpLocalTypeOf produces (the same
+    // box, with its identity cast): accepting the nullable candidate here would trade a
+    // `string` declaration for a `string?` one
+    if (nonNullStringDefaultCall (csharp, declaration.initializer, context)
+            && csharpLocalIsSafeToRetype (csharp, scope, declaration, name, 'string', context)) {
+        return false;
+    }
+    return stringValueIsNonNullAtUse (csharp, scope, declaration, name, value, context);
+}
+
+// every write (plain or compound assignment) to the binding inside its scope, as AST nodes
+function stringLocalWriteNodes (csharp, scope, declaration, name) {
+    const index = indexScope (csharp, scope);
+    const out = [];
+    for (const n of (index.identifiers.get (name) ?? [])) {
+        if (n === declaration.name || isNotAUse (n)) {
+            continue;
+        }
+        if (useRefersToDeclaration (csharp, scope, declaration, n) === false) {
+            continue;
+        }
+        const parent = n.parent;
+        if (parent?.kind !== ts.SyntaxKind.BinaryExpression || parent.left !== n) {
+            continue;
+        }
+        const op = parent.operatorToken.kind;
+        if (op === ts.SyntaxKind.EqualsToken || (op >= ts.SyntaxKind.FirstCompoundAssignment && op <= ts.SyntaxKind.LastCompoundAssignment)) {
+            out.push (n);
+        }
+    }
+    return out;
+}
+
+// `x !== undefined` / `x != null` (nonNull) or `x === undefined` / `x == null` (isNull): the
+// tested identifier, whatever its name — the callers decide which binding the test proves.
+// The condition leaves are printed from the TS source, which parenthesizes each comparison —
+// unwrap before classifying.
+function stripParens (node) {
+    let current = node;
+    while (current?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        current = current.expression;
+    }
+    return current;
+}
+
+function nullTestOf (node) {
+    const expression = stripParens (node);
+    if (expression?.kind !== ts.SyntaxKind.BinaryExpression) {
+        return undefined;
+    }
+    const op = expression.operatorToken.kind;
+    const positive = (op === ts.SyntaxKind.ExclamationEqualsToken || op === ts.SyntaxKind.ExclamationEqualsEqualsToken);
+    const negative = (op === ts.SyntaxKind.EqualsEqualsToken || op === ts.SyntaxKind.EqualsEqualsEqualsToken);
+    if (!positive && !negative) {
+        return undefined;
+    }
+    const sides = [ expression.left, expression.right ];
+    for (let i = 0; i < 2; i++) {
+        const operand = stripParens (sides[i]);
+        const other = stripParens (sides[1 - i]);
+        if (operand?.kind !== ts.SyntaxKind.Identifier) {
+            continue;
+        }
+        const nullish = other?.kind === ts.SyntaxKind.NullKeyword || (other?.kind === ts.SyntaxKind.Identifier && other.escapedText === 'undefined');
+        if (!nullish) {
+            continue;
+        }
+        return { kind: positive ? 'nonNull' : 'isNull', identifier: operand };
+    }
+    return undefined;
+}
+
+// does this left-hand identifier of a null test resolve to the local being retyped?
+function nullTestIsThisBinding (test, csharp, scope, declaration) {
+    if (test.identifier.escapedText !== declaration.name.escapedText) {
+        return false;
+    }
+    return useRefersToDeclaration (csharp, scope, declaration, test.identifier) !== false;
+}
+
+// flatten `a && b && c` / `a || b || c` into leaves (the printer emits `&&` / `||`, never a
+// mixed chain without parentheses in the generated guards this rule targets)
+function flattenLogicalChain (node, kind) {
+    const out = [];
+    const walk = (current) => {
+        const expression = stripParens (current);
+        if (expression?.kind === ts.SyntaxKind.BinaryExpression && expression.operatorToken.kind === kind) {
+            walk (expression.left);
+            walk (expression.right);
+            return;
+        }
+        out.push (expression);
+    };
+    walk (node);
+    return out;
+}
+
+// the then-branch of this `if` executes only when every conjunct holds: a conjunction whose
+// every leaf is a positive null test proves each tested binding non-null inside the branch
+function conditionProvesNonNull (condition, csharp, scope, declaration) {
+    const leaves = flattenLogicalChain (condition, ts.SyntaxKind.AmpersandAmpersandToken);
+    let testsThisBinding = false;
+    for (const leaf of leaves) {
+        const test = nullTestOf (leaf);
+        if (test?.kind !== 'nonNull') {
+            return false;
+        }
+        if (nullTestIsThisBinding (test, csharp, scope, declaration)) {
+            testsThisBinding = true;
+        }
+    }
+    return testsThisBinding;
+}
+
+// does this statement leave the enclosing block on every path? (`continue` / `return` /
+// `throw`, directly or as the single statement of a block)
+function statementAlwaysExits (statement) {
+    if (statement === undefined) {
+        return false;
+    }
+    if (statement.kind === ts.SyntaxKind.Block) {
+        const statements = statement.statements ?? [];
+        return statements.length === 1 && statementAlwaysExits (statements[0]);
+    }
+    return statement.kind === ts.SyntaxKind.ContinueStatement
+        || statement.kind === ts.SyntaxKind.ReturnStatement
+        || statement.kind === ts.SyntaxKind.ThrowStatement;
+}
+
+// `if (a === undefined || b === undefined) <exit>;` — reaching past this statement means none
+// of the tested bindings is null/undefined, so it proves THIS binding non-null when it tests it
+function exitGuardProvesNonNull (statement, csharp, scope, declaration) {
+    if (statement?.kind !== ts.SyntaxKind.IfStatement || !statementAlwaysExits (statement.thenStatement)) {
+        return false;
+    }
+    const leaves = flattenLogicalChain (statement.expression, ts.SyntaxKind.BarBarToken);
+    let testsThisBinding = false;
+    for (const leaf of leaves) {
+        const test = nullTestOf (leaf);
+        if (test?.kind !== 'isNull') {
+            return false;
+        }
+        if (nullTestIsThisBinding (test, csharp, scope, declaration)) {
+            testsThisBinding = true;
+        }
+    }
+    return testsThisBinding;
+}
+
+// the value a `string?` local holds at this read, proven a non-null string by the guards and
+// writes above the read (see stringPlusOperandIsNonNullAtUse)
+function stringValueIsNonNullAtUse (csharp, scope, declaration, name, read, context) {
+    if (scope === undefined) {
+        return false;
+    }
+    const writes = stringLocalWriteNodes (csharp, scope, declaration, name);
+    const blocked = (from, to) => writes.some ((w) => w.getStart () > from && w.getEnd () <= to);
+    // 1. an enclosing positive guard: walk the ancestors and look for the read (or the block
+    // holding it) as the then-branch of an `if` whose condition proves this binding non-null
+    let child = read;
+    let parent = read.parent;
+    while (parent !== undefined) {
+        if (parent.kind === ts.SyntaxKind.IfStatement && parent.thenStatement === child && conditionProvesNonNull (parent.expression, csharp, scope, declaration)) {
+            if (!blocked (parent.expression.getEnd (), read.getStart ())) {
+                return true;
+            }
+        }
+        child = parent;
+        parent = parent.parent;
+    }
+    // 2. a preceding statement of one of the read's statement lists: the LAST write-or-guard
+    // before the read is what the value at the read depends on
+    let block = read.parent;
+    while (block !== undefined) {
+        if (block.kind === ts.SyntaxKind.Block || block.kind === ts.SyntaxKind.SourceFile || block.kind === ts.SyntaxKind.CaseClause || block.kind === ts.SyntaxKind.ModuleBlock) {
+            const statements = block.statements ?? [];
+            let current = undefined;
+            let proof = undefined;
+            for (const candidate of statements) {
+                if (candidate.getStart () <= read.getStart () && read.getEnd () <= candidate.getEnd ()) {
+                    current = candidate;
+                    break;
+                }
+                const write = plainStringWriteQualifies (candidate, csharp, scope, declaration, context);
+                if (write) {
+                    proof = candidate;
+                    continue;
+                }
+                if (exitGuardProvesNonNull (candidate, csharp, scope, declaration)) {
+                    proof = candidate;
+                    continue;
+                }
+                const nested = writes.some ((w) => w.getStart () >= candidate.getStart () && w.getEnd () <= candidate.getEnd ());
+                if (nested) {
+                    proof = undefined; // a conditional/unknown write voids every earlier proof
+                }
+            }
+            if (proof !== undefined && !blocked (proof.getEnd (), read.getStart ())) {
+                return true;
+            }
+            if (current === undefined) {
+                return false; // the read is not in this list (malformed span): do not guess
+            }
+        }
+        block = block.parent;
+    }
+    return false;
+}
+
+// is this statement a direct `x = <non-null string>` write of the binding?
+function plainStringWriteQualifies (statement, csharp, scope, declaration, context) {
+    if (statement?.kind !== ts.SyntaxKind.ExpressionStatement) {
+        return false;
+    }
+    const expression = statement.expression;
+    if (expression?.kind !== ts.SyntaxKind.BinaryExpression || expression.operatorToken.kind !== ts.SyntaxKind.EqualsToken) {
+        return false;
+    }
+    const target = expression.left;
+    if (target?.kind !== ts.SyntaxKind.Identifier) {
+        return false;
+    }
+    if (useRefersToDeclaration (csharp, scope, declaration, target) === false) {
+        return false;
+    }
+    if (target.escapedText !== declaration.name.escapedText) {
+        return false;
+    }
+    return csharpTypeOfValue (csharp, expression.right, context) === 'string';
 }
 
 // is `identifier` (possibly wrapped) the key of a `delete obj[key]`?

@@ -11638,11 +11638,11 @@ public partial class bitget : Exchange
         string? marketId = this.safeString(contract, "symbol");
         string? symbol = this.safeSymbol(marketId, market, null, "swap");
         Int64? fundingTimestamp = this.safeInteger2(contract, "nextFundingTime", "nextUpdate");
-        object interval = this.safeString2(contract, "ratePeriod", "fundingRateInterval");
+        string? interval = this.safeString2(contract, "ratePeriod", "fundingRateInterval");
         Int64? timestamp = this.safeInteger(contract, "ts");
         double? markPrice = this.safeNumber(contract, "markPrice");
         double? indexPrice = this.safeNumber(contract, "indexPrice");
-        object intervalString = null;
+        string? intervalString = null;
         if ((interval != null))
         {
             intervalString = add(interval, "h");

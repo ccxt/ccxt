@@ -1544,10 +1544,10 @@ public partial class myriad : PredictionExchange
         if ((outcome == null))
         {
             // the REST order has no top-level networkId; order book lives on the default network
-            object networkId = this.safeString2(order, "networkId", "network_id", this.safeString(this.options, "defaultNetworkId", "56"));
+            string? networkId = this.safeString2(order, "networkId", "network_id", this.safeString(this.options, "defaultNetworkId", "56"));
             string? marketId = this.safeString(inner, "marketId");
             string? outcomeId = this.safeString(inner, "outcomeId");
-            object composite = null;
+            string? composite = null;
             if (((networkId != null)) && ((marketId != null)) && ((outcomeId != null)))
             {
                 composite = add(add(add(add(networkId, ":"), marketId), "/"), outcomeId);
@@ -1594,10 +1594,10 @@ public partial class myriad : PredictionExchange
      */
     public virtual object parseAmmEventToOrder(object trade, object market = null)
     {
-        object networkId = this.safeString(trade, "networkId");
+        string? networkId = this.safeString(trade, "networkId");
         string? marketId = this.safeString(trade, "marketId");
         string? rawOutcomeId = this.safeString(trade, "outcomeId");
-        object composite = null;
+        string? composite = null;
         if (((networkId != null)) && ((marketId != null)) && ((rawOutcomeId != null)))
         {
             composite = add(add(add(add(networkId, ":"), marketId), "/"), rawOutcomeId);
@@ -4308,7 +4308,7 @@ public partial class myriad : PredictionExchange
             Int64? limit = this.safeInteger(this.options, "positionsLimit", 1000);
             this.positions = new ArrayCacheByOutcomeById(limit);
         }
-        object networkId = this.safeString(data, "networkId");
+        string? networkId = this.safeString(data, "networkId");
         string? marketId = this.safeString(data, "marketId");
         string? outcomeId = this.safeString(data, "outcome");
         string? sym = this.marketOutcomeToSymbol(networkId, marketId, outcomeId);
@@ -4324,7 +4324,7 @@ public partial class myriad : PredictionExchange
         }
         string? deltaShares = Precise.stringDiv(deltaStr, "1000000000000000000");
         double? contracts = null;
-        object posId = null;
+        string? posId = null;
         if (((networkId != null)) && ((marketId != null)) && ((outcomeId != null)))
         {
             posId = add(add(add(add(networkId, ":"), marketId), "/"), outcomeId);

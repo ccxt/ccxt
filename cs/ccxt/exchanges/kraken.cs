@@ -751,7 +751,7 @@ public partial class kraken : Exchange
             string? quoteIdRaw = this.safeString(market, "quote");
             string? baseId = this.safeCurrencyCode(baseIdRaw);
             string? quoteId = this.safeCurrencyCode(quoteIdRaw);
-            object bs = baseId;
+            string? bs = baseId;
             string? quote = quoteId;
             List<object> makerFees = this.safeList(market, "fees_maker", new List<object>() {});
             List<object> firstMakerFee = this.safeList(makerFees, 0, new List<object>() {});
@@ -795,7 +795,7 @@ public partial class kraken : Exchange
             }
             string? status = this.safeString(market, "status");
             bool isActive = status == "online";
-            object symbol = (!isSynthetic) ? (add(add(bs, "/"), quote)) : id;
+            string? symbol = (!isSynthetic) ? (add(add(bs, "/"), quote)) : id;
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "wsId", this.safeString(market, "wsname") },

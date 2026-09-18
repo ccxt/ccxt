@@ -1643,12 +1643,12 @@ public partial class bingx : ccxt.bingx
             for (int i = 0; isLessThan(i, types.Count); postFixIncrement(ref i))
             {
                 string? type = ((string)getValue(types, i));
-                object baseUrl = this.safeString(getValue(getValue(this.urls, "api"), "ws"), type);
+                string? baseUrl = this.safeString(getValue(getValue(this.urls, "api"), "ws"), type);
                 if ((baseUrl == null))
                 {
                     continue;
                 }
-                object url = add(add(baseUrl, "?listenKey="), listenKey);
+                string url = add(add(baseUrl, "?listenKey="), listenKey);
                 var client = this.client(url);
                 List<object> messageHashes = new List<object>(((IDictionary<string, ccxt.Exchange.Future>)client.futures).Keys);
                 for (int j = 0; isLessThan(j, messageHashes.Count); postFixIncrement(ref j))

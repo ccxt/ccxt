@@ -2597,10 +2597,10 @@ public partial class htx : Exchange
         for (int i = 0; isLessThan(i, markets.Count); postFixIncrement(ref i))
         {
             object market = getValue(markets, i);
-            object baseId = null;
+            string? baseId = null;
             string? quoteId = null;
-            object settleId = null;
-            object id = null;
+            string? settleId = null;
+            string? id = null;
             string? lowercaseId = null;
             bool contract = (inOp(market, "contract_code"));
             bool spot = !contract;
@@ -2616,7 +2616,7 @@ public partial class htx : Exchange
                 {
                     throw new ExchangeError (add(this.id, " method() missing id")) ;
                 }
-                lowercaseId = ((string)id).ToLower();
+                lowercaseId = id.ToLower();
                 string? delivery_date = this.safeString(market, "delivery_date");
                 string? business_type = this.safeString(market, "business_type");
                 future = (delivery_date != null);
@@ -2630,7 +2630,7 @@ public partial class htx : Exchange
                     {
                         throw new ExchangeError (add(this.id, " method() missing id")) ;
                     }
-                    List<object> parts = ((string)id).Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
+                    List<object> parts = id.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
                     baseId = this.safeStringLower(market, "symbol");
                     quoteId = this.safeStringLower(parts, 1);
                     settleId = isTrue(inverse) ? baseId : quoteId;
@@ -2668,7 +2668,7 @@ public partial class htx : Exchange
                     throw new ExchangeError (add(this.id, " method() missing baseId")) ;
                 }
                 id = add(baseId, quoteId);
-                lowercaseId = ((string)id).ToLower();
+                lowercaseId = id.ToLower();
             }
             object bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
