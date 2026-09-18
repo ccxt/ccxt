@@ -5570,7 +5570,7 @@ public partial class coinbase : Exchange
         return ccxt.BaseExchange.ToPosition(this.parsePosition(position, market));
     }
 
-    public override Dictionary<string, object> parsePosition(object position, object market = null)
+    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
     {
         //
         // {

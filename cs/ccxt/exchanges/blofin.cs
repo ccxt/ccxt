@@ -2976,7 +2976,7 @@ public partial class blofin : Exchange
         return ccxt.BaseExchange.ToPositionList(this.filterBySinceLimit(positions, since, limit));
     }
 
-    public override Dictionary<string, object> parsePosition(object position, object market = null)
+    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
     {
         //
         // response similar for REST & WS

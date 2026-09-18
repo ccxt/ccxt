@@ -6012,7 +6012,7 @@ public partial class xt : Exchange
         return ccxt.BaseExchange.ToFundingHistoryList(this.filterBySinceLimit(sorted, since, limit));
     }
 
-    public virtual object parseFundingHistory(object contract, object market = null)
+    public virtual object parseFundingHistory(object contract, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -6360,7 +6360,7 @@ public partial class xt : Exchange
         return ccxt.BaseExchange.ToPositionList(this.filterBySinceLimit(positions, since, limit));
     }
 
-    public override Dictionary<string, object> parsePosition(object position, object market = null)
+    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
     {
         //
         // position/list

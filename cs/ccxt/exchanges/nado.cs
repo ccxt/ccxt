@@ -2556,7 +2556,7 @@ public partial class nado : Exchange
         };
     }
 
-    public virtual object parseFundingHistory(object funding, object market = null)
+    public virtual object parseFundingHistory(object funding, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -2793,7 +2793,7 @@ public partial class nado : Exchange
         };
     }
 
-    public override Dictionary<string, object> parsePosition(object position, object market = null)
+    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
     {
         //
         //     {

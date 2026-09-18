@@ -2290,7 +2290,7 @@ public partial class lighter : Exchange
         return ccxt.BaseExchange.ToPositionList(this.parsePositions(allPositions, symbols));
     }
 
-    public override Dictionary<string, object> parsePosition(object position, object market = null)
+    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
     {
         //
         //     {

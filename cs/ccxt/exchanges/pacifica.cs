@@ -1114,7 +1114,7 @@ public partial class pacifica : Exchange
         };
     }
 
-    public virtual object parseLeverageFromMarket(object market)
+    public virtual object parseLeverageFromMarket(IDictionary<string, object> market)
     {
         IDictionary<string, object> marketLimits = this.safeDict(market, "limits", new Dictionary<string, object>() {});
         IDictionary<string, object> leverageLimits = this.safeDict(marketLimits, "leverage", new Dictionary<string, object>() {});
@@ -2374,7 +2374,7 @@ public partial class pacifica : Exchange
         return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "id", orderId },             { "info", response },             { "symbol", symbol },         }));
     }
 
-    public virtual Dictionary<string, object> editOrderRequest(string? id, object symbol, object type, object side, object amount, object price, object market, object parameters = null)
+    public virtual Dictionary<string, object> editOrderRequest(string? id, object symbol, object type, object side, object amount, object price, IDictionary<string, object> market, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isEqual(side, null))
@@ -3146,7 +3146,7 @@ public partial class pacifica : Exchange
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbols, false));
     }
 
-    public override Dictionary<string, object> parsePosition(object position, object market = null)
+    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
     {
         //
         //     {

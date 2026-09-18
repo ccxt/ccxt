@@ -4175,7 +4175,7 @@ public partial class binance : ccxt.binance
         return ((string?)((object)(accountType)));
     }
 
-    public virtual List<object> resolveAuthType(object methodName, object market = null, object parameters = null)
+    public virtual List<object> resolveAuthType(object methodName, IDictionary<string, object> market = null, object parameters = null)
     {
         // the single home for user-data type derivation: market type, subType,
         // and the guarded linear/inverse rewrite. option and stock must keep
@@ -4208,7 +4208,7 @@ public partial class binance : ccxt.binance
         return new List<object>() {type, subType, parameters};
     }
 
-    public virtual string? getMarketType(object method, object market, object parameters = null)
+    public virtual string? getMarketType(object method, IDictionary<string, object> market, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? type = null;

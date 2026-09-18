@@ -1033,7 +1033,7 @@ public partial class htx : ccxt.htx
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolVar, since, limitVar, true));
     }
 
-    public virtual List<object> getOrderChannelAndMessageHash(object type, object subType, object market = null, object parameters = null)
+    public virtual List<object> getOrderChannelAndMessageHash(object type, object subType, IDictionary<string, object> market = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object messageHash = null;
@@ -1089,7 +1089,7 @@ public partial class htx : ccxt.htx
         return new List<object>() {channel, messageHash};
     }
 
-    public virtual List<object> getV5LinearChannelAndMessageHash(object topic, object market = null, object parameters = null)
+    public virtual List<object> getV5LinearChannelAndMessageHash(object topic, IDictionary<string, object> market = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object contractCode = (!isEqual(market, null)) ? getValue(market, "id") : this.safeString(parameters, "contract_code", "*");
@@ -3207,7 +3207,7 @@ public partial class htx : ccxt.htx
         return await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription);
     }
 
-    public async virtual Task<object> unsubscribePublic(object market, object subMessageHash, object topic, object parameters = null)
+    public async virtual Task<object> unsubscribePublic(IDictionary<string, object> market, object subMessageHash, object topic, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string requestId = ((string)this.requestId());

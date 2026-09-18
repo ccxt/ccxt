@@ -2459,7 +2459,7 @@ public partial class gate : ccxt.gate
         }
     }
 
-    public virtual object getUrlByMarket(object market)
+    public virtual object getUrlByMarket(IDictionary<string, object> market)
     {
         object baseUrl = getValue(getValue(this.urls, "api"), getValue(market, "type"));
         if (isEqual(getValue(market, "contract"), true))
@@ -2471,7 +2471,7 @@ public partial class gate : ccxt.gate
         }
     }
 
-    public virtual string? getTypeByMarket(object market)
+    public virtual string? getTypeByMarket(IDictionary<string, object> market)
     {
         if (isEqual(market, null))
         {

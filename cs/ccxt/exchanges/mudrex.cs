@@ -1307,7 +1307,7 @@ public partial class mudrex : Exchange
         return ccxt.BaseExchange.ToPositionList(this.filterBySinceLimit(positions, since, limit));
     }
 
-    public override Dictionary<string, object> parsePosition(object position, object market = null)
+    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
     {
         market = this.safeMarket(null, market);
         string? ms = this.safeString(position, "symbol");

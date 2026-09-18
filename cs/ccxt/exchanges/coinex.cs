@@ -3979,7 +3979,7 @@ public partial class coinex : Exchange
         return ccxt.BaseExchange.ToPosition(this.parsePosition(getValue(data, 0), market));
     }
 
-    public override Dictionary<string, object> parsePosition(object position, object market = null)
+    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
     {
         //
         //     {

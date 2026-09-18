@@ -3359,7 +3359,7 @@ public partial class bingx : Exchange
         return ccxt.BaseExchange.ToPosition(this.parsePosition(first, market));
     }
 
-    public override Dictionary<string, object> parsePosition(object position, object market = null)
+    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
     {
         //
         // inverse swap

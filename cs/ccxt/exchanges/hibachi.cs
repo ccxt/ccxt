@@ -912,7 +912,7 @@ public partial class hibachi : Exchange
         return ccxt.BaseExchange.ToTradingFees(result);
     }
 
-    public virtual object orderMessage(object market, object nonce, object feeRate, object type, object side, object amount, object price = null)
+    public virtual object orderMessage(IDictionary<string, object> market, object nonce, object feeRate, object type, object side, object amount, object price = null)
     {
         if (isEqual(type, null))
         {
@@ -1901,7 +1901,7 @@ public partial class hibachi : Exchange
         return ccxt.BaseExchange.ToPositionList(this.parsePositions(data, symbols));
     }
 
-    public override Dictionary<string, object> parsePosition(object position, object market = null)
+    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
     {
         //
         // {

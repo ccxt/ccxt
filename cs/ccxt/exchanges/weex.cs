@@ -4321,7 +4321,7 @@ public partial class weex : Exchange
         return ccxt.BaseExchange.ToPositionList(this.parsePositions(response, new List<object>() {GetValue(market, "symbol")}));
     }
 
-    public override Dictionary<string, object> parsePosition(object position, object market = null)
+    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -4965,7 +4965,7 @@ public partial class weex : Exchange
      * @param {object} market a unified market structure
      * @returns {string} the market id for the request
      */
-    public virtual string? toSandboxMarketId(object market)
+    public virtual string? toSandboxMarketId(IDictionary<string, object> market)
     {
         bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         object baseId = this.safeString(market, "baseId");

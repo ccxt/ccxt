@@ -3918,7 +3918,7 @@ public partial class kraken : Exchange
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(results, "symbol", symbols, false));
     }
 
-    public override Dictionary<string, object> parsePosition(object position, object market = null)
+    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
     {
         //
         //             {

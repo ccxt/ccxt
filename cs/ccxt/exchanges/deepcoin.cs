@@ -1042,7 +1042,7 @@ public partial class deepcoin : Exchange
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(data, market, since, limit));
     }
 
-    public virtual string getProductGroupFromMarket(object market)
+    public virtual string getProductGroupFromMarket(IDictionary<string, object> market)
     {
         string productGroup = "Spot";
         if ((this.safeBool(market, "swap") == true))
@@ -3037,7 +3037,7 @@ public partial class deepcoin : Exchange
         return ccxt.BaseExchange.ToPositionList(this.parsePositions(data, symbols));
     }
 
-    public override Dictionary<string, object> parsePosition(object position, object market = null)
+    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
     {
         //
         //     {

@@ -1592,7 +1592,7 @@ public partial class myriad : PredictionExchange
      * @param {object} [market] the outcome object the trade belongs to
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public virtual object parseAmmEventToOrder(object trade, object market = null)
+    public virtual object parseAmmEventToOrder(object trade, IDictionary<string, object> market = null)
     {
         object networkId = this.safeString(trade, "networkId");
         string? marketId = this.safeString(trade, "marketId");

@@ -1436,7 +1436,7 @@ public partial class tokocrypto : Exchange
      * @param {object} market a unified market structure
      * @returns {boolean} true when the symbol type of the market is known and is not 1
      */
-    public virtual bool isNativeMarket(object market)
+    public virtual bool isNativeMarket(IDictionary<string, object> market)
     {
         IDictionary<string, object> marketInfo = this.safeDict(market, "info", new Dictionary<string, object>() {});
         string? symbolType = this.safeString(marketInfo, "type");
@@ -1455,7 +1455,7 @@ public partial class tokocrypto : Exchange
      * @param {object} market a unified market structure
      * @returns {string} the raw market id for native markets, the id without the underscore separator otherwise
      */
-    public virtual string? getMarketIdByType(object market)
+    public virtual string? getMarketIdByType(IDictionary<string, object> market)
     {
         if (isTrue(this.isNativeMarket(market)))
         {

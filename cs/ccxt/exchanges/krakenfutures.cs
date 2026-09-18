@@ -3585,7 +3585,7 @@ public partial class krakenfutures : Exchange
         return ((IList<object>)((object)(result)));
     }
 
-    public override Dictionary<string, object> parsePosition(object position, object market = null)
+    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
     {
         // cross
         //    {

@@ -534,7 +534,7 @@ public partial class bithumb : Exchange
         return this.decimalToPrecision(amount, TRUNCATE, getValue(GetValue(market, "precision"), "amount"), DECIMAL_PLACES);
     }
 
-    public virtual string? getGen2MarketId(object market)
+    public virtual string? getGen2MarketId(IDictionary<string, object> market)
     {
         string? marketId = this.safeString(market, "id");
         if (((marketId != null)) && (getIndexOf(marketId, "-") >= 0))

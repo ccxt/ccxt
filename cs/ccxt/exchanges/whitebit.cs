@@ -4240,7 +4240,7 @@ public partial class whitebit : Exchange
         return ccxt.BaseExchange.ToFundingHistoryList(this.parseFundingHistories(data, market, since, limit));
     }
 
-    public virtual object parseFundingHistory(object contract, object market = null)
+    public virtual object parseFundingHistory(object contract, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -4266,7 +4266,7 @@ public partial class whitebit : Exchange
         };
     }
 
-    public virtual object parseFundingHistories(object contracts, object market = null, object since = null, object limit = null)
+    public virtual object parseFundingHistories(object contracts, IDictionary<string, object> market = null, object since = null, object limit = null)
     {
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(contracts)); postFixIncrement(ref i))
@@ -4717,7 +4717,7 @@ public partial class whitebit : Exchange
         return ccxt.BaseExchange.ToPosition(this.parsePosition(data, market));
     }
 
-    public override Dictionary<string, object> parsePosition(object position, object market = null)
+    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
     {
         //
         // fetchPosition, fetchPositions

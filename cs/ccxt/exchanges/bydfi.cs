@@ -2410,7 +2410,7 @@ public partial class bydfi : Exchange
         return ccxt.BaseExchange.ToPositionList(this.parsePositions(data, new List<object>() {GetValue(market, "symbol")}));
     }
 
-    public override Dictionary<string, object> parsePosition(object position, object market = null)
+    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
     {
         //
         // fetchPositions, fetchPositionsForSymbol

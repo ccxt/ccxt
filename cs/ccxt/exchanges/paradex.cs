@@ -2997,7 +2997,7 @@ public partial class paradex : Exchange
         return ccxt.BaseExchange.ToPositionList(this.parsePositions(data, symbols));
     }
 
-    public override Dictionary<string, object> parsePosition(object position, object market = null)
+    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
     {
         //
         //     {
