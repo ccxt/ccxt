@@ -2822,8 +2822,8 @@ func (this *Coinbaseexchange) createDepositAddressBody(ch chan any, code any, op
 
 		accounts = (<-this.PrivateGetCoinbaseAccounts())
 		PanicOnError(accounts)
-		AddElementToObject(this.Options, "coinbaseAccounts", accounts) // cache it
-		AddElementToObject(this.Options, "coinbaseAccountsByCurrencyId", this.IndexBy(accounts, "currency"))
+		this.Options.Store("coinbaseAccounts", accounts) // cache it
+		this.Options.Store("coinbaseAccountsByCurrencyId", this.IndexBy(accounts, "currency"))
 	}
 	var currencyId any = GetValue(currency, "id")
 	var account any = this.SafeValue(GetValue(this.Options, "coinbaseAccountsByCurrencyId"), currencyId)

@@ -1374,7 +1374,7 @@ func (this *Bitstamp) fetchMarketsFromCacheBody(ch chan any, optionalArgs ...any
 		//            "market_type": "SPOT"
 		//        },
 		//
-		AddElementToObject(this.Options, "fetchMarkets", this.Extend(options, map[string]any{
+		this.Options.Store("fetchMarkets", this.Extend(options, map[string]any{
 			"response":  response,
 			"timestamp": now,
 		}))

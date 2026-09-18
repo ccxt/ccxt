@@ -149,7 +149,7 @@ func (this *Grvt) subscribeMultipleBody(ch chan any, messageHashes any, request 
 func (this *Grvt) RequestId() any {
 	this.LockId()
 	var newValue any = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1)
-	ccxt.AddElementToObject(this.Options, "requestId", newValue)
+	this.Options.Store("requestId", newValue)
 	this.UnlockId()
 	return newValue
 }

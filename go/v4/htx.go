@@ -2888,7 +2888,7 @@ func (this *Htx) TryGetSymbolFromFutureMarkets(symbolOrMarketId any) any {
 	// - market-id from fetchMarkts:    `BTC-USDT-240419` (linear future) or `BTC240412` (inverse future)
 	// - market-id from fetchTciker[s]: `BTC-USDT-CW`     (linear future) or `BTC_CW`    (inverse future)
 	if !(InOp(this.Options, "futureMarketIdsForSymbols")) {
-		AddElementToObject(this.Options, "futureMarketIdsForSymbols", map[string]any{})
+		this.Options.Store("futureMarketIdsForSymbols", map[string]any{})
 	}
 	var futureMarketIdsForSymbols any = this.SafeDict(this.Options, "futureMarketIdsForSymbols", map[string]any{})
 	if InOp(futureMarketIdsForSymbols, symbolOrMarketId) {
@@ -4469,18 +4469,18 @@ func (this *Htx) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	//    }
 	//
 	var data any = this.SafeList(response, "data", []any{})
-	AddElementToObject(this.Options, "networkNamesByChainIds", map[string]any{})
-	AddElementToObject(this.Options, "networkChainIdsByNames", map[string]any{})
+	this.Options.Store("networkNamesByChainIds", map[string]any{})
+	this.Options.Store("networkChainIdsByNames", map[string]any{})
 
 	ch <- this.ParseCurrencies(data)
 	return nil
 }
 func (this *Htx) ParseCurrency(rawCurrency any) any {
 	if !(InOp(this.Options, "networkNamesByChainIds")) {
-		AddElementToObject(this.Options, "networkNamesByChainIds", map[string]any{})
+		this.Options.Store("networkNamesByChainIds", map[string]any{})
 	}
 	if !(InOp(this.Options, "networkChainIdsByNames")) {
-		AddElementToObject(this.Options, "networkChainIdsByNames", map[string]any{})
+		this.Options.Store("networkChainIdsByNames", map[string]any{})
 	}
 	var currencyId *string = this.SafeString(rawCurrency, "currency")
 	var code *string = this.SafeCurrencyCode(currencyId)

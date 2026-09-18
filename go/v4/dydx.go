@@ -1577,7 +1577,7 @@ func (this *Dydx) RetrieveCredentials() any {
 	credentials = this.RetrieveDydxCredentials(privateKey)
 	AddElementToObject(credentials, "privateKey", this.BinaryToBase16(GetValue(credentials, "privateKey")))
 	AddElementToObject(credentials, "publicKey", this.BinaryToBase16(GetValue(credentials, "publicKey")))
-	AddElementToObject(this.Options, "dydxCredentials", credentials)
+	this.Options.Store("dydxCredentials", credentials)
 	return credentials
 }
 func (this *Dydx) FetchDydxAccountAsync() <-chan any {
@@ -1627,7 +1627,7 @@ func (this *Dydx) fetchDydxAccountBody(ch chan any) any {
 	AddElementToObject(account, "pub_key", map[string]any{
 		"key": GetValue(GetValue(account, "pub_key"), "key"),
 	})
-	AddElementToObject(this.Options, "dydxAccount", account)
+	this.Options.Store("dydxAccount", account)
 
 	ch <- account
 	return nil
@@ -3247,8 +3247,8 @@ func (this *Dydx) HandleErrors(httpCode any, reason any, url any, method any, he
 func (this *Dydx) SetSandboxMode(enable any) {
 	this.Exchange.SetSandboxMode(enable)
 	// rewrite testnet parameters
-	AddElementToObject(this.Options, "chainName", "dydx-testnet-4")
-	AddElementToObject(this.Options, "chainId", 11155111)
+	this.Options.Store("chainName", "dydx-testnet-4")
+	this.Options.Store("chainId", 11155111)
 	AddElementToObject(GetValue(this.Options, "feeDenom"), "CHAINTOKEN_DENOM", "adv4tnt")
 }
 

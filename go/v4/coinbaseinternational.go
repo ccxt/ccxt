@@ -486,7 +486,7 @@ func (this *Coinbaseinternational) handlePortfolioAndParamsBody(ch chan any, met
 		var info any = this.SafeDict(account, "info", map[string]any{})
 		if IsEqual(this.SafeBool(info, "is_default"), true) {
 			var portfolioId *string = this.SafeString(info, "portfolio_id")
-			AddElementToObject(this.Options, "portfolio", portfolioId)
+			this.Options.Store("portfolio", portfolioId)
 
 			ch <- []any{portfolioId, params}
 			return nil

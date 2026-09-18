@@ -717,7 +717,7 @@ func (this *Gemini) fetchCurrenciesFromWebBody(ch chan any, optionalArgs ...any)
 	//        ]
 	//    }
 	//
-	AddElementToObject(this.Options, "tradingPairs", this.SafeList(data, "tradingPairs"))
+	this.Options.Store("tradingPairs", this.SafeList(data, "tradingPairs"))
 	var currenciesArray any = this.SafeValue(data, "currencies", []any{})
 
 	ch <- this.ParseCurrencies(currenciesArray)

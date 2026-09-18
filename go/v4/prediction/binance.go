@@ -1970,7 +1970,7 @@ func (this *Binance) fetchWalletBody(ch chan any, methodName any, optionalArgs .
 	var wallets any = this.SafeList(response, "wallets", []any{})
 	if walletAddress == nil {
 		cachedWallet = this.SafeDict(wallets, 0)
-		ccxt.AddElementToObject(this.Options, "wallet", cachedWallet)
+		this.Options.Store("wallet", cachedWallet)
 
 		ch <- cachedWallet
 		return nil
@@ -1986,7 +1986,7 @@ func (this *Binance) fetchWalletBody(ch chan any, methodName any, optionalArgs .
 	if ccxt.IsEqual(cachedWallet, nil) {
 		panic(ccxt.NotSupported(ccxt.Add(this.Id+"fetchWallet could'n find wallet ", walletAddress)))
 	}
-	ccxt.AddElementToObject(this.Options, "wallet", cachedWallet)
+	this.Options.Store("wallet", cachedWallet)
 
 	ch <- cachedWallet
 	return nil

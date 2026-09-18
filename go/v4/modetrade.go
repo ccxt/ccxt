@@ -737,7 +737,7 @@ func (this *Modetrade) Describe() any {
 }
 func (this *Modetrade) SetSandboxMode(enable any) {
 	this.Exchange.SetSandboxMode(enable)
-	AddElementToObject(this.Options, "sandboxMode", enable)
+	this.Options.Store("sandboxMode", enable)
 }
 
 /**

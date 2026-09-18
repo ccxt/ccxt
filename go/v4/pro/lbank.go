@@ -66,7 +66,7 @@ func (this *Lbank) RequestId() any {
 	this.LockId()
 	var previousValue *int64 = this.SafeInteger(this.Options, "requestId", 0)
 	var newValue any = this.Sum(previousValue, 1)
-	ccxt.AddElementToObject(this.Options, "requestId", newValue)
+	this.Options.Store("requestId", newValue)
 	this.UnlockId()
 	return newValue
 }

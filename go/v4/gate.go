@@ -1934,7 +1934,7 @@ func (this *Gate) Describe() any {
 }
 func (this *Gate) SetSandboxMode(enable any) {
 	this.Exchange.SetSandboxMode(enable)
-	AddElementToObject(this.Options, "sandboxMode", enable)
+	this.Options.Store("sandboxMode", enable)
 }
 
 /**
@@ -1968,7 +1968,7 @@ func (this *Gate) loadUnifiedStatusBody(ch chan any, optionalArgs ...any) any {
 						ret_ = func(this *Gate) any {
 							// catch block:
 							// if the request fails, the unifiedAccount is disabled
-							AddElementToObject(this.Options, "unifiedAccount", false)
+							this.Options.Store("unifiedAccount", false)
 							return nil
 						}(this)
 					}
@@ -1991,7 +1991,7 @@ func (this *Gate) loadUnifiedStatusBody(ch chan any, optionalArgs ...any) any {
 				response := (<-this.PrivateAccountGetDetail(params))
 				PanicOnError(response)
 				var result any = this.SafeDict(response, "key", map[string]any{})
-				AddElementToObject(this.Options, "unifiedAccount", IsEqual(this.SafeInteger(result, "mode"), 2))
+				this.Options.Store("unifiedAccount", IsEqual(this.SafeInteger(result, "mode"), 2))
 				return nil
 			}(this)
 

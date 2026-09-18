@@ -149,7 +149,7 @@ func (this *Hyperliquid) Describe() any {
 }
 func (this *Hyperliquid) SetSandboxMode(enabled any) {
 	this.BaseExchange.SetSandboxMode(enabled)
-	ccxt.AddElementToObject(this.Options, "sandboxMode", enabled)
+	this.Options.Store("sandboxMode", enabled)
 }
 
 /**
@@ -2763,7 +2763,7 @@ func (this *Hyperliquid) initializeClientBody(ch chan any) any {
 					}
 					ret_ = func(this *Hyperliquid) any {
 						// catch block:
-						ccxt.AddElementToObject(this.Options, "builderFee", false) // disable builder fee if an error occurs
+						this.Options.Store("builderFee", false) // disable builder fee if an error occurs
 						return nil
 					}(this)
 				}
@@ -2776,7 +2776,7 @@ func (this *Hyperliquid) initializeClientBody(ch chan any) any {
 
 			retRes220412 := (<-this.ApproveBuilderFeeAsync(builder, maxFeeRate))
 			ccxt.PanicOnError(retRes220412)
-			ccxt.AddElementToObject(this.Options, "approvedBuilderFee", true)
+			this.Options.Store("approvedBuilderFee", true)
 			return nil
 		}(this)
 

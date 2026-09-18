@@ -547,7 +547,7 @@ func (this *Lighter) loadAccountBody(ch chan any, chainId any, privateKey any, a
 }
 func (this *Lighter) InitAuthObject(strAccountIndex any, strApiKeyIndex any) {
 	if !(InOp(this.Options, "auths")) {
-		AddElementToObject(this.Options, "auths", map[string]any{})
+		this.Options.Store("auths", map[string]any{})
 	}
 	if !(InOp(GetValue(this.Options, "auths"), strAccountIndex)) {
 		AddElementToObject(GetValue(this.Options, "auths"), strAccountIndex, map[string]any{})
@@ -634,7 +634,7 @@ func (this *Lighter) HandleApiKeyIndex(params any, methodName1 any, optionName1 
 	if (IsEqual(apiKeyIndex, nil)) || (IsLessThan(apiKeyIndex, 4)) || (IsGreaterThan(apiKeyIndex, 254)) {
 		// apiKeyIndex = this.randNumber (2);
 		apiKeyIndex = 254
-		AddElementToObject(this.Options, "apiKeyIndex", apiKeyIndex) // default to a value to avoid overriding other keys
+		this.Options.Store("apiKeyIndex", apiKeyIndex) // default to a value to avoid overriding other keys
 	}
 	return []any{this.ParseToInt(apiKeyIndex), params}
 }
@@ -698,7 +698,7 @@ func (this *Lighter) handleAccountIndexBody(ch chan any, params any, methodName1
 				panic(ArgumentsRequired(Add(Add(Add(Add(Add(Add(this.Id+" ", methodName1), "() requires an "), optionName1), " or "), optionName2), " parameter")))
 			}
 			accountIndex = GetValue(account, "index")
-			AddElementToObject(this.Options, "accountIndex", accountIndex)
+			this.Options.Store("accountIndex", accountIndex)
 		}
 	}
 
@@ -854,7 +854,7 @@ func (this *Lighter) handleBuilderFeeApprovalBody(ch chan any, accountIndex any,
 					}
 					ret_ = func(this *Lighter) any {
 						// catch block:
-						AddElementToObject(this.Options, "builderFee", false)
+						this.Options.Store("builderFee", false)
 						return nil
 					}(this)
 				}
@@ -866,7 +866,7 @@ func (this *Lighter) handleBuilderFeeApprovalBody(ch chan any, accountIndex any,
 
 			retRes66212 := (<-this.ApproveBuilderFeeAsync(builder, takerFeeRate, makerFeeRate, accountIndex, apiKeyIndex))
 			PanicOnError(retRes66212)
-			AddElementToObject(this.Options, "approvedBuilderFee", true)
+			this.Options.Store("approvedBuilderFee", true)
 			return nil
 		}(this)
 
@@ -981,8 +981,8 @@ func (this *Lighter) changeApiKeyBody(ch chan any, optionalArgs ...any) any {
 }
 func (this *Lighter) SetSandboxMode(enable any) {
 	this.Exchange.SetSandboxMode(enable)
-	AddElementToObject(this.Options, "sandboxMode", enable)
-	AddElementToObject(this.Options, "chainId", func() any {
+	this.Options.Store("sandboxMode", enable)
+	this.Options.Store("chainId", func() any {
 		if EvalTruthy(enable) {
 			return 300
 		}

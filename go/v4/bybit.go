@@ -2266,7 +2266,7 @@ func (this *Bybit) EnableDemoTrading(enable any) {
 		var newUrls any = this.Omit(this.Urls, "apiBackupDemoTrading")
 		this.Urls = newUrls
 	}
-	AddElementToObject(this.Options, "enableDemoTrading", enable)
+	this.Options.Store("enableDemoTrading", enable)
 }
 func (this *Bybit) Nonce() any {
 	return Subtract(this.Milliseconds(), GetValue(this.Options, "timeDifference"))
@@ -2312,9 +2312,9 @@ func (this *Bybit) isUnifiedEnabledBody(ch chan any, optionalArgs ...any) any {
 		if IsEqual(GetValue(this.Options, "enableDemoTrading"), true) {
 			// info endpoint is not available in demo trading
 			// so we're assuming UTA is enabled
-			AddElementToObject(this.Options, "enableUnifiedMargin", false)
-			AddElementToObject(this.Options, "enableUnifiedAccount", true)
-			AddElementToObject(this.Options, "unifiedMarginStatus", 6)
+			this.Options.Store("enableUnifiedMargin", false)
+			this.Options.Store("enableUnifiedAccount", true)
+			this.Options.Store("unifiedMarginStatus", 6)
 
 			ch <- []any{GetValue(this.Options, "enableUnifiedMargin"), GetValue(this.Options, "enableUnifiedAccount")}
 			return nil
@@ -2382,9 +2382,9 @@ func (this *Bybit) isUnifiedEnabledBody(ch chan any, optionalArgs ...any) any {
 		//
 		var result any = this.SafeDict(response, "result", map[string]any{})
 		var accountResult any = this.SafeDict(accountInfo, "result", map[string]any{})
-		AddElementToObject(this.Options, "enableUnifiedMargin", IsEqual(this.SafeInteger(result, "unified"), 1))
-		AddElementToObject(this.Options, "enableUnifiedAccount", IsEqual(this.SafeInteger(result, "uta"), 1))
-		AddElementToObject(this.Options, "unifiedMarginStatus", this.SafeInteger(accountResult, "unifiedMarginStatus", 6)) // default to uta 2.0 pro if not found
+		this.Options.Store("enableUnifiedMargin", IsEqual(this.SafeInteger(result, "unified"), 1))
+		this.Options.Store("enableUnifiedAccount", IsEqual(this.SafeInteger(result, "uta"), 1))
+		this.Options.Store("unifiedMarginStatus", this.SafeInteger(accountResult, "unifiedMarginStatus", 6)) // default to uta 2.0 pro if not found
 	}
 
 	ch <- []any{GetValue(this.Options, "enableUnifiedMargin"), GetValue(this.Options, "enableUnifiedAccount")}

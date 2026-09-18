@@ -2367,7 +2367,7 @@ func (this *Alpaca) withdrawBody(ch chan any, code any, amount any, address any,
 }
 func (this *Alpaca) SetSandboxMode(enable any) {
 	this.Exchange.SetSandboxMode(enable)
-	AddElementToObject(this.Options, "sandboxMode", enable)
+	this.Options.Store("sandboxMode", enable)
 }
 func (this *Alpaca) FetchTransactionsHelperAsync(typeVar any, code any, since any, limit any, params any) <-chan any {
 	ch := make(chan any, 1)

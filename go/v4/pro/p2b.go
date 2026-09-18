@@ -644,11 +644,11 @@ func (this *P2b) HandlePong(client any, message any) any {
 	return message
 }
 func (this *P2b) OnError(client any, error any) {
-	ccxt.AddElementToObject(this.Options, "tickerSubs", this.CreateSafeDictionary())
+	this.Options.Store("tickerSubs", this.CreateSafeDictionary())
 	this.base.OnError(client, error)
 }
 func (this *P2b) OnClose(client any, error any) {
-	ccxt.AddElementToObject(this.Options, "tickerSubs", this.CreateSafeDictionary())
+	this.Options.Store("tickerSubs", this.CreateSafeDictionary())
 	this.base.OnClose(client, error)
 }
 

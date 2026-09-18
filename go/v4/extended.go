@@ -504,7 +504,7 @@ func (this *Extended) loadMarketsBody(ch chan any, optionalArgs ...any) any {
 	PanicOnError(markets)
 	var currenciesByNumericId any = this.SafeDict(this.Options, "currenciesByNumericId")
 	if (IsEqual(currenciesByNumericId, nil)) || EvalTruthy(reload) {
-		AddElementToObject(this.Options, "currenciesByNumericId", this.IndexByStringifiedNumericId(this.Currencies))
+		this.Options.Store("currenciesByNumericId", this.IndexByStringifiedNumericId(this.Currencies))
 	}
 
 	ch <- markets
@@ -3304,7 +3304,7 @@ func (this *Extended) fetchExtendedAccountBody(ch chan any, optionalArgs ...any)
 	accountData := (<-this.FetchAccountAsync(params))
 	PanicOnError(accountData)
 	account = GetValue(accountData, "info")
-	AddElementToObject(this.Options, "account", account)
+	this.Options.Store("account", account)
 
 	ch <- account
 	return nil

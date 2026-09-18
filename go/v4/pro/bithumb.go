@@ -1017,7 +1017,7 @@ func (this *Bithumb) BuildGen2SubscriptionRequest(subscriptionType any, subscrip
 	var subscriptions any = this.SafeDict(wsOptions, "gen2Subscriptions", map[string]any{})
 	ccxt.AddElementToObject(subscriptions, subscriptionType, subscription)
 	ccxt.AddElementToObject(wsOptions, "gen2Subscriptions", subscriptions)
-	ccxt.AddElementToObject(this.Options, "ws", wsOptions)
+	this.Options.Store("ws", wsOptions)
 	var request any = []any{map[string]any{
 		"ticket": "ccxt",
 	}}
@@ -1053,7 +1053,7 @@ func (this *Bithumb) authenticateBody(ch chan any, optionalArgs ...any) any {
 				"authorization": "Bearer " + jwtToken,
 			},
 		})
-		ccxt.AddElementToObject(this.Options, "ws", wsOptions)
+		this.Options.Store("ws", wsOptions)
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateGen2")
 	var client ccxt.ClientInterface = this.Client(url)

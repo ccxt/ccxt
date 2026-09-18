@@ -1646,7 +1646,7 @@ func (this *Kalshi) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...any
 	}
 	// kalshi candles carry only the period-END timestamp; thread the candle duration through so
 	// parseOHLCV can stamp each candle at its OPEN (the CCXT convention)
-	ccxt.AddElementToObject(this.Options, "ohlcvCandleDurationSeconds", tf)
+	this.Options.Store("ohlcvCandleDurationSeconds", tf)
 
 	ch <- this.ParseOHLCVs(usableCandles, outcomeObj, timeframe, since, limit)
 	return nil

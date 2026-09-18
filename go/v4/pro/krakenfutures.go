@@ -2030,8 +2030,8 @@ func (this *Krakenfutures) HandleAuthenticate(client any, message any) any {
 		var hashedChallenge any = this.Hash(this.Encode(challenge), ccxt.Sha256, "binary")
 		var base64Secret []byte = this.Base64ToBinary(this.Secret)
 		var signature string = this.Hmac(hashedChallenge, base64Secret, ccxt.Sha512, "base64")
-		ccxt.AddElementToObject(this.Options, "challenge", challenge)
-		ccxt.AddElementToObject(this.Options, "signedChallenge", signature)
+		this.Options.Store("challenge", challenge)
+		this.Options.Store("signedChallenge", signature)
 		var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
 		future.(*ccxt.Future).Resolve(true)
 	} else {

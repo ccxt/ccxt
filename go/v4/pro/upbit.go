@@ -479,7 +479,7 @@ func (this *Upbit) authenticateBody(ch chan any, optionalArgs ...any) any {
 				"authorization": "Bearer " + token,
 			},
 		})
-		ccxt.AddElementToObject(this.Options, "ws", wsOptions)
+		this.Options.Store("ws", wsOptions)
 	}
 	var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "/private")
 	var client ccxt.ClientInterface = this.Client(url)

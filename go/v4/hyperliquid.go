@@ -361,7 +361,7 @@ func (this *Hyperliquid) Describe() any {
 }
 func (this *Hyperliquid) SetSandboxMode(enabled any) {
 	this.Exchange.SetSandboxMode(enabled)
-	AddElementToObject(this.Options, "sandboxMode", enabled)
+	this.Options.Store("sandboxMode", enabled)
 }
 func (this *Hyperliquid) Market(symbol any) any {
 	if symbol == nil {
@@ -508,7 +508,7 @@ func (this *Hyperliquid) fetchCurrenciesBody(ch chan any, optionalArgs ...any) a
 	// const spotMeta = await this.publicPostInfo ({ 'type': 'spotMeta' });
 	var tokens any = this.SafeList(response, "tokens", []any{})
 	// const meta = this.safeList (response, 'universe', []);
-	AddElementToObject(this.Options, "cachedCurrenciesById", map[string]any{}) // used to map hip3 markets
+	this.Options.Store("cachedCurrenciesById", map[string]any{}) // used to map hip3 markets
 
 	ch <- this.ParseCurrencies(tokens)
 	return nil
@@ -696,7 +696,7 @@ func (this *Hyperliquid) fetchHip3MarketsBody(ch chan any, optionalArgs ...any) 
 
 	promises := (<-promiseAll(rawPromises))
 	PanicOnError(promises)
-	AddElementToObject(this.Options, "hip3TokensByName", map[string]any{})
+	this.Options.Store("hip3TokensByName", map[string]any{})
 	var markets []any = []any{}
 	for i := 0; i < GetArrayLength(promises); i++ {
 		var dexName any = GetValue(fetchDexesList, i)
@@ -2142,7 +2142,7 @@ func (this *Hyperliquid) setRefBody(ch chan any) any {
 		ch <- true
 		return nil
 	}
-	AddElementToObject(this.Options, "refSet", true)
+	this.Options.Store("refSet", true)
 	var action map[string]any = map[string]any{
 		"type": "setReferrer",
 		"code": this.SafeString(this.Options, "ref", "CCXT1"),
@@ -2307,7 +2307,7 @@ func (this *Hyperliquid) handleBuilderFeeApprovalBody(ch chan any) any {
 					}
 					ret_ = func(this *Hyperliquid) any {
 						// catch block:
-						AddElementToObject(this.Options, "builderFee", false) // disable builder fee if an error occurs
+						this.Options.Store("builderFee", false) // disable builder fee if an error occurs
 						return nil
 					}(this)
 				}
@@ -2323,7 +2323,7 @@ func (this *Hyperliquid) handleBuilderFeeApprovalBody(ch chan any) any {
 
 			retRes192712 := (<-this.ApproveBuilderFeeAsync(builder, maxFeeRate))
 			PanicOnError(retRes192712)
-			AddElementToObject(this.Options, "approvedBuilderFee", true)
+			this.Options.Store("approvedBuilderFee", true)
 			return nil
 		}(this)
 
@@ -2414,7 +2414,7 @@ func (this *Hyperliquid) isUnifiedEnabledBody(ch chan any, method any, optionalA
 			enableUnifiedMargin = (IsEqual(response, "unifiedAccount"))
 		}
 		// don't cache this result if this is a different addresss
-		AddElementToObject(this.Options, "enableUnifiedMargin", enableUnifiedMargin) // cache this for future calls
+		this.Options.Store("enableUnifiedMargin", enableUnifiedMargin) // cache this for future calls
 	}
 
 	ch <- []any{enableUnifiedMargin, params}

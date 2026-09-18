@@ -5891,7 +5891,7 @@ func (this *Woo) DefaultNetworkCodeForCurrency(code any) any {
 }
 func (this *Woo) SetSandboxMode(enable any) {
 	this.Exchange.SetSandboxMode(enable)
-	AddElementToObject(this.Options, "sandboxMode", enable)
+	this.Options.Store("sandboxMode", enable)
 }
 
 func NewWoo(userConfig map[string]any) *Woo {

@@ -739,7 +739,7 @@ func (this *Derive) Describe() any {
 }
 func (this *Derive) SetSandboxMode(enable any) {
 	this.Exchange.SetSandboxMode(enable)
-	AddElementToObject(this.Options, "sandboxMode", enable)
+	this.Options.Store("sandboxMode", enable)
 }
 
 /**
@@ -3503,7 +3503,7 @@ func (this *Derive) HandleDeriveSubaccountId(methodName any, params any) any {
 	derivesubAccountId = GetValue(derivesubAccountIdparamsVariable, 0)
 	params = GetValue(derivesubAccountIdparamsVariable, 1)
 	if (derivesubAccountId != nil) && (!IsEqual(derivesubAccountId, "")) {
-		AddElementToObject(this.Options, "subaccount_id", derivesubAccountId) // saving in options
+		this.Options.Store("subaccount_id", derivesubAccountId) // saving in options
 		return []any{derivesubAccountId, params}
 	}
 	var optionsWallet *string = this.SafeString(this.Options, "subaccount_id")
@@ -3518,7 +3518,7 @@ func (this *Derive) HandleDeriveWalletAddress(methodName any, params any) any {
 	deriveWalletAddress = GetValue(deriveWalletAddressparamsVariable, 0)
 	params = GetValue(deriveWalletAddressparamsVariable, 1)
 	if (deriveWalletAddress != nil) && (!IsEqual(deriveWalletAddress, "")) {
-		AddElementToObject(this.Options, "deriveWalletAddress", deriveWalletAddress) // saving in options
+		this.Options.Store("deriveWalletAddress", deriveWalletAddress) // saving in options
 		return []any{deriveWalletAddress, params}
 	}
 	var optionsWallet *string = this.SafeString(this.Options, "deriveWalletAddress")

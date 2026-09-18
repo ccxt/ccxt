@@ -155,7 +155,7 @@ func (this *Coinbase) unSubscribeBody(ch chan any, topic any, name any, isPrivat
 	if ccxt.EvalTruthy(this.SafeBool(this.Options, "unSubscriptionPending", false)) {
 		panic(ccxt.ExchangeError(this.Id + " another unSubscription is pending, coinbase does not support concurrent unSubscriptions"))
 	}
-	ccxt.AddElementToObject(this.Options, "unSubscriptionPending", true)
+	this.Options.Store("unSubscriptionPending", true)
 	var market any = nil
 	var watchMessageHash any = name
 	var unWatchMessageHash any = ccxt.Add("unsubscribe:", name)
@@ -193,12 +193,12 @@ func (this *Coinbase) unSubscribeBody(ch chan any, topic any, name any, isPrivat
 	if ccxt.EvalTruthy(isPrivate) {
 		message = this.Extend(message, this.CreateWSAuth(name, productIds))
 	}
-	ccxt.AddElementToObject(this.Options, "unSubscription", subscription)
+	this.Options.Store("unSubscription", subscription)
 
 	res := (<-this.Watch(url, unWatchMessageHash, message, unWatchMessageHash, subscription))
 	ccxt.PanicOnError(res)
-	ccxt.AddElementToObject(this.Options, "unSubscriptionPending", false)
-	ccxt.AddElementToObject(this.Options, "unSubscription", nil)
+	this.Options.Store("unSubscriptionPending", false)
+	this.Options.Store("unSubscription", nil)
 
 	ch <- res
 	return nil
@@ -285,7 +285,7 @@ func (this *Coinbase) unSubscribeMultipleBody(ch chan any, topic any, name any, 
 	if ccxt.EvalTruthy(this.SafeBool(this.Options, "unSubscriptionPending", false)) {
 		panic(ccxt.ExchangeError(this.Id + " another unSubscription is pending, coinbase does not support concurrent unSubscriptions"))
 	}
-	ccxt.AddElementToObject(this.Options, "unSubscriptionPending", true)
+	this.Options.Store("unSubscriptionPending", true)
 	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes22312 := (<-this.LoadMarketsAsync())
@@ -319,12 +319,12 @@ func (this *Coinbase) unSubscribeMultipleBody(ch chan any, topic any, name any, 
 		"unsubscribe":      true,
 		"symbols":          symbols,
 	}
-	ccxt.AddElementToObject(this.Options, "unSubscription", subscription)
+	this.Options.Store("unSubscription", subscription)
 
 	res := (<-this.WatchMultiple(url, unWatchMessageHashes, message, unWatchMessageHashes, subscription))
 	ccxt.PanicOnError(res)
-	ccxt.AddElementToObject(this.Options, "unSubscriptionPending", false)
-	ccxt.AddElementToObject(this.Options, "unSubscription", nil)
+	this.Options.Store("unSubscriptionPending", false)
+	this.Options.Store("unSubscription", nil)
 
 	ch <- res
 	return nil
@@ -349,8 +349,8 @@ func (this *Coinbase) CreateWSAuth(name any, productIds any) any {
 		if (currentToken == nil) || ccxt.IsLessThan(ccxt.Add(tokenTimestamp, 120), seconds) {
 			// we should generate new token
 			var token any = this.CreateAuthToken(seconds)
-			ccxt.AddElementToObject(this.Options, "wsToken", token)
-			ccxt.AddElementToObject(this.Options, "wsTokenTimestamp", seconds)
+			this.Options.Store("wsToken", token)
+			this.Options.Store("wsTokenTimestamp", seconds)
 		}
 		subscribe["jwt"] = this.SafeString(this.Options, "wsToken")
 	}

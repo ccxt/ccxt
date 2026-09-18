@@ -84,7 +84,7 @@ func (this *Nado) Describe() any {
 }
 func (this *Nado) RequestId() any {
 	var requestId any = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1)
-	ccxt.AddElementToObject(this.Options, "requestId", requestId)
+	this.Options.Store("requestId", requestId)
 	return requestId
 }
 
@@ -2352,7 +2352,7 @@ func (this *Nado) HandleAllBidsAsks(client any, message any) {
 		var symbol string = ccxt.GetValue(symbols, i).(string)
 		var ticker any = ccxt.GetValue(tickers, symbol)
 		ccxt.AddElementToObject(this.Bidsasks, symbol, ticker)
-		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
+		this.Tickers.Store(symbol, ticker)
 		client.(ccxt.ClientInterface).Resolve(ticker, "bidask:"+symbol)
 		client.(ccxt.ClientInterface).Resolve(ticker, "ticker:"+symbol)
 	}

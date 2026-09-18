@@ -596,7 +596,7 @@ func (this *Hollaex) watchPrivateBody(ch chan any, messageHash any, optionalArgs
 		expires = ccxt.ToString(expires)
 		// we need to memoize these values to avoid generating a new url on each method execution
 		// that would trigger a new connection on each received message
-		ccxt.AddElementToObject(this.Options, "ws-expires", expires)
+		this.Options.Store("ws-expires", expires)
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var auth any = ccxt.Add("CONNECT"+"/stream", expires)
@@ -770,11 +770,11 @@ func (this *Hollaex) HandlePong(client any, message any) any {
 	return message
 }
 func (this *Hollaex) OnError(client any, error any) {
-	ccxt.AddElementToObject(this.Options, "ws-expires", nil)
+	this.Options.Store("ws-expires", nil)
 	this.base.OnError(client, error)
 }
 func (this *Hollaex) OnClose(client any, error any) {
-	ccxt.AddElementToObject(this.Options, "ws-expires", nil)
+	this.Options.Store("ws-expires", nil)
 	this.base.OnClose(client, error)
 }
 

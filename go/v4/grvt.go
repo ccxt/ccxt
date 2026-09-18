@@ -803,7 +803,7 @@ func (this *Grvt) signInWithApiKeyBody(ch chan any, optionalArgs ...any) any {
 	//        "status": "success"
 	//    }
 	//
-	AddElementToObject(this.Options, "signInExpiration", now+86400000) // 24 hours
+	this.Options.Store("signInExpiration", now + 86400000) // 24 hours
 
 	ch <- response
 	return nil
@@ -843,7 +843,7 @@ func (this *Grvt) signInWithPrivateKeyBody(ch chan any, optionalArgs ...any) any
 	//        "status": "success"
 	//    }
 	//
-	AddElementToObject(this.Options, "signInExpiration", now+86400000) // 24 hours
+	this.Options.Store("signInExpiration", now + 86400000) // 24 hours
 
 	ch <- response
 	return nil
@@ -895,7 +895,7 @@ func (this *Grvt) initializeClientBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 	if found {
-		AddElementToObject(this.Options, "approvedBuilderFee", true)
+		this.Options.Store("approvedBuilderFee", true)
 	} else {
 
 		{
@@ -907,7 +907,7 @@ func (this *Grvt) initializeClientBody(ch chan any, optionalArgs ...any) any {
 						}
 						ret_ = func(this *Grvt) any {
 							// catch block:
-							AddElementToObject(this.Options, "builderFee", false) // disable builder fee if an error occurs
+							this.Options.Store("builderFee", false) // disable builder fee if an error occurs
 							return nil
 						}(this)
 					}
@@ -938,7 +938,7 @@ func (this *Grvt) initializeClientBody(ch chan any, optionalArgs ...any) any {
 				if ack == nil || *ack != true {
 					panic(ExchangeError(Add("Builder authorization failed, ", this.Json(authResponse))))
 				}
-				AddElementToObject(this.Options, "approvedBuilderFee", true)
+				this.Options.Store("approvedBuilderFee", true)
 				return nil
 			}(this)
 
@@ -2573,7 +2573,7 @@ func (this *Grvt) loadAccountInfosBody(ch chan any) any {
 	PanicOnError(responses)
 	var result1 any = this.SafeDict(GetValue(responses, 0), "result", map[string]any{})
 	var mainAccountId *string = this.SafeString(result1, "main_account_id")
-	AddElementToObject(this.Options, "userMainAccountId", mainAccountId)
+	this.Options.Store("userMainAccountId", mainAccountId)
 	if accountIsUndefined {
 		var subAccountIds any = this.SafeList(GetValue(responses, 1), "sub_account_ids", []any{})
 		var length int = GetArrayLength(subAccountIds)
@@ -2584,7 +2584,7 @@ func (this *Grvt) loadAccountInfosBody(ch chan any) any {
 			panic(ArgumentsRequired(Add(this.Id+" loadAccountInfos(): multiple sub accounts found, please set the exchange.options[\"accountId\"] to your preferred sub_account_id from this list: ", this.Json(subAccountIds))))
 		}
 		var subAccountId *string = this.SafeString(subAccountIds, 0)
-		AddElementToObject(this.Options, "accountId", subAccountId)
+		this.Options.Store("accountId", subAccountId)
 	}
 
 	ch <- true
@@ -4265,7 +4265,7 @@ func (this *Grvt) HandleUntilOptionString(key any, request any, params any, opti
 }
 func (this *Grvt) RequestId() any {
 	var requestId any = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1)
-	AddElementToObject(this.Options, "requestId", requestId)
+	this.Options.Store("requestId", requestId)
 	return requestId
 }
 func (this *Grvt) Sign(path any, optionalArgs ...any) any {
@@ -4334,11 +4334,11 @@ func (this *Grvt) Sign(path any, optionalArgs ...any) any {
 func (this *Grvt) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
 	if EndsWith(url, "auth/api_key/login") || EndsWith(url, "auth/wallet/login") {
 		var accountId *string = this.SafeString2(headers, "X-Grvt-Account-Id", "x-grvt-account-id")
-		AddElementToObject(this.Options, "AuthAccountId", accountId)
+		this.Options.Store("AuthAccountId", accountId)
 		var cookie *string = this.SafeString2(headers, "Set-Cookie", "set-cookie")
 		if cookie != nil {
 			var cookieValue any = GetValue(Split(cookie, ";"), 0)
-			AddElementToObject(this.Options, "AuthCookieValue", cookieValue)
+			this.Options.Store("AuthCookieValue", cookieValue)
 		}
 		if IsEqual(GetValue(this.Options, "AuthCookieValue"), nil) || IsEqual(GetValue(this.Options, "AuthAccountId"), nil) {
 			panic(AuthenticationError(this.Id + " signIn() failed to receive auth-cookie or account-id"))

@@ -618,7 +618,7 @@ func (this *Apex) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	// }
 	var rows any = this.SafeList(spotConfig, "assets", []any{})
 	var chains any = this.SafeList(multiChain, "chains", []any{})
-	AddElementToObject(this.Options, "_temp_currencies_chains", chains)
+	this.Options.Store("_temp_currencies_chains", chains)
 	var result any = this.ParseCurrencies(rows)
 	Remove(this.Options, "_temp_currencies_chains")
 
@@ -1619,7 +1619,7 @@ func (this *Apex) getAccountIdBody(ch chan any) any {
 
 		accountData := (<-this.FetchAccountAsync())
 		PanicOnError(accountData)
-		AddElementToObject(this.Options, "accountId", this.SafeString(accountData, "id", "0"))
+		this.Options.Store("accountId", this.SafeString(accountData, "id", "0"))
 	}
 
 	ch <- GetValue(this.Options, "accountId")

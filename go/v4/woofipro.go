@@ -780,7 +780,7 @@ func (this *Woofipro) Describe() any {
 }
 func (this *Woofipro) SetSandboxMode(enable any) {
 	this.Exchange.SetSandboxMode(enable)
-	AddElementToObject(this.Options, "sandboxMode", enable)
+	this.Options.Store("sandboxMode", enable)
 }
 
 /**

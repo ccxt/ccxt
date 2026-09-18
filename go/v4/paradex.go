@@ -1960,7 +1960,7 @@ func (this *Paradex) getSystemConfigBody(ch chan any) any {
 	//     "liquidation_fee": "0.2"
 	// }
 	//
-	AddElementToObject(this.Options, "systemConfig", response)
+	this.Options.Store("systemConfig", response)
 
 	ch <- this.SafeDict(this.Options, "systemConfig", map[string]any{})
 	return nil
@@ -2030,7 +2030,7 @@ func (this *Paradex) retrieveAccountBody(ch chan any) any {
 	var msg any = this.EthEncodeStructuredData(domain, messageTypes, message)
 	var signature any = this.SignMessage(msg, this.PrivateKey)
 	var account any = this.RetrieveStarkAccount(signature, GetValue(systemConfig, "paraclear_account_hash"), GetValue(systemConfig, "paraclear_account_proxy_hash"))
-	AddElementToObject(this.Options, "paradexAccount", account)
+	this.Options.Store("paradexAccount", account)
 
 	ch <- account
 	return nil
@@ -2143,8 +2143,8 @@ func (this *Paradex) authenticateRestBody(ch chan any, optionalArgs ...any) any 
 	// }
 	//
 	var token *string = this.SafeString(response, "jwt_token")
-	AddElementToObject(this.Options, "authToken", token)
-	AddElementToObject(this.Options, "expires", expires)
+	this.Options.Store("authToken", token)
+	this.Options.Store("expires", expires)
 
 	ch <- token
 	return nil

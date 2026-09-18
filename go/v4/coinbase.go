@@ -2459,7 +2459,7 @@ func (this *Coinbase) fetchCurrenciesFromCacheBody(ch chan any, optionalArgs ...
 
 		exchangeRates := (<-this.V2PublicGetExchangeRates(params))
 		PanicOnError(exchangeRates)
-		AddElementToObject(this.Options, "fetchCurrencies", this.Extend(options, map[string]any{
+		this.Options.Store("fetchCurrencies", this.Extend(options, map[string]any{
 			"currencies":    this.ArrayConcat(fiatData, cryptoData),
 			"exchangeRates": exchangeRates,
 			"timestamp":     now,
@@ -2597,8 +2597,8 @@ func (this *Coinbase) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 			}
 		}
 	}
-	AddElementToObject(this.Options, "networks", this.Extend(networks, GetValue(this.Options, "networks")))
-	AddElementToObject(this.Options, "networksById", this.Extend(networksById, GetValue(this.Options, "networksById")))
+	this.Options.Store("networks", this.Extend(networks, GetValue(this.Options, "networks")))
+	this.Options.Store("networksById", this.Extend(networksById, GetValue(this.Options, "networksById")))
 
 	ch <- result
 	return nil

@@ -825,7 +825,7 @@ func (this *Toobit) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.CommonGetApiV1ExchangeInfo(params))
 	PanicOnError(response)
-	AddElementToObject(this.Options, "exchangeInfo", response) // we store it in options for later use in fetchMarkets
+	this.Options.Store("exchangeInfo", response) // we store it in options for later use in fetchMarkets
 	//
 	//    {
 	//        "timezone": "UTC",
@@ -1047,7 +1047,7 @@ func (this *Toobit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	var response any = this.SafeDict(this.Options, "exchangeInfo")
 	if !IsEqual(response, nil) {
-		AddElementToObject(this.Options, "exchangeInfo", nil) // reset it to avoid using old cached data
+		this.Options.Store("exchangeInfo", nil) // reset it to avoid using old cached data
 	} else {
 
 		response = (<-this.CommonGetApiV1ExchangeInfo(params))

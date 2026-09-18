@@ -77,7 +77,7 @@ func (this *Deribit) Describe() any {
 }
 func (this *Deribit) RequestId() any {
 	var requestId any = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1)
-	ccxt.AddElementToObject(this.Options, "requestId", requestId)
+	this.Options.Store("requestId", requestId)
 	return requestId
 }
 

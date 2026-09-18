@@ -132,7 +132,7 @@ func (this *Kucoin) negotiateBody(ch chan any, privateChannel any, optionalArgs 
 	// so that multiple calls don't asynchronously
 	// fetch different urls and overwrite each other
 	ccxt.AddElementToObject(urls, connectId, this.Spawn(this.NegotiateHelperAsync, privateChannel, connectId, params))
-	ccxt.AddElementToObject(this.Options, "urls", urls)
+	this.Options.Store("urls", urls)
 	future = ccxt.GetValue(urls, connectId)
 
 	retRes11315 := <-future.(*ccxt.Future).Await()
@@ -218,7 +218,7 @@ func (this *Kucoin) negotiateHelperBody(ch chan any, privateChannel any, connect
 func (this *Kucoin) RequestId() any {
 	this.LockId()
 	var requestId any = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1)
-	ccxt.AddElementToObject(this.Options, "requestId", requestId)
+	this.Options.Store("requestId", requestId)
 	this.UnlockId()
 	return requestId
 }
@@ -403,7 +403,7 @@ func (this *Kucoin) authenticateUtaBody(ch chan any) any {
 							}
 							ret_ = func(this *Kucoin) any {
 								// catch block:
-								ccxt.AddElementToObject(this.Options, "utaToken", nil)
+								this.Options.Store("utaToken", nil)
 								client.(ccxt.ClientInterface).Reject(e, messageHash)
 								return nil
 							}(this)
@@ -417,8 +417,8 @@ func (this *Kucoin) authenticateUtaBody(ch chan any) any {
 					ccxt.PanicOnError(response)
 					var data any = this.SafeDict(response, "data", map[string]any{})
 					var utaTokenString *string = this.SafeString(data, "token")
-					ccxt.AddElementToObject(this.Options, "utaTokenLastUpdate", now)
-					ccxt.AddElementToObject(this.Options, "utaToken", utaTokenString)
+					this.Options.Store("utaTokenLastUpdate", now)
+					this.Options.Store("utaToken", utaTokenString)
 					client.(ccxt.ClientInterface).Resolve(utaTokenString, messageHash)
 					return nil
 				}(this)
