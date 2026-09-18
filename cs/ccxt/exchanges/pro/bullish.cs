@@ -50,7 +50,7 @@ public partial class bullish : ccxt.bullish
 
     public virtual object requestId()
     {
-        object requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
+        Int64 requestId = ((Int64)this.sum(this.safeInteger(this.options, "requestId", 0), 1));
         ((IDictionary<string,object>)this.options)["requestId"] = requestId;
         return requestId;
     }
@@ -106,7 +106,7 @@ public partial class bullish : ccxt.bullish
     {
         request ??= new Dictionary<string, object>();
         parameters ??= new Dictionary<string, object>();
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
+        string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "private"));
         object token = await this.handleToken();
         Dictionary<string, object> cookies = new Dictionary<string, object>() {
             { "JWT_COOKIE", token },
@@ -280,8 +280,8 @@ public partial class bullish : ccxt.bullish
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        object symbol = getValue(market, "symbol");
-        object parsed = this.parseTicker(data, market);
+        string? symbol = ((string)getValue(market, "symbol"));
+        Dictionary<string, object> parsed = this.parseTicker(data, market);
         if (isTrue(isEqual(updateType, "update")))
         {
             IDictionary<string, object> ticker = this.safeDict(this.tickers, symbol, new Dictionary<string, object>() {});
@@ -362,7 +362,7 @@ public partial class bullish : ccxt.bullish
             { "bids", bids },
             { "asks", asks },
         };
-        object parsed = this.parseOrderBook(snapshot, symbol, timestamp);
+        Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseOrderBook(snapshot, symbol, timestamp));
         List<object> sequenceNumberRange = this.safeList(data, "sequenceNumberRange", new List<object>() {});
         if (isTrue(isGreaterThan(getArrayLength(sequenceNumberRange), 0)))
         {
@@ -507,7 +507,7 @@ public partial class bullish : ccxt.bullish
             for (int i = 0; isLessThan(i, getArrayLength(rawOrders)); postFixIncrement(ref i))
             {
                 object rawOrder = getValue(rawOrders, i);
-                object parsedOrder = this.parseOrder(rawOrder);
+                Dictionary<string, object> parsedOrder = this.parseOrder(rawOrder);
                 callDynamically(orders, "append", new object[] {parsedOrder});
                 string? symbol = this.safeString(parsedOrder, "symbol");
                 if (isTrue(!isEqual(symbol, null)))
@@ -521,7 +521,7 @@ public partial class bullish : ccxt.bullish
             for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
             {
                 string? hashSymbol = ((string)getValue(keys, i));
-                object symbolMessageHash = add(add(messageHash, "::"), hashSymbol);
+                string symbolMessageHash = add(add(messageHash, "::"), hashSymbol);
                 callDynamically(client as WebSocketClient, "resolve", new object[] {this.orders, symbolMessageHash});
             }
         }
@@ -634,7 +634,7 @@ public partial class bullish : ccxt.bullish
             for (int i = 0; isLessThan(i, getArrayLength(rawTrades)); postFixIncrement(ref i))
             {
                 object rawTrade = getValue(rawTrades, i);
-                object parsedTrade = this.parseTrade(rawTrade);
+                Dictionary<string, object> parsedTrade = this.parseTrade(rawTrade);
                 callDynamically(trades, "append", new object[] {parsedTrade});
                 string? symbol = this.safeString(parsedTrade, "symbol");
                 if (isTrue(!isEqual(symbol, null)))
@@ -648,7 +648,7 @@ public partial class bullish : ccxt.bullish
             for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
             {
                 string? hashSymbol = ((string)getValue(keys, i));
-                object symbolMessageHash = add(add(messageHash, "::"), hashSymbol);
+                string symbolMessageHash = add(add(messageHash, "::"), hashSymbol);
                 callDynamically(client as WebSocketClient, "resolve", new object[] {this.myTrades, symbolMessageHash});
             }
         }
@@ -822,7 +822,7 @@ public partial class bullish : ccxt.bullish
         for (int i = 0; isLessThan(i, getArrayLength(rawPositions)); postFixIncrement(ref i))
         {
             object rawPosition = getValue(rawPositions, i);
-            object position = this.parsePosition(rawPosition);
+            Dictionary<string, object> position = this.parsePosition(rawPosition);
             callDynamically(positions, "append", new object[] {position});
             ((IList<object>)newPositions).Add(position);
         }

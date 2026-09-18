@@ -1538,6 +1538,14 @@ class bingx(Exchange, ImplicitAPI):
             # Linear volume is the base quantity (contractSize 1); inverse volume is the contract count.
             # safeTrade applies contractSize when calculating inverse cost.
             amount = self.safe_string(trade, 'volume')
+        price = self.safe_string_n(trade, ['price', 'p', 'tradePrice'])
+        if (market is not None) and (market['linear'] is True) and (self.safe_string(trade, 'x') == 'TRADE'):
+            lastAmount = self.safe_string(trade, 'l')
+            lastPrice = self.safe_string(trade, 'L')
+            if (lastAmount is not None) and (lastPrice is not None):
+                # Linear WS l/L describe the last fill, not the original order's q/p.
+                amount = lastAmount
+                price = lastPrice
         return self.safe_trade({
             'id': self.safe_string_2(trade, 'id', 't'),
             'info': trade,
@@ -1548,7 +1556,7 @@ class bingx(Exchange, ImplicitAPI):
             'type': self.safe_string_lower(trade, 'o'),
             'side': self.parse_order_side(side),
             'takerOrMaker': takeOrMaker,
-            'price': self.safe_string_n(trade, ['price', 'p', 'tradePrice']),
+            'price': price,
             'amount': amount,
             'cost': cost,
             'fee': {

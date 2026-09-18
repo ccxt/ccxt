@@ -480,9 +480,9 @@ public partial class lbank : Exchange
     public async override Task<Int64> FetchTime(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object type = null;
+        string? type = null;
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchTime", null, parameters);
-        type = ((IList<object>)typeparametersVariable)[0];
+        type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         object response = null;
         if (isTrue(isEqual(type, "swap")))
@@ -642,7 +642,7 @@ public partial class lbank : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         List<object> marketsPromises = new List<object> {this.FetchSpotMarkets(parameters), this.FetchSwapMarkets(parameters)};
-        object resolvedMarkets = await promiseAll(marketsPromises);
+        List<object> resolvedMarkets = await promiseAll(marketsPromises);
         return ccxt.BaseExchange.ToMarketInterfaceList(this.arrayConcat(getValue(resolvedMarkets, 0), getValue(resolvedMarkets, 1)));
     }
 
@@ -831,7 +831,7 @@ public partial class lbank : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         // spot: fetchTicker, fetchTickers
@@ -864,7 +864,7 @@ public partial class lbank : Exchange
         //         "lastPrice": "29387.0"
         //     }
         //
-        object timestamp = this.safeInteger(ticker, "timestamp");
+        Int64? timestamp = this.safeInteger(ticker, "timestamp");
         if (isTrue(isEqual(timestamp, null)))
         {
             timestamp = this.safeTimestamp(ticker, "lastTime");
@@ -978,9 +978,9 @@ public partial class lbank : Exchange
             }
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        object type = null;
+        string? type = null;
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchTickers", market, parameters);
-        type = ((IList<object>)typeparametersVariable)[0];
+        type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         object response = null;
         if (isTrue(isEqual(type, "swap")))
@@ -1068,9 +1068,9 @@ public partial class lbank : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        object type = null;
+        string? type = null;
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchOrderBook", market, parameters);
-        type = ((IList<object>)typeparametersVariable)[0];
+        type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         object response = null;
         if (isTrue(isEqual(type, "swap")))
@@ -1139,7 +1139,7 @@ public partial class lbank : Exchange
         return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderbook, getValue(market, "symbol"), timestamp, "bids", "asks"));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades (old) spotPublicGetTrades
@@ -1349,7 +1349,7 @@ public partial class lbank : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         object sinceVar = since;
         object limitVar = limit;
         // endpoint doesnt work
@@ -1970,7 +1970,7 @@ public partial class lbank : Exchange
         return this.safeString(statuses, ((string)status), status);
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // fetchOrderSupplement (private)
@@ -3404,7 +3404,7 @@ public partial class lbank : Exchange
         {
             this.checkRequiredCredentials();
             string timestamp = ((object)this.milliseconds()).ToString();
-            object echostr = add(this.uuid22(), this.uuid16());
+            string echostr = add(this.uuid22(), this.uuid16());
             query = this.extend(new Dictionary<string, object>() {
                 { "api_key", this.apiKey },
             }, query);
@@ -3464,17 +3464,17 @@ public partial class lbank : Exchange
         };
     }
 
-    public virtual object convertSecretToPem(object secret)
+    public virtual string? convertSecretToPem(object secret)
     {
         int lineLength = 64;
         int secretLength = subtract(getArrayLength(secret), 0);
         object numLines = this.parseToInt(divide(secretLength, lineLength));
         numLines = this.sum(numLines, 1);
-        object pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
+        string pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
         for (int i = 0; isLessThan(i, numLines); postFixIncrement(ref i))
         {
             Int64 start = multiply(i, lineLength);
-            object end = this.sum(start, lineLength);
+            Int64 end = ((Int64)this.sum(start, lineLength));
             pem = add(pem, add(slice(this.secret, start, end), "\n")); // eslint-disable-line
         }
         return add(pem, "-----END PRIVATE KEY-----");

@@ -3731,8 +3731,9 @@ public class Pacifica extends PacificaApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object swapMarkets = (this.fetchSwapMarkets()).join();
-            return this.parseOpenInterests(swapMarkets, symbols);
+            Map<String, Object> response = (this.publicGetInfoPrices(parameters)).join();
+            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            return this.parseOpenInterests(data, symbols);
         }).thenApply(OpenInterests::new);
 
     }
@@ -3752,13 +3753,18 @@ public class Pacifica extends PacificaApi
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            symbol = this.symbol(symbol);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
+            symbol = this.symbol(symbol);
             Object ois = (this.fetchOpenInterests((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
-            return Helpers.GetValue(ois, symbol);
+            Object oi = this.safeDict(ois, symbol);
+            if (Helpers.isTrue(Helpers.isEqual(oi, null)))
+            {
+                throw new BadSymbol(Helpers.add(Helpers.add(this.id, " fetchOpenInterest() could not find open interest for "), symbol)) ;
+            }
+            return oi;
         }).thenApply(OpenInterest::new);
 
     }

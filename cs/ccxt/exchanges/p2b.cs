@@ -533,7 +533,7 @@ public partial class p2b : Exchange
         return ccxt.BaseExchange.ToTicker(this.extend(new Dictionary<string, object>() {             { "timestamp", timestamp },             { "datetime", this.iso8601(timestamp) },         }, this.parseTicker(result, market)));
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         // parseTickers
@@ -712,7 +712,7 @@ public partial class p2b : Exchange
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(result, market, since, limit));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades
@@ -798,7 +798,7 @@ public partial class p2b : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1355,7 +1355,7 @@ public partial class p2b : Exchange
         return ccxt.BaseExchange.ToOrderList(orders);
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // cancelOrder, fetchOpenOrders, createOrder

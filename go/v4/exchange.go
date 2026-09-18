@@ -191,7 +191,8 @@ type BaseExchange struct {
 	MaxEntriesPerRequest    int
 
 	// tests only
-	FetchResponse any
+	FetchResponse      any
+	FetchResponseByUrl any
 
 	IsSandboxModeEnabled  bool
 	FetchHistoryCacheSize int
@@ -728,6 +729,7 @@ func (this *BaseExchange) ParseNumber(v any, a ...any) any {
 }
 
 func (this *BaseExchange) ValueIsDefined(v any) bool {
+	v = derefScalar(v) // a typed pointer is judged by the value it carries; typed nil is undefined
 	if v == nil {
 		return false
 	}
@@ -1166,6 +1168,7 @@ func (this *BaseExchange) RandomBytes(length any) string {
 }
 
 func (this *BaseExchange) IsJsonEncodedObject(str any) bool {
+	str = derefScalar(str)
 	// Attempt to assert the input to a string type
 	str2, ok := str.(string)
 	if !ok {
@@ -1180,6 +1183,7 @@ func (this *BaseExchange) IsJsonEncodedObject(str any) bool {
 }
 
 func (this *BaseExchange) StringToCharsArray(value any) []string {
+	value = derefScalar(value)
 	// Attempt to assert the input to a string type
 	str, ok := value.(string)
 	if !ok {
@@ -1271,7 +1275,7 @@ func (this *BaseExchange) SetProperty(obj any, property any, defaultValue any) {
 	}
 }
 
-func (this *BaseExchange) ExceptionMessage(exc any, includeStack ...any) any {
+func (this *BaseExchange) ExceptionMessage(exc any, includeStack ...any) string {
 	include := true
 	if len(includeStack) > 0 {
 		include = includeStack[0].(bool)
@@ -1373,11 +1377,11 @@ func (this *BaseExchange) ExtendedStarknetSign(a any, b any) any {
 	return this.Json([]any{r.String(), s.String()})
 }
 
-func (this *BaseExchange) ExtendedStarknetGetSelectorFromName(a any) any {
+func (this *BaseExchange) ExtendedStarknetGetSelectorFromName(a any) string {
 	return starknetGetSelectorFromName(ToString(a)).String()
 }
 
-func (this *BaseExchange) ExtendedStarknetComputePoseidonHashOnElements(a any) any {
+func (this *BaseExchange) ExtendedStarknetComputePoseidonHashOnElements(a any) string {
 	values, ok := derefScalar(a).([]any)
 	if !ok {
 		panic(ExchangeError(Add(this.Id, " extendedStarknetComputePoseidonHashOnElements() requires an array")))
@@ -2147,7 +2151,12 @@ func (this *BaseExchange) Delay(timeout any, method any, args ...any) {
 // 62 symbol-based methods that hang off *Exchange. Only regular WS venues (whose core embeds Exchange)
 // use it; prediction venues embed BaseExchange and never call it.
 func (this *Exchange) LoadOrderBookAsync(client any, messageHash any, symbol any, optionalArgs ...any) <-chan any {
-	limit := GetArg(optionalArgs, 0, nil)
+	// generated callers pass typed pointer locals (*string symbol, *int64 limit); the
+	// `.(string)` assertions below need the plain values, and a panic here would be
+	// swallowed by Spawn and leave the watch future unresolved
+	symbol = derefScalar(symbol)
+	messageHash = derefScalar(messageHash)
+	limit := derefScalar(GetArg(optionalArgs, 0, nil))
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	maxRetries := this.HandleOption("watchOrderBook", "snapshotMaxRetries", 3)
 	tries := 0

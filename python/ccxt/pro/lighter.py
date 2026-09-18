@@ -8,6 +8,8 @@ from ccxt.async_support.base.ws.cache import ArrayCache
 from ccxt.base.types import Balances, Int, Liquidation, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import NotSupported
+from ccxt.base.errors import UnsubscribeError
 from ccxt.base.precise import Precise
 
 
@@ -190,6 +192,7 @@ class lighter(ccxt.async_support.lighter):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         request = {
             'channel': 'order_book/' + market['id'],
         }
@@ -210,10 +213,12 @@ class lighter(ccxt.async_support.lighter):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         request = {
             'channel': 'order_book/' + market['id'],
         }
-        messageHash = self.get_message_hash('unsubscribe', symbol)
+        subMessageHash = self.get_message_hash('orderbook', symbol)
+        messageHash = 'unsubscribe:' + subMessageHash
         return await self.unsubscribe(messageHash, self.extend(request, params))
 
     def handle_ticker(self, client: Client, message: object):
@@ -301,6 +306,7 @@ class lighter(ccxt.async_support.lighter):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         request = {
             'channel': 'market_stats/' + market['id'],
         }
@@ -320,10 +326,12 @@ class lighter(ccxt.async_support.lighter):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         request = {
             'channel': 'market_stats/' + market['id'],
         }
-        messageHash = self.get_message_hash('unsubscribe', symbol)
+        subMessageHash = self.get_message_hash('ticker', symbol)
+        messageHash = 'unsubscribe:' + subMessageHash
         return await self.unsubscribe(messageHash, self.extend(request, params))
 
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
@@ -375,7 +383,8 @@ class lighter(ccxt.async_support.lighter):
         request = {
             'channel': 'market_stats/all',
         }
-        messageHash = self.get_message_hash('unsubscribe')
+        subMessageHash = self.get_message_hash('ticker')
+        messageHash = 'unsubscribe:' + subMessageHash
         return await self.unsubscribe(messageHash, self.extend(request, params))
 
     def watch_mark_price(self, symbol: str, params={}) -> Ticker:
@@ -575,7 +584,8 @@ class lighter(ccxt.async_support.lighter):
         request = {
             'channel': 'trade/' + market['id'],
         }
-        messageHash = self.get_message_hash('unsubscribe', symbol)
+        subMessageHash = self.get_message_hash('trade', market['symbol'])
+        messageHash = 'unsubscribe:' + subMessageHash
         return await self.unsubscribe(messageHash, self.extend(request, params))
 
     def parse_ws_order_trade(self, trade: dict, market: Market = None):
@@ -759,20 +769,19 @@ class lighter(ccxt.async_support.lighter):
 
         https://apidocs.lighter.xyz/docs/websocket-reference#account-all-trades
 
-        :param str [symbol]: unified market symbol
+        :param str [symbol]: not supported by lighter.unWatchMyTrades, the account trades channel covers every market
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
+        :param str [params.accountIndex]: account index
+        :returns any: status of the unwatch request
         """
+        if symbol is not None:
+            raise NotSupported(self.id + ' unWatchMyTrades() does not support a symbol argument, the account trades channel covers every market, unWatch from all markets only')
         accountIndex = None
         accountIndex, params = await self.handleAccountIndex(params, 'unWatchMyTrades', 'accountIndex', 'account_index')
-        messageHash = self.get_message_hash('unsubscribe', 'myTrades')
-        if symbol is not None:
-            await self.load_markets()
-            market = self.market(symbol)
-            symbol = market['symbol']
-            messageHash = self.get_message_hash('unsubscribe', symbol)
+        subMessageHash = self.get_message_hash('myTrades')
+        messageHash = 'unsubscribe:' + subMessageHash
         request = {
-            'channel': 'account_all_trades/' + accountIndex,
+            'channel': 'account_all_trades/' + self.number_to_string(accountIndex),
         }
         return await self.unsubscribe(messageHash, self.extend(request, params))
 
@@ -1062,16 +1071,17 @@ class lighter(ccxt.async_support.lighter):
         if self.markets is None:
             await self.load_markets()
         accountIndex = None
-        accountIndex, params = await self.handleAccountIndex(params, 'watchOrders', 'accountIndex', 'account_index')
-        messageHash = None
+        accountIndex, params = await self.handleAccountIndex(params, 'unWatchOrders', 'accountIndex', 'account_index')
+        subMessageHash = None
         request = {}
         if symbol is not None:
             market = self.market(symbol)
-            messageHash = self.get_message_hash('orders', market['symbol'])
+            subMessageHash = self.get_message_hash('orders', market['symbol'])
             request['channel'] = 'account_orders/' + market['id'] + '/' + self.number_to_string(accountIndex)
         else:
-            messageHash = self.get_message_hash('orders')
+            subMessageHash = self.get_message_hash('orders')
             request['channel'] = 'account_all_orders/' + self.number_to_string(accountIndex)
+        messageHash = 'unsubscribe:' + subMessageHash
         return await self.unsubscribe(messageHash, self.extend(request, params))
 
     def request_id(self, url: str) -> str:
@@ -1285,6 +1295,9 @@ class lighter(ccxt.async_support.lighter):
         if type == 'jsonapi/sendtx':
             self.handle_ws_sendtx_api(client, message)
             return
+        if type == 'unsubscribed':
+            self.handle_un_subscription(client, message)
+            return
         channel = self.safe_string(message, 'channel', '')
         if channel.find('order_book:') >= 0:
             self.handle_order_book(client, message)
@@ -1320,27 +1333,113 @@ class lighter(ccxt.async_support.lighter):
         #         "type": "connected"
         #     }
         #
+        return message
+
+    def handle_un_subscription(self, client: Client, message: object):
+        #
         #     {
         #         "type": "unsubscribed",
         #         "channel": "order_book:0"
         #     }
         #
-        type = self.safe_string(message, 'type', '')
-        id = self.safe_string(message, 'session_id')
-        subscriptionsById = self.index_by(client.subscriptions, 'id')
-        subscription = self.safe_dict(subscriptionsById, id, {})
-        if type == 'unsubscribed':
-            self.handle_un_subscription(client, subscription)
-        return message
+        # the venue keys every ack by the channel name plus one id segment, whatever the
+        # subscribe arity was: "account_orders/{marketId}/{accountIndex}" acks and errors as
+        # "account_orders:{marketId}", so parts[1] is the market id on every family below
+        #
+        channel = self.safe_string(message, 'channel', '')
+        parts = channel.split(':')
+        name = self.safe_string(parts, 0, '')
+        channelId = self.safe_string(parts, 1)
+        if name == 'order_book':
+            self.handle_order_book_un_subscription(client, channelId)
+        elif name == 'market_stats':
+            self.handle_ticker_un_subscription(client, channelId)
+        elif name == 'trade':
+            self.handle_trades_un_subscription(client, channelId)
+        elif name == 'account_all_trades':
+            self.handle_my_trades_un_subscription(client)
+        elif name == 'account_orders':
+            self.handle_orders_un_subscription(client, channelId)
+        elif name == 'account_all_orders':
+            self.handle_all_orders_un_subscription(client)
 
-    def handle_un_subscription(self, client: Client, subscription: dict):
-        messageHashes = self.safe_list(subscription, 'messageHashes', [])
-        subMessageHashes = self.safe_list(subscription, 'subMessageHashes', [])
-        for i in range(0, len(messageHashes)):
-            unsubHash = messageHashes[i]
-            subHash = subMessageHashes[i]
-            self.clean_unsubscription(client, subHash, unsubHash)
-        self.clean_cache(subscription)
+    def handle_order_book_un_subscription(self, client: Client, marketId: Str):
+        symbol = self.safe_symbol(marketId)
+        subMessageHash = self.get_message_hash('orderbook', symbol)
+        messageHash = 'unsubscribe:' + subMessageHash
+        self.clean_unsubscription(client, subMessageHash, messageHash)
+        if symbol in self.orderbooks:
+            del self.orderbooks[symbol]
+
+    def handle_ticker_un_subscription(self, client: Client, marketId: Str):
+        if marketId == 'all':
+            # a ticker hash is served by the one wire channel that created its subscription
+            # record, so sweep by owner instead of by name prefix: a ticker::<symbol> hash
+            # owned by a live market_stats/<marketId> channel must survive this ack. deleting
+            # it here would make the next watchTicker re-subscribe a channel the venue still
+            # considers subscribed, and its "30003 Already Subscribed" frame carries no id,
+            # so handleErrorMessage rejects every future on the socket
+            subscriptionHashes = list(client.subscriptions.keys())
+            for i in range(0, len(subscriptionHashes)):
+                subscriptionHash = subscriptionHashes[i]
+                if subscriptionHash.startswith('ticker'):
+                    subscription = self.safe_dict(client.subscriptions, subscriptionHash)
+                    subscriptionParams = self.safe_dict(subscription, 'params')
+                    subscribedChannel = self.safe_string(subscriptionParams, 'channel')
+                    if subscribedChannel == 'market_stats/all':
+                        del client.subscriptions[subscriptionHash]
+                        if subscriptionHash in client.futures:
+                            error = UnsubscribeError(self.id + ' ' + subscriptionHash)
+                            client.reject(error, subscriptionHash)
+            allMessageHash = 'unsubscribe:' + self.get_message_hash('ticker')
+            if allMessageHash in client.subscriptions:
+                del client.subscriptions[allMessageHash]
+            client.resolve(True, allMessageHash)
+            tickersStructure = {
+                'topic': 'ticker',
+            }
+            self.clean_cache(tickersStructure)
+            return
+        symbol = self.safe_symbol(marketId)
+        subMessageHash = self.get_message_hash('ticker', symbol)
+        messageHash = 'unsubscribe:' + subMessageHash
+        self.clean_unsubscription(client, subMessageHash, messageHash)
+        if symbol in self.tickers:
+            del self.tickers[symbol]
+
+    def handle_trades_un_subscription(self, client: Client, marketId: Str):
+        symbol = self.safe_symbol(marketId)
+        subMessageHash = self.get_message_hash('trade', symbol)
+        messageHash = 'unsubscribe:' + subMessageHash
+        self.clean_unsubscription(client, subMessageHash, messageHash)
+        if symbol in self.trades:
+            del self.trades[symbol]
+
+    def handle_my_trades_un_subscription(self, client: Client):
+        # one account-wide channel feeds the plural hash and every per-symbol hash
+        messageHash = 'unsubscribe:' + self.get_message_hash('myTrades')
+        self.clean_unsubscription(client, 'myTrades', messageHash, True)
+        myTradesStructure = {
+            'topic': 'myTrades',
+        }
+        self.clean_cache(myTradesStructure)
+
+    def handle_orders_un_subscription(self, client: Client, marketId: Str):
+        symbol = self.safe_symbol(marketId)
+        subMessageHash = self.get_message_hash('orders', symbol)
+        messageHash = 'unsubscribe:' + subMessageHash
+        self.clean_unsubscription(client, subMessageHash, messageHash)
+
+    def handle_all_orders_un_subscription(self, client: Client):
+        # only the plural hash is awaited on this channel, per-symbol order hashes
+        # belong to the account_orders/<marketId> channels and stay untouched here
+        subMessageHash = self.get_message_hash('orders')
+        messageHash = 'unsubscribe:' + subMessageHash
+        self.clean_unsubscription(client, subMessageHash, messageHash)
+        ordersStructure = {
+            'topic': 'orders',
+        }
+        self.clean_cache(ordersStructure)
 
     def handle_ping(self, client: Client, message: object):
         #

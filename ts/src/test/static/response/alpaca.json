@@ -2410,115 +2410,147 @@
         ],
         "fetchBalance": [
             {
-                "description": "fetch the balance",
+                "description": "fetchBalance queries the account endpoint for the cash row and the positions endpoint for crypto holdings, so each url is served its own body. USD total is equity minus position_market_value, not equity. Of the position rows the compressed BTCUSD tail and the slashed ETH/USD form both resolve, the us_equity AAPL row has neither shape and is skipped, and ETH pins a non-zero used so free and total cannot be swapped.",
                 "method": "fetchBalance",
                 "input": [],
-                "httpResponse": {
-                    "id": "43a01bee-67e3-4eb1-b2f1-65d1dc26ade5",
-                    "admin_configurations": {
-                        "allow_instant_ach": true,
-                        "max_margin_multiplier": "4"
-                    },
-                    "user_configurations": {
-                        "fractional_trading": true,
-                        "max_margin_multiplier": "4"
-                    },
-                    "account_number": "744863727",
-                    "status": "ACTIVE",
-                    "crypto_status": "ACTIVE",
-                    "currency": "USD",
-                    "buying_power": "5.92",
-                    "regt_buying_power": "5.92",
-                    "daytrading_buying_power": "0",
-                    "effective_buying_power": "5.92",
-                    "non_marginable_buying_power": "5.92",
-                    "bod_dtbp": "0",
-                    "cash": "5.92",
-                    "accrued_fees": "0",
-                    "portfolio_value": "48.61",
-                    "pattern_day_trader": false,
-                    "trading_blocked": false,
-                    "transfers_blocked": false,
-                    "account_blocked": false,
-                    "created_at": "2022-06-13T14:59:18.318096Z",
-                    "trade_suspended_by_user": false,
-                    "multiplier": "1",
-                    "shorting_enabled": false,
-                    "equity": "48.61",
-                    "last_equity": "48.8014266",
-                    "long_market_value": "42.69",
-                    "short_market_value": "0",
-                    "position_market_value": "42.69",
-                    "initial_margin": "0",
-                    "maintenance_margin": "0",
-                    "last_maintenance_margin": "0",
-                    "sma": "5.92",
-                    "daytrade_count": "0",
-                    "balance_asof": "2024-12-10",
-                    "crypto_tier": "1",
-                    "intraday_adjustments": "0",
-                    "pending_reg_taf_fees": "0"
-                },
-                "parsedResponse": {
-                    "info": {
+                "httpResponseByUrl": {
+                    "/v2/account": {
                         "id": "43a01bee-67e3-4eb1-b2f1-65d1dc26ade5",
-                        "admin_configurations": {
-                            "allow_instant_ach": true,
-                            "max_margin_multiplier": "4"
-                        },
-                        "user_configurations": {
-                            "fractional_trading": true,
-                            "max_margin_multiplier": "4"
-                        },
                         "account_number": "744863727",
                         "status": "ACTIVE",
                         "crypto_status": "ACTIVE",
                         "currency": "USD",
                         "buying_power": "5.92",
-                        "regt_buying_power": "5.92",
-                        "daytrading_buying_power": "0",
-                        "effective_buying_power": "5.92",
-                        "non_marginable_buying_power": "5.92",
-                        "bod_dtbp": "0",
                         "cash": "5.92",
                         "accrued_fees": "0",
                         "portfolio_value": "48.61",
-                        "pattern_day_trader": false,
-                        "trading_blocked": false,
-                        "transfers_blocked": false,
-                        "account_blocked": false,
-                        "created_at": "2022-06-13T14:59:18.318096Z",
-                        "trade_suspended_by_user": false,
-                        "multiplier": "1",
-                        "shorting_enabled": false,
                         "equity": "48.61",
                         "last_equity": "48.8014266",
                         "long_market_value": "42.69",
                         "short_market_value": "0",
                         "position_market_value": "42.69",
-                        "initial_margin": "0",
-                        "maintenance_margin": "0",
-                        "last_maintenance_margin": "0",
-                        "sma": "5.92",
-                        "daytrade_count": "0",
-                        "balance_asof": "2024-12-10",
-                        "crypto_tier": "1",
-                        "intraday_adjustments": "0",
-                        "pending_reg_taf_fees": "0"
+                        "crypto_tier": "1"
+                    },
+                    "/v2/positions": [
+                        {
+                            "asset_id": "64bbff51-59d6-4b3c-9351-13ad85e3c752",
+                            "symbol": "BTCUSD",
+                            "exchange": "CRYPTO",
+                            "asset_class": "crypto",
+                            "qty": "0.000207296",
+                            "side": "long",
+                            "market_value": "16.592345",
+                            "current_price": "80041.8",
+                            "qty_available": "0.000207296"
+                        },
+                        {
+                            "asset_id": "8ccae427-5dd0-45b3-b5fe-7ba5e422c766",
+                            "symbol": "ETH/USD",
+                            "exchange": "CRYPTO",
+                            "asset_class": "crypto",
+                            "qty": "1.5",
+                            "side": "long",
+                            "market_value": "26.1",
+                            "current_price": "17.4",
+                            "qty_available": "1"
+                        },
+                        {
+                            "asset_id": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
+                            "symbol": "AAPL",
+                            "exchange": "NASDAQ",
+                            "asset_class": "us_equity",
+                            "qty": "3",
+                            "side": "long",
+                            "market_value": "600",
+                            "current_price": "200",
+                            "qty_available": "3"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": {
+                        "account": {
+                            "id": "43a01bee-67e3-4eb1-b2f1-65d1dc26ade5",
+                            "account_number": "744863727",
+                            "status": "ACTIVE",
+                            "crypto_status": "ACTIVE",
+                            "currency": "USD",
+                            "buying_power": "5.92",
+                            "cash": "5.92",
+                            "accrued_fees": "0",
+                            "portfolio_value": "48.61",
+                            "equity": "48.61",
+                            "last_equity": "48.8014266",
+                            "long_market_value": "42.69",
+                            "short_market_value": "0",
+                            "position_market_value": "42.69",
+                            "crypto_tier": "1"
+                        },
+                        "positions": [
+                            {
+                                "asset_id": "64bbff51-59d6-4b3c-9351-13ad85e3c752",
+                                "symbol": "BTCUSD",
+                                "exchange": "CRYPTO",
+                                "asset_class": "crypto",
+                                "qty": "0.000207296",
+                                "side": "long",
+                                "market_value": "16.592345",
+                                "current_price": "80041.8",
+                                "qty_available": "0.000207296"
+                            },
+                            {
+                                "asset_id": "8ccae427-5dd0-45b3-b5fe-7ba5e422c766",
+                                "symbol": "ETH/USD",
+                                "exchange": "CRYPTO",
+                                "asset_class": "crypto",
+                                "qty": "1.5",
+                                "side": "long",
+                                "market_value": "26.1",
+                                "current_price": "17.4",
+                                "qty_available": "1"
+                            },
+                            {
+                                "asset_id": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
+                                "symbol": "AAPL",
+                                "exchange": "NASDAQ",
+                                "asset_class": "us_equity",
+                                "qty": "3",
+                                "side": "long",
+                                "market_value": "600",
+                                "current_price": "200",
+                                "qty_available": "3"
+                            }
+                        ]
                     },
                     "USD": {
                         "free": 5.92,
-                        "used": 42.69,
-                        "total": 48.61
+                        "used": 0,
+                        "total": 5.92
+                    },
+                    "BTC": {
+                        "free": 0.000207296,
+                        "used": 0,
+                        "total": 0.000207296
+                    },
+                    "ETH": {
+                        "free": 1,
+                        "used": 0.5,
+                        "total": 1.5
                     },
                     "free": {
-                        "USD": 5.92
+                        "USD": 5.92,
+                        "BTC": 0.000207296,
+                        "ETH": 1
                     },
                     "used": {
-                        "USD": 42.69
+                        "USD": 0,
+                        "BTC": 0,
+                        "ETH": 0.5
                     },
                     "total": {
-                        "USD": 48.61
+                        "USD": 5.92,
+                        "BTC": 0.000207296,
+                        "ETH": 1.5
                     }
                 }
             }

@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import Precise from '../base/Precise.js';
-import { ExchangeError } from '../base/errors.js';
+import { ExchangeError, NotSupported, UnsubscribeError } from '../base/errors.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import lighterRest from '../lighter.js';
 //  ---------------------------------------------------------------------------
@@ -196,6 +196,7 @@ export default class lighter extends lighterRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        symbol = market['symbol'];
         const request = {
             'channel': 'order_book/' + market['id'],
         };
@@ -217,10 +218,12 @@ export default class lighter extends lighterRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        symbol = market['symbol'];
         const request = {
             'channel': 'order_book/' + market['id'],
         };
-        const messageHash = this.getMessageHash('unsubscribe', symbol);
+        const subMessageHash = this.getMessageHash('orderbook', symbol);
+        const messageHash = 'unsubscribe:' + subMessageHash;
         return await this.unsubscribe(messageHash, this.extend(request, params));
     }
     handleTicker(client, message) {
@@ -312,6 +315,7 @@ export default class lighter extends lighterRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        symbol = market['symbol'];
         const request = {
             'channel': 'market_stats/' + market['id'],
         };
@@ -332,10 +336,12 @@ export default class lighter extends lighterRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        symbol = market['symbol'];
         const request = {
             'channel': 'market_stats/' + market['id'],
         };
-        const messageHash = this.getMessageHash('unsubscribe', symbol);
+        const subMessageHash = this.getMessageHash('ticker', symbol);
+        const messageHash = 'unsubscribe:' + subMessageHash;
         return await this.unsubscribe(messageHash, this.extend(request, params));
     }
     /**
@@ -394,7 +400,8 @@ export default class lighter extends lighterRest {
         const request = {
             'channel': 'market_stats/all',
         };
-        const messageHash = this.getMessageHash('unsubscribe');
+        const subMessageHash = this.getMessageHash('ticker');
+        const messageHash = 'unsubscribe:' + subMessageHash;
         return await this.unsubscribe(messageHash, this.extend(request, params));
     }
     /**
@@ -599,7 +606,8 @@ export default class lighter extends lighterRest {
         const request = {
             'channel': 'trade/' + market['id'],
         };
-        const messageHash = this.getMessageHash('unsubscribe', symbol);
+        const subMessageHash = this.getMessageHash('trade', market['symbol']);
+        const messageHash = 'unsubscribe:' + subMessageHash;
         return await this.unsubscribe(messageHash, this.extend(request, params));
     }
     parseWsOrderTrade(trade, market = undefined) {
@@ -795,22 +803,21 @@ export default class lighter extends lighterRest {
      * @name lighter#unWatchMyTrades
      * @description unsubscribe from the account trades channel
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#account-all-trades
-     * @param {string} [symbol] unified market symbol
+     * @param {string} [symbol] not supported by lighter.unWatchMyTrades, the account trades channel covers every market
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     * @param {string} [params.accountIndex] account index
+     * @returns {any} status of the unwatch request
      */
     async unWatchMyTrades(symbol = undefined, params = {}) {
+        if (symbol !== undefined) {
+            throw new NotSupported(this.id + ' unWatchMyTrades() does not support a symbol argument, the account trades channel covers every market, unWatch from all markets only');
+        }
         let accountIndex = undefined;
         [accountIndex, params] = await this.handleAccountIndex(params, 'unWatchMyTrades', 'accountIndex', 'account_index');
-        let messageHash = this.getMessageHash('unsubscribe', 'myTrades');
-        if (symbol !== undefined) {
-            await this.loadMarkets();
-            const market = this.market(symbol);
-            symbol = market['symbol'];
-            messageHash = this.getMessageHash('unsubscribe', symbol);
-        }
+        const subMessageHash = this.getMessageHash('myTrades');
+        const messageHash = 'unsubscribe:' + subMessageHash;
         const request = {
-            'channel': 'account_all_trades/' + accountIndex,
+            'channel': 'account_all_trades/' + this.numberToString(accountIndex),
         };
         return await this.unsubscribe(messageHash, this.extend(request, params));
     }
@@ -1116,18 +1123,19 @@ export default class lighter extends lighterRest {
             await this.loadMarkets();
         }
         let accountIndex = undefined;
-        [accountIndex, params] = await this.handleAccountIndex(params, 'watchOrders', 'accountIndex', 'account_index');
-        let messageHash = undefined;
+        [accountIndex, params] = await this.handleAccountIndex(params, 'unWatchOrders', 'accountIndex', 'account_index');
+        let subMessageHash = undefined;
         const request = {};
         if (symbol !== undefined) {
             const market = this.market(symbol);
-            messageHash = this.getMessageHash('orders', market['symbol']);
+            subMessageHash = this.getMessageHash('orders', market['symbol']);
             request['channel'] = 'account_orders/' + market['id'] + '/' + this.numberToString(accountIndex);
         }
         else {
-            messageHash = this.getMessageHash('orders');
+            subMessageHash = this.getMessageHash('orders');
             request['channel'] = 'account_all_orders/' + this.numberToString(accountIndex);
         }
+        const messageHash = 'unsubscribe:' + subMessageHash;
         return await this.unsubscribe(messageHash, this.extend(request, params));
     }
     requestId(url) {
@@ -1357,6 +1365,10 @@ export default class lighter extends lighterRest {
             this.handleWsSendtxApi(client, message);
             return;
         }
+        if (type === 'unsubscribed') {
+            this.handleUnSubscription(client, message);
+            return;
+        }
         const channel = this.safeString(message, 'channel', '');
         if (channel.indexOf('order_book:') >= 0) {
             this.handleOrderBook(client, message);
@@ -1401,29 +1413,128 @@ export default class lighter extends lighterRest {
         //         "type": "connected"
         //     }
         //
+        return message;
+    }
+    handleUnSubscription(client, message) {
+        //
         //     {
         //         "type": "unsubscribed",
         //         "channel": "order_book:0"
         //     }
         //
-        const type = this.safeString(message, 'type', '');
-        const id = this.safeString(message, 'session_id');
-        const subscriptionsById = this.indexBy(client.subscriptions, 'id');
-        const subscription = this.safeDict(subscriptionsById, id, {});
-        if (type === 'unsubscribed') {
-            this.handleUnSubscription(client, subscription);
+        // the venue keys every ack by the channel name plus one id segment, whatever the
+        // subscribe arity was: "account_orders/{marketId}/{accountIndex}" acks and errors as
+        // "account_orders:{marketId}", so parts[1] is the market id on every family below
+        //
+        const channel = this.safeString(message, 'channel', '');
+        const parts = channel.split(':');
+        const name = this.safeString(parts, 0, '');
+        const channelId = this.safeString(parts, 1);
+        if (name === 'order_book') {
+            this.handleOrderBookUnSubscription(client, channelId);
         }
-        return message;
+        else if (name === 'market_stats') {
+            this.handleTickerUnSubscription(client, channelId);
+        }
+        else if (name === 'trade') {
+            this.handleTradesUnSubscription(client, channelId);
+        }
+        else if (name === 'account_all_trades') {
+            this.handleMyTradesUnSubscription(client);
+        }
+        else if (name === 'account_orders') {
+            this.handleOrdersUnSubscription(client, channelId);
+        }
+        else if (name === 'account_all_orders') {
+            this.handleAllOrdersUnSubscription(client);
+        }
     }
-    handleUnSubscription(client, subscription) {
-        const messageHashes = this.safeList(subscription, 'messageHashes', []);
-        const subMessageHashes = this.safeList(subscription, 'subMessageHashes', []);
-        for (let i = 0; i < messageHashes.length; i++) {
-            const unsubHash = messageHashes[i];
-            const subHash = subMessageHashes[i];
-            this.cleanUnsubscription(client, subHash, unsubHash);
+    handleOrderBookUnSubscription(client, marketId) {
+        const symbol = this.safeSymbol(marketId);
+        const subMessageHash = this.getMessageHash('orderbook', symbol);
+        const messageHash = 'unsubscribe:' + subMessageHash;
+        this.cleanUnsubscription(client, subMessageHash, messageHash);
+        if (symbol in this.orderbooks) {
+            delete this.orderbooks[symbol];
         }
-        this.cleanCache(subscription);
+    }
+    handleTickerUnSubscription(client, marketId) {
+        if (marketId === 'all') {
+            // a ticker hash is served by the one wire channel that created its subscription
+            // record, so sweep by owner instead of by name prefix: a ticker::<symbol> hash
+            // owned by a live market_stats/<marketId> channel must survive this ack. deleting
+            // it here would make the next watchTicker re-subscribe a channel the venue still
+            // considers subscribed, and its "30003 Already Subscribed" frame carries no id,
+            // so handleErrorMessage rejects every future on the socket
+            const subscriptionHashes = Object.keys(client.subscriptions);
+            for (let i = 0; i < subscriptionHashes.length; i++) {
+                const subscriptionHash = subscriptionHashes[i];
+                if (subscriptionHash.startsWith('ticker')) {
+                    const subscription = this.safeDict(client.subscriptions, subscriptionHash);
+                    const subscriptionParams = this.safeDict(subscription, 'params');
+                    const subscribedChannel = this.safeString(subscriptionParams, 'channel');
+                    if (subscribedChannel === 'market_stats/all') {
+                        delete client.subscriptions[subscriptionHash];
+                        if (subscriptionHash in client.futures) {
+                            const error = new UnsubscribeError(this.id + ' ' + subscriptionHash);
+                            client.reject(error, subscriptionHash);
+                        }
+                    }
+                }
+            }
+            const allMessageHash = 'unsubscribe:' + this.getMessageHash('ticker');
+            if (allMessageHash in client.subscriptions) {
+                delete client.subscriptions[allMessageHash];
+            }
+            client.resolve(true, allMessageHash);
+            const tickersStructure = {
+                'topic': 'ticker',
+            };
+            this.cleanCache(tickersStructure);
+            return;
+        }
+        const symbol = this.safeSymbol(marketId);
+        const subMessageHash = this.getMessageHash('ticker', symbol);
+        const messageHash = 'unsubscribe:' + subMessageHash;
+        this.cleanUnsubscription(client, subMessageHash, messageHash);
+        if (symbol in this.tickers) {
+            delete this.tickers[symbol];
+        }
+    }
+    handleTradesUnSubscription(client, marketId) {
+        const symbol = this.safeSymbol(marketId);
+        const subMessageHash = this.getMessageHash('trade', symbol);
+        const messageHash = 'unsubscribe:' + subMessageHash;
+        this.cleanUnsubscription(client, subMessageHash, messageHash);
+        if (symbol in this.trades) {
+            delete this.trades[symbol];
+        }
+    }
+    handleMyTradesUnSubscription(client) {
+        // one account-wide channel feeds the plural hash and every per-symbol hash
+        const messageHash = 'unsubscribe:' + this.getMessageHash('myTrades');
+        this.cleanUnsubscription(client, 'myTrades', messageHash, true);
+        const myTradesStructure = {
+            'topic': 'myTrades',
+        };
+        this.cleanCache(myTradesStructure);
+    }
+    handleOrdersUnSubscription(client, marketId) {
+        const symbol = this.safeSymbol(marketId);
+        const subMessageHash = this.getMessageHash('orders', symbol);
+        const messageHash = 'unsubscribe:' + subMessageHash;
+        this.cleanUnsubscription(client, subMessageHash, messageHash);
+    }
+    handleAllOrdersUnSubscription(client) {
+        // only the plural hash is awaited on this channel, per-symbol order hashes
+        // belong to the account_orders/<marketId> channels and stay untouched here
+        const subMessageHash = this.getMessageHash('orders');
+        const messageHash = 'unsubscribe:' + subMessageHash;
+        this.cleanUnsubscription(client, subMessageHash, messageHash);
+        const ordersStructure = {
+            'topic': 'orders',
+        };
+        this.cleanCache(ordersStructure);
     }
     handlePing(client, message) {
         //

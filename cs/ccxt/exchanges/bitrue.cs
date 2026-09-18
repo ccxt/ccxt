@@ -937,7 +937,7 @@ public partial class bitrue : Exchange
                 throw new ExchangeError ((string)add(add(add(this.id, " fetchMarkets() this.options fetchMarkets \""), marketType), "\" is not a supported market type")) ;
             }
         }
-        object promises = await promiseAll(promisesRaw);
+        List<object> promises = await promiseAll(promisesRaw);
         object spotMarkets = this.safeValue(this.safeValue(promises, 0), "symbols", new List<object>() {});
         object futureMarkets = this.safeValue(promises, 1);
         object deliveryMarkets = this.safeValue(promises, 2);
@@ -1221,16 +1221,16 @@ public partial class bitrue : Exchange
         {
             await this.loadMarkets();
         }
-        object type = null;
+        string? type = null;
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchBalance", null, parameters);
-        type = ((IList<object>)typeparametersVariable)[0];
+        type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         object subType = null;
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("fetchBalance", null, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         Dictionary<string, object> response = null;
-        object result = null;
+        IDictionary<string, object> result = null;
         if (isTrue(isEqual(type, "swap")))
         {
             if (isTrue(isTrue(!isEqual(subType, null)) && isTrue(isEqual(subType, "inverse"))))
@@ -1336,12 +1336,12 @@ public partial class bitrue : Exchange
         //     }
         //
         Int64? timestamp = this.safeInteger2(response, "time", "lastUpdateId");
-        object orderbook = this.parseOrderBook(response, symbol, timestamp);
+        Dictionary<string, object> orderbook = ((Dictionary<string, object>)this.parseOrderBook(response, symbol, timestamp));
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(response, "lastUpdateId");
         return ccxt.BaseExchange.ToOrderBook(orderbook);
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         // fetchBidsAsks
@@ -1515,7 +1515,7 @@ public partial class bitrue : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1629,7 +1629,7 @@ public partial class bitrue : Exchange
         //         "open": "35349.4"
         //     }
         //
-        object timestamp = this.safeTimestamp(ohlcv, "i");
+        Int64? timestamp = this.safeTimestamp(ohlcv, "i");
         if (isTrue(isEqual(timestamp, null)))
         {
             timestamp = this.safeInteger(ohlcv, "idx");
@@ -1732,7 +1732,7 @@ public partial class bitrue : Exchange
         List<object> response = new List<object>() {};
         IList<object> data = new List<object>() {};
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        object type = null;
+        string? type = null;
         if (isTrue(!isEqual(symbols, null)))
         {
             string? first = this.safeString(symbols, 0);
@@ -1751,7 +1751,7 @@ public partial class bitrue : Exchange
         } else
         {
             IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchTickers", null, parameters);
-            type = ((IList<object>)typeparametersVariable)[0];
+            type = (string)((IList<object>)typeparametersVariable)[0];
             parameters = ((IList<object>)typeparametersVariable)[1];
             if (isTrue(!isEqual(type, "spot")))
             {
@@ -1818,7 +1818,7 @@ public partial class bitrue : Exchange
         return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbols));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades
@@ -1984,7 +1984,7 @@ public partial class bitrue : Exchange
         return this.safeString(statuses, ((string)status), status);
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // createOrder - spot
@@ -2169,7 +2169,7 @@ public partial class bitrue : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> response = null;
-        object data = new Dictionary<string, object>() {};
+        IDictionary<string, object> data = new Dictionary<string, object>() {};
         string uppercaseType = ((string)type).ToUpper();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "side", ((string)((string)side)).ToUpper() },
@@ -2315,7 +2315,7 @@ public partial class bitrue : Exchange
         object origClientOrderId = this.safeValue2(parameters, "origClientOrderId", "clientOrderId");
         parameters = this.omit(parameters, new List<object>() {"origClientOrderId", "clientOrderId"});
         Dictionary<string, object> response = null;
-        object data = new Dictionary<string, object>() {};
+        IDictionary<string, object> data = new Dictionary<string, object>() {};
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (isTrue(isEqual(origClientOrderId, null)))
         {
@@ -2584,7 +2584,7 @@ public partial class bitrue : Exchange
         object origClientOrderId = this.safeValue2(parameters, "origClientOrderId", "clientOrderId");
         parameters = this.omit(parameters, new List<object>() {"origClientOrderId", "clientOrderId"});
         Dictionary<string, object> response = null;
-        object data = new Dictionary<string, object>() {};
+        IDictionary<string, object> data = new Dictionary<string, object>() {};
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (isTrue(isEqual(origClientOrderId, null)))
         {
@@ -3123,9 +3123,9 @@ public partial class bitrue : Exchange
             { "amount", amount },
             { "addressTo", address },
         };
-        object networkCode = null;
+        string? networkCode = null;
         IList<object> networkCodeparametersVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
-        networkCode = ((IList<object>)networkCodeparametersVariable)[0];
+        networkCode = (string)((IList<object>)networkCodeparametersVariable)[0];
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         if (isTrue(!isEqual(networkCode, null)))
         {
