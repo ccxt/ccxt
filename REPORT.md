@@ -80,9 +80,13 @@ Family sizes measured on the base tree, tooling in `campaigns/cs90/tools/U03/`:
 * `SAFE_LIST_PRODUCER_CALLS` + `asAnySafeListReceiverCopy(initializer)` — an `AsExpression(any)`
   whose operand is `this.<safeList|safeList2|safeListN>(…)`, answering that name's
   `CSHARP_LOCAL_THIS_RETURN_TYPES` box (own-key lookup only). Deliberately **not** a general
-  `as any` unwrap: the corpus holds 9 `let x = <expr> as any` declarations, 7 of which are not list
-  producers (pro-luno's `safeString (bidask, thirdKey) as any`, the prediction `market as any` /
-  `orderbook['bids'] as any` template values) and keep `object`.
+  `as any` unwrap: the tree holds 14 `let x = <expr> as any;` declarations (9 in the
+  exchange+pro+prediction trees this unit owns), and the other 12 are either not call producers
+  (pro-luno's `safeString (bidask, thirdKey) as any`, the prediction `market as any` /
+  `side as any` / `orderbook['bids'] as any` template values, a pro test's `server.address () as
+  any`) or live in the base tree / are not safeList producers (`this.toArray (array) as any` ×2,
+  `this.removeRepeatedElementsFromArray (result) as any`, `parseFloat (…) as any`) — all keep
+  `object`.
 * one clause in `csharpLocalTypeOf` (`csharpType === undefined && asAnySafeListReceiverCopy !==
   undefined` → `csharpType`, `stripObjectBox = true`) and `stripObjectBox` on the returned info.
 * one 5-line block in the `installCsharpLocalTypes` declaration wrapper: when `stripObjectBox` is
@@ -109,6 +113,7 @@ rejects keeps `object` (and is therefore not a diff line).
 | 1 | `bitget.cs:11748` `object bills = this.safeList2(data, "bills", "list", new List<object>() {})` | the later write `bills = this.filterByArray(bills, …)` is unprovable *today*: `filterByArray` is the hand-written helper U31 retypes to `List<object>` in this round. This site becomes typed with U31's change, not with U03's — deliberately left alone (it is U31's table entry, and a duplicate here would collide on the same file). |
 | 1 | base tree: `cs/ccxt/base/Exchange.BaseMethods.cs:2906` `object fees = this.safeList(container, "fees")` (`ts/src/base/Exchange.ts:5192`) | blocked by a copy chain, not by the producer: `fees = reducedFees` / `reducedFees = this.reduceFeesByCurrency (fees)` joins through a local whose own declaration is `object` (its initializer is a read of `fees` itself), so the write-join returns `undefined`. A fixpoint-shaped write join is a different mechanism; also outside the unit's `cs/ccxt/exchanges/**` scope. |
 | 2 | `okx.cs:10063` / `xt.cs:5425` `entry = getValue(data\|response, i)` — the two cleanest "the later use is exclusively dict" sites in the strict family (each read with `this.safeString (entry, …)` and handed to a dict-shaped parse helper, `parseGreeks` / `parseMarketLeverageTiers`) | still a reject: an inserted `(IDictionary<string, object>)` cast throws on any non-dict element, and the corpus has the same read shape holding lists (counter-examples above). The use pattern is a heuristic, not a proof. |
+| 3 | base tree: `ts/src/base/Exchange.ts:3576`/`:3600` `const parsedArray = this.toArray (array) as any;` and `this.removeRepeatedElementsFromArray (result) as any` | `toArray` IS a proven `IList<object>` producer in the table, but these are `cs/ccxt/base/Exchange.BaseMethods.cs` declarations — outside this unit's `cs/ccxt/exchanges/**` family — and the same `as any` shape over a *different* producer would broaden the rule beyond its charter. Left `object`; no exchange-tree site of this shape exists (measured). |
 | — | `getValue(<dict-typed receiver>, <numeric literal>)` sites (3 `Dictionary<string, object>` + 2 `IDictionary<string, object>` receivers inside the family set) | a keyed read on a dictionary receiver; the value type of `Dictionary<string, object>` is `object` too, and the dict-receiver families are U04/U06/U10 (receiver-keyed). |
 
 ## Residual risk
@@ -175,11 +180,19 @@ $ ccxt-farm log 688 --step buildCS --tail 25
 
 `branch_update=unchanged` is the fixed point: the farm's own regeneration of the committed tree
 produced no changes, and `buildCS` compiled the whole solution (ccxt + tests + cli) with 0 warnings.
-The report-carrying tip is gated the same way below (the only delta over `bf835f3333d1c` is this
-file).
+
+The report-carrying tip is gated the same way — `a1ac861f72be` (the commit before this one, whose
+tree differs from it only by this paragraph) is green as well:
 
 ```
-$ ccxt-farm build --targets cs --wait          # for the tip that carries this report
+$ ccxt-farm status 700
+{"job": 700, "source": "a1ac861f72be3e08d188ab5623526b9804433511",
+ "state": "succeeded", "exit_code": 0, "targets": "cs", "skipped_exchanges": 76,
+ "branch_update": "unchanged", "failing_step": "", "failing_files": []}
+$ ccxt-farm log 700 --step buildCS --tail 8
+  Build succeeded.
+    0 Warning(s)
+    0 Error(s)
 ```
 
 ## Tooling (nothing new under `build/`)
