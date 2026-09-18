@@ -2484,6 +2484,12 @@ class NewTranspiler {
             // an identity cast, or a cast to object (boxes the same value / null)
             return (cast === targetType || cast === 'object') ? 'read' : '';
         }
+        // `(alias == null)` / `(alias != null)`: the native spelling of the isEqual(alias, null)
+        // guard this classifier already accepts at an argument position. The null test reads the
+        // box itself and answers the same for `object` and every narrowed type here.
+        if (/^[!=]=\s*null\s*\)/.test (postl)) {
+            return 'read';
+        }
         if (pre.trim () === 'return' && postl.trim () === ';') {
             return methodReturnType.includes ('object') ? 'read' : '';
         }
