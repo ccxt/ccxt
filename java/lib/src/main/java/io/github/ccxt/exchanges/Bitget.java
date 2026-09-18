@@ -3817,7 +3817,7 @@ public class Bitget extends BitgetApi
             for (var i = 0; i < ((List<?>)results).size(); i++)
             {
                 Object res = this.safeDict(results, i);
-                Object data = this.safeList(res, "data", new ArrayList<Object>(Arrays.asList()));
+                List<Object> data = (List<Object>) this.safeList(res, "data", new ArrayList<Object>(Arrays.asList()));
                 Object firstData = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
                 Object isBorrowable = this.safeBool(firstData, "isBorrowable");
                 if (Helpers.isTrue(fetchMargins) && !java.util.Objects.equals(isBorrowable, null))
@@ -4112,7 +4112,7 @@ public class Bitget extends BitgetApi
             for (var i = 0; i < ((List<?>)results).size(); i++)
             {
                 Object res = this.safeDict(results, i);
-                Object data = this.safeList(res, "data", new ArrayList<Object>(Arrays.asList()));
+                List<Object> data = (List<Object>) this.safeList(res, "data", new ArrayList<Object>(Arrays.asList()));
                 markets = this.arrayConcat(markets, data);
             }
             //
@@ -4438,7 +4438,7 @@ public class Bitget extends BitgetApi
         Object entry = rawCurrency;
         String id = this.safeString(entry, "coin"); // we don't use 'coinId' as it has no use. it is 'coin' field that needs to be used in currency related endpoints (deposit, withdraw, etc..)
         String code = this.safeCurrencyCode(id);
-        Object chains = this.safeList(entry, "chains", new ArrayList<Object>(Arrays.asList()));
+        List<Object> chains = (List<Object>) this.safeList(entry, "chains", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         Object withdraw = null;
         Object deposit = null;
@@ -4883,7 +4883,7 @@ final Object finalMinNotional = minNotional;
             //         ]
             //     }
             //
-            Object rawTransactions = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rawTransactions = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(rawTransactions, null, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -5117,7 +5117,7 @@ final Object finalMinNotional = minNotional;
             //         ]
             //     }
             //
-            Object rawTransactions = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rawTransactions = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(rawTransactions, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -5755,7 +5755,7 @@ final Object finalMinNotional = minNotional;
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTicker(Helpers.GetValue(data, 0), market);
         }).thenApply(Ticker::new);
 
@@ -5797,7 +5797,7 @@ final Object finalMinNotional = minNotional;
                 ((Map<String, Object>)request).put("productType", productType);
                 response = (this.publicMixGetV2MixMarketSymbolPrice(this.extend(request, parameters))).join();
             }
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTicker(Helpers.GetValue(data, 0), market);
         }).thenApply(Ticker::new);
 
@@ -5989,7 +5989,7 @@ final Object finalMinNotional = minNotional;
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTickers(data, symbols);
         }).thenApply(Tickers::new);
 
@@ -6331,7 +6331,7 @@ final Object finalMinNotional = minNotional;
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -6501,7 +6501,7 @@ final Object finalMinNotional = minNotional;
                 //         ]
                 //     }
                 //
-                Object rows = this.safeList(utaResponse, "data", new ArrayList<Object>(Arrays.asList()));
+                List<Object> rows = (List<Object>) this.safeList(utaResponse, "data", new ArrayList<Object>(Arrays.asList()));
                 Map<String, Object> utaResult = new HashMap<String, Object>() {{}};
                 for (var i = 0; i < ((List<?>)rows).size(); i++)
                 {
@@ -6615,7 +6615,7 @@ final Object finalMinNotional = minNotional;
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
@@ -8350,7 +8350,7 @@ final Object finalMinNotional = minNotional;
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market);
         });
 
@@ -9033,7 +9033,7 @@ final Object finalMinNotional = minNotional;
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market);
         });
 
@@ -9154,7 +9154,7 @@ final Object finalMinNotional = minNotional;
             //     }
             //
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
-            Object orders = this.safeList(data, "successList", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = (List<Object>) this.safeList(data, "successList", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -9271,8 +9271,8 @@ final Object finalMinNotional = minNotional;
                 }
             }
             Object data = this.safeDict(response, "data");
-            Object resultList = this.safeListN(data, new ArrayList<Object>(Arrays.asList("resultList", "successList", "list")));
-            Object failureList = this.safeList2(data, "failure", "failureList");
+            List<Object> resultList = (List<Object>) this.safeListN(data, new ArrayList<Object>(Arrays.asList("resultList", "successList", "list")));
+            List<Object> failureList = (List<Object>) this.safeList2(data, "failure", "failureList");
             Object responseList = null;
             if ((!java.util.Objects.equals(resultList, null)) && (!java.util.Objects.equals(failureList, null)))
             {
@@ -9473,7 +9473,7 @@ final Object finalMinNotional = minNotional;
                     return this.parseOrder(data, market);
                 }
             }
-            Object dataList = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> dataList = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object dataListLength = ((List<?>)dataList).size();
             if (Helpers.isEqual(dataListLength, 0))
             {
@@ -9933,7 +9933,7 @@ final Object finalMinNotional = minNotional;
             {
                 if ((!java.util.Objects.equals(marginMode, null)) || (java.util.Objects.equals(trigger, true)))
                 {
-                    Object resultList = this.safeList(data, "orderList", new ArrayList<Object>(Arrays.asList()));
+                    List<Object> resultList = (List<Object>) this.safeList(data, "orderList", new ArrayList<Object>(Arrays.asList()));
                     return this.parseOrders(resultList, market, since, limit);
                 }
             } else
@@ -10389,7 +10389,7 @@ final Object finalMinNotional = minNotional;
             {
                 response = Helpers.parseJson(response);
             }
-            Object orders = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -10545,7 +10545,7 @@ final Object finalMinNotional = minNotional;
             //     }
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object orders = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
         });
 
@@ -11059,15 +11059,15 @@ final Object finalMinNotional = minNotional;
             Object data = this.safeValue(response, "data");
             if (java.util.Objects.equals(uta, true))
             {
-                Object fills = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
+                List<Object> fills = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
                 return this.parseTrades(fills, market, since, limit);
             } else if (((java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) || (java.util.Objects.equals(((Map<String, Object>)market).get("future"), true))))
             {
-                Object fills = this.safeList(data, "fillList", new ArrayList<Object>(Arrays.asList()));
+                List<Object> fills = (List<Object>) this.safeList(data, "fillList", new ArrayList<Object>(Arrays.asList()));
                 return this.parseTrades(fills, market, since, limit);
             } else if (!java.util.Objects.equals(marginMode, null))
             {
-                Object fills = this.safeList(data, "fills", new ArrayList<Object>(Arrays.asList()));
+                List<Object> fills = (List<Object>) this.safeList(data, "fills", new ArrayList<Object>(Arrays.asList()));
                 return this.parseTrades(fills, market, since, limit);
             }
             return this.parseTrades(data, market, since, limit);
@@ -11853,7 +11853,7 @@ final Object finalMinNotional = minNotional;
                     response = (this.publicMixGetV2MixMarketFundingTime(this.extend(request, parameters))).join();
                 }
             }
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRate(Helpers.GetValue(data, 0), market);
         }).thenApply(FundingRate::new);
 
@@ -11956,7 +11956,7 @@ final Object finalMinNotional = minNotional;
                 response = (this.publicMixGetV2MixMarketCurrentFundRate(this.extend(request, parameters))).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRates(data, symbols);
         }).thenApply(FundingRates::new);
 
@@ -12723,7 +12723,7 @@ final Object finalMinNotional = minNotional;
         //     }
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object data = this.safeList2(interest, "openInterestList", "list", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList2(interest, "openInterestList", "list", new ArrayList<Object>(Arrays.asList()));
         Long timestamp = this.safeInteger(interest, "ts");
         String marketId = this.safeString(Helpers.GetValue(data, 0), "symbol");
         return this.safeOpenInterest(new HashMap<String, Object>() {{
@@ -12812,7 +12812,7 @@ final Object finalMinNotional = minNotional;
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransfers(data, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
@@ -12973,7 +12973,7 @@ final Object finalMinNotional = minNotional;
         //     }
         //
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object chains = this.safeList(fee, "chains", new ArrayList<Object>(Arrays.asList()));
+        List<Object> chains = (List<Object>) this.safeList(fee, "chains", new ArrayList<Object>(Arrays.asList()));
         Object chainsLength = ((List<?>)chains).size();
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", fee );
@@ -13065,7 +13065,7 @@ final Object finalMinNotional = minNotional;
             //         "requestTime": "1700120731773"
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseDepositWithdrawFees(data, codes, "coin");
         }).thenApply(DepositWithdrawFees::new);
 
@@ -13451,7 +13451,7 @@ final Object finalMinNotional = minNotional;
             //     }
             //
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
-            Object liquidations = this.safeList(data, "resultList", new ArrayList<Object>(Arrays.asList()));
+            List<Object> liquidations = (List<Object>) this.safeList(data, "resultList", new ArrayList<Object>(Arrays.asList()));
             return this.parseLiquidations(liquidations, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Liquidation::new).collect(Collectors.toList()));
 
@@ -14004,7 +14004,7 @@ final Object finalMinNotional = minNotional;
                 response = (this.privateMixPostV2MixOrderClosePositions(this.extend(request, parameters))).join();
             }
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
-            Object order = this.safeList2(data, "successList", "list", new ArrayList<Object>(Arrays.asList()));
+            List<Object> order = (List<Object>) this.safeList2(data, "successList", "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrder(Helpers.GetValue(order, 0), market);
         }).thenApply(Order::new);
 
@@ -14051,7 +14051,7 @@ final Object finalMinNotional = minNotional;
                 response = (this.privateMixPostV2MixOrderClosePositions(this.extend(request, parameters))).join();
             }
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
-            Object orderInfo = this.safeList2(data, "successList", "list", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orderInfo = (List<Object>) this.safeList2(data, "successList", "list", new ArrayList<Object>(Arrays.asList()));
             return this.parsePositions(orderInfo, null, parameters);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
@@ -14203,7 +14203,7 @@ final Object finalMinNotional = minNotional;
                 response = (this.privateMixGetV2MixPositionHistoryPosition(this.extend(request, parameters))).join();
             }
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object responseList = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
+            List<Object> responseList = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             Object positions = this.parsePositions(responseList, symbols, parameters);
             return this.filterBySinceLimit(positions, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
@@ -14403,7 +14403,7 @@ final Object finalMinNotional = minNotional;
             //     }
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object dataList = this.safeList(data, "dataList", new ArrayList<Object>(Arrays.asList()));
+            List<Object> dataList = (List<Object>) this.safeList(data, "dataList", new ArrayList<Object>(Arrays.asList()));
             return this.parseConversions(dataList, code, "fromCoin", "toCoin", since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Conversion::new).collect(Collectors.toList()));
 
@@ -14502,7 +14502,7 @@ final Object finalMinNotional = minNotional;
             //     }
             //
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
                 Object entry = Helpers.GetValue(data, i);
@@ -14588,7 +14588,7 @@ final Object finalMinNotional = minNotional;
                 ((Map<String, Object>)request).put("productType", productType);
                 response = (this.publicMixGetV2MixMarketFundingTime(this.extend(request, parameters))).join();
             }
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseFundingRate(first, market);
         }).thenApply(FundingRate::new);
@@ -14638,7 +14638,7 @@ final Object finalMinNotional = minNotional;
             {
                 response = (this.publicMarginGetV2MarginMarketLongShortRatio(this.extend(request, parameters))).join();
             }
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseLongShortRatioHistory(data, market);
         }).thenApply(res -> ((List<?>) res).stream().map(LongShortRatio::new).collect(Collectors.toList()));
 
