@@ -4767,10 +4767,10 @@ public class Kucoin extends KucoinApi
                 Long nanoseconds = this.safeInteger(data, "ts");
                 if (!java.util.Objects.equals(nanoseconds, null))
                 {
-                    timestamp = this.parseToInt(Helpers.divide(nanoseconds, 1000000));
+                    timestamp = this.parseToInt((((double) nanoseconds) / ((double) 1000000)));
                 }
             }
-            Object orderbook = this.parseOrderBook(data, ((Map<String, Object>)market).get("symbol"), timestamp, "bids", "asks", Helpers.subtract(level, 2), Helpers.subtract(level, 1));
+            Object orderbook = this.parseOrderBook(data, ((Map<String, Object>)market).get("symbol"), timestamp, "bids", "asks", (level - 2L), (level - 1L));
             Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(data, "sequence"));
             return orderbook;
         }).thenApply(OrderBook::new);

@@ -1831,7 +1831,7 @@ public class Btse extends BtseApi
         // hour rounds to the same string, and the vocabulary has no minutes
         if ((!java.util.Objects.equals(fundingIntervalMinutes, null)) && (Helpers.isGreaterThanOrEqual(fundingIntervalMinutes, 60)))
         {
-            Long hours = this.parseToInt(Helpers.divide(fundingIntervalMinutes, 60));
+            Long hours = this.parseToInt((((double) fundingIntervalMinutes) / ((double) 60)));
             interval = (String.valueOf(hours) + "h");
         }
         final Object finalMarket = market;

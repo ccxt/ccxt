@@ -2635,7 +2635,7 @@ public class Nado extends NadoApi
             }
             if (!java.util.Objects.equals(until, null))
             {
-                Helpers.addElementToObject(Helpers.GetValue(request, "candlesticks"), "max_time", this.parseToInt(Helpers.divide(until, 1000)));
+                Helpers.addElementToObject(Helpers.GetValue(request, "candlesticks"), "max_time", this.parseToInt((((double) until) / ((double) 1000))));
             }
             Map<String, Object> response = (this.archivePost(this.deepExtend(request, parameters))).join();
             //

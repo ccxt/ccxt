@@ -2545,7 +2545,7 @@ public class Lighter extends LighterApi
             Long imf = this.parseToInt(imfStr);
             if (Helpers.isGreaterThan(imf, 0))
             {
-                leverage = Helpers.divide(100, imf);
+                leverage = (((double) 100) / ((double) imf));
             }
         }
         final Object finalMarket = market;

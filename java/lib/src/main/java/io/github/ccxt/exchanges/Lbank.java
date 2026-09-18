@@ -1686,7 +1686,7 @@ public class Lbank extends LbankApi
         Object intervalString = null;
         if (!java.util.Objects.equals(positionFeeTime, null))
         {
-            Long interval = this.parseToInt(Helpers.divide(Helpers.divide(positionFeeTime, 60), 60));
+            Long interval = this.parseToInt((((double) (((double) positionFeeTime) / ((double) 60))) / ((double) 60)));
             intervalString = (String.valueOf(interval) + "h");
         }
         final Object finalIntervalString = intervalString;

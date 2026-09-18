@@ -803,7 +803,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object symbol = ((Map<String, Object>)market).get("symbol");
         Long idSeconds = this.safeInteger(tick, "id");
-        Object timestamp = (((java.util.Objects.equals(idSeconds, null)))) ? null : Helpers.multiply(idSeconds, 1000);
+        Object timestamp = (((java.util.Objects.equals(idSeconds, null)))) ? null : (idSeconds * 1000L);
         Double open = this.safeNumber(tick, "open");
         Double high = this.safeNumber(tick, "high");
         Double low = this.safeNumber(tick, "low");

@@ -11607,8 +11607,8 @@ public class Okx extends OkxApi
             }
             Object response = null;
             Long now = this.milliseconds();
-            Object oneWeekAgo = Helpers.subtract(now, 604800000);
-            Object threeMonthsAgo = Helpers.subtract(now, 7776000000L);
+            Object oneWeekAgo = (now - 604800000L);
+            Object threeMonthsAgo = (now - 7776000000L);
             if ((java.util.Objects.equals(since, null)) || (Helpers.isGreaterThan(since, oneWeekAgo)))
             {
                 response = (this.privateGetAccountBills(this.extend(request, parameters))).join();

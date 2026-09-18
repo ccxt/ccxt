@@ -925,7 +925,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         {
             return Helpers.opNeg(1);
         }
-        if (Helpers.isLessThan(nonce, Helpers.subtract(firstDeltaNonce, 1)))
+        if (Helpers.isLessThan(nonce, (firstDeltaNonce - 1L)))
         {
             return Helpers.opNeg(1);
         }

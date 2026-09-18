@@ -858,7 +858,7 @@ public class Btcturk extends BtcturkApi
                 put( "resolution", Btcturk.this.safeValue(Btcturk.this.timeframes, finalTimeframe, finalTimeframe) );
             }};
             Long until = this.safeInteger(parameters, "until", this.milliseconds());
-            ((Map<String, Object>)request).put("to", this.parseToInt((Helpers.divide(until, 1000))));
+            ((Map<String, Object>)request).put("to", this.parseToInt(((((double) until) / ((double) 1000)))));
             if (!java.util.Objects.equals(since, null))
             {
                 ((Map<String, Object>)request).put("from", this.parseToInt(Helpers.divide(since, 1000)));

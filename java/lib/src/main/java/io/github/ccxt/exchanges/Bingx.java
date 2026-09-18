@@ -6714,7 +6714,7 @@ public class Bingx extends BingxApi
                     Helpers.addElementToObject(request, startTimeReq, since);
                 } else if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
                 {
-                    ((Map<String, Object>)request).put("startTs", Helpers.subtract(now, ((((30L * 24L) * 60L) * 60L) * 1000L))); // 30 days for swap
+                    ((Map<String, Object>)request).put("startTs", (now - ((((30L * 24L) * 60L) * 60L) * 1000L))); // 30 days for swap
                 }
                 Long until = this.safeInteger(parameters, "until");
                 parameters = this.omit(parameters, "until");
