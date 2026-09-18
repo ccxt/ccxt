@@ -3125,8 +3125,8 @@ public partial class krakenfutures : Exchange
         {
             await this.loadMarkets();
         }
-        object type = this.safeString2(parameters, "type", "account");
-        object symbol = this.safeString(parameters, "symbol");
+        string? type = this.safeString2(parameters, "type", "account");
+        string? symbol = this.safeString(parameters, "symbol");
         parameters = this.omit(parameters, new List<object>() {"type", "account", "symbol"});
         Dictionary<string, object> response = await this.privateGetAccounts(parameters);
         //
@@ -3236,7 +3236,7 @@ public partial class krakenfutures : Exchange
         {
             type = ((bool) ((type == null))) ? "" : type;
             symbol = ((bool) ((symbol == null))) ? "" : symbol;
-            throw new BadRequest ((string)add((this.id + " fetchBalance has no account for "), type)) ;
+            throw new BadRequest ((string)((this.id + " fetchBalance has no account for ") + type)) ;
         }
         object balance = this.parseBalance(account);
         ((IDictionary<string,object>)balance)["info"] = response;

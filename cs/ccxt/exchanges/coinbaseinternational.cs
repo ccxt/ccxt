@@ -2094,7 +2094,7 @@ public partial class coinbaseinternational : Exchange
             ((IDictionary<string,object>)request)["portfolio"] = portfolio;
         }
         bool? postOnly = this.safeBool2(parameters, "postOnly", "post_only");
-        object tif = this.safeString2(parameters, "tif", "timeInForce");
+        string? tif = this.safeString2(parameters, "tif", "timeInForce");
         // market orders must be IOC
         if ((typeId == "MARKET"))
         {
