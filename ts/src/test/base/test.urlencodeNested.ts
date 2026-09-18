@@ -9,8 +9,6 @@ function testUrlencodeNested () {
         'id': 'sampleexchange',
     });
 
-    // todo: add nulls
-    // todo: add key sort (for different langs)
     const dict2 = {
         'b': {
             'c': 2,

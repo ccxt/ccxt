@@ -16,7 +16,5 @@ function test_unique() {
     // in different langs, the order (sort) is not guaranteed, so we sort the results before comparing them
     // todo: `unique` is primarily meant for strings atm, add numeric support
     assert_deep_equal($exchange, null, 'testUnique', $exchange->unique([]), []);
-    // testSharedMethods.assertDeepEqual (exchange, undefined, 'testUnique',  exchange.sort (exchange.unique ([ 1, 2, 3 ])), [ 1, 2, 3 ]);
-    // testSharedMethods.assertDeepEqual (exchange, undefined, 'testUnique',  exchange.sort (exchange.unique ([ 1, 2, 3, 4, 1 ])), [ 1, 2, 3, 4 ]);
     assert_deep_equal($exchange, null, 'testUnique', $exchange->sort($exchange->unique(['a', 'a', 'b', 'c', 'a', 'c'])), ['a', 'b', 'c']);
 }

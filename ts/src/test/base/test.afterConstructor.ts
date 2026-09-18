@@ -9,7 +9,6 @@ function helperTestInitThrottler () {
         'id': 'sampleexchange',
         'rateLimit': 10.8,
     });
-    // todo: assert (exchange.MAX_VALUE !== undefined);
     const tokenBucket = testSharedMethods.exchangeProp (exchange, 'tokenBucket'); // trick for uncamelcase transpilation
     assert (tokenBucket !== undefined);
     const rateLimit = testSharedMethods.exchangeProp (exchange, 'rateLimit');
@@ -21,9 +20,6 @@ function helperTestInitThrottler () {
     const cost = exchange.parseToNumeric (exchange.safeString2 (tokenBucket, 'cost', 'defaultCost')); // python sync, todo fix
     assert (exchange.inArray (cost, [ 1, 1.0 ]));
     assert (!('maxCapacity' in tokenBucket) || exchange.inArray (tokenBucket['maxCapacity'], [ 1000, 1000.0 ]));
-    // todo: assert (exchange.throttler !== undefined);
-    // todo: add after change assertion
-    // todo: add initial tockenbtucket test
 }
 
 function helperTestSandboxState (exchange: any, expectEnabled = true) {
@@ -42,7 +38,6 @@ function helperTestSandboxState (exchange: any, expectEnabled = true) {
 }
 
 function helperTestInitSandbox () {
-    // todo: sandbox for real exchanges
     const opts = {
         'id': 'sampleexchange',
         'options': {
@@ -104,13 +99,6 @@ function helperTestProperties () {
     // options
     //
     assert (exchange.options !== undefined);
-    // const defaultNetworkCodeReplacements = [
-    //     { 'baseCoin': 'ETH', 'primary': 'ETH', 'secondary': 'ERC20' },
-    //     { 'baseCoin': 'CRO', 'primary': 'CRONOS', 'secondary': 'CRC20' },
-    //     { 'baseCoin': 'TRX', 'primary': 'TRX', 'secondary': 'TRC20' },
-    //     { 'baseCoin': 'BTC', 'primary': 'BTC', 'secondary': 'BRC20' },
-    // ];
-    // testSharedMethods.assertDeepEqual (exchange, {}, 'options', exchange.options['defaultNetworkCodeReplacements'], defaultNetworkCodeReplacements);
 
     //
     // credentials

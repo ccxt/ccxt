@@ -1,12 +1,7 @@
 // @ts-nocheck
 
-import assert, { strictEqual, deepEqual } from 'assert';
-import ccxt, { Exchange, functions } from '../../../../ccxt.js';
-
-const { index, aggregate, unCamelCase } = functions;
-
-const equal = strictEqual;
-
+import { deepEqual } from 'assert';
+import { Exchange } from '../../../../ccxt.js';
 
 function testSafeBalance () {
 

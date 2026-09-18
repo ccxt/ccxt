@@ -8,41 +8,18 @@ function testCapitalize () {
         'id': 'sampleexchange',
     });
 
-    // Test 1: Basic lowercase string
-    assert (exchange.capitalize ('hello') === 'Hello');
-
-    // Test 2: Preserve rest of string (camelCase)
-    assert (exchange.capitalize ('fooBar') === 'FooBar');
-
-    // Test 3: Preserve rest of string (mixed case)
-    assert (exchange.capitalize ('helloWorld') === 'HelloWorld');
-
-    // Test 4: Already capitalized
-    assert (exchange.capitalize ('Hello') === 'Hello');
-
-    // Test 5: All uppercase (should preserve rest)
-    assert (exchange.capitalize ('hELLO') === 'HELLO');
-
-    // Test 6: Single character lowercase
-    assert (exchange.capitalize ('a') === 'A');
-
-    // Test 7: Single character uppercase
-    assert (exchange.capitalize ('A') === 'A');
-
-    // Test 8: Empty string
-    assert (exchange.capitalize ('') === '');
-
-    // Test 9: String starting with number
-    assert (exchange.capitalize ('123abc') === '123abc');
-
-    // Test 10: String with spaces
-    assert (exchange.capitalize ('hello world') === 'Hello world');
-
-    // Test 11: Underscore separated (snake_case)
-    assert (exchange.capitalize ('foo_bar_baz') === 'Foo_bar_baz');
-
-    // Test 12: All caps input (preserve rest)
-    assert (exchange.capitalize ('aBC') === 'ABC');
+    // `inputs` and `expected` must stay index-aligned; every row is asserted below
+    const inputs = [
+        'hello', 'fooBar', 'helloWorld', 'Hello', 'hELLO', 'a',
+        'A', '', '123abc', 'hello world', 'foo_bar_baz', 'aBC',
+    ];
+    const expected = [
+        'Hello', 'FooBar', 'HelloWorld', 'Hello', 'HELLO', 'A',
+        'A', '', '123abc', 'Hello world', 'Foo_bar_baz', 'ABC',
+    ];
+    for (let i = 0; i < inputs.length; i++) {
+        assert (exchange.capitalize (inputs[i]) === expected[i], 'capitalize(' + inputs[i] + ') must equal ' + expected[i]);
+    }
 }
 
 export default testCapitalize;

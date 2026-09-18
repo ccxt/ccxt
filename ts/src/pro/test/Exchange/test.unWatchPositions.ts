@@ -42,15 +42,7 @@ async function testUnWatchPositions (exchange: Exchange, skippedProperties: obje
     assert (errorResponse !== undefined, exchange.id + ' ' + method + ' must throw an error when unwatching a specific symbol, returned ' + exchange.json (errorResponse));
 
     // Test unwatching all positions (without specific symbols)
-    let responseAll: NullableDict = undefined;
-    try {
-        responseAll = await exchange.unWatchPositions ();
-    } catch (e) {
-        if (!testSharedMethods.isTemporaryFailure (e)) {
-            throw e;
-        }
-        throw e;
-    }
+    const responseAll: NullableDict = await exchange.unWatchPositions ();
 
     // Verify the response for unwatching all positions
     assert (responseAll !== undefined, exchange.id + ' ' + method + ' must return a response when unwatching all positions, returned ' + exchange.json (responseAll));

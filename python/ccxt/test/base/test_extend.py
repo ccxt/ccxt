@@ -71,7 +71,7 @@ def test_extend():
     obj2_snapshot_other_2 = obj2['other2']
     # --- test 1: basic extend ---
     extended = exchange.extend(obj1, obj2)
-    tbfe_check_extended(extended, True)
+    tbfe_check_extended(extended)
     # --- mutation check: obj1 must NOT be mutated ---
     assert obj1['a'] == obj1_snapshot_a, 'obj1.a was mutated after extend'
     assert obj1['b'][0] == obj1_snapshot_b0, 'obj1.b[0] was mutated after extend'
@@ -160,7 +160,7 @@ def test_extend():
     assert with_values['keep2'] == 'B', 'withValues[\'keep2\'] was mutated'
 
 
-def tbfe_check_extended(extended, has_sub):
+def tbfe_check_extended(extended):
     assert extended['a'] == 2
     assert extended['b'][0] == 3
     assert extended['b'][1] == 4
@@ -171,5 +171,4 @@ def tbfe_check_extended(extended, has_sub):
     assert extended['e'] is None
     assert extended['other1'] == 'x'
     assert extended['other2'] == 'y'
-    if has_sub:
-        assert 'sub' in extended
+    assert 'sub' in extended

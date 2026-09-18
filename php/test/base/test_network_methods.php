@@ -135,13 +135,7 @@ function helper_batch_network_tests() {
                 $primary_network_code = $chain_mapping['primary'];
                 $secondary_network_code = $chain_mapping['secondary'];
                 $msg = 'network protocol test failed for networkCode:' . $random_network_code . ' & currencyCode: ' . $random_currency_code . ', result: ' . $result . ', expected: ';
-                if ($random_network_code === $primary_network_code) {
-                    if ($random_currency_code === $chain_base_coin) {
-                        assert($result === $primary_network_code, $msg . $primary_network_code);
-                    } else {
-                        assert($result === $secondary_network_code, $msg . $secondary_network_code);
-                    }
-                } elseif ($random_network_code === $secondary_network_code) {
+                if (($random_network_code === $primary_network_code) || ($random_network_code === $secondary_network_code)) {
                     if ($random_currency_code === $chain_base_coin) {
                         assert($result === $primary_network_code, $msg . $primary_network_code);
                     } else {
@@ -154,32 +148,6 @@ function helper_batch_network_tests() {
 }
 
 
-// function helperTestNetworkProtocolCorrector () {
-//     return;
-//     const exchange = new ccxt.Exchange ({
-//         'id': 'sampleexchange',
-//     });
-//     // for ethereum
-//     assert (exchange.prioritizedNetworkAliases ('ERC20', 'MYTOKEN') === 'ERC20');
-//     assert (exchange.prioritizedNetworkAliases ('ETH', 'MYTOKEN') === 'ERC20');
-//     assert (exchange.prioritizedNetworkAliases ('ERC20', 'ETH') === 'ETH');
-//     assert (exchange.prioritizedNetworkAliases ('ETH', 'ETH') === 'ETH');
-//     // for tron
-//     assert (exchange.prioritizedNetworkAliases ('TRC20', 'MYTOKEN') === 'TRC20');
-//     assert (exchange.prioritizedNetworkAliases ('TRX', 'MYTOKEN') === 'TRC20');
-//     assert (exchange.prioritizedNetworkAliases ('TRC20', 'TRX') === 'TRX');
-//     assert (exchange.prioritizedNetworkAliases ('TRX', 'TRX') === 'TRX');
-//     // for cronos
-//     assert (exchange.prioritizedNetworkAliases ('CRC20', 'MYTOKEN') === 'CRC20');
-//     assert (exchange.prioritizedNetworkAliases ('CRONOS', 'MYTOKEN') === 'CRC20');
-//     assert (exchange.prioritizedNetworkAliases ('CRC20', 'CRO') === 'CRONOS');
-//     assert (exchange.prioritizedNetworkAliases ('CRONOS', 'CRO') === 'CRONOS');
-//     // for bitcoin
-//     assert (exchange.prioritizedNetworkAliases ('BRC20', 'MYTOKEN') === 'BRC20');
-//     assert (exchange.prioritizedNetworkAliases ('BTC', 'MYTOKEN') === 'BRC20');
-//     assert (exchange.prioritizedNetworkAliases ('BRC20', 'BTC') === 'BTC');
-//     assert (exchange.prioritizedNetworkAliases ('BTC', 'BTC') === 'BTC');
-// }
 function test_network_methods() {
     // both below dicts should end with "same" results
     $dict1 = array(
@@ -194,7 +162,6 @@ function test_network_methods() {
         'TRC20' => 'Tron',
         'ERC20' => 'Ether',
     );
-    // helperTestNetworkProtocolCorrector ();
     helper_test_network_code_to_id($dict1);
     helper_test_network_code_to_id($dict2);
     helper_test_network_id_to_code($dict1);

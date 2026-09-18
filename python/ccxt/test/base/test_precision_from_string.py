@@ -18,55 +18,8 @@ def test_precision_from_string():
     exchange = ccxt.Exchange({
         'id': 'sampleexchange',
     })
-    # Test 1: Scientific notation negative exponent
-    assert exchange.precision_from_string('1e-4') == 4
-    # Test 2: Scientific notation uppercase E
-    assert exchange.precision_from_string('1E-4') == 4
-    # Test 3: Scientific notation larger negative exponent
-    assert exchange.precision_from_string('1e-8') == 8
-    # Test 4: Scientific notation with decimal
-    assert exchange.precision_from_string('2.5e-6') == 6
-    # Test 5: Scientific notation positive exponent
-    assert exchange.precision_from_string('1e4') == -4
-    # Test 6: Scientific notation explicit positive
-    assert exchange.precision_from_string('1e+4') == -4
-    # Test 7: Decimal string 4 places
-    assert exchange.precision_from_string('0.0001') == 4
-    # Test 8: Decimal string 5 places
-    assert exchange.precision_from_string('0.00001') == 5
-    # Test 9: Decimal string 1 place
-    assert exchange.precision_from_string('0.1') == 1
-    # Test 10: Decimal string 2 places
-    assert exchange.precision_from_string('0.01') == 2
-    # Test 11: Decimal string 8 places
-    assert exchange.precision_from_string('0.00000001') == 8
-    # Test 12: Trailing zeros should be stripped
-    assert exchange.precision_from_string('0.0100') == 2
-    # Test 13: Trailing zeros stripped
-    assert exchange.precision_from_string('0.00100') == 3
-    # Test 14: All trailing zeros after decimal
-    assert exchange.precision_from_string('1.0000') == 0
-    # Test 15: Integer string (no decimal)
-    assert exchange.precision_from_string('1') == 0
-    # Test 16: Integer string larger
-    assert exchange.precision_from_string('10') == 0
-    # Test 17: Integer string even larger
-    assert exchange.precision_from_string('100') == 0
-    # Test 18: Zero with decimal
-    assert exchange.precision_from_string('0.0') == 0
-    # Test 19: One with decimal
-    assert exchange.precision_from_string('1.0') == 0
-    # Test 20: Mixed precision
-    assert exchange.precision_from_string('0.12345') == 5
-    # Test 21: Negative mantissa with negative exponent
-    assert exchange.precision_from_string('-8e-8') == 8
-    # Test 22: Negative mantissa uppercase E with zero-padded exponent
-    assert exchange.precision_from_string('-8E-08') == 8
-    # Test 23: Negative decimal mantissa
-    assert exchange.precision_from_string('-2.5e-6') == 6
-    # Test 24: Negative mantissa with positive exponent
-    assert exchange.precision_from_string('-1e4') == -4
-    # Test 25: Explicitly positive mantissa
-    assert exchange.precision_from_string('+1e-4') == 4
-    # Test 26: Negative mantissa with explicitly signed exponent
-    assert exchange.precision_from_string('-1e+4') == -4
+    # `inputs` and `expected` must stay index-aligned; every row is asserted below
+    inputs = ['1e-4', '1E-4', '1e-8', '2.5e-6', '1e4', '1e+4', '0.0001', '0.00001', '0.1', '0.01', '0.00000001', '0.0100', '0.00100', '1.0000', '1', '10', '100', '0.0', '1.0', '0.12345', '-8e-8', '-8E-08', '-2.5e-6', '-1e4', '+1e-4', '-1e+4']
+    expected = [4, 4, 8, 6, -4, -4, 4, 5, 1, 2, 8, 2, 3, 0, 0, 0, 0, 0, 0, 5, 8, 8, 6, -4, 4, -4]
+    for i in range(0, len(inputs)):
+        assert exchange.precision_from_string(inputs[i]) == expected[i], 'precisionFromString(' + inputs[i] + ')'

@@ -18,49 +18,22 @@ function test_fetch_history_base() {
         ));
         assert(exchange_prop($exchange, 'fetchHistoryCacheSize') === 2, 'fetchHistoryCacheSize should be 2');
         $true_assertion = $exchange->parse_number(null) === null;
-        try {
-            \React\Async\await($exchange->fetch2('sample1'));
-        } catch(\Throwable $error) {
-            assert($true_assertion); // just skip
+        // try 3 times: the cache keeps only the 2 most recent calls
+        $samples = ['sample1', 'sample2', 'sample3'];
+        $expected_lengths = [1, 2, 2];
+        for ($i = 0; $i < count($samples); $i++) {
+            try {
+                \React\Async\await($exchange->fetch2($samples[$i]));
+            } catch(\Throwable $error) {
+                assert($true_assertion); // just skip
+            }
+            assert(count(($exchange->get_fetch_cache())) === $expected_lengths[$i], 'fetchHistoryCache should be an array with ' . ((string) $expected_lengths[$i]) . ' elements');
         }
-        assert(count(($exchange->get_fetch_cache())) === 1, 'fetchHistoryCache should be an array with 1 element');
-        try {
-            \React\Async\await($exchange->fetch2('sample2'));
-        } catch(\Throwable $error) {
-            assert($true_assertion); // just skip
-        }
-        assert(count(($exchange->get_fetch_cache())) === 2, 'fetchHistoryCache should be an array with 2 elements');
-        try {
-            \React\Async\await($exchange->fetch2('sample3'));
-        } catch(\Throwable $error) {
-            assert($true_assertion); // just skip
-        }
-        assert(count(($exchange->get_fetch_cache())) === 2, 'fetchHistoryCache should be an array with 2 elements');
         assert(1 + 1 < 3, 'sample assertion');
     }) ();
 }
 
 
-// async function testFetchHistoryDerived () {
-//     const exchange = new ccxt.coinbase ({
-//         'id': 'sampleexchange',
-//         'fetchHistoryCacheSize': 2,
-//     });
-//     // try 3 times
-//     // first
-//     await exchange.fetchTime (); // https://api.coinbase.com/api/v3/brokerage/time
-//     assert ((exchange.getFetchCache ()).length === 1, 'fetchHistoryCache should be an array with 1 element');
-//     // second
-//     await exchange.fetchOrderBook ('BTC/USD'); // https://api.coinbase.com/api/v3/brokerage/market/product_book?product_id=BTC-USD
-//     assert ((exchange.getFetchCache ()).length === 2, 'fetchHistoryCache should be an array with 2 elements');
-//     // third
-//     await exchange.fetchTrades ('BTC/USD'); // https://api.coinbase.com/api/v3/brokerage/market/products/BTC-USD/ticker
-//     assert ((exchange.getFetchCache ()).length === 2, 'fetchHistoryCache should be an array with 2 elements');
-//     const finalCache = exchange.getFetchCache ();
-//     assert (finalCache[0]['request']['url'].toString () === 'https://api.coinbase.com/api/v3/brokerage/market/product_book?product_id=BTC-USD', 'The first element in fetchHistoryCache is : ' + finalCache[0]['request']['url']);
-//     assert (finalCache[1]['request']['url'].toString () === 'https://api.coinbase.com/api/v3/brokerage/market/products/BTC-USD/ticker', 'The second element in fetchHistoryCache is : ' + finalCache[1]['request']['url']);
-//     assert (1 + 1 < 3, 'sample assertion');
-// }
 function test_fetch_history() {
     return Async\async(function () {
         \React\Async\await(test_fetch_history_base());

@@ -32,8 +32,6 @@ async function testWatchTickersHelper (exchange: Exchange, skippedProperties: ob
             // mark tests as failed, but just skip them
             if ((e instanceof ArgumentsRequired) && (argSymbols === undefined || argSymbols.length === 0)) {
                 // todo: provide random symbols to try
-                // return;
-                // return false;
                 shouldReturn = true;
             }
             else if (!testSharedMethods.isTemporaryFailure (e)) {

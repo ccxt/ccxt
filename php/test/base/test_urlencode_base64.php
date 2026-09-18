@@ -13,33 +13,14 @@ function test_urlencode_base64() {
     $exchange = new \ccxt\async\Exchange(array(
         'id' => 'sampleexchange',
     ));
-    // Test 1: Simple string
-    assert($exchange->urlencode_base64('hello') === 'aGVsbG8');
-    // Test 2: String with space
-    assert($exchange->urlencode_base64('hello world') === 'aGVsbG8gd29ybGQ');
-    // Test 3: Short string
-    assert($exchange->urlencode_base64('test') === 'dGVzdA');
-    // Test 4: Empty string
-    assert($exchange->urlencode_base64('') === '');
-    // Test 5: Single character
-    assert($exchange->urlencode_base64('a') === 'YQ');
-    // Test 6: Two characters
-    assert($exchange->urlencode_base64('ab') === 'YWI');
-    // Test 7: Three characters (no padding needed)
-    assert($exchange->urlencode_base64('abc') === 'YWJj');
-    // Test 8: Four characters
-    assert($exchange->urlencode_base64('abcd') === 'YWJjZA');
-    // Test 9: JSON-like string
-    assert($exchange->urlencode_base64('{"user":"test"}') === 'eyJ1c2VyIjoidGVzdCJ9');
-    // Test 10: String with special characters (urlsafe base64)
-    assert($exchange->urlencode_base64('subjects?_d') === 'c3ViamVjdHM_X2Q');
-    // Test 11: Longer string
-    assert($exchange->urlencode_base64('The quick brown fox') === 'VGhlIHF1aWNrIGJyb3duIGZveA');
-    // Test 12: Numbers as string
-    assert($exchange->urlencode_base64('123456789') === 'MTIzNDU2Nzg5');
-    //
-    // add binary tests
-    //
+    $inputs = ['hello', 'hello world', 'test', '', 'a', 'ab', 'abc', 'abcd', '{"user":"test"}', 'subjects?_d', 'The quick brown fox', '123456789'];
+    $expecteds = ['aGVsbG8', 'aGVsbG8gd29ybGQ', 'dGVzdA', '', 'YQ', 'YWI', 'YWJj', 'YWJjZA', 'eyJ1c2VyIjoidGVzdCJ9', 'c3ViamVjdHM_X2Q', 'VGhlIHF1aWNrIGJyb3duIGZveA', 'MTIzNDU2Nzg5'];
+    for ($i = 0; $i < count($inputs); $i++) {
+        $value = $inputs[$i];
+        $expected = $expecteds[$i];
+        $result = $exchange->urlencode_base64($value);
+        assert($result === $expected, 'urlencodeBase64 (' . $value . ') != ' . $expected);
+    }
     $binary_data = $exchange->base16_to_binary('191919191919');
     assert($exchange->urlencode_base64($binary_data) === 'GRkZGRkZ');
 }

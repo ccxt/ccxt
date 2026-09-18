@@ -13,9 +13,6 @@ function testToArray () {
     const result2 = exchange.toArray (obj2);
 
     // we can't guarantee order of values in GO lang
-    // testSharedMethods.assertDeepEqual (exchange, undefined, 'testToArray', exchange.toArray (obj1), [ 1, 3, 2 ]);
-    // testSharedMethods.assertDeepEqual (exchange, undefined, 'testToArray', exchange.toArray (obj2), [ 'x', 2 ]);
-    //
     assert (result1.length === 3, 'testToArray: length of result1 should be 3');
     assert (result2.length === 2, 'testToArray: length of result2 should be 2');
     assert (exchange.inArray (1, result1) && exchange.inArray (3, result1) && exchange.inArray (2, result1), 'testToArray: result1 should include 1, 3, and 2');

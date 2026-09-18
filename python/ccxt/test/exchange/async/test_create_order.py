@@ -68,7 +68,7 @@ async def test_create_order(exchange, skipped_properties, symbol):
         # for swap markets, we test sell orders too
         await tco_create_fillable_order(exchange, market, log_prefix, skipped_properties, best_bid, best_ask, limit_price_safety_multiplier_from_median, 'sell')
     tco_debug(exchange, symbol, '### SCENARIO 2 PASSED ###')
-    # **************** [Scenario 3 - START] **************** #
+    # todo: add tests for other unified scenarios (spot, swap, trigger, positions, stoploss, takeprofit, etc)
     return True
 
 

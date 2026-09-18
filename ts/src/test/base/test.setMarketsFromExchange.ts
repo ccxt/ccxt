@@ -28,26 +28,18 @@ async function testSetMarketsFromExchange () {
 
     assert ((exchange1.markets !== undefined) && (Object.keys (exchange1.markets).length > 0), 'Markets should be loaded in exchange1');
 
-    // Test error case: exchanges are different
-    const differentExchange = new ccxt.Exchange ({
-        'id': 'secondaryEx',
-    });
-    try {
-        differentExchange.setMarketsFromExchange (exchange1);
-        assert (!trueClause, 'Should have thrown an error when using different exchange');
-    } catch (error) {
-        assert (trueClause);
-    }
-
-    // Test error case: sharing from exchange without markets
-    const nonloadedExchange = new ccxt.Exchange ({
-        'id': 'primaryEx',
-    });
-    try {
-        exchange2.setMarketsFromExchange (nonloadedExchange); // exchange2 has no markets yet
-        assert (!trueClause, 'Should have thrown error when sharing from exchange without markets');
-    } catch (error) {
-        assert (trueClause);
+    // Test error cases: a different exchange id, and a source without markets
+    const errorCases = [
+        [ new ccxt.Exchange ({ 'id': 'secondaryEx' }), exchange1 ], // different exchange id
+        [ exchange2, new ccxt.Exchange ({ 'id': 'primaryEx' }) ], // source has no markets yet
+    ];
+    for (let i = 0; i < errorCases.length; i++) {
+        try {
+            errorCases[i][0].setMarketsFromExchange (errorCases[i][1]);
+            assert (!trueClause, 'Should have thrown an error for the case ' + i.toString ());
+        } catch (error) {
+            assert (trueClause);
+        }
     }
 
     // Test the new setMarketsFromExchange method
@@ -58,11 +50,6 @@ async function testSetMarketsFromExchange () {
     for (let i = 0; i < neededProps.length; i++) {
         testSharedMethods.assertDeepEqual (emptyExchange, {}, methodName, emptyExchange.getProperty (exchange1, neededProps[i]), emptyExchange.getProperty (exchange2, neededProps[i]));
     }
-
-    // Verify that modifying one exchange's markets modifies the other
-    // exchange1.markets['ETH/USD'] = { 'id': 'EthUsd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD', 'baseId': 'Eth', 'quoteId': 'Usd', 'type': 'spot', 'spot': true };
-    // assert ('ETH/USD' in exchange2.markets, 'Modifying exchange1 markets should reflect in exchange2');
-
 
     // Test 2: loadMarkets on shared markets should not make API call and be very fast
     const startTime = emptyExchange.milliseconds ();

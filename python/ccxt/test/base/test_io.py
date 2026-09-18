@@ -20,10 +20,9 @@ def test_io():
     })
     ms = exchange.milliseconds()
     file_name = 'ccxt-test-io-' + str(ms) + '.ccxtfile'
-    # upper tmp dir
     temp_dir = exchange.get_temp_dir()
     assert temp_dir is not None and temp_dir != '', 'temp dir should not be empty'
-    file_path = temp_dir + file_name  # '../../../../../../../../../../../../tmp/' + fileName;
+    file_path = temp_dir + file_name
     file_content = 'hello world'
     assert exchange.write_file(file_path, file_content), 'can not write file ' + file_path
     assert exchange.exists_file(file_path), 'file does not exist: ' + file_path

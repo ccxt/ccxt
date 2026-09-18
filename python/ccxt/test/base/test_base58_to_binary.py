@@ -20,33 +20,11 @@ def test_base58_to_binary():
     })
     # todo: can be implemented stringToBinary in future
     # @SKIP_START_GO
-    # Test 1: Simple base58
-    b58_1 = 'Cn8eVZg'  # hello
-    binary1 = exchange.base58_to_binary(b58_1)
-    assert exchange.binary_to_base58(binary1) == b58_1
-    # Test 2: String with space in original
-    b58_2 = 'StV1DL6CwTryKyV'  # hello world
-    binary2 = exchange.base58_to_binary(b58_2)
-    assert exchange.binary_to_base58(binary2) == b58_2
-    # Test 3: Short string
-    b58_3 = '3yZe7d'  # test
-    binary3 = exchange.base58_to_binary(b58_3)
-    assert exchange.binary_to_base58(binary3) == b58_3
-    # Test 4: Single byte
-    b58_4 = '2g'  # a
-    binary4 = exchange.base58_to_binary(b58_4)
-    assert exchange.binary_to_base58(binary4) == b58_4
-    # Test 5: Two bytes
-    b58_5 = '8Qq'  # ab
-    binary5 = exchange.base58_to_binary(b58_5)
-    assert exchange.binary_to_base58(binary5) == b58_5
-    # Test 6: Three bytes
-    b58_6 = 'ZiCa'  # abc
-    binary6 = exchange.base58_to_binary(b58_6)
-    assert exchange.binary_to_base58(binary6) == b58_6
-    # Test 7: JSON-like binary
-    b58_7 = '4SoiMiEYtTt5tPdi81Fik'  # {"key":"value"}
-    binary7 = exchange.base58_to_binary(b58_7)
-    assert exchange.binary_to_base58(binary7) == b58_7
+    # round-trip: 'hello', 'hello world', 'test', 'a', 'ab', 'abc', '{"key":"value"}'
+    base58s = ['Cn8eVZg', 'StV1DL6CwTryKyV', '3yZe7d', '2g', '8Qq', 'ZiCa', '4SoiMiEYtTt5tPdi81Fik']
+    for i in range(0, len(base58s)):
+        b58 = base58s[i]
+        binary = exchange.base58_to_binary(b58)
+        assert exchange.binary_to_base58(binary) == b58
     # @SKIP_END_GO
     assert exchange.parse_number(None) is None, 'GO skip trick'

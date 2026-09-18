@@ -114,7 +114,6 @@ function test_ticker($exchange, $skipped_properties, $method, $entry, $symbol) {
     $open = $exchange->omit_zero($exchange->safe_string($entry, 'open'));
     $close = $exchange->omit_zero($exchange->safe_string($entry, 'close'));
     if (!(is_array($skipped_properties) && array_key_exists('compareQuoteVolumeBaseVolume', $skipped_properties))) {
-        // assert (baseVolumeDefined === quoteVolumeDefined, 'baseVolume or quoteVolume should be either both defined or both undefined' + logText); // No, exchanges might not report both values
         // skip the quoteVolume/baseVolume identity for inverse (coin-margined) contracts: their
         // volumes carry contract-denominated units (e.g. binance DOGEUSD_PERP reports quoteVolume
         // far above baseVolume * high), so the spot-derived invariant does not hold there,
@@ -211,10 +210,6 @@ function test_ticker($exchange, $skipped_properties, $method, $entry, $symbol) {
     //
     $vwap = $exchange->safe_string($entry, 'vwap');
     if ($vwap !== null) {
-        // todo
-        // assert (high !== undefined, 'vwap is defined, but high is not' + logText);
-        // assert (low !== undefined, 'vwap is defined, but low is not' + logText);
-        // assert (vwap >= low && vwap <= high)
         // todo: calc compare
         assert(!$values_should_be_positive || Precise::string_ge($vwap, '0'), 'vwap is not greater than zero' . $log_text);
         if ($base_volume !== null) {
@@ -238,8 +233,6 @@ function test_ticker($exchange, $skipped_properties, $method, $entry, $symbol) {
         $median_high = Precise::string_mul($median_price, Precise::string_add('1', $allowed_percentage_variation));
         assert(Precise::string_ge($last_string, $median_low) && Precise::string_le($last_string, $median_high), 'last price should be within 1% of the bid/ask median price' . $log_text);
     }
-    $percentage = $exchange->safe_string($entry, 'percentage');
-    $change = $exchange->safe_string($entry, 'change');
     // option markets are exempt from the UPPER percentage/change caps only:
     // expiry-day convexity makes any finite cap wrong - a formerly-OTM
     // contract moving into the money legitimately gains 1000x+ (observed: a
@@ -252,22 +245,22 @@ function test_ticker($exchange, $skipped_properties, $method, $entry, $symbol) {
         // percentage
         //
         $max_increase = '1000'; // if the increase is more than 1000x the implementation is probably wrong - the bound needs to stay above real meme-coin pumps, which routinely exceed the old 100x cap (e.g. a legitimate +50000% daily move observed on poloniex MAME/USDT)
-        if ($percentage !== null) {
+        if ($percentage_string !== null) {
             // - should be above -100 and (for non-options) below MAX
-            assert(Precise::string_ge($percentage, '-100'), 'percentage should be above -100% ' . $log_text);
+            assert(Precise::string_ge($percentage_string, '-100'), 'percentage should be above -100% ' . $log_text);
             if ($is_option_market !== true) {
-                assert(Precise::string_le($percentage, Precise::string_mul('+100', $max_increase)), 'percentage should be below ' . $max_increase . '00% ' . $log_text);
+                assert(Precise::string_le($percentage_string, Precise::string_mul('+100', $max_increase)), 'percentage should be below ' . $max_increase . '00% ' . $log_text);
             }
         }
         //
         // change
         //
         $approx_value = $exchange->safe_string_n($entry, ['open', 'close', 'average', 'bid', 'ask', 'vwap', 'previousClose']);
-        if ($change !== null) {
+        if ($change_string !== null) {
             // - should be above -price and (for non-options) below +price*maxIncrease
-            assert(Precise::string_ge($change, Precise::string_neg($approx_value)), 'change should be above -price ' . $log_text);
+            assert(Precise::string_ge($change_string, Precise::string_neg($approx_value)), 'change should be above -price ' . $log_text);
             if ($is_option_market !== true) {
-                assert(Precise::string_le($change, Precise::string_mul($approx_value, $max_increase)), 'change should be below ' . $max_increase . 'x price ' . $log_text);
+                assert(Precise::string_le($change_string, Precise::string_mul($approx_value, $max_increase)), 'change should be below ' . $max_increase . 'x price ' . $log_text);
             }
         }
     }
@@ -275,26 +268,21 @@ function test_ticker($exchange, $skipped_properties, $method, $entry, $symbol) {
     // ensure all expected values are defined
     //
     if ($last_string !== null) {
-        if ($percentage !== null) {
+        if ($percentage_string !== null) {
             // if one knows 'last' and 'percentage' values, then 'change', 'open' and 'average' values should be determinable.
-            assert($open_price !== null && $change !== null, 'open & change should be defined if last & percentage are defined' . $log_text); // todo : add average price too
-        } elseif ($change !== null) {
+            assert($open_price !== null && $change_string !== null, 'open & change should be defined if last & percentage are defined' . $log_text); // todo : add average price too
+        } elseif ($change_string !== null) {
             // if one knows 'last' and 'change' values, then 'percentage', 'open' and 'average' values should be determinable.
-            assert($open_price !== null && $percentage !== null, 'open & percentage should be defined if last & change are defined' . $log_text); // todo : add average price too
+            assert($open_price !== null && $percentage_string !== null, 'open & percentage should be defined if last & change are defined' . $log_text); // todo : add average price too
         }
     } elseif ($open_price !== null) {
-        if ($percentage !== null) {
+        if ($percentage_string !== null) {
             // if one knows 'open' and 'percentage' values, then 'last', 'change' and 'average' values should be determinable.
-            assert($last_string !== null && $change !== null, 'last & change should be defined if open & percentage are defined' . $log_text); // todo : add average price too
-        } elseif ($change !== null) {
+            assert($last_string !== null && $change_string !== null, 'last & change should be defined if open & percentage are defined' . $log_text); // todo : add average price too
+        } elseif ($change_string !== null) {
             // if one knows 'open' and 'change' values, then 'last', 'percentage' and 'average' values should be determinable.
-            assert($last_string !== null && $percentage !== null, 'last & percentage should be defined if open & change are defined' . $log_text); // todo : add average price too
+            assert($last_string !== null && $percentage_string !== null, 'last & percentage should be defined if open & change are defined' . $log_text); // todo : add average price too
         }
     }
-    //
-    // todo: rethink about this
-    // else {
-    //    assert ((askString === undefined) && (bidString === undefined), 'ask & bid should be both defined or both undefined' + logText);
-    // }
     assert_symbol($exchange, $skipped_properties, $method, $entry, 'symbol', $symbol);
 }

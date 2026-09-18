@@ -11,7 +11,6 @@ async function testBaseWs () {
     testWsOrderBook ();
     testWsCache ();
     testWsCacheNative (); // js-only: removeAt () has no port equivalent
-    // todo : testWsClose ();
     await testWsSingleFlight ();
     await testWsSingleFlightWiring ();
     await testWsKeepAliveTimeout ();

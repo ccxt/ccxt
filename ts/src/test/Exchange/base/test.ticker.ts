@@ -101,7 +101,6 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
     const open = exchange.omitZero (exchange.safeString (entry, 'open'));
     const close = exchange.omitZero (exchange.safeString (entry, 'close'));
     if (!('compareQuoteVolumeBaseVolume' in skippedProperties)) {
-        // assert (baseVolumeDefined === quoteVolumeDefined, 'baseVolume or quoteVolume should be either both defined or both undefined' + logText); // No, exchanges might not report both values
         // skip the quoteVolume/baseVolume identity for inverse (coin-margined) contracts: their
         // volumes carry contract-denominated units (e.g. binance DOGEUSD_PERP reports quoteVolume
         // far above baseVolume * high), so the spot-derived invariant does not hold there,
@@ -198,10 +197,6 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
     //
     const vwap = exchange.safeString (entry, 'vwap');
     if (vwap !== undefined) {
-        // todo
-        // assert (high !== undefined, 'vwap is defined, but high is not' + logText);
-        // assert (low !== undefined, 'vwap is defined, but low is not' + logText);
-        // assert (vwap >= low && vwap <= high)
         // todo: calc compare
         assert (!valuesShouldBePositive || Precise.stringGe (vwap, '0'), 'vwap is not greater than zero' + logText);
         if (baseVolume !== undefined) {
@@ -225,8 +220,6 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
         const medianHigh = Precise.stringMul (medianPrice, Precise.stringAdd ('1', allowedPercentageVariation));
         assert (Precise.stringGe (lastString, medianLow) && Precise.stringLe (lastString, medianHigh), 'last price should be within 1% of the bid/ask median price' + logText);
     }
-    const percentage = exchange.safeString (entry, 'percentage');
-    const change = exchange.safeString (entry, 'change');
     // option markets are exempt from the UPPER percentage/change caps only:
     // expiry-day convexity makes any finite cap wrong - a formerly-OTM
     // contract moving into the money legitimately gains 1000x+ (observed: a
@@ -239,22 +232,22 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
         // percentage
         //
         const maxIncrease = '1000'; // if the increase is more than 1000x the implementation is probably wrong - the bound needs to stay above real meme-coin pumps, which routinely exceed the old 100x cap (e.g. a legitimate +50000% daily move observed on poloniex MAME/USDT)
-        if (percentage !== undefined) {
+        if (percentageString !== undefined) {
         // - should be above -100 and (for non-options) below MAX
-            assert (Precise.stringGe (percentage, '-100'), 'percentage should be above -100% ' + logText);
+            assert (Precise.stringGe (percentageString, '-100'), 'percentage should be above -100% ' + logText);
             if (isOptionMarket !== true) {
-                assert (Precise.stringLe (percentage, Precise.stringMul ('+100', maxIncrease)), 'percentage should be below ' + maxIncrease + '00% ' + logText);
+                assert (Precise.stringLe (percentageString, Precise.stringMul ('+100', maxIncrease)), 'percentage should be below ' + maxIncrease + '00% ' + logText);
             }
         }
         //
         // change
         //
         const approxValue = exchange.safeStringN (entry, [ 'open', 'close', 'average', 'bid', 'ask', 'vwap', 'previousClose' ]);
-        if (change !== undefined) {
+        if (changeString !== undefined) {
             // - should be above -price and (for non-options) below +price*maxIncrease
-            assert (Precise.stringGe (change, Precise.stringNeg (approxValue)), 'change should be above -price ' + logText);
+            assert (Precise.stringGe (changeString, Precise.stringNeg (approxValue)), 'change should be above -price ' + logText);
             if (isOptionMarket !== true) {
-                assert (Precise.stringLe (change, Precise.stringMul (approxValue, maxIncrease)), 'change should be below ' + maxIncrease + 'x price ' + logText);
+                assert (Precise.stringLe (changeString, Precise.stringMul (approxValue, maxIncrease)), 'change should be below ' + maxIncrease + 'x price ' + logText);
             }
         }
     }
@@ -262,27 +255,22 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
     // ensure all expected values are defined
     //
     if (lastString !== undefined) {
-        if (percentage !== undefined) {
+        if (percentageString !== undefined) {
             // if one knows 'last' and 'percentage' values, then 'change', 'open' and 'average' values should be determinable.
-            assert (openPrice !== undefined && change !== undefined, 'open & change should be defined if last & percentage are defined' + logText); // todo : add average price too
-        } else if (change !== undefined) {
+            assert (openPrice !== undefined && changeString !== undefined, 'open & change should be defined if last & percentage are defined' + logText); // todo : add average price too
+        } else if (changeString !== undefined) {
             // if one knows 'last' and 'change' values, then 'percentage', 'open' and 'average' values should be determinable.
-            assert (openPrice !== undefined && percentage !== undefined, 'open & percentage should be defined if last & change are defined' + logText); // todo : add average price too
+            assert (openPrice !== undefined && percentageString !== undefined, 'open & percentage should be defined if last & change are defined' + logText); // todo : add average price too
         }
     } else if (openPrice !== undefined) {
-        if (percentage !== undefined) {
+        if (percentageString !== undefined) {
             // if one knows 'open' and 'percentage' values, then 'last', 'change' and 'average' values should be determinable.
-            assert (lastString !== undefined && change !== undefined, 'last & change should be defined if open & percentage are defined' + logText); // todo : add average price too
-        } else if (change !== undefined) {
+            assert (lastString !== undefined && changeString !== undefined, 'last & change should be defined if open & percentage are defined' + logText); // todo : add average price too
+        } else if (changeString !== undefined) {
             // if one knows 'open' and 'change' values, then 'last', 'percentage' and 'average' values should be determinable.
-            assert (lastString !== undefined && percentage !== undefined, 'last & percentage should be defined if open & change are defined' + logText); // todo : add average price too
+            assert (lastString !== undefined && percentageString !== undefined, 'last & percentage should be defined if open & change are defined' + logText); // todo : add average price too
         }
     }
-    //
-    // todo: rethink about this
-    // else {
-    //    assert ((askString === undefined) && (bidString === undefined), 'ask & bid should be both defined or both undefined' + logText);
-    // }
     testSharedMethods.assertSymbol (exchange, skippedProperties, method, entry, 'symbol', symbol);
 }
 

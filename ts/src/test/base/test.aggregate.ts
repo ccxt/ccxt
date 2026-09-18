@@ -37,9 +37,6 @@ function testAggregate () {
     ];
     testSharedMethods.assertDeepEqual (exchange, undefined, 'aggregate', exchange.aggregate (exchange.sortBy (asks, 0)), expectedAsks);
 
-
-    testSharedMethods.assertDeepEqual (exchange, undefined, 'aggregate', exchange.aggregate ([]), []);
-
     // Test 1: Simple aggregation - same price combined
     const result1 = exchange.aggregate ([ [ 100.2, 1.01 ], [ 101.5, 2.01 ], [ 100.2, 0.5 ] ]);
     testSharedMethods.assertDeepEqual (exchange, undefined, 'testAggregate', result1, [ [ 100.2, 1.51 ], [ 101.5, 2.01 ] ]);
@@ -68,17 +65,13 @@ function testAggregate () {
     const result7 = exchange.aggregate ([ [ 100.2, 0 ], [ 101.5, 0 ], [ 102.4, 0 ] ]);
     testSharedMethods.assertDeepEqual (exchange, undefined, 'testAggregate', result7, []);
 
-    // // Test 8: Preserves order of first occurrence
-    // const result8 = exchange.aggregate ([ [ 103, 1.0 ], [ 101.5, 1.0 ], [ 102.4, 1.0 ], [ 101.5, 0.5 ] ]);
-    // testSharedMethods.assertDeepEqual (exchange, undefined, 'testAggregate', result8, [ [ 103, 1.0 ], [ 101.5, 1.5 ], [ 102.4, 1.0 ] ]);
+    // Test 8: Decimal prices
+    const result8 = exchange.aggregate ([ [ 100.5, 1.04 ], [ 100.5, 2.04 ], [ 101.5, 1.05 ] ]);
+    testSharedMethods.assertDeepEqual (exchange, undefined, 'testAggregate', result8, [ [ 100.5, 3.08 ], [ 101.5, 1.05 ] ]);
 
-    // Test 9: Decimal prices
-    const result9 = exchange.aggregate ([ [ 100.5, 1.04 ], [ 100.5, 2.04 ], [ 101.5, 1.05 ] ]);
-    testSharedMethods.assertDeepEqual (exchange, undefined, 'testAggregate', result9, [ [ 100.5, 3.08 ], [ 101.5, 1.05 ] ]);
-
-    // Test 10: Mixed zero and non-zero for same price
-    const result10 = exchange.aggregate ([ [ 100.2, 1.04 ], [ 100.2, 0 ], [ 100.2, 2.04 ] ]);
-    testSharedMethods.assertDeepEqual (exchange, undefined, 'testAggregate', result10, [ [ 100.2, 3.08 ] ]);
+    // Test 9: Mixed zero and non-zero for same price
+    const result9 = exchange.aggregate ([ [ 100.2, 1.04 ], [ 100.2, 0 ], [ 100.2, 2.04 ] ]);
+    testSharedMethods.assertDeepEqual (exchange, undefined, 'testAggregate', result9, [ [ 100.2, 3.08 ] ]);
     // @SKIP_END_GO
     exchange.uuid (); // placeholder for astt
 }

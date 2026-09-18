@@ -28,7 +28,6 @@ function testBalance (exchange: Exchange, skippedProperties: object, method: str
     assert ((codesLength === freeLength) || (codesLength === usedLength), 'free and total and used codes have different lengths' + logText);
     for (let i = 0; i < allCodes.length; i++) {
         const code = allCodes[i];
-        // testSharedMethods.assertCurrencyCode (exchange, skippedProperties, method, entry, code);
         assert (code in (entry as Dict)['total'], 'code ' + code + ' not in total' + logText);
         assert (code in (entry as Dict)['free'], 'code ' + code + ' not in free' + logText);
         assert (code in (entry as Dict)['used'], 'code ' + code + ' not in used' + logText);

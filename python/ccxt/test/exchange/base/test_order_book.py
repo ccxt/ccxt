@@ -36,31 +36,28 @@ def test_order_book(exchange, skipped_properties, method, orderbook, symbol):
     log_text = test_shared_methods.log_template(exchange, method, orderbook)
     # todo: check non-emtpy arrays for bids/asks for toptier exchanges
     bids = orderbook['bids']
-    bids_length = len(bids)
-    for i in range(0, bids_length):
-        current_bid_string = exchange.safe_string(bids[i], 0)
-        if not ('compareToNextItem' in skipped_properties):
-            next_i = i + 1
-            if bids_length > next_i:
-                next_bid_string = exchange.safe_string(bids[next_i], 0)
-                assert Precise.string_gt(current_bid_string, next_bid_string), 'current bid should be > than the next one: ' + current_bid_string + '>' + next_bid_string + log_text
-        if not ('compareToZero' in skipped_properties):
-            # compare price & volume to zero
-            test_shared_methods.assert_greater(exchange, skipped_properties, method, bids[i], 0, '0')
-            test_shared_methods.assert_greater(exchange, skipped_properties, method, bids[i], 1, '0')
     asks = orderbook['asks']
+    bids_length = len(bids)
     asks_length = len(asks)
-    for i in range(0, asks_length):
-        current_ask_string = exchange.safe_string(asks[i], 0)
-        if not ('compareToNextItem' in skipped_properties):
-            next_i = i + 1
-            if asks_length > next_i:
-                next_ask_string = exchange.safe_string(asks[next_i], 0)
-                assert Precise.string_lt(current_ask_string, next_ask_string), 'current ask should be < than the next one: ' + current_ask_string + '<' + next_ask_string + log_text
-        if not ('compareToZero' in skipped_properties):
-            # compare price & volume to zero
-            test_shared_methods.assert_greater(exchange, skipped_properties, method, asks[i], 0, '0')
-            test_shared_methods.assert_greater(exchange, skipped_properties, method, asks[i], 1, '0')
+    sides = ['bids', 'asks']
+    for s in range(0, len(sides)):
+        is_bid = (sides[s] == 'bids')
+        entries = bids if is_bid else asks
+        entries_length = len(entries)
+        direction = '>' if is_bid else '<'
+        label = 'bid' if is_bid else 'ask'
+        for i in range(0, entries_length):
+            current_string = exchange.safe_string(entries[i], 0)
+            if not ('compareToNextItem' in skipped_properties):
+                next_i = i + 1
+                if entries_length > next_i:
+                    next_string = exchange.safe_string(entries[next_i], 0)
+                    is_ordered = Precise.string_gt(current_string, next_string) if is_bid else Precise.string_lt(current_string, next_string)
+                    assert is_ordered, 'current ' + label + ' should be ' + direction + ' than the next one: ' + current_string + direction + next_string + log_text
+            if not ('compareToZero' in skipped_properties):
+                # compare price & volume to zero
+                test_shared_methods.assert_greater(exchange, skipped_properties, method, entries[i], 0, '0')
+                test_shared_methods.assert_greater(exchange, skipped_properties, method, entries[i], 1, '0')
     if not ('spread' in skipped_properties):
         if (bids_length > 0) and (asks_length > 0):
             first_bid = exchange.safe_string(bids[0], 0)

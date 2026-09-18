@@ -39,7 +39,6 @@ def test_ledger_entry(exchange, skipped_properties, method, entry, requested_cod
     #
     test_shared_methods.assert_in_array(exchange, skipped_properties, method, entry, 'direction', ['in', 'out'])
     test_shared_methods.assert_in_array(exchange, skipped_properties, method, entry, 'type', ['trade', 'transaction', 'margin', 'cashback', 'referral', 'transfer', 'fee'])
-    # testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'account', ['spot', 'swap', .. ]); # todo
     test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, entry, 'amount', '0')
     test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, entry, 'before', '0')
     test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, entry, 'after', '0')

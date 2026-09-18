@@ -29,7 +29,6 @@ def test_currency(exchange, skipped_properties, method, entry):
     currency_type = exchange.safe_string(entry, 'type')
     if is_native:
         format['info'] = {}
-        # todo: 'name': 'Bitcoin', # uppercase string, base currency, 2 or more letters
         format['withdraw'] = True  # withdraw enabled
         format['deposit'] = True  # deposit enabled
         format['precision'] = exchange.parse_number('0.0001')  # in case of SIGNIFICANT_DIGITS it will be 4 - number of digits "after the dot"

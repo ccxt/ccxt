@@ -16,33 +16,13 @@ function testBinaryToBase58 () {
     assert (exchange.parseNumber (undefined) === undefined, 'GO skip trick');
 
     // @SKIP_START_GO
-    // Test 1: Simple string
-    const binary1 = helperStrToBinary5 (exchange, 'hello');
-    assert (exchange.binaryToBase58 (binary1) === 'Cn8eVZg');
-
-    // Test 2: String with space
-    const binary2 = helperStrToBinary5 (exchange, 'hello world');
-    assert (exchange.binaryToBase58 (binary2) === 'StV1DL6CwTryKyV');
-
-    // Test 3: Short string
-    const binary3 = helperStrToBinary5 (exchange, 'test');
-    assert (exchange.binaryToBase58 (binary3) === '3yZe7d');
-
-    // Test 4: Single byte
-    const binary4 = helperStrToBinary5 (exchange, 'a');
-    assert (exchange.binaryToBase58 (binary4) === '2g');
-
-    // Test 5: Two bytes
-    const binary5 = helperStrToBinary5 (exchange, 'ab');
-    assert (exchange.binaryToBase58 (binary5) === '8Qq');
-
-    // Test 6: Three bytes
-    const binary6 = helperStrToBinary5 (exchange, 'abc');
-    assert (exchange.binaryToBase58 (binary6) === 'ZiCa');
-
-    // Test 7: JSON-like binary
-    const binary7 = helperStrToBinary5 (exchange, '{"key":"value"}');
-    assert (exchange.binaryToBase58 (binary7) === '4SoiMiEYtTt5tPdi81Fik');
+    // base58 of the utf8 bytes of each input
+    const inputs = [ 'hello', 'hello world', 'test', 'a', 'ab', 'abc', '{\"key\":\"value\"}' ];
+    const expected = [ 'Cn8eVZg', 'StV1DL6CwTryKyV', '3yZe7d', '2g', '8Qq', 'ZiCa', '4SoiMiEYtTt5tPdi81Fik' ];
+    for (let i = 0; i < inputs.length; i++) {
+        const binary = helperStrToBinary5 (exchange, inputs[i]);
+        assert (exchange.binaryToBase58 (binary) === expected[i], inputs[i] + ' must base58-encode to ' + expected[i]);
+    }
     // @SKIP_END_GO
 }
 

@@ -30,9 +30,6 @@ def test_to_array():
     result1 = exchange.to_array(obj1)
     result2 = exchange.to_array(obj2)
     # we can't guarantee order of values in GO lang
-    # testSharedMethods.assertDeepEqual (exchange, undefined, 'testToArray', exchange.toArray (obj1), [ 1, 3, 2 ]);
-    # testSharedMethods.assertDeepEqual (exchange, undefined, 'testToArray', exchange.toArray (obj2), [ 'x', 2 ]);
-    #
     assert len(result1) == 3, 'testToArray: length of result1 should be 3'
     assert len(result2) == 2, 'testToArray: length of result2 should be 2'
     assert exchange.in_array(1, result1) and exchange.in_array(3, result1) and exchange.in_array(2, result1), 'testToArray: result1 should include 1, 3, and 2'

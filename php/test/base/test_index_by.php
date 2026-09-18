@@ -40,10 +40,12 @@ function test_index_by() {
     );
     $result1 = $exchange->index_by($input1, 'id');
     assert_deep_equal($exchange, null, 'testIndexBy', $result1, $expected1);
-    // Test 2: Skip elements with None/undefined values
+    // Test 2: Skip elements missing the key
     $input2 = [array(
     'id' => 'a',
     'val' => 1,
+), array(
+    'val' => 2,
 ), array(
     'id' => 'b',
     'val' => 3,
@@ -60,35 +62,13 @@ function test_index_by() {
     );
     $result2 = $exchange->index_by($input2, 'id');
     assert_deep_equal($exchange, null, 'testIndexBy', $result2, $expected2);
-    // Test 3: Skip elements missing the key
-    $input3 = [array(
-    'id' => 'a',
-    'val' => 1,
-), array(
-    'val' => 2,
-), array(
-    'id' => 'b',
-    'val' => 3,
-)];
-    $expected3 = array(
-        'a' => array(
-            'id' => 'a',
-            'val' => 1,
-        ),
-        'b' => array(
-            'id' => 'b',
-            'val' => 3,
-        ),
-    );
+    // Test 3: Empty array
+    $input3 = [];
+    $expected3 = array();
     $result3 = $exchange->index_by($input3, 'id');
     assert_deep_equal($exchange, null, 'testIndexBy', $result3, $expected3);
-    // Test 4: Empty array
-    $input4 = [];
-    $expected4 = array();
-    $result4 = $exchange->index_by($input4, 'id');
-    assert_deep_equal($exchange, null, 'testIndexBy', $result4, $expected4);
-    // Test 5: Duplicate keys (last one wins)
-    $input5 = [array(
+    // Test 4: Duplicate keys (last one wins)
+    $input4 = [array(
     'id' => 'a',
     'val' => 1,
 ), array(
@@ -98,16 +78,16 @@ function test_index_by() {
     'id' => 'a',
     'val' => 3,
 )];
-    $expected5 = array(
+    $expected4 = array(
         'a' => array(
             'id' => 'a',
             'val' => 3,
         ),
     );
-    $result5 = $exchange->index_by($input5, 'id');
-    assert_deep_equal($exchange, null, 'testIndexBy', $result5, $expected5);
-    // Test 6: Numeric key values
-    $input6 = [array(
+    $result4 = $exchange->index_by($input4, 'id');
+    assert_deep_equal($exchange, null, 'testIndexBy', $result4, $expected4);
+    // Test 5: Numeric key values
+    $input5 = [array(
     'code' => 1,
     'name' => 'one',
 ), array(
@@ -117,7 +97,7 @@ function test_index_by() {
     'code' => 3,
     'name' => 'three',
 )];
-    $expected6 = array(
+    $expected5 = array(
         '1' => array(
             'code' => 1,
             'name' => 'one',
@@ -131,28 +111,28 @@ function test_index_by() {
             'name' => 'three',
         ),
     );
-    $result6 = $exchange->index_by($input6, 'code');
-    assert_deep_equal($exchange, null, 'testIndexBy', $result6, $expected6);
-    // Test 7: List of arrays with integer key
-    $input7 = [['a', 1], ['b', 2], ['c', 3]];
-    $expected7 = array(
+    $result5 = $exchange->index_by($input5, 'code');
+    assert_deep_equal($exchange, null, 'testIndexBy', $result5, $expected5);
+    // Test 6: List of arrays with integer key
+    $input6 = [['a', 1], ['b', 2], ['c', 3]];
+    $expected6 = array(
         'a' => ['a', 1],
         'b' => ['b', 2],
         'c' => ['c', 3],
     );
-    $result7 = $exchange->index_by($input7, 0);
-    assert_deep_equal($exchange, null, 'testIndexBy', $result7, $expected7);
-    // Test 8: Single element
-    $input8 = [array(
+    $result6 = $exchange->index_by($input6, 0);
+    assert_deep_equal($exchange, null, 'testIndexBy', $result6, $expected6);
+    // Test 7: Single element
+    $input7 = [array(
     'id' => 'only',
     'val' => 42,
 )];
-    $expected8 = array(
+    $expected7 = array(
         'only' => array(
             'id' => 'only',
             'val' => 42,
         ),
     );
-    $result8 = $exchange->index_by($input8, 'id');
-    assert_deep_equal($exchange, null, 'testIndexBy', $result8, $expected8);
+    $result7 = $exchange->index_by($input7, 'id');
+    assert_deep_equal($exchange, null, 'testIndexBy', $result7, $expected7);
 }

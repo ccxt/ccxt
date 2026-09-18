@@ -23,7 +23,6 @@ def test_features(exchange, skipped_properties):
         test_shared_methods.assert_in_array(exchange, skipped_properties, 'features', keys, i, market_types)
         market_type = keys[i]
         value = features[market_type]
-        # assert (value !== undefined, 'exchange.features["' + marketType + '"] is undefined, that key should be either absent or have a value');
         if value is None:
             continue
         if market_type == 'spot':

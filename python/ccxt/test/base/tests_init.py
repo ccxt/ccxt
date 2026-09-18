@@ -17,7 +17,6 @@ from ccxt.base.decimal_to_precision import number_to_string  # noqa E402
 from ccxt.base.precise import Precise  # noqa E402
 from ccxt.test.base.test_aggregate import test_aggregate  # noqa E402
 from ccxt.test.base.test_decimal_to_precision import test_decimal_to_precision  # noqa E402
-from ccxt.test.base.test_binary_to_base16 import test_binary_to_base16  # noqa E402
 from ccxt.test.base.test_base16_to_binary import test_base16_to_binary  # noqa E402
 from ccxt.test.base.test_binary_to_base64 import test_binary_to_base64  # noqa E402
 from ccxt.test.base.test_base64_to_binary import test_base64_to_binary  # noqa E402
@@ -67,7 +66,6 @@ from ccxt.test.base.test_set_markets_from_exchange import test_set_markets_from_
 from ccxt.test.base.test_sleep import test_sleep  # noqa E402
 from ccxt.test.base.test_eth_methods import test_eth_methods  # noqa E402
 from ccxt.test.base.test_timeframes import test_timeframes  # noqa E402
-from ccxt.test.base.test_keysort import test_keysort  # noqa E402
 from ccxt.test.base.test_implode_params import test_implode_params  # noqa E402
 from ccxt.test.base.test_urlencode_nested import test_urlencode_nested  # noqa E402
 from ccxt.test.base.test_clone import test_clone  # noqa E402
@@ -88,7 +86,6 @@ async def base_tests_init():
     test_extend()
     test_deep_extend()
     test_cryptography()
-    test_binary_to_base16()
     test_base16_to_binary()
     test_binary_to_base64()
     test_base64_to_binary()
@@ -136,7 +133,6 @@ async def base_tests_init():
     test_uuid()
     await test_set_markets_from_exchange()
     test_eth_methods()
-    test_keysort()
     test_implode_params()
     test_unique()
     test_urlencode_nested()

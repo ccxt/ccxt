@@ -18,11 +18,6 @@ from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 async def test_fetch_leverage_tiers(exchange, skipped_properties, symbol):
     method = 'fetchLeverageTiers'
     tiers = await exchange.fetch_leverage_tiers([symbol])
-    # const format = {
-    #     'RAY/USDT': [
-    #       {},
-    #     ],
-    # };
     test_shared_methods.assert_dictionary_response(exchange, method, tiers, symbol)
     tier_keys = list(tiers.keys())
     test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, tier_keys, symbol)

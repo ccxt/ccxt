@@ -24,24 +24,9 @@ def test_binary_to_base58():
     })
     assert exchange.parse_number(None) is None, 'GO skip trick'
     # @SKIP_START_GO
-    # Test 1: Simple string
-    binary1 = helper_str_to_binary_5(exchange, 'hello')
-    assert exchange.binary_to_base58(binary1) == 'Cn8eVZg'
-    # Test 2: String with space
-    binary2 = helper_str_to_binary_5(exchange, 'hello world')
-    assert exchange.binary_to_base58(binary2) == 'StV1DL6CwTryKyV'
-    # Test 3: Short string
-    binary3 = helper_str_to_binary_5(exchange, 'test')
-    assert exchange.binary_to_base58(binary3) == '3yZe7d'
-    # Test 4: Single byte
-    binary4 = helper_str_to_binary_5(exchange, 'a')
-    assert exchange.binary_to_base58(binary4) == '2g'
-    # Test 5: Two bytes
-    binary5 = helper_str_to_binary_5(exchange, 'ab')
-    assert exchange.binary_to_base58(binary5) == '8Qq'
-    # Test 6: Three bytes
-    binary6 = helper_str_to_binary_5(exchange, 'abc')
-    assert exchange.binary_to_base58(binary6) == 'ZiCa'
-    # Test 7: JSON-like binary
-    binary7 = helper_str_to_binary_5(exchange, '{"key":"value"}')
-    assert exchange.binary_to_base58(binary7) == '4SoiMiEYtTt5tPdi81Fik'
+    # base58 of the utf8 bytes of each input
+    inputs = ['hello', 'hello world', 'test', 'a', 'ab', 'abc', '{"key":"value"}']
+    expected = ['Cn8eVZg', 'StV1DL6CwTryKyV', '3yZe7d', '2g', '8Qq', 'ZiCa', '4SoiMiEYtTt5tPdi81Fik']
+    for i in range(0, len(inputs)):
+        binary = helper_str_to_binary_5(exchange, inputs[i])
+        assert exchange.binary_to_base58(binary) == expected[i], inputs[i] + ' must base58-encode to ' + expected[i]

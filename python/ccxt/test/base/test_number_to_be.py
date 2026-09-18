@@ -19,64 +19,17 @@ def test_number_to_be():
         'id': 'sampleexchange',
     })
     # @SKIP_START_GO
-    # 1234567890 (decimal) = 0x499602D2 (hex)
-    # BE: 00 00 00 00 49 96 02 D2
-    num1 = 1234567890
-    padding1 = 8
-    result1 = exchange.number_to_be(num1, padding1)
-    assert exchange.is_binary_message(result1)
-    assert exchange.binary_length(result1) == padding1
-    expected_binary_1 = exchange.base16_to_binary('00000000499602d2')
-    result_base64 = exchange.binary_to_base64(result1)
-    expected_base64 = exchange.binary_to_base64(expected_binary_1)
-    assert result_base64 == expected_base64, 'Expected base64: ' + expected_base64 + ', got: ' + result_base64
-    # 0 with 1-byte padding => 0x00
-    result2 = exchange.number_to_be(0, 1)
-    assert exchange.is_binary_message(result2)
-    assert exchange.binary_length(result2) == 1
-    expected_binary_2 = exchange.base16_to_binary('00')
-    assert exchange.binary_to_base64(result2) == exchange.binary_to_base64(expected_binary_2), 'zero 1-byte failed'
-    # 1 with 1-byte padding => 0x01
-    result3 = exchange.number_to_be(1, 1)
-    assert exchange.is_binary_message(result3)
-    assert exchange.binary_length(result3) == 1
-    expected_binary_3 = exchange.base16_to_binary('01')
-    assert exchange.binary_to_base64(result3) == exchange.binary_to_base64(expected_binary_3), 'one 1-byte failed'
-    # 255 with 1-byte padding => 0xFF (max single byte)
-    result4 = exchange.number_to_be(255, 1)
-    assert exchange.is_binary_message(result4)
-    assert exchange.binary_length(result4) == 1
-    expected_binary_4 = exchange.base16_to_binary('ff')
-    assert exchange.binary_to_base64(result4) == exchange.binary_to_base64(expected_binary_4), '255 1-byte failed'
-    # 256 with 2-byte padding => 0x01 0x00
-    result5 = exchange.number_to_be(256, 2)
-    assert exchange.is_binary_message(result5)
-    assert exchange.binary_length(result5) == 2
-    expected_binary_5 = exchange.base16_to_binary('0100')
-    assert exchange.binary_to_base64(result5) == exchange.binary_to_base64(expected_binary_5), '256 2-byte failed'
-    # 1 with 4-byte padding => 0x00 0x00 0x00 0x01
-    result6 = exchange.number_to_be(1, 4)
-    assert exchange.is_binary_message(result6)
-    assert exchange.binary_length(result6) == 4
-    expected_binary_6 = exchange.base16_to_binary('00000001')
-    assert exchange.binary_to_base64(result6) == exchange.binary_to_base64(expected_binary_6), '1 with 4-byte padding failed'
-    # 0 with 8-byte padding => all zeros
-    result7 = exchange.number_to_be(0, 8)
-    assert exchange.is_binary_message(result7)
-    assert exchange.binary_length(result7) == 8
-    expected_binary_7 = exchange.base16_to_binary('0000000000000000')
-    assert exchange.binary_to_base64(result7) == exchange.binary_to_base64(expected_binary_7), 'zero 8-byte failed'
-    # 4294967295 (0xFFFFFFFF) with 4-byte padding
-    result8 = exchange.number_to_be(4294967295, 4)
-    assert exchange.is_binary_message(result8)
-    assert exchange.binary_length(result8) == 4
-    expected_binary_8 = exchange.base16_to_binary('ffffffff')
-    assert exchange.binary_to_base64(result8) == exchange.binary_to_base64(expected_binary_8), '0xFFFFFFFF 4-byte failed'
-    # 16909060 (0x01020304) with 4-byte padding
-    result9 = exchange.number_to_be(16909060, 4)
-    assert exchange.is_binary_message(result9)
-    assert exchange.binary_length(result9) == 4
-    expected_binary_9 = exchange.base16_to_binary('01020304')
-    assert exchange.binary_to_base64(result9) == exchange.binary_to_base64(expected_binary_9), '0x01020304 4-byte failed'
+    # number, padding and the expected big-endian bytes as hex, e.g.
+    # 1234567890 (0x499602D2) padded to 8 bytes is 00 00 00 00 49 96 02 D2
+    numbers = [1234567890, 0, 1, 255, 256, 1, 0, 4294967295, 16909060]
+    paddings = [8, 1, 1, 1, 2, 4, 8, 4, 4]
+    expected_hexes = ['00000000499602d2', '00', '01', 'ff', '0100', '00000001', '0000000000000000', 'ffffffff', '01020304']
+    for i in range(0, len(numbers)):
+        result = exchange.number_to_be(numbers[i], paddings[i])
+        expected_binary = exchange.base16_to_binary(expected_hexes[i])
+        msg = 'numberToBE (' + str(numbers[i]) + ', ' + str(paddings[i]) + ') failed'
+        assert exchange.is_binary_message(result), msg
+        assert exchange.binary_length(result) == paddings[i], msg
+        assert exchange.binary_to_base64(result) == exchange.binary_to_base64(expected_binary), msg
     # @SKIP_END_GO
     exchange.describe()  # avoid unused var

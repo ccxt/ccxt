@@ -31,37 +31,31 @@ function test_order_book($exchange, $skipped_properties, $method, $orderbook, $s
     $log_text = log_template($exchange, $method, $orderbook);
     // todo: check non-emtpy arrays for bids/asks for toptier exchanges
     $bids = $orderbook['bids'];
-    $bids_length = count($bids);
-    for ($i = 0; $i < $bids_length; $i++) {
-        $current_bid_string = $exchange->safe_string($bids[$i], 0);
-        if (!(is_array($skipped_properties) && array_key_exists('compareToNextItem', $skipped_properties))) {
-            $next_i = $i + 1;
-            if ($bids_length > $next_i) {
-                $next_bid_string = $exchange->safe_string($bids[$next_i], 0);
-                assert(Precise::string_gt($current_bid_string, $next_bid_string), 'current bid should be > than the next one: ' . $current_bid_string . '>' . $next_bid_string . $log_text);
-            }
-        }
-        if (!(is_array($skipped_properties) && array_key_exists('compareToZero', $skipped_properties))) {
-            // compare price & volume to zero
-            assert_greater($exchange, $skipped_properties, $method, $bids[$i], 0, '0');
-            assert_greater($exchange, $skipped_properties, $method, $bids[$i], 1, '0');
-        }
-    }
     $asks = $orderbook['asks'];
+    $bids_length = count($bids);
     $asks_length = count($asks);
-    for ($i = 0; $i < $asks_length; $i++) {
-        $current_ask_string = $exchange->safe_string($asks[$i], 0);
-        if (!(is_array($skipped_properties) && array_key_exists('compareToNextItem', $skipped_properties))) {
-            $next_i = $i + 1;
-            if ($asks_length > $next_i) {
-                $next_ask_string = $exchange->safe_string($asks[$next_i], 0);
-                assert(Precise::string_lt($current_ask_string, $next_ask_string), 'current ask should be < than the next one: ' . $current_ask_string . '<' . $next_ask_string . $log_text);
+    $sides = ['bids', 'asks'];
+    for ($s = 0; $s < count($sides); $s++) {
+        $is_bid = ($sides[$s] === 'bids');
+        $entries = $is_bid ? $bids : $asks;
+        $entries_length = count($entries);
+        $direction = $is_bid ? '>' : '<';
+        $label = $is_bid ? 'bid' : 'ask';
+        for ($i = 0; $i < $entries_length; $i++) {
+            $current_string = $exchange->safe_string($entries[$i], 0);
+            if (!(is_array($skipped_properties) && array_key_exists('compareToNextItem', $skipped_properties))) {
+                $next_i = $i + 1;
+                if ($entries_length > $next_i) {
+                    $next_string = $exchange->safe_string($entries[$next_i], 0);
+                    $is_ordered = $is_bid ? Precise::string_gt($current_string, $next_string) : Precise::string_lt($current_string, $next_string);
+                    assert($is_ordered, 'current ' . $label . ' should be ' . $direction . ' than the next one: ' . $current_string . $direction . $next_string . $log_text);
+                }
             }
-        }
-        if (!(is_array($skipped_properties) && array_key_exists('compareToZero', $skipped_properties))) {
-            // compare price & volume to zero
-            assert_greater($exchange, $skipped_properties, $method, $asks[$i], 0, '0');
-            assert_greater($exchange, $skipped_properties, $method, $asks[$i], 1, '0');
+            if (!(is_array($skipped_properties) && array_key_exists('compareToZero', $skipped_properties))) {
+                // compare price & volume to zero
+                assert_greater($exchange, $skipped_properties, $method, $entries[$i], 0, '0');
+                assert_greater($exchange, $skipped_properties, $method, $entries[$i], 1, '0');
+            }
         }
     }
     if (!(is_array($skipped_properties) && array_key_exists('spread', $skipped_properties))) {

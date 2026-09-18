@@ -39,25 +39,19 @@ function test_set_markets_from_exchange() {
             'id' => 'primaryEx',
         ));
         assert(($exchange1->markets !== null) && (count(is_array($exchange1->markets) ? array_keys($exchange1->markets) : array()) > 0), 'Markets should be loaded in exchange1');
-        // Test error case: exchanges are different
-        $different_exchange = new \ccxt\async\Exchange(array(
-            'id' => 'secondaryEx',
-        ));
-        try {
-            $different_exchange->set_markets_from_exchange($exchange1);
-            assert(!$true_clause, 'Should have thrown an error when using different exchange');
-        } catch(\Throwable $error) {
-            assert($true_clause);
-        }
-        // Test error case: sharing from exchange without markets
-        $nonloaded_exchange = new \ccxt\async\Exchange(array(
-            'id' => 'primaryEx',
-        ));
-        try {
-            $exchange2->set_markets_from_exchange($nonloaded_exchange); // exchange2 has no markets yet
-            assert(!$true_clause, 'Should have thrown error when sharing from exchange without markets');
-        } catch(\Throwable $error) {
-            assert($true_clause);
+        // Test error cases: a different exchange id, and a source without markets
+        $error_cases = [[new \ccxt\async\Exchange(array(
+    'id' => 'secondaryEx',
+)), $exchange1], [$exchange2, new \ccxt\async\Exchange(array(
+    'id' => 'primaryEx',
+))]];
+        for ($i = 0; $i < count($error_cases); $i++) {
+            try {
+                $error_cases[$i][0]->set_markets_from_exchange($error_cases[$i][1]);
+                assert(!$true_clause, 'Should have thrown an error for the case ' . ((string) $i));
+            } catch(\Throwable $error) {
+                assert($true_clause);
+            }
         }
         // Test the new setMarketsFromExchange method
         $exchange2->set_markets_from_exchange($exchange1);
@@ -66,9 +60,6 @@ function test_set_markets_from_exchange() {
         for ($i = 0; $i < count($needed_props); $i++) {
             assert_deep_equal($empty_exchange, array(), $method_name, $empty_exchange->get_property($exchange1, $needed_props[$i]), $empty_exchange->get_property($exchange2, $needed_props[$i]));
         }
-        // Verify that modifying one exchange's markets modifies the other
-        // exchange1.markets['ETH/USD'] = { 'id': 'EthUsd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD', 'baseId': 'Eth', 'quoteId': 'Usd', 'type': 'spot', 'spot': true };
-        // assert ('ETH/USD' in exchange2.markets, 'Modifying exchange1 markets should reflect in exchange2');
         // Test 2: loadMarkets on shared markets should not make API call and be very fast
         $start_time = $empty_exchange->milliseconds();
         \React\Async\await($exchange2->load_markets());

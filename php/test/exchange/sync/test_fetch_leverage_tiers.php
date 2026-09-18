@@ -12,11 +12,6 @@ include_once PATH_TO_CCXT . '/test/exchange/base/test_leverage_tier.php';
 function test_fetch_leverage_tiers($exchange, $skipped_properties, $symbol) {
     $method = 'fetchLeverageTiers';
     $tiers = $exchange->fetch_leverage_tiers([$symbol]);
-    // const format = {
-    //     'RAY/USDT': [
-    //       {},
-    //     ],
-    // };
     assert_dictionary_response($exchange, $method, $tiers, $symbol);
     $tier_keys = is_array($tiers) ? array_keys($tiers) : array();
     assert_non_emtpy_array($exchange, $skipped_properties, $method, $tier_keys, $symbol);

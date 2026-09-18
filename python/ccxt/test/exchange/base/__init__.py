@@ -7,7 +7,6 @@
 from ccxt.test.exchange.base.test_account import test_account # noqa E402
 from ccxt.test.exchange.base.test_balance import test_balance # noqa E402
 from ccxt.test.exchange.base.test_borrow_interest import test_borrow_interest # noqa E402
-from ccxt.test.exchange.base.test_borrow_rate import test_borrow_rate # noqa E402
 from ccxt.test.exchange.base.test_currency import test_currency # noqa E402
 from ccxt.test.exchange.base.test_deposit_withdrawal import test_deposit_withdrawal # noqa E402
 from ccxt.test.exchange.base.test_funding_rate_history import test_funding_rate_history # noqa E402
@@ -16,7 +15,6 @@ from ccxt.test.exchange.base.test_ledger_entry import test_ledger_entry # noqa E
 from ccxt.test.exchange.base.test_leverage_tier import test_leverage_tier # noqa E402
 from ccxt.test.exchange.base.test_liquidation import test_liquidation # noqa E402
 from ccxt.test.exchange.base.test_margin_mode import test_margin_mode # noqa E402
-from ccxt.test.exchange.base.test_margin_modification import test_margin_modification # noqa E402
 from ccxt.test.exchange.base.test_market import test_market # noqa E402
 from ccxt.test.exchange.base.test_ohlcv import test_ohlcv # noqa E402
 from ccxt.test.exchange.base.test_open_interest import test_open_interest # noqa E402

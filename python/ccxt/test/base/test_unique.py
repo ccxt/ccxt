@@ -22,6 +22,4 @@ def test_unique():
     # in different langs, the order (sort) is not guaranteed, so we sort the results before comparing them
     # todo: `unique` is primarily meant for strings atm, add numeric support
     test_shared_methods.assert_deep_equal(exchange, None, 'testUnique', exchange.unique([]), [])
-    # testSharedMethods.assertDeepEqual (exchange, undefined, 'testUnique',  exchange.sort (exchange.unique ([ 1, 2, 3 ])), [ 1, 2, 3 ]);
-    # testSharedMethods.assertDeepEqual (exchange, undefined, 'testUnique',  exchange.sort (exchange.unique ([ 1, 2, 3, 4, 1 ])), [ 1, 2, 3, 4 ]);
     test_shared_methods.assert_deep_equal(exchange, None, 'testUnique', exchange.sort(exchange.unique(['a', 'a', 'b', 'c', 'a', 'c'])), ['a', 'b', 'c'])

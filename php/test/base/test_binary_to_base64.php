@@ -18,39 +18,13 @@ function test_binary_to_base64() {
     $exchange = new \ccxt\async\Exchange(array(
         'id' => 'sampleexchange',
     ));
-    // In JavaScript, we use Uint8Array or Buffer for binary data
-    // The encode() method converts string to bytes
+    // input string, expected base64 of its UTF-8 bytes
     // @SKIP_START_GO
-    // Test 1: Simple binary from string
-    $binary1 = helper_str_to_binary($exchange, 'hello');
-    assert($exchange->binary_to_base64($binary1) === 'aGVsbG8=');
-    // Test 2: Binary with space in original
-    $binary2 = helper_str_to_binary($exchange, 'hello world');
-    assert($exchange->binary_to_base64($binary2) === 'aGVsbG8gd29ybGQ=');
-    // Test 3: Short binary
-    $binary3 = helper_str_to_binary($exchange, 'test');
-    assert($exchange->binary_to_base64($binary3) === 'dGVzdA==');
-    // Test 4: Empty binary
-    $binary4 = helper_str_to_binary($exchange, '');
-    assert($exchange->binary_to_base64($binary4) === '');
-    // Test 5: Single byte
-    $binary5 = helper_str_to_binary($exchange, 'a');
-    assert($exchange->binary_to_base64($binary5) === 'YQ==');
-    // Test 6: Two bytes
-    $binary6 = helper_str_to_binary($exchange, 'ab');
-    assert($exchange->binary_to_base64($binary6) === 'YWI=');
-    // Test 7: Three bytes (no padding)
-    $binary7 = helper_str_to_binary($exchange, 'abc');
-    assert($exchange->binary_to_base64($binary7) === 'YWJj');
-    // Test 8: JSON-like binary
-    $binary8 = helper_str_to_binary($exchange, '{"key":"value"}');
-    assert($exchange->binary_to_base64($binary8) === 'eyJrZXkiOiJ2YWx1ZSJ9');
-    // Test 9: Numbers as binary
-    $binary9 = helper_str_to_binary($exchange, '123456');
-    assert($exchange->binary_to_base64($binary9) === 'MTIzNDU2');
-    // Test 10: Special characters
-    $binary10 = helper_str_to_binary($exchange, 'hello+world/test');
-    assert($exchange->binary_to_base64($binary10) === 'aGVsbG8rd29ybGQvdGVzdA==');
+    $cases = [['hello', 'aGVsbG8='], ['hello world', 'aGVsbG8gd29ybGQ='], ['test', 'dGVzdA=='], ['', ''], ['a', 'YQ=='], ['ab', 'YWI='], ['abc', 'YWJj'], ['{"key":"value"}', 'eyJrZXkiOiJ2YWx1ZSJ9'], ['123456', 'MTIzNDU2'], ['hello+world/test', 'aGVsbG8rd29ybGQvdGVzdA==']];
+    for ($i = 0; $i < count($cases); $i++) {
+        $binary = helper_str_to_binary($exchange, $cases[$i][0]);
+        assert($exchange->binary_to_base64($binary) === $cases[$i][1]);
+    }
     // @SKIP_END_GO
     assert($exchange->safe_string(null, 'key') === null, 'GO_WORKAROUND');
 }

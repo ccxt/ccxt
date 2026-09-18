@@ -5,7 +5,6 @@ import ccxt from '../../../../ccxt.js';
 
 // temporary, these below methods are language-specific, but todo to make them transpilable
 import testCamelCase from './test.camelcase.js';
-import testUnCamelCase from './test.uncamelcase.js';
 import testThrottle from './test.throttle.js';
 import testCalculateFee from './test.calculateFee.js';
 import testSafeBalance from './test.safeBalance.js';
@@ -15,13 +14,9 @@ import testThrottlerPerformance from './test.throttlerPerformance.js';
 import testOnJsonResponse from './test.onJsonResponse.js';
 import testBingxTestOrder from './test.bingxTestOrder.js';
 import testFetchTradesDiagnostics from './test.fetchTradesDiagnostics.js';
-// todo: import testConfig from './test.config.js';
-// import './test.time.js' :todo
-// import './test.timeout_hang.js' :todo
 
 async function testLanguageSpecific () {
     testCamelCase ();
-    testUnCamelCase ();
     await testThrottle ();
     testCalculateFee ();
     testSafeBalance ();
@@ -31,7 +26,6 @@ async function testLanguageSpecific () {
     await testBingxTestOrder ();
     await testFetchTradesDiagnostics ();
     await testThrottlerPerformance ();
-    // testConfig ();
 }
 
 export default testLanguageSpecific;

@@ -54,7 +54,7 @@ function testExtend () {
 
     // --- test 1: basic extend ---
     const extended = exchange.extend (obj1, obj2);
-    tbfeCheckExtended (extended, true);
+    tbfeCheckExtended (extended);
 
     // --- mutation check: obj1 must NOT be mutated ---
     assert (obj1["a"] === obj1SnapshotA, "obj1.a was mutated after extend");
@@ -134,7 +134,7 @@ function testExtend () {
     assert (withValues["keep2"] === "B",      "withValues['keep2'] was mutated");
 }
 
-function tbfeCheckExtended (extended: any, hasSub: boolean) {
+function tbfeCheckExtended (extended: any) {
     assert (extended["a"] === 2);
     assert (extended["b"][0] === 3);
     assert (extended["b"][1] === 4);
@@ -145,9 +145,7 @@ function tbfeCheckExtended (extended: any, hasSub: boolean) {
     assert (extended["e"] === undefined);
     assert (extended["other1"] === "x");
     assert (extended["other2"] === "y");
-    if (hasSub) {
-        assert ("sub" in extended);
-    }
+    assert ("sub" in extended);
 }
 
 export default testExtend;

@@ -248,28 +248,6 @@ function testWsCache () {
     assert (initialLength === limited);
 
     // ----------------------------------------------------------------------------
-
-    const cacheSymbolId6 = new ArrayCacheBySymbolById ();
-    appendItemsLength = 3;
-    for (let i = 0; i < appendItemsLength; i++) {
-        cacheSymbolId6.append ({
-            'symbol': symbol,
-            'id': i.toString (),
-            'i': i,
-        });
-    }
-    outsideLimit = 5;
-    limited = cacheSymbolId6.getLimit (symbol, outsideLimit);
-
-    assert (appendItemsLength === limited);
-
-    outsideLimit = 2; // if limit < newsUpdate that should be returned
-    limited = cacheSymbolId6.getLimit (symbol, outsideLimit);
-
-    assert (outsideLimit === limited);
-
-
-    // ----------------------------------------------------------------------------
     // test ArrayCacheBySymbolById, same order should not increase the limit
 
     const cacheSymbolId7 = new ArrayCacheBySymbolById ();

@@ -22,9 +22,6 @@ function testDecimalToPrecision () {
     assert (exchange.decimalToPrecision ('12.3456', TRUNCATE, 2, DECIMAL_PLACES) === '12.34');
     assert (exchange.decimalToPrecision ('12.3456', TRUNCATE, 1, DECIMAL_PLACES) === '12.3');
     assert (exchange.decimalToPrecision ('12.3456', TRUNCATE, 0, DECIMAL_PLACES) === '12');
-    // ['12.3456',    TRUNCATE,  -1, DECIMAL_PLACES,  '10'],   // not yet supported
-    // ['123.456',    TRUNCATE,  -2, DECIMAL_PLACES,  '120'],  // not yet supported
-    // ['123.456',    TRUNCATE,  -3, DECIMAL_PLACES,  '100'],  // not yet supported
 
     assert (exchange.decimalToPrecision ('0.0000001', TRUNCATE, 8, DECIMAL_PLACES) === '0.0000001');
     assert (exchange.decimalToPrecision ('0.00000001', TRUNCATE, 8, DECIMAL_PLACES) === '0.00000001');
@@ -85,17 +82,6 @@ function testDecimalToPrecision () {
     assert (exchange.decimalToPrecision ('12.3456', ROUND, 2, DECIMAL_PLACES) === '12.35');
     assert (exchange.decimalToPrecision ('12.3456', ROUND, 1, DECIMAL_PLACES) === '12.3');
     assert (exchange.decimalToPrecision ('12.3456', ROUND, 0, DECIMAL_PLACES) === '12');
-
-    // todo:
-    // ['9.999',     ROUND,   3, DECIMAL_PLACES,    NO_PADDING,  '9.999'],
-    // ['9.999',     ROUND,   2, DECIMAL_PLACES,    NO_PADDING,  '10'],
-    // ['9.999',     ROUND,   2, DECIMAL_PLACES, PAD_WITH_ZERO,  '10.00'],
-    // ['99.999',    ROUND,   2, DECIMAL_PLACES, PAD_WITH_ZERO,  '100.00'],
-    // ['-99.999',    ROUND,   2, DECIMAL_PLACES, PAD_WITH_ZERO, '-100.00'],
-
-    // ['12.3456',    ROUND,  -1, DECIMAL_PLACES,    NO_PADDING,  '10'],  // not yet supported
-    // ['123.456',    ROUND,  -1, DECIMAL_PLACES,    NO_PADDING,  '120'],  // not yet supported
-    // ['123.456',    ROUND,  -2, DECIMAL_PLACES,    NO_PADDING,  '100'],  // not yet supported
 
     // a problematic case in PHP
     assert (exchange.decimalToPrecision ('10000', ROUND, 6, DECIMAL_PLACES) === '10000');
@@ -386,13 +372,6 @@ function testDecimalToPrecision () {
     assert (exchange.decimalToPrecision ('123456.49999999999', TRUNCATE, 0.5, TICK_SIZE, PAD_WITH_ZERO) === '123456.0');
 
     assert (exchange.decimalToPrecision ('123456.12345678912', TRUNCATE, '0.00000001', TICK_SIZE) === '123456.12345678');
-
-    // todo
-    // $this->assertSame (0,   Exchange::sum ());
-    // $this->assertSame (2,   Exchange::sum (2));
-    // $this->assertSame (432, Exchange::sum (2, 30, 400));
-    // eslint-disable-next-line eol-last
-    // $this->assertSame (439, Exchange::sum (2, null, [88], 30, '7', 400, null));
 }
 
 export default testDecimalToPrecision;

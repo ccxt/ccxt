@@ -7,7 +7,6 @@ import { LastPrices } from '../../base/types.js';
 
 async function testFetchLastPrices (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'fetchLastprices';
-    // log ('fetching all tickers at once...')
     let response: LastPrices = {};
     let checkedSymbol: Str = undefined;
     try {

@@ -8,8 +8,6 @@ async function testThrottlerPerformanceHelper (exchange: any, numRequests: numbe
     for (let i = 0; i < numRequests; i++) {
         // Use the throttler directly without making any API calls
         await exchange.throttle (1); // cost of 1
-        const mockResult = { 'id': 'mock', 'timestamp': exchange.milliseconds (), 'data': 'mock data' };
-        assert (mockResult['id'] === 'mock');
     }
 
     const endTime = exchange.milliseconds ();

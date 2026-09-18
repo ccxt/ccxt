@@ -64,14 +64,8 @@ async function testCreateOrder (exchange: any, skippedProperties: any, symbol: s
     }
     tcoDebug (exchange, symbol, '### SCENARIO 2 PASSED ###');
 
-
-    // **************** [Scenario 3 - START] **************** //
+    // todo: add tests for other unified scenarios (spot, swap, trigger, positions, stoploss, takeprofit, etc)
     return true;
-    // above, we already tested 'limit' and 'market' orders. next, 'todo' is to create tests for other unified scenarios (spot, swap, trigger, positions, stoploss, takeprofit, etc)
-    //
-    //
-    // re
-    //
 }
 
 // ----------------------------------------------------------------------------

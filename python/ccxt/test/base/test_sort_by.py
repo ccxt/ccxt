@@ -107,7 +107,7 @@ def test_sort_by_1():
 }, {
     'x': 10,
 }])
-    # immutability - original array should not be modified (ascending)
+    # immutability - original array should not be modified (ascending and descending)
     original = [{
     'x': 5,
 }, {
@@ -121,36 +121,10 @@ def test_sort_by_1():
 }, {
     'x': 3,
 }]
-    exchange.sort_by(original, 'x')
-    test_shared_methods.assert_deep_equal(exchange, None, 'sortBy', original, [{
-    'x': 5,
-}, {
-    'x': 2,
-}, {
-    'x': 4,
-}, {
-    'x': 0,
-}, {
-    'x': 1,
-}, {
-    'x': 3,
-}])
-    # immutability - original array should not be modified (descending)
-    original_descending = [{
-    'x': 5,
-}, {
-    'x': 2,
-}, {
-    'x': 4,
-}, {
-    'x': 0,
-}, {
-    'x': 1,
-}, {
-    'x': 3,
-}]
-    exchange.sort_by(original_descending, 'x', True)
-    test_shared_methods.assert_deep_equal(exchange, None, 'sortBy', original_descending, [{
+    descending_flags = [False, True]
+    for i in range(0, len(descending_flags)):
+        exchange.sort_by(original, 'x', descending_flags[i])
+        test_shared_methods.assert_deep_equal(exchange, None, 'sortBy', original, [{
     'x': 5,
 }, {
     'x': 2,
@@ -324,7 +298,7 @@ def test_sort_by_2():
     # empty array
     empty_array = exchange.sort_by_2([], 'x', 'y')
     test_shared_methods.assert_deep_equal(exchange, None, 'sortBy2', empty_array, [])
-    # immutability - original array should not be modified (ascending)
+    # immutability - original array should not be modified (ascending and descending)
     original = [{
     'x': 3,
     'y': 1,
@@ -338,36 +312,10 @@ def test_sort_by_2():
     'x': 0,
     'y': 4,
 }]
-    exchange.sort_by_2(original, 'x', 'y')
-    test_shared_methods.assert_deep_equal(exchange, None, 'sortBy2', original, [{
-    'x': 3,
-    'y': 1,
-}, {
-    'x': 1,
-    'y': 2,
-}, {
-    'x': 2,
-    'y': 3,
-}, {
-    'x': 0,
-    'y': 4,
-}])
-    # immutability - original array should not be modified (descending)
-    original_descending = [{
-    'x': 3,
-    'y': 1,
-}, {
-    'x': 1,
-    'y': 2,
-}, {
-    'x': 2,
-    'y': 3,
-}, {
-    'x': 0,
-    'y': 4,
-}]
-    exchange.sort_by_2(original_descending, 'x', 'y', True)
-    test_shared_methods.assert_deep_equal(exchange, None, 'sortBy2', original_descending, [{
+    descending_flags = [False, True]
+    for i in range(0, len(descending_flags)):
+        exchange.sort_by_2(original, 'x', 'y', descending_flags[i])
+        test_shared_methods.assert_deep_equal(exchange, None, 'sortBy2', original, [{
     'x': 3,
     'y': 1,
 }, {

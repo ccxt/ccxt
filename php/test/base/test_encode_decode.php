@@ -9,29 +9,15 @@ namespace ccxt;
 // -----------------------------------------------------------------------------
 
 
-function test_encode() {
-    $exchange = new \ccxt\async\Exchange(array(
-        'id' => 'sampleexchange',
-    ));
-    $input = 'encode-test';
-    $encoded = $exchange->encode($input);
-    $decoded = $exchange->decode($encoded);
-    assert($decoded === $input, 'decoded should be equal to input, got ' . $decoded . ' instead of ' . $input);
-}
-
-
-function test_decode() {
-    $exchange = new \ccxt\async\Exchange(array(
-        'id' => 'sampleexchange',
-    ));
-    $input = 'decode-test';
-    $encoded = $exchange->encode($input);
-    $decoded = $exchange->decode($encoded);
-    assert($decoded === $input, 'decoded should be equal to input, got ' . $decoded . ' instead of ' . $input);
-}
-
-
 function test_encode_decode() {
-    test_encode();
-    test_decode();
+    $exchange = new \ccxt\async\Exchange(array(
+        'id' => 'sampleexchange',
+    ));
+    $inputs = ['encode-test', 'decode-test'];
+    for ($i = 0; $i < count($inputs); $i++) {
+        $input = $inputs[$i];
+        $encoded = $exchange->encode($input);
+        $decoded = $exchange->decode($encoded);
+        assert($decoded === $input, 'decoded should be equal to input, got ' . $decoded . ' instead of ' . $input);
+    }
 }

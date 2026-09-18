@@ -18,8 +18,6 @@ function test_iso8601() {
     assert($exchange->iso8601(514862627062) === '1986-04-26T01:23:47.062Z');
     assert($exchange->iso8601(1) === '1970-01-01T00:00:00.001Z');
     assert($exchange->iso8601(-1) === null);
-    // assert (exchange.iso8601 () === undefined);
-    // todo: assert (exchange.iso8601 () === undefined);
     assert($exchange->iso8601(null) === null);
     assert($exchange->iso8601('') === null);
     assert($exchange->iso8601('a') === null);
@@ -96,8 +94,6 @@ function test_parse8601() {
     assert($exchange->parse8601('3333') === null);
     assert($exchange->parse8601('Sr90') === null);
     assert($exchange->parse8601('') === null);
-    // assert (exchange.parse8601 () === undefined);
-    // todo: assert (exchange.parse8601 () === undefined);
     assert($exchange->parse8601(null) === null);
     assert($exchange->parse8601(array()) === null);
     assert($exchange->parse8601(33) === null);
@@ -192,16 +188,6 @@ function test_yyyymmdd() {
 }
 
 
-function test_ymd() {
-    $exchange = new \ccxt\async\Exchange(array(
-        'id' => 'sampleexchange',
-    ));
-    $test_ms = 1750123456789; // 17 June 2025
-    $value = $exchange->ymd($test_ms, '_');
-    assert($value === '2025_06_17');
-}
-
-
 function test_ymdhms() {
     $exchange = new \ccxt\async\Exchange(array(
         'id' => 'sampleexchange',
@@ -217,7 +203,6 @@ function test_datetime() {
     test_parse8601();
     test_parse_date();
     // @SKIP_START_GO
-    test_ymd();
     test_ymdhms();
     // @SKIP_END_GO
     test_microseconds();

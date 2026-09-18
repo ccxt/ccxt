@@ -46,10 +46,12 @@ def test_index_by():
     }
     result1 = exchange.index_by(input1, 'id')
     test_shared_methods.assert_deep_equal(exchange, None, 'testIndexBy', result1, expected1)
-    # Test 2: Skip elements with None/undefined values
+    # Test 2: Skip elements missing the key
     input2 = [{
     'id': 'a',
     'val': 1,
+}, {
+    'val': 2,
 }, {
     'id': 'b',
     'val': 3,
@@ -66,35 +68,13 @@ def test_index_by():
     }
     result2 = exchange.index_by(input2, 'id')
     test_shared_methods.assert_deep_equal(exchange, None, 'testIndexBy', result2, expected2)
-    # Test 3: Skip elements missing the key
-    input3 = [{
-    'id': 'a',
-    'val': 1,
-}, {
-    'val': 2,
-}, {
-    'id': 'b',
-    'val': 3,
-}]
-    expected3 = {
-        'a': {
-            'id': 'a',
-            'val': 1,
-        },
-        'b': {
-            'id': 'b',
-            'val': 3,
-        },
-    }
+    # Test 3: Empty array
+    input3 = []
+    expected3 = {}
     result3 = exchange.index_by(input3, 'id')
     test_shared_methods.assert_deep_equal(exchange, None, 'testIndexBy', result3, expected3)
-    # Test 4: Empty array
-    input4 = []
-    expected4 = {}
-    result4 = exchange.index_by(input4, 'id')
-    test_shared_methods.assert_deep_equal(exchange, None, 'testIndexBy', result4, expected4)
-    # Test 5: Duplicate keys (last one wins)
-    input5 = [{
+    # Test 4: Duplicate keys (last one wins)
+    input4 = [{
     'id': 'a',
     'val': 1,
 }, {
@@ -104,16 +84,16 @@ def test_index_by():
     'id': 'a',
     'val': 3,
 }]
-    expected5 = {
+    expected4 = {
         'a': {
             'id': 'a',
             'val': 3,
         },
     }
-    result5 = exchange.index_by(input5, 'id')
-    test_shared_methods.assert_deep_equal(exchange, None, 'testIndexBy', result5, expected5)
-    # Test 6: Numeric key values
-    input6 = [{
+    result4 = exchange.index_by(input4, 'id')
+    test_shared_methods.assert_deep_equal(exchange, None, 'testIndexBy', result4, expected4)
+    # Test 5: Numeric key values
+    input5 = [{
     'code': 1,
     'name': 'one',
 }, {
@@ -123,7 +103,7 @@ def test_index_by():
     'code': 3,
     'name': 'three',
 }]
-    expected6 = {
+    expected5 = {
         '1': {
             'code': 1,
             'name': 'one',
@@ -137,27 +117,27 @@ def test_index_by():
             'name': 'three',
         },
     }
-    result6 = exchange.index_by(input6, 'code')
-    test_shared_methods.assert_deep_equal(exchange, None, 'testIndexBy', result6, expected6)
-    # Test 7: List of arrays with integer key
-    input7 = [['a', 1], ['b', 2], ['c', 3]]
-    expected7 = {
+    result5 = exchange.index_by(input5, 'code')
+    test_shared_methods.assert_deep_equal(exchange, None, 'testIndexBy', result5, expected5)
+    # Test 6: List of arrays with integer key
+    input6 = [['a', 1], ['b', 2], ['c', 3]]
+    expected6 = {
         'a': ['a', 1],
         'b': ['b', 2],
         'c': ['c', 3],
     }
-    result7 = exchange.index_by(input7, 0)
-    test_shared_methods.assert_deep_equal(exchange, None, 'testIndexBy', result7, expected7)
-    # Test 8: Single element
-    input8 = [{
+    result6 = exchange.index_by(input6, 0)
+    test_shared_methods.assert_deep_equal(exchange, None, 'testIndexBy', result6, expected6)
+    # Test 7: Single element
+    input7 = [{
     'id': 'only',
     'val': 42,
 }]
-    expected8 = {
+    expected7 = {
         'only': {
             'id': 'only',
             'val': 42,
         },
     }
-    result8 = exchange.index_by(input8, 'id')
-    test_shared_methods.assert_deep_equal(exchange, None, 'testIndexBy', result8, expected8)
+    result7 = exchange.index_by(input7, 'id')
+    test_shared_methods.assert_deep_equal(exchange, None, 'testIndexBy', result7, expected7)

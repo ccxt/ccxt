@@ -38,12 +38,6 @@ function flightCount (exchange: any) {
     return (FLIGHT_HASH in client.futures) ? 1 : 0;
 }
 
-function futureCount (exchange: any) {
-    // same registry - kept as a distinct name so the assertions below read as
-    // "no flight registered" and "no future left behind" separately
-    return flightCount (exchange);
-}
-
 function residueCount (exchange: any) {
     // client.reject parks its error in rejections whenever no future exists at
     // settle time. with the leader always holding a live future that may never
@@ -280,8 +274,7 @@ async function testLbankAuthenticateMissingCredentials () {
     }
     assert (credentialsError instanceof AuthenticationError, 'a credential-less authenticate must throw AuthenticationError');
     assert (state.getKeyFetches === 0, 'a credential-less authenticate must not fetch');
-    assert (flightCount (exchange) === 0, 'a credential-less authenticate must not register a flight');
-    assert (futureCount (exchange) === 0, 'a credential-less authenticate must not register a future');
+    assert (flightCount (exchange) === 0, 'a credential-less authenticate must not register a flight or a future');
     assert (residueCount (exchange) === 0, 'a credential-less authenticate must park nothing');
 }
 

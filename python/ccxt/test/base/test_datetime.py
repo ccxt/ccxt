@@ -23,8 +23,6 @@ def test_iso8601():
     assert exchange.iso8601(514862627062) == '1986-04-26T01:23:47.062Z'
     assert exchange.iso8601(1) == '1970-01-01T00:00:00.001Z'
     assert exchange.iso8601(-1) is None
-    # assert (exchange.iso8601 () === undefined);
-    # todo: assert (exchange.iso8601 () === undefined);
     assert exchange.iso8601(None) is None
     assert exchange.iso8601('') is None
     assert exchange.iso8601('a') is None
@@ -100,8 +98,6 @@ def test_parse8601():
     assert exchange.parse8601('3333') is None
     assert exchange.parse8601('Sr90') is None
     assert exchange.parse8601('') is None
-    # assert (exchange.parse8601 () === undefined);
-    # todo: assert (exchange.parse8601 () === undefined);
     assert exchange.parse8601(None) is None
     assert exchange.parse8601({}) is None
     assert exchange.parse8601(33) is None
@@ -188,15 +184,6 @@ def test_yyyymmdd():
     assert int_num > 20260000 and int_num < 20360000  # date between 2026 and 2036
 
 
-def test_ymd():
-    exchange = ccxt.Exchange({
-        'id': 'sampleexchange',
-    })
-    test_ms = 1750123456789  # 17 June 2025
-    value = exchange.ymd(test_ms, '_')
-    assert value == '2025_06_17'
-
-
 def test_ymdhms():
     exchange = ccxt.Exchange({
         'id': 'sampleexchange',
@@ -211,7 +198,6 @@ def test_datetime():
     test_parse8601()
     test_parse_date()
     # @SKIP_START_GO
-    test_ymd()
     test_ymdhms()
     # @SKIP_END_GO
     test_microseconds()

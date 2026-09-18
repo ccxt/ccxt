@@ -63,6 +63,29 @@ function assertNoFlightResidue (exchange: any, label: string) {
     assertCount (parkedRejectionCount (exchange), 0, label + ': a settled flight must park no rejection');
 }
 
+function attachWatchStub (exchange: any, state: any, failing: boolean) {
+    // stub watch () so no socket is dialed: mint the future + register the subscribeHash
+    // like Exchange.watch (), then ack like whitebit.handleAuthenticate () - or reject when `failing`
+    (exchange as any).watch = async (url: string, messageHash: string, message: any = undefined, subscribeHash: any = undefined, subscription: any = undefined) => {
+        state.authorizeFrames = state.authorizeFrames + 1;
+        state.tokensSent.push (message['params'][0]);
+        const client = exchange.client (url);
+        const future = client.future (messageHash);
+        if ((client.subscriptions[subscribeHash] === undefined) || (client.subscriptions[subscribeHash] === null)) {
+            const subscriptionValue = ((subscription !== undefined) && (subscription !== null)) ? subscription : true;
+            client.subscriptions[subscribeHash] = subscriptionValue;
+        }
+        setTimeout (() => {
+            if (failing) {
+                client.reject (new AuthenticationError ('whitebit authorize frame rejected'), messageHash);
+            } else if (messageHash in client.futures) {
+                client.futures[messageHash].resolve (1);
+            }
+        }, 10);
+        return await future;
+    };
+}
+
 function makeStubbedWhitebit (state: any) {
     const exchange = new ccxt.pro.whitebit ({
         'apiKey': 'test-api-key',
@@ -75,27 +98,7 @@ function makeStubbedWhitebit (state: any) {
         await sleep (50); // the race window
         return { 'websocket_token': 'WB-TOKEN-' + state.fetches.toString () };
     };
-    // stub watch () so no socket is dialed: mirror the parts of
-    // Exchange.watch () that authenticate () depends on (mint the future,
-    // register the subscribeHash) and then land the venue's authorize ack the
-    // way whitebit.handleAuthenticate () does
-    (exchange as any).watch = async (url: string, messageHash: string, message: any = undefined, subscribeHash: any = undefined, subscription: any = undefined) => {
-        state.authorizeFrames = state.authorizeFrames + 1;
-        state.tokensSent.push (message['params'][0]);
-        const client = exchange.client (url);
-        const future = client.future (messageHash);
-        if ((client.subscriptions[subscribeHash] === undefined) || (client.subscriptions[subscribeHash] === null)) {
-            const subscriptionValue = ((subscription !== undefined) && (subscription !== null)) ? subscription : true;
-            client.subscriptions[subscribeHash] = subscriptionValue;
-        }
-        setTimeout (() => {
-            // whitebit.handleAuthenticate (): future.resolve (1)
-            if (messageHash in client.futures) {
-                client.futures[messageHash].resolve (1);
-            }
-        }, 10);
-        return await future;
-    };
+    attachWatchStub (exchange, state, false);
     return exchange;
 }
 
@@ -253,22 +256,8 @@ async function testWhitebitAuthenticateHandshakeFailureRetries () {
     // failure off subscriptions['authenticated']
     const state = freshState ();
     const exchange = makeStubbedWhitebit (state);
-    (exchange as any).watch = async (url: string, messageHash: string, message: any = undefined, subscribeHash: any = undefined, subscription: any = undefined) => {
-        state.authorizeFrames = state.authorizeFrames + 1;
-        state.tokensSent.push (message['params'][0]);
-        const failClient = exchange.client (url);
-        const future = failClient.future (messageHash);
-        if ((failClient.subscriptions[subscribeHash] === undefined) || (failClient.subscriptions[subscribeHash] === null)) {
-            const subscriptionValue = ((subscription !== undefined) && (subscription !== null)) ? subscription : true;
-            failClient.subscriptions[subscribeHash] = subscriptionValue;
-        }
-        setTimeout (() => {
-            // Exchange.watch () rejects the handshake future when the dial or
-            // the send fails
-            failClient.reject (new AuthenticationError ('whitebit authorize frame rejected'), messageHash);
-        }, 10);
-        return await future;
-    };
+    // a dropped dial / a rejected authorize frame rejects the handshake future
+    attachWatchStub (exchange, state, true);
     const outcomes = await Promise.allSettled ([
         exchange.authenticate (),
         exchange.authenticate (),
@@ -285,22 +274,7 @@ async function testWhitebitAuthenticateHandshakeFailureRetries () {
     assert (!('authenticated' in client.subscriptions), 'a failed handshake must not leave the authenticated subscription behind');
     assert (!('authenticated' in client.futures), 'a failed handshake must not leave a rejected handshake future behind');
     // recovery: the next caller re-leads through a healthy handshake
-    (exchange as any).watch = async (url: string, messageHash: string, message: any = undefined, subscribeHash: any = undefined, subscription: any = undefined) => {
-        state.authorizeFrames = state.authorizeFrames + 1;
-        state.tokensSent.push (message['params'][0]);
-        const okClient = exchange.client (url);
-        const future = okClient.future (messageHash);
-        if ((okClient.subscriptions[subscribeHash] === undefined) || (okClient.subscriptions[subscribeHash] === null)) {
-            const subscriptionValue = ((subscription !== undefined) && (subscription !== null)) ? subscription : true;
-            okClient.subscriptions[subscribeHash] = subscriptionValue;
-        }
-        setTimeout (() => {
-            if (messageHash in okClient.futures) {
-                okClient.futures[messageHash].resolve (1);
-            }
-        }, 10);
-        return await future;
-    };
+    attachWatchStub (exchange, state, false);
     const retried = await exchange.authenticate ();
     assert (retried === 1, 'a retry after a failed handshake must return the authorized sentinel');
     assertCount (state.fetches, 2, 'a retry after a failed handshake must re-lead and fetch again');

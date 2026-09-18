@@ -15,7 +15,6 @@ function testStrip () {
     assert (exchange.strip ('    asd    ') === 'asd');
     assert (exchange.strip ('asd') === 'asd');
     assert (exchange.strip ('') === '');
-    // assert (exchange.strip (undefined) === undefined); // todo
 }
 
 export default testStrip;

@@ -23,9 +23,6 @@ function testIsJsonEncodedObject () {
     assert (!exchange.isJsonEncodedObject (']'));
     assert (!exchange.isJsonEncodedObject ('null'));
     assert (!exchange.isJsonEncodedObject ('undefined'));
-    // todo: maybe some updates, if ever
-    // assert (!exchange.isJsonEncodedObject ('{"key":value}'));
-    // assert (!exchange.isJsonEncodedObject ('{key:"value"}'));
 }
 
 export default testIsJsonEncodedObject;

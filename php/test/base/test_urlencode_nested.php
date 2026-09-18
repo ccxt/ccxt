@@ -13,8 +13,6 @@ function test_urlencode_nested() {
     $exchange = new \ccxt\async\Exchange(array(
         'id' => 'sampleexchange',
     ));
-    // todo: add nulls
-    // todo: add key sort (for different langs)
     $dict2 = array(
         'b' => array(
             'c' => 2,

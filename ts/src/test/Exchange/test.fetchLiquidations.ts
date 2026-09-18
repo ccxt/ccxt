@@ -10,7 +10,6 @@ async function testFetchLiquidations (exchange: Exchange, skippedProperties: obj
     }
     const items = await exchange.fetchLiquidations (code);
     assert (Array.isArray (items), exchange.id + ' ' + method + ' ' + code + ' must return an array. ' + exchange.json (items));
-    // const now = exchange.milliseconds ();
     for (let i = 0; i < items.length; i++) {
         testLiquidation (exchange, skippedProperties, method, items[i], code);
     }

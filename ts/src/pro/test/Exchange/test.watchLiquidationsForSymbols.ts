@@ -43,8 +43,6 @@ async function testWatchLiquidationsForSymbols (exchange: Exchange, skippedPrope
             const m3 = (exchange.id + ' ' + method + '() returned ' + response.length + ' liquidations');
             console.log (m3);
 
-            // log.noLocate (asTable (response))
-
             for (let i = 0; i < response.length; i++) {
                 testLiquidation (exchange, skippedProperties, method, response[i], symbol);
             }

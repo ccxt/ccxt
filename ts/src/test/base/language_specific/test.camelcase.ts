@@ -34,12 +34,6 @@ function testCamelCasePropertyConversion () {
         }
     }
 
-    // for (const k of Array.from (props)) {
-    //     if (!propsSeenBefore.has (k)) {
-    //         log.magenta.noLocate (`+ ${k}`)
-    //     }
-    // }
-
 }
 
 function testCamelCasePropertyConversion2 () {

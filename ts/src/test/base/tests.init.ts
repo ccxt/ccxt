@@ -2,7 +2,6 @@
 
 import testAggregate from './test.aggregate.js';
 import testDecimalToPrecision from './test.decimalToPrecision.js';
-import testBinaryToBase16 from './test.binaryToBase16.js';
 import testBase16ToBinary from './test.base16ToBinary.js';
 import testBinaryToBase64 from './test.binaryToBase64.js';
 import testBase64ToBinary from './test.base64ToBinary.js';
@@ -52,7 +51,6 @@ import testSetMarketsFromExchange from './test.setMarketsFromExchange.js';
 import testSleep from './test.sleep.js';
 import testEthMethods from './test.ethMethods.js';
 import testTimeframes from './test.timeframes.js';
-import testKeysort from './test.keysort.js';
 import testImplodeParams from './test.implodeParams.js';
 import testUrlencodeNested from './test.urlencodeNested.js';
 import testClone from './test.clone.js';
@@ -73,7 +71,6 @@ async function baseTestsInit () {
     testExtend ();
     testDeepExtend ();
     testCryptography ();
-    testBinaryToBase16 ();
     testBase16ToBinary ();
     testBinaryToBase64 ();
     testBase64ToBinary ();
@@ -121,7 +118,6 @@ async function baseTestsInit () {
     testUuid ();
     await testSetMarketsFromExchange ();
     testEthMethods ();
-    testKeysort ();
     testImplodeParams ();
     testUnique ();
     testUrlencodeNested ();

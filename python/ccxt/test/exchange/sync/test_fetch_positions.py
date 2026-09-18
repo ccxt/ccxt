@@ -23,7 +23,7 @@ def test_fetch_positions(exchange, skipped_properties, symbol):
     test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, positions, symbol)
     for i in range(0, len(positions)):
         test_position(exchange, skipped_properties, method, positions[i], None, now)
-    # testSharedMethods.assertTimestampOrder (exchange, method, undefined, positions); # currently order of positions does not make sense
+    # timestamp order is not asserted: the order of positions does not make sense
     # with symbol
     positions_for_symbol = exchange.fetch_positions([symbol])
     assert isinstance(positions_for_symbol, list), exchange.id + ' ' + method + ' must return an array, returned ' + exchange.json(positions_for_symbol)
@@ -31,5 +31,4 @@ def test_fetch_positions(exchange, skipped_properties, symbol):
     assert positions_for_symbol_length <= 4, exchange.id + ' ' + method + ' positions length for particular symbol should be less than 4, returned ' + exchange.json(positions_for_symbol)
     for i in range(0, len(positions_for_symbol)):
         test_position(exchange, skipped_properties, method, positions_for_symbol[i], symbol, now)
-    # testSharedMethods.assertTimestampOrder (exchange, method, symbol, positionsForSymbol);
     return True

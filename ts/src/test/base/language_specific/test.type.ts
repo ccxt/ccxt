@@ -2,7 +2,7 @@
 //@ts-nocheck
 /* eslint-disable */
 import { functions } from '../../../../ccxt.js'
-import { equal, deepEqual, ok } from 'assert'
+import { equal, ok } from 'assert'
 
 const {
     asFloat,
@@ -66,12 +66,6 @@ function testAsFloatAsInteger () {
     ok (Object.is (asInteger (-0), -0))
     ok (Object.is (asFloat ('-0'), -0))
 
-    // non-finite numbers are rejected
-    ok (Number.isNaN (asFloat (Number.POSITIVE_INFINITY)))
-    ok (Number.isNaN (asFloat (Number.NaN)))
-    ok (Number.isNaN (asInteger (Number.POSITIVE_INFINITY)))
-    ok (Number.isNaN (asInteger (Number.NaN)))
-
     // strings are parsed, empty strings rejected
     equal (asFloat ('1.5'), 1.5)
     equal (asFloat ('1.5abc'), 1.5)
@@ -80,19 +74,15 @@ function testAsFloatAsInteger () {
     equal (asInteger ('1.9'), 1)
     equal (asInteger ('-1.9'), -1)
     equal (asInteger ('1e3'), 1000)
-    ok (Number.isNaN (asFloat ('')))
-    ok (Number.isNaN (asInteger ('')))
 
-    // everything else is rejected
-    ok (Number.isNaN (asFloat (true)))
-    ok (Number.isNaN (asFloat (null)))
-    ok (Number.isNaN (asFloat (undefined)))
-    ok (Number.isNaN (asFloat ([])))
-    ok (Number.isNaN (asFloat ([0])))
-    ok (Number.isNaN (asInteger (true)))
-    ok (Number.isNaN (asInteger (null)))
-    ok (Number.isNaN (asInteger (undefined)))
-    ok (Number.isNaN (asInteger ([])))
+    // non-finite numbers, empty strings and everything else are rejected
+    const rejected = [ Number.POSITIVE_INFINITY, Number.NaN, '', true, null, undefined, [], [ 0 ] ];
+    const asFunctions = [ asFloat, asInteger ];
+    for (const fn of asFunctions) {
+        for (const value of rejected) {
+            ok (Number.isNaN (fn (value)))
+        }
+    }
 }
 
 function testSafeTimestampSafeIntegerProduct () {

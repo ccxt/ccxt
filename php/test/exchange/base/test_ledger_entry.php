@@ -34,7 +34,6 @@ function test_ledger_entry($exchange, $skipped_properties, $method, $entry, $req
     //
     assert_in_array($exchange, $skipped_properties, $method, $entry, 'direction', ['in', 'out']);
     assert_in_array($exchange, $skipped_properties, $method, $entry, 'type', ['trade', 'transaction', 'margin', 'cashback', 'referral', 'transfer', 'fee']);
-    // testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'account', ['spot', 'swap', .. ]); // todo
     assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'amount', '0');
     assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'before', '0');
     assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'after', '0');

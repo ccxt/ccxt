@@ -43,33 +43,24 @@ async def test_set_markets_from_exchange():
         'id': 'primaryEx',
     })
     assert (exchange1.markets is not None) and (len(list(exchange1.markets.keys())) > 0), 'Markets should be loaded in exchange1'
-    # Test error case: exchanges are different
-    different_exchange = ccxt.Exchange({
-        'id': 'secondaryEx',
-    })
-    try:
-        different_exchange.set_markets_from_exchange(exchange1)
-        assert not true_clause, 'Should have thrown an error when using different exchange'
-    except Exception as error:
-        assert true_clause
-    # Test error case: sharing from exchange without markets
-    nonloaded_exchange = ccxt.Exchange({
-        'id': 'primaryEx',
-    })
-    try:
-        exchange2.set_markets_from_exchange(nonloaded_exchange)  # exchange2 has no markets yet
-        assert not true_clause, 'Should have thrown error when sharing from exchange without markets'
-    except Exception as error:
-        assert true_clause
+    # Test error cases: a different exchange id, and a source without markets
+    error_cases = [[ccxt.Exchange({
+    'id': 'secondaryEx',
+}), exchange1], [exchange2, ccxt.Exchange({
+    'id': 'primaryEx',
+})]]
+    for i in range(0, len(error_cases)):
+        try:
+            error_cases[i][0].set_markets_from_exchange(error_cases[i][1])
+            assert not true_clause, 'Should have thrown an error for the case ' + str(i)
+        except Exception as error:
+            assert true_clause
     # Test the new setMarketsFromExchange method
     exchange2.set_markets_from_exchange(exchange1)
     # Verify shared markets work
     needed_props = ['symbols', 'currencies', 'codes', 'markets', 'ids', 'markets_by_id', 'currencies_by_id', 'baseCurrencies', 'quoteCurrencies']
     for i in range(0, len(needed_props)):
         test_shared_methods.assert_deep_equal(empty_exchange, {}, method_name, empty_exchange.get_property(exchange1, needed_props[i]), empty_exchange.get_property(exchange2, needed_props[i]))
-    # Verify that modifying one exchange's markets modifies the other
-    # exchange1.markets['ETH/USD'] = { 'id': 'EthUsd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD', 'baseId': 'Eth', 'quoteId': 'Usd', 'type': 'spot', 'spot': true };
-    # assert ('ETH/USD' in exchange2.markets, 'Modifying exchange1 markets should reflect in exchange2');
     # Test 2: loadMarkets on shared markets should not make API call and be very fast
     start_time = empty_exchange.milliseconds()
     await exchange2.load_markets()

@@ -101,7 +101,7 @@ function test_sort_by_1() {
 ), array(
     'x' => 10,
 )]);
-    // immutability - original array should not be modified (ascending)
+    // immutability - original array should not be modified (ascending and descending)
     $original = [array(
     'x' => 5,
 ), array(
@@ -115,8 +115,10 @@ function test_sort_by_1() {
 ), array(
     'x' => 3,
 )];
-    $exchange->sort_by($original, 'x');
-    assert_deep_equal($exchange, null, 'sortBy', $original, [array(
+    $descending_flags = [false, true];
+    for ($i = 0; $i < count($descending_flags); $i++) {
+        $exchange->sort_by($original, 'x', $descending_flags[$i]);
+        assert_deep_equal($exchange, null, 'sortBy', $original, [array(
     'x' => 5,
 ), array(
     'x' => 2,
@@ -129,34 +131,7 @@ function test_sort_by_1() {
 ), array(
     'x' => 3,
 )]);
-    // immutability - original array should not be modified (descending)
-    $original_descending = [array(
-    'x' => 5,
-), array(
-    'x' => 2,
-), array(
-    'x' => 4,
-), array(
-    'x' => 0,
-), array(
-    'x' => 1,
-), array(
-    'x' => 3,
-)];
-    $exchange->sort_by($original_descending, 'x', true);
-    assert_deep_equal($exchange, null, 'sortBy', $original_descending, [array(
-    'x' => 5,
-), array(
-    'x' => 2,
-), array(
-    'x' => 4,
-), array(
-    'x' => 0,
-), array(
-    'x' => 1,
-), array(
-    'x' => 3,
-)]);
+    }
     // immutability - array rows (orderbook-style numeric keys) should not be modified
     $original_rows = [[3000.5, 1], [2900.5, 2], [2950.5, 3]];
     $exchange->sort_by($original_rows, 0);
@@ -319,7 +294,7 @@ function test_sort_by_2() {
     // empty array
     $empty_array = $exchange->sort_by_2([], 'x', 'y');
     assert_deep_equal($exchange, null, 'sortBy2', $empty_array, []);
-    // immutability - original array should not be modified (ascending)
+    // immutability - original array should not be modified (ascending and descending)
     $original = [array(
     'x' => 3,
     'y' => 1,
@@ -333,8 +308,10 @@ function test_sort_by_2() {
     'x' => 0,
     'y' => 4,
 )];
-    $exchange->sort_by_2($original, 'x', 'y');
-    assert_deep_equal($exchange, null, 'sortBy2', $original, [array(
+    $descending_flags = [false, true];
+    for ($i = 0; $i < count($descending_flags); $i++) {
+        $exchange->sort_by_2($original, 'x', 'y', $descending_flags[$i]);
+        assert_deep_equal($exchange, null, 'sortBy2', $original, [array(
     'x' => 3,
     'y' => 1,
 ), array(
@@ -347,34 +324,7 @@ function test_sort_by_2() {
     'x' => 0,
     'y' => 4,
 )]);
-    // immutability - original array should not be modified (descending)
-    $original_descending = [array(
-    'x' => 3,
-    'y' => 1,
-), array(
-    'x' => 1,
-    'y' => 2,
-), array(
-    'x' => 2,
-    'y' => 3,
-), array(
-    'x' => 0,
-    'y' => 4,
-)];
-    $exchange->sort_by_2($original_descending, 'x', 'y', true);
-    assert_deep_equal($exchange, null, 'sortBy2', $original_descending, [array(
-    'x' => 3,
-    'y' => 1,
-), array(
-    'x' => 1,
-    'y' => 2,
-), array(
-    'x' => 2,
-    'y' => 3,
-), array(
-    'x' => 0,
-    'y' => 4,
-)]);
+    }
 }
 
 

@@ -21,34 +21,18 @@ def test_base16_to_binary():
     })
     assert exchange.parse_number(None) is None, 'GO_WORKAROUND'
     # @SKIP_START_GO
-    # Test 1: simple known bytes
-    # 'ff' => [255]
-    binary1 = exchange.base16_to_binary('ff')
-    assert exchange.binary_to_base16(binary1) == 'ff'
-    # Test 2: all zeros
-    # '0000' => [0, 0]
-    binary2 = exchange.base16_to_binary('0000')
-    assert exchange.binary_to_base16(binary2) == '0000'
-    # Test 3: ascending bytes 01 02 03 04
-    binary3 = exchange.base16_to_binary('01020304')
-    assert exchange.binary_to_base16(binary3) == '01020304'
-    # Test 4: single byte zero
-    binary4 = exchange.base16_to_binary('00')
-    assert exchange.binary_to_base16(binary4) == '00'
-    # Test 5: single byte max
-    binary5 = exchange.base16_to_binary('ff')
-    assert exchange.binary_length(binary5) == 1
-    assert exchange.is_binary_message(binary5)
-    # Test 6: 8 bytes (like a timestamp encoding)
-    # 00 00 00 00 49 96 02 d2 = 1234567890
-    binary6 = exchange.base16_to_binary('00000000499602d2')
-    assert exchange.binary_to_base16(binary6) == '00000000499602d2'
-    assert exchange.binary_length(binary6) == 8
-    # Test 7: roundtrip with deadbeef
-    binary7 = exchange.base16_to_binary('deadbeef')
-    assert exchange.binary_to_base16(binary7) == 'deadbeef'
-    assert exchange.binary_length(binary7) == 4
-    # Test 8: roundtrip binaryToBase16 -> base16ToBinary
-    hex8 = 'cafebabe'
-    binary8 = exchange.base16_to_binary(hex8)
-    assert exchange.binary_to_base16(binary8) == hex8
+    # one input per byte layout: single byte, zeroes, ascending, packed timestamp, 4-byte rounds
+    hex_values = ['ff', '0000', '01020304', '00', '00000000499602d2', 'deadbeef', 'cafebabe']
+    for i in range(0, len(hex_values)):
+        hex_string = hex_values[i]
+        binary = exchange.base16_to_binary(hex_string)
+        assert exchange.binary_to_base16(binary) == hex_string
+    # 'ff' is also a 1-byte binary message
+    single_byte = exchange.base16_to_binary('ff')
+    assert exchange.binary_length(single_byte) == 1
+    assert exchange.is_binary_message(single_byte)
+    # byte counts of the packed 8-byte timestamp and the 4-byte roundtrips
+    timestamp_bytes = exchange.base16_to_binary('00000000499602d2')
+    assert exchange.binary_length(timestamp_bytes) == 8
+    deadbeef_bytes = exchange.base16_to_binary('deadbeef')
+    assert exchange.binary_length(deadbeef_bytes) == 4

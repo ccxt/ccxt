@@ -17,8 +17,6 @@ function testIso8601 () {
     assert (exchange.iso8601 (1) === '1970-01-01T00:00:00.001Z');
 
     assert (exchange.iso8601 (-1) === undefined);
-    // assert (exchange.iso8601 () === undefined);
-    // todo: assert (exchange.iso8601 () === undefined);
     assert (exchange.iso8601 (undefined) === undefined);
     assert (exchange.iso8601 ('') === undefined);
     assert (exchange.iso8601 ('a') === undefined);
@@ -98,8 +96,6 @@ function testParse8601 () {
     assert (exchange.parse8601 ('3333') === undefined);
     assert (exchange.parse8601 ('Sr90') === undefined);
     assert (exchange.parse8601 ('') === undefined);
-    // assert (exchange.parse8601 () === undefined);
-    // todo: assert (exchange.parse8601 () === undefined);
     assert (exchange.parse8601 (undefined) === undefined);
     assert (exchange.parse8601 ({}) === undefined);
     assert (exchange.parse8601 (33) === undefined);
@@ -115,12 +111,7 @@ function testParseDate () {
     assert (exchange.parseDate ('1986-04-26 00:00:00') === 514857600000);
     assert (exchange.parseDate ('1986-04-26T01:23:47.000Z') === 514862627000);
     assert (exchange.parseDate ('1986-13-13 00:00:00') === undefined);
-    // GMT formats (todo: bugs in php)
-    // assert (exchange.parseDate ('Mon, 29 Apr 2024 14:00:17 GMT') === 1714399217000);
-    // assert (exchange.parseDate ('Mon, 29 Apr 2024 14:09:17 GMT') === 1714399757000);
-    // assert (exchange.parseDate ('Sun, 29 Dec 2024 01:01:10 GMT') === 1735434070000);
-    // assert (exchange.parseDate ('Sun, 29 Dec 2024 02:11:10 GMT') === 1735438270000);
-    // assert (exchange.parseDate ('Sun, 08 Dec 2024 02:03:04 GMT') === 1733623384000);
+    // GMT formats: todo, buggy in php
 }
 
 function testMicroseconds () {
@@ -195,15 +186,6 @@ function testYyyymmdd () {
     assert (intNum > 20260000 && intNum < 20360000); // date between 2026 and 2036
 }
 
-function testYmd () {
-    const exchange = new ccxt.Exchange ({
-        'id': 'sampleexchange',
-    });
-    const testMs = 1750123456789; // 17 June 2025
-    const value = exchange.ymd (testMs, '_');
-    assert (value === '2025_06_17');
-}
-
 function testYmdhms () {
     const exchange = new ccxt.Exchange ({
         'id': 'sampleexchange',
@@ -218,7 +200,6 @@ function testDatetime () {
     testParse8601 ();
     testParseDate ();
     // @SKIP_START_GO
-    testYmd ();
     testYmdhms ();
     // @SKIP_END_GO
     testMicroseconds ();

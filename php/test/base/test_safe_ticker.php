@@ -14,6 +14,19 @@ function precise_equal_str($exchange, $result, $key, $expected) {
 }
 
 
+// asserts a flat [ field, expected, field, expected, ... ] list against a safeTicker result
+function precise_equal_fields($exchange, $result, $pairs) {
+    assert(count($pairs) % 2 === 0, 'the field/expected list must come in pairs');
+    for ($i = 0; $i < count($pairs); $i++) {
+        if ($i % 2 === 0) {
+            $key = $pairs[$i];
+            $expected = $pairs[$i + 1];
+            assert(precise_equal_str($exchange, $result, $key, $expected), 'safeTicker ' . $key . ' must be ' . $expected);
+        }
+    }
+}
+
+
 function test_safe_ticker() {
     $exchange = new \ccxt\async\Exchange(array(
         'id' => 'sampleexchange',
@@ -24,70 +37,49 @@ function test_safe_ticker() {
         'change' => 1,
     );
     $result1 = $exchange->safe_ticker($ticker1);
-    assert(precise_equal_str($exchange, $result1, 'percentage', '20.0'));
-    assert(precise_equal_str($exchange, $result1, 'average', '5.5'));
-    assert(precise_equal_str($exchange, $result1, 'close', '6.0'));
-    assert(precise_equal_str($exchange, $result1, 'last', '6.0'));
+    precise_equal_fields($exchange, $result1, ['percentage', '20.0', 'average', '5.5', 'close', '6.0', 'last', '6.0']);
     // CASE 2 - by open
     $ticker2 = array(
         'open' => 5,
         'percentage' => 20,
     );
     $result2 = $exchange->safe_ticker($ticker2);
-    assert(precise_equal_str($exchange, $result2, 'change', '1.0'));
-    assert(precise_equal_str($exchange, $result2, 'average', '5.5'));
-    assert(precise_equal_str($exchange, $result2, 'close', '6.0'));
-    assert(precise_equal_str($exchange, $result2, 'last', '6.0'));
+    precise_equal_fields($exchange, $result2, ['change', '1.0', 'average', '5.5', 'close', '6.0', 'last', '6.0']);
     // CASE 3 - by close
     $ticker3 = array(
         'close' => 6,
         'change' => 1,
     );
     $result3 = $exchange->safe_ticker($ticker3);
-    assert(precise_equal_str($exchange, $result3, 'open', '5.0'));
-    assert(precise_equal_str($exchange, $result3, 'percentage', '20.0'));
-    assert(precise_equal_str($exchange, $result3, 'average', '5.5'));
-    assert(precise_equal_str($exchange, $result3, 'last', '6.0'));
+    precise_equal_fields($exchange, $result3, ['open', '5.0', 'percentage', '20.0', 'average', '5.5', 'last', '6.0']);
     // CASE 4 - by close
     $ticker4 = array(
         'close' => 6,
         'percentage' => 20,
     );
     $result4 = $exchange->safe_ticker($ticker4);
-    assert(precise_equal_str($exchange, $result4, 'open', '5.0'));
-    assert(precise_equal_str($exchange, $result4, 'change', '1.0'));
-    assert(precise_equal_str($exchange, $result4, 'average', '5.5'));
-    assert(precise_equal_str($exchange, $result4, 'last', '6.0'));
+    precise_equal_fields($exchange, $result4, ['open', '5.0', 'change', '1.0', 'average', '5.5', 'last', '6.0']);
     // CASE 5 - by average
     $ticker5 = array(
         'average' => 5.5,
         'percentage' => 20,
     );
     $result5 = $exchange->safe_ticker($ticker5);
-    assert(precise_equal_str($exchange, $result5, 'open', '5.0'));
-    assert(precise_equal_str($exchange, $result5, 'change', '1.0'));
-    assert(precise_equal_str($exchange, $result5, 'close', '6.0'));
-    assert(precise_equal_str($exchange, $result5, 'last', '6.0'));
+    precise_equal_fields($exchange, $result5, ['open', '5.0', 'change', '1.0', 'close', '6.0', 'last', '6.0']);
     // CASE 6
     $ticker6 = array(
         'average' => 5.5,
         'change' => 1,
     );
     $result6 = $exchange->safe_ticker($ticker6);
-    assert(precise_equal_str($exchange, $result6, 'open', '5.0'));
-    assert(precise_equal_str($exchange, $result6, 'percentage', '20.0'));
-    assert(precise_equal_str($exchange, $result6, 'close', '6.0'));
-    assert(precise_equal_str($exchange, $result6, 'last', '6.0'));
+    precise_equal_fields($exchange, $result6, ['open', '5.0', 'percentage', '20.0', 'close', '6.0', 'last', '6.0']);
     // CASE 7 - by open and close
     $ticker7 = array(
         'open' => 5,
         'close' => 6,
     );
     $result7 = $exchange->safe_ticker($ticker7);
-    assert(precise_equal_str($exchange, $result7, 'change', '1.0'));
-    assert(precise_equal_str($exchange, $result7, 'percentage', '20.0'));
-    assert(precise_equal_str($exchange, $result7, 'average', '5.5'));
-    assert(precise_equal_str($exchange, $result7, 'last', '6.0'));
+    precise_equal_fields($exchange, $result7, ['change', '1.0', 'percentage', '20.0', 'average', '5.5', 'last', '6.0']);
     // CASE 8 - full ticker
     $ticker8 = array(
         'open' => 5,
@@ -111,24 +103,7 @@ function test_safe_ticker() {
         'info' => array(),
     );
     $result8 = $exchange->safe_ticker($ticker8);
-    assert(precise_equal_str($exchange, $result8, 'open', '5.0'));
-    assert(precise_equal_str($exchange, $result8, 'high', '6.5'));
-    assert(precise_equal_str($exchange, $result8, 'low', '4.5'));
-    assert(precise_equal_str($exchange, $result8, 'close', '6.0'));
-    assert(precise_equal_str($exchange, $result8, 'last', '6.0'));
-    assert(precise_equal_str($exchange, $result8, 'change', '1.0'));
-    assert(precise_equal_str($exchange, $result8, 'percentage', '20.0'));
-    assert(precise_equal_str($exchange, $result8, 'average', '5.5'));
-    assert(precise_equal_str($exchange, $result8, 'bid', '5.9'));
-    assert(precise_equal_str($exchange, $result8, 'bidVolume', '100.0'));
-    assert(precise_equal_str($exchange, $result8, 'ask', '6.1'));
-    assert(precise_equal_str($exchange, $result8, 'askVolume', '200.0'));
-    assert(precise_equal_str($exchange, $result8, 'vwap', '5.75'));
-    assert(precise_equal_str($exchange, $result8, 'baseVolume', '1000.0'));
-    assert(precise_equal_str($exchange, $result8, 'quoteVolume', '5750.0'));
-    assert(precise_equal_str($exchange, $result8, 'previousClose', '4.9'));
-    assert(precise_equal_str($exchange, $result8, 'indexPrice', '5.8'));
-    assert(precise_equal_str($exchange, $result8, 'markPrice', '5.9'));
+    precise_equal_fields($exchange, $result8, ['open', '5.0', 'high', '6.5', 'low', '4.5', 'close', '6.0', 'last', '6.0', 'change', '1.0', 'percentage', '20.0', 'average', '5.5', 'bid', '5.9', 'bidVolume', '100.0', 'ask', '6.1', 'askVolume', '200.0', 'vwap', '5.75', 'baseVolume', '1000.0', 'quoteVolume', '5750.0', 'previousClose', '4.9', 'indexPrice', '5.8', 'markPrice', '5.9']);
     assert($result8['info'] !== null);
     // CASE 9 - flat day, a legitimate zero change must be preserved, see https://github.com/ccxt/ccxt/issues/25971
     $ticker9 = array(
@@ -139,21 +114,15 @@ function test_safe_ticker() {
         'percentage' => 0,
     );
     $result9 = $exchange->safe_ticker($ticker9);
-    assert(precise_equal_str($exchange, $result9, 'change', '0'));
-    assert(precise_equal_str($exchange, $result9, 'percentage', '0'));
-    assert(precise_equal_str($exchange, $result9, 'open', '6.0'));
-    assert(precise_equal_str($exchange, $result9, 'last', '6.0'));
+    precise_equal_fields($exchange, $result9, ['change', '0', 'percentage', '0', 'open', '6.0', 'last', '6.0']);
     // CASE 10 - by open and average, the pair that derives close from average
     $ticker10 = array(
         'open' => 5,
         'average' => 5.5,
     );
     $result10 = $exchange->safe_ticker($ticker10);
-    assert(precise_equal_str($exchange, $result10, 'close', '6.0'));
-    assert(precise_equal_str($exchange, $result10, 'last', '6.0'));
-    // the supplied average must survive untouched, and this path deliberately
-    // leaves change and percentage underived - pin that boundary
-    assert(precise_equal_str($exchange, $result10, 'average', '5.5'));
+    precise_equal_fields($exchange, $result10, ['close', '6.0', 'last', '6.0', 'average', '5.5']);
+    // the supplied average survives untouched, and this path leaves change and percentage underived
     assert($result10['change'] === null);
     assert($result10['percentage'] === null);
 }

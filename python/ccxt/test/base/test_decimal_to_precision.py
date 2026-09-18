@@ -35,9 +35,6 @@ def test_decimal_to_precision():
     assert exchange.decimal_to_precision('12.3456', TRUNCATE, 2, DECIMAL_PLACES) == '12.34'
     assert exchange.decimal_to_precision('12.3456', TRUNCATE, 1, DECIMAL_PLACES) == '12.3'
     assert exchange.decimal_to_precision('12.3456', TRUNCATE, 0, DECIMAL_PLACES) == '12'
-    # ['12.3456',    TRUNCATE,  -1, DECIMAL_PLACES,  '10'],   # not yet supported
-    # ['123.456',    TRUNCATE,  -2, DECIMAL_PLACES,  '120'],  # not yet supported
-    # ['123.456',    TRUNCATE,  -3, DECIMAL_PLACES,  '100'],  # not yet supported
     assert exchange.decimal_to_precision('0.0000001', TRUNCATE, 8, DECIMAL_PLACES) == '0.0000001'
     assert exchange.decimal_to_precision('0.00000001', TRUNCATE, 8, DECIMAL_PLACES) == '0.00000001'
     assert exchange.decimal_to_precision('0.000000000', TRUNCATE, 9, DECIMAL_PLACES, PAD_WITH_ZERO) == '0.000000000'
@@ -85,15 +82,6 @@ def test_decimal_to_precision():
     assert exchange.decimal_to_precision('12.3456', ROUND, 2, DECIMAL_PLACES) == '12.35'
     assert exchange.decimal_to_precision('12.3456', ROUND, 1, DECIMAL_PLACES) == '12.3'
     assert exchange.decimal_to_precision('12.3456', ROUND, 0, DECIMAL_PLACES) == '12'
-    # todo:
-    # ['9.999',     ROUND,   3, DECIMAL_PLACES,    NO_PADDING,  '9.999'],
-    # ['9.999',     ROUND,   2, DECIMAL_PLACES,    NO_PADDING,  '10'],
-    # ['9.999',     ROUND,   2, DECIMAL_PLACES, PAD_WITH_ZERO,  '10.00'],
-    # ['99.999',    ROUND,   2, DECIMAL_PLACES, PAD_WITH_ZERO,  '100.00'],
-    # ['-99.999',    ROUND,   2, DECIMAL_PLACES, PAD_WITH_ZERO, '-100.00'],
-    # ['12.3456',    ROUND,  -1, DECIMAL_PLACES,    NO_PADDING,  '10'],  # not yet supported
-    # ['123.456',    ROUND,  -1, DECIMAL_PLACES,    NO_PADDING,  '120'],  # not yet supported
-    # ['123.456',    ROUND,  -2, DECIMAL_PLACES,    NO_PADDING,  '100'],  # not yet supported
     # a problematic case in PHP
     assert exchange.decimal_to_precision('10000', ROUND, 6, DECIMAL_PLACES) == '10000'
     assert exchange.decimal_to_precision('0.00003186', ROUND, 8, DECIMAL_PLACES) == '0.00003186'

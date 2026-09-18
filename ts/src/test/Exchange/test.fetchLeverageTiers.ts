@@ -5,11 +5,6 @@ import testSharedMethods from './base/test.sharedMethods.js';
 async function testFetchLeverageTiers (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'fetchLeverageTiers';
     const tiers = await exchange.fetchLeverageTiers ([ symbol ]);
-    // const format = {
-    //     'RAY/USDT': [
-    //       {},
-    //     ],
-    // };
     testSharedMethods.assertDictionaryResponse (exchange, method, tiers, symbol);
     const tierKeys = Object.keys (tiers);
     testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, tierKeys, symbol);

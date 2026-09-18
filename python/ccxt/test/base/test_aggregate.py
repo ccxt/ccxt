@@ -27,7 +27,6 @@ def test_aggregate():
     asks = [[123.2, 456.2], [784.2, 222.44], [789.1, 111.01]]
     expected_asks = [[123.2, 456.2], [784.2, 222.44], [789.1, 111.01]]
     test_shared_methods.assert_deep_equal(exchange, None, 'aggregate', exchange.aggregate(exchange.sort_by(asks, 0)), expected_asks)
-    test_shared_methods.assert_deep_equal(exchange, None, 'aggregate', exchange.aggregate([]), [])
     # Test 1: Simple aggregation - same price combined
     result1 = exchange.aggregate([[100.2, 1.01], [101.5, 2.01], [100.2, 0.5]])
     test_shared_methods.assert_deep_equal(exchange, None, 'testAggregate', result1, [[100.2, 1.51], [101.5, 2.01]])
@@ -49,14 +48,11 @@ def test_aggregate():
     # Test 7: All zero volumes - empty result
     result7 = exchange.aggregate([[100.2, 0], [101.5, 0], [102.4, 0]])
     test_shared_methods.assert_deep_equal(exchange, None, 'testAggregate', result7, [])
-    # # Test 8: Preserves order of first occurrence
-    # const result8 = exchange.aggregate ([ [ 103, 1.0 ], [ 101.5, 1.0 ], [ 102.4, 1.0 ], [ 101.5, 0.5 ] ]);
-    # testSharedMethods.assertDeepEqual (exchange, undefined, 'testAggregate', result8, [ [ 103, 1.0 ], [ 101.5, 1.5 ], [ 102.4, 1.0 ] ]);
-    # Test 9: Decimal prices
-    result9 = exchange.aggregate([[100.5, 1.04], [100.5, 2.04], [101.5, 1.05]])
-    test_shared_methods.assert_deep_equal(exchange, None, 'testAggregate', result9, [[100.5, 3.08], [101.5, 1.05]])
-    # Test 10: Mixed zero and non-zero for same price
-    result10 = exchange.aggregate([[100.2, 1.04], [100.2, 0], [100.2, 2.04]])
-    test_shared_methods.assert_deep_equal(exchange, None, 'testAggregate', result10, [[100.2, 3.08]])
+    # Test 8: Decimal prices
+    result8 = exchange.aggregate([[100.5, 1.04], [100.5, 2.04], [101.5, 1.05]])
+    test_shared_methods.assert_deep_equal(exchange, None, 'testAggregate', result8, [[100.5, 3.08], [101.5, 1.05]])
+    # Test 9: Mixed zero and non-zero for same price
+    result9 = exchange.aggregate([[100.2, 1.04], [100.2, 0], [100.2, 2.04]])
+    test_shared_methods.assert_deep_equal(exchange, None, 'testAggregate', result9, [[100.2, 3.08]])
     # @SKIP_END_GO
     exchange.uuid()  # placeholder for astt

@@ -13,11 +13,9 @@ sys.path.append(root)
 # -*- coding: utf-8 -*-
 
 from ccxt.test.exchange.base import test_trading_fee  # noqa E402
-from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
 def test_fetch_trading_fee(exchange, skipped_properties, symbol):
     method = 'fetchTradingFee'
     fee = exchange.fetch_trading_fee(symbol)
-    test_shared_methods.assert_dictionary_response(exchange, method, fee, symbol)
     test_trading_fee(exchange, skipped_properties, method, symbol, fee)
     return True

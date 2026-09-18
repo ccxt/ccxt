@@ -10,7 +10,6 @@ async function testFeatures (exchange: Exchange, skippedProperties: object) {
         testSharedMethods.assertInArray (exchange, skippedProperties, 'features', keys, i, marketTypes);
         const marketType = keys[i];
         const value = features[marketType];
-        // assert (value !== undefined, 'exchange.features["' + marketType + '"] is undefined, that key should be either absent or have a value');
         if (value === undefined) {
             continue;
         }
@@ -121,7 +120,6 @@ function testFeaturesInner (exchange: Exchange, skippedProperties: object, featu
         testSharedMethods.assertInArray (exchange, skippedProperties, 'features', featureKeys, i, allMethods);
         testSharedMethods.assertStructure (exchange, skippedProperties, 'features', featureObj, format, undefined, true); // deep structure check
     }
-    // return true;
 }
 
 export default testFeatures;

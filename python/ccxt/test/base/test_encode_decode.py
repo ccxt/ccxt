@@ -14,26 +14,13 @@ sys.path.append(root)
 
 import ccxt.async_support as ccxt  # noqa: F402
 
-def test_encode():
-    exchange = ccxt.Exchange({
-        'id': 'sampleexchange',
-    })
-    input = 'encode-test'
-    encoded = exchange.encode(input)
-    decoded = exchange.decode(encoded)
-    assert decoded == input, 'decoded should be equal to input, got ' + decoded + ' instead of ' + input
-
-
-def test_decode():
-    exchange = ccxt.Exchange({
-        'id': 'sampleexchange',
-    })
-    input = 'decode-test'
-    encoded = exchange.encode(input)
-    decoded = exchange.decode(encoded)
-    assert decoded == input, 'decoded should be equal to input, got ' + decoded + ' instead of ' + input
-
-
 def test_encode_decode():
-    test_encode()
-    test_decode()
+    exchange = ccxt.Exchange({
+        'id': 'sampleexchange',
+    })
+    inputs = ['encode-test', 'decode-test']
+    for i in range(0, len(inputs)):
+        input = inputs[i]
+        encoded = exchange.encode(input)
+        decoded = exchange.decode(encoded)
+        assert decoded == input, 'decoded should be equal to input, got ' + decoded + ' instead of ' + input

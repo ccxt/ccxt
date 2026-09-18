@@ -13,40 +13,12 @@ function test_extract_params() {
     $exchange = new \ccxt\async\Exchange(array(
         'id' => 'sampleexchange',
     ));
-    // Test 1: Single param
-    $result1 = $exchange->extract_params('/users/{id}');
-    assert_deep_equal($exchange, null, 'testExtractParams', $result1, ['id']);
-    // Test 2: Multiple params
-    $result2 = $exchange->extract_params('/users/{user_id}/orders/{order_id}');
-    assert_deep_equal($exchange, null, 'testExtractParams', $result2, ['user_id', 'order_id']);
-    // Test 3: No params
-    $result3 = $exchange->extract_params('/api/health');
-    assert_deep_equal($exchange, null, 'testExtractParams', $result3, []);
-    // Test 4: Params with hyphens
-    $result4 = $exchange->extract_params('/api/{resource-name}/{resource-id}');
-    assert_deep_equal($exchange, null, 'testExtractParams', $result4, ['resource-name', 'resource-id']);
-    // Test 5: Mixed path and params
-    $result5 = $exchange->extract_params('/v1/{version}/users/{user_id}/profile');
-    assert_deep_equal($exchange, null, 'testExtractParams', $result5, ['version', 'user_id']);
-    // Test 6: Empty string
-    $result6 = $exchange->extract_params('');
-    assert_deep_equal($exchange, null, 'testExtractParams', $result6, []);
-    // Test 7: Multiple params in longer URL
-    $result7 = $exchange->extract_params('/api/{org}/{repo}/pulls/{pull_number}/comments/{comment_id}');
-    assert_deep_equal($exchange, null, 'testExtractParams', $result7, ['org', 'repo', 'pull_number', 'comment_id']);
-    // Test 8: Param at start and end
-    $result8 = $exchange->extract_params('{start}/middle/{end}');
-    assert_deep_equal($exchange, null, 'testExtractParams', $result8, ['start', 'end']);
-    // Test 9: Adjacent params
-    $result9 = $exchange->extract_params('{a}{b}{c}');
-    assert_deep_equal($exchange, null, 'testExtractParams', $result9, ['a', 'b', 'c']);
-    // Test 10: Param with underscores
-    $result10 = $exchange->extract_params('/api/{my_param_name}');
-    assert_deep_equal($exchange, null, 'testExtractParams', $result10, ['my_param_name']);
-    // Test 11: Single character param
-    $result11 = $exchange->extract_params('/api/{x}');
-    assert_deep_equal($exchange, null, 'testExtractParams', $result11, ['x']);
-    // Test 12: Only static path
-    $result12 = $exchange->extract_params('/api/v1/users/orders/items');
-    assert_deep_equal($exchange, null, 'testExtractParams', $result12, []);
+    // paths -> expected params, in order: single, multiple, none, hyphens, mixed,
+    // empty, long url, edges, adjacent, underscores, single char, static only
+    $paths = ['/users/{id}', '/users/{user_id}/orders/{order_id}', '/api/health', '/api/{resource-name}/{resource-id}', '/v1/{version}/users/{user_id}/profile', '', '/api/{org}/{repo}/pulls/{pull_number}/comments/{comment_id}', '{start}/middle/{end}', '{a}{b}{c}', '/api/{my_param_name}', '/api/{x}', '/api/v1/users/orders/items'];
+    $expected = [['id'], ['user_id', 'order_id'], [], ['resource-name', 'resource-id'], ['version', 'user_id'], [], ['org', 'repo', 'pull_number', 'comment_id'], ['start', 'end'], ['a', 'b', 'c'], ['my_param_name'], ['x'], []];
+    for ($i = 0; $i < count($paths); $i++) {
+        $result = $exchange->extract_params($paths[$i]);
+        assert_deep_equal($exchange, null, 'testExtractParams', $result, $expected[$i]);
+    }
 }

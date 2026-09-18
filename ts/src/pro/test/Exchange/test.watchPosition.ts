@@ -18,7 +18,6 @@ async function testWatchPosition (exchange: Exchange, skippedProperties: object,
                 throw e;
             }
             now = exchange.milliseconds ();
-            // continue;
             success = false;
         }
         if ((success === true) && (response !== undefined)) {

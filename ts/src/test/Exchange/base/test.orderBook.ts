@@ -30,37 +30,31 @@ function testOrderBook (exchange: Exchange, skippedProperties: object, method: s
     const logText = testSharedMethods.logTemplate (exchange, method, orderbook);
     // todo: check non-emtpy arrays for bids/asks for toptier exchanges
     const bids = orderbook['bids'];
-    const bidsLength = bids.length;
-    for (let i = 0; i < bidsLength; i++) {
-        const currentBidString = exchange.safeString (bids[i], 0);
-        if (!('compareToNextItem' in skippedProperties)) {
-            const nextI = i + 1;
-            if (bidsLength > nextI) {
-                const nextBidString = exchange.safeString (bids[nextI], 0);
-                assert (Precise.stringGt (currentBidString, nextBidString), 'current bid should be > than the next one: ' + currentBidString + '>' + nextBidString + logText);
-            }
-        }
-        if (!('compareToZero' in skippedProperties)) {
-            // compare price & volume to zero
-            testSharedMethods.assertGreater (exchange, skippedProperties, method, bids[i], 0, '0');
-            testSharedMethods.assertGreater (exchange, skippedProperties, method, bids[i], 1, '0');
-        }
-    }
     const asks = orderbook['asks'];
+    const bidsLength = bids.length;
     const asksLength = asks.length;
-    for (let i = 0; i < asksLength; i++) {
-        const currentAskString = exchange.safeString (asks[i], 0);
-        if (!('compareToNextItem' in skippedProperties)) {
-            const nextI = i + 1;
-            if (asksLength > nextI) {
-                const nextAskString = exchange.safeString (asks[nextI], 0);
-                assert (Precise.stringLt (currentAskString, nextAskString), 'current ask should be < than the next one: ' + currentAskString + '<' + nextAskString + logText);
+    const sides = [ 'bids', 'asks' ];
+    for (let s = 0; s < sides.length; s++) {
+        const isBid = (sides[s] === 'bids');
+        const entries = isBid ? bids : asks;
+        const entriesLength = entries.length;
+        const direction = isBid ? '>' : '<';
+        const label = isBid ? 'bid' : 'ask';
+        for (let i = 0; i < entriesLength; i++) {
+            const currentString = exchange.safeString (entries[i], 0);
+            if (!('compareToNextItem' in skippedProperties)) {
+                const nextI = i + 1;
+                if (entriesLength > nextI) {
+                    const nextString = exchange.safeString (entries[nextI], 0);
+                    const isOrdered = isBid ? Precise.stringGt (currentString, nextString) : Precise.stringLt (currentString, nextString);
+                    assert (isOrdered, 'current ' + label + ' should be ' + direction + ' than the next one: ' + currentString + direction + nextString + logText);
+                }
             }
-        }
-        if (!('compareToZero' in skippedProperties)) {
-            // compare price & volume to zero
-            testSharedMethods.assertGreater (exchange, skippedProperties, method, asks[i], 0, '0');
-            testSharedMethods.assertGreater (exchange, skippedProperties, method, asks[i], 1, '0');
+            if (!('compareToZero' in skippedProperties)) {
+                // compare price & volume to zero
+                testSharedMethods.assertGreater (exchange, skippedProperties, method, entries[i], 0, '0');
+                testSharedMethods.assertGreater (exchange, skippedProperties, method, entries[i], 1, '0');
+            }
         }
     }
     if (!('spread' in skippedProperties)) {

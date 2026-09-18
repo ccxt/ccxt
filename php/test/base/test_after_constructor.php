@@ -14,7 +14,6 @@ function helper_test_init_throttler() {
         'id' => 'sampleexchange',
         'rateLimit' => 10.8,
     ));
-    // todo: assert (exchange.MAX_VALUE !== undefined);
     $token_bucket = exchange_prop($exchange, 'tokenBucket'); // trick for uncamelcase transpilation
     assert($token_bucket !== null);
     $rate_limit = exchange_prop($exchange, 'rateLimit');
@@ -46,7 +45,6 @@ function helper_test_sandbox_state($exchange, $expect_enabled = true) {
 
 
 function helper_test_init_sandbox() {
-    // todo: sandbox for real exchanges
     $opts = array(
         'id' => 'sampleexchange',
         'options' => array(
@@ -117,13 +115,6 @@ function helper_test_properties() {
     // options
     //
     assert($exchange->options !== null);
-    // const defaultNetworkCodeReplacements = [
-    //     { 'baseCoin': 'ETH', 'primary': 'ETH', 'secondary': 'ERC20' },
-    //     { 'baseCoin': 'CRO', 'primary': 'CRONOS', 'secondary': 'CRC20' },
-    //     { 'baseCoin': 'TRX', 'primary': 'TRX', 'secondary': 'TRC20' },
-    //     { 'baseCoin': 'BTC', 'primary': 'BTC', 'secondary': 'BRC20' },
-    // ];
-    // testSharedMethods.assertDeepEqual (exchange, {}, 'options', exchange.options['defaultNetworkCodeReplacements'], defaultNetworkCodeReplacements);
     //
     // credentials
     //
