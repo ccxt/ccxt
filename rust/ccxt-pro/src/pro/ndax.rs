@@ -398,7 +398,7 @@ impl NdaxCore {
 }
 
     pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
-        let mut payload: Value = self.safe_list_k(message.clone(), "o", &[Value::List(vec![])]);
+        let mut payload: Vec<Value> = self.safe_list_k(message.clone(), "o", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         //
         // initial snapshot
         //
@@ -427,7 +427,7 @@ impl NdaxCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_523: bool = true;
             while { if !__for_first_523 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_523 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(payload.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut trade: Value = self.parse_trade(get_value(&payload, &i), &[]);
+            let mut trade: Value = self.parse_trade(match &i { Value::Int(__n) => payload.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| payload.get(__n)), _ => None }.cloned().unwrap_or(Value::Null), &[]);
             let mut symbol: Value = trade.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut tradesArray: Value = (if is_true(&(Value::Bool(symbol == Value::Null))) { Value::Null } else { self.safe_value(self.trades.clone(), symbol.clone(), &[]) });
             if (tradesArray == Value::Null) {
@@ -523,7 +523,7 @@ impl NdaxCore {
         //         "o": [[1608284160000,23113.52,23070.88,23075.76,23075.39,162.44964300,23075.38,23075.39,8,1608284100000]],
         //     }
         //
-        let mut payload: Value = self.safe_list_k(message.clone(), "o", &[Value::List(vec![])]);
+        let mut payload: Vec<Value> = self.safe_list_k(message.clone(), "o", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         //
         //     [
         //         [
@@ -548,8 +548,8 @@ impl NdaxCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_526: bool = true;
             while { if !__for_first_526 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_526 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(payload.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut ohlcv: Value = get_value(&payload, &i);
-            let mut ohlcv: Value = get_value(&payload, &i);
+            let mut ohlcv: Value = match &i { Value::Int(__n) => payload.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| payload.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut ohlcv: Value = match &i { Value::Int(__n) => payload.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| payload.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string(ohlcv.clone(), Value::Int(8), &[]);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);

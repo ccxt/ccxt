@@ -642,7 +642,7 @@ impl P2bCore {
         //    }
         //
         let mut data: Value = self.safe_list_k(message.clone(), "params", &[Value::List(vec![])]);
-        let mut trades: Value = self.safe_list(data.clone(), Value::Int(1), &[]);
+        let mut trades: Vec<Value> = self.safe_list(data.clone(), Value::Int(1), &[]).as_array().cloned().unwrap_or_default();
         let mut marketId: Value = self.safe_string(data.clone(), Value::Int(0), &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[]);
@@ -656,8 +656,8 @@ impl P2bCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_572: bool = true;
             while { if !__for_first_572 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_572 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(trades.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut item: Value = get_value(&trades, &i);
-            let mut item: Value = get_value(&trades, &i);
+            let mut item: Value = match &i { Value::Int(__n) => trades.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| trades.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut item: Value = match &i { Value::Int(__n) => trades.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| trades.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut trade: Value = self.parse_trade(item.clone(), &[market.clone()]);
             tradesArray.append(trade.clone());
         }

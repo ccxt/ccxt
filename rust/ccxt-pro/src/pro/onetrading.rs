@@ -518,14 +518,14 @@ impl OnetradingCore {
         //         "time": "2022-06-23T16:41:00.004162Z"
         //     }
         //
-        let mut tickers: Value = self.safe_list_k(message.clone(), "ticker_updates", &[Value::List(vec![])]);
+        let mut tickers: Vec<Value> = self.safe_list_k(message.clone(), "ticker_updates", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut datetime: Value = self.safe_string_k(message.clone(), "time", &[]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_560: bool = true;
             while { if !__for_first_560 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_560 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(tickers.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut ticker: Value = get_value(&tickers, &i);
-            let mut ticker: Value = get_value(&tickers, &i);
+            let mut ticker: Value = match &i { Value::Int(__n) => tickers.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| tickers.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut ticker: Value = match &i { Value::Int(__n) => tickers.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| tickers.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(ticker.clone(), "instrument", &[]);
             let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
             { let __be_tmp = self.parse_ws_ticker(ticker.clone(), &[]); add_element_to_object(&mut self.tickers, &symbol, __be_tmp); };
@@ -1081,7 +1081,7 @@ impl OnetradingCore {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             self.myTrades = ArrayCacheBySymbolById::new(limit.clone());
         }
-        let mut rawOrders: Value = self.safe_list_k(message.clone(), "orders", &[Value::List(vec![])]);
+        let mut rawOrders: Vec<Value> = self.safe_list_k(message.clone(), "orders", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut rawOrdersLength: Value = Value::Int(rawOrders.len() as i64);
         if (rawOrdersLength.as_f64() == Some(0.0)) {
             return;
@@ -1091,16 +1091,16 @@ impl OnetradingCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_563: bool = true;
             while { if !__for_first_563 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_563 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rawOrders.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut order: Value = self.parse_order(get_value(&rawOrders, &i), &[]);
+            let mut order: Value = self.parse_order(match &i { Value::Int(__n) => rawOrders.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| rawOrders.get(__n)), _ => None }.cloned().unwrap_or(Value::Null), &[]);
             let mut symbol: Value = self.safe_string_k(order.clone(), "symbol", &[Value::Str("".to_string())]);
             orders.append(order.clone());
             client.resolve(&[self.orders.clone(), Value::Str(format!("{}{}", Value::Str("orders:".to_string()), symbol))]);
-            let mut rawTrades: Value = self.safe_list_k(get_value(&rawOrders, &i), "trades", &[Value::List(vec![])]);
+            let mut rawTrades: Vec<Value> = self.safe_list_k(match &i { Value::Int(__n) => rawOrders.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| rawOrders.get(__n)), _ => None }.cloned().unwrap_or(Value::Null), "trades", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
             {
                                 let mut ii: Value = Value::Int(0);
                 let mut __for_first_562: bool = true;
                 while { if !__for_first_562 { ii = (match (&(ii), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_562 = false; ii.as_f64().unwrap_or(f64::NAN) < Value::Int(rawTrades.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                let mut trade: Value = self.parse_trade(get_value(&rawTrades, &ii), &[]);
+                let mut trade: Value = self.parse_trade(match &ii { Value::Int(__n) => rawTrades.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| rawTrades.get(__n)), _ => None }.cloned().unwrap_or(Value::Null), &[]);
                 symbol = self.safe_string_k(trade.clone(), "symbol", &[symbol.clone()]);
                 self.myTrades.append(trade.clone());
                 client.resolve(&[self.myTrades.clone(), Value::Str(format!("{}{}", Value::Str("myTrades:".to_string()), symbol))]);

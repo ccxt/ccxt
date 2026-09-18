@@ -1059,13 +1059,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut messageHash: Value = self.safe_string_k(message.clone(), "subscription", &[]);
         let mut marketId: Value = self.safe_string_k(message.clone(), "instrument_name", &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
-        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Vec<Value> = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_297: bool = true;
             while { if !__for_first_297 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_297 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut ticker: Value = get_value(&data, &i);
-            let mut ticker: Value = get_value(&data, &i);
+            let mut ticker: Value = match &i { Value::Int(__n) => data.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| data.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut ticker: Value = match &i { Value::Int(__n) => data.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| data.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut parsed: Value = self.parse_ws_ticker(ticker.clone(), &[market.clone()]);
             let mut symbol: Value = parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {
@@ -1567,7 +1567,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut rawPositions: Value = self.safe_list_k(firstData.clone(), "positions", &[Value::List(vec![])]);
+        let mut rawPositions: Vec<Value> = self.safe_list_k(firstData.clone(), "positions", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         if (self.positions.clone() == Value::Null) {
             self.positions = ArrayCacheBySymbolBySide::new(Value::Null);
         }
@@ -1577,8 +1577,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: Value = Value::Int(0);
             let mut __for_first_302: bool = true;
             while { if !__for_first_302 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_302 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rawPositions.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut rawPosition: Value = get_value(&rawPositions, &i);
-            let mut rawPosition: Value = get_value(&rawPositions, &i);
+            let mut rawPosition: Value = match &i { Value::Int(__n) => rawPositions.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| rawPositions.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut rawPosition: Value = match &i { Value::Int(__n) => rawPositions.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| rawPositions.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut position: Value = self.parse_position(rawPosition.clone(), &[]);
             append_to_array(&mut newPositions, position.clone());
             cache.append(position.clone());
@@ -1670,14 +1670,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         let mut messageHash: Value = self.safe_string_k(message.clone(), "subscription", &[]);
         let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
-        let mut positionBalances: Value = self.safe_list(data.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Str("position_balances".to_string()), &[Value::List(vec![])]);
+        let mut positionBalances: Vec<Value> = self.safe_list(data.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Str("position_balances".to_string()), &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         add_element_to_object(&mut self.balance, &Value::Str("info".to_string()), data.clone());
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_304: bool = true;
             while { if !__for_first_304 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_304 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(positionBalances.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut balance: Value = get_value(&positionBalances, &i);
-            let mut balance: Value = get_value(&positionBalances, &i);
+            let mut balance: Value = match &i { Value::Int(__n) => positionBalances.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| positionBalances.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut balance: Value = match &i { Value::Int(__n) => positionBalances.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| positionBalances.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "instrument_name", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut account: Value = self.account();
@@ -2197,16 +2197,16 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 if (id.as_str() != subId.as_str()) {
                     continue;
                 }
-                let mut messageHashes: Value = self.safe_list_k(subscription.clone(), "messageHashes", &[Value::List(vec![])]);
-                let mut subMessageHashes: Value = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::List(vec![])]);
+                let mut messageHashes: Vec<Value> = self.safe_list_k(subscription.clone(), "messageHashes", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
+                let mut subMessageHashes: Vec<Value> = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
                 {
                                         let mut j: Value = Value::Int(0);
                     let mut __for_first_305: bool = true;
                     while { if !__for_first_305 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_305 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(messageHashes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                    let mut unsubHash: Value = get_value(&messageHashes, &j);
-                    let mut unsubHash: Value = get_value(&messageHashes, &j);
-                    let mut subHash: Value = get_value(&subMessageHashes, &j);
-                    let mut subHash: Value = get_value(&subMessageHashes, &j);
+                    let mut unsubHash: Value = match &j { Value::Int(__n) => messageHashes.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| messageHashes.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+                    let mut unsubHash: Value = match &j { Value::Int(__n) => messageHashes.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| messageHashes.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+                    let mut subHash: Value = match &j { Value::Int(__n) => subMessageHashes.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| subMessageHashes.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+                    let mut subHash: Value = match &j { Value::Int(__n) => subMessageHashes.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| subMessageHashes.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
                     self.clean_unsubscription(client.clone(), subHash.clone(), unsubHash.clone(), &[]);
                 }
                 }

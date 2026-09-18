@@ -2076,7 +2076,7 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut currenciesData: Value = self.safe_list_k(currenciesResult.clone(), "currencies", &[Value::List(vec![])]);
+        let mut currenciesData: Vec<Value> = self.safe_list_k(currenciesResult.clone(), "currencies", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut chainsDataIndexed: Value = self.index_by(chainsData.clone(), Value::Str("currency".to_string()));
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2086,15 +2086,15 @@ impl XtCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1145: bool = true;
             while { if !__for_first_1145 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1145 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(currenciesData.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = get_value(&currenciesData, &i);
-            let mut entry: Value = get_value(&currenciesData, &i);
+            let mut entry: Value = match &i { Value::Int(__n) => currenciesData.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| currenciesData.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut entry: Value = match &i { Value::Int(__n) => currenciesData.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| currenciesData.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "currency", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut networkEntry: Value = self.safe_dict(chainsDataIndexed.clone(), currencyId.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut rawNetworks: Value = self.safe_list_k(networkEntry.clone(), "supportChains", &[Value::List(vec![])]);
+            let mut rawNetworks: Vec<Value> = self.safe_list_k(networkEntry.clone(), "supportChains", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
             let mut networks: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -2103,8 +2103,8 @@ impl XtCore {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_1144: bool = true;
                 while { if !__for_first_1144 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1144 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(rawNetworks.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                let mut rawNetwork: Value = get_value(&rawNetworks, &j);
-                let mut rawNetwork: Value = get_value(&rawNetworks, &j);
+                let mut rawNetwork: Value = match &j { Value::Int(__n) => rawNetworks.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| rawNetworks.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+                let mut rawNetwork: Value = match &j { Value::Int(__n) => rawNetworks.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| rawNetworks.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
                 let mut networkId: Value = self.safe_string_k(rawNetwork.clone(), "chain", &[]);
                 let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
                 if (networkCode != Value::Null) {
@@ -2505,7 +2505,7 @@ impl XtCore {
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
         let mut state: Value = self.safe_string_k(market.clone(), "state", &[]);
         let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
-        let mut filters: Value = self.safe_list_k(market.clone(), "filters", &[Value::List(vec![])]);
+        let mut filters: Vec<Value> = self.safe_list_k(market.clone(), "filters", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut minAmount: Value = Value::Null;
         let mut maxAmount: Value = Value::Null;
         let mut minCost: Value = Value::Null;
@@ -2517,8 +2517,8 @@ impl XtCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1147: bool = true;
             while { if !__for_first_1147 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1147 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(filters.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = get_value(&filters, &i);
-            let mut entry: Value = get_value(&filters, &i);
+            let mut entry: Value = match &i { Value::Int(__n) => filters.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| filters.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut entry: Value = match &i { Value::Int(__n) => filters.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| filters.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut filter: Value = self.safe_string_k(entry.clone(), "filter", &[]);
             if (filter.as_str() == Some("QUANTITY")) {
                 minAmount = self.safe_number_k(entry.clone(), "min", &[]);
@@ -3103,7 +3103,7 @@ impl XtCore {
         //         ]
         //     }
         //
-        let mut tickers: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
+        let mut tickers: Vec<Value> = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3112,7 +3112,7 @@ impl XtCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1148: bool = true;
             while { if !__for_first_1148 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1148 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(tickers.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut ticker: Value = self.parse_ticker(get_value(&tickers, &i), &[market.clone()]);
+            let mut ticker: Value = self.parse_ticker(match &i { Value::Int(__n) => tickers.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| tickers.get(__n)), _ => None }.cloned().unwrap_or(Value::Null), &[market.clone()]);
             let mut symbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {
                 add_element_to_object(&mut result, &symbol, ticker.clone());
@@ -3207,7 +3207,7 @@ impl XtCore {
         //         ]
         //     }
         //
-        let mut tickers: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
+        let mut tickers: Vec<Value> = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3216,8 +3216,8 @@ impl XtCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1149: bool = true;
             while { if !__for_first_1149 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1149 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(tickers.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut rawTicker: Value = get_value(&tickers, &i);
-            let mut rawTicker: Value = get_value(&tickers, &i);
+            let mut rawTicker: Value = match &i { Value::Int(__n) => tickers.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| tickers.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut rawTicker: Value = match &i { Value::Int(__n) => tickers.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| tickers.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             // the spot and contract payloads share the same field names, so
             // the market type cannot be inferred from the entry itself
             let mut marketId: Value = self.safe_string_k(rawTicker.clone(), "s", &[]);
@@ -6374,16 +6374,16 @@ impl XtCore {
         //     }
         //
         let mut tiers: Value = Value::List(vec![]);
-        let mut brackets: Value = self.safe_list_k(info.clone(), "leverageBrackets", &[Value::List(vec![])]);
+        let mut brackets: Vec<Value> = self.safe_list_k(info.clone(), "leverageBrackets", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1152: bool = true;
             while { if !__for_first_1152 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1152 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(brackets.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut tier: Value = get_value(&brackets, &i);
-            let mut tier: Value = get_value(&brackets, &i);
+            let mut tier: Value = match &i { Value::Int(__n) => brackets.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| brackets.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut tier: Value = match &i { Value::Int(__n) => brackets.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| brackets.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(info.clone(), "symbol", &[]);
             market = self.safe_market(&[marketId.clone(), market.clone(), Value::Str("_".to_string()), Value::Str("contract".to_string())]);
-            let mut minNotional: Value = self.safe_number(get_value(&brackets, &(match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), Value::Str("maxNominalValue".to_string()), &[Value::Int(0)]);
+            let mut minNotional: Value = self.safe_number(match &(match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }) { Value::Int(__n) => brackets.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| brackets.get(__n)), _ => None }.cloned().unwrap_or(Value::Null), Value::Str("maxNominalValue".to_string()), &[Value::Int(0)]);
             append_to_array(&mut tiers, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("tier".to_string(), self.safe_integer_k(tier.clone(), "bracket", &[]));
@@ -6482,14 +6482,14 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut items: Value = self.safe_list_k(result.clone(), "items", &[Value::List(vec![])]);
+        let mut items: Vec<Value> = self.safe_list_k(result.clone(), "items", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1153: bool = true;
             while { if !__for_first_1153 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1153 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(items.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = get_value(&items, &i);
-            let mut entry: Value = get_value(&items, &i);
+            let mut entry: Value = match &i { Value::Int(__n) => items.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| items.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut entry: Value = match &i { Value::Int(__n) => items.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| items.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
             let mut symbolInner: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "createdTime", &[]);
@@ -6914,14 +6914,14 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut items: Value = self.safe_list_k(data.clone(), "items", &[Value::List(vec![])]);
+        let mut items: Vec<Value> = self.safe_list_k(data.clone(), "items", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1155: bool = true;
             while { if !__for_first_1155 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1155 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(items.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = get_value(&items, &i);
-            let mut entry: Value = get_value(&items, &i);
+            let mut entry: Value = match &i { Value::Int(__n) => items.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| items.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut entry: Value = match &i { Value::Int(__n) => items.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| items.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             append_to_array(&mut result, self.parse_funding_history(entry.clone(), &[market.clone()]));
         }
         }
@@ -7100,14 +7100,14 @@ impl XtCore {
         //         ]
         //     }
         //
-        let mut positions: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
+        let mut positions: Vec<Value> = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut breakBySymbolSide: Value = self.index_position_break_list(self.safe_list_k(breakResponse.clone(), "result", &[Value::List(vec![])]));
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1157: bool = true;
             while { if !__for_first_1157 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1157 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(positions.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = get_value(&positions, &i);
-            let mut entry: Value = get_value(&positions, &i);
+            let mut entry: Value = match &i { Value::Int(__n) => positions.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| positions.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut entry: Value = match &i { Value::Int(__n) => positions.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| positions.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
             let mut marketInner: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, Value::Str("contract".to_string())]);
             let mut positionSize: Value = self.safe_string_k(entry.clone(), "positionSize", &[]);
@@ -7196,15 +7196,15 @@ impl XtCore {
         //         ]
         //     }
         //
-        let mut positions: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
+        let mut positions: Vec<Value> = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut breakBySymbolSide: Value = self.index_position_break_list(self.safe_list_k(breakResponse.clone(), "result", &[Value::List(vec![])]));
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1158: bool = true;
             while { if !__for_first_1158 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1158 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(positions.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = get_value(&positions, &i);
-            let mut entry: Value = get_value(&positions, &i);
+            let mut entry: Value = match &i { Value::Int(__n) => positions.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| positions.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut entry: Value = match &i { Value::Int(__n) => positions.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| positions.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
             let mut marketInner: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, Value::Str("contract".to_string())]);
             let mut merged: Value = self.merge_position_break_info(entry.clone(), breakBySymbolSide.clone());

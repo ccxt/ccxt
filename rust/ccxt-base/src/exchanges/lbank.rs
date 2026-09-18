@@ -1054,14 +1054,14 @@ impl LbankCore {
         //         "ts": 1691560288484
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Vec<Value> = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_909: bool = true;
             while { if !__for_first_909 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_909 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut market: Value = get_value(&data, &i);
-            let mut market: Value = get_value(&data, &i);
+            let mut market: Value = match &i { Value::Int(__n) => data.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| data.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut market: Value = match &i { Value::Int(__n) => data.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| data.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(market.clone(), "symbol", &[]);
             let mut parts: Value = split(&marketId, &Value::Str("_".to_string()));
             let mut baseId: Value = parts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
@@ -1179,14 +1179,14 @@ impl LbankCore {
         //         "success": true
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Vec<Value> = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_910: bool = true;
             while { if !__for_first_910 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_910 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut market: Value = get_value(&data, &i);
-            let mut market: Value = get_value(&data, &i);
+            let mut market: Value = match &i { Value::Int(__n) => data.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| data.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut market: Value = match &i { Value::Int(__n) => data.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| data.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(market.clone(), "symbol", &[]);
             let mut baseId: Value = self.safe_string_k(market.clone(), "baseCurrency", &[]);
             let mut settleId: Value = self.safe_string_k(market.clone(), "clearCurrency", &[]);
@@ -2280,7 +2280,7 @@ impl LbankCore {
         });
         let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.spot_private_post_supplement_customer_trade_fee(&[__ws_arg_11]).await;
-        let mut fees: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut fees: Vec<Value> = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2289,7 +2289,7 @@ impl LbankCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_914: bool = true;
             while { if !__for_first_914 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_914 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(fees.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut fee: Value = self.parse_trading_fee(get_value(&fees, &i), &[]);
+            let mut fee: Value = self.parse_trading_fee(match &i { Value::Int(__n) => fees.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| fees.get(__n)), _ => None }.cloned().unwrap_or(Value::Null), &[]);
             let mut symbol: Value = fee.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             add_element_to_object(&mut result, &symbol, fee.clone());
         }
@@ -3656,7 +3656,7 @@ impl LbankCore {
         //        "code": 0
         //    }
         //
-        let mut result: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut result: Vec<Value> = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut withdrawFees: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3665,11 +3665,11 @@ impl LbankCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_916: bool = true;
             while { if !__for_first_916 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_916 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(result.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = get_value(&result, &i);
-            let mut entry: Value = get_value(&result, &i);
+            let mut entry: Value = match &i { Value::Int(__n) => result.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| result.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut entry: Value = match &i { Value::Int(__n) => result.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| result.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "coin", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-            let mut networkList: Value = self.safe_list_k(entry.clone(), "networkList", &[Value::List(vec![])]);
+            let mut networkList: Vec<Value> = self.safe_list_k(entry.clone(), "networkList", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
             if (code != Value::Null) {
                 add_element_to_object(&mut withdrawFees, &code, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3680,8 +3680,8 @@ impl LbankCore {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_915: bool = true;
                 while { if !__for_first_915 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_915 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(networkList.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                let mut networkEntry: Value = get_value(&networkList, &j);
-                let mut networkEntry: Value = get_value(&networkList, &j);
+                let mut networkEntry: Value = match &j { Value::Int(__n) => networkList.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| networkList.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+                let mut networkEntry: Value = match &j { Value::Int(__n) => networkList.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| networkList.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
                 let mut fee: Value = self.safe_number_k(networkEntry.clone(), "withdrawFee", &[]);
                 if (fee != Value::Null) {
                     let mut networkCode: Value = self.network_id_to_code(&[self.safe_string_k(networkEntry.clone(), "name", &[]), code.clone()]);
@@ -3752,7 +3752,7 @@ impl LbankCore {
         //        "ts": "1663364435973"
         //    }
         //
-        let mut result: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut result: Vec<Value> = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut withdrawFees: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3761,8 +3761,8 @@ impl LbankCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_917: bool = true;
             while { if !__for_first_917 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_917 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(result.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut item: Value = get_value(&result, &i);
-            let mut item: Value = get_value(&result, &i);
+            let mut item: Value = match &i { Value::Int(__n) => result.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| result.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut item: Value = match &i { Value::Int(__n) => result.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| result.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut canWithdraw: Value = self.safe_value_k(item.clone(), "canWithDraw", &[]);
             if (canWithdraw.as_str() == Some("true")) {
                 let mut currencyId: Value = self.safe_string_k(item.clone(), "assetCode", &[]);
@@ -4042,13 +4042,13 @@ impl LbankCore {
         //
         let mut result: Value = self.deposit_withdraw_fee(fee.clone());
         let mut code: Value = self.safe_string_k(currency.clone(), "code", &[]);
-        let mut networkList: Value = self.safe_list_k(fee.clone(), "networkList", &[Value::List(vec![])]);
+        let mut networkList: Vec<Value> = self.safe_list_k(fee.clone(), "networkList", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_919: bool = true;
             while { if !__for_first_919 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_919 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(networkList.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut networkEntry: Value = get_value(&networkList, &j);
-            let mut networkEntry: Value = get_value(&networkList, &j);
+            let mut networkEntry: Value = match &j { Value::Int(__n) => networkList.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| networkList.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut networkEntry: Value = match &j { Value::Int(__n) => networkList.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| networkList.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut networkCode: Value = self.network_id_to_code(&[self.safe_string_k(networkEntry.clone(), "name", &[]), code.clone()]);
             let mut withdrawFee: Value = self.safe_number_k(networkEntry.clone(), "withdrawFee", &[]);
             let mut isDefault: Value = self.safe_value_k(networkEntry.clone(), "isDefault", &[]);

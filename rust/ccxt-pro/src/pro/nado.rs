@@ -1568,7 +1568,7 @@ impl NadoCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut cancelledOrders: Value = self.safe_list_k(data.clone(), "cancelled_orders", &[Value::List(vec![])]);
+        let mut cancelledOrders: Vec<Value> = self.safe_list_k(data.clone(), "cancelled_orders", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -1578,7 +1578,7 @@ impl NadoCore {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("status".to_string(), Value::Str("canceled".to_string()));
                 m
-            }), &[get_value(&cancelledOrders, &i)]);
+            }), &[match &i { Value::Int(__n) => cancelledOrders.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| cancelledOrders.get(__n)), _ => None }.cloned().unwrap_or(Value::Null)]);
             append_to_array(&mut result, self.parse_order(__ws_arg_14, &[market.clone()]));
         }
         }
@@ -1631,7 +1631,7 @@ impl NadoCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut cancelledOrders: Value = self.safe_list_k(data.clone(), "cancelled_orders", &[Value::List(vec![])]);
+        let mut cancelledOrders: Vec<Value> = self.safe_list_k(data.clone(), "cancelled_orders", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -1641,7 +1641,7 @@ impl NadoCore {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("status".to_string(), Value::Str("canceled".to_string()));
                 m
-            }), &[get_value(&cancelledOrders, &i)]);
+            }), &[match &i { Value::Int(__n) => cancelledOrders.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| cancelledOrders.get(__n)), _ => None }.cloned().unwrap_or(Value::Null)]);
             append_to_array(&mut result, self.parse_order(__ws_arg_16, &[market.clone()]));
         }
         }

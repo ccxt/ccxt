@@ -330,7 +330,7 @@ impl LunoCore {
         //         "timestamp": 1660598775360
         //     }
         //
-        let mut rawTrades: Value = self.safe_list_k(message.clone(), "trade_updates", &[Value::List(vec![])]);
+        let mut rawTrades: Vec<Value> = self.safe_list_k(message.clone(), "trade_updates", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut length: Value = Value::Int(rawTrades.len() as i64);
         if (length.as_f64() == Some(0.0)) {
             return;
@@ -348,8 +348,8 @@ impl LunoCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_487: bool = true;
             while { if !__for_first_487 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_487 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rawTrades.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut rawTrade: Value = get_value(&rawTrades, &i);
-            let mut rawTrade: Value = get_value(&rawTrades, &i);
+            let mut rawTrade: Value = match &i { Value::Int(__n) => rawTrades.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| rawTrades.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut rawTrade: Value = match &i { Value::Int(__n) => rawTrades.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| rawTrades.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut trade: Value = self.parse_trade(rawTrade.clone(), &[market.clone()]);
             stored.append(trade.clone());
         }

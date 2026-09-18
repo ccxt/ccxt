@@ -2280,7 +2280,7 @@ impl BingxCore {
         let mut currencyId: Value = self.safe_string_k(rawCurrency.clone(), "coin", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
         let mut name: Value = self.safe_string_k(rawCurrency.clone(), "name", &[]);
-        let mut networkList: Value = self.safe_list_k(rawCurrency.clone(), "networkList", &[]);
+        let mut networkList: Vec<Value> = self.safe_list_k(rawCurrency.clone(), "networkList", &[]).as_array().cloned().unwrap_or_default();
         let mut networks: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2289,8 +2289,8 @@ impl BingxCore {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_293: bool = true;
             while { if !__for_first_293 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_293 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(networkList.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut rawNetwork: Value = get_value(&networkList, &j);
-            let mut rawNetwork: Value = get_value(&networkList, &j);
+            let mut rawNetwork: Value = match &j { Value::Int(__n) => networkList.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| networkList.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut rawNetwork: Value = match &j { Value::Int(__n) => networkList.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| networkList.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut network: Value = self.safe_string_k(rawNetwork.clone(), "network", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[network.clone(), code.clone()]);
             let mut limits: Value = Value::Map({
@@ -7894,7 +7894,7 @@ impl BingxCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut success: Value = self.safe_list_k(data.clone(), "success", &[Value::List(vec![])]);
+        let mut success: Vec<Value> = self.safe_list_k(data.clone(), "success", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut positions: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -7902,7 +7902,7 @@ impl BingxCore {
             while { if !__for_first_302 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_302 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(success.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut position: Value = self.parse_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("positionId".to_string(), get_value(&success, &i));
+        m.insert("positionId".to_string(), match &i { Value::Int(__n) => success.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| success.get(__n)), _ => None }.cloned().unwrap_or(Value::Null));
     m
 }), &[]);
             append_to_array(&mut positions, position.clone());

@@ -921,7 +921,7 @@ impl BitbankCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut pairs: Value = self.safe_list_k(data.clone(), "pairs", &[Value::List(vec![])]);
+        let mut pairs: Vec<Value> = self.safe_list_k(data.clone(), "pairs", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -930,8 +930,8 @@ impl BitbankCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_311: bool = true;
             while { if !__for_first_311 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_311 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(pairs.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut pair: Value = get_value(&pairs, &i);
-            let mut pair: Value = get_value(&pairs, &i);
+            let mut pair: Value = match &i { Value::Int(__n) => pairs.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| pairs.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut pair: Value = match &i { Value::Int(__n) => pairs.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| pairs.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(pair.clone(), "name", &[]);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -1044,13 +1044,13 @@ impl BitbankCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut assets: Value = self.safe_list_k(data.clone(), "assets", &[Value::List(vec![])]);
+        let mut assets: Vec<Value> = self.safe_list_k(data.clone(), "assets", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_312: bool = true;
             while { if !__for_first_312 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_312 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(assets.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut balance: Value = get_value(&assets, &i);
-            let mut balance: Value = get_value(&assets, &i);
+            let mut balance: Value = match &i { Value::Int(__n) => assets.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| assets.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut balance: Value = match &i { Value::Int(__n) => assets.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| assets.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "asset", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut account: Value = self.account();

@@ -1319,15 +1319,15 @@ impl BithumbCore {
     m
 })]);
             timestamp = self.safe_integer_k(result.clone(), "timestamp", &[]);
-            let mut orderBookUnits: Value = self.safe_list_k(result.clone(), "orderbook_units", &[Value::List(vec![])]);
+            let mut orderBookUnits: Vec<Value> = self.safe_list_k(result.clone(), "orderbook_units", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
             let mut bids: Value = Value::List(vec![]);
             let mut asks: Value = Value::List(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_370: bool = true;
                 while { if !__for_first_370 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_370 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(orderBookUnits.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                let mut entry: Value = get_value(&orderBookUnits, &i);
-                let mut entry: Value = get_value(&orderBookUnits, &i);
+                let mut entry: Value = match &i { Value::Int(__n) => orderBookUnits.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| orderBookUnits.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+                let mut entry: Value = match &i { Value::Int(__n) => orderBookUnits.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| orderBookUnits.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
                 append_to_array(&mut bids, Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("price".to_string(), self.safe_string_k(entry.clone(), "bid_price", &[]));

@@ -2580,29 +2580,29 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut isUnSub: Value = self.safe_bool_k(subscription.clone(), "unsubscribe", &[Value::Bool(false)]);
         if (isUnSub.as_bool() == Some(true)) {
-            let mut messageHashes: Value = self.safe_list_k(subscription.clone(), "messageHashes", &[Value::List(vec![])]);
-            let mut subMessageHashes: Value = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::List(vec![])]);
+            let mut messageHashes: Vec<Value> = self.safe_list_k(subscription.clone(), "messageHashes", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut subMessageHashes: Vec<Value> = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_468: bool = true;
                 while { if !__for_first_468 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_468 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(messageHashes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                let mut messageHash: Value = get_value(&messageHashes, &i);
-                let mut messageHash: Value = get_value(&messageHashes, &i);
-                let mut subHash: Value = get_value(&subMessageHashes, &i);
-                let mut subHash: Value = get_value(&subMessageHashes, &i);
+                let mut messageHash: Value = match &i { Value::Int(__n) => messageHashes.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| messageHashes.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+                let mut messageHash: Value = match &i { Value::Int(__n) => messageHashes.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| messageHashes.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+                let mut subHash: Value = match &i { Value::Int(__n) => subMessageHashes.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| subMessageHashes.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+                let mut subHash: Value = match &i { Value::Int(__n) => subMessageHashes.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| subMessageHashes.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
                 self.clean_unsubscription(client.clone(), subHash.clone(), messageHash.clone(), &[]);
             }
             }
             let mut topic: Value = self.safe_string_k(subscription.clone(), "topic", &[]);
             if (topic.as_str() == Some("fundingRate")) {
                 // todo: add fundingRate topic to cleanCache
-                let mut symbols: Value = self.safe_list_k(subscription.clone(), "symbols", &[Value::List(vec![])]);
+                let mut symbols: Vec<Value> = self.safe_list_k(subscription.clone(), "symbols", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
                 {
                                         let mut i: Value = Value::Int(0);
                     let mut __for_first_469: bool = true;
                     while { if !__for_first_469 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_469 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(symbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                    let mut symbol: Value = get_value(&symbols, &i);
-                    let mut symbol: Value = get_value(&symbols, &i);
+                    let mut symbol: Value = match &i { Value::Int(__n) => symbols.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| symbols.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+                    let mut symbol: Value = match &i { Value::Int(__n) => symbols.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| symbols.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
                     if is_true(&Value::Bool(in_op(&self.fundingRates, &symbol))) {
                         remove(&mut self.fundingRates, &symbol);
                     }

@@ -593,13 +593,13 @@ impl UpbitCore {
         add_element_to_object(&mut orderbook, &Value::Str("symbol".to_string()), symbol.clone());
         let mut bids: Value = get_value(&orderbook, &Value::Str("bids".to_string()));
         let mut asks: Value = get_value(&orderbook, &Value::Str("asks".to_string()));
-        let mut data: Value = self.safe_list_k(message.clone(), "orderbook_units", &[Value::List(vec![])]);
+        let mut data: Vec<Value> = self.safe_list_k(message.clone(), "orderbook_units", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_629: bool = true;
             while { if !__for_first_629 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_629 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = get_value(&data, &i);
-            let mut entry: Value = get_value(&data, &i);
+            let mut entry: Value = match &i { Value::Int(__n) => data.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| data.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut entry: Value = match &i { Value::Int(__n) => data.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| data.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut ask_price: Value = self.safe_float_k(entry.clone(), "ask_price", &[]);
             let mut ask_size: Value = self.safe_float_k(entry.clone(), "ask_size", &[]);
             let mut bid_price: Value = self.safe_float_k(entry.clone(), "bid_price", &[]);
@@ -1084,7 +1084,7 @@ impl UpbitCore {
         //     "stream_type": "REALTIME"
         // }
         //
-        let mut data: Value = self.safe_list_k(message.clone(), "assets", &[Value::List(vec![])]);
+        let mut data: Vec<Value> = self.safe_list_k(message.clone(), "assets", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "timestamp", &[]);
         add_element_to_object(&mut self.balance, &Value::Str("timestamp".to_string()), timestamp.clone());
         { let __be_tmp = self.iso8601(timestamp.clone()); add_element_to_object(&mut self.balance, &Value::Str("datetime".to_string()), __be_tmp); };
@@ -1092,8 +1092,8 @@ impl UpbitCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_632: bool = true;
             while { if !__for_first_632 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_632 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut balance: Value = get_value(&data, &i);
-            let mut balance: Value = get_value(&data, &i);
+            let mut balance: Value = match &i { Value::Int(__n) => data.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| data.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut balance: Value = match &i { Value::Int(__n) => data.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| data.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut available: Value = self.safe_string_k(balance.clone(), "balance", &[]);

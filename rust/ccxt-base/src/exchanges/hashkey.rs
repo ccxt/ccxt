@@ -1756,7 +1756,7 @@ impl HashkeyCore {
     pub fn parse_currency(&self, mut rawCurrency: Value) -> Value {
         let mut currencyId: Value = self.safe_string_k(rawCurrency.clone(), "coinId", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-        let mut networks: Value = self.safe_list_k(rawCurrency.clone(), "chainTypes", &[]);
+        let mut networks: Vec<Value> = self.safe_list_k(rawCurrency.clone(), "chainTypes", &[]).as_array().cloned().unwrap_or_default();
         let mut parsedNetworks: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1765,8 +1765,8 @@ impl HashkeyCore {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_723: bool = true;
             while { if !__for_first_723 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_723 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(networks.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut network: Value = get_value(&networks, &j);
-            let mut network: Value = get_value(&networks, &j);
+            let mut network: Value = match &j { Value::Int(__n) => networks.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| networks.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut network: Value = match &j { Value::Int(__n) => networks.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| networks.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut networkId: Value = self.safe_string_k(network.clone(), "chainType", &[]);
             let mut networkCode: Value = self.network_code_to_id(networkId.clone(), &[code.clone()]);
             if (networkCode != Value::Null) {
@@ -2461,13 +2461,13 @@ impl HashkeyCore {
                 m.insert("info".to_string(), balance.clone());
             m
         });
-        let mut balances: Value = self.safe_list_k(balance.clone(), "balances", &[Value::List(vec![])]);
+        let mut balances: Vec<Value> = self.safe_list_k(balance.clone(), "balances", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_724: bool = true;
             while { if !__for_first_724 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_724 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(balances.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut balanceEntry: Value = get_value(&balances, &i);
-            let mut balanceEntry: Value = get_value(&balances, &i);
+            let mut balanceEntry: Value = match &i { Value::Int(__n) => balances.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| balances.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut balanceEntry: Value = match &i { Value::Int(__n) => balances.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| balances.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut currencyId: Value = self.safe_string_k(balanceEntry.clone(), "asset", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut account: Value = self.account();
@@ -4997,7 +4997,7 @@ impl HashkeyCore {
         //         ]
         //     }
         //
-        let mut riskLimits: Value = self.safe_list_k(info.clone(), "riskLimits", &[Value::List(vec![])]);
+        let mut riskLimits: Vec<Value> = self.safe_list_k(info.clone(), "riskLimits", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut marketId: Value = self.safe_string_k(info.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut tiers: Value = Value::List(vec![]);
@@ -5005,8 +5005,8 @@ impl HashkeyCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_728: bool = true;
             while { if !__for_first_728 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_728 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(riskLimits.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut tier: Value = get_value(&riskLimits, &i);
-            let mut tier: Value = get_value(&riskLimits, &i);
+            let mut tier: Value = match &i { Value::Int(__n) => riskLimits.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| riskLimits.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut tier: Value = match &i { Value::Int(__n) => riskLimits.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| riskLimits.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut initialMarginRate: Value = self.safe_string_k(tier.clone(), "initialMargin", &[]);
             append_to_array(&mut tiers, Value::Map({
                 let mut m = indexmap::IndexMap::new();

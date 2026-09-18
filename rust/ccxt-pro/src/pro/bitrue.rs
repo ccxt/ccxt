@@ -895,7 +895,7 @@ impl BitrueCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut data: Value = self.safe_list_k(tick.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Vec<Value> = self.safe_list_k(tick.clone(), "data", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut appended: bool = false;
         let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
         {
@@ -907,7 +907,7 @@ impl BitrueCore {
                 stored = ArrayCache::new(limit.clone());
                 add_element_to_object(&mut self.trades, &symbol, stored.clone());
             }
-            let mut trade: Value = self.parse_ws_trade(get_value(&data, &i), &[market.clone()]);
+            let mut trade: Value = self.parse_ws_trade(match &i { Value::Int(__n) => data.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| data.get(__n)), _ => None }.cloned().unwrap_or(Value::Null), &[market.clone()]);
             stored.append(trade.clone());
             appended = true;
         }

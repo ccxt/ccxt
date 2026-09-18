@@ -569,7 +569,7 @@ impl CexCore {
 }
 
     pub fn handle_trades_inner(&mut self, mut client: Value, mut message: Value) {
-        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Vec<Value> = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut symbol: Value = self.safe_string(self.options.as_map().and_then(|__m| __m.get("watchTrades")).cloned().unwrap_or(Value::Null), Value::Str("symbol".to_string()), &[]);
         if (symbol == Value::Null) {
             return;
@@ -586,8 +586,8 @@ impl CexCore {
             let mut __for_first_248: bool = true;
             while { if !__for_first_248 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_248 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
             let mut index: Value = (match (&((match (&(dataLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-            let mut rawTrade: Value = get_value(&data, &index);
-            let mut rawTrade: Value = get_value(&data, &index);
+            let mut rawTrade: Value = match &index { Value::Int(__n) => data.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| data.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut rawTrade: Value = match &index { Value::Int(__n) => data.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| data.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut parsed: Value = self.parse_ws_old_trade(rawTrade.clone(), &[market.clone()]);
             stored.append(parsed.clone());
         }
@@ -1375,7 +1375,7 @@ impl CexCore {
         //     }
         //
         let mut symbol: Value = self.safe_string_k(message.clone(), "oid", &[]); // symbol is set as requestId in watchOrders
-        let mut rawOrders: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut rawOrders: Vec<Value> = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut myOrders: Value = self.orders.clone();
         if is_equal(&myOrders, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
@@ -1385,8 +1385,8 @@ impl CexCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_249: bool = true;
             while { if !__for_first_249 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_249 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rawOrders.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut rawOrder: Value = get_value(&rawOrders, &i);
-            let mut rawOrder: Value = get_value(&rawOrders, &i);
+            let mut rawOrder: Value = match &i { Value::Int(__n) => rawOrders.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| rawOrders.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut rawOrder: Value = match &i { Value::Int(__n) => rawOrders.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| rawOrders.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut market: Value = self.safe_market(&[symbol.clone()]);
             let mut order: Value = self.parse_order(rawOrder.clone(), &[market.clone()]);
             add_element_to_object(&mut order, &Value::Str("status".to_string()), Value::Str("open".to_string()));
@@ -1701,7 +1701,7 @@ impl CexCore {
         //         "pair": "BTC:USD"
         //     }
         //
-        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Vec<Value> = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut pair: Value = self.safe_string_k(message.clone(), "pair", &[]);
         let mut symbol: Value = self.pair_to_symbol(pair.clone());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ohlcv:".to_string()), symbol));
@@ -1711,7 +1711,7 @@ impl CexCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_252: bool = true;
             while { if !__for_first_252 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_252 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut ohlcv: Value = Value::List(vec![self.safe_timestamp(get_value(&data, &i), Value::Int(0), &[]), self.safe_number(get_value(&data, &i), Value::Int(1), &[]), self.safe_number(get_value(&data, &i), Value::Int(2), &[]), self.safe_number(get_value(&data, &i), Value::Int(3), &[]), self.safe_number(get_value(&data, &i), Value::Int(4), &[]), self.safe_number(get_value(&data, &i), Value::Int(5), &[])]);
+            let mut ohlcv: Value = Value::List(vec![self.safe_timestamp(match &i { Value::Int(__n) => data.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| data.get(__n)), _ => None }.cloned().unwrap_or(Value::Null), Value::Int(0), &[]), self.safe_number(match &i { Value::Int(__n) => data.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| data.get(__n)), _ => None }.cloned().unwrap_or(Value::Null), Value::Int(1), &[]), self.safe_number(match &i { Value::Int(__n) => data.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| data.get(__n)), _ => None }.cloned().unwrap_or(Value::Null), Value::Int(2), &[]), self.safe_number(match &i { Value::Int(__n) => data.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| data.get(__n)), _ => None }.cloned().unwrap_or(Value::Null), Value::Int(3), &[]), self.safe_number(match &i { Value::Int(__n) => data.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| data.get(__n)), _ => None }.cloned().unwrap_or(Value::Null), Value::Int(4), &[]), self.safe_number(match &i { Value::Int(__n) => data.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| data.get(__n)), _ => None }.cloned().unwrap_or(Value::Null), Value::Int(5), &[])]);
             stored.append(ohlcv.clone());
         }
         }

@@ -1012,12 +1012,12 @@ impl LighterCore {
         //         "type": "subscribed/trade"
         //     }
         //
-        let mut liquidationData: Value = self.safe_list_k(message.clone(), "liquidation_trades", &[Value::List(vec![])]);
+        let mut liquidationData: Vec<Value> = self.safe_list_k(message.clone(), "liquidation_trades", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut liquidationDataLength: Value = Value::Int(liquidationData.len() as i64);
         if liquidationDataLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             self.handle_liquidation(client.clone(), message.clone());
         }
-        let mut data: Value = self.safe_list_k(message.clone(), "trades", &[Value::List(vec![])]);
+        let mut data: Vec<Value> = self.safe_list_k(message.clone(), "trades", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[Value::Str("".to_string())]);
         let mut parts: Value = split(&channel, &Value::Str(":".to_string()));
         let mut marketId: Value = parts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
@@ -1035,7 +1035,7 @@ impl LighterCore {
             let mut __for_first_478: bool = true;
             while { if !__for_first_478 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_478 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
             let mut iReversed: Value = (match (&((match (&(dataLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-            let mut trade: Value = self.parse_ws_trade(get_value(&data, &iReversed), &[market.clone()]);
+            let mut trade: Value = self.parse_ws_trade(match &iReversed { Value::Int(__n) => data.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| data.get(__n)), _ => None }.cloned().unwrap_or(Value::Null), &[market.clone()]);
             stored.append(trade.clone());
         }
         }
@@ -1463,7 +1463,7 @@ impl LighterCore {
         //         "type": "subscribed/trade"
         //     }
         //
-        let mut data: Value = self.safe_list_k(message.clone(), "liquidation_trades", &[Value::List(vec![])]);
+        let mut data: Vec<Value> = self.safe_list_k(message.clone(), "liquidation_trades", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[Value::Str("".to_string())]);
         let mut parts: Value = split(&channel, &Value::Str(":".to_string()));
         let mut marketId: Value = parts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
@@ -1481,7 +1481,7 @@ impl LighterCore {
             let mut __for_first_481: bool = true;
             while { if !__for_first_481 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_481 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
             let mut iReversed: Value = (match (&((match (&(dataLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-            let mut liquidation: Value = self.parse_ws_liquidation(get_value(&data, &iReversed), &[market.clone()]);
+            let mut liquidation: Value = self.parse_ws_liquidation(match &iReversed { Value::Int(__n) => data.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| data.get(__n)), _ => None }.cloned().unwrap_or(Value::Null), &[market.clone()]);
             stored.append(liquidation.clone());
         }
         }
@@ -1974,12 +1974,12 @@ impl LighterCore {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
-            let mut orders: Value = self.safe_list(data.clone(), marketId.clone(), &[Value::List(vec![])]);
+            let mut orders: Vec<Value> = self.safe_list(data.clone(), marketId.clone(), &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_483: bool = true;
                 while { if !__for_first_483 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_483 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(orders.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                let mut order: Value = self.parse_order(get_value(&orders, &j), &[market.clone()]);
+                let mut order: Value = self.parse_order(match &j { Value::Int(__n) => orders.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| orders.get(__n)), _ => None }.cloned().unwrap_or(Value::Null), &[market.clone()]);
                 stored.append(order.clone());
                 let mut symbol: Value = order.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
                 if (symbol != Value::Null) {

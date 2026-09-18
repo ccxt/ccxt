@@ -1359,7 +1359,7 @@ impl CoinbaseexchangeCore {
         }  else if (type_var.as_str() == Some("l2update")) {
             let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
             let mut timestamp: Value = self.parse8601(self.safe_string_k(message.clone(), "time", &[]));
-            let mut changes: Value = self.safe_list_k(message.clone(), "changes", &[Value::List(vec![])]);
+            let mut changes: Vec<Value> = self.safe_list_k(message.clone(), "changes", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
             let mut sides: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("sell".to_string(), Value::Str("asks".to_string()));
@@ -1370,8 +1370,8 @@ impl CoinbaseexchangeCore {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_270: bool = true;
                 while { if !__for_first_270 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_270 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(changes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                let mut change: Value = get_value(&changes, &i);
-                let mut change: Value = get_value(&changes, &i);
+                let mut change: Value = match &i { Value::Int(__n) => changes.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| changes.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+                let mut change: Value = match &i { Value::Int(__n) => changes.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| changes.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
                 let mut key: Value = self.safe_string(change.clone(), Value::Int(0), &[]);
                 let mut side: Value = self.safe_string(sides.clone(), key.clone(), &[]);
                 let mut price: Value = self.safe_number(change.clone(), Value::Int(1), &[]);

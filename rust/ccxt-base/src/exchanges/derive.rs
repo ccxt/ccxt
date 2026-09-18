@@ -2038,14 +2038,14 @@ impl DeriveCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut data: Value = self.safe_list_k(result.clone(), "funding_rate_history", &[Value::List(vec![])]);
+        let mut data: Vec<Value> = self.safe_list_k(result.clone(), "funding_rate_history", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_636: bool = true;
             while { if !__for_first_636 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_636 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = get_value(&data, &i);
-            let mut entry: Value = get_value(&data, &i);
+            let mut entry: Value = match &i { Value::Int(__n) => data.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| data.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut entry: Value = match &i { Value::Int(__n) => data.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| data.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "timestamp", &[]);
             append_to_array(&mut rates, Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -3657,13 +3657,13 @@ impl DeriveCore {
             while { if !__for_first_638 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_638 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut subaccount: Value = get_value(&response, &i);
             let mut subaccount: Value = get_value(&response, &i);
-            let mut collaterals: Value = self.safe_list_k(subaccount.clone(), "collaterals", &[Value::List(vec![])]);
+            let mut collaterals: Vec<Value> = self.safe_list_k(subaccount.clone(), "collaterals", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_637: bool = true;
                 while { if !__for_first_637 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_637 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(collaterals.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                let mut balance: Value = get_value(&collaterals, &j);
-                let mut balance: Value = get_value(&collaterals, &j);
+                let mut balance: Value = match &j { Value::Int(__n) => collaterals.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| collaterals.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+                let mut balance: Value = match &j { Value::Int(__n) => collaterals.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| collaterals.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
                 let mut code: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "currency", &[]), &[]);
                 let mut account: Value = self.safe_dict(result.clone(), code.clone(), &[]);
                 if (account == Value::Null) {

@@ -2894,14 +2894,14 @@ impl KrakenCore {
         }
         let mut userref: Value = self.safe_string_k(order.clone(), "userref", &[]);
         let mut clientOrderId: Value = self.safe_string_k(order.clone(), "cl_ord_id", &[userref.clone()]);
-        let mut rawTrades: Value = self.safe_list_k(order.clone(), "trades", &[Value::List(vec![])]);
+        let mut rawTrades: Vec<Value> = self.safe_list_k(order.clone(), "trades", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut trades: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_847: bool = true;
             while { if !__for_first_847 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_847 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rawTrades.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut rawTrade: Value = get_value(&rawTrades, &i);
-            let mut rawTrade: Value = get_value(&rawTrades, &i);
+            let mut rawTrade: Value = match &i { Value::Int(__n) => rawTrades.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| rawTrades.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut rawTrade: Value = match &i { Value::Int(__n) => rawTrades.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| rawTrades.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             if is_string(&rawTrade) {
                 append_to_array(&mut trades, self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4914,13 +4914,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })]);
                     if is_true(&Value::Bool(in_op(&result, &Value::Str("orders".to_string())))) {
-                        let mut orders: Value = self.safe_list_k(result.clone(), "orders", &[Value::List(vec![])]);
+                        let mut orders: Vec<Value> = self.safe_list_k(result.clone(), "orders", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
                         {
                                                         let mut i: Value = Value::Int(0);
                             let mut __for_first_859: bool = true;
                             while { if !__for_first_859 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_859 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(orders.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                            let mut order: Value = get_value(&orders, &i);
-                            let mut order: Value = get_value(&orders, &i);
+                            let mut order: Value = match &i { Value::Int(__n) => orders.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| orders.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+                            let mut order: Value = match &i { Value::Int(__n) => orders.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| orders.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
                             let mut error: Value = self.safe_string_k(order.clone(), "error", &[]);
                             if (error != Value::Null) {
                                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), error.clone(), message.clone());

@@ -993,13 +993,13 @@ impl DeriveCore {
         //
         let mut params: Value = self.safe_dict_k(message.clone(), "params", &[]);
         let mut topic: Value = self.safe_string_k(params.clone(), "channel", &[]);
-        let mut rawOrders: Value = self.safe_list_k(params.clone(), "data", &[Value::List(vec![])]);
+        let mut rawOrders: Vec<Value> = self.safe_list_k(params.clone(), "data", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_322: bool = true;
             while { if !__for_first_322 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_322 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rawOrders.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut data: Value = get_value(&rawOrders, &i);
-            let mut data: Value = get_value(&rawOrders, &i);
+            let mut data: Value = match &i { Value::Int(__n) => rawOrders.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| rawOrders.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut data: Value = match &i { Value::Int(__n) => rawOrders.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| rawOrders.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut parsed: Value = self.parse_order(data.clone(), &[]);
             let mut symbol: Value = self.safe_string_k(parsed.clone(), "symbol", &[]);
             let mut orderId: Value = self.safe_string_k(parsed.clone(), "id", &[]);
@@ -1104,7 +1104,7 @@ impl DeriveCore {
         }
         let mut params: Value = self.safe_dict_k(message.clone(), "params", &[]);
         let mut topic: Value = self.safe_string_k(params.clone(), "channel", &[]);
-        let mut rawTrades: Value = self.safe_list_k(params.clone(), "data", &[Value::List(vec![])]);
+        let mut rawTrades: Vec<Value> = self.safe_list_k(params.clone(), "data", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_323: bool = true;
@@ -1218,7 +1218,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         // }
         //
         let mut messageHash: Value = Value::Str("authenticated".to_string());
-        let mut ids: Value = self.safe_list_k(message.clone(), "result", &[Value::List(vec![])]);
+        let mut ids: Vec<Value> = self.safe_list_k(message.clone(), "result", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         if Value::Int(ids.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             // client.resolve (message, messageHash);
             let mut future: Value = self.safe_value(get_value(&client, &Value::Str("futures".to_string())), Value::Str("authenticated".to_string()), &[]);

@@ -1804,16 +1804,16 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
 }
 
     pub fn handle_un_subscription(&mut self, mut client: Value, mut subscription: Value) {
-        let mut messageHashes: Value = self.safe_list_k(subscription.clone(), "messageHashes", &[Value::List(vec![])]);
-        let mut subMessageHashes: Value = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::List(vec![])]);
+        let mut messageHashes: Vec<Value> = self.safe_list_k(subscription.clone(), "messageHashes", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut subMessageHashes: Vec<Value> = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_62: bool = true;
             while { if !__for_first_62 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_62 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(messageHashes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut unsubHash: Value = get_value(&messageHashes, &j);
-            let mut unsubHash: Value = get_value(&messageHashes, &j);
-            let mut subHash: Value = get_value(&subMessageHashes, &j);
-            let mut subHash: Value = get_value(&subMessageHashes, &j);
+            let mut unsubHash: Value = match &j { Value::Int(__n) => messageHashes.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| messageHashes.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut unsubHash: Value = match &j { Value::Int(__n) => messageHashes.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| messageHashes.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut subHash: Value = match &j { Value::Int(__n) => subMessageHashes.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| subMessageHashes.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut subHash: Value = match &j { Value::Int(__n) => subMessageHashes.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| subMessageHashes.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             self.clean_unsubscription(client.clone(), subHash.clone(), unsubHash.clone(), &[]);
         }
         }
@@ -4518,13 +4518,13 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         //
         //
         let mut messageHash: Value = self.safe_string_k(message.clone(), "id", &[]);
-        let mut result: Value = self.safe_list_k(message.clone(), "result", &[Value::List(vec![])]);
+        let mut result: Vec<Value> = self.safe_list_k(message.clone(), "result", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut positions: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_76: bool = true;
             while { if !__for_first_76 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_76 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(result.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut parsed: Value = self.parent.parse_position_risk(get_value(&result, &i), &[]);
+            let mut parsed: Value = self.parent.parse_position_risk(match &i { Value::Int(__n) => result.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| result.get(__n)), _ => None }.cloned().unwrap_or(Value::Null), &[]);
             let mut entryPrice: Value = self.safe_string_k(parsed.clone(), "entryPrice", &[]);
             if is_true(&(Value::Bool(entryPrice.as_str() != Some("0")))) && is_true(&(Value::Bool(entryPrice.as_str() != Some("0.0")))) && is_true(&(Value::Bool(entryPrice.as_str() != Some("0.00000000")))) {
                 append_to_array(&mut positions, parsed.clone());
@@ -6159,14 +6159,14 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         //         ]
         //     }
         //
-        let mut orders: Value = self.safe_list_k(message.clone(), "o", &[Value::List(vec![])]);
+        let mut orders: Vec<Value> = self.safe_list_k(message.clone(), "o", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_82: bool = true;
             while { if !__for_first_82 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_82 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(orders.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut order: Value = get_value(&orders, &i);
-            let mut order: Value = get_value(&orders, &i);
-            let mut fills: Value = self.safe_list_k(order.clone(), "fi", &[Value::List(vec![])]);
+            let mut order: Value = match &i { Value::Int(__n) => orders.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| orders.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut order: Value = match &i { Value::Int(__n) => orders.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| orders.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut fills: Vec<Value> = self.safe_list_k(order.clone(), "fi", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
             let mut rawQty: Value = self.safe_string_k(order.clone(), "q", &[Value::Str("0".to_string())]);
             let mut side: Value = Value::Str("BUY".to_string());
             if is_true(&crate::precise::Precise::stringLt(&rawQty, &Value::Str("0".to_string()))) {
@@ -6202,8 +6202,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_81: bool = true;
                 while { if !__for_first_81 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_81 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(fills.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                let mut fill: Value = get_value(&fills, &j);
-                let mut fill: Value = get_value(&fills, &j);
+                let mut fill: Value = match &j { Value::Int(__n) => fills.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| fills.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+                let mut fill: Value = match &j { Value::Int(__n) => fills.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| fills.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
                 let mut isMaker: Value = (Value::Bool(self.safe_string_k(fill.clone(), "m", &[]).as_str() == Some("MAKER")));
                 // normalize fill fields to the flat format parseWsTrade/handleMyTrade expect
                 let mut normalizedTrade: Value = Value::Map({
@@ -6422,14 +6422,14 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut rawPositions: Value = self.safe_list_k(data.clone(), "P", &[Value::List(vec![])]);
+        let mut rawPositions: Vec<Value> = self.safe_list_k(data.clone(), "P", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut newPositions: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_84: bool = true;
             while { if !__for_first_84 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_84 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rawPositions.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut rawPosition: Value = get_value(&rawPositions, &i);
-            let mut rawPosition: Value = get_value(&rawPositions, &i);
+            let mut rawPosition: Value = match &i { Value::Int(__n) => rawPositions.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| rawPositions.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut rawPosition: Value = match &i { Value::Int(__n) => rawPositions.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| rawPositions.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut position: Value = self.parse_ws_position(rawPosition.clone(), &[]);
             let mut timestamp: Value = self.safe_integer_k(message.clone(), "E", &[]);
             add_element_to_object(&mut position, &Value::Str("timestamp".to_string()), timestamp.clone());
@@ -7009,13 +7009,13 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         if (accountType == Value::Null) {
             return;
         }
-        let mut B: Value = self.safe_list_k(message.clone(), "B", &[Value::List(vec![])]);
+        let mut B: Vec<Value> = self.safe_list_k(message.clone(), "B", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_87: bool = true;
             while { if !__for_first_87 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_87 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(B.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = get_value(&B, &i);
-            let mut entry: Value = get_value(&B, &i);
+            let mut entry: Value = match &i { Value::Int(__n) => B.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| B.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut entry: Value = match &i { Value::Int(__n) => B.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| B.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "a", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             if (code != Value::Null) {
@@ -7041,14 +7041,14 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             add_element_to_object(&mut self.positions, &accountType, ArrayCacheBySymbolBySide::new(Value::Null));
         }
         let mut cache: Value = get_value(&self.positions, &accountType);
-        let mut P: Value = self.safe_list_k(message.clone(), "P", &[Value::List(vec![])]);
+        let mut P: Vec<Value> = self.safe_list_k(message.clone(), "P", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut newPositions: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_88: bool = true;
             while { if !__for_first_88 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_88 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(P.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut rawPosition: Value = get_value(&P, &i);
-            let mut rawPosition: Value = get_value(&P, &i);
+            let mut rawPosition: Value = match &i { Value::Int(__n) => P.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| P.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut rawPosition: Value = match &i { Value::Int(__n) => P.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| P.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut position: Value = self.parse_ws_options_position(rawPosition.clone(), &[]);
             add_element_to_object(&mut position, &Value::Str("timestamp".to_string()), timestamp.clone());
             add_element_to_object(&mut position, &Value::Str("datetime".to_string()), self.iso8601(timestamp.clone()));

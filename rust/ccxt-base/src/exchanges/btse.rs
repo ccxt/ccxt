@@ -1638,13 +1638,13 @@ impl BtseCore {
             if (assets != Value::Null) {
                 // futures wallet row: per-currency totals in assets, locked amounts in assetsInUse
                 // several wallet rows can report the same currency, so amounts are aggregated
-                let mut inUse: Value = self.safe_list_k(row.clone(), "assetsInUse", &[Value::List(vec![])]);
+                let mut inUse: Vec<Value> = self.safe_list_k(row.clone(), "assetsInUse", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
                 {
                                         let mut j: Value = Value::Int(0);
                     let mut __for_first_459: bool = true;
                     while { if !__for_first_459 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_459 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(inUse.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                    let mut usedRow: Value = get_value(&inUse, &j);
-                    let mut usedRow: Value = get_value(&inUse, &j);
+                    let mut usedRow: Value = match &j { Value::Int(__n) => inUse.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| inUse.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+                    let mut usedRow: Value = match &j { Value::Int(__n) => inUse.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| inUse.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
                     let mut usedCode: Value = self.safe_currency_code(self.safe_string_k(usedRow.clone(), "currency", &[]), &[]);
                     if (usedCode == Value::Null) {
                         continue;
@@ -1769,14 +1769,14 @@ impl BtseCore {
             let mut market: Value = self.safe_market(&[marketId.clone()]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if (symbols == Value::Null) || is_true(&self.in_array(symbol.clone(), symbols.clone())) {
-                let mut levels: Value = self.safe_list_k(entry.clone(), "riskLimits", &[Value::List(vec![])]);
+                let mut levels: Vec<Value> = self.safe_list_k(entry.clone(), "riskLimits", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
                 let mut tiers: Value = Value::List(vec![]);
                 {
                                         let mut j: Value = Value::Int(0);
                     let mut __for_first_463: bool = true;
                     while { if !__for_first_463 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_463 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(levels.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                    let mut level: Value = get_value(&levels, &j);
-                    let mut level: Value = get_value(&levels, &j);
+                    let mut level: Value = match &j { Value::Int(__n) => levels.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| levels.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+                    let mut level: Value = match &j { Value::Int(__n) => levels.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| levels.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
                     // the endpoint only reports the notional ladder, the
                     // per-tier leverage and margin rates are not available
                     append_to_array(&mut tiers, Value::Map({
@@ -2055,14 +2055,14 @@ impl BtseCore {
         self.load_markets(&[]).await;
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut response: Value = self.public_get_public_api_market_v1_ticker24hr(&[params.clone()]).await;
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Vec<Value> = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut rows: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_467: bool = true;
             while { if !__for_first_467 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_467 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut row: Value = get_value(&data, &i);
-            let mut row: Value = get_value(&data, &i);
+            let mut row: Value = match &i { Value::Int(__n) => data.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| data.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut row: Value = match &i { Value::Int(__n) => data.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| data.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             // spot rows do not carry an open interest
             if (self.safe_string_k(row.clone(), "openInterest", &[]) != Value::Null) {
                 append_to_array(&mut rows, row.clone());
@@ -2153,14 +2153,14 @@ impl BtseCore {
         self.load_markets(&[]).await;
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut response: Value = self.public_get_public_api_market_v1_ticker24hr(&[params.clone()]).await;
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Vec<Value> = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut rows: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_468: bool = true;
             while { if !__for_first_468 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_468 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut row: Value = get_value(&data, &i);
-            let mut row: Value = get_value(&data, &i);
+            let mut row: Value = match &i { Value::Int(__n) => data.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| data.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut row: Value = match &i { Value::Int(__n) => data.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| data.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             // spot rows do not carry a funding rate
             if (self.safe_string_k(row.clone(), "fundingRate", &[]) != Value::Null) {
                 append_to_array(&mut rows, row.clone());

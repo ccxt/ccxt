@@ -840,7 +840,7 @@ impl ZebpayCore {
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
         let mut name: Value = self.safe_string_k(rawCurrency.clone(), "name", &[]);
         let mut precision: Value = self.parse_number(self.parse_precision(&[self.safe_string_k(rawCurrency.clone(), "precision", &[])]), &[]);
-        let mut chains: Value = self.safe_list_k(rawCurrency.clone(), "chains", &[Value::List(vec![])]);
+        let mut chains: Vec<Value> = self.safe_list_k(rawCurrency.clone(), "chains", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut networks: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -854,8 +854,8 @@ impl ZebpayCore {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_1161: bool = true;
             while { if !__for_first_1161 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1161 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(chains.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut chain: Value = get_value(&chains, &j);
-            let mut chain: Value = get_value(&chains, &j);
+            let mut chain: Value = match &j { Value::Int(__n) => chains.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| chains.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut chain: Value = match &j { Value::Int(__n) => chains.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| chains.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut networkId: Value = self.safe_string_k(chain.clone(), "chainId", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
             let mut depositAllowed: Value = Value::Bool(self.safe_bool_k(chain.clone(), "isDepositEnabled", &[]).as_bool() == Some(true));
@@ -1056,7 +1056,7 @@ impl ZebpayCore {
         //     "customMessage": ["OK"]
         // }
         //
-        let mut fees: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut fees: Vec<Value> = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1065,7 +1065,7 @@ impl ZebpayCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1162: bool = true;
             while { if !__for_first_1162 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1162 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(fees.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut fee: Value = self.parse_trading_fee(get_value(&fees, &i), &[]);
+            let mut fee: Value = self.parse_trading_fee(match &i { Value::Int(__n) => fees.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| fees.get(__n)), _ => None }.cloned().unwrap_or(Value::Null), &[]);
             let mut symbol: Value = fee.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {
                 add_element_to_object(&mut result, &symbol, fee.clone());
@@ -2347,13 +2347,13 @@ impl ZebpayCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut markets: Value = self.safe_list_k(data.clone(), "symbols", &[Value::List(vec![])]);
+        let mut markets: Vec<Value> = self.safe_list_k(data.clone(), "symbols", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1163: bool = true;
             while { if !__for_first_1163 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1163 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(markets.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut market: Value = get_value(&markets, &i);
-            let mut market: Value = get_value(&markets, &i);
+            let mut market: Value = match &i { Value::Int(__n) => markets.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| markets.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut market: Value = match &i { Value::Int(__n) => markets.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| markets.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
             let mut baseId: Value = self.safe_string_k(market.clone(), "baseAsset", &[]);
             let mut quoteId: Value = self.safe_string_k(market.clone(), "quoteAsset", &[]);
@@ -2452,13 +2452,13 @@ impl ZebpayCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut markets: Value = self.safe_list_k(data.clone(), "symbols", &[Value::List(vec![])]);
+        let mut markets: Vec<Value> = self.safe_list_k(data.clone(), "symbols", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1164: bool = true;
             while { if !__for_first_1164 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1164 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(markets.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut market: Value = get_value(&markets, &i);
-            let mut market: Value = get_value(&markets, &i);
+            let mut market: Value = match &i { Value::Int(__n) => markets.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| markets.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut market: Value = match &i { Value::Int(__n) => markets.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| markets.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
             let mut baseId: Value = self.safe_string_k(market.clone(), "baseAsset", &[]);
             let mut quoteId: Value = self.safe_string_k(market.clone(), "quoteAsset", &[]);
@@ -2521,13 +2521,13 @@ impl ZebpayCore {
                 m.insert("datetime".to_string(), Value::Null);
             m
         });
-        let mut currencyList: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut currencyList: Vec<Value> = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1165: bool = true;
             while { if !__for_first_1165 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1165 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(currencyList.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = get_value(&currencyList, &i);
-            let mut entry: Value = get_value(&currencyList, &i);
+            let mut entry: Value = match &i { Value::Int(__n) => currencyList.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| currencyList.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut entry: Value = match &i { Value::Int(__n) => currencyList.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| currencyList.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut account: Value = self.account();
             add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(entry.clone(), "total", &[]));
             add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(entry.clone(), "free", &[]));

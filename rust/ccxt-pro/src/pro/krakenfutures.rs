@@ -978,15 +978,15 @@ impl KrakenfuturesCore {
             }
             let mut tradesArray: Value = get_value(&self.trades, &symbol);
             if (channel.as_str() == Some("trade_snapshot")) {
-                let mut trades: Value = self.safe_list_k(message.clone(), "trades", &[Value::List(vec![])]);
+                let mut trades: Vec<Value> = self.safe_list_k(message.clone(), "trades", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
                 let mut length: Value = Value::Int(trades.len() as i64);
                 {
                                         let mut i: Value = Value::Int(0);
                     let mut __for_first_442: bool = true;
                     while { if !__for_first_442 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_442 = false; i.as_f64().unwrap_or(f64::NAN) < length.as_f64().unwrap_or(f64::NAN) } {
                     let mut index: Value = (match (&((match (&(length), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }); // need reverse to correct chronology
-                    let mut item: Value = get_value(&trades, &index);
-                    let mut item: Value = get_value(&trades, &index);
+                    let mut item: Value = match &index { Value::Int(__n) => trades.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| trades.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+                    let mut item: Value = match &index { Value::Int(__n) => trades.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| trades.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
                     let mut trade: Value = self.parse_ws_trade(item.clone(), &[]);
                     tradesArray.append(trade.clone());
                 }
@@ -1364,7 +1364,7 @@ impl KrakenfuturesCore {
         //            ...
         //        ]
         //    }
-        let mut orders: Value = self.safe_list_k(message.clone(), "orders", &[Value::List(vec![])]);
+        let mut orders: Vec<Value> = self.safe_list_k(message.clone(), "orders", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[]);
         self.orders = ArrayCacheBySymbolById::new(limit.clone());
         let mut feed: Value = self.safe_string_k(message.clone(), "feed", &[]);
@@ -1381,8 +1381,8 @@ impl KrakenfuturesCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_445: bool = true;
             while { if !__for_first_445 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_445 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(orders.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut order: Value = get_value(&orders, &i);
-            let mut order: Value = get_value(&orders, &i);
+            let mut order: Value = match &i { Value::Int(__n) => orders.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| orders.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut order: Value = match &i { Value::Int(__n) => orders.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| orders.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut parsed: Value = self.parse_ws_order(order.clone(), &[]);
             let mut symbol: Value = parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {
@@ -2048,7 +2048,7 @@ impl KrakenfuturesCore {
         //        ]
         //    }
         //
-        let mut trades: Value = self.safe_list_k(message.clone(), "fills", &[Value::List(vec![])]);
+        let mut trades: Vec<Value> = self.safe_list_k(message.clone(), "fills", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut stored: Value = self.myTrades.clone();
         if is_equal(&stored, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
@@ -2063,8 +2063,8 @@ impl KrakenfuturesCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_452: bool = true;
             while { if !__for_first_452 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_452 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(trades.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut trade: Value = get_value(&trades, &i);
-            let mut trade: Value = get_value(&trades, &i);
+            let mut trade: Value = match &i { Value::Int(__n) => trades.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| trades.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut trade: Value = match &i { Value::Int(__n) => trades.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| trades.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut parsedTrade: Value = self.parse_ws_my_trade(trade.clone(), &[]);
             if (parsedTrade.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) != Value::Null) {
                 add_element_to_object(&mut tradeSymbols, &parsedTrade.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), Value::Bool(true));

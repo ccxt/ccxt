@@ -923,13 +923,13 @@ impl LunoCore {
         //     }
         //
         let mut result: Value = Value::List(vec![]);
-        let mut markets: Value = self.safe_list_k(response.clone(), "markets", &[Value::List(vec![])]);
+        let mut markets: Vec<Value> = self.safe_list_k(response.clone(), "markets", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_930: bool = true;
             while { if !__for_first_930 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_930 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(markets.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut market: Value = get_value(&markets, &i);
-            let mut market: Value = get_value(&markets, &i);
+            let mut market: Value = match &i { Value::Int(__n) => markets.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| markets.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut market: Value = match &i { Value::Int(__n) => markets.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| markets.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut id: Value = self.safe_string_k(market.clone(), "market_id", &[]);
             let mut baseId: Value = self.safe_string_k(market.clone(), "base_currency", &[]);
             let mut quoteId: Value = self.safe_string_k(market.clone(), "counter_currency", &[]);
@@ -1048,14 +1048,14 @@ impl LunoCore {
     m
 }));
         let mut response: Value = self.private_get_balance(&[params.clone()]).await;
-        let mut wallets: Value = self.safe_list_k(response.clone(), "balance", &[Value::List(vec![])]);
+        let mut wallets: Vec<Value> = self.safe_list_k(response.clone(), "balance", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_931: bool = true;
             while { if !__for_first_931 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_931 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(wallets.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut account: Value = get_value(&wallets, &i);
-            let mut account: Value = get_value(&wallets, &i);
+            let mut account: Value = match &i { Value::Int(__n) => wallets.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| wallets.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut account: Value = match &i { Value::Int(__n) => wallets.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| wallets.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut accountId: Value = self.safe_string_k(account.clone(), "account_id", &[]);
             let mut currencyId: Value = self.safe_string_k(account.clone(), "asset", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -1075,7 +1075,7 @@ impl LunoCore {
 }
 
     pub fn parse_balance(&self, mut response: Value) -> Value {
-        let mut wallets: Value = self.safe_list_k(response.clone(), "balance", &[Value::List(vec![])]);
+        let mut wallets: Vec<Value> = self.safe_list_k(response.clone(), "balance", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
@@ -1087,8 +1087,8 @@ impl LunoCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_932: bool = true;
             while { if !__for_first_932 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_932 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(wallets.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut wallet: Value = get_value(&wallets, &i);
-            let mut wallet: Value = get_value(&wallets, &i);
+            let mut wallet: Value = match &i { Value::Int(__n) => wallets.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| wallets.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut wallet: Value = match &i { Value::Int(__n) => wallets.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| wallets.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut currencyId: Value = self.safe_string_k(wallet.clone(), "asset", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut reserved: Value = self.safe_string_k(wallet.clone(), "reserved", &[]);

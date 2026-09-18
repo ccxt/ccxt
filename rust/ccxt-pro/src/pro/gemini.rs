@@ -634,7 +634,7 @@ impl GeminiCore {
         let mut marketId: Value = to_lower(&self.safe_string_k(message.clone(), "symbol", &[Value::Str("".to_string())]));
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
-        let mut changes: Value = self.safe_list_k(message.clone(), "changes", &[Value::List(vec![])]);
+        let mut changes: Vec<Value> = self.safe_list_k(message.clone(), "changes", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut timeframe: Value = self.find_timeframe(timeframeId.clone(), &[]);
         let mut ohlcvsBySymbol: Value = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[]);
         if (ohlcvsBySymbol == Value::Null) {
@@ -657,7 +657,7 @@ impl GeminiCore {
             let mut __for_first_363: bool = true;
             while { if !__for_first_363 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_363 = false; i.as_f64().unwrap_or(f64::NAN) < changesLength.as_f64().unwrap_or(f64::NAN) } {
             let mut index: Value = (match (&((match (&(changesLength), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-            let mut parsed: Value = self.parse_ohlcv(get_value(&changes, &index), &[market.clone()]);
+            let mut parsed: Value = self.parse_ohlcv(match &index { Value::Int(__n) => changes.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| changes.get(__n)), _ => None }.cloned().unwrap_or(Value::Null), &[market.clone()]);
             stored.append(parsed.clone());
         }
         }
@@ -714,7 +714,7 @@ impl GeminiCore {
 
     pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
         let mut isInitial: bool = is_true(&(Value::Bool(in_op(&message, &Value::Str("auction_events".to_string()))))) && is_true(&(Value::Bool(in_op(&message, &Value::Str("trades".to_string()))))) && is_true(&(Value::Bool(in_op(&message, &Value::Str("changes".to_string())))));
-        let mut changes: Value = self.safe_list_k(message.clone(), "changes", &[Value::List(vec![])]);
+        let mut changes: Vec<Value> = self.safe_list_k(message.clone(), "changes", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut marketId: Value = self.safe_string_lower(message.clone(), Value::Str("symbol".to_string()), &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -734,8 +734,8 @@ impl GeminiCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_364: bool = true;
             while { if !__for_first_364 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_364 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(changes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut delta: Value = get_value(&changes, &i);
-            let mut delta: Value = get_value(&changes, &i);
+            let mut delta: Value = match &i { Value::Int(__n) => changes.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| changes.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut delta: Value = match &i { Value::Int(__n) => changes.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| changes.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut price: Value = self.safe_number(delta.clone(), Value::Int(1), &[]);
             let mut size: Value = self.safe_number(delta.clone(), Value::Int(2), &[]);
             let mut side: Value = (if is_true(&(Value::Bool(get_value(&delta, &Value::Int(0)).as_str() == Some("buy")))) { Value::Str("bids".to_string()) } else { Value::Str("asks".to_string()) });

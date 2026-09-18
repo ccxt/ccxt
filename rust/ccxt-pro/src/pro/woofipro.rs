@@ -621,16 +621,16 @@ impl WoofiproCore {
         //     }
         //
         let mut topic: Value = self.safe_string_k(message.clone(), "topic", &[]);
-        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Vec<Value> = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "ts", &[]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_673: bool = true;
             while { if !__for_first_673 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_673 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut marketId: Value = self.safe_string_k(get_value(&data, &i), "symbol", &[]);
+            let mut marketId: Value = self.safe_string_k(match &i { Value::Int(__n) => data.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| data.get(__n)), _ => None }.cloned().unwrap_or(Value::Null), "symbol", &[]);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
-            let __ws_arg_0 = self.extend(get_value(&data, &i), &[Value::Map({
+            let __ws_arg_0 = self.extend(match &i { Value::Int(__n) => data.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| data.get(__n)), _ => None }.cloned().unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("date".to_string(), timestamp.clone());
     m
@@ -694,14 +694,14 @@ impl WoofiproCore {
         //     }
         //
         let mut topic: Value = self.safe_string_k(message.clone(), "topic", &[]);
-        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Vec<Value> = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "ts", &[]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_674: bool = true;
             while { if !__for_first_674 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_674 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let __ws_arg_1 = self.extend(get_value(&data, &i), &[Value::Map({
+            let __ws_arg_1 = self.extend(match &i { Value::Int(__n) => data.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| data.get(__n)), _ => None }.cloned().unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("ts".to_string(), timestamp.clone());
     m
@@ -1600,7 +1600,7 @@ impl WoofiproCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut rawPositions: Value = self.safe_list_k(data.clone(), "positions", &[Value::List(vec![])]);
+        let mut rawPositions: Vec<Value> = self.safe_list_k(data.clone(), "positions", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         if (self.positions.clone() == Value::Null) {
             self.positions = ArrayCacheBySymbolBySide::new(Value::Null);
         }
@@ -1610,8 +1610,8 @@ impl WoofiproCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_678: bool = true;
             while { if !__for_first_678 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_678 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rawPositions.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut rawPosition: Value = get_value(&rawPositions, &i);
-            let mut rawPosition: Value = get_value(&rawPositions, &i);
+            let mut rawPosition: Value = match &i { Value::Int(__n) => rawPositions.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| rawPositions.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut rawPosition: Value = match &i { Value::Int(__n) => rawPositions.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| rawPositions.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(rawPosition.clone(), "symbol", &[]);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
             let mut position: Value = self.parse_ws_position(rawPosition.clone(), &[market.clone()]);

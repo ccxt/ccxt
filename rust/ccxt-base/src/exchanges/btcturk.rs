@@ -584,7 +584,7 @@ impl BtcturkCore {
         let mut quoteId: Value = self.safe_string_k(entry.clone(), "denominator", &[]);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-        let mut filters: Value = self.safe_list_k(entry.clone(), "filters", &[Value::List(vec![])]);
+        let mut filters: Vec<Value> = self.safe_list_k(entry.clone(), "filters", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut minPrice: Value = Value::Null;
         let mut maxPrice: Value = Value::Null;
         let mut minAmount: Value = Value::Null;
@@ -594,8 +594,8 @@ impl BtcturkCore {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_455: bool = true;
             while { if !__for_first_455 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_455 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(filters.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut filter: Value = get_value(&filters, &j);
-            let mut filter: Value = get_value(&filters, &j);
+            let mut filter: Value = match &j { Value::Int(__n) => filters.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| filters.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut filter: Value = match &j { Value::Int(__n) => filters.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| filters.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut filterType: Value = self.safe_string_k(filter.clone(), "filterType", &[]);
             if (filterType.as_str() == Some("PRICE_FILTER")) {
                 minPrice = self.safe_number_k(filter.clone(), "minPrice", &[]);
@@ -675,7 +675,7 @@ impl BtcturkCore {
 }
 
     pub fn parse_balance(&self, mut response: Value) -> Value {
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Vec<Value> = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
@@ -687,8 +687,8 @@ impl BtcturkCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_456: bool = true;
             while { if !__for_first_456 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_456 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = get_value(&data, &i);
-            let mut entry: Value = get_value(&data, &i);
+            let mut entry: Value = match &i { Value::Int(__n) => data.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| data.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut entry: Value = match &i { Value::Int(__n) => data.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| data.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "asset", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut account: Value = self.account();

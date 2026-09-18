@@ -1132,14 +1132,14 @@ impl TokocryptoCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut list: Value = self.safe_list_k(data.clone(), "list", &[Value::List(vec![])]);
+        let mut list: Vec<Value> = self.safe_list_k(data.clone(), "list", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1086: bool = true;
             while { if !__for_first_1086 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1086 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(list.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut market: Value = get_value(&list, &i);
-            let mut market: Value = get_value(&list, &i);
+            let mut market: Value = match &i { Value::Int(__n) => list.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| list.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut market: Value = match &i { Value::Int(__n) => list.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| list.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut baseId: Value = self.safe_string_k(market.clone(), "baseAsset", &[]);
             let mut quoteId: Value = self.safe_string_k(market.clone(), "quoteAsset", &[]);
             let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
@@ -1153,12 +1153,12 @@ impl TokocryptoCore {
             let mut filtersByType: Value = self.index_by(filters.clone(), Value::Str("filterType".to_string()));
             let mut status: Value = self.safe_string_k(market.clone(), "spotTradingEnable", &[]);
             let mut active: Value = (Value::Bool(status.as_str() == Some("1")));
-            let mut permissions: Value = self.safe_list_k(market.clone(), "permissions", &[Value::List(vec![])]);
+            let mut permissions: Vec<Value> = self.safe_list_k(market.clone(), "permissions", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_1085: bool = true;
                 while { if !__for_first_1085 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1085 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(permissions.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                if (get_value(&permissions, &j).as_str() == Some("TRD_GRP_003")) {
+                if (match &j { Value::Int(__n) => permissions.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| permissions.get(__n)), _ => None }.cloned().unwrap_or(Value::Null).as_str() == Some("TRD_GRP_003")) {
                     active = Value::Bool(false);
                     break;
                 }
@@ -2032,13 +2032,13 @@ impl TokocryptoCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut balances: Value = self.safe_list_k(data.clone(), "accountAssets", &[Value::List(vec![])]);
+        let mut balances: Vec<Value> = self.safe_list_k(data.clone(), "accountAssets", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1087: bool = true;
             while { if !__for_first_1087 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1087 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(balances.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut balance: Value = get_value(&balances, &i);
-            let mut balance: Value = get_value(&balances, &i);
+            let mut balance: Value = match &i { Value::Int(__n) => balances.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| balances.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut balance: Value = match &i { Value::Int(__n) => balances.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| balances.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "asset", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut account: Value = self.account();
@@ -3404,13 +3404,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return crate::value::get_value_k(&config, "noPoolId");
         }  else if is_true(&(Value::Bool(matches!(&config, Value::Dict(__d) if __d.contains_key("byLimit"))))) && is_true(&(Value::Bool(in_op(&params, &Value::Str("limit".to_string()))))) {
             let mut limit: Value = crate::value::get_value_k(&params, "limit");
-            let mut byLimit: Value = self.safe_list_k(config.clone(), "byLimit", &[Value::List(vec![])]);
+            let mut byLimit: Vec<Value> = self.safe_list_k(config.clone(), "byLimit", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1088: bool = true;
                 while { if !__for_first_1088 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1088 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(byLimit.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                let mut entry: Value = get_value(&byLimit, &i);
-                let mut entry: Value = get_value(&byLimit, &i);
+                let mut entry: Value = match &i { Value::Int(__n) => byLimit.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| byLimit.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+                let mut entry: Value = match &i { Value::Int(__n) => byLimit.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| byLimit.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
                 if is_less_than_or_equal(&limit, &get_value(&entry, &Value::Int(0))) {
                     return get_value(&entry, &Value::Int(1));
                 }

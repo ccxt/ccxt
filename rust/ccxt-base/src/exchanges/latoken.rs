@@ -1043,13 +1043,13 @@ impl LatokenCore {
         })]);
         let mut accountType: Value = self.safe_string(types.clone(), type_var.clone(), &[type_var.clone()]);
         let mut balancesByType: Value = self.group_by(response.clone(), Value::Str("type".to_string()), &[]);
-        let mut balances: Value = self.safe_list(balancesByType.clone(), accountType.clone(), &[Value::List(vec![])]);
+        let mut balances: Vec<Value> = self.safe_list(balancesByType.clone(), accountType.clone(), &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_905: bool = true;
             while { if !__for_first_905 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_905 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(balances.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut balance: Value = get_value(&balances, &i);
-            let mut balance: Value = get_value(&balances, &i);
+            let mut balance: Value = match &i { Value::Int(__n) => balances.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| balances.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut balance: Value = match &i { Value::Int(__n) => balances.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| balances.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
             let mut timestamp: Value = self.safe_integer_k(balance.clone(), "timestamp", &[]);
             if (timestamp != Value::Null) {
@@ -1130,16 +1130,16 @@ impl LatokenCore {
         // observed live on 2026-08-17 with bestAskQuantity -0.1791852 served
         // for over half an hour - such a level is a deleted level their
         // aggregation failed to drop, so it is removed here
-        let mut rawAsks: Value = self.safe_list_k(response.clone(), "ask", &[Value::List(vec![])]);
-        let mut rawBids: Value = self.safe_list_k(response.clone(), "bid", &[Value::List(vec![])]);
+        let mut rawAsks: Vec<Value> = self.safe_list_k(response.clone(), "ask", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rawBids: Vec<Value> = self.safe_list_k(response.clone(), "bid", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut asks: Value = Value::List(vec![]);
         let mut bids: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_906: bool = true;
             while { if !__for_first_906 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_906 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rawAsks.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut askEntry: Value = get_value(&rawAsks, &i);
-            let mut askEntry: Value = get_value(&rawAsks, &i);
+            let mut askEntry: Value = match &i { Value::Int(__n) => rawAsks.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| rawAsks.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut askEntry: Value = match &i { Value::Int(__n) => rawAsks.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| rawAsks.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut askQuantity: Value = self.safe_string_k(askEntry.clone(), "quantity", &[]);
             if is_true(&crate::precise::Precise::stringGt(&askQuantity, &Value::Str("0".to_string()))) {
                 append_to_array(&mut asks, askEntry.clone());
@@ -1150,8 +1150,8 @@ impl LatokenCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_907: bool = true;
             while { if !__for_first_907 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_907 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rawBids.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut bidEntry: Value = get_value(&rawBids, &i);
-            let mut bidEntry: Value = get_value(&rawBids, &i);
+            let mut bidEntry: Value = match &i { Value::Int(__n) => rawBids.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| rawBids.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut bidEntry: Value = match &i { Value::Int(__n) => rawBids.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| rawBids.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut bidQuantity: Value = self.safe_string_k(bidEntry.clone(), "quantity", &[]);
             if is_true(&crate::precise::Precise::stringGt(&bidQuantity, &Value::Str("0".to_string()))) {
                 append_to_array(&mut bids, bidEntry.clone());

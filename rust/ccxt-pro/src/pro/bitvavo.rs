@@ -532,14 +532,14 @@ impl BitvavoCore {
         //
         self.handle_bid_ask(client.clone(), message.clone());
         let mut event: Value = self.safe_string_k(message.clone(), "event", &[]);
-        let mut tickers: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut tickers: Vec<Value> = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_166: bool = true;
             while { if !__for_first_166 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_166 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(tickers.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut data: Value = get_value(&tickers, &i);
-            let mut data: Value = get_value(&tickers, &i);
+            let mut data: Value = match &i { Value::Int(__n) => tickers.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| tickers.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut data: Value = match &i { Value::Int(__n) => tickers.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| tickers.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(data.clone(), "market", &[]);
             let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Str("-".to_string())]);
             let mut messageHash: Value = add(&add(&event, &Value::Str("@".to_string())), &marketId);
@@ -581,14 +581,14 @@ impl BitvavoCore {
 
     pub fn handle_bid_ask(&mut self, mut client: Value, mut message: Value) {
         let mut event: Value = Value::Str("bidask".to_string());
-        let mut tickers: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut tickers: Vec<Value> = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_167: bool = true;
             while { if !__for_first_167 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_167 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(tickers.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut data: Value = get_value(&tickers, &i);
-            let mut data: Value = get_value(&tickers, &i);
+            let mut data: Value = match &i { Value::Int(__n) => tickers.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| tickers.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut data: Value = match &i { Value::Int(__n) => tickers.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| tickers.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut ticker: Value = self.parse_ws_bid_ask(data.clone(), &[]);
             let mut symbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             add_element_to_object(&mut self.bidsasks, &symbol, ticker.clone());

@@ -1515,7 +1515,7 @@ impl BydfiCore {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let mut balances: Value = self.safe_list_k(data.clone(), "B", &[Value::List(vec![])]);
+            let mut balances: Vec<Value> = self.safe_list_k(data.clone(), "B", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
             let mut timestamp: Value = self.safe_integer_k(message.clone(), "T", &[]);
             let mut result: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1528,8 +1528,8 @@ impl BydfiCore {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_244: bool = true;
                 while { if !__for_first_244 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_244 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(balances.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                let mut balance: Value = get_value(&balances, &i);
-                let mut balance: Value = get_value(&balances, &i);
+                let mut balance: Value = match &i { Value::Int(__n) => balances.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| balances.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+                let mut balance: Value = match &i { Value::Int(__n) => balances.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| balances.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
                 let mut currencyId: Value = self.safe_string_k(balance.clone(), "a", &[]);
                 let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
                 let mut account: Value = self.account();
@@ -1569,14 +1569,14 @@ impl BydfiCore {
 }
 
     pub fn handle_un_subscription(&mut self, mut client: Value, mut subscription: Value) {
-        let mut messageHashes: Value = self.safe_list_k(subscription.clone(), "messageHashes", &[Value::List(vec![])]);
+        let mut messageHashes: Vec<Value> = self.safe_list_k(subscription.clone(), "messageHashes", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut subHashIsPrefix: Value = self.safe_bool_k(subscription.clone(), "subHashIsPrefix", &[Value::Bool(false)]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_245: bool = true;
             while { if !__for_first_245 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_245 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(messageHashes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut unsubHash: Value = get_value(&messageHashes, &i);
-            let mut unsubHash: Value = get_value(&messageHashes, &i);
+            let mut unsubHash: Value = match &i { Value::Int(__n) => messageHashes.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| messageHashes.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut unsubHash: Value = match &i { Value::Int(__n) => messageHashes.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| messageHashes.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut subHash: Value = replace_str(&unsubHash, &Value::Str("unsubscribe::".to_string()), &Value::Str("".to_string()));
             self.clean_unsubscription(client.clone(), subHash.clone(), unsubHash.clone(), &[subHashIsPrefix.clone()]);
         }
@@ -1638,12 +1638,12 @@ impl BydfiCore {
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]);
-                let mut balances: Value = self.safe_list_k(account.clone(), "B", &[Value::List(vec![])]);
+                let mut balances: Vec<Value> = self.safe_list_k(account.clone(), "B", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
                 let mut balancesLength: Value = Value::Int(balances.len() as i64);
                 if balancesLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                     self.handle_balance(client.clone(), message.clone());
                 }
-                let mut positions: Value = self.safe_list_k(account.clone(), "p", &[Value::List(vec![])]);
+                let mut positions: Vec<Value> = self.safe_list_k(account.clone(), "p", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
                 let mut positionsLength: Value = Value::Int(positions.len() as i64);
                 if positionsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                     self.handle_positions(client.clone(), message.clone());

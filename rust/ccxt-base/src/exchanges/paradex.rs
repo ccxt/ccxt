@@ -1652,7 +1652,7 @@ impl ParadexCore {
         //         ]
         //     }
         //
-        let mut fees: Value = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]);
+        let mut fees: Vec<Value> = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1661,7 +1661,7 @@ impl ParadexCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1043: bool = true;
             while { if !__for_first_1043 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1043 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(fees.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut fee: Value = self.parse_trading_fee(get_value(&fees, &i), &[]);
+            let mut fee: Value = self.parse_trading_fee(match &i { Value::Int(__n) => fees.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| fees.get(__n)), _ => None }.cloned().unwrap_or(Value::Null), &[]);
             let mut symbol: Value = fee.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             add_element_to_object(&mut result, &symbol, fee.clone());
         }
@@ -3092,13 +3092,13 @@ impl ParadexCore {
         //
         let mut responseOrders: Value = self.safe_list_k(response.clone(), "orders", &[Value::List(vec![])]);
         let mut parsedOrders: Value = self.parse_orders(responseOrders.clone(), &[]);
-        let mut errors: Value = self.safe_list_k(response.clone(), "errors", &[Value::List(vec![])]);
+        let mut errors: Vec<Value> = self.safe_list_k(response.clone(), "errors", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1046: bool = true;
             while { if !__for_first_1046 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1046 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(errors.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut error: Value = get_value(&errors, &i);
-            let mut error: Value = get_value(&errors, &i);
+            let mut error: Value = match &i { Value::Int(__n) => errors.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| errors.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut error: Value = match &i { Value::Int(__n) => errors.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| errors.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             append_to_array(&mut parsedOrders, self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), error.clone());
@@ -3218,14 +3218,14 @@ impl ParadexCore {
         //     ]
         // }
         //
-        let mut results: Value = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]);
+        let mut results: Vec<Value> = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut orders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1047: bool = true;
             while { if !__for_first_1047 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1047 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(results.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut result: Value = get_value(&results, &i);
-            let mut result: Value = get_value(&results, &i);
+            let mut result: Value = match &i { Value::Int(__n) => results.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| results.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut result: Value = match &i { Value::Int(__n) => results.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| results.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(result.clone(), "market", &[]);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
             let mut status: Value = self.safe_string_k(result.clone(), "status", &[]);
@@ -3941,14 +3941,14 @@ impl ParadexCore {
         //         ]
         //     }
         //
-        let mut rows: Value = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]);
+        let mut rows: Vec<Value> = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut deposits: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1050: bool = true;
             while { if !__for_first_1050 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1050 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rows.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut row: Value = get_value(&rows, &i);
-            let mut row: Value = get_value(&rows, &i);
+            let mut row: Value = match &i { Value::Int(__n) => rows.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| rows.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut row: Value = match &i { Value::Int(__n) => rows.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| rows.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             if (crate::value::get_value_k(&row, "kind").as_str() == Some("DEPOSIT")) {
                 append_to_array(&mut deposits, row.clone());
             }
@@ -4023,14 +4023,14 @@ impl ParadexCore {
         //         ]
         //     }
         //
-        let mut rows: Value = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]);
+        let mut rows: Vec<Value> = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut deposits: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1051: bool = true;
             while { if !__for_first_1051 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1051 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rows.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut row: Value = get_value(&rows, &i);
-            let mut row: Value = get_value(&rows, &i);
+            let mut row: Value = match &i { Value::Int(__n) => rows.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| rows.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut row: Value = match &i { Value::Int(__n) => rows.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| rows.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             if (crate::value::get_value_k(&row, "kind").as_str() == Some("WITHDRAWAL")) {
                 append_to_array(&mut deposits, row.clone());
             }
@@ -4820,14 +4820,14 @@ impl ParadexCore {
         // every row is one observation of a rate quoted for a whole funding period,
         // not a settled payment: paradex recomputes it each second and accrues it
         // into funding_index, so the series cannot be summed
-        let mut results: Value = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]);
+        let mut results: Vec<Value> = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1052: bool = true;
             while { if !__for_first_1052 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1052 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(results.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut rate: Value = get_value(&results, &i);
-            let mut rate: Value = get_value(&results, &i);
+            let mut rate: Value = match &i { Value::Int(__n) => results.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| results.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut rate: Value = match &i { Value::Int(__n) => results.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| results.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut timestamp: Value = self.safe_integer_k(rate.clone(), "created_at", &[]);
             let mut datetime: Value = self.iso8601(timestamp.clone());
             append_to_array(&mut rates, Value::Map({

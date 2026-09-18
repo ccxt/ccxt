@@ -3473,13 +3473,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut rawPromises: Value = Value::List(vec![]);
         let mut fetchMarketsOptions: Value = self.safe_dict_k(self.options.clone(), "fetchMarkets", &[]);
-        let mut types: Value = self.safe_list_k(fetchMarketsOptions.clone(), "types", &[Value::List(vec![Value::Str("spot".to_string()), Value::Str("swap".to_string()), Value::Str("future".to_string()), Value::Str("option".to_string())])]);
+        let mut types: Vec<Value> = self.safe_list_k(fetchMarketsOptions.clone(), "types", &[Value::List(vec![Value::Str("spot".to_string()), Value::Str("swap".to_string()), Value::Str("future".to_string()), Value::Str("option".to_string())])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_678: bool = true;
             while { if !__for_first_678 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_678 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(types.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut marketType: Value = get_value(&types, &i);
-            let mut marketType: Value = get_value(&types, &i);
+            let mut marketType: Value = match &i { Value::Int(__n) => types.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| types.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut marketType: Value = match &i { Value::Int(__n) => types.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| types.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             if (marketType.as_str() == Some("spot")) {
                 // if (!sandboxMode) {
                 // gate doesn't have a sandbox for spot markets
@@ -4295,7 +4295,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
         // check leveraged tokens (e.g. BTC3S, ETH5L)
         let mut type_var: Value = (if is_true(&self.is_leveraged_currency(currencyId.clone(), &[])) { Value::Str("leveraged".to_string()) } else { Value::Str("crypto".to_string()) });
-        let mut chains: Value = self.safe_list_k(rawCurrency.clone(), "chains", &[Value::List(vec![])]);
+        let mut chains: Vec<Value> = self.safe_list_k(rawCurrency.clone(), "chains", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut networks: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4304,8 +4304,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut j: Value = Value::Int(0);
             let mut __for_first_687: bool = true;
             while { if !__for_first_687 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_687 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(chains.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut chain: Value = get_value(&chains, &j);
-            let mut chain: Value = get_value(&chains, &j);
+            let mut chain: Value = match &j { Value::Int(__n) => chains.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| chains.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut chain: Value = match &j { Value::Int(__n) => chains.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| chains.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut networkId: Value = self.safe_string_k(chain.clone(), "name", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
             if (networkCode != Value::Null) {

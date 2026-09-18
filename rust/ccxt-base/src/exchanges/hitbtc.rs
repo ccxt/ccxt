@@ -1600,7 +1600,7 @@ impl HitbtcCore {
         let mut currencyId: Value = currency.as_map().and_then(|__m| __m.get("_coin_id")).cloned().unwrap_or(Value::Null);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
         let mut entry: Value = currency.clone();
-        let mut rawNetworks: Value = self.safe_list_k(entry.clone(), "networks", &[Value::List(vec![])]);
+        let mut rawNetworks: Vec<Value> = self.safe_list_k(entry.clone(), "networks", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut networks: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1609,8 +1609,8 @@ impl HitbtcCore {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_741: bool = true;
             while { if !__for_first_741 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_741 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(rawNetworks.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut rawNetwork: Value = get_value(&rawNetworks, &j);
-            let mut rawNetwork: Value = get_value(&rawNetworks, &j);
+            let mut rawNetwork: Value = match &j { Value::Int(__n) => rawNetworks.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| rawNetworks.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut rawNetwork: Value = match &j { Value::Int(__n) => rawNetworks.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| rawNetworks.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut networkId: Value = self.safe_string2(rawNetwork.clone(), Value::Str("protocol".to_string()), Value::Str("network".to_string()), &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
             networkCode = (if is_true(&(Value::Bool(networkCode != Value::Null))) { to_upper(&networkCode) } else { code.clone() }); // as hitbtc is white label, ensure we safeguard from possible bugs
@@ -3927,13 +3927,13 @@ impl HitbtcCore {
             let mut marketId: Value = get_value(&contracts, &i);
             let mut marketId: Value = get_value(&contracts, &i);
             let mut marketInner: Value = self.safe_market(&[marketId.clone()]);
-            let mut fundingRateData: Value = self.safe_list(response.clone(), marketId.clone(), &[Value::List(vec![])]);
+            let mut fundingRateData: Vec<Value> = self.safe_list(response.clone(), marketId.clone(), &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_748: bool = true;
                 while { if !__for_first_748 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_748 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(fundingRateData.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                let mut entry: Value = get_value(&fundingRateData, &j);
-                let mut entry: Value = get_value(&fundingRateData, &j);
+                let mut entry: Value = match &j { Value::Int(__n) => fundingRateData.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| fundingRateData.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+                let mut entry: Value = match &j { Value::Int(__n) => fundingRateData.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| fundingRateData.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
                 let mut symbolInner: Value = self.safe_symbol(marketInner.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[]);
                 let mut fundingRate: Value = self.safe_number_k(entry.clone(), "funding_rate", &[]);
                 let mut datetime: Value = self.safe_string_k(entry.clone(), "timestamp", &[]);
@@ -4137,7 +4137,7 @@ impl HitbtcCore {
         let mut marginMode: Value = self.safe_string_k(position.clone(), "type", &[]);
         let mut leverage: Value = self.safe_number_k(position.clone(), "leverage", &[]);
         let mut datetime: Value = self.safe_string_k(position.clone(), "updated_at", &[]);
-        let mut positions: Value = self.safe_list_k(position.clone(), "positions", &[Value::List(vec![])]);
+        let mut positions: Vec<Value> = self.safe_list_k(position.clone(), "positions", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut liquidationPrice: Value = Value::Null;
         let mut entryPrice: Value = Value::Null;
         let mut contracts: Value = Value::Null;
@@ -4145,21 +4145,21 @@ impl HitbtcCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_751: bool = true;
             while { if !__for_first_751 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_751 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(positions.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = get_value(&positions, &i);
-            let mut entry: Value = get_value(&positions, &i);
+            let mut entry: Value = match &i { Value::Int(__n) => positions.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| positions.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut entry: Value = match &i { Value::Int(__n) => positions.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| positions.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             liquidationPrice = self.safe_number_k(entry.clone(), "price_liquidation", &[]);
             entryPrice = self.safe_number_k(entry.clone(), "price_entry", &[]);
             contracts = self.safe_number_k(entry.clone(), "quantity", &[]);
         }
         }
-        let mut currencies: Value = self.safe_list_k(position.clone(), "currencies", &[Value::List(vec![])]);
+        let mut currencies: Vec<Value> = self.safe_list_k(position.clone(), "currencies", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut collateral: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_752: bool = true;
             while { if !__for_first_752 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_752 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(currencies.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = get_value(&currencies, &i);
-            let mut entry: Value = get_value(&currencies, &i);
+            let mut entry: Value = match &i { Value::Int(__n) => currencies.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| currencies.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut entry: Value = match &i { Value::Int(__n) => currencies.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| currencies.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             collateral = self.safe_number_k(entry.clone(), "margin_balance", &[]);
         }
         }
@@ -4745,14 +4745,14 @@ impl HitbtcCore {
         //         ]
         //    }
         //
-        let mut networks: Value = self.safe_list_k(fee.clone(), "networks", &[Value::List(vec![])]);
+        let mut networks: Vec<Value> = self.safe_list_k(fee.clone(), "networks", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Value = self.deposit_withdraw_fee(fee.clone());
         {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_754: bool = true;
             while { if !__for_first_754 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_754 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(networks.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut networkEntry: Value = get_value(&networks, &j);
-            let mut networkEntry: Value = get_value(&networks, &j);
+            let mut networkEntry: Value = match &j { Value::Int(__n) => networks.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| networks.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut networkEntry: Value = match &j { Value::Int(__n) => networks.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| networks.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "network", &[]);
             let mut code: Value = self.safe_string_k(currency.clone(), "code", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);

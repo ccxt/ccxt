@@ -796,7 +796,7 @@ impl BitfinexCore {
         let mut messageLength: Value = get_array_length(&message);
         if is_equal(&messageLength, &Value::Int(2)) {
             // initial snapshot
-            let mut trades: Value = self.safe_list(message.clone(), Value::Int(1), &[Value::List(vec![])]);
+            let mut trades: Vec<Value> = self.safe_list(message.clone(), Value::Int(1), &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
             // needs to be reversed to make chronological order
             let mut length: Value = Value::Int(trades.len() as i64);
             {
@@ -804,7 +804,7 @@ impl BitfinexCore {
                 let mut __for_first_101: bool = true;
                 while { if !__for_first_101 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_101 = false; i.as_f64().unwrap_or(f64::NAN) < length.as_f64().unwrap_or(f64::NAN) } {
                 let mut index: Value = (match (&((match (&(length), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-                let mut parsed: Value = self.parse_ws_trade(get_value(&trades, &index), &[market.clone()]);
+                let mut parsed: Value = self.parse_ws_trade(match &index { Value::Int(__n) => trades.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| trades.get(__n)), _ => None }.cloned().unwrap_or(Value::Null), &[market.clone()]);
                 stored.append(parsed.clone());
             }
             }
@@ -1395,16 +1395,16 @@ impl BitfinexCore {
         let mut subMessageHash: Value = self.safe_string(get_value(&client, &Value::Str("subscriptions".to_string())), unSubChannel.clone(), &[]);
         let mut subscription: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".to_string())), add(&Value::Str("unsubscribe:".to_string()), &subMessageHash), &[]);
         remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &unSubChannel);
-        let mut messageHashes: Value = self.safe_list_k(subscription.clone(), "messageHashes", &[Value::List(vec![])]);
-        let mut subMessageHashes: Value = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::List(vec![])]);
+        let mut messageHashes: Vec<Value> = self.safe_list_k(subscription.clone(), "messageHashes", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut subMessageHashes: Vec<Value> = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_107: bool = true;
             while { if !__for_first_107 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_107 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(messageHashes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut messageHash: Value = get_value(&messageHashes, &i);
-            let mut messageHash: Value = get_value(&messageHashes, &i);
-            let mut subHash: Value = get_value(&subMessageHashes, &i);
-            let mut subHash: Value = get_value(&subMessageHashes, &i);
+            let mut messageHash: Value = match &i { Value::Int(__n) => messageHashes.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| messageHashes.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut messageHash: Value = match &i { Value::Int(__n) => messageHashes.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| messageHashes.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut subHash: Value = match &i { Value::Int(__n) => subMessageHashes.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| subMessageHashes.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut subHash: Value = match &i { Value::Int(__n) => subMessageHashes.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| subMessageHashes.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             self.clean_unsubscription(client.clone(), subHash.clone(), messageHash.clone(), &[]);
         }
         }

@@ -925,14 +925,14 @@ impl BigoneCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut chains: Value = self.safe_list_k(rawCurrency.clone(), "binding_gateways", &[Value::List(vec![])]);
+        let mut chains: Vec<Value> = self.safe_list_k(rawCurrency.clone(), "binding_gateways", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut currencyMaxPrecision: Value = self.parse_precision(&[self.safe_string2(rawCurrency.clone(), Value::Str("withdrawal_scale".to_string()), Value::Str("scale".to_string()), &[])]);
         {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_240: bool = true;
             while { if !__for_first_240 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_240 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(chains.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut chain: Value = get_value(&chains, &j);
-            let mut chain: Value = get_value(&chains, &j);
+            let mut chain: Value = match &j { Value::Int(__n) => chains.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| chains.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut chain: Value = match &j { Value::Int(__n) => chains.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| chains.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut networkId: Value = self.safe_string_k(chain.clone(), "gateway_name", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
             let mut deposit: Value = self.safe_bool_k(chain.clone(), "is_deposit_enabled", &[]);
@@ -1091,14 +1091,14 @@ impl BigoneCore {
         //        ...
         //    ]
         //
-        let mut markets: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut markets: Vec<Value> = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_241: bool = true;
             while { if !__for_first_241 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_241 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(markets.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut market: Value = get_value(&markets, &i);
-            let mut market: Value = get_value(&markets, &i);
+            let mut market: Value = match &i { Value::Int(__n) => markets.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| markets.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut market: Value = match &i { Value::Int(__n) => markets.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| markets.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut baseAsset: Value = self.safe_dict_k(market.clone(), "base_asset", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1942,13 +1942,13 @@ impl BigoneCore {
                 m.insert("datetime".to_string(), Value::Null);
             m
         });
-        let mut balances: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut balances: Vec<Value> = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_244: bool = true;
             while { if !__for_first_244 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_244 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(balances.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut balance: Value = get_value(&balances, &i);
-            let mut balance: Value = get_value(&balances, &i);
+            let mut balance: Value = match &i { Value::Int(__n) => balances.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| balances.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut balance: Value = match &i { Value::Int(__n) => balances.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| balances.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut symbol: Value = self.safe_string_k(balance.clone(), "asset_symbol", &[]);
             let mut code: Value = self.safe_currency_code(symbol.clone(), &[]);
             let mut account: Value = self.account();
@@ -2326,15 +2326,15 @@ impl BigoneCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut cancelled: Value = self.safe_list_k(data.clone(), "cancelled", &[Value::List(vec![])]);
-        let mut failed: Value = self.safe_list_k(data.clone(), "failed", &[Value::List(vec![])]);
+        let mut cancelled: Vec<Value> = self.safe_list_k(data.clone(), "cancelled", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut failed: Vec<Value> = self.safe_list_k(data.clone(), "failed", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_245: bool = true;
             while { if !__for_first_245 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_245 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(cancelled.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut orderId: Value = get_value(&cancelled, &i);
-            let mut orderId: Value = get_value(&cancelled, &i);
+            let mut orderId: Value = match &i { Value::Int(__n) => cancelled.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| cancelled.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut orderId: Value = match &i { Value::Int(__n) => cancelled.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| cancelled.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             append_to_array(&mut result, self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), orderId.clone());
@@ -2348,8 +2348,8 @@ impl BigoneCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_246: bool = true;
             while { if !__for_first_246 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_246 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(failed.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut orderId: Value = get_value(&failed, &i);
-            let mut orderId: Value = get_value(&failed, &i);
+            let mut orderId: Value = match &i { Value::Int(__n) => failed.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| failed.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut orderId: Value = match &i { Value::Int(__n) => failed.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| failed.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             append_to_array(&mut result, self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), orderId.clone());

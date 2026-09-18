@@ -1570,7 +1570,7 @@ impl ModetradeCore {
 
     pub fn parse_currency(&self, mut rawCurrency: Value) -> Value {
         let mut currencyId: Value = self.safe_string_k(rawCurrency.clone(), "token", &[]);
-        let mut networks: Value = self.safe_list_k(rawCurrency.clone(), "chain_details", &[Value::List(vec![])]);
+        let mut networks: Vec<Value> = self.safe_list_k(rawCurrency.clone(), "chain_details", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
         let mut minPrecision: Value = Value::Null;
         let mut resultingNetworks: Value = Value::Map({
@@ -1581,8 +1581,8 @@ impl ModetradeCore {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_952: bool = true;
             while { if !__for_first_952 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_952 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(networks.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut network: Value = get_value(&networks, &j);
-            let mut network: Value = get_value(&networks, &j);
+            let mut network: Value = match &j { Value::Int(__n) => networks.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| networks.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut network: Value = match &j { Value::Int(__n) => networks.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| networks.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             // TODO: transform chain id to human readable name
             let mut networkId: Value = self.safe_string_k(network.clone(), "chain_id", &[Value::Str("".to_string())]);
             let mut precision: Value = self.parse_precision(&[self.safe_string_k(network.clone(), "decimals", &[])]);
@@ -2044,14 +2044,14 @@ impl ModetradeCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut result: Value = self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])]);
+        let mut result: Vec<Value> = self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_953: bool = true;
             while { if !__for_first_953 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_953 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(result.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = get_value(&result, &i);
-            let mut entry: Value = get_value(&result, &i);
+            let mut entry: Value = match &i { Value::Int(__n) => result.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| result.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut entry: Value = match &i { Value::Int(__n) => result.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| result.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "funding_rate_timestamp", &[]);
             append_to_array(&mut rates, Value::Map({
@@ -3570,13 +3570,13 @@ impl ModetradeCore {
                 m.insert("info".to_string(), response.clone());
             m
         });
-        let mut balances: Value = self.safe_list_k(response.clone(), "holding", &[Value::List(vec![])]);
+        let mut balances: Vec<Value> = self.safe_list_k(response.clone(), "holding", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_956: bool = true;
             while { if !__for_first_956 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_956 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(balances.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut balance: Value = get_value(&balances, &i);
-            let mut balance: Value = get_value(&balances, &i);
+            let mut balance: Value = match &i { Value::Int(__n) => balances.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| balances.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut balance: Value = match &i { Value::Int(__n) => balances.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| balances.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut code: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "token", &[]), &[]);
             let mut account: Value = self.account();
             add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(balance.clone(), "holding", &[]));
@@ -4449,7 +4449,7 @@ impl ModetradeCore {
                 if (isSandboxMode.as_bool() != Some(true)) {
                     let mut brokerId: Value = self.safe_string_k(self.options.clone(), "brokerId", &[Value::Str("CCXTMODE".to_string())]);
                     if (path.as_str() == Some("batch-order")) {
-                        let mut ordersList: Value = self.safe_list_k(params.clone(), "orders", &[Value::List(vec![])]);
+                        let mut ordersList: Vec<Value> = self.safe_list_k(params.clone(), "orders", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
                         {
                                                         let mut i: Value = Value::Int(0);
                             let mut __for_first_957: bool = true;

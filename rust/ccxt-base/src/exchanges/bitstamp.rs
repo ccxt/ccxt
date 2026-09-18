@@ -4439,12 +4439,12 @@ impl BitstampCore {
             if is_string(&reasonInner) {
                 append_to_array(&mut errors, reasonInner.clone());
             }  else {
-                let mut all: Value = self.safe_list_k(reasonInner.clone(), "__all__", &[Value::List(vec![])]);
+                let mut all: Vec<Value> = self.safe_list_k(reasonInner.clone(), "__all__", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
                 {
                                         let mut i: Value = Value::Int(0);
                     let mut __for_first_421: bool = true;
                     while { if !__for_first_421 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_421 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(all.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                    append_to_array(&mut errors, get_value(&all, &i));
+                    append_to_array(&mut errors, match &i { Value::Int(__n) => all.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| all.get(__n)), _ => None }.cloned().unwrap_or(Value::Null));
                 }
                 }
             }

@@ -1064,7 +1064,7 @@ impl NadoCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut cancelledOrders: Value = self.safe_list_k(data.clone(), "cancelled_orders", &[Value::List(vec![])]);
+        let mut cancelledOrders: Vec<Value> = self.safe_list_k(data.clone(), "cancelled_orders", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -1074,7 +1074,7 @@ impl NadoCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), Value::Str("canceled".to_string()));
     m
-}), &[get_value(&cancelledOrders, &i)]);
+}), &[match &i { Value::Int(__n) => cancelledOrders.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| cancelledOrders.get(__n)), _ => None }.cloned().unwrap_or(Value::Null)]);
             append_to_array(&mut result, self.parse_order(__ws_arg_2, &[market.clone()]));
         }
         }
@@ -1183,7 +1183,7 @@ impl NadoCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut cancelledOrders: Value = self.safe_list_k(data.clone(), "cancelled_orders", &[Value::List(vec![])]);
+        let mut cancelledOrders: Vec<Value> = self.safe_list_k(data.clone(), "cancelled_orders", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -1193,7 +1193,7 @@ impl NadoCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), Value::Str("canceled".to_string()));
     m
-}), &[get_value(&cancelledOrders, &i)]);
+}), &[match &i { Value::Int(__n) => cancelledOrders.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| cancelledOrders.get(__n)), _ => None }.cloned().unwrap_or(Value::Null)]);
             append_to_array(&mut result, self.parse_order(__ws_arg_3, &[market.clone()]));
         }
         }
@@ -1608,13 +1608,13 @@ impl NadoCore {
         //     }
         //
         let mut closedOrders: Value = Value::List(vec![]);
-        let mut orders: Value = self.safe_list_k(response.clone(), "orders", &[Value::List(vec![])]);
+        let mut orders: Vec<Value> = self.safe_list_k(response.clone(), "orders", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_972: bool = true;
             while { if !__for_first_972 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_972 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(orders.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut order: Value = get_value(&orders, &i);
-            let mut order: Value = get_value(&orders, &i);
+            let mut order: Value = match &i { Value::Int(__n) => orders.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| orders.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut order: Value = match &i { Value::Int(__n) => orders.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| orders.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             if is_true(&self.is_archive_order_closed(order.clone())) {
                 append_to_array(&mut closedOrders, self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -1766,7 +1766,7 @@ impl NadoCore {
         //         ]
         //     }
         //
-        let mut matches: Value = self.safe_list_k(response.clone(), "matches", &[Value::List(vec![])]);
+        let mut matches: Vec<Value> = self.safe_list_k(response.clone(), "matches", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut txs: Value = self.safe_list_k(response.clone(), "txs", &[Value::List(vec![])]);
         let mut txsBySubmission: Value = self.index_by(txs.clone(), Value::Str("submission_idx".to_string()));
         let mut trades: Value = Value::List(vec![]);
@@ -1774,8 +1774,8 @@ impl NadoCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_973: bool = true;
             while { if !__for_first_973 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_973 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(matches.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut match_val: Value = get_value(&matches, &i);
-            let mut match_val: Value = get_value(&matches, &i);
+            let mut match_val: Value = match &i { Value::Int(__n) => matches.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| matches.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut match_val: Value = match &i { Value::Int(__n) => matches.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| matches.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut submissionIdx: Value = self.safe_string_k(match_val.clone(), "submission_idx", &[]);
             let mut tx: Value = self.safe_dict(txsBySubmission.clone(), submissionIdx.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1968,15 +1968,15 @@ impl NadoCore {
         //         ]
         //     }
         //
-        let mut events: Value = self.safe_list_k(response.clone(), "events", &[Value::List(vec![])]);
-        let mut txs: Value = self.safe_list_k(response.clone(), "txs", &[Value::List(vec![])]);
+        let mut events: Vec<Value> = self.safe_list_k(response.clone(), "events", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut txs: Vec<Value> = self.safe_list_k(response.clone(), "txs", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut transactions: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_975: bool = true;
             while { if !__for_first_975 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_975 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(events.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut event: Value = get_value(&events, &i);
-            let mut event: Value = get_value(&events, &i);
+            let mut event: Value = match &i { Value::Int(__n) => events.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| events.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut event: Value = match &i { Value::Int(__n) => events.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| events.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut submissionIdx: Value = self.safe_string_k(event.clone(), "submission_idx", &[]);
             let mut tx: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1986,8 +1986,8 @@ impl NadoCore {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_974: bool = true;
                 while { if !__for_first_974 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_974 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(txs.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                let mut rawTx: Value = get_value(&txs, &j);
-                let mut rawTx: Value = get_value(&txs, &j);
+                let mut rawTx: Value = match &j { Value::Int(__n) => txs.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| txs.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+                let mut rawTx: Value = match &j { Value::Int(__n) => txs.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| txs.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
                 let mut txSubmissionIdx: Value = self.safe_string_k(rawTx.clone(), "submission_idx", &[]);
                 if (txSubmissionIdx.as_str() == submissionIdx.as_str()) {
                     tx = rawTx.clone();
@@ -2071,15 +2071,15 @@ impl NadoCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut positions: Value = self.safe_list_k(data.clone(), "perp_balances", &[Value::List(vec![])]);
-        let mut products: Value = self.safe_list_k(data.clone(), "perp_products", &[Value::List(vec![])]);
+        let mut positions: Vec<Value> = self.safe_list_k(data.clone(), "perp_balances", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut products: Vec<Value> = self.safe_list_k(data.clone(), "perp_products", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_977: bool = true;
             while { if !__for_first_977 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_977 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(positions.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut position: Value = get_value(&positions, &i);
-            let mut position: Value = get_value(&positions, &i);
+            let mut position: Value = match &i { Value::Int(__n) => positions.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| positions.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut position: Value = match &i { Value::Int(__n) => positions.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| positions.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut balance: Value = self.safe_dict_k(position.clone(), "balance", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2097,8 +2097,8 @@ impl NadoCore {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_976: bool = true;
                 while { if !__for_first_976 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_976 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(products.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                let mut rawProduct: Value = get_value(&products, &j);
-                let mut rawProduct: Value = get_value(&products, &j);
+                let mut rawProduct: Value = match &j { Value::Int(__n) => products.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| products.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+                let mut rawProduct: Value = match &j { Value::Int(__n) => products.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| products.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
                 let mut rawProductId: Value = self.safe_string_k(rawProduct.clone(), "product_id", &[]);
                 if (rawProductId.as_str() == productId.as_str()) {
                     product = rawProduct.clone();
@@ -2204,9 +2204,9 @@ impl NadoCore {
         let mut pairsRequest: Value = self.gateway_v2_public_get_pairs(&[params.clone()]).await;
         let mut assetsRequest: Value = self.gateway_v2_public_get_assets(&[params.clone()]).await;
         let mut responses: Value = promise_all(&Value::List(vec![symbolsRequest.clone(), pairsRequest.clone(), assetsRequest.clone()])).await;
-        let mut symbols: Value = self.safe_list(responses.clone(), Value::Int(0), &[Value::List(vec![])]);
-        let mut pairs: Value = self.safe_list(responses.clone(), Value::Int(1), &[Value::List(vec![])]);
-        let mut assets: Value = self.safe_list(responses.clone(), Value::Int(2), &[Value::List(vec![])]);
+        let mut symbols: Vec<Value> = self.safe_list(responses.clone(), Value::Int(0), &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut pairs: Vec<Value> = self.safe_list(responses.clone(), Value::Int(1), &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut assets: Vec<Value> = self.safe_list(responses.clone(), Value::Int(2), &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         // product_id is a JSON number: JS object keys are always strings but a Python
         // dict keeps int keys, so indexBy would never match the safeString lookups below
         let mut pairsById: Value = Value::Map({
@@ -2217,8 +2217,8 @@ impl NadoCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_978: bool = true;
             while { if !__for_first_978 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_978 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(pairs.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut rawPair: Value = get_value(&pairs, &i);
-            let mut rawPair: Value = get_value(&pairs, &i);
+            let mut rawPair: Value = match &i { Value::Int(__n) => pairs.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| pairs.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut rawPair: Value = match &i { Value::Int(__n) => pairs.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| pairs.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut pairProductId: Value = self.safe_string_k(rawPair.clone(), "product_id", &[]);
             if (pairProductId != Value::Null) {
                 add_element_to_object(&mut pairsById, &pairProductId, rawPair.clone());
@@ -2233,8 +2233,8 @@ impl NadoCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_979: bool = true;
             while { if !__for_first_979 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_979 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(assets.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut rawAsset: Value = get_value(&assets, &i);
-            let mut rawAsset: Value = get_value(&assets, &i);
+            let mut rawAsset: Value = match &i { Value::Int(__n) => assets.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| assets.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut rawAsset: Value = match &i { Value::Int(__n) => assets.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| assets.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut assetProductId: Value = self.safe_string_k(rawAsset.clone(), "product_id", &[]);
             if (assetProductId != Value::Null) {
                 add_element_to_object(&mut assetsById, &assetProductId, rawAsset.clone());
@@ -2249,8 +2249,8 @@ impl NadoCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_980: bool = true;
             while { if !__for_first_980 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_980 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(assets.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut rawAsset: Value = get_value(&assets, &i);
-            let mut rawAsset: Value = get_value(&assets, &i);
+            let mut rawAsset: Value = match &i { Value::Int(__n) => assets.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| assets.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut rawAsset: Value = match &i { Value::Int(__n) => assets.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| assets.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut assetSymbol: Value = self.safe_string_k(rawAsset.clone(), "symbol", &[]);
             let mut assetCode: Value = self.safe_currency_code(self.remove_market_suffix(assetSymbol.clone()), &[]);
             if (assetCode == Value::Null) {
@@ -2275,8 +2275,8 @@ impl NadoCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_981: bool = true;
             while { if !__for_first_981 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_981 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(symbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut market: Value = get_value(&symbols, &i);
-            let mut market: Value = get_value(&symbols, &i);
+            let mut market: Value = match &i { Value::Int(__n) => symbols.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| symbols.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut market: Value = match &i { Value::Int(__n) => symbols.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| symbols.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut id: Value = self.safe_string_k(market.clone(), "product_id", &[]);
             let mut pair: Value = self.safe_dict(pairsById.clone(), id.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2623,13 +2623,13 @@ impl NadoCore {
         //         "next_idx": "1314805"
         //     }
         //
-        let mut fundingPayments: Value = self.safe_list_k(response.clone(), "funding_payments", &[Value::List(vec![])]);
+        let mut fundingPayments: Vec<Value> = self.safe_list_k(response.clone(), "funding_payments", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_983: bool = true;
             while { if !__for_first_983 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_983 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(fundingPayments.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            append_to_array(&mut result, self.parse_funding_history(get_value(&fundingPayments, &i), &[market.clone()]));
+            append_to_array(&mut result, self.parse_funding_history(match &i { Value::Int(__n) => fundingPayments.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| fundingPayments.get(__n)), _ => None }.cloned().unwrap_or(Value::Null), &[market.clone()]));
         }
         }
         let mut sorted: Value = self.sort_by(result.clone(), Value::Str("timestamp".to_string()), &[]);
@@ -3312,13 +3312,13 @@ impl NadoCore {
                 m.insert("info".to_string(), response.clone());
             m
         });
-        let mut balances: Value = self.safe_list_k(response.clone(), "spot_balances", &[Value::List(vec![])]);
+        let mut balances: Vec<Value> = self.safe_list_k(response.clone(), "spot_balances", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_986: bool = true;
             while { if !__for_first_986 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_986 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(balances.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut rawBalance: Value = get_value(&balances, &i);
-            let mut rawBalance: Value = get_value(&balances, &i);
+            let mut rawBalance: Value = match &i { Value::Int(__n) => balances.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| balances.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut rawBalance: Value = match &i { Value::Int(__n) => balances.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| balances.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut currencyId: Value = self.safe_string_k(rawBalance.clone(), "product_id", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             if (code.as_str() == Some("0")) {

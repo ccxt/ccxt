@@ -369,13 +369,13 @@ impl BlockchaincomCore {
                 m.insert("info".to_string(), message.clone());
             m
         });
-        let mut balances: Value = self.safe_list_k(message.clone(), "balances", &[Value::List(vec![])]);
+        let mut balances: Vec<Value> = self.safe_list_k(message.clone(), "balances", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_183: bool = true;
             while { if !__for_first_183 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_183 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(balances.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = get_value(&balances, &i);
-            let mut entry: Value = get_value(&balances, &i);
+            let mut entry: Value = match &i { Value::Int(__n) => balances.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| balances.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut entry: Value = match &i { Value::Int(__n) => balances.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| balances.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "currency", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut account: Value = self.account();
@@ -865,13 +865,13 @@ impl BlockchaincomCore {
         }  else if (event.as_str() == Some("rejected")) {
             panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(message.clone())))));
         }  else if (event.as_str() == Some("snapshot")) {
-            let mut orders: Value = self.safe_list_k(message.clone(), "orders", &[Value::List(vec![])]);
+            let mut orders: Vec<Value> = self.safe_list_k(message.clone(), "orders", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_184: bool = true;
                 while { if !__for_first_184 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_184 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(orders.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                let mut order: Value = get_value(&orders, &i);
-                let mut order: Value = get_value(&orders, &i);
+                let mut order: Value = match &i { Value::Int(__n) => orders.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| orders.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+                let mut order: Value = match &i { Value::Int(__n) => orders.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| orders.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
                 let mut parsedOrder: Value = self.parse_ws_order(order.clone(), &[]);
                 cachedOrders.append(parsedOrder.clone());
             }

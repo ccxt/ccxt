@@ -2342,13 +2342,13 @@ impl BybitCore {
         }
         let mut cache: Value = self.positions.clone();
         let mut newPositions: Value = Value::List(vec![]);
-        let mut rawPositions: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut rawPositions: Vec<Value> = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_218: bool = true;
             while { if !__for_first_218 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_218 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rawPositions.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut rawPosition: Value = get_value(&rawPositions, &i);
-            let mut rawPosition: Value = get_value(&rawPositions, &i);
+            let mut rawPosition: Value = match &i { Value::Int(__n) => rawPositions.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| rawPositions.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut rawPosition: Value = match &i { Value::Int(__n) => rawPositions.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| rawPositions.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut position: Value = self.parse_position(rawPosition.clone(), &[]);
             let mut side: Value = self.safe_string_k(position.clone(), "side", &[]);
             // hacky solution to handle closing positions
@@ -2489,13 +2489,13 @@ impl BybitCore {
         //     }
         //
         if is_true(&Value::Bool(is_array(&crate::value::get_value_k(&message, "data")))) {
-            let mut rawLiquidations: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+            let mut rawLiquidations: Vec<Value> = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_220: bool = true;
                 while { if !__for_first_220 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_220 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rawLiquidations.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                let mut rawLiquidation: Value = get_value(&rawLiquidations, &i);
-                let mut rawLiquidation: Value = get_value(&rawLiquidations, &i);
+                let mut rawLiquidation: Value = match &i { Value::Int(__n) => rawLiquidations.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| rawLiquidations.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+                let mut rawLiquidation: Value = match &i { Value::Int(__n) => rawLiquidations.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| rawLiquidations.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
                 let mut marketId: Value = self.safe_string_k(rawLiquidation.clone(), "s", &[]);
                 let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Str("".to_string()), Value::Str("contract".to_string())]);
                 let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -3044,12 +3044,12 @@ impl BybitCore {
         let mut account: Value = Value::Null;
         if (topic.as_str() == Some("outboundAccountInfo")) {
             account = Value::Str("spot".to_string());
-            let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+            let mut data: Vec<Value> = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_223: bool = true;
                 while { if !__for_first_223 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_223 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                let mut B: Value = self.safe_value_k(get_value(&data, &i), "B", &[Value::List(vec![])]);
+                let mut B: Value = self.safe_value_k(match &i { Value::Int(__n) => data.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| data.get(__n)), _ => None }.cloned().unwrap_or(Value::Null), "B", &[Value::List(vec![])]);
                 rawBalances = self.array_concat(rawBalances.clone(), B.clone());
             }
             }
@@ -3207,13 +3207,13 @@ impl BybitCore {
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]);
-                let mut recordedTopics: Value = self.safe_list_k(existing.clone(), "topics", &[Value::List(vec![])]);
+                let mut recordedTopics: Vec<Value> = self.safe_list_k(existing.clone(), "topics", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
                 let mut recordedLength: Value = Value::Int(recordedTopics.len() as i64);
                 {
                                         let mut j: Value = Value::Int(0);
                     let mut __for_first_227: bool = true;
                     while { if !__for_first_227 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_227 = false; j.as_f64().unwrap_or(f64::NAN) < recordedLength.as_f64().unwrap_or(f64::NAN) } {
-                    add_element_to_object(&mut subscribedTopics, &get_value(&recordedTopics, &j), Value::Bool(true));
+                    add_element_to_object(&mut subscribedTopics, &match &j { Value::Int(__n) => recordedTopics.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| recordedTopics.get(__n)), _ => None }.cloned().unwrap_or(Value::Null), Value::Bool(true));
                 }
                 }
             }
@@ -3640,16 +3640,16 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 if (reqId.as_str() != subId.as_str()) {
                     continue;
                 }
-                let mut messageHashes: Value = self.safe_list_k(subscription.clone(), "messageHashes", &[Value::List(vec![])]);
-                let mut subMessageHashes: Value = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::List(vec![])]);
+                let mut messageHashes: Vec<Value> = self.safe_list_k(subscription.clone(), "messageHashes", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
+                let mut subMessageHashes: Vec<Value> = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
                 {
                                         let mut j: Value = Value::Int(0);
                     let mut __for_first_232: bool = true;
                     while { if !__for_first_232 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_232 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(messageHashes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                    let mut unsubHash: Value = get_value(&messageHashes, &j);
-                    let mut unsubHash: Value = get_value(&messageHashes, &j);
-                    let mut subHash: Value = get_value(&subMessageHashes, &j);
-                    let mut subHash: Value = get_value(&subMessageHashes, &j);
+                    let mut unsubHash: Value = match &j { Value::Int(__n) => messageHashes.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| messageHashes.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+                    let mut unsubHash: Value = match &j { Value::Int(__n) => messageHashes.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| messageHashes.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+                    let mut subHash: Value = match &j { Value::Int(__n) => subMessageHashes.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| subMessageHashes.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+                    let mut subHash: Value = match &j { Value::Int(__n) => subMessageHashes.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| subMessageHashes.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
                     let mut usePrefix: Value = Value::Bool(is_true(&(Value::Bool(subHash.as_str() == Some("orders")))) || is_true(&(Value::Bool(subHash.as_str() == Some("myTrades")))) || is_true(&(Value::Bool(subHash.as_str() == Some("positions")))));
                     self.clean_unsubscription(client.clone(), subHash.clone(), unsubHash.clone(), &[usePrefix.clone()]);
                 }

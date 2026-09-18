@@ -654,16 +654,16 @@ impl Bit2cCore {
         // feed filters these rows out, so a non-positive amount is a dead order
         // their full snapshot failed to purge - it is removed here, which also
         // uncrosses the book. rows are positional price and amount pairs
-        let mut rawBids: Value = self.safe_list_k(orderbook.clone(), "bids", &[Value::List(vec![])]);
-        let mut rawAsks: Value = self.safe_list_k(orderbook.clone(), "asks", &[Value::List(vec![])]);
+        let mut rawBids: Vec<Value> = self.safe_list_k(orderbook.clone(), "bids", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rawAsks: Vec<Value> = self.safe_list_k(orderbook.clone(), "asks", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut bids: Value = Value::List(vec![]);
         let mut asks: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_307: bool = true;
             while { if !__for_first_307 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_307 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rawBids.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut bidRow: Value = get_value(&rawBids, &i);
-            let mut bidRow: Value = get_value(&rawBids, &i);
+            let mut bidRow: Value = match &i { Value::Int(__n) => rawBids.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| rawBids.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut bidRow: Value = match &i { Value::Int(__n) => rawBids.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| rawBids.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut bidAmount: Value = self.safe_string(bidRow.clone(), Value::Int(1), &[]);
             if is_true(&crate::precise::Precise::stringGt(&bidAmount, &Value::Str("0".to_string()))) {
                 append_to_array(&mut bids, bidRow.clone());
@@ -674,8 +674,8 @@ impl Bit2cCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_308: bool = true;
             while { if !__for_first_308 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_308 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rawAsks.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut askRow: Value = get_value(&rawAsks, &i);
-            let mut askRow: Value = get_value(&rawAsks, &i);
+            let mut askRow: Value = match &i { Value::Int(__n) => rawAsks.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| rawAsks.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut askRow: Value = match &i { Value::Int(__n) => rawAsks.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| rawAsks.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut askAmount: Value = self.safe_string(askRow.clone(), Value::Int(1), &[]);
             if is_true(&crate::precise::Precise::stringGt(&askAmount, &Value::Str("0".to_string()))) {
                 append_to_array(&mut asks, askRow.clone());

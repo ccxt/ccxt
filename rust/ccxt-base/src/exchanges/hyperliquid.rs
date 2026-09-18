@@ -909,14 +909,14 @@ impl HyperliquidCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut types: Value = self.safe_list_k(options.clone(), "types", &[Value::List(vec![])]);
+        let mut types: Vec<Value> = self.safe_list_k(options.clone(), "types", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut rawPromises: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_793: bool = true;
             while { if !__for_first_793 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_793 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(types.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut marketType: Value = get_value(&types, &i);
-            let mut marketType: Value = get_value(&types, &i);
+            let mut marketType: Value = match &i { Value::Int(__n) => types.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| types.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut marketType: Value = match &i { Value::Int(__n) => types.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| types.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             if (marketType.as_str() == Some("swap")) {
                 append_to_array(&mut rawPromises, self.fetch_swap_markets(&[params.clone()]).await);
             }  else if (marketType.as_str() == Some("spot")) {
@@ -3094,14 +3094,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut statuses: Value = self.safe_list_k(data.clone(), "statuses", &[Value::List(vec![])]);
+        let mut statuses: Vec<Value> = self.safe_list_k(data.clone(), "statuses", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut ordersToBeParsed: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_805: bool = true;
             while { if !__for_first_805 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_805 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(statuses.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut order: Value = get_value(&statuses, &i);
-            let mut order: Value = get_value(&statuses, &i);
+            let mut order: Value = match &i { Value::Int(__n) => statuses.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| statuses.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut order: Value = match &i { Value::Int(__n) => statuses.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| statuses.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             if (order.as_str() == Some("waitingForTrigger")) {
                 append_to_array(&mut ordersToBeParsed, Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -3453,14 +3453,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         let mut innerResponse: Value = self.safe_dict_k(response.clone(), "response", &[]);
         let mut data: Value = self.safe_dict_k(innerResponse.clone(), "data", &[]);
-        let mut statuses: Value = self.safe_list_k(data.clone(), "statuses", &[Value::List(vec![])]);
+        let mut statuses: Vec<Value> = self.safe_list_k(data.clone(), "statuses", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut orders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_809: bool = true;
             while { if !__for_first_809 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_809 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(statuses.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut status: Value = get_value(&statuses, &i);
-            let mut status: Value = get_value(&statuses, &i);
+            let mut status: Value = match &i { Value::Int(__n) => statuses.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| statuses.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut status: Value = match &i { Value::Int(__n) => statuses.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| statuses.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             append_to_array(&mut orders, self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), status.clone());
@@ -5056,13 +5056,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         "withdrawable": "100.0"
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "assetPositions", &[Value::List(vec![])]);
+        let mut data: Vec<Value> = self.safe_list_k(response.clone(), "assetPositions", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_820: bool = true;
             while { if !__for_first_820 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_820 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            append_to_array(&mut result, self.parse_position(get_value(&data, &i), &[]));
+            append_to_array(&mut result, self.parse_position(match &i { Value::Int(__n) => data.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| data.get(__n)), _ => None }.cloned().unwrap_or(Value::Null), &[]));
         }
         }
         return self.filter_by_array_positions(result.clone(), Value::Str("symbol".to_string()), &[symbols.clone(), Value::Bool(false)]);
@@ -6497,12 +6497,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut statuses: Value = self.safe_list_k(data.clone(), "statuses", &[Value::List(vec![])]);
+            let mut statuses: Vec<Value> = self.safe_list_k(data.clone(), "statuses", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_824: bool = true;
                 while { if !__for_first_824 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_824 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(statuses.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                message = self.safe_string_k(get_value(&statuses, &i), "error", &[]);
+                message = self.safe_string_k(match &i { Value::Int(__n) => statuses.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| statuses.get(__n)), _ => None }.cloned().unwrap_or(Value::Null), "error", &[]);
                 if (message != Value::Null) {
                     break;
                 }

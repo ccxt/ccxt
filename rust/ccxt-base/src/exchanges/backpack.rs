@@ -1115,7 +1115,7 @@ impl BackpackCore {
     pub fn parse_currency(&self, mut rawCurrency: Value) -> Value {
         let mut currencyId: Value = self.safe_string_k(rawCurrency.clone(), "symbol", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-        let mut networks: Value = self.safe_list_k(rawCurrency.clone(), "tokens", &[Value::List(vec![])]);
+        let mut networks: Vec<Value> = self.safe_list_k(rawCurrency.clone(), "tokens", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut parsedNetworks: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1124,8 +1124,8 @@ impl BackpackCore {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_235: bool = true;
             while { if !__for_first_235 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_235 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(networks.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut network: Value = get_value(&networks, &j);
-            let mut network: Value = get_value(&networks, &j);
+            let mut network: Value = match &j { Value::Int(__n) => networks.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| networks.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut network: Value = match &j { Value::Int(__n) => networks.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| networks.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut networkId: Value = self.safe_string_k(network.clone(), "blockchain", &[]);
             let mut networkIdLowerCase: Value = self.safe_string_lower(network.clone(), Value::Str("blockchain".to_string()), &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkIdLowerCase.clone(), code.clone()]);

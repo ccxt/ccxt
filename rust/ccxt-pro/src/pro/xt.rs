@@ -457,16 +457,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub fn handle_delta(&self, mut orderbook: Value, mut delta: Value) {
         add_element_to_object(&mut orderbook, &Value::Str("nonce".to_string()), self.safe_integer2(delta.clone(), Value::Str("i".to_string()), Value::Str("u".to_string()), &[]));
-        let mut obAsks: Value = self.safe_list_k(delta.clone(), "a", &[Value::List(vec![])]);
-        let mut obBids: Value = self.safe_list_k(delta.clone(), "b", &[Value::List(vec![])]);
+        let mut obAsks: Vec<Value> = self.safe_list_k(delta.clone(), "a", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut obBids: Vec<Value> = self.safe_list_k(delta.clone(), "b", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut bids: Value = crate::value::get_value_k(&orderbook, "bids");
         let mut asks: Value = crate::value::get_value_k(&orderbook, "asks");
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_681: bool = true;
             while { if !__for_first_681 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_681 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(obBids.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut bid: Value = get_value(&obBids, &i);
-            let mut bid: Value = get_value(&obBids, &i);
+            let mut bid: Value = match &i { Value::Int(__n) => obBids.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| obBids.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut bid: Value = match &i { Value::Int(__n) => obBids.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| obBids.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut price: Value = self.safe_number(bid.clone(), Value::Int(0), &[]);
             let mut quantity: Value = self.safe_number(bid.clone(), Value::Int(1), &[]);
             bids.store(price.clone(), quantity.clone());
@@ -476,8 +476,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: Value = Value::Int(0);
             let mut __for_first_682: bool = true;
             while { if !__for_first_682 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_682 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(obAsks.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut ask: Value = get_value(&obAsks, &i);
-            let mut ask: Value = get_value(&obAsks, &i);
+            let mut ask: Value = match &i { Value::Int(__n) => obAsks.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| obAsks.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut ask: Value = match &i { Value::Int(__n) => obAsks.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| obAsks.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut price: Value = self.safe_number(ask.clone(), Value::Int(0), &[]);
             let mut quantity: Value = self.safe_number(ask.clone(), Value::Int(1), &[]);
             asks.store(price.clone(), quantity.clone());
@@ -2144,16 +2144,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn handle_un_subscription(&mut self, mut client: Value, mut subscription: Value) {
-        let mut messageHashes: Value = self.safe_list_k(subscription.clone(), "messageHashes", &[Value::List(vec![])]);
-        let mut subMessageHashes: Value = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::List(vec![])]);
+        let mut messageHashes: Vec<Value> = self.safe_list_k(subscription.clone(), "messageHashes", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut subMessageHashes: Vec<Value> = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_689: bool = true;
             while { if !__for_first_689 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_689 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(messageHashes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut unsubHash: Value = get_value(&messageHashes, &j);
-            let mut unsubHash: Value = get_value(&messageHashes, &j);
-            let mut subHash: Value = get_value(&subMessageHashes, &j);
-            let mut subHash: Value = get_value(&subMessageHashes, &j);
+            let mut unsubHash: Value = match &j { Value::Int(__n) => messageHashes.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| messageHashes.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut unsubHash: Value = match &j { Value::Int(__n) => messageHashes.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| messageHashes.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut subHash: Value = match &j { Value::Int(__n) => subMessageHashes.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| subMessageHashes.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut subHash: Value = match &j { Value::Int(__n) => subMessageHashes.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| subMessageHashes.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             self.clean_unsubscription(client.clone(), subHash.clone(), unsubHash.clone(), &[]);
         }
         }

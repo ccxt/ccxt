@@ -1507,12 +1507,12 @@ impl MercadoCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_937: bool = true;
             while { if !__for_first_937 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_937 = false; is_less_than(&i, &get_array_length(&orders)) } {
-            let mut trades: Value = self.safe_list_k(get_value(&orders, &i), "trades", &[Value::List(vec![])]);
+            let mut trades: Vec<Value> = self.safe_list_k(get_value(&orders, &i), "trades", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
             {
                                 let mut y: Value = Value::Int(0);
                 let mut __for_first_936: bool = true;
                 while { if !__for_first_936 { y = (match (&(y), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_936 = false; y.as_f64().unwrap_or(f64::NAN) < Value::Int(trades.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                append_to_array(&mut result, get_value(&trades, &y));
+                append_to_array(&mut result, match &y { Value::Int(__n) => trades.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| trades.get(__n)), _ => None }.cloned().unwrap_or(Value::Null));
             }
             }
         }

@@ -1665,7 +1665,7 @@ impl WoofiproCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut tokenRows: Value = self.safe_list_k(tokenData.clone(), "rows", &[Value::List(vec![])]);
+        let mut tokenRows: Vec<Value> = self.safe_list_k(tokenData.clone(), "rows", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut chainData: Value = self.safe_dict_k(chainResponse.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1676,8 +1676,8 @@ impl WoofiproCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1135: bool = true;
             while { if !__for_first_1135 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1135 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(tokenRows.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut token: Value = get_value(&tokenRows, &i);
-            let mut token: Value = get_value(&tokenRows, &i);
+            let mut token: Value = match &i { Value::Int(__n) => tokenRows.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| tokenRows.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut token: Value = match &i { Value::Int(__n) => tokenRows.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| tokenRows.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut parsed: Value = self.parse_currency(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("_token".to_string(), token.clone());
@@ -1701,7 +1701,7 @@ impl WoofiproCore {
     m
 })]);
         let mut currencyId: Value = self.safe_string_k(token.clone(), "token", &[]);
-        let mut networks: Value = self.safe_list_k(token.clone(), "chain_details", &[Value::List(vec![])]);
+        let mut networks: Vec<Value> = self.safe_list_k(token.clone(), "chain_details", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
         let mut indexedChains: Value = self.safe_dict_k(rawCurrency.clone(), "_indexedChains", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1715,8 +1715,8 @@ impl WoofiproCore {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_1136: bool = true;
             while { if !__for_first_1136 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1136 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(networks.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut networkEntry: Value = get_value(&networks, &j);
-            let mut networkEntry: Value = get_value(&networks, &j);
+            let mut networkEntry: Value = match &j { Value::Int(__n) => networks.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| networks.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut networkEntry: Value = match &j { Value::Int(__n) => networks.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| networks.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "chain_id", &[]);
             let mut networkRow: Value = self.safe_dict(indexedChains.clone(), networkId.clone(), &[]);
             let mut networkName: Value = self.safe_string_k(networkRow.clone(), "name", &[networkId.clone()]);
@@ -2273,15 +2273,15 @@ impl WoofiproCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut rows: Value = self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])]);
+        let mut rows: Vec<Value> = self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut timestamp: Value = self.safe_integer_k(response.clone(), "timestamp", &[]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1137: bool = true;
             while { if !__for_first_1137 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1137 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rows.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut row: Value = get_value(&rows, &i);
-            let mut row: Value = get_value(&rows, &i);
+            let mut row: Value = match &i { Value::Int(__n) => rows.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| rows.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut row: Value = match &i { Value::Int(__n) => rows.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| rows.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(row.clone(), "symbol", &[Value::Str("".to_string())]);
             if is_true(&(Value::Bool(self.markets_by_id.clone() == Value::Null))) || !is_true(&(Value::Bool(in_op(&self.markets_by_id, &marketId)))) {
                 continue;
@@ -2422,15 +2422,15 @@ impl WoofiproCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut rows: Value = self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])]);
+        let mut rows: Vec<Value> = self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut timestamp: Value = self.safe_integer_k(response.clone(), "timestamp", &[]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1138: bool = true;
             while { if !__for_first_1138 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1138 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rows.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut row: Value = get_value(&rows, &i);
-            let mut row: Value = get_value(&rows, &i);
+            let mut row: Value = match &i { Value::Int(__n) => rows.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| rows.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut row: Value = match &i { Value::Int(__n) => rows.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| rows.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(row.clone(), "symbol", &[Value::Str("".to_string())]);
             if is_true(&(Value::Bool(self.markets_by_id.clone() == Value::Null))) || !is_true(&(Value::Bool(in_op(&self.markets_by_id, &marketId)))) {
                 continue;
@@ -2515,14 +2515,14 @@ impl WoofiproCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut result: Value = self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])]);
+        let mut result: Vec<Value> = self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1139: bool = true;
             while { if !__for_first_1139 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1139 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(result.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = get_value(&result, &i);
-            let mut entry: Value = get_value(&result, &i);
+            let mut entry: Value = match &i { Value::Int(__n) => result.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| result.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut entry: Value = match &i { Value::Int(__n) => result.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| result.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "funding_rate_timestamp", &[]);
             append_to_array(&mut rates, Value::Map({
@@ -4033,13 +4033,13 @@ impl WoofiproCore {
                 m.insert("info".to_string(), response.clone());
             m
         });
-        let mut balances: Value = self.safe_list_k(response.clone(), "holding", &[Value::List(vec![])]);
+        let mut balances: Vec<Value> = self.safe_list_k(response.clone(), "holding", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1142: bool = true;
             while { if !__for_first_1142 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1142 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(balances.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut balance: Value = get_value(&balances, &i);
-            let mut balance: Value = get_value(&balances, &i);
+            let mut balance: Value = match &i { Value::Int(__n) => balances.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| balances.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut balance: Value = match &i { Value::Int(__n) => balances.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| balances.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut code: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "token", &[]), &[]);
             let mut account: Value = self.account();
             add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(balance.clone(), "holding", &[]));
@@ -5156,7 +5156,7 @@ impl WoofiproCore {
                 if (isSandboxMode.as_bool() != Some(true)) {
                     let mut brokerId: Value = self.safe_string_k(self.options.clone(), "brokerId", &[Value::Str("CCXT".to_string())]);
                     if (path.as_str() == Some("batch-order")) {
-                        let mut ordersList: Value = self.safe_list_k(params.clone(), "orders", &[Value::List(vec![])]);
+                        let mut ordersList: Vec<Value> = self.safe_list_k(params.clone(), "orders", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
                         {
                                                         let mut i: Value = Value::Int(0);
                             let mut __for_first_1143: bool = true;

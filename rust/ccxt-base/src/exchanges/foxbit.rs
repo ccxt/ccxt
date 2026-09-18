@@ -706,7 +706,7 @@ impl FoxbitCore {
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
         let mut depositInfo: Value = self.safe_dict_k(rawCurrency.clone(), "deposit_info", &[]);
         let mut withdrawInfo: Value = self.safe_dict_k(rawCurrency.clone(), "withdraw_info", &[]);
-        let mut networks: Value = self.safe_list_k(rawCurrency.clone(), "networks", &[Value::List(vec![])]);
+        let mut networks: Vec<Value> = self.safe_list_k(rawCurrency.clone(), "networks", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut type_var: Value = self.safe_string_lower(rawCurrency.clone(), Value::Str("type".to_string()), &[]);
         let mut parsedNetworks: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -716,8 +716,8 @@ impl FoxbitCore {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_672: bool = true;
             while { if !__for_first_672 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_672 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(networks.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut network: Value = get_value(&networks, &j);
-            let mut network: Value = get_value(&networks, &j);
+            let mut network: Value = match &j { Value::Int(__n) => networks.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| networks.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut network: Value = match &j { Value::Int(__n) => networks.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| networks.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut networkId: Value = self.safe_string_k(network.clone(), "code", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
             let mut networkWithdrawInfo: Value = self.safe_dict_k(network.clone(), "withdraw_info", &[]);
@@ -1055,7 +1055,7 @@ impl FoxbitCore {
         //         "taker": "0.005"
         //     }
         // ]
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Vec<Value> = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1064,8 +1064,8 @@ impl FoxbitCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_673: bool = true;
             while { if !__for_first_673 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_673 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = get_value(&data, &i);
-            let mut entry: Value = get_value(&data, &i);
+            let mut entry: Value = match &i { Value::Int(__n) => data.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| data.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut entry: Value = match &i { Value::Int(__n) => data.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| data.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "market_symbol", &[]);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -1260,7 +1260,7 @@ impl FoxbitCore {
         //         }
         //     ]
         // }
-        let mut accounts: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut accounts: Vec<Value> = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
@@ -1270,8 +1270,8 @@ impl FoxbitCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_674: bool = true;
             while { if !__for_first_674 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_674 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(accounts.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut account: Value = get_value(&accounts, &i);
-            let mut account: Value = get_value(&accounts, &i);
+            let mut account: Value = match &i { Value::Int(__n) => accounts.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| accounts.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut account: Value = match &i { Value::Int(__n) => accounts.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| accounts.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut currencyId: Value = self.safe_string_k(account.clone(), "currency_symbol", &[]);
             let mut currencyCode: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut total: Value = self.safe_string_k(account.clone(), "balance", &[]);

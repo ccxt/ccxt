@@ -430,7 +430,7 @@ impl CoinexCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut rawTickers: Value = self.safe_list_k(data.clone(), "state_list", &[Value::List(vec![])]);
+        let mut rawTickers: Vec<Value> = self.safe_list_k(data.clone(), "state_list", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut newTickers: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -439,8 +439,8 @@ impl CoinexCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_277: bool = true;
             while { if !__for_first_277 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_277 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rawTickers.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = get_value(&rawTickers, &i);
-            let mut entry: Value = get_value(&rawTickers, &i);
+            let mut entry: Value = match &i { Value::Int(__n) => rawTickers.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| rawTickers.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut entry: Value = match &i { Value::Int(__n) => rawTickers.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| rawTickers.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "market", &[]);
             let mut symbol: Value = self.safe_symbol(marketId.clone(), &[Value::Null, Value::Null, defaultType.clone()]);
             let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, defaultType.clone()]);
@@ -897,7 +897,7 @@ impl CoinexCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut trades: Value = self.safe_list_k(data.clone(), "deal_list", &[Value::List(vec![])]);
+        let mut trades: Vec<Value> = self.safe_list_k(data.clone(), "deal_list", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut marketId: Value = self.safe_string_k(data.clone(), "market", &[]);
         let mut isSpot: bool = get_index_of(&get_value(&client, &Value::Str("url".to_string())), &Value::Str("spot".to_string())).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN);
         let mut defaultType: Value = (if isSpot { Value::Str("spot".to_string()) } else { Value::Str("swap".to_string()) });
@@ -914,8 +914,8 @@ impl CoinexCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_282: bool = true;
             while { if !__for_first_282 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_282 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(trades.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut trade: Value = get_value(&trades, &i);
-            let mut trade: Value = get_value(&trades, &i);
+            let mut trade: Value = match &i { Value::Int(__n) => trades.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| trades.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut trade: Value = match &i { Value::Int(__n) => trades.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| trades.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut parsed: Value = self.parse_ws_trade(trade.clone(), &[market.clone()]);
             stored.append(parsed.clone());
         }

@@ -1496,13 +1496,13 @@ impl HibachiCore {
         // { "orders": [ { nonce: '1754349993908', orderId: '589642085255349248' } ] }
         //
         let mut ret: Value = Value::List(vec![]);
-        let mut responseOrders: Value = self.safe_list_k(response.clone(), "orders", &[Value::List(vec![])]);
+        let mut responseOrders: Vec<Value> = self.safe_list_k(response.clone(), "orders", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_733: bool = true;
             while { if !__for_first_733 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_733 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(responseOrders.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut responseOrder: Value = get_value(&responseOrders, &i);
-            let mut responseOrder: Value = get_value(&responseOrders, &i);
+            let mut responseOrder: Value = match &i { Value::Int(__n) => responseOrders.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| responseOrders.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut responseOrder: Value = match &i { Value::Int(__n) => responseOrders.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| responseOrders.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             append_to_array(&mut ret, self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), responseOrder.clone());
@@ -1643,13 +1643,13 @@ impl HibachiCore {
         // { "orders": [ { "orderId": "589636801329628160" } ] }
         //
         let mut ret: Value = Value::List(vec![]);
-        let mut responseOrders: Value = self.safe_list_k(response.clone(), "orders", &[Value::List(vec![])]);
+        let mut responseOrders: Vec<Value> = self.safe_list_k(response.clone(), "orders", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_735: bool = true;
             while { if !__for_first_735 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_735 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(responseOrders.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut responseOrder: Value = get_value(&responseOrders, &i);
-            let mut responseOrder: Value = get_value(&responseOrders, &i);
+            let mut responseOrder: Value = match &i { Value::Int(__n) => responseOrders.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| responseOrders.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut responseOrder: Value = match &i { Value::Int(__n) => responseOrders.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| responseOrders.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             append_to_array(&mut ret, self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), responseOrder.clone());
@@ -1749,13 +1749,13 @@ impl HibachiCore {
         // { "orders": [ { "orderId": "589636801329628160" } ] }
         //
         let mut ret: Value = Value::List(vec![]);
-        let mut responseOrders: Value = self.safe_list_k(response.clone(), "orders", &[Value::List(vec![])]);
+        let mut responseOrders: Vec<Value> = self.safe_list_k(response.clone(), "orders", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_737: bool = true;
             while { if !__for_first_737 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_737 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(responseOrders.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut responseOrder: Value = get_value(&responseOrders, &i);
-            let mut responseOrder: Value = get_value(&responseOrders, &i);
+            let mut responseOrder: Value = match &i { Value::Int(__n) => responseOrders.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| responseOrders.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut responseOrder: Value = match &i { Value::Int(__n) => responseOrders.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| responseOrders.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             append_to_array(&mut ret, self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), responseOrder.clone());
@@ -3175,14 +3175,14 @@ impl HibachiCore {
         //     ]
         // }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Vec<Value> = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_739: bool = true;
             while { if !__for_first_739 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_739 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = get_value(&data, &i);
-            let mut entry: Value = get_value(&data, &i);
+            let mut entry: Value = match &i { Value::Int(__n) => data.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| data.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut entry: Value = match &i { Value::Int(__n) => data.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| data.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut timestamp: Value = self.safe_integer_product(entry.clone(), Value::Str("fundingTimestamp".to_string()), Value::Int(1000), &[]);
             append_to_array(&mut rates, Value::Map({
                 let mut m = indexmap::IndexMap::new();

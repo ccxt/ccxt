@@ -1912,7 +1912,7 @@ impl AsterCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut fapiRows: Value = self.safe_list_k(fapiResult.clone(), "symbols", &[Value::List(vec![])]);
+        let mut fapiRows: Vec<Value> = self.safe_list_k(fapiResult.clone(), "symbols", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         //
         // example:
         //
@@ -2012,8 +2012,8 @@ impl AsterCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_221: bool = true;
             while { if !__for_first_221 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_221 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(fapiRows.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut market: Value = get_value(&fapiRows, &i);
-            let mut market: Value = get_value(&fapiRows, &i);
+            let mut market: Value = match &i { Value::Int(__n) => fapiRows.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| fapiRows.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut market: Value = match &i { Value::Int(__n) => fapiRows.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| fapiRows.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             // tmp skip some markets with base = undefined
             if (self.safe_string_k(market.clone(), "baseAsset", &[]) != Value::Null) {
                 append_to_array(&mut fapiRowsFiltered, market.clone());
@@ -4558,7 +4558,7 @@ impl AsterCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut leverageBracket: Value = self.safe_list(leverageBrackets.clone(), symbol.clone(), &[Value::List(vec![])]);
+        let mut leverageBracket: Vec<Value> = self.safe_list(leverageBrackets.clone(), symbol.clone(), &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut notionalString: Value = self.safe_string2(position.clone(), Value::Str("notional".to_string()), Value::Str("notionalValue".to_string()), &[]);
         let mut notionalStringAbs: Value = crate::precise::Precise::stringAbs(&notionalString);
         let mut maintenanceMarginPercentageString: Value = Value::Null;
@@ -4566,8 +4566,8 @@ impl AsterCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_225: bool = true;
             while { if !__for_first_225 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_225 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(leverageBracket.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut bracket: Value = get_value(&leverageBracket, &i);
-            let mut bracket: Value = get_value(&leverageBracket, &i);
+            let mut bracket: Value = match &i { Value::Int(__n) => leverageBracket.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| leverageBracket.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut bracket: Value = match &i { Value::Int(__n) => leverageBracket.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| leverageBracket.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             if is_true(&crate::precise::Precise::stringLt(&notionalStringAbs, &get_value(&bracket, &Value::Int(0)))) {
                 break;
             }
@@ -4823,8 +4823,8 @@ impl AsterCore {
 
     pub fn parse_account_positions(&self, mut account: Value, optional_args: &[Value]) -> Value {
         let mut filterClosed = get_arg(optional_args, 0, Value::Bool(false));
-        let mut positions: Value = self.safe_list_k(account.clone(), "positions", &[Value::List(vec![])]);
-        let mut assets: Value = self.safe_list_k(account.clone(), "assets", &[Value::List(vec![])]);
+        let mut positions: Vec<Value> = self.safe_list_k(account.clone(), "positions", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut assets: Vec<Value> = self.safe_list_k(account.clone(), "assets", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut balances: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4833,8 +4833,8 @@ impl AsterCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_227: bool = true;
             while { if !__for_first_227 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_227 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(assets.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = get_value(&assets, &i);
-            let mut entry: Value = get_value(&assets, &i);
+            let mut entry: Value = match &i { Value::Int(__n) => assets.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| assets.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut entry: Value = match &i { Value::Int(__n) => assets.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| assets.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "asset", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut crossWalletBalance: Value = self.safe_string_k(entry.clone(), "crossWalletBalance", &[]);
@@ -4854,8 +4854,8 @@ impl AsterCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_228: bool = true;
             while { if !__for_first_228 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_228 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(positions.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut position: Value = get_value(&positions, &i);
-            let mut position: Value = get_value(&positions, &i);
+            let mut position: Value = match &i { Value::Int(__n) => positions.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| positions.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut position: Value = match &i { Value::Int(__n) => positions.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| positions.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(position.clone(), "symbol", &[]);
             let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, Value::Str("contract".to_string())]);
             let mut code: Value = (if is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)))) { market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null) } else { market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null) });
@@ -4924,14 +4924,14 @@ impl AsterCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut leverageBracket: Value = self.safe_list(leverageBrackets.clone(), symbol.clone(), &[Value::List(vec![])]);
+        let mut leverageBracket: Vec<Value> = self.safe_list(leverageBrackets.clone(), symbol.clone(), &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut maintenanceMarginPercentageString: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_229: bool = true;
             while { if !__for_first_229 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_229 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(leverageBracket.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut bracket: Value = get_value(&leverageBracket, &i);
-            let mut bracket: Value = get_value(&leverageBracket, &i);
+            let mut bracket: Value = match &i { Value::Int(__n) => leverageBracket.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| leverageBracket.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut bracket: Value = match &i { Value::Int(__n) => leverageBracket.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| leverageBracket.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             if is_true(&crate::precise::Precise::stringLt(&notionalStringAbs, &get_value(&bracket, &Value::Int(0)))) {
                 break;
             }
@@ -5142,14 +5142,14 @@ impl AsterCore {
                 let mut entry: Value = get_value(&entries, &i);
                 let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
                 let mut symbol: Value = self.safe_symbol(marketId.clone(), &[Value::Null, Value::Null, Value::Str("contract".to_string())]);
-                let mut brackets: Value = self.safe_list_k(entry.clone(), "brackets", &[Value::List(vec![])]);
+                let mut brackets: Vec<Value> = self.safe_list_k(entry.clone(), "brackets", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
                 let mut result: Value = Value::List(vec![]);
                 {
                                         let mut j: Value = Value::Int(0);
                     let mut __for_first_230: bool = true;
                     while { if !__for_first_230 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_230 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(brackets.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                    let mut bracket: Value = get_value(&brackets, &j);
-                    let mut bracket: Value = get_value(&brackets, &j);
+                    let mut bracket: Value = match &j { Value::Int(__n) => brackets.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| brackets.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+                    let mut bracket: Value = match &j { Value::Int(__n) => brackets.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| brackets.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
                     let mut floorValue: Value = self.safe_string_k(bracket.clone(), "notionalFloor", &[]);
                     let mut maintenanceMarginPercentage: Value = self.safe_string_k(bracket.clone(), "maintMarginRatio", &[]);
                     append_to_array(&mut result, Value::List(vec![floorValue.clone(), maintenanceMarginPercentage.clone()]));

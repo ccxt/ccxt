@@ -795,7 +795,7 @@ impl CoinbaseCore {
         //
         //
         let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[]);
-        let mut events: Value = self.safe_list_k(message.clone(), "events", &[Value::List(vec![])]);
+        let mut events: Vec<Value> = self.safe_list_k(message.clone(), "events", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut datetime: Value = self.safe_string_k(message.clone(), "timestamp", &[]);
         let mut timestamp: Value = self.parse8601(datetime.clone());
         let mut newTickers: Value = Value::List(vec![]);
@@ -803,15 +803,15 @@ impl CoinbaseCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_256: bool = true;
             while { if !__for_first_256 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_256 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(events.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut tickersObj: Value = get_value(&events, &i);
-            let mut tickersObj: Value = get_value(&events, &i);
-            let mut tickers: Value = self.safe_list_k(tickersObj.clone(), "tickers", &[Value::List(vec![])]);
+            let mut tickersObj: Value = match &i { Value::Int(__n) => events.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| events.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut tickersObj: Value = match &i { Value::Int(__n) => events.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| events.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut tickers: Vec<Value> = self.safe_list_k(tickersObj.clone(), "tickers", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_255: bool = true;
                 while { if !__for_first_255 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_255 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(tickers.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                let mut ticker: Value = get_value(&tickers, &j);
-                let mut ticker: Value = get_value(&tickers, &j);
+                let mut ticker: Value = match &j { Value::Int(__n) => tickers.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| tickers.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+                let mut ticker: Value = match &j { Value::Int(__n) => tickers.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| tickers.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
                 let mut wsMarketId: Value = self.safe_string_k(ticker.clone(), "product_id", &[]);
                 if (wsMarketId == Value::Null) {
                     continue;
@@ -1465,16 +1465,16 @@ impl CoinbaseCore {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let mut messageHashes: Value = self.safe_list_k(unSubObject.clone(), "messageHashes", &[Value::List(vec![])]);
-            let mut subMessageHashes: Value = self.safe_list_k(unSubObject.clone(), "subMessageHashes", &[Value::List(vec![])]);
+            let mut messageHashes: Vec<Value> = self.safe_list_k(unSubObject.clone(), "messageHashes", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut subMessageHashes: Vec<Value> = self.safe_list_k(unSubObject.clone(), "subMessageHashes", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_264: bool = true;
                 while { if !__for_first_264 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_264 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(messageHashes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                let mut messageHash: Value = get_value(&messageHashes, &i);
-                let mut messageHash: Value = get_value(&messageHashes, &i);
-                let mut subHash: Value = get_value(&subMessageHashes, &i);
-                let mut subHash: Value = get_value(&subMessageHashes, &i);
+                let mut messageHash: Value = match &i { Value::Int(__n) => messageHashes.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| messageHashes.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+                let mut messageHash: Value = match &i { Value::Int(__n) => messageHashes.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| messageHashes.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+                let mut subHash: Value = match &i { Value::Int(__n) => subMessageHashes.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| subMessageHashes.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+                let mut subHash: Value = match &i { Value::Int(__n) => subMessageHashes.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| subMessageHashes.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
                 self.clean_unsubscription(client.clone(), subHash.clone(), messageHash.clone(), &[]);
             }
             }

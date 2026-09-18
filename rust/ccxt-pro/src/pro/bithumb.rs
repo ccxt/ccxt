@@ -807,13 +807,13 @@ impl BithumbCore {
         add_element_to_object(&mut orderbook, &Value::Str("symbol".to_string()), symbol.clone());
         let mut bids: Value = get_value(&orderbook, &Value::Str("bids".to_string()));
         let mut asks: Value = get_value(&orderbook, &Value::Str("asks".to_string()));
-        let mut units: Value = self.safe_list_k(message.clone(), "orderbook_units", &[Value::List(vec![])]);
+        let mut units: Vec<Value> = self.safe_list_k(message.clone(), "orderbook_units", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_127: bool = true;
             while { if !__for_first_127 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_127 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(units.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = get_value(&units, &i);
-            let mut entry: Value = get_value(&units, &i);
+            let mut entry: Value = match &i { Value::Int(__n) => units.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| units.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut entry: Value = match &i { Value::Int(__n) => units.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| units.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut bidPrice: Value = self.safe_number_k(entry.clone(), "bid_price", &[]);
             let mut bidSize: Value = self.safe_number_k(entry.clone(), "bid_size", &[]);
             let mut askPrice: Value = self.safe_number_k(entry.clone(), "ask_price", &[]);
@@ -1172,7 +1172,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //    }
         //
         let mut messageHash: Value = Value::Str("myAsset".to_string());
-        let mut assets: Value = self.safe_list_k(message.clone(), "assets", &[Value::List(vec![])]);
+        let mut assets: Vec<Value> = self.safe_list_k(message.clone(), "assets", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         if (self.balance.clone() == Value::Null) {
             self.balance = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1183,8 +1183,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: Value = Value::Int(0);
             let mut __for_first_130: bool = true;
             while { if !__for_first_130 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_130 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(assets.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut asset: Value = get_value(&assets, &i);
-            let mut asset: Value = get_value(&assets, &i);
+            let mut asset: Value = match &i { Value::Int(__n) => assets.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| assets.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut asset: Value = match &i { Value::Int(__n) => assets.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| assets.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut currencyId: Value = self.safe_string_k(asset.clone(), "currency", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut account: Value = self.account();

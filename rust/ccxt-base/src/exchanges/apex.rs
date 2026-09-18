@@ -916,13 +916,13 @@ impl ApexCore {
             while { if !__for_first_218 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_218 = false; is_less_than(&j, &get_array_length(&chains)) } {
             let mut chain: Value = get_value(&chains, &j);
             let mut chain: Value = get_value(&chains, &j);
-            let mut tokens: Value = self.safe_list_k(chain.clone(), "tokens", &[Value::List(vec![])]);
+            let mut tokens: Vec<Value> = self.safe_list_k(chain.clone(), "tokens", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
             {
                                 let mut f: Value = Value::Int(0);
                 let mut __for_first_217: bool = true;
                 while { if !__for_first_217 { f = (match (&(f), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_217 = false; f.as_f64().unwrap_or(f64::NAN) < Value::Int(tokens.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                let mut token: Value = get_value(&tokens, &f);
-                let mut token: Value = get_value(&tokens, &f);
+                let mut token: Value = match &f { Value::Int(__n) => tokens.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| tokens.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+                let mut token: Value = match &f { Value::Int(__n) => tokens.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| tokens.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
                 let mut tokenName: Value = self.safe_string_k(token.clone(), "token", &[]);
                 if (tokenName.as_str() == currencyId.as_str()) {
                     let mut networkId: Value = self.safe_string_k(chain.clone(), "chainId", &[]);
@@ -1611,13 +1611,13 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut resultList: Value = self.safe_list_k(data.clone(), "historyFunds", &[Value::List(vec![])]);
+        let mut resultList: Vec<Value> = self.safe_list_k(data.clone(), "historyFunds", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_219: bool = true;
             while { if !__for_first_219 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_219 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(resultList.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = get_value(&resultList, &i);
-            let mut entry: Value = get_value(&resultList, &i);
+            let mut entry: Value = match &i { Value::Int(__n) => resultList.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| resultList.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut entry: Value = match &i { Value::Int(__n) => resultList.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| resultList.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "fundingTimestamp", &[]);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
             append_to_array(&mut rates, Value::Map({

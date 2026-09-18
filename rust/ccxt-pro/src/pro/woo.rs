@@ -2190,16 +2190,16 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut subMessageHashes: Value = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::List(vec![])]);
-        let mut unsubMessageHashes: Value = self.safe_list_k(subscription.clone(), "unsubMessageHashes", &[Value::List(vec![])]);
+        let mut subMessageHashes: Vec<Value> = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut unsubMessageHashes: Vec<Value> = self.safe_list_k(subscription.clone(), "unsubMessageHashes", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_672: bool = true;
             while { if !__for_first_672 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_672 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(subMessageHashes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut subHash: Value = get_value(&subMessageHashes, &i);
-            let mut subHash: Value = get_value(&subMessageHashes, &i);
-            let mut unsubHash: Value = get_value(&unsubMessageHashes, &i);
-            let mut unsubHash: Value = get_value(&unsubMessageHashes, &i);
+            let mut subHash: Value = match &i { Value::Int(__n) => subMessageHashes.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| subMessageHashes.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut subHash: Value = match &i { Value::Int(__n) => subMessageHashes.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| subMessageHashes.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut unsubHash: Value = match &i { Value::Int(__n) => unsubMessageHashes.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| unsubMessageHashes.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut unsubHash: Value = match &i { Value::Int(__n) => unsubMessageHashes.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| unsubMessageHashes.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             self.clean_unsubscription(client.clone(), subHash.clone(), unsubHash.clone(), &[]);
         }
         }
