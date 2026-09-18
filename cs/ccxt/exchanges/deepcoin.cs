@@ -1530,9 +1530,9 @@ public partial class deepcoin : Exchange
         {
             await this.loadMarkets();
         }
-        object marketType = "spot";
+        string? marketType = "spot";
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchLedger", null, parameters, marketType);
-        marketType = marketTypeparametersVariable[0];
+        marketType = (string)marketTypeparametersVariable[0];
         parameters = marketTypeparametersVariable[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instType", this.convertToInstrumentType(marketType) },
@@ -2297,9 +2297,9 @@ public partial class deepcoin : Exchange
             market = this.market(symbol);
             request["instId"] = GetValue(market, "id");
         }
-        object marketType = "spot";
+        string? marketType = "spot";
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams(methodName, market, parameters, marketType);
-        marketType = marketTypeparametersVariable[0];
+        marketType = (string)marketTypeparametersVariable[0];
         parameters = marketTypeparametersVariable[1];
         request["instType"] = this.convertToInstrumentType(marketType);
         if (!isEqual(limit, null))
@@ -2994,7 +2994,7 @@ public partial class deepcoin : Exchange
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, null, true, true);
-        object marketType = "swap";
+        string? marketType = "swap";
         IDictionary<string, object> market = null;
         if (!isEqual(symbols, null))
         {
@@ -3002,7 +3002,7 @@ public partial class deepcoin : Exchange
             market = this.market(firstSymbol);
         }
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchPositions", market, parameters, marketType);
-        marketType = marketTypeparametersVariable[0];
+        marketType = (string)marketTypeparametersVariable[0];
         parameters = marketTypeparametersVariable[1];
         string? instrumentType = this.convertToInstrumentType(marketType);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -3180,7 +3180,7 @@ public partial class deepcoin : Exchange
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, "swap", true, true, true);
-        object subType = "linear";
+        string? subType = "linear";
         IDictionary<string, object> firstMarket = null;
         if (!isEqual(symbols, null))
         {
@@ -3188,13 +3188,13 @@ public partial class deepcoin : Exchange
             firstMarket = this.market(firstSymbol);
         }
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("fetchFundingRates", firstMarket, parameters, subType);
-        subType = subTypeparametersVariable[0];
+        subType = (string)subTypeparametersVariable[0];
         parameters = subTypeparametersVariable[1];
         string instType = "SwapU";
-        if (isEqual(subType, "inverse"))
+        if (subType == "inverse")
         {
             instType = "Swap";
-        } else if (!isEqual(subType, "linear"))
+        } else if (subType != "linear")
         {
             throw new BadRequest (add(this.id, " fetchFundingRates() subType parameter must be either linear or inverse")) ;
         }
@@ -3418,9 +3418,9 @@ public partial class deepcoin : Exchange
         {
             market = this.market(symbol);
         }
-        object marketType = "spot";
+        string? marketType = "spot";
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchMyTrades", market, parameters, marketType);
-        marketType = marketTypeparametersVariable[0];
+        marketType = (string)marketTypeparametersVariable[0];
         parameters = marketTypeparametersVariable[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instType", this.convertToInstrumentType(marketType) },

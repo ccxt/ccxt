@@ -2193,12 +2193,12 @@ public partial class blofin : Exchange
         {
             request["limit"] = limit; // default 100, max 100
         }
-        object type = "swap";
+        string? type = "swap";
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchMyTrades", market, parameters, type);
-        type = typeparametersVariable[0];
+        type = (string)typeparametersVariable[0];
         parameters = typeparametersVariable[1];
         Dictionary<string, object> response = null;
-        if (isEqual(type, "spot"))
+        if (type == "spot")
         {
             request["instType"] = "SPOT";
             //
