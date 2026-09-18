@@ -281,7 +281,7 @@ func (this *Poloniex) createOrderWsBody(ch chan any, symbol any, typeVar any, si
 	_ = price
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes21612 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes21612)
@@ -402,7 +402,7 @@ func (this *Poloniex) cancelOrdersWsBody(ch chan any, ids any, optionalArgs ...a
 	_ = symbol
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes30112 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes30112)
@@ -441,7 +441,7 @@ func (this *Poloniex) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) an
 	_ = symbol
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes32112 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes32112)
@@ -506,7 +506,7 @@ func (this *Poloniex) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes36412 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes36412)
@@ -546,7 +546,7 @@ func (this *Poloniex) watchTickerBody(ch chan any, symbol any, optionalArgs ...a
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes38912 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes38912)
@@ -581,7 +581,7 @@ func (this *Poloniex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes40712 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes40712)
@@ -658,7 +658,7 @@ func (this *Poloniex) watchTradesForSymbolsBody(ch chan any, symbols any, option
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes44612 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes44612)
@@ -714,7 +714,7 @@ func (this *Poloniex) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes48712 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes48712)
@@ -759,7 +759,7 @@ func (this *Poloniex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes50912 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes50912)
@@ -815,7 +815,7 @@ func (this *Poloniex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes53712 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes53712)
@@ -863,7 +863,7 @@ func (this *Poloniex) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes56312 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes56312)

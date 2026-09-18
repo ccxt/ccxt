@@ -96,7 +96,7 @@ func (this *Alpaca) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 
 	retRes788 := (<-this.AuthenticateAsync(url))
 	ccxt.PanicOnError(retRes788)
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes8012 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes8012)
@@ -205,7 +205,7 @@ func (this *Alpaca) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 
 	retRes1648 := (<-this.AuthenticateAsync(url))
 	ccxt.PanicOnError(retRes1648)
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes16612 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes16612)
@@ -282,7 +282,7 @@ func (this *Alpaca) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 
 	retRes2238 := (<-this.AuthenticateAsync(url))
 	ccxt.PanicOnError(retRes2238)
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes22512 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes22512)
@@ -386,7 +386,7 @@ func (this *Alpaca) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 
 	retRes3098 := (<-this.AuthenticateAsync(url))
 	ccxt.PanicOnError(retRes3098)
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes31112 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes31112)
@@ -467,7 +467,7 @@ func (this *Alpaca) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	retRes3678 := (<-this.AuthenticateAsync(url))
 	ccxt.PanicOnError(retRes3678)
 	var messageHash any = "myTrades"
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes37012 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes37012)
@@ -523,7 +523,7 @@ func (this *Alpaca) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	retRes4018 := (<-this.AuthenticateAsync(url))
 	ccxt.PanicOnError(retRes4018)
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes40312 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes40312)

@@ -251,7 +251,7 @@ func (this *Paymium) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes19012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes19012)
@@ -286,7 +286,7 @@ func (this *Paymium) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	_ = limit
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes20812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes20812)
@@ -372,7 +372,7 @@ func (this *Paymium) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes27812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes27812)
@@ -458,7 +458,7 @@ func (this *Paymium) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	_ = limit
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes34412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes34412)
@@ -494,7 +494,7 @@ func (this *Paymium) createDepositAddressBody(ch chan any, code any, optionalArg
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes36512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes36512)
@@ -534,7 +534,7 @@ func (this *Paymium) fetchDepositAddressBody(ch chan any, code any, optionalArgs
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes39012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes39012)
@@ -579,7 +579,7 @@ func (this *Paymium) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 	_ = codes
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes41812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes41812)
@@ -648,7 +648,7 @@ func (this *Paymium) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes46912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes46912)
@@ -731,7 +731,7 @@ func (this *Paymium) transferBody(ch chan any, code any, amount any, fromAccount
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes52212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes52212)

@@ -238,7 +238,7 @@ func (this *Weex) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes18012 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes18012)
@@ -274,7 +274,7 @@ func (this *Weex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes19912 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes19912)
@@ -357,7 +357,7 @@ func (this *Weex) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes25012 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes25012)
@@ -544,7 +544,7 @@ func (this *Weex) watchTradesForSymbolsBody(ch chan any, symbols any, optionalAr
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes39612 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes39612)
@@ -623,7 +623,7 @@ func (this *Weex) unWatchTradesForSymbolsBody(ch chan any, symbols any, optional
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes44712 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes44712)
@@ -817,7 +817,7 @@ func (this *Weex) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes59312 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes59312)
@@ -915,7 +915,7 @@ func (this *Weex) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes a
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes65812 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes65812)
@@ -1099,7 +1099,7 @@ func (this *Weex) watchOrderBookForSymbolsBody(ch chan any, symbols any, optiona
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes81512 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes81512)
@@ -1184,7 +1184,7 @@ func (this *Weex) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes87012 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes87012)
@@ -1298,7 +1298,7 @@ func (this *Weex) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes96712 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes96712)
@@ -1354,7 +1354,7 @@ func (this *Weex) unWatchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes100412 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes100412)
@@ -1466,7 +1466,7 @@ func (this *Weex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes109012 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes109012)
@@ -1724,7 +1724,7 @@ func (this *Weex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes129812 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes129812)
@@ -2063,7 +2063,7 @@ func (this *Weex) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes159312 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes159312)
@@ -2253,7 +2253,7 @@ func (this *Weex) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes174612 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes174612)

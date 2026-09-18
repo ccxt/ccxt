@@ -98,7 +98,7 @@ func (this *Whitebit) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes7812 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes7812)
@@ -191,7 +191,7 @@ func (this *Whitebit) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes15512 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes15512)
@@ -308,7 +308,7 @@ func (this *Whitebit) watchTickerBody(ch chan any, symbol any, optionalArgs ...a
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes26512 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes26512)
@@ -346,7 +346,7 @@ func (this *Whitebit) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes28612 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes28612)
@@ -449,7 +449,7 @@ func (this *Whitebit) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes37112 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes37112)
@@ -543,7 +543,7 @@ func (this *Whitebit) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if symbol == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchMyTrades() requires a symbol argument"))
 	}
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes44512 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes44512)
@@ -700,7 +700,7 @@ func (this *Whitebit) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if symbol == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchOrders() requires a symbol argument"))
 	}
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes57212 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes57212)
@@ -902,7 +902,7 @@ func (this *Whitebit) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes74912 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes74912)
@@ -1097,7 +1097,7 @@ func (this *Whitebit) watchMultipleSubscriptionBody(ch chan any, messageHash any
 	_ = isNested
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes89712 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes89712)

@@ -173,7 +173,7 @@ func (this *Grvt) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes14312 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes14312)
@@ -221,7 +221,7 @@ func (this *Grvt) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var intervalparamsVariable []any = this.HandleOptionAndParams(params, "watchTickers", "interval", interval)
 	interval = ccxt.GetValue(intervalparamsVariable, 0)
 	params = ccxt.GetValue(intervalparamsVariable, 1)
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes16812 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes16812)
@@ -406,7 +406,7 @@ func (this *Grvt) watchTradesForSymbolsBody(ch chan any, symbols any, optionalAr
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes31512 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes31512)
@@ -511,7 +511,7 @@ func (this *Grvt) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes39912 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes39912)
@@ -551,7 +551,7 @@ func (this *Grvt) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes42012 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes42012)
@@ -656,7 +656,7 @@ func (this *Grvt) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes50712 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes50712)
@@ -692,7 +692,7 @@ func (this *Grvt) watchOrderBookForSymbolsBody(ch chan any, symbols any, optiona
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes52612 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes52612)
@@ -874,7 +874,7 @@ func (this *Grvt) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes66612 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes66612)
@@ -989,7 +989,7 @@ func (this *Grvt) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 	retRes7548 := (<-this.AuthenticateAsync())
 	ccxt.PanicOnError(retRes7548)
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes75612 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes75612)
@@ -1100,7 +1100,7 @@ func (this *Grvt) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes84412 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes84412)

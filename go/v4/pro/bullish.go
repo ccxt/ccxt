@@ -178,7 +178,7 @@ func (this *Bullish) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes13212 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes13212)
@@ -264,7 +264,7 @@ func (this *Bullish) watchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes20412 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes20412)
@@ -363,7 +363,7 @@ func (this *Bullish) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes28712 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes28712)
@@ -474,7 +474,7 @@ func (this *Bullish) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes37912 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes37912)
@@ -612,7 +612,7 @@ func (this *Bullish) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes49712 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes49712)
@@ -734,7 +734,7 @@ func (this *Bullish) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes60512 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes60512)
@@ -854,7 +854,7 @@ func (this *Bullish) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes70512 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes70512)

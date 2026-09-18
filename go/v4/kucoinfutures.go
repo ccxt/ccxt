@@ -95,7 +95,7 @@ func (this *Kucoinfutures) transferBody(ch chan any, code any, amount any, fromA
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes7312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes7312)

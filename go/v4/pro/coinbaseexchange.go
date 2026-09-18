@@ -79,7 +79,7 @@ func (this *Coinbaseexchange) subscribeBody(ch chan any, name any, optionalArgs 
 	_ = messageHashStart
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes6412 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes6412)
@@ -123,7 +123,7 @@ func (this *Coinbaseexchange) subscribeMultipleBody(ch chan any, name any, optio
 	_ = messageHashStart
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes9212 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes9212)
@@ -203,7 +203,7 @@ func (this *Coinbaseexchange) watchTickersBody(ch chan any, optionalArgs ...any)
 	_ = symbols
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes14412 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes14412)
@@ -256,7 +256,7 @@ func (this *Coinbaseexchange) watchTradesBody(ch chan any, symbol any, optionalA
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes17612 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes17612)
@@ -302,7 +302,7 @@ func (this *Coinbaseexchange) watchTradesForSymbolsBody(ch chan any, symbols any
 	if symbolsLength == 0 {
 		panic(ccxt.BadRequest(this.Id + " watchTradesForSymbols() requires a non-empty array of symbols"))
 	}
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes20312 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes20312)
@@ -351,7 +351,7 @@ func (this *Coinbaseexchange) watchMyTradesBody(ch chan any, optionalArgs ...any
 	if symbol == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchMyTrades() requires a symbol argument"))
 	}
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes23112 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes23112)
@@ -396,7 +396,7 @@ func (this *Coinbaseexchange) watchMyTradesForSymbolsBody(ch chan any, symbols a
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	symbols = this.MarketSymbols(symbols, nil, false)
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes25712 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes25712)
@@ -441,7 +441,7 @@ func (this *Coinbaseexchange) watchOrdersForSymbolsBody(ch chan any, symbols any
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes28312 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes28312)
@@ -492,7 +492,7 @@ func (this *Coinbaseexchange) watchOrdersBody(ch chan any, optionalArgs ...any) 
 	if symbol == nil {
 		panic(ccxt.BadSymbol(this.Id + " watchMyTrades requires a symbol"))
 	}
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes31312 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes31312)
@@ -538,7 +538,7 @@ func (this *Coinbaseexchange) watchOrderBookForSymbolsBody(ch chan any, symbols 
 		panic(ccxt.BadRequest(this.Id + " watchOrderBookForSymbols() requires a non-empty array of symbols"))
 	}
 	var name string = "level2"
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes34212 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes34212)
@@ -594,7 +594,7 @@ func (this *Coinbaseexchange) watchOrderBookBody(ch chan any, symbol any, option
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	var name string = "level2"
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes38312 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes38312)

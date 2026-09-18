@@ -448,7 +448,7 @@ func (this *Apex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes37012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes37012)
@@ -489,7 +489,7 @@ func (this *Apex) fetchAccountBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes39712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes39712)
@@ -937,7 +937,7 @@ func (this *Apex) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes79012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes79012)
@@ -977,7 +977,7 @@ func (this *Apex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes81312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes81312)
@@ -1020,7 +1020,7 @@ func (this *Apex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes83512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes83512)
@@ -1090,7 +1090,7 @@ func (this *Apex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	_ = limit
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes89212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes89212)
@@ -1168,7 +1168,7 @@ func (this *Apex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	_ = limit
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes95112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes95112)
@@ -1269,7 +1269,7 @@ func (this *Apex) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs ..
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes103612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes103612)
@@ -1354,7 +1354,7 @@ func (this *Apex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchFundingRateHistory() requires a symbol argument"))
 	}
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes109912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes109912)
@@ -1658,7 +1658,7 @@ func (this *Apex) createOrderBody(ch chan any, symbol any, typeVar any, side any
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes136912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes136912)
@@ -1791,7 +1791,7 @@ func (this *Apex) transferBody(ch chan any, code any, amount any, fromAccount an
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes147312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes147312)
@@ -1985,7 +1985,7 @@ func (this *Apex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes163212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes163212)
@@ -2072,7 +2072,7 @@ func (this *Apex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes168512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes168512)
@@ -2125,7 +2125,7 @@ func (this *Apex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes171512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes171512)
@@ -2172,7 +2172,7 @@ func (this *Apex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes174112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes174112)
@@ -2232,7 +2232,7 @@ func (this *Apex) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes178012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes178012)
@@ -2286,7 +2286,7 @@ func (this *Apex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes181312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes181312)
@@ -2348,7 +2348,7 @@ func (this *Apex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes185412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes185412)
@@ -2437,7 +2437,7 @@ func (this *Apex) setLeverageBody(ch chan any, leverage any, optionalArgs ...any
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " setLeverage() requires a symbol argument"))
 	}
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes192512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes192512)
@@ -2479,7 +2479,7 @@ func (this *Apex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes195012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes195012)

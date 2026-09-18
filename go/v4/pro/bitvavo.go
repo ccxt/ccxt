@@ -90,7 +90,7 @@ func (this *Bitvavo) watchPublicBody(ch chan any, name any, symbol any, optional
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes7712 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes7712)
@@ -122,7 +122,7 @@ func (this *Bitvavo) watchPublicMultipleBody(ch chan any, methodName any, channe
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes9912 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes9912)
@@ -197,7 +197,7 @@ func (this *Bitvavo) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes14612 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes14612)
@@ -272,7 +272,7 @@ func (this *Bitvavo) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes20512 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes20512)
@@ -344,7 +344,7 @@ func (this *Bitvavo) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes25812 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes25812)
@@ -413,7 +413,7 @@ func (this *Bitvavo) watchTradesForSymbolsBody(ch chan any, symbols any, optiona
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes30912 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes30912)
@@ -494,7 +494,7 @@ func (this *Bitvavo) unWatchTradesForSymbolsBody(ch chan any, symbols any, optio
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes36412 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes36412)
@@ -549,7 +549,7 @@ func (this *Bitvavo) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes40012 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes40012)
@@ -664,7 +664,7 @@ func (this *Bitvavo) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes50012 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes50012)
@@ -761,7 +761,7 @@ func (this *Bitvavo) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframe
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes56612 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes56612)
@@ -824,7 +824,7 @@ func (this *Bitvavo) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes61212 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes61212)
@@ -881,7 +881,7 @@ func (this *Bitvavo) watchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes65612 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes65612)
@@ -965,7 +965,7 @@ func (this *Bitvavo) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, op
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes71412 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes71412)
@@ -1273,7 +1273,7 @@ func (this *Bitvavo) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if symbol == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchOrders() requires a symbol argument"))
 	}
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes98812 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes98812)
@@ -1334,7 +1334,7 @@ func (this *Bitvavo) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if symbol == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchMyTrades() requires a symbol argument"))
 	}
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes102812 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes102812)
@@ -1402,7 +1402,7 @@ func (this *Bitvavo) createOrderWsBody(ch chan any, symbol any, typeVar any, sid
 	_ = price
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes107912 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes107912)
@@ -1446,7 +1446,7 @@ func (this *Bitvavo) editOrderWsBody(ch chan any, id any, symbol any, typeVar an
 	_ = price
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes110212 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes110212)
@@ -1484,7 +1484,7 @@ func (this *Bitvavo) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any)
 	_ = symbol
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes112112 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes112112)
@@ -1521,7 +1521,7 @@ func (this *Bitvavo) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any
 	_ = symbol
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes113912 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes113912)
@@ -1596,7 +1596,7 @@ func (this *Bitvavo) fetchOrderWsBody(ch chan any, id any, optionalArgs ...any) 
 	if symbol == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " fetchOrder() requires a symbol argument"))
 	}
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes119412 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes119412)
@@ -1646,7 +1646,7 @@ func (this *Bitvavo) fetchOrdersWsBody(ch chan any, optionalArgs ...any) any {
 	if symbol == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " fetchOrdersWs() requires a symbol argument"))
 	}
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes122112 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes122112)
@@ -1714,7 +1714,7 @@ func (this *Bitvavo) fetchOpenOrdersWsBody(ch chan any, optionalArgs ...any) any
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes125712 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes125712)
@@ -1766,7 +1766,7 @@ func (this *Bitvavo) fetchMyTradesWsBody(ch chan any, optionalArgs ...any) any {
 	if symbol == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " fetchMyTradesWs() requires a symbol argument"))
 	}
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes128812 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes128812)
@@ -1840,7 +1840,7 @@ func (this *Bitvavo) withdrawWsBody(ch chan any, code any, amount any, address a
 	tag = ccxt.GetValue(tagparamsVariable, 0)
 	params = ccxt.GetValue(tagparamsVariable, 1)
 	this.CheckAddress(address)
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes134212 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes134212)
@@ -1901,7 +1901,7 @@ func (this *Bitvavo) fetchWithdrawalsWsBody(ch chan any, optionalArgs ...any) an
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes138112 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes138112)
@@ -1971,7 +1971,7 @@ func (this *Bitvavo) fetchOHLCVWsBody(ch chan any, symbol any, optionalArgs ...a
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes142712 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes142712)
@@ -2013,7 +2013,7 @@ func (this *Bitvavo) fetchDepositsWsBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes144812 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes144812)
@@ -2071,7 +2071,7 @@ func (this *Bitvavo) fetchTradingFeesWsBody(ch chan any, optionalArgs ...any) an
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes148812 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes148812)
@@ -2129,7 +2129,7 @@ func (this *Bitvavo) fetchCurrenciesWsBody(ch chan any, optionalArgs ...any) any
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes151612 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes151612)
@@ -2203,7 +2203,7 @@ func (this *Bitvavo) fetchBalanceWsBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes157712 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes157712)

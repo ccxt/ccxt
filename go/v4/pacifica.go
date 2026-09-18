@@ -1157,7 +1157,7 @@ func (this *Pacifica) fetchLeverageBody(ch chan any, symbol any, optionalArgs ..
 
 	retRes8828 := (<-this.LoadAccountSettingsAsync())
 	PanicOnError(retRes8828)
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes88412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes88412)
@@ -1424,7 +1424,7 @@ func (this *Pacifica) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	_ = limit
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes107712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes107712)
@@ -1623,7 +1623,7 @@ func (this *Pacifica) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		panic(ArgumentsRequired(this.Id + " fetchOHLCV() requires a \"symbol\" argument"))
 	}
 	var defaultMaxLimit int = 3950 // 4000 by docs, but in fact >~3960 returns error
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes123712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes123712)
@@ -1737,7 +1737,7 @@ func (this *Pacifica) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	_ = limit
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes133012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes133012)
@@ -1804,7 +1804,7 @@ func (this *Pacifica) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes137612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes137612)
@@ -1995,7 +1995,7 @@ func (this *Pacifica) createOrderBody(ch chan any, symbol any, typeVar any, side
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes153412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes153412)
@@ -2261,7 +2261,7 @@ func (this *Pacifica) createOrdersBody(ch chan any, orders any, optionalArgs ...
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes177012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes177012)
@@ -2340,7 +2340,7 @@ func (this *Pacifica) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes182612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes182612)
@@ -2453,7 +2453,7 @@ func (this *Pacifica) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes191312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes191312)
@@ -2526,7 +2526,7 @@ func (this *Pacifica) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes196812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes196812)
@@ -2629,7 +2629,7 @@ func (this *Pacifica) editOrderBody(ch chan any, id any, symbol any, typeVar any
 	_ = price
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes203512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes203512)
@@ -2722,7 +2722,7 @@ func (this *Pacifica) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes210012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes210012)
@@ -2810,7 +2810,7 @@ func (this *Pacifica) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes216512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes216512)
@@ -2916,7 +2916,7 @@ func (this *Pacifica) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes224912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes224912)
@@ -2958,7 +2958,7 @@ func (this *Pacifica) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) 
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes227012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes227012)
@@ -3000,7 +3000,7 @@ func (this *Pacifica) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes229112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes229112)
@@ -3042,7 +3042,7 @@ func (this *Pacifica) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes231212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes231212)
@@ -3123,7 +3123,7 @@ func (this *Pacifica) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes237012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes237012)
@@ -3229,7 +3229,7 @@ func (this *Pacifica) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes245212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes245212)
@@ -3528,7 +3528,7 @@ func (this *Pacifica) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes271912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes271912)
@@ -3663,7 +3663,7 @@ func (this *Pacifica) setMarginModeBody(ch chan any, marginMode any, optionalArg
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " setMarginMode() requires a symbol argument"))
 	}
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes282412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes282412)
@@ -3714,7 +3714,7 @@ func (this *Pacifica) setLeverageBody(ch chan any, leverage any, optionalArgs ..
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " setMarginMode() requires a symbol argument"))
 	}
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes285812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes285812)
@@ -3763,7 +3763,7 @@ func (this *Pacifica) withdrawBody(ch chan any, code any, amount any, address an
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	var operationType string = "withdraw"
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes289012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes289012)
@@ -3804,7 +3804,7 @@ func (this *Pacifica) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs 
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes291412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes291412)
@@ -3902,7 +3902,7 @@ func (this *Pacifica) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) a
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes299212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes299212)
@@ -3936,7 +3936,7 @@ func (this *Pacifica) fetchOpenInterestBody(ch chan any, symbol any, optionalArg
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes301112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes301112)
@@ -4023,7 +4023,7 @@ func (this *Pacifica) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes307612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes307612)
@@ -4158,7 +4158,7 @@ func (this *Pacifica) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes318212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes318212)
@@ -4271,7 +4271,7 @@ func (this *Pacifica) transferBody(ch chan any, code any, amount any, fromAccoun
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes327112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes327112)

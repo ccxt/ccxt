@@ -706,7 +706,7 @@ func (this *PredictionExchange) PopulateOutcomes() {
 	// eventId/slug-only fetchEvents path)
 	this.Outcomes = map[string]any{}
 	this.Outcomes_by_id = map[string]any{}
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 		return
 	}
 	var marketKeys []string = ObjectKeys(this.Markets)
@@ -720,7 +720,7 @@ func (this *PredictionExchange) IndexEventOutcomes(event any) {
 	// createOrder, ...). without this, on a cold instance or a loadAllOutcomes:false venue
 	// such as kalshi, the returned handles are unusable — fetchTicker(ev.markets[0].outcomes[0].outcome)
 	// BadSymbols because the outcome was never cached
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 		this.Markets = this.CreateSafeDictionary()
 	}
 	var markets any = this.SafeList(event, "markets", []any{})
@@ -860,7 +860,7 @@ func (this *PredictionExchange) loadOutcomeBody(ch chan any, outcomeSymbol any, 
 		// if markets are already loaded (offline-injected, or loaded by loadMarkets/fetchEvents)
 		// but the outcome cache is cold, index them for free before hitting the network — this
 		// makes cold-cache resolution consistent across languages regardless of loadAllOutcomes
-		if !wasWarm && (!IsEqual(this.Markets, nil)) && !EvalTruthy(this.IsEmpty(this.Markets)) {
+		if !wasWarm && (this.Markets != nil) && !EvalTruthy(this.IsEmpty(this.Markets)) {
 			this.PopulateOutcomes()
 			if EvalTruthy(this.HasOutcome(outcomeSymbol)) {
 

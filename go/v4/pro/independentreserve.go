@@ -72,7 +72,7 @@ func (this *Independentreserve) watchTradesBody(ch chan any, symbol any, optiona
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes5512 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes5512)
@@ -177,7 +177,7 @@ func (this *Independentreserve) watchOrderBookBody(ch chan any, symbol any, opti
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes14312 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes14312)

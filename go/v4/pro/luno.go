@@ -71,7 +71,7 @@ func (this *Luno) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes5212 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes5212)
@@ -198,7 +198,7 @@ func (this *Luno) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes15612 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes15612)

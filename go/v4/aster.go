@@ -1555,7 +1555,7 @@ func (this *Aster) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes116112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes116112)
@@ -1749,7 +1749,7 @@ func (this *Aster) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 	_ = limit
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes132712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes132712)
@@ -1909,7 +1909,7 @@ func (this *Aster) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 	_ = limit
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes146612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes146612)
@@ -2075,7 +2075,7 @@ func (this *Aster) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes160412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes160412)
@@ -2151,7 +2151,7 @@ func (this *Aster) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes166112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes166112)
@@ -2228,7 +2228,7 @@ func (this *Aster) fetchLastPricesBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes171712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes171712)
@@ -2323,7 +2323,7 @@ func (this *Aster) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes179012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes179012)
@@ -2442,7 +2442,7 @@ func (this *Aster) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ..
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " fetchFundingRate() requires a symbol argument"))
 	}
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes188912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes188912)
@@ -2492,7 +2492,7 @@ func (this *Aster) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes192212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes192212)
@@ -2541,7 +2541,7 @@ func (this *Aster) fetchFundingIntervalsBody(ch chan any, optionalArgs ...any) a
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes195412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes195412)
@@ -2597,7 +2597,7 @@ func (this *Aster) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes198912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes198912)

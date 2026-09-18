@@ -463,7 +463,7 @@ func (this *Binance) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	var eventId *string = this.SafeString(params, "eventId")
 	var l1Category *string = this.SafeString(params, "l1Category")
 	var l2Category *string = this.SafeString(params, "l2Category")
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 		this.Markets = this.CreateSafeDictionary()
 	}
 	var rawTopics any = []any{}

@@ -487,7 +487,7 @@ func (this *Bitbank) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes41012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes41012)
@@ -527,7 +527,7 @@ func (this *Bitbank) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	_ = limit
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes43312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes43312)
@@ -618,7 +618,7 @@ func (this *Bitbank) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	_ = limit
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes50412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes50412)
@@ -655,7 +655,7 @@ func (this *Bitbank) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes52612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes52612)
@@ -763,7 +763,7 @@ func (this *Bitbank) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		var duration any = this.ParseTimeframe(timeframe)
 		since = Subtract(this.Milliseconds(), Multiply(Multiply(duration, 1000), limit))
 	}
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes61912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes61912)
@@ -844,7 +844,7 @@ func (this *Bitbank) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes68612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes68612)
@@ -964,7 +964,7 @@ func (this *Bitbank) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes78912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes78912)
@@ -1010,7 +1010,7 @@ func (this *Bitbank) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes81812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes81812)
@@ -1074,7 +1074,7 @@ func (this *Bitbank) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes86512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes86512)
@@ -1142,7 +1142,7 @@ func (this *Bitbank) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes91212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes91212)
@@ -1194,7 +1194,7 @@ func (this *Bitbank) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes94312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes94312)
@@ -1240,7 +1240,7 @@ func (this *Bitbank) fetchDepositAddressBody(ch chan any, code any, optionalArgs
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes97412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes97412)
@@ -1298,7 +1298,7 @@ func (this *Bitbank) withdrawBody(ch chan any, code any, amount any, address any
 	if !(InOp(params, "uuid")) {
 		panic(ExchangeError(this.Id + " uuid is required for withdrawal"))
 	}
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes101312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes101312)

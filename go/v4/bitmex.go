@@ -1342,7 +1342,7 @@ func (this *Bitmex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes104412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes104412)
@@ -1427,7 +1427,7 @@ func (this *Bitmex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	_ = limit
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes111212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes111212)
@@ -1544,7 +1544,7 @@ func (this *Bitmex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes118712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes118712)
@@ -1695,7 +1695,7 @@ func (this *Bitmex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes127312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes127312)
@@ -1936,7 +1936,7 @@ func (this *Bitmex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes148712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes148712)
@@ -2010,7 +2010,7 @@ func (this *Bitmex) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...an
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes154212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes154212)
@@ -2146,7 +2146,7 @@ func (this *Bitmex) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes166412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes166412)
@@ -2188,7 +2188,7 @@ func (this *Bitmex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes168912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes168912)
@@ -2299,7 +2299,7 @@ func (this *Bitmex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes178412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes178412)
@@ -2647,7 +2647,7 @@ func (this *Bitmex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	_ = limit
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes210512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes210512)
@@ -2745,7 +2745,7 @@ func (this *Bitmex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes218012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes218012)
@@ -2871,7 +2871,7 @@ func (this *Bitmex) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	_ = price
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes226912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes226912)
@@ -2977,7 +2977,7 @@ func (this *Bitmex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes233812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes233812)
@@ -3029,7 +3029,7 @@ func (this *Bitmex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes237312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes237312)
@@ -3072,7 +3072,7 @@ func (this *Bitmex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes239912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes239912)
@@ -3149,7 +3149,7 @@ func (this *Bitmex) cancelAllOrdersAfterBody(ch chan any, timeout any, optionalA
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes246112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes246112)
@@ -3200,7 +3200,7 @@ func (this *Bitmex) fetchLeveragesBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes249012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes249012)
@@ -3246,7 +3246,7 @@ func (this *Bitmex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes251812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes251812)
@@ -3538,7 +3538,7 @@ func (this *Bitmex) withdrawBody(ch chan any, code any, amount any, address any,
 	tag = GetValue(tagparamsVariable, 0)
 	params = GetValue(tagparamsVariable, 1)
 	this.CheckAddress(address)
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes278512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes278512)
@@ -3604,7 +3604,7 @@ func (this *Bitmex) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes283412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes283412)
@@ -3691,7 +3691,7 @@ func (this *Bitmex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes289912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes289912)
@@ -3800,7 +3800,7 @@ func (this *Bitmex) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 	if (IsLessThan(leverage, 0.01)) || (IsGreaterThan(leverage, 100)) {
 		panic(BadRequest(this.Id + " leverage should be between 0.01 and 100"))
 	}
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes299012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes299012)
@@ -3849,7 +3849,7 @@ func (this *Bitmex) setMarginModeBody(ch chan any, marginMode any, optionalArgs 
 	if (!IsEqual(marginMode, "isolated")) && (!IsEqual(marginMode, "cross")) {
 		panic(BadRequest(this.Id + " setMarginMode() marginMode argument should be isolated or cross"))
 	}
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes302212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes302212)
@@ -3895,7 +3895,7 @@ func (this *Bitmex) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes304812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes304812)
@@ -4025,7 +4025,7 @@ func (this *Bitmex) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...an
 	_ = codes
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes315212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes315212)
@@ -4088,7 +4088,7 @@ func (this *Bitmex) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes319812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes319812)
@@ -4194,7 +4194,7 @@ func (this *Bitmex) fetchLiquidationsBody(ch chan any, symbol any, optionalArgs 
 	_ = limit
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes328312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes328312)
@@ -4289,7 +4289,7 @@ func (this *Bitmex) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) 
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes335212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes335212)
@@ -4584,7 +4584,7 @@ func (this *Bitmex) fetchSettlementHistoryBody(ch chan any, optionalArgs ...any)
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes362512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes362512)
@@ -4683,7 +4683,7 @@ func (this *Bitmex) closePositionBody(ch chan any, symbol any, optionalArgs ...a
 	_ = side
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes371012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes371012)

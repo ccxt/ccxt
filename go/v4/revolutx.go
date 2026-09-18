@@ -602,7 +602,7 @@ func (this *Revolutx) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes53712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes53712)
@@ -685,7 +685,7 @@ func (this *Revolutx) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes60312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes60312)
@@ -725,7 +725,7 @@ func (this *Revolutx) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	_ = limit
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes62612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes62612)
@@ -812,7 +812,7 @@ func (this *Revolutx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes69012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes69012)
@@ -921,7 +921,7 @@ func (this *Revolutx) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	_ = limit
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes77812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes77812)
@@ -991,7 +991,7 @@ func (this *Revolutx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes83312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes83312)
@@ -1169,7 +1169,7 @@ func (this *Revolutx) createOrderBody(ch chan any, symbol any, typeVar any, side
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes98012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes98012)
@@ -1271,7 +1271,7 @@ func (this *Revolutx) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes106012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes106012)
@@ -1312,7 +1312,7 @@ func (this *Revolutx) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes108412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes108412)
@@ -1347,7 +1347,7 @@ func (this *Revolutx) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes110212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes110212)
@@ -1412,7 +1412,7 @@ func (this *Revolutx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes114612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes114612)
@@ -1492,7 +1492,7 @@ func (this *Revolutx) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes120512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes120512)
@@ -1665,7 +1665,7 @@ func (this *Revolutx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes132612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes132612)
@@ -1760,7 +1760,7 @@ func (this *Revolutx) editOrderBody(ch chan any, id any, symbol any, typeVar any
 	_ = price
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes139712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes139712)

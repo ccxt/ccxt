@@ -169,7 +169,7 @@ func (this *Htx) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) a
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes15712 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes15712)
@@ -212,7 +212,7 @@ func (this *Htx) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes18312 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes18312)
@@ -313,7 +313,7 @@ func (this *Htx) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes26412 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes26412)
@@ -354,7 +354,7 @@ func (this *Htx) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes29012 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes29012)
@@ -447,7 +447,7 @@ func (this *Htx) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes36112 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes36112)
@@ -493,7 +493,7 @@ func (this *Htx) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	_ = timeframe
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes39012 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes39012)
@@ -575,7 +575,7 @@ func (this *Htx) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes45612 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes45612)
@@ -637,7 +637,7 @@ func (this *Htx) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes50312 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes50312)
@@ -1067,7 +1067,7 @@ func (this *Htx) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes86512 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes86512)
@@ -1247,7 +1247,7 @@ func (this *Htx) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes99812 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes99812)
@@ -1878,7 +1878,7 @@ func (this *Htx) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes159712 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes159712)
@@ -2131,7 +2131,7 @@ func (this *Htx) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	params = ccxt.GetValue(subTypeparamsVariable, 1)
 	var isUnifiedAccount any = this.SafeValue2(params, "isUnifiedAccount", "unified", false)
 	params = this.Omit(params, []any{"isUnifiedAccount", "unified"})
-	if ccxt.IsEqual(this.Markets, nil) {
+	if this.Markets == nil {
 
 		retRes180812 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes180812)
