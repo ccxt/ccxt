@@ -6761,9 +6761,9 @@ public partial class gate : Exchange
         type = (string)typeparametersVariable[0];
         parameters = typeparametersVariable[1];
         bool spot = (type == "spot") || (type == "margin");
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         var requestparametersVariable = spot ? this.multiOrderSpotPrepareRequest(market, trigger, parameters) : this.prepareRequest(market, type, parameters);
-        request = ((IList<object>)requestparametersVariable)[0];
+        request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         if (spot && (isEqual(trigger, true)))
         {
@@ -6773,22 +6773,22 @@ public partial class gate : Exchange
         {
             status = "finished";
         }
-        ((IDictionary<string,object>)request)["status"] = status;
+        request["status"] = status;
         if (!isEqual(limit, null))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit;
+            request["limit"] = limit;
         }
         if (spot)
         {
             if (!isEqual(since, null))
             {
-                ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
+                request["from"] = this.parseToInt(divide(since, 1000));
             }
             Int64? until = this.safeInteger(parameters, "until");
             if (!isEqual(until, null))
             {
                 parameters = this.omit(parameters, "until");
-                ((IDictionary<string,object>)request)["to"] = this.parseToInt(divide(until, 1000));
+                request["to"] = this.parseToInt(divide(until, 1000));
             }
         }
         IList<object> lastIdfinalParamsVariable = (IList<object>)this.handleParamString2(parameters, "lastId", "last_id");
@@ -6796,7 +6796,7 @@ public partial class gate : Exchange
         var finalParams = lastIdfinalParamsVariable[1];
         if ((lastId != null))
         {
-            ((IDictionary<string,object>)request)["last_id"] = lastId;
+            request["last_id"] = lastId;
         }
         return new List<object>() {request, finalParams};
     }

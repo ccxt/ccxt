@@ -2917,8 +2917,12 @@ function unifyArms (a, b, armWidening = false) {
 // unaffected too: assignable() already accepts a Dictionary value into an IDictionary local.
 // ARMS ONLY: unifyArms() is reached from the conditional-expression branch alone, while the
 // later-write join (joinTypes) keeps its own, narrower edge list.
+// The list pair is the same rule one collection over (`marketIds = (ids === undefined) ? [] : ids`
+// with `IList<object> ids`): List<object> converts to IList<object> and nothing converts back,
+// so the conditional's natural type is the interface and both arms are the same List box.
 const ARM_COLLECTION_WIDENING_PAIRS = [
     [ 'Dictionary<string, object>', 'IDictionary<string, object>' ],
+    [ 'List<object>', 'IList<object>' ],
 ];
 function collectionArmWidening (a, b) {
     for (const [ narrow, wide ] of ARM_COLLECTION_WIDENING_PAIRS) {
@@ -8649,6 +8653,7 @@ export function csharpLocalType (csharp, declaration, context) {
 //   prepareRequest               ts/src/gate.ts               fresh `const request: Dict = {}` returned
 //   multiOrderSpotPrepareRequest ts/src/gate.ts               fresh request returned
 //   orderRequest                 ts/src/poloniex.ts / zebpay.ts  the request argument, mutated in place
+//   orderRequestWs               ts/src/pro/kraken.ts        same shape, single `return [ request, params ]`
 //   createOrderRequest           ts/src/toobit.ts             fresh request returned
 //   createContractOrderRequest   ts/src/toobit.ts             fresh request returned
 export const DESTRUCTURED_DICT_HELPERS = [
@@ -8657,6 +8662,7 @@ export const DESTRUCTURED_DICT_HELPERS = [
     'prepareRequest',
     'multiOrderSpotPrepareRequest',
     'orderRequest',
+    'orderRequestWs',
     'createOrderRequest',
     'createContractOrderRequest',
 ];
@@ -9003,17 +9009,29 @@ function destructuredWriteIsCastable (csharp, index, declaration, idNode, assign
     // (...)`) is the same destructuring write — every other family keeps the printer's shape.
     // (0 parenthesized awaited destructuring helpers in the corpus: the two unwraps coincide.)
     let right = unwrapOptionCall (assignment.right);
-    if (right?.kind !== ts.SyntaxKind.CallExpression) {
-        return false;
+    // `[ request, params ] = spot ? this.multiOrderSpotPrepareRequest (...) : this.prepareRequest (...)`
+    // prints the same holder and the same element read as a single call, and element 0 of BOTH
+    // arms is the fresh request Dict the table below proves, so the element-0 box is proven for
+    // the conditional too. Only the dict family reads the arms: the string / element-0 families
+    // keep the single-call shape they were audited on.
+    const arms = (right?.kind === ts.SyntaxKind.ConditionalExpression && csharpType === 'Dictionary<string, object>')
+        ? [ right.whenTrue, right.whenFalse ]
+        : [ right ];
+    const helpers = [];
+    for (const arm of arms) {
+        if (arm?.kind !== ts.SyntaxKind.CallExpression) {
+            return false;
+        }
+        const armCallee = arm.expression;
+        if (armCallee?.kind !== ts.SyntaxKind.PropertyAccessExpression || armCallee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+            return false;
+        }
+        helpers.push (armCallee.name?.escapedText);
     }
-    const callee = right.expression;
-    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
-        return false;
-    }
-    const helper = callee.name?.escapedText;
+    const helper = helpers[0];
     if (csharpType === 'Dictionary<string, object>') {
         // only the audited request builders, and only for a target proven to be a Dictionary
-        if (!DESTRUCTURED_DICT_HELPERS.includes (helper)) {
+        if (!helpers.every ((name) => DESTRUCTURED_DICT_HELPERS.includes (name))) {
             return false;
         }
     } else if ((csharpType === 'string' || csharpType === 'string?') && destructuredStringElementProof (csharp, declaration, idNode, assignment, helper, context)) {

@@ -324,7 +324,7 @@ public partial class kraken : ccxt.kraken
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "privateV2"));
         Int64 requestId = ((Int64)this.requestId());
         string messageHash = this.numberToString(requestId);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "add_order" },
             { "params", new Dictionary<string, object>() {
                 { "order_type", type },
@@ -336,7 +336,7 @@ public partial class kraken : ccxt.kraken
             { "req_id", requestId },
         };
         var requestparametersVariable = this.orderRequestWs("createOrderWs", symbol, type, request, amount, price, parameters);
-        request = ((IList<object>)requestparametersVariable)[0];
+        request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         return ccxt.BaseExchange.ToOrder(await this.watch(url, messageHash, this.extend(request, parameters), messageHash));
     }
@@ -397,7 +397,7 @@ public partial class kraken : ccxt.kraken
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "privateV2"));
         Int64 requestId = ((Int64)this.requestId());
         string messageHash = this.numberToString(requestId);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "amend_order" },
             { "params", new Dictionary<string, object>() {
                 { "order_id", id },
@@ -407,7 +407,7 @@ public partial class kraken : ccxt.kraken
             { "req_id", requestId },
         };
         var requestparametersVariable = this.orderRequestWs("editOrderWs", symbol, type, request, amount, price, parameters);
-        request = ((IList<object>)requestparametersVariable)[0];
+        request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         return ccxt.BaseExchange.ToOrder(await this.watch(url, messageHash, this.extend(request, parameters), messageHash));
     }
