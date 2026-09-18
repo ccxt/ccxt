@@ -2505,7 +2505,7 @@ public partial class BaseExchange
                 // copy fee to avoid modification by reference
                 Dictionary<string, object> feeCopy = this.deepExtend(fee);
                 ((IDictionary<string,object>)feeCopy)["cost"] = this.safeNumber(feeCopy, "cost");
-                if (inOp(feeCopy, "rate"))
+                if (feeCopy.ContainsKey("rate"))
                 {
                     ((IDictionary<string,object>)feeCopy)["rate"] = this.safeNumber(feeCopy, "rate");
                 }
@@ -2613,7 +2613,7 @@ public partial class BaseExchange
             ((IDictionary<string,object>)entry)["cost"] = this.safeNumber(entry, "cost");
             IDictionary<string, object> tradeFee = this.safeDict(entry, "fee", new Dictionary<string, object>() {});
             ((IDictionary<string,object>)tradeFee)["cost"] = this.safeNumber(tradeFee, "cost");
-            if (inOp(tradeFee, "rate"))
+            if ((tradeFee != null && tradeFee.ContainsKey("rate")))
             {
                 ((IDictionary<string,object>)tradeFee)["rate"] = this.safeNumber(tradeFee, "rate");
             }
@@ -6558,7 +6558,7 @@ public partial class BaseExchange
          */
         IDictionary<string, object> accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         string lowercaseAccount = ((string)account).ToLower();
-        if (inOp(accountsByType, lowercaseAccount))
+        if ((accountsByType != null && accountsByType.ContainsKey(lowercaseAccount)))
         {
             return getValue(accountsByType, lowercaseAccount);
         }
