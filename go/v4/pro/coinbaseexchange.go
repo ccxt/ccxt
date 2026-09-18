@@ -220,7 +220,7 @@ func (this *Coinbaseexchange) watchTickersBody(ch chan any, optionalArgs ...any)
 
 	ticker := (<-this.SubscribeMultipleAsync(channel, symbols, messageHash, params))
 	ccxt.PanicOnError(ticker)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
 		ccxt.AddElementToObject(result, ccxt.GetValue(ticker, "symbol"), ticker)
 
@@ -266,7 +266,7 @@ func (this *Coinbaseexchange) watchTradesBody(ch chan any, symbol any, optionalA
 
 	trades := (<-this.SubscribeAsync(name, symbol, name, params))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
@@ -312,7 +312,7 @@ func (this *Coinbaseexchange) watchTradesForSymbolsBody(ch chan any, symbols any
 
 	trades := (<-this.SubscribeMultipleAsync(name, symbols, name, params))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		var first any = this.SafeValue(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
 		limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
@@ -363,7 +363,7 @@ func (this *Coinbaseexchange) watchMyTradesBody(ch chan any, optionalArgs ...any
 
 	trades := (<-this.SubscribeAsync(name, symbol, messageHash, this.Extend(params, authentication)))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
@@ -407,7 +407,7 @@ func (this *Coinbaseexchange) watchMyTradesForSymbolsBody(ch chan any, symbols a
 
 	trades := (<-this.SubscribeMultipleAsync(name, symbols, messageHash, this.Extend(params, authentication)))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		var first any = this.SafeValue(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
 		limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
@@ -453,7 +453,7 @@ func (this *Coinbaseexchange) watchOrdersForSymbolsBody(ch chan any, symbols any
 
 	orders := (<-this.SubscribeMultipleAsync(name, symbols, messageHash, this.Extend(params, authentication)))
 	ccxt.PanicOnError(orders)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		var first any = this.SafeValue(orders, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
 		limit = ccxt.ToGetsLimit(orders).GetLimit(tradeSymbol, limit)
@@ -504,7 +504,7 @@ func (this *Coinbaseexchange) watchOrdersBody(ch chan any, optionalArgs ...any) 
 
 	orders := (<-this.SubscribeAsync(name, symbol, messageHash, this.Extend(params, authentication)))
 	ccxt.PanicOnError(orders)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
 

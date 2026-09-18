@@ -325,7 +325,7 @@ func (this *Htx) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 
 	trades := (<-this.SubscribePublicAsync(url, symbol, messageHash, nil, params))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
@@ -460,7 +460,7 @@ func (this *Htx) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 
 	ohlcv := (<-this.SubscribePublicAsync(url, symbol, messageHash, nil, params))
 	ccxt.PanicOnError(ohlcv)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
 	}
 
@@ -1132,7 +1132,7 @@ func (this *Htx) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if ccxt.IsEqual(trades, nil) {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchMyTrades() trades is required"))
 	}
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
@@ -1299,7 +1299,7 @@ func (this *Htx) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	orders := (<-this.SubscribePrivateAsync(channel, messageHash, typeVar, subType, params, subscriptionParams))
 	ccxt.PanicOnError(orders)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
 
@@ -1885,7 +1885,7 @@ func (this *Htx) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var market any = nil
 	var messageHash any = ""
-	if (!ccxt.EvalTruthy(this.IsEmpty(symbols))) && (!ccxt.IsEqual(symbols, nil)) {
+	if (!this.IsEmpty(symbols)) && (!ccxt.IsEqual(symbols, nil)) {
 		market = this.GetMarketFromSymbols(symbols)
 		messageHash = "::" + ccxt.Join(symbols, ",")
 	}
@@ -1944,7 +1944,7 @@ func (this *Htx) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 	newPositions := (<-this.SubscribePrivateAsync(channel, messageHash, typeVar, subType, params, subscriptionParams))
 	ccxt.PanicOnError(newPositions)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 
 		ch <- newPositions
 		return nil
@@ -2049,7 +2049,7 @@ func (this *Htx) HandlePositions(client any, message any) {
 		ccxt.AddElementToObject(this.Positions, url, map[string]any{})
 	}
 	var rawPositions any = this.SafeList(message, "data", []any{})
-	if ccxt.EvalTruthy(this.IsEmpty(rawPositions)) {
+	if this.IsEmpty(rawPositions) {
 		var prefixes []any = []any{"cross:positions", "isolated:positions"}
 		for i := 0; i < len(prefixes); i++ {
 			var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), ccxt.GetValue(prefixes, i))
@@ -2093,7 +2093,7 @@ func (this *Htx) HandlePositions(client any, message any) {
 			var symbolsString any = ccxt.GetValue(parts, 1)
 			var symbols []string = ccxt.Split(symbolsString, ",")
 			var positions any = this.FilterByArray(marginModePositions, "symbol", symbols, false)
-			if !ccxt.EvalTruthy(this.IsEmpty(positions)) {
+			if !this.IsEmpty(positions) {
 				client.(ccxt.ClientInterface).Resolve(positions, messageHash)
 			}
 		}

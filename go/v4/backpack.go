@@ -739,7 +739,7 @@ func (this *Backpack) ParseCurrency(rawCurrency any) any {
 	var active any = nil
 	var deposit any = nil
 	var withdraw any = nil
-	if EvalTruthy(this.IsEmpty(parsedNetworks)) {
+	if this.IsEmpty(parsedNetworks) {
 		active = false
 		deposit = false
 		withdraw = false
@@ -2810,7 +2810,7 @@ func (this *Backpack) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	response := (<-this.PrivateGetApiV1Position(params))
 	PanicOnError(response)
 	var positions any = this.ParsePositions(response)
-	if EvalTruthy(this.IsEmpty(symbols)) {
+	if this.IsEmpty(symbols) {
 
 		ch <- positions
 		return nil

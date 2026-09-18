@@ -272,7 +272,7 @@ func (this *Mudrex) Sign(path any, optionalArgs ...any) any {
 					"is_symbol": isSymbol,
 				}))
 			}
-			if (methodUpper == "DELETE") && EvalTruthy(this.IsEmpty(query)) {
+			if (methodUpper == "DELETE") && this.IsEmpty(query) {
 				return map[string]any{
 					"url":     url,
 					"method":  methodUpper,

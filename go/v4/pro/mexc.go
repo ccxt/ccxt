@@ -278,7 +278,7 @@ func (this *Mexc) watchTickersBody(ch chan any, optionalArgs ...any) any {
 
 	ticker := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
 	ccxt.PanicOnError(ticker)
-	if isSpot && ccxt.EvalTruthy(this.NewUpdates) {
+	if isSpot && this.NewUpdates {
 		var result map[string]any = map[string]any{}
 		ccxt.AddElementToObject(result, ccxt.GetValue(ticker, "symbol"), ticker)
 
@@ -507,7 +507,7 @@ func (this *Mexc) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 
 	ticker := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
 	ccxt.PanicOnError(ticker)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		var tickers map[string]any = map[string]any{}
 		ccxt.AddElementToObject(tickers, ccxt.GetValue(ticker, "symbol"), ticker)
 
@@ -724,7 +724,7 @@ func (this *Mexc) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		ccxt.PanicOnError(ohlcv)
 	}
 	ohlcv = this.RequireValue(ohlcv, "watchOHLCV() ohlcv is required")
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
 	}
 
@@ -1179,7 +1179,7 @@ func (this *Mexc) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 		ccxt.PanicOnError(trades)
 	}
 	trades = this.RequireValue(trades, "watchTrades() trades is required")
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
@@ -1320,7 +1320,7 @@ func (this *Mexc) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(trades)
 	}
 	trades = this.RequireValue(trades, "watchMyTrades() trades is required")
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
@@ -1541,7 +1541,7 @@ func (this *Mexc) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(orders)
 	}
 	orders = this.RequireValue(orders, "watchOrders() orders is required")
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
 
@@ -2571,7 +2571,7 @@ func (this *Mexc) HandleMessage(client any, message any) {
 			return
 		}
 	}
-	if ccxt.EvalTruthy(this.IsBinaryMessage(message)) {
+	if this.IsBinaryMessage(message) {
 		message = this.DecodeProtoMsg(message)
 		this.HandleProtobufMessage(client, message)
 		return

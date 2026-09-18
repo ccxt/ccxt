@@ -516,7 +516,7 @@ func (this *Coinbaseinternational) handleNetworkIdAndParamsBody(ch chan any, cur
 		var network *string = this.SafeString2(params, "networkCode", "network")
 		if network == nil {
 			// find default network
-			if EvalTruthy(this.IsEmpty(networks)) {
+			if this.IsEmpty(networks) {
 				panic(BadRequest(Add(Add(this.Id+" createDepositAddress network not found for currency ", currencyCode), " please specify networkId in params")))
 			}
 			var defaultNetwork any = this.FindDefaultNetwork(networks)
@@ -1556,7 +1556,7 @@ func (this *Coinbaseinternational) fetchPositionsBody(ch chan any, optionalArgs 
 	//    ]
 	//
 	var positions any = this.ParsePositions(response)
-	if EvalTruthy(this.IsEmpty(symbols)) {
+	if this.IsEmpty(symbols) {
 
 		ch <- positions
 		return nil

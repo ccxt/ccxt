@@ -546,7 +546,7 @@ func (this *Bybit) watchTickersBody(ch chan any, optionalArgs ...any) any {
 
 	ticker := (<-this.WatchTopicsAsync(url, messageHashes, topics, params))
 	ccxt.PanicOnError(ticker)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
 		ccxt.AddElementToObject(result, ccxt.GetValue(ticker, "symbol"), ticker)
 
@@ -831,7 +831,7 @@ func (this *Bybit) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 
 	ticker := (<-this.WatchTopicsAsync(url, messageHashes, topics, params))
 	ccxt.PanicOnError(ticker)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 
 		ch <- ticker
 		return nil
@@ -950,7 +950,7 @@ func (this *Bybit) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes an
 	symbol := ccxt.GetValue(symboltimeframestoredVariable, 0)
 	timeframe := ccxt.GetValue(symboltimeframestoredVariable, 1)
 	stored := ccxt.GetValue(symboltimeframestoredVariable, 2)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(stored).GetLimit(symbol, limit)
 	}
 	var filtered any = this.FilterBySinceLimit(stored, since, limit, 0, true)
@@ -1489,7 +1489,7 @@ func (this *Bybit) watchTradesForSymbolsBody(ch chan any, symbols any, optionalA
 
 	trades := (<-this.WatchTopicsAsync(url, messageHashes, topics, params))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		var first any = this.SafeValue(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
 		limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
@@ -1773,7 +1773,7 @@ func (this *Bybit) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 	trades := (<-this.WatchTopicsAsync(url, []any{messageHash}, []any{topic}, params))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
@@ -2022,7 +2022,7 @@ func (this *Bybit) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var method string = "watchPositions"
 	var messageHash any = ""
-	if (!ccxt.IsEqual(symbols, nil)) && !ccxt.EvalTruthy(this.IsEmpty(symbols)) {
+	if (!ccxt.IsEqual(symbols, nil)) && !this.IsEmpty(symbols) {
 		symbols = this.MarketSymbols(symbols)
 		messageHash = "::" + ccxt.Join(symbols, ",")
 	}
@@ -2051,7 +2051,7 @@ func (this *Bybit) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 	newPositions := (<-this.WatchTopicsAsync(url, []any{messageHash}, topics, params))
 	ccxt.PanicOnError(newPositions)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 
 		ch <- newPositions
 		return nil
@@ -2186,7 +2186,7 @@ func (this *Bybit) HandlePositions(client any, message any) {
 		var symbolsString any = ccxt.GetValue(parts, 1)
 		var symbols []string = ccxt.Split(symbolsString, ",")
 		var positions any = this.FilterByArray(newPositions, "symbol", symbols, false)
-		if !ccxt.EvalTruthy(this.IsEmpty(positions)) {
+		if !this.IsEmpty(positions) {
 			client.(ccxt.ClientInterface).Resolve(positions, messageHash)
 		}
 	}
@@ -2222,7 +2222,7 @@ func (this *Bybit) unWatchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var method string = "watchPositions"
 	var messageHash string = "unsubscribe:positions"
 	var subHash string = "positions"
-	if (!ccxt.IsEqual(symbols, nil)) && !ccxt.EvalTruthy(this.IsEmpty(symbols)) {
+	if (!ccxt.IsEqual(symbols, nil)) && !this.IsEmpty(symbols) {
 		panic(ccxt.NotSupported(this.Id + " unWatchPositions() does not support a symbol parameter, you must unwatch all orders"))
 	}
 
@@ -2285,7 +2285,7 @@ func (this *Bybit) watchLiquidationsBody(ch chan any, symbol any, optionalArgs .
 
 	newLiquidation := (<-this.WatchTopicsAsync(url, []any{messageHash}, []any{topic}, params))
 	ccxt.PanicOnError(newLiquidation)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 
 		ch <- newLiquidation
 		return nil
@@ -2447,7 +2447,7 @@ func (this *Bybit) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	orders := (<-this.WatchTopicsAsync(url, []any{messageHash}, topics, params))
 	ccxt.PanicOnError(orders)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
 

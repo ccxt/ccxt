@@ -193,7 +193,7 @@ func (this *Bullish) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 
 	trades := (<-this.WatchPublicAsync(url, messageHash, request, params))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
@@ -496,7 +496,7 @@ func (this *Bullish) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	orders := (<-this.WatchPrivateAsync(messageHash, subscribeHash, request, params))
 	ccxt.PanicOnError(orders)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
 
@@ -634,7 +634,7 @@ func (this *Bullish) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 	trades := (<-this.WatchPrivateAsync(messageHash, subscribeHash, request, params))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
@@ -861,7 +861,7 @@ func (this *Bullish) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var subscribeHash string = "positions"
 	var messageHash any = subscribeHash
-	if (!ccxt.IsEqual(symbols, nil)) && !ccxt.EvalTruthy(this.IsEmpty(symbols)) {
+	if (!ccxt.IsEqual(symbols, nil)) && !this.IsEmpty(symbols) {
 		symbols = this.MarketSymbols(symbols)
 		messageHash = ccxt.Add(messageHash, "::"+ccxt.Join(symbols, ","))
 	}
@@ -871,7 +871,7 @@ func (this *Bullish) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 	positions := (<-this.WatchPrivateAsync(messageHash, subscribeHash, request, params))
 	ccxt.PanicOnError(positions)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 
 		ch <- positions
 		return nil
@@ -910,7 +910,7 @@ func (this *Bullish) HandlePositions(client any, message any) {
 		var symbolsString any = ccxt.GetValue(parts, 1)
 		var symbols []string = ccxt.Split(symbolsString, ",")
 		var symbolPositions any = this.FilterByArray(newPositions, "symbol", symbols, false)
-		if !ccxt.EvalTruthy(this.IsEmpty(symbolPositions)) {
+		if !this.IsEmpty(symbolPositions) {
 			client.(ccxt.ClientInterface).Resolve(symbolPositions, messageHash)
 		}
 	}

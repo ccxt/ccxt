@@ -186,7 +186,7 @@ func (this *Coinbaseinternational) subscribeMultipleBody(ch chan any, name any, 
 		ccxt.PanicOnError(retRes14412)
 	}
 	this.CheckRequiredCredentials()
-	if ccxt.EvalTruthy(this.IsEmpty(symbols)) {
+	if this.IsEmpty(symbols) {
 		symbols = this.Symbols
 	} else {
 		symbols = this.MarketSymbols(symbols)
@@ -281,7 +281,7 @@ func (this *Coinbaseinternational) watchFundingRatesBody(ch chan any, optionalAr
 	fundingRate := (<-this.SubscribeMultipleAsync("RISK", symbols, params))
 	ccxt.PanicOnError(fundingRate)
 	var symbol *string = this.SafeString(fundingRate, "symbol")
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
 		ccxt.AddElementToObject(result, symbol, fundingRate)
 
@@ -375,7 +375,7 @@ func (this *Coinbaseinternational) watchTickersBody(ch chan any, optionalArgs ..
 
 	ticker := (<-this.SubscribeAsync(channel, symbols, params))
 	ccxt.PanicOnError(ticker)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
 		ccxt.AddElementToObject(result, ccxt.GetValue(ticker, "symbol"), ticker)
 
@@ -610,7 +610,7 @@ func (this *Coinbaseinternational) watchOHLCVBody(ch chan any, symbol any, optio
 
 	ohlcv := (<-this.SubscribeAsync(interval, []any{symbol}, params))
 	ccxt.PanicOnError(ohlcv)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
 	}
 
@@ -721,7 +721,7 @@ func (this *Coinbaseinternational) watchTradesForSymbolsBody(ch chan any, symbol
 
 	trades := (<-this.SubscribeMultipleAsync("MATCH", symbols, params))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		var first any = this.SafeDict(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
 		limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)

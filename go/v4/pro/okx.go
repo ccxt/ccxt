@@ -317,7 +317,7 @@ func (this *Okx) watchTradesForSymbolsBody(ch chan any, symbols any, optionalArg
 
 	trades := (<-this.WatchMultiple(url, messageHashes, request, messageHashes))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		var first any = this.SafeValue(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
 		limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
@@ -544,7 +544,7 @@ func (this *Okx) watchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 
 	fundingRate := (<-this.WatchMultiple(url, messageHashes, request, messageHashes))
 	ccxt.PanicOnError(fundingRate)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		var symbol *string = this.SafeString(fundingRate, "symbol")
 		var result map[string]any = map[string]any{}
 		if symbol != nil {
@@ -687,7 +687,7 @@ func (this *Okx) watchTickersBody(ch chan any, optionalArgs ...any) any {
 
 	newTickers := (<-this.SubscribeMultipleAsync("public", channel, symbols, params))
 	ccxt.PanicOnError(newTickers)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 
 		ch <- newTickers
 		return nil
@@ -767,7 +767,7 @@ func (this *Okx) watchMarkPricesBody(ch chan any, optionalArgs ...any) any {
 
 	newTickers := (<-this.SubscribeMultipleAsync("public", channel, symbols, params))
 	ccxt.PanicOnError(newTickers)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 
 		ch <- newTickers
 		return nil
@@ -927,7 +927,7 @@ func (this *Okx) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 
 	newTickers := (<-this.WatchMultiple(url, messageHashes, request, messageHashes))
 	ccxt.PanicOnError(newTickers)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		var tickers map[string]any = map[string]any{}
 		ccxt.AddElementToObject(tickers, ccxt.GetValue(newTickers, "symbol"), newTickers)
 
@@ -1094,7 +1094,7 @@ func (this *Okx) watchLiquidationsForSymbolsBody(ch chan any, symbols any, optio
 
 	newLiquidations := (<-this.WatchMultiple(url, messageHashes, request, messageHashes))
 	ccxt.PanicOnError(newLiquidations)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 
 		ch <- newLiquidations
 		return nil
@@ -1212,7 +1212,7 @@ func (this *Okx) watchMyLiquidationsForSymbolsBody(ch chan any, symbols any, opt
 
 	newLiquidations := (<-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), messageHashes))
 	ccxt.PanicOnError(newLiquidations)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 
 		ch <- newLiquidations
 		return nil
@@ -1404,7 +1404,7 @@ func (this *Okx) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 
 	ohlcv := (<-this.SubscribeAsync("public", name, name, symbol, params))
 	ccxt.PanicOnError(ohlcv)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
 	}
 
@@ -1500,7 +1500,7 @@ func (this *Okx) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any,
 	symbol := ccxt.GetValue(symboltimeframecandlesVariable, 0)
 	timeframe := ccxt.GetValue(symboltimeframecandlesVariable, 1)
 	candles := ccxt.GetValue(symboltimeframecandlesVariable, 2)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(candles).GetLimit(symbol, limit)
 	}
 	var filtered any = this.FilterBySinceLimit(candles, since, limit, 0, true)
@@ -2345,7 +2345,7 @@ func (this *Okx) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 	orders := (<-this.SubscribeAsync("private", messageHash, channel, nil, this.Extend(request, params)))
 	ccxt.PanicOnError(orders)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
 
@@ -2413,7 +2413,7 @@ func (this *Okx) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 		newPositions = (<-this.SubscribeMultipleAsync("private", channel, symbols, this.Extend(request, params)))
 		ccxt.PanicOnError(newPositions)
 	}
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 
 		ch <- func() any {
 			if ccxt.IsEqual(newPositions, nil) {
@@ -2612,7 +2612,7 @@ func (this *Okx) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	orders := (<-this.SubscribeAsync("private", channel, channel, symbol, this.Extend(request, params)))
 	ccxt.PanicOnError(orders)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
 
@@ -2898,7 +2898,7 @@ func (this *Okx) HandlePlaceOrders(client any, message any) {
 	// filter out partial errors
 	args = this.FilterBy(args, "sCode", "0")
 	// if empty means request failed and handle error
-	if ccxt.EvalTruthy(this.IsEmpty(args)) {
+	if this.IsEmpty(args) {
 		var method *string = this.SafeString(message, "op")
 		var stringMsg any = this.Json(message)
 		this.HandleErrors(1, "", client.(ccxt.ClientInterface).GetUrl(), method, map[string]any{}, stringMsg, message, map[string]any{}, map[string]any{})

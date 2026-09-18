@@ -189,7 +189,7 @@ func (this *Poloniex) subscribeBody(ch chan any, name any, messageHash any, isPr
 		"channel": []any{name},
 	}
 	var marketIds any = []any{}
-	if ccxt.EvalTruthy(this.IsEmpty(symbols)) {
+	if this.IsEmpty(symbols) {
 		ccxt.AppendToArray(&marketIds, "all")
 	} else {
 		if ccxt.IsEqual(symbols, nil) {
@@ -519,7 +519,7 @@ func (this *Poloniex) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 
 	ohlcv := (<-this.SubscribeAsync(channel, channel, false, []any{symbol}, params))
 	ccxt.PanicOnError(ohlcv)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
 	}
 
@@ -591,7 +591,7 @@ func (this *Poloniex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 
 	newTickers := (<-this.SubscribeAsync(name, name, false, symbols, params))
 	ccxt.PanicOnError(newTickers)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 
 		ch <- newTickers
 		return nil
@@ -682,7 +682,7 @@ func (this *Poloniex) watchTradesForSymbolsBody(ch chan any, symbols any, option
 
 	trades := (<-this.WatchMultiple(url, messageHashes, request, messageHashes))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		var first any = this.SafeValue(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
 		limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
@@ -780,7 +780,7 @@ func (this *Poloniex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	orders := (<-this.SubscribeAsync(name, name, true, symbols, params))
 	ccxt.PanicOnError(orders)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
 
@@ -837,7 +837,7 @@ func (this *Poloniex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 	trades := (<-this.SubscribeAsync(name, messageHash, true, symbols, params))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
@@ -1374,7 +1374,7 @@ func (this *Poloniex) HandleTicker(client any, message any) any {
 		var symbolsString any = ccxt.GetValue(parts, 1)
 		var symbols []string = ccxt.Split(symbolsString, ",")
 		var tickers any = this.FilterByArray(newTickers, "symbol", symbols)
-		if !ccxt.EvalTruthy(this.IsEmpty(tickers)) {
+		if !this.IsEmpty(tickers) {
 			client.(ccxt.ClientInterface).Resolve(tickers, messageHash)
 		}
 	}
