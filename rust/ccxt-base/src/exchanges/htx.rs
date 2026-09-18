@@ -9558,7 +9558,7 @@ impl HtxCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        if is_true(&self.safe_bool_k(withdrawOptions.clone(), "includeFee", &[Value::Bool(false)])) {
+        if matches!(self.safe_bool_k(withdrawOptions.clone(), "includeFee", &[Value::Bool(false)]), Value::Bool(true)) {
             let mut fee: Value = self.safe_number_k(params.clone(), "fee", &[]);
             if (fee == Value::Null) {
                 let mut currencies: Value = self.fetch_currencies(&[]).await;

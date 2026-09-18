@@ -4073,7 +4073,7 @@ pub trait ExchangeBase:
         let mut muteOnFailure: Value = self.safe_bool_k(options.clone(), "webApiMuteFailure", &[Value::Bool(true)]);
         {
             // if it was not explicitly disabled, then don't fetch
-            if !is_true(&self.safe_bool_k(options.clone(), "webApiEnable", &[Value::Bool(true)])) {
+            if !matches!(self.safe_bool_k(options.clone(), "webApiEnable", &[Value::Bool(true)]), Value::Bool(true)) {
                 return Value::Null;
             }
             let mut maxRetries: Value = self.safe_value_k(options.clone(), "webApiRetries", &[Value::Int(10)]);

@@ -3303,7 +3303,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 m.insert("expiration".to_string(), crate::value::get_value_k(&crate::value::get_value_k(&order, "signature"), "expiration"));
             m
         });
-        if (structureType.as_str() == Some("EIP712_ORDER_WITH_BUILDER_TYPE")) && is_true(&self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(true)])) {
+        if (structureType.as_str() == Some("EIP712_ORDER_WITH_BUILDER_TYPE")) && matches!(self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(true)]), Value::Bool(true)) {
             add_element_to_object(&mut returnValue, &Value::Str("builder".to_string()), crate::value::get_value_k(&order, "builder"));
             add_element_to_object(&mut returnValue, &Value::Str("builderFee".to_string()), self.parse_to_int((match (&(self.convert_to_big_int_custom(self.fee_amount_multiplier())), &(crate::runtime::parse_float(&crate::value::get_value_k(&order, "builder_fee")))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))); // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
         }

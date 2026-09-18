@@ -1129,7 +1129,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         // re-checks the cache. venues with a real by-id fetch (kalshi by ticker, polymarket by
         // token id) override this with a cheaper single fetch and fall back to super on a miss.
         let mut searchQuery: Value = self.outcome_search_query(outcomeSymbol.clone());
-        if is_true(&(Value::Bool(searchQuery != Value::Null))) && is_true(&self.safe_bool_k(self.has.clone(), "fetchEvents", &[Value::Bool(false)])) {
+        if is_true(&(Value::Bool(searchQuery != Value::Null))) && matches!(self.safe_bool_k(self.has.clone(), "fetchEvents", &[Value::Bool(false)]), Value::Bool(true)) {
             let mut searchLimit: Value = self.safe_integer_k(self.options.clone(), "fetchOutcomeSearchLimit", &[Value::Int(10)]);
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 self.fetch_events(&[Value::Map({
@@ -1689,7 +1689,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         // safeBool, not this.options['...'] — a raw missing-key access throws KeyError in Python/PHP
         // when the option is undeclared (it is for every prediction exchange)
-        if is_true(&self.safe_bool_k(self.options.clone(), "createMarketBuyOrderRequiresPrice", &[Value::Bool(false)])) || is_true(&self.safe_bool_k(self.has.clone(), "createMarketBuyOrderWithCost", &[Value::Bool(false)])) {
+        if matches!(self.safe_bool_k(self.options.clone(), "createMarketBuyOrderRequiresPrice", &[Value::Bool(false)]), Value::Bool(true)) || matches!(self.safe_bool_k(self.has.clone(), "createMarketBuyOrderWithCost", &[Value::Bool(false)]), Value::Bool(true)) {
             return <Self as crate::prediction_exchange_generated::PredictionBase>::create_order(self, outcome.clone(), Value::Str("market".to_string()), Value::Str("buy".to_string()), cost.clone(), &[Value::Int(1), params.clone()]).await;
         }
         panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createMarketBuyOrderWithCost() is not supported yet".to_string())))));
@@ -1711,7 +1711,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_true(&self.safe_bool_k(self.options.clone(), "createMarketSellOrderRequiresPrice", &[Value::Bool(false)])) || is_true(&self.safe_bool_k(self.has.clone(), "createMarketSellOrderWithCost", &[Value::Bool(false)])) {
+        if matches!(self.safe_bool_k(self.options.clone(), "createMarketSellOrderRequiresPrice", &[Value::Bool(false)]), Value::Bool(true)) || matches!(self.safe_bool_k(self.has.clone(), "createMarketSellOrderWithCost", &[Value::Bool(false)]), Value::Bool(true)) {
             return <Self as crate::prediction_exchange_generated::PredictionBase>::create_order(self, outcome.clone(), Value::Str("market".to_string()), Value::Str("sell".to_string()), cost.clone(), &[Value::Int(1), params.clone()]).await;
         }
         panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createMarketSellOrderWithCost() is not supported yet".to_string())))));

@@ -12,7 +12,7 @@ use super::*;
 pub fn testTrade(mut exchange: Value, mut skippedProperties: Value, mut method: Value, mut entry: Value, mut symbol: Value, mut now: Value, mut isPublicTrade: Value) {
     // prediction-market structures are keyed by an outcome handle, not a `symbol`, and the
     // PredictionTrade type carries a single `fee` but omits the `fees` list entirely
-    if is_true(&exchange.safe_bool(get_value(&exchange, &Value::Str("has".to_string())), Value::Str("prediction".to_string()), &[Value::Bool(false)])) {
+    if matches!(exchange.safe_bool(get_value(&exchange, &Value::Str("has".to_string())), Value::Str("prediction".to_string()), &[Value::Bool(false)]), Value::Bool(true)) {
         skippedProperties = exchange.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::Bool(true));

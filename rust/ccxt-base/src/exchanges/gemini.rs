@@ -1480,7 +1480,7 @@ impl GeminiCore {
             }
         }
         }
-        if is_true(&self.safe_bool_k(options.clone(), "fetchDetailsForAllSymbols", &[Value::Bool(false)])) {
+        if matches!(self.safe_bool_k(options.clone(), "fetchDetailsForAllSymbols", &[Value::Bool(false)]), Value::Bool(true)) {
             let mut promises: Value = Value::List(vec![]);
             {
                                 let mut i: Value = Value::Int(0);

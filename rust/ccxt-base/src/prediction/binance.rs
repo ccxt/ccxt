@@ -886,7 +886,7 @@ impl BinanceCore {
             while { if !__for_first_1178 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1178 = false; i.as_f64().unwrap_or(f64::NAN) < rawMarketsLength.as_f64().unwrap_or(f64::NAN) } {
             let mut parsed: Value = self.parse_topic_market(get_value(&rawMarkets, &i), rawTopic.clone());
             append_to_array(&mut marketsList, parsed.clone());
-            if is_true(&self.safe_bool_k(parsed.clone(), "active", &[Value::Bool(false)])) {
+            if matches!(self.safe_bool_k(parsed.clone(), "active", &[Value::Bool(false)]), Value::Bool(true)) {
                 anyActive = Value::Bool(true);
             }
         }

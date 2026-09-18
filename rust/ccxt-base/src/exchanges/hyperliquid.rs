@@ -2593,7 +2593,7 @@ impl HyperliquidCore {
 }
 
     pub async fn set_ref(&mut self) -> Value {
-        if is_true(&self.safe_bool_k(self.options.clone(), "refSet", &[Value::Bool(false)])) {
+        if matches!(self.safe_bool_k(self.options.clone(), "refSet", &[Value::Bool(false)]), Value::Bool(true)) {
             return Value::Bool(true);
         }
         add_element_to_object(&mut self.options, &Value::Str("refSet".to_string()), Value::Bool(true));
@@ -3346,11 +3346,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("grouping".to_string(), grouping.clone());
             m
         });
-        if is_true(&self.safe_bool_k(self.options.clone(), "approvedBuilderFee", &[Value::Bool(false)])) {
+        if matches!(self.safe_bool_k(self.options.clone(), "approvedBuilderFee", &[Value::Bool(false)]), Value::Bool(true)) {
             let mut wallet: Value = self.safe_string_lower(self.options.clone(), Value::Str("builder".to_string()), &[Value::Str("0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6".to_string())]);
             // when builderFee is disabled the builder is still attached but with a 0% fee (f = 0), for statistics purposes only
             let mut feeInt: Value = self.safe_integer_k(self.options.clone(), "feeInt", &[Value::Int(10)]);
-            if !is_true(&self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(true)])) {
+            if !matches!(self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(true)]), Value::Bool(true)) {
                 feeInt = Value::Int(0);
             }
             add_element_to_object(&mut orderAction, &Value::Str("builder".to_string()), Value::Map({
@@ -3398,7 +3398,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_true(&self.safe_bool_k(params.clone(), "twap", &[Value::Bool(false)])) {
+        if matches!(self.safe_bool_k(params.clone(), "twap", &[Value::Bool(false)]), Value::Bool(true)) {
             params = self.omit(params.clone(), Value::Str("twap".to_string()), &[]);
             return self.cancel_twap_order(id.clone(), &[symbol.clone(), params.clone()]).await;
         }

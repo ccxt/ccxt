@@ -1425,7 +1425,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         add_element_to_object(&mut request, &Value::Str("base_amount".to_string()), self.parse_to_int(crate::precise::Precise::stringMul(&amountStr, &amountScale)));
         add_element_to_object(&mut request, &Value::Str("avg_execution_price".to_string()), self.parse_to_int(crate::precise::Precise::stringMul(&priceStr, &priceScale)));
         add_element_to_object(&mut request, &Value::Str("trigger_price".to_string()), self.parse_to_int(crate::precise::Precise::stringMul(&triggerPriceStr, &priceScale)));
-        if is_true(&self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(true)])) {
+        if matches!(self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(true)]), Value::Bool(true)) {
             add_element_to_object(&mut request, &Value::Str("integrator_account_index".to_string()), self.options.as_map().and_then(|__m| __m.get("integratorAccountIndex")).cloned().unwrap_or(Value::Null));
             add_element_to_object(&mut request, &Value::Str("integrator_taker_fee".to_string()), self.options.as_map().and_then(|__m| __m.get("integratorTakerFee")).cloned().unwrap_or(Value::Null));
             add_element_to_object(&mut request, &Value::Str("integrator_maker_fee".to_string()), self.options.as_map().and_then(|__m| __m.get("integratorMakerFee")).cloned().unwrap_or(Value::Null));
@@ -1552,7 +1552,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("account_index".to_string(), accountIndex.clone());
                 m
             });
-            if is_true(&self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(true)])) {
+            if matches!(self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(true)]), Value::Bool(true)) {
                 add_element_to_object(&mut signingPayload, &Value::Str("integrator_account_index".to_string()), order.as_map().and_then(|__m| __m.get("integrator_account_index")).cloned().unwrap_or(Value::Null));
                 add_element_to_object(&mut signingPayload, &Value::Str("integrator_taker_fee".to_string()), order.as_map().and_then(|__m| __m.get("integrator_taker_fee")).cloned().unwrap_or(Value::Null));
                 add_element_to_object(&mut signingPayload, &Value::Str("integrator_maker_fee".to_string()), order.as_map().and_then(|__m| __m.get("integrator_maker_fee")).cloned().unwrap_or(Value::Null));
@@ -1670,7 +1670,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("account_index".to_string(), accountIndex.clone());
             m
         });
-        if is_true(&self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(true)])) {
+        if matches!(self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(true)]), Value::Bool(true)) {
             add_element_to_object(&mut signRaw, &Value::Str("integrator_account_index".to_string()), self.options.as_map().and_then(|__m| __m.get("integratorAccountIndex")).cloned().unwrap_or(Value::Null));
             add_element_to_object(&mut signRaw, &Value::Str("integrator_taker_fee".to_string()), self.options.as_map().and_then(|__m| __m.get("integratorTakerFee")).cloned().unwrap_or(Value::Null));
             add_element_to_object(&mut signRaw, &Value::Str("integrator_maker_fee".to_string()), self.options.as_map().and_then(|__m| __m.get("integratorMakerFee")).cloned().unwrap_or(Value::Null));

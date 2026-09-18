@@ -383,7 +383,7 @@ impl CoinbaseCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        if is_true(&self.safe_bool_k(self.options.clone(), "unSubscriptionPending", &[Value::Bool(false)])) {
+        if matches!(self.safe_bool_k(self.options.clone(), "unSubscriptionPending", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" another unSubscription is pending, coinbase does not support concurrent unSubscriptions".to_string())))));
         }
         add_element_to_object(&mut self.options, &Value::Str("unSubscriptionPending".to_string()), Value::Bool(true));
@@ -508,7 +508,7 @@ impl CoinbaseCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_true(&self.safe_bool_k(self.options.clone(), "unSubscriptionPending", &[Value::Bool(false)])) {
+        if matches!(self.safe_bool_k(self.options.clone(), "unSubscriptionPending", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" another unSubscription is pending, coinbase does not support concurrent unSubscriptions".to_string())))));
         }
         add_element_to_object(&mut self.options, &Value::Str("unSubscriptionPending".to_string()), Value::Bool(true));
