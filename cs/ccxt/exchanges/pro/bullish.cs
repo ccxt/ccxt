@@ -107,7 +107,7 @@ public partial class bullish : ccxt.bullish
         request ??= new Dictionary<string, object>();
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "private"));
-        object token = await this.handleToken();
+        string? token = await this.handleToken();
         Dictionary<string, object> cookies = new Dictionary<string, object>() {
             { "JWT_COOKIE", token },
         };

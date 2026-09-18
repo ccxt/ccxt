@@ -71,7 +71,7 @@ public partial class xt : ccxt.xt
      * @see https://doc.xt.com/docs/futures/UserWebsocket/General_WSS_information
      * @returns {string} listen key / access token
      */
-    public async virtual Task<object> getListenKey(object isContract)
+    public async virtual Task<string?> getListenKey(object isContract)
     {
         this.checkRequiredCredentials();
         string tradeType = isTrue(isContract) ? "contract" : "spot";
@@ -93,7 +93,7 @@ public partial class xt : ccxt.xt
                 // a flight is already in progress - wake when the leader
                 // settles it: the token is then in the bucket
                 await client.future(messageHash);
-                return getValue(client.subscriptions, "token");
+                return ((string?)((object)(getValue(client.subscriptions, "token"))));
             }
             // client.futures is the same registry Exchange.watch () dedupes on, so registering
             // the flight here, before any suspension point, makes concurrent callers wait
@@ -145,7 +145,7 @@ public partial class xt : ccxt.xt
             }
             await future;
         }
-        return getValue(client.subscriptions, "token");
+        return ((string?)((object)(getValue(client.subscriptions, "token"))));
     }
 
     public override object getCacheIndex(object orderbook, object cache)
@@ -229,7 +229,7 @@ public partial class xt : ccxt.xt
                 subscribe["listenKey"] = await this.getListenKey(isContract);
             } else
             {
-                object listenKey = await this.getListenKey(isContract);
+                string? listenKey = await this.getListenKey(isContract);
                 object param = add(add(name, "@"), listenKey);
                 subscribe["params"] = new List<object>() {param};
             }
@@ -296,7 +296,7 @@ public partial class xt : ccxt.xt
                 unsubscribe["listenKey"] = await this.getListenKey(isContract);
             } else
             {
-                object listenKey = await this.getListenKey(isContract);
+                string? listenKey = await this.getListenKey(isContract);
                 object param = add(add(name, "@"), listenKey);
                 unsubscribe["params"] = new List<object>() {param};
             }

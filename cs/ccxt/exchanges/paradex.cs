@@ -1836,7 +1836,7 @@ public partial class paradex : Exchange
         return ((Dictionary<string, object>)((object)(response)));
     }
 
-    public async virtual Task<object> authenticateRest(object parameters = null)
+    public async virtual Task<string?> authenticateRest(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? cachedToken = this.safeString(this.options, "authToken");
@@ -1850,7 +1850,7 @@ public partial class paradex : Exchange
             }
             if (isLessThan(now, cachedExpires))
             {
-                return cachedToken;
+                return ((string?)((object)(cachedToken)));
             }
         }
         object account = await this.retrieveAccount();
@@ -1897,7 +1897,7 @@ public partial class paradex : Exchange
         string? token = this.safeString(response, "jwt_token");
         ((IDictionary<string,object>)this.options)["authToken"] = token;
         ((IDictionary<string,object>)this.options)["expires"] = expires;
-        return token;
+        return ((string?)((object)(token)));
     }
 
     public override Dictionary<string, object> parseOrder(object order, object market = null)
