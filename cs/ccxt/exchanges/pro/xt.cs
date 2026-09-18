@@ -595,7 +595,7 @@ public partial class xt : ccxt.xt
         {
             name = add(add(add("depth@", GetValue(market, "id")), ","), levels);
         }
-        object orderbook = await this.subscribe(name, "public", "watchOrderBook", market, null, parameters);
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.subscribe(name, "public", "watchOrderBook", market, null, parameters));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 

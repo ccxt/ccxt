@@ -318,7 +318,7 @@ public partial class bullish : ccxt.bullish
             { "topic", "l2Orderbook" },
             { "symbol", GetValue(market, "id") },
         };
-        object orderbook = await this.watchPublic(url, messageHash, request, parameters);
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchPublic(url, messageHash, request, parameters));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 

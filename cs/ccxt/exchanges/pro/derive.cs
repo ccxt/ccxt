@@ -107,7 +107,7 @@ public partial class derive : ccxt.derive
             { "limit", limitVar },
             { "params", parameters },
         };
-        object orderbook = await this.watchPublic(topic, request, subscription);
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchPublic(topic, request, subscription));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 

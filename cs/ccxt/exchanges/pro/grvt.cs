@@ -619,7 +619,7 @@ public partial class grvt : ccxt.grvt
             { "stream", channel },
             { "selectors", rawHashes },
         };
-        object orderbook = await this.subscribeMultiple(messageHashes, this.extend(request, parameters), rawHashes);
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.subscribeMultiple(messageHashes, this.extend(request, parameters), rawHashes));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 

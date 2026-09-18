@@ -67,7 +67,7 @@ public partial class hollaex : ccxt.hollaex
         }
         Dictionary<string, object> market = this.market(symbol);
         string messageHash = add(add("orderbook", ":"), GetValue(market, "id"));
-        object orderbook = await this.watchPublic(messageHash, parameters);
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchPublic(messageHash, parameters));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 

@@ -416,7 +416,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             { "limit", limit },
         };
         object authentication = this.authenticate();
-        object orderbook = await this.watchMultiple(url, messageHashes, this.extend(request, authentication), messageHashes, subscription);
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchMultiple(url, messageHashes, this.extend(request, authentication), messageHashes, subscription));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
@@ -455,7 +455,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             { "limit", limit },
         };
         object authentication = this.authenticate();
-        object orderbook = await this.watch(url, messageHash, this.extend(request, authentication), messageHash, subscription);
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, messageHash, this.extend(request, authentication), messageHash, subscription));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 

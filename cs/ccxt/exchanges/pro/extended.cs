@@ -71,10 +71,10 @@ public partial class extended : ccxt.extended
         {
             url = add(url, add("?", query));
         }
-        object orderbook = await this.watch(url, messageHash, null, messageHash, new Dictionary<string, object>() {
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, messageHash, null, messageHash, new Dictionary<string, object>() {
             { "symbol", symbolVar },
             { "limit", limit },
-        });
+        }));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 

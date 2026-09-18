@@ -249,7 +249,7 @@ public partial class alpaca : ccxt.alpaca
             { "action", "subscribe" },
             { "orderbooks", new List<object>() {GetValue(market, "id")} },
         };
-        object orderbook = await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, messageHash, this.extend(request, parameters), messageHash));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 

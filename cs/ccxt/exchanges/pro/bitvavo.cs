@@ -695,7 +695,7 @@ public partial class bitvavo : ccxt.bitvavo
             { "params", parameters },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
-        object orderbook = await this.watch(url, messageHash, message, messageHash, subscription);
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, messageHash, message, messageHash, subscription));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
@@ -743,7 +743,7 @@ public partial class bitvavo : ccxt.bitvavo
             { "params", parameters },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
-        object orderbook = await this.watchMultiple(url, messageHashes, message, messageHashes, subscription);
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchMultiple(url, messageHashes, message, messageHashes, subscription));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
@@ -907,7 +907,7 @@ public partial class bitvavo : ccxt.bitvavo
             { "action", name },
             { "market", marketId },
         };
-        object orderbook = await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription);
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription));
         return (orderbook as IOrderBook).limit();
     }
 

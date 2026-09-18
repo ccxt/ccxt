@@ -167,7 +167,7 @@ public partial class woo : ccxt.woo
         {
             subscription["method"] = this.handleOrderBookSubscription;
         }
-        object orderbook = await this.watch(url, topic, this.extend(request, parameters), topic, subscription);
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, topic, this.extend(request, parameters), topic, subscription));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 

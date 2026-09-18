@@ -538,7 +538,7 @@ public partial class htx : ccxt.htx
             ((IDictionary<string,object>)parameters)["data_type"] = "incremental";
             method = null;
         }
-        object orderbook = await this.subscribePublic(url, symbolVar, messageHash, method, parameters);
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.subscribePublic(url, symbolVar, messageHash, method, parameters));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
@@ -713,7 +713,7 @@ public partial class htx : ccxt.htx
         };
         try
         {
-            object orderbook = await this.watch(url, requestId, request, requestId, snapshotSubscription);
+            ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, requestId, request, requestId, snapshotSubscription));
             return (orderbook as IOrderBook).limit();
         } catch(Exception e)
         {

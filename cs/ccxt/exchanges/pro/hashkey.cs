@@ -351,7 +351,7 @@ public partial class hashkey : ccxt.hashkey
         symbolVar = GetValue(market, "symbol");
         string topic = "depth";
         string messageHash = add("orderbook:", symbolVar);
-        object orderbook = await this.wathPublic(market, topic, messageHash, parameters);
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.wathPublic(market, topic, messageHash, parameters));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 

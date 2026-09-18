@@ -1466,7 +1466,7 @@ public partial class okx : ccxt.okx
             { "args", topics },
         };
         string? url = this.getUrl(depth, "public");
-        object orderbook = await this.watchMultiple(url, messageHashes, request, messageHashes);
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchMultiple(url, messageHashes, request, messageHashes));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 

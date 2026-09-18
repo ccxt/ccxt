@@ -514,7 +514,7 @@ public partial class gate : ccxt.gate
             { "symbol", symbolVar },
             { "limit", limitVar },
         };
-        object orderbook = await this.subscribePublic(url, messageHash, payload, channel, query, subscription);
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.subscribePublic(url, messageHash, payload, channel, query, subscription));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 

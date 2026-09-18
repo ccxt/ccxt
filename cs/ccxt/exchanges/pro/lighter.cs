@@ -230,7 +230,7 @@ public partial class lighter : ccxt.lighter
             { "channel", add("order_book/", GetValue(market, "id")) },
         };
         string? messageHash = this.getMessageHash("orderbook", symbolVar);
-        object orderbook = await this.subscribePublic(messageHash, this.extend(request, parameters));
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.subscribePublic(messageHash, this.extend(request, parameters)));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 

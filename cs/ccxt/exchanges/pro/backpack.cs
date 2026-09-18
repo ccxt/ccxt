@@ -943,7 +943,7 @@ public partial class backpack : ccxt.backpack
             string topic = add("depth.", marketId);
             ((IList<object>)topics).Add(topic);
         }
-        object orderbook = await this.watchPublic(topics, messageHashes, parameters);
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchPublic(topics, messageHashes, parameters));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());  // todo check if limit is needed
     }
 

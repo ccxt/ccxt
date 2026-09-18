@@ -725,7 +725,7 @@ public partial class bitfinex : ccxt.bitfinex
         {
             request["len"] = limit; // string, number of price points, '25', '100', default = '25'
         }
-        object orderbook = await this.subscribe("book", symbol, this.deepExtend(request, parameters));
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.subscribe("book", symbol, this.deepExtend(request, parameters)));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 

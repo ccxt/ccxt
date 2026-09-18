@@ -180,7 +180,7 @@ public partial class whitebit : ccxt.whitebit
         string? priceInterval = this.safeString(parameters, "priceInterval", defaultPriceInterval);
         parameters = this.omit(parameters, "priceInterval");
         List<object> reqParams = new List<object>() {GetValue(market, "id"), limitVar, priceInterval, true};
-        object orderbook = await this.watchPublic(messageHash, method, reqParams, parameters);
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchPublic(messageHash, method, reqParams, parameters));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 

@@ -428,7 +428,7 @@ public partial class gemini : ccxt.gemini
         };
         string subscribeHash = add("l2:", GetValue(market, "symbol"));
         object url = add(getValue(getValue(this.urls, "api"), "ws"), "/v2/marketdata");
-        object orderbook = await this.watch(url, messageHash, request, subscribeHash);
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, messageHash, request, subscribeHash));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
@@ -482,7 +482,7 @@ public partial class gemini : ccxt.gemini
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(object symbols, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object orderbook = await this.helperForWatchMultipleConstruct("orderbook", symbols, parameters);
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.helperForWatchMultipleConstruct("orderbook", symbols, parameters));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 

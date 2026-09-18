@@ -643,7 +643,7 @@ public partial class deribit : ccxt.deribit
         {
             descriptor = interval;
         }
-        object orderbook = await this.watchMultipleWrapper("book", descriptor, symbols, parameters);
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchMultipleWrapper("book", descriptor, symbols, parameters));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
