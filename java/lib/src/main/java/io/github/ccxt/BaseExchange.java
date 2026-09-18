@@ -6699,7 +6699,7 @@ public Object describe()
                 // copy fee to avoid modification by reference
                 Map<String, Object> feeCopy = this.deepExtend(fee);
                 Helpers.addElementToObject(feeCopy, "cost", this.safeNumber(feeCopy, "cost"));
-                if (Helpers.inOp(feeCopy, "rate"))
+                if (feeCopy.containsKey("rate"))
                 {
                     Helpers.addElementToObject(feeCopy, "rate", this.safeNumber(feeCopy, "rate"));
                 }
@@ -6807,7 +6807,7 @@ public Object describe()
             Helpers.addElementToObject(entry, "cost", this.safeNumber(entry, "cost"));
             Object tradeFee = this.safeDict(entry, "fee", new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(tradeFee, "cost", this.safeNumber(tradeFee, "cost"));
-            if (Helpers.inOp(tradeFee, "rate"))
+            if ((tradeFee != null && ((Map<?, ?>)tradeFee).containsKey("rate")))
             {
                 ((Map<String, Object>)tradeFee).put("rate", BaseExchange.this.safeNumber(tradeFee, "rate"));
             }
@@ -7307,7 +7307,7 @@ public Object describe()
                 {
                     continue;
                 }
-                if (!(((Map<?, ?>)reduced).containsKey(feeCurrencyCode)))
+                if (!(reduced.containsKey(feeCurrencyCode)))
                 {
                     Helpers.addElementToObject(reduced, feeCurrencyCode, new HashMap<String, Object>() {{}});
                 }
@@ -8092,14 +8092,14 @@ public Object describe()
         for (var i = 0; i < ((List<?>)currenciesToCheck).size(); i++)
         {
             Object networks = this.safeDict(Helpers.GetValue(currenciesToCheck, i), "networks", new HashMap<String, Object>() {{}});
-            if (Helpers.inOp(networks, networkCode))
+            if ((networks != null && ((Map<?, ?>)networks).containsKey(networkCode)))
             {
                 return this.safeString(Helpers.GetValue(networks, networkCode), "id");
             }
         }
         // before returning the original input, try to match if it's backward-maintained networkCode
         Object oldCodes = this.safeDict(this.options, "backwardSupportedNetworkCodes", new HashMap<String, Object>() {{}});
-        if (Helpers.inOp(oldCodes, networkCode))
+        if ((oldCodes != null && ((Map<?, ?>)oldCodes).containsKey(networkCode)))
         {
             return this.networkCodeToId(Helpers.GetValue(oldCodes, networkCode), currencyCode);
         }
@@ -8137,7 +8137,7 @@ public Object describe()
         if (java.util.Objects.equals(currencyCode, null))
         {
             Object networkIdsByCodes = this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
-            if ((Helpers.inOp(networkIdsByCodes, preferredChain)) && (Helpers.inOp(networkIdsByCodes, alternativeChain)))
+            if (((networkIdsByCodes != null && ((Map<?, ?>)networkIdsByCodes).containsKey(preferredChain))) && ((networkIdsByCodes != null && ((Map<?, ?>)networkIdsByCodes).containsKey(alternativeChain))))
             {
                 return networkCode;
             }
@@ -8160,7 +8160,7 @@ public Object describe()
     {
         Object defaultNetworkCode = null;
         Object defaultNetworks = this.safeDict(this.options, "defaultNetworks", new HashMap<String, Object>() {{}});
-        if (Helpers.inOp(defaultNetworks, currencyCode))
+        if ((defaultNetworks != null && ((Map<?, ?>)defaultNetworks).containsKey(currencyCode)))
         {
             // if currency had set its network in "defaultNetworks", use it
             defaultNetworkCode = Helpers.GetValue(defaultNetworks, currencyCode);
@@ -10353,7 +10353,7 @@ public Object describe()
         if (((Map<?, ?>)markets).containsKey(symbol))
         {
             return Helpers.GetValue(markets, symbol);
-        } else if ((!java.util.Objects.equals(marketsById, null)) && (((Map<?, ?>)marketsById).containsKey(symbol)))
+        } else if ((!java.util.Objects.equals(marketsById, null)) && (marketsById.containsKey(symbol)))
         {
             Object marketsList = Helpers.GetValue(marketsById, symbol);
             String defaultType = this.safeString2(this.options, "defaultType", "defaultSubType", "spot");
@@ -12189,7 +12189,7 @@ public Object describe()
         {
             Object entry = Helpers.GetValue(input, i);
             String uniqValue = ((Helpers.isTrue(fallbackToTimestamp))) ? this.safeStringN(entry, new ArrayList<Object>(Arrays.asList("id", "timestamp", 0))) : this.safeString(entry, "id");
-            if (!java.util.Objects.equals(uniqValue, null) && !(((Map<?, ?>)uniqueDic).containsKey(uniqValue)))
+            if (!java.util.Objects.equals(uniqValue, null) && !(uniqueDic.containsKey(uniqValue)))
             {
                 Helpers.addElementToObject(uniqueDic, uniqValue, 1);
                 ((List<Object>)uniqueResult).add(entry);
@@ -12223,7 +12223,7 @@ public Object describe()
                 }
                 id = Helpers.add((Helpers.add((Helpers.add((("t_" + String.valueOf(timestamp)) + "_"), side) + "_"), price) + "_"), amount);
             }
-            if (!java.util.Objects.equals(id, null) && !(((Map<?, ?>)uniqueResult).containsKey(id)))
+            if (!java.util.Objects.equals(id, null) && !(uniqueResult.containsKey(id)))
             {
                 Helpers.addElementToObject(uniqueResult, id, entry);
             }
