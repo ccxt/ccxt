@@ -44,14 +44,14 @@ jobs:
           fetch-depth: 2
           clean: false
           fetch-tags: true
-      - name: Setup PHP with PECL extension
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.5'
-          # cache: true
-          ini-values: |
-            zend.assertions=1
-            display_errors=On
+      # - name: Setup PHP with PECL extension
+      #   uses: shivammathur/setup-php@v2
+      #   with:
+      #     php-version: '8.5'
+      #     # cache: true
+      #     ini-values: |
+      #       zend.assertions=1
+      #       display_errors=On
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
