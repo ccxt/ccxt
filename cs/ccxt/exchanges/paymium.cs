@@ -213,7 +213,7 @@ public partial class paymium : Exchange
         List<object> currencies = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
         for (int i = 0; isLessThan(i, currencies.Count); postFixIncrement(ref i))
         {
-            string? code = ((string)getValue(currencies, i));
+            string? code = ((string)currencies[i]);
             Dictionary<string, object> currency = this.currency(((string)code));
             object currencyId = GetValue(currency, "id");
             string free = add("balance_", currencyId);

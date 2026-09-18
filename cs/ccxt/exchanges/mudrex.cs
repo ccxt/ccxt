@@ -613,7 +613,7 @@ public partial class mudrex : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, aggregated.Count); postFixIncrement(ref i))
         {
-            ((IList<object>)result).Add(this.parseMarket(getValue(aggregated, i)));
+            ((IList<object>)result).Add(this.parseMarket(aggregated[i]));
         }
         return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
@@ -1162,7 +1162,7 @@ public partial class mudrex : Exchange
         List<object> orders = new List<object>() {};
         for (int i = 0; isLessThan(i, rows?.Count ?? 0); postFixIncrement(ref i))
         {
-            ((IList<object>)orders).Add(this.parseOrder(getValue(rows, i), market));
+            ((IList<object>)orders).Add(this.parseOrder(rows[i], market));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbol, since, limit));
     }
@@ -1246,7 +1246,7 @@ public partial class mudrex : Exchange
         List<object> outPos = new List<object>() {};
         for (int i = 0; isLessThan(i, rows?.Count ?? 0); postFixIncrement(ref i))
         {
-            object p = getValue(rows, i);
+            object p = rows[i];
             string? symRaw = this.safeString(p, "symbol");
             Dictionary<string, object> m = this.safeMarket(symRaw);
             Dictionary<string, object> pos = this.parsePosition(p, m);
@@ -1573,7 +1573,7 @@ public partial class mudrex : Exchange
         List<object> transactionKeys = new List<object>() {};
         for (int i = 0; isLessThan(i, allRows.Count); postFixIncrement(ref i))
         {
-            object entry = getValue(allRows, i);
+            object entry = allRows[i];
             string? feeType = this.safeString(entry, "fee_type");
             string pairKey = add(add(add(add(this.safeString(entry, "symbol", ""), ":"), this.safeString(entry, "created_at", "")), ":"), this.safeString(entry, "transaction_amount", ""));
             if (feeType == "TRANSACTION")
@@ -1592,7 +1592,7 @@ public partial class mudrex : Exchange
             object rebate = null;
             for (int j = 0; isLessThan(j, rebateKeys.Count); postFixIncrement(ref j))
             {
-                if (isEqual(getValue(rebateKeys, j), getValue(transactionKeys, i)))
+                if (isEqual(rebateKeys[j], getValue(transactionKeys, i)))
                 {
                     rebate = getValue(rebateAmounts, j);
                     // blank the consumed key so the next equal fill matches the next rebate, never the same one twice
@@ -1602,10 +1602,10 @@ public partial class mudrex : Exchange
             }
             if ((rebate == null))
             {
-                ((IList<object>)rows).Add(getValue(transactions, i));
+                ((IList<object>)rows).Add(transactions[i]);
             } else
             {
-                ((IList<object>)rows).Add(this.extend(getValue(transactions, i), new Dictionary<string, object>() {
+                ((IList<object>)rows).Add(this.extend(transactions[i], new Dictionary<string, object>() {
                     { "rebate_amount", rebate },
                 }));
             }

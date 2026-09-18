@@ -1916,10 +1916,10 @@ public partial class htx : ccxt.htx
             List<object> prefixes = new List<object>() {"cross:positions", "isolated:positions"};
             for (int i = 0; isLessThan(i, prefixes.Count); postFixIncrement(ref i))
             {
-                List<object> messageHashes = this.findMessageHashes(client, getValue(prefixes, i));
+                List<object> messageHashes = this.findMessageHashes(client, prefixes[i]);
                 for (int j = 0; isLessThan(j, messageHashes?.Count ?? 0); postFixIncrement(ref j))
                 {
-                    callDynamically(client, "resolve", new object[] {new List<object>() {}, getValue(messageHashes, j)});
+                    callDynamically(client, "resolve", new object[] {new List<object>() {}, messageHashes[j]});
                 }
             }
             return;
@@ -1929,7 +1929,7 @@ public partial class htx : ccxt.htx
         Int64? timestamp = this.safeInteger(message, "ts");
         for (int i = 0; isLessThan(i, rawPositions.Count); postFixIncrement(ref i))
         {
-            object rawPosition = getValue(rawPositions, i);
+            object rawPosition = rawPositions[i];
             Dictionary<string, object> position = this.parsePosition(rawPosition);
             position["timestamp"] = timestamp;
             position["datetime"] = this.iso8601(timestamp);
@@ -1952,12 +1952,12 @@ public partial class htx : ccxt.htx
         List<object> marginModes = new List<object>(((IDictionary<string,object>)positionsByMarginMode).Keys);
         for (int i = 0; isLessThan(i, marginModes.Count); postFixIncrement(ref i))
         {
-            object marginMode = getValue(marginModes, i);
+            object marginMode = marginModes[i];
             object marginModePositions = this.safeValue(positionsByMarginMode, marginMode, new List<object>() {});
             List<object> messageHashes = this.findMessageHashes(client, add(marginMode, ":positions::"));
             for (int j = 0; isLessThan(j, messageHashes?.Count ?? 0); postFixIncrement(ref j))
             {
-                object messageHash = getValue(messageHashes, j);
+                object messageHash = messageHashes[j];
                 List<object> parts = ((string)messageHash).Split(new [] {"::"}, StringSplitOptions.None).ToList<object>();
                 string? symbolsString = ((string)getValue(parts, 1));
                 List<object> symbols = symbolsString.Split(new [] {","}, StringSplitOptions.None).ToList<object>();
@@ -2346,7 +2346,7 @@ public partial class htx : ccxt.htx
                     // isolated margin
                     for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
                     {
-                        object isolatedBalance = getValue(data, i);
+                        object isolatedBalance = data[i];
                         Dictionary<string, object> account = this.account();
                         account["free"] = this.safeString(isolatedBalance, "margin_balance", "margin_available");
                         account["used"] = this.safeString(isolatedBalance, "margin_frozen");
@@ -2364,7 +2364,7 @@ public partial class htx : ccxt.htx
                 // inverse branch
                 for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
                 {
-                    object balance = getValue(data, i);
+                    object balance = data[i];
                     string? currencyId = this.safeString(balance, "symbol");
                     string? code = this.safeCurrencyCode(currencyId);
                     Dictionary<string, object> account = this.account();
@@ -2434,7 +2434,7 @@ public partial class htx : ccxt.htx
         List<object> subMessageHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});
         for (int i = 0; isLessThan(i, messageHashes.Count); postFixIncrement(ref i))
         {
-            object unsubHash = getValue(messageHashes, i);
+            object unsubHash = messageHashes[i];
             object subHash = getValue(subMessageHashes, i);
             this.cleanUnsubscription(client, subHash, unsubHash);
         }
@@ -3016,7 +3016,7 @@ public partial class htx : ccxt.htx
                 Dictionary<string, object> market = this.market(marketId);
                 for (int i = 0; isLessThan(i, rawTrades.Count); postFixIncrement(ref i))
                 {
-                    object trade = getValue(rawTrades, i);
+                    object trade = rawTrades[i];
                     Dictionary<string, object> parsedTrade = this.parseTrade(trade, market);
                     // add extra params (side, type, ...) coming from the order
                     parsedTrade = this.extend(parsedTrade, extendParams);

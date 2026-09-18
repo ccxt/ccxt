@@ -322,7 +322,7 @@ public partial class limitless : PredictionExchange
             Dictionary<string, object> seen = new Dictionary<string, object>() {};
             for (int i = 0; isLessThan(i, queries?.Count ?? 0); postFixIncrement(ref i))
             {
-                object q = getValue(queries, i);
+                object q = queries[i];
                 Dictionary<string, object> response = await this.limitlessPublicGetMarketsSearch(this.extend(new Dictionary<string, object>() {
                     { "query", q },
                     { "limit", limit },
@@ -330,7 +330,7 @@ public partial class limitless : PredictionExchange
                 List<object> found = this.safeList(response, "markets", new List<object>() {});
                 for (int j = 0; isLessThan(j, found.Count); postFixIncrement(ref j))
                 {
-                    object raw = getValue(found, j);
+                    object raw = found[j];
                     string? slug = this.safeString(raw, "slug");
                     if (((slug != null) && slug != "") && !(inOp(seen, slug)))
                     {
@@ -395,7 +395,7 @@ public partial class limitless : PredictionExchange
                     }
                     for (int i = 0; isLessThan(i, page_markets?.Count ?? 0); postFixIncrement(ref i))
                     {
-                        object raw = getValue(page_markets, i);
+                        object raw = page_markets[i];
                         ((IList<object>)allRaw).Add(raw);
                     }
                     int allRawCount = allRaw?.Count ?? 0;
@@ -413,7 +413,7 @@ public partial class limitless : PredictionExchange
         List<object> expandedRaw = this.expandGroupRows(allRaw);
         for (int i = 0; isLessThan(i, expandedRaw?.Count ?? 0); postFixIncrement(ref i))
         {
-            object raw = getValue(expandedRaw, i);
+            object raw = expandedRaw[i];
             string? groupId = this.safeStringN(raw, new List<object>() {"groupSlug", "groupId"}, this.safeString(raw, "slug"));
             string? eventKey = ((groupId != null) && groupId != "") ? this.shortenSlug(groupId) : null;
             Dictionary<string, object> m = this.parseMarket(raw);
@@ -442,7 +442,7 @@ public partial class limitless : PredictionExchange
         List<object> eventKeys = new List<object>(((IDictionary<string,object>)eventGroups).Keys);
         for (int i = 0; isLessThan(i, eventKeys.Count); postFixIncrement(ref i))
         {
-            string? eventKey = ((string)getValue(eventKeys, i));
+            string? eventKey = ((string)eventKeys[i]);
             object g = getValue(eventGroups, eventKey);
             eventsDict[(string)eventKey] = this.parseEvent(g);
         }
@@ -567,7 +567,7 @@ public partial class limitless : PredictionExchange
         List<object> tokenEntries = new List<object>(((IDictionary<string,object>)tokens).Keys);
         for (int i = 0; isLessThan(i, tokenEntries.Count); postFixIncrement(ref i))
         {
-            string? outcomeLabel = ((string)getValue(tokenEntries, i));
+            string? outcomeLabel = ((string)tokenEntries[i]);
             object tokenData = getValue(tokens, outcomeLabel);
             object tokenId = tokenData;
             string? outcomeHandle = this.slugToOutcomeSymbol(groupId, slug, outcomeLabel);
@@ -993,7 +993,7 @@ public partial class limitless : PredictionExchange
         object totalVolume = 0;
         for (int i = 0; isLessThan(i, rawMarkets.Count); postFixIncrement(ref i))
         {
-            object rawMarket = getValue(rawMarkets, i);
+            object rawMarket = rawMarkets[i];
             // an already-parsed ccxt market row carries the unified 'market' handle + outcomes
             // with 'symbol' kept as a legacy fallback — don't run it through parseMarket again
             string? marketSymbol = this.safeString2(rawMarket, "market", "symbol");
@@ -1364,7 +1364,7 @@ public partial class limitless : PredictionExchange
         List<object> promises = new List<object>() {};
         for (int i = 0; isLessThan(i, slugs.Count); postFixIncrement(ref i))
         {
-            string? slug = ((string)getValue(slugs, i));
+            string? slug = ((string)slugs[i]);
             ((IList<object>)promises).Add(this.limitlessPublicGetMarketsAddressOrSlug(this.extend(new Dictionary<string, object>() {
                 { "addressOrSlug", slug },
             }, parameters)));
@@ -1375,7 +1375,7 @@ public partial class limitless : PredictionExchange
         List<object> responses = await promiseAll(promises);
         for (int i = 0; isLessThan(i, slugs.Count); postFixIncrement(ref i))
         {
-            string? slug = ((string)getValue(slugs, i));
+            string? slug = ((string)slugs[i]);
             Int64 detailIndex = multiply(i, 2);
             object detail = getValue(responses, detailIndex);
             object book = getValue(responses, this.sum(detailIndex, 1));
@@ -1449,7 +1449,7 @@ public partial class limitless : PredictionExchange
         List<object> filtered = new List<object>() {};
         for (int i = 0; isLessThan(i, rows.Count); postFixIncrement(ref i))
         {
-            object row = getValue(rows, i);
+            object row = rows[i];
             string? rowTokenId = this.safeString(row, "tokenId");
             if (((tokenId != null)) && ((rowTokenId != null)) && ((rowTokenId != tokenId)))
             {
@@ -1515,12 +1515,12 @@ public partial class limitless : PredictionExchange
         List<object> asks = new List<object>() {};
         for (int bi = 0; isLessThan(bi, bidsSource?.Count ?? 0); postFixIncrement(ref bi))
         {
-            string? priceStr = this.safeString(getValue(bidsSource, bi), "price");
+            string? priceStr = this.safeString(bidsSource[bi], "price");
             if (!isYes && ((priceStr != null)))
             {
                 priceStr = Precise.stringSub("1", priceStr);
             }
-            string? sizeStr = this.safeString(getValue(bidsSource, bi), "size");
+            string? sizeStr = this.safeString(bidsSource[bi], "size");
             if ((sizeStr != null))
             {
                 sizeStr = Precise.stringDiv(sizeStr, scaleStr);
@@ -1529,12 +1529,12 @@ public partial class limitless : PredictionExchange
         }
         for (int ai = 0; isLessThan(ai, asksSource?.Count ?? 0); postFixIncrement(ref ai))
         {
-            string? priceStr = this.safeString(getValue(asksSource, ai), "price");
+            string? priceStr = this.safeString(asksSource[ai], "price");
             if (!isYes && ((priceStr != null)))
             {
                 priceStr = Precise.stringSub("1", priceStr);
             }
-            string? sizeStr = this.safeString(getValue(asksSource, ai), "size");
+            string? sizeStr = this.safeString(asksSource[ai], "size");
             if ((sizeStr != null))
             {
                 sizeStr = Precise.stringDiv(sizeStr, scaleStr);
@@ -1648,7 +1648,7 @@ public partial class limitless : PredictionExchange
         List<object> pseudoTrades = new List<object>() {};
         for (int i = 0; isLessThan(i, history?.Count ?? 0); postFixIncrement(ref i))
         {
-            object point = getValue(history, i);
+            object point = history[i];
             double? pointPrice = this.safeNumber(point, "price");
             object pointTs = this.safeInteger(point, "timestamp");
             if (isEqual(pointTs, null))
@@ -1679,7 +1679,7 @@ public partial class limitless : PredictionExchange
         List<object> bucketOrder = new List<object>() {};
         for (int i = 0; isLessThan(i, sorted?.Count ?? 0); postFixIncrement(ref i))
         {
-            object point = getValue(sorted, i);
+            object point = sorted[i];
             Int64? pTs = this.safeInteger(point, "timestamp");
             double? pPrice = this.safeNumber(point, "price");
             if (isEqual(pTs, null))
@@ -1707,7 +1707,7 @@ public partial class limitless : PredictionExchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, bucketOrder.Count); postFixIncrement(ref i))
         {
-            ((IList<object>)result).Add(getValue(candles, getValue(bucketOrder, i)));
+            ((IList<object>)result).Add(getValue(candles, bucketOrder[i]));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(result, since, limit, 0));
     }
@@ -2576,7 +2576,7 @@ public partial class limitless : PredictionExchange
         List<object> signedFields = new List<object>() {};
         for (int i = 0; isLessThan(i, fields.Count); postFixIncrement(ref i))
         {
-            ((IList<object>)signedFields).Add(getValue(fields, i));
+            ((IList<object>)signedFields).Add(fields[i]);
         }
         ((IList<object>)signedFields).Add(this.rlpEncodeBytes(this.intToRlpHex(yParity)));
         ((IList<object>)signedFields).Add(this.rlpEncodeBytes(rHex));
@@ -3319,7 +3319,7 @@ public partial class limitless : PredictionExchange
                 List<object> found = this.safeList(response, "markets", new List<object>() {});
                 for (int j = 0; isLessThan(j, found.Count); postFixIncrement(ref j))
                 {
-                    object raw = getValue(found, j);
+                    object raw = found[j];
                     string? rawSlug = this.safeString(raw, "slug");
                     if (((rawSlug != null) && rawSlug != "") && !(inOp(seen, rawSlug)))
                     {
@@ -3510,7 +3510,7 @@ public partial class limitless : PredictionExchange
                 {
                     throw new ExchangeError (add(this.id, " fetchRawMarketsByTags() missing name")) ;
                 }
-                if (getIndexOf(name, getValue(wanted, wi)) >= 0)
+                if (getIndexOf(name, wanted[wi]) >= 0)
                 {
                     matched = true;
                     break;

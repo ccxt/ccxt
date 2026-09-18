@@ -184,7 +184,7 @@ public partial class bitvavo : ccxt.bitvavo
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, tickers.Count); postFixIncrement(ref i))
         {
-            object data = getValue(tickers, i);
+            object data = tickers[i];
             string? marketId = this.safeString(data, "market");
             Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
             object messageHash = add(add(eventVar, "@"), marketId);
@@ -226,7 +226,7 @@ public partial class bitvavo : ccxt.bitvavo
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, tickers.Count); postFixIncrement(ref i))
         {
-            object data = getValue(tickers, i);
+            object data = tickers[i];
             Dictionary<string, object> ticker = this.parseWsBidAsk(data);
             object symbol = GetValue(ticker, "symbol");
             ((IDictionary<string,object>)this.bidsasks)[(string)((string)symbol)] = ticker;
@@ -561,7 +561,7 @@ public partial class bitvavo : ccxt.bitvavo
         List<object> intervals = new List<object>(((IDictionary<string,object>)marketIdsByInterval).Keys);
         for (int i = 0; isLessThan(i, intervals.Count); postFixIncrement(ref i))
         {
-            string? interval = ((string)getValue(intervals, i));
+            string? interval = ((string)intervals[i]);
             ((IList<object>)channels).Add(new Dictionary<string, object>() {
                 { "name", name },
                 { "interval", new List<object>() {interval} },
@@ -643,7 +643,7 @@ public partial class bitvavo : ccxt.bitvavo
         List<object> intervals = new List<object>(((IDictionary<string,object>)marketIdsByInterval).Keys);
         for (int i = 0; isLessThan(i, intervals.Count); postFixIncrement(ref i))
         {
-            string? interval = ((string)getValue(intervals, i));
+            string? interval = ((string)intervals[i]);
             ((IList<object>)channels).Add(new Dictionary<string, object>() {
                 { "name", name },
                 { "interval", new List<object>() {interval} },
@@ -1041,7 +1041,7 @@ public partial class bitvavo : ccxt.bitvavo
         List<object> keys = new List<object>(((IDictionary<string,object>)client.subscriptions).Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
-            string? key = ((string)getValue(keys, i));
+            string? key = ((string)keys[i]);
             if (!(inOp(client.subscriptions, key)))
             {
                 continue;
@@ -1965,7 +1965,7 @@ public partial class bitvavo : ccxt.bitvavo
         List<object> names = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
         for (int i = 0; isLessThan(i, names.Count); postFixIncrement(ref i))
         {
-            string? name = ((string)getValue(names, i));
+            string? name = ((string)names[i]);
             object method = this.safeValue(methods, name);
             if ((method != null))
             {

@@ -1302,7 +1302,7 @@ public partial class hashkey : Exchange
         Dictionary<string, object> parsedNetworks = new Dictionary<string, object>() {};
         for (int j = 0; isLessThan(j, networks?.Count ?? 0); postFixIncrement(ref j))
         {
-            object network = getValue(networks, j);
+            object network = networks[j];
             string? networkId = this.safeString(network, "chainType");
             object networkCode = this.networkCodeToId(networkId, code);
             if ((networkCode != null))
@@ -1989,7 +1989,7 @@ public partial class hashkey : Exchange
         List<object> balances = this.safeList(balance, "balances", new List<object>() {});
         for (int i = 0; isLessThan(i, balances.Count); postFixIncrement(ref i))
         {
-            object balanceEntry = getValue(balances, i);
+            object balanceEntry = balances[i];
             string? currencyId = this.safeString(balanceEntry, "asset");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -4039,7 +4039,7 @@ public partial class hashkey : Exchange
         IList<object> rows = this.toArray(response);
         for (int i = 0; isLessThan(i, rows?.Count ?? 0); postFixIncrement(ref i))
         {
-            object entry = getValue(rows, i);
+            object entry = rows[i];
             Int64? timestamp = this.safeInteger(entry, "settleTime");
             ((IList<object>)rates).Add(new Dictionary<string, object>() {
                 { "info", entry },
@@ -4520,7 +4520,7 @@ public partial class hashkey : Exchange
         List<object> tiers = new List<object>() {};
         for (int i = 0; isLessThan(i, riskLimits.Count); postFixIncrement(ref i))
         {
-            object tier = getValue(riskLimits, i);
+            object tier = riskLimits[i];
             string? initialMarginRate = this.safeString(tier, "initialMargin");
             ((IList<object>)tiers).Add(new Dictionary<string, object>() {
                 { "tier", this.sum(i, 1) },

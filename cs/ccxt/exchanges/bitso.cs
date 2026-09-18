@@ -583,7 +583,7 @@ public partial class bitso : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, markets.Count); postFixIncrement(ref i))
         {
-            object market = getValue(markets, i);
+            object market = markets[i];
             string? id = this.safeString(market, "book");
             var baseIdquoteIdVariable = id.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
             var baseId = ((IList<object>) baseIdquoteIdVariable)[0];
@@ -609,7 +609,7 @@ public partial class bitso : Exchange
             List<object> makerFees = new List<object>() {};
             for (int j = 0; isLessThan(j, feeTiers.Count); postFixIncrement(ref j))
             {
-                object tier = getValue(feeTiers, j);
+                object tier = feeTiers[j];
                 double? volume = this.safeNumber(tier, "volume");
                 double? takerFee = this.safeNumber(tier, "taker");
                 double? makerFee = this.safeNumber(tier, "maker");
@@ -767,7 +767,7 @@ public partial class bitso : Exchange
         };
         for (int i = 0; isLessThan(i, balances.Count); postFixIncrement(ref i))
         {
-            object balance = getValue(balances, i);
+            object balance = balances[i];
             string? currencyId = this.safeString(balance, "currency");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -1230,7 +1230,7 @@ public partial class bitso : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, fees.Count); postFixIncrement(ref i))
         {
-            object fee = getValue(fees, i);
+            object fee = fees[i];
             string? marketId = this.safeString(fee, "book");
             string? symbol = this.safeSymbol(marketId, null, "_");
             result[(string)symbol] = new Dictionary<string, object>() {
@@ -1399,7 +1399,7 @@ public partial class bitso : Exchange
         List<object> orders = new List<object>() {};
         for (int i = 0; isLessThan(i, payload.Count); postFixIncrement(ref i))
         {
-            object id = getValue(payload, i);
+            object id = payload[i];
             ((IList<object>)orders).Add(this.parseOrder(id, market));
         }
         return ccxt.BaseExchange.ToOrderList(orders);
@@ -1432,7 +1432,7 @@ public partial class bitso : Exchange
         List<object> canceledOrders = new List<object>() {};
         for (int i = 0; isLessThan(i, payload.Count); postFixIncrement(ref i))
         {
-            Dictionary<string, object> order = this.parseOrder(getValue(payload, i));
+            Dictionary<string, object> order = this.parseOrder(payload[i]);
             ((IList<object>)canceledOrders).Add(order);
         }
         return ccxt.BaseExchange.ToOrderList(canceledOrders);
@@ -1807,7 +1807,7 @@ public partial class bitso : Exchange
         List<object> depositFees = this.safeList(payload, "deposit_fees", new List<object>() {});
         for (int i = 0; isLessThan(i, depositFees.Count); postFixIncrement(ref i))
         {
-            object depositFee = getValue(depositFees, i);
+            object depositFee = depositFees[i];
             string? currencyId = this.safeString(depositFee, "currency");
             string? code = this.safeCurrencyCode(currencyId);
             if ((!isEqual(codes, null)) && !this.inArray(code, codes))
@@ -1830,7 +1830,7 @@ public partial class bitso : Exchange
         List<object> currencyIds = new List<object>(((IDictionary<string,object>)withdrawalFees).Keys);
         for (int i = 0; isLessThan(i, currencyIds.Count); postFixIncrement(ref i))
         {
-            string? currencyId = ((string)getValue(currencyIds, i));
+            string? currencyId = ((string)currencyIds[i]);
             string? code = this.safeCurrencyCode(currencyId);
             if ((!isEqual(codes, null)) && !this.inArray(code, codes))
             {
@@ -1962,7 +1962,7 @@ public partial class bitso : Exchange
         object withdrawalResponse = this.safeValue(response, "withdrawal_fees", new List<object>() {});
         for (int i = 0; isLessThan(i, depositResponse.Count); postFixIncrement(ref i))
         {
-            object entry = getValue(depositResponse, i);
+            object entry = depositResponse[i];
             string? currencyId = this.safeString(entry, "currency");
             string? code = this.safeCurrencyCode(currencyId);
             if ((isEqual(codes, null)) || (((code != null)) && (inOp(codes, code))))
@@ -1987,7 +1987,7 @@ public partial class bitso : Exchange
         List<object> withdrawalKeys = new List<object>(((IDictionary<string,object>)withdrawalResponse).Keys);
         for (int i = 0; isLessThan(i, withdrawalKeys.Count); postFixIncrement(ref i))
         {
-            string? currencyId = ((string)getValue(withdrawalKeys, i));
+            string? currencyId = ((string)withdrawalKeys[i]);
             string? code = this.safeCurrencyCode(currencyId);
             if (((code != null)) && ((isEqual(codes, null)) || (inOp(codes, code))))
             {

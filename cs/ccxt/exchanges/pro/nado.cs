@@ -1074,7 +1074,7 @@ public partial class nado : ccxt.nado
         {
             ((IList<object>)result).Add(this.parseOrder(this.extend(new Dictionary<string, object>() {
                 { "status", "canceled" },
-            }, getValue(cancelledOrders, i)), market));
+            }, cancelledOrders[i]), market));
         }
         return ccxt.BaseExchange.ToOrderList(result);
     }
@@ -1123,7 +1123,7 @@ public partial class nado : ccxt.nado
         {
             ((IList<object>)result).Add(this.parseOrder(this.extend(new Dictionary<string, object>() {
                 { "status", "canceled" },
-            }, getValue(cancelledOrders, i)), market));
+            }, cancelledOrders[i]), market));
         }
         return ccxt.BaseExchange.ToOrderList(result);
     }
@@ -1831,7 +1831,7 @@ public partial class nado : ccxt.nado
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, marketIds.Count); postFixIncrement(ref i))
         {
-            string? marketId = ((string)getValue(marketIds, i));
+            string? marketId = ((string)marketIds[i]);
             Dictionary<string, object> market = this.safeMarket(marketId);
             IDictionary<string, object> bbo = this.safeDict(bbos, marketId, new Dictionary<string, object>() {});
             string? bid = this.safeString(bbo, "bid");
@@ -1860,7 +1860,7 @@ public partial class nado : ccxt.nado
         List<object> symbols = new List<object>(((IDictionary<string,object>)tickers).Keys);
         for (int i = 0; isLessThan(i, symbols.Count); postFixIncrement(ref i))
         {
-            string? symbol = ((string)getValue(symbols, i));
+            string? symbol = ((string)symbols[i]);
             object ticker = getValue(tickers, symbol);
             ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = ticker;
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
@@ -1906,7 +1906,7 @@ public partial class nado : ccxt.nado
             List<object> subscriptions = new List<object>(((IDictionary<string,object>)client.subscriptions).Keys);
             for (int i = 0; isLessThan(i, subscriptions.Count); postFixIncrement(ref i))
             {
-                string? subscriptionHash = ((string)getValue(subscriptions, i));
+                string? subscriptionHash = ((string)subscriptions[i]);
                 IDictionary<string, object> subscription = this.safeDict(client.subscriptions, subscriptionHash);
                 string? streamType = this.safeString(subscription, "streamType");
                 string? subscriptionSymbol = this.safeString(subscription, "symbol");
@@ -2008,7 +2008,7 @@ public partial class nado : ccxt.nado
         List<object> subscriptions = new List<object>(((IDictionary<string,object>)client.subscriptions).Keys);
         for (int i = 0; isLessThan(i, subscriptions.Count); postFixIncrement(ref i))
         {
-            string? unsubscribeHash = ((string)getValue(subscriptions, i));
+            string? unsubscribeHash = ((string)subscriptions[i]);
             object subscription = getValue(client.subscriptions, unsubscribeHash);
             string? subscriptionId = this.safeString(subscription, "id");
             if ((subscriptionId != id))
@@ -2067,7 +2067,7 @@ public partial class nado : ccxt.nado
             List<object> symbols = new List<object>(((IDictionary<string,object>)this.tickers).Keys);
             for (int i = 0; isLessThan(i, symbols.Count); postFixIncrement(ref i))
             {
-                ((IDictionary<string,object>)this.tickers).Remove((string)getValue(symbols, i));
+                ((IDictionary<string,object>)this.tickers).Remove((string)symbols[i]);
             }
         } else if ((getIndexOf(messageHash, "bidask:") == 0))
         {
@@ -2081,7 +2081,7 @@ public partial class nado : ccxt.nado
             List<object> symbols = new List<object>(((IDictionary<string,object>)this.bidsasks).Keys);
             for (int i = 0; isLessThan(i, symbols.Count); postFixIncrement(ref i))
             {
-                ((IDictionary<string,object>)this.bidsasks).Remove((string)getValue(symbols, i));
+                ((IDictionary<string,object>)this.bidsasks).Remove((string)symbols[i]);
             }
         } else if ((getIndexOf(messageHash, "orders") == 0))
         {

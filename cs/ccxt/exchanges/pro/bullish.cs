@@ -199,7 +199,7 @@ public partial class bullish : ccxt.bullish
         object tradesArray = getValue(this.trades, symbol);
         for (int i = 0; isLessThan(i, trades?.Count ?? 0); postFixIncrement(ref i))
         {
-            callDynamically(tradesArray, "append", new object[] {getValue(trades, i)});
+            callDynamically(tradesArray, "append", new object[] {trades[i]});
         }
         ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArray;
         string messageHash = add("trades::", GetValue(market, "symbol"));
@@ -506,7 +506,7 @@ public partial class bullish : ccxt.bullish
             Dictionary<string, object> symbols = new Dictionary<string, object>() {};
             for (int i = 0; isLessThan(i, rawOrders.Count); postFixIncrement(ref i))
             {
-                object rawOrder = getValue(rawOrders, i);
+                object rawOrder = rawOrders[i];
                 Dictionary<string, object> parsedOrder = this.parseOrder(rawOrder);
                 callDynamically(orders, "append", new object[] {parsedOrder});
                 string? symbol = this.safeString(parsedOrder, "symbol");
@@ -520,7 +520,7 @@ public partial class bullish : ccxt.bullish
             List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
             for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
             {
-                string? hashSymbol = ((string)getValue(keys, i));
+                string? hashSymbol = ((string)keys[i]);
                 string symbolMessageHash = add(add(messageHash, "::"), hashSymbol);
                 callDynamically(client, "resolve", new object[] {this.orders, symbolMessageHash});
             }
@@ -633,7 +633,7 @@ public partial class bullish : ccxt.bullish
             Dictionary<string, object> symbols = new Dictionary<string, object>() {};
             for (int i = 0; isLessThan(i, rawTrades.Count); postFixIncrement(ref i))
             {
-                object rawTrade = getValue(rawTrades, i);
+                object rawTrade = rawTrades[i];
                 Dictionary<string, object> parsedTrade = this.parseTrade(rawTrade);
                 callDynamically(trades, "append", new object[] {parsedTrade});
                 string? symbol = this.safeString(parsedTrade, "symbol");
@@ -647,7 +647,7 @@ public partial class bullish : ccxt.bullish
             List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
             for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
             {
-                string? hashSymbol = ((string)getValue(keys, i));
+                string? hashSymbol = ((string)keys[i]);
                 string symbolMessageHash = add(add(messageHash, "::"), hashSymbol);
                 callDynamically(client, "resolve", new object[] {this.myTrades, symbolMessageHash});
             }
@@ -821,7 +821,7 @@ public partial class bullish : ccxt.bullish
         List<object> newPositions = new List<object>() {};
         for (int i = 0; isLessThan(i, rawPositions.Count); postFixIncrement(ref i))
         {
-            object rawPosition = getValue(rawPositions, i);
+            object rawPosition = rawPositions[i];
             Dictionary<string, object> position = this.parsePosition(rawPosition);
             callDynamically(positions, "append", new object[] {position});
             ((IList<object>)newPositions).Add(position);
@@ -829,7 +829,7 @@ public partial class bullish : ccxt.bullish
         List<object> messageHashes = this.findMessageHashes(client, "positions::");
         for (int i = 0; isLessThan(i, messageHashes?.Count ?? 0); postFixIncrement(ref i))
         {
-            string? messageHash = ((string)getValue(messageHashes, i));
+            string? messageHash = ((string)messageHashes[i]);
             List<object> parts = messageHash.Split(new [] {"::"}, StringSplitOptions.None).ToList<object>();
             string? symbolsString = ((string)getValue(parts, 1));
             List<object> symbols = symbolsString.Split(new [] {","}, StringSplitOptions.None).ToList<object>();

@@ -996,7 +996,7 @@ public partial class cryptomus : Exchange
         List<object> orders = new List<object>() {};
         for (int i = 0; isLessThan(i, result.Count); postFixIncrement(ref i))
         {
-            object order = getValue(result, i);
+            object order = result[i];
             ((IList<object>)orders).Add(this.parseOrder(order, market));
         }
         return ccxt.BaseExchange.ToOrderList(orders);
@@ -1261,7 +1261,7 @@ public partial class cryptomus : Exchange
         }
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            string? symbol = ((string)getValue(symbols, i));
+            string? symbol = ((string)symbols[i]);
             result[(string)symbol] = new Dictionary<string, object>() {
                 { "info", response },
                 { "symbol", symbol },

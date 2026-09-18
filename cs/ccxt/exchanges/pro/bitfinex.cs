@@ -993,7 +993,7 @@ public partial class bitfinex : ccxt.bitfinex
         Dictionary<string, object> updatedTypes = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, data?.Count ?? 0); postFixIncrement(ref i))
         {
-            object rawBalance = getValue(data, i);
+            object rawBalance = data[i];
             string? currencyId = this.safeString(rawBalance, 1);
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> balance = this.parseWsBalance(rawBalance);
@@ -1010,7 +1010,7 @@ public partial class bitfinex : ccxt.bitfinex
         List<object> updatesKeys = new List<object>(((IDictionary<string,object>)updatedTypes).Keys);
         for (int i = 0; isLessThan(i, updatesKeys.Count); postFixIncrement(ref i))
         {
-            string? type = ((string)getValue(updatesKeys, i));
+            string? type = ((string)updatesKeys[i]);
             string messageHash = add("balance:", type);
             callDynamically(client, "resolve", new object[] {getValue(this.balance, type), messageHash});
         }
@@ -1071,7 +1071,7 @@ public partial class bitfinex : ccxt.bitfinex
         List<object> subMessageHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});
         for (int i = 0; isLessThan(i, messageHashes.Count); postFixIncrement(ref i))
         {
-            object messageHash = getValue(messageHashes, i);
+            object messageHash = messageHashes[i];
             object subHash = getValue(subMessageHashes, i);
             this.cleanUnsubscription(client, subHash, messageHash);
         }
@@ -1269,7 +1269,7 @@ public partial class bitfinex : ccxt.bitfinex
             }
             for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
             {
-                object value = getValue(data, i);
+                object value = data[i];
                 Dictionary<string, object> parsed = this.parseWsOrder(value);
                 object symbol = getValue(parsed, "symbol");
                 symbolIds[(string)((string)symbol)] = true;
@@ -1287,7 +1287,7 @@ public partial class bitfinex : ccxt.bitfinex
         List<object> keys = new List<object>(((IDictionary<string,object>)symbolIds).Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
-            string? symbol = ((string)getValue(keys, i));
+            string? symbol = ((string)keys[i]);
             Dictionary<string, object> market = this.market(symbol);
             string messageHash = add(add(name, ":"), GetValue(market, "id"));
             callDynamically(client, "resolve", new object[] {this.orders, messageHash});

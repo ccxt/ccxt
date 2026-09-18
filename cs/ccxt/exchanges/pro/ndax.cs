@@ -185,7 +185,7 @@ public partial class ndax : ccxt.ndax
         Dictionary<string, object> updates = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, payload.Count); postFixIncrement(ref i))
         {
-            Dictionary<string, object> trade = this.parseTrade(getValue(payload, i));
+            Dictionary<string, object> trade = this.parseTrade(payload[i]);
             object symbol = GetValue(trade, "symbol");
             object tradesArray = ((symbol == null)) ? null : this.safeValue(this.trades, symbol);
             if ((tradesArray == null))
@@ -206,7 +206,7 @@ public partial class ndax : ccxt.ndax
         List<object> symbols = new List<object>(((IDictionary<string,object>)updates).Keys);
         for (int i = 0; isLessThan(i, symbols.Count); postFixIncrement(ref i))
         {
-            string? symbol = ((string)getValue(symbols, i));
+            string? symbol = ((string)symbols[i]);
             Dictionary<string, object> market = this.market(symbol);
             string messageHash = add(add(name, ":"), GetValue(market, "id"));
             object tradesArray = this.safeValue(this.trades, symbol);
@@ -295,7 +295,7 @@ public partial class ndax : ccxt.ndax
         Dictionary<string, object> updates = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, payload.Count); postFixIncrement(ref i))
         {
-            object ohlcv = getValue(payload, i);
+            object ohlcv = payload[i];
             string? marketId = this.safeString(ohlcv, 8);
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = ((string)getValue(market, "symbol"));
@@ -307,7 +307,7 @@ public partial class ndax : ccxt.ndax
             List<object> keys = new List<object>(((IDictionary<string,object>)this.timeframes).Keys);
             for (int j = 0; isLessThan(j, keys.Count); postFixIncrement(ref j))
             {
-                string? timeframe = ((string)getValue(keys, j));
+                string? timeframe = ((string)keys[j]);
                 string? interval = this.safeString(this.timeframes, timeframe, timeframe);
                 object duration = multiply(parseInt(interval), 1000);
                 Int64? timestamp = this.safeInteger(ohlcv, 0);
@@ -368,11 +368,11 @@ public partial class ndax : ccxt.ndax
         List<object> marketIds = new List<object>(((IDictionary<string,object>)updates).Keys);
         for (int i = 0; isLessThan(i, marketIds.Count); postFixIncrement(ref i))
         {
-            string? marketId = ((string)getValue(marketIds, i));
+            string? marketId = ((string)marketIds[i]);
             List<object> timeframes = new List<object>(((IDictionary<string,object>)getValue(updates, marketId)).Keys);
             for (int j = 0; isLessThan(j, timeframes.Count); postFixIncrement(ref j))
             {
-                string? timeframe = ((string)getValue(timeframes, j));
+                string? timeframe = ((string)timeframes[j]);
                 string messageHash = add(add(add(add(name, ":"), timeframe), ":"), marketId);
                 Dictionary<string, object> market = this.safeMarket(marketId);
                 string? symbol = ((string)getValue(market, "symbol"));
@@ -477,7 +477,7 @@ public partial class ndax : ccxt.ndax
         object nonce = null;
         for (int i = 0; isLessThan(i, payload.Count); postFixIncrement(ref i))
         {
-            object bidask = getValue(payload, i);
+            object bidask = payload[i];
             if (isEqual(timestamp, null))
             {
                 timestamp = this.safeInteger(bidask, 2);

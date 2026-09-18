@@ -384,7 +384,7 @@ public partial class extended : ccxt.extended
         }
         for (int i = 0; isLessThan(i, rawTrades.Count); postFixIncrement(ref i))
         {
-            Dictionary<string, object> trade = this.parseTrade(getValue(rawTrades, i));
+            Dictionary<string, object> trade = this.parseTrade(rawTrades[i]);
             string? symbol = this.safeString(trade, "symbol");
             symbols[(string)((string)symbol)] = true;
             callDynamically(stored, "append", new object[] {trade});
@@ -392,14 +392,14 @@ public partial class extended : ccxt.extended
         List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
-            string messageHash = add("myTrades:", getValue(keys, i));
+            string messageHash = add("myTrades:", keys[i]);
             callDynamically(client, "resolve", new object[] {stored, messageHash});
         }
         callDynamically(client, "resolve", new object[] {stored, "myTrades"});
         List<object> subscriptions = new List<object>(((IDictionary<string,object>)client.subscriptions).Keys);
         for (int i = 0; isLessThan(i, subscriptions.Count); postFixIncrement(ref i))
         {
-            string? messageHash = ((string)getValue(subscriptions, i));
+            string? messageHash = ((string)subscriptions[i]);
             if ((getIndexOf(messageHash, "myTrades:") == 0))
             {
                 callDynamically(client, "resolve", new object[] {stored, messageHash});
@@ -482,7 +482,7 @@ public partial class extended : ccxt.extended
         }
         for (int i = 0; isLessThan(i, rawPositions.Count); postFixIncrement(ref i))
         {
-            object rawPosition = getValue(rawPositions, i);
+            object rawPosition = rawPositions[i];
             string? marketId = this.safeString(rawPosition, "market");
             if ((marketId == null))
             {
@@ -495,7 +495,7 @@ public partial class extended : ccxt.extended
         List<object> messageHashes = this.findMessageHashes(client, "positions::");
         for (int i = 0; isLessThan(i, messageHashes?.Count ?? 0); postFixIncrement(ref i))
         {
-            string? messageHash = ((string)getValue(messageHashes, i));
+            string? messageHash = ((string)messageHashes[i]);
             List<object> parts = messageHash.Split(new [] {"::"}, StringSplitOptions.None).ToList<object>();
             string? symbolsString = ((string)getValue(parts, 1));
             List<object> symbols = symbolsString.Split(new [] {","}, StringSplitOptions.None).ToList<object>();
@@ -564,14 +564,14 @@ public partial class extended : ccxt.extended
         List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
-            string messageHash = add("orders:", getValue(keys, i));
+            string messageHash = add("orders:", keys[i]);
             callDynamically(client, "resolve", new object[] {orders, messageHash});
         }
         callDynamically(client, "resolve", new object[] {orders, "orders"});
         List<object> subscriptions = new List<object>(((IDictionary<string,object>)client.subscriptions).Keys);
         for (int i = 0; isLessThan(i, subscriptions.Count); postFixIncrement(ref i))
         {
-            string? messageHash = ((string)getValue(subscriptions, i));
+            string? messageHash = ((string)subscriptions[i]);
             if ((getIndexOf(messageHash, "orders:") == 0))
             {
                 callDynamically(client, "resolve", new object[] {orders, messageHash});
@@ -808,7 +808,7 @@ public partial class extended : ccxt.extended
         subscription["nonce"] = nonce;
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
-            Dictionary<string, object> trade = this.parseTrade(getValue(data, i), market);
+            Dictionary<string, object> trade = this.parseTrade(data[i], market);
             callDynamically(stored, "append", new object[] {trade});
         }
         callDynamically(client, "resolve", new object[] {stored, messageHash});
@@ -925,7 +925,7 @@ public partial class extended : ccxt.extended
         List<object> data = this.safeList(message, "data", new List<object>() {});
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
-            IList<object> parsed = this.parseOHLCV(getValue(data, i));
+            IList<object> parsed = this.parseOHLCV(data[i]);
             callDynamically(stored, "append", new object[] {parsed});
         }
         callDynamically(client, "resolve", new object[] {stored, messageHash});
@@ -936,7 +936,7 @@ public partial class extended : ccxt.extended
         List<object> keys = new List<object>(((IDictionary<string,object>)client.subscriptions).Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
-            string? key = ((string)getValue(keys, i));
+            string? key = ((string)keys[i]);
             IDictionary<string, object> subscription = this.safeDict(client.subscriptions, key);
             string? subscriptionName = this.safeString(subscription, "name");
             if (isEqual(subscriptionName, name))

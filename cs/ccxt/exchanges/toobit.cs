@@ -913,7 +913,7 @@ public partial class toobit : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, coins.Count); postFixIncrement(ref i))
         {
-            object coin = getValue(coins, i);
+            object coin = coins[i];
             Dictionary<string, object> parsed = this.parseCurrency(coin);
             if ((parsed != null))
             {
@@ -932,7 +932,7 @@ public partial class toobit : Exchange
         List<object> rawNetworks = this.safeList(rawCurrency, "chainTypes", new List<object>() {});
         for (int j = 0; isLessThan(j, rawNetworks.Count); postFixIncrement(ref j))
         {
-            object rawNetwork = getValue(rawNetworks, j);
+            object rawNetwork = rawNetworks[j];
             string? networkId = this.safeString(rawNetwork, "chainType");
             string? networkCode = this.networkIdToCode(networkId, code);
             if ((networkCode != null))
@@ -1139,7 +1139,7 @@ public partial class toobit : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, all?.Count ?? 0); postFixIncrement(ref i))
         {
-            object market = getValue(all, i);
+            object market = all[i];
             Dictionary<string, object> parsed = this.parseMarket(market);
             if ((parsed != null))
             {
@@ -1910,7 +1910,7 @@ public partial class toobit : Exchange
         List<object> balances = this.safeList(response, "balances", response);
         for (int i = 0; isLessThan(i, balances.Count); postFixIncrement(ref i))
         {
-            object balance = getValue(balances, i);
+            object balance = balances[i];
             string? code = this.safeCurrencyCode(this.safeString(balance, "asset"));
             Dictionary<string, object> account = this.account();
             account["free"] = this.safeString2(balance, "free", "availableBalance");
@@ -2642,7 +2642,7 @@ public partial class toobit : Exchange
         for (int i = 0; isLessThan(i, responseList?.Count ?? 0); postFixIncrement(ref i))
         {
             ((IList<object>)ordersList).Add(new Dictionary<string, object>() {
-                { "result", getValue(responseList, i) },
+                { "result", responseList[i] },
             });
         }
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(ordersList, market, since, limit));

@@ -966,7 +966,7 @@ public partial class dydx : Exchange
         List<object> rows = this.safeList(response, "historicalFunding", new List<object>() {});
         for (int i = 0; isLessThan(i, rows.Count); postFixIncrement(ref i))
         {
-            object entry = getValue(rows, i);
+            object entry = rows[i];
             Int64? timestamp = this.parse8601(this.safeString(entry, "effectiveAt"));
             string? marketId = this.safeString(entry, "ticker");
             ((IList<object>)rates).Add(new Dictionary<string, object>() {
@@ -2674,7 +2674,7 @@ public partial class dydx : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, rows.Count); postFixIncrement(ref i))
         {
-            object account = getValue(rows, i);
+            object account = rows[i];
             string? accountId = this.safeString(account, "subaccountNumber");
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", accountId },

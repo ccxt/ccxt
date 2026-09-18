@@ -900,7 +900,7 @@ public partial class hibachi : Exchange
         List<object> symbols = this.symbols;
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            string? symbol = ((string)getValue(symbols, i));
+            string? symbol = ((string)symbols[i]);
             result[(string)symbol] = new Dictionary<string, object>() {
                 { "info", response },
                 { "symbol", symbol },
@@ -1113,7 +1113,7 @@ public partial class hibachi : Exchange
         List<object> responseOrders = this.safeList(response, "orders", new List<object>() {});
         for (int i = 0; isLessThan(i, responseOrders.Count); postFixIncrement(ref i))
         {
-            object responseOrder = getValue(responseOrders, i);
+            object responseOrder = responseOrders[i];
             ((IList<object>)ret).Add(this.safeOrder(new Dictionary<string, object>() {
                 { "info", responseOrder },
                 { "id", this.safeString(responseOrder, "orderId") },
@@ -1229,7 +1229,7 @@ public partial class hibachi : Exchange
         List<object> responseOrders = this.safeList(response, "orders", new List<object>() {});
         for (int i = 0; isLessThan(i, responseOrders.Count); postFixIncrement(ref i))
         {
-            object responseOrder = getValue(responseOrders, i);
+            object responseOrder = responseOrders[i];
             ((IList<object>)ret).Add(this.safeOrder(new Dictionary<string, object>() {
                 { "info", responseOrder },
                 { "id", this.safeString(responseOrder, "orderId") },
@@ -1307,7 +1307,7 @@ public partial class hibachi : Exchange
         List<object> responseOrders = this.safeList(response, "orders", new List<object>() {});
         for (int i = 0; isLessThan(i, responseOrders.Count); postFixIncrement(ref i))
         {
-            object responseOrder = getValue(responseOrders, i);
+            object responseOrder = responseOrders[i];
             ((IList<object>)ret).Add(this.safeOrder(new Dictionary<string, object>() {
                 { "info", responseOrder },
                 { "id", this.safeString(responseOrder, "orderId") },
@@ -2585,7 +2585,7 @@ public partial class hibachi : Exchange
         List<object> rates = new List<object>() {};
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
-            object entry = getValue(data, i);
+            object entry = data[i];
             Int64? timestamp = this.safeIntegerProduct(entry, "fundingTimestamp", 1000);
             ((IList<object>)rates).Add(new Dictionary<string, object>() {
                 { "info", entry },

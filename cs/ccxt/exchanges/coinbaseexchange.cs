@@ -713,7 +713,7 @@ public partial class coinbaseexchange : Exchange
         List<object> supportedNetworks = this.safeList(rawCurrency, "supported_networks", new List<object>() {});
         for (int j = 0; isLessThan(j, supportedNetworks.Count); postFixIncrement(ref j))
         {
-            object network = getValue(supportedNetworks, j);
+            object network = supportedNetworks[j];
             string? networkId = this.safeString(network, "id");
             string? networkCode = this.networkIdToCode(networkId, code);
             if ((networkCode != null))
@@ -827,7 +827,7 @@ public partial class coinbaseexchange : Exchange
         IList<object> rawMarkets = this.toArray(response);
         for (int i = 0; isLessThan(i, rawMarkets?.Count ?? 0); postFixIncrement(ref i))
         {
-            object market = getValue(rawMarkets, i);
+            object market = rawMarkets[i];
             string? id = this.safeString(market, "id");
             var baseIdquoteIdVariable = id.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
             var baseId = ((IList<object>) baseIdquoteIdVariable)[0];
@@ -1166,7 +1166,7 @@ public partial class coinbaseexchange : Exchange
         string delimiter = "-";
         for (int i = 0; isLessThan(i, marketIds.Count); postFixIncrement(ref i))
         {
-            string? marketId = ((string)getValue(marketIds, i));
+            string? marketId = ((string)marketIds[i]);
             object entry = this.safeValue(response, marketId, new List<object>() {});
             object first = this.safeValue(entry, 0, new List<object>() {});
             Dictionary<string, object> market = this.safeMarket(marketId, null, delimiter);
@@ -2180,7 +2180,7 @@ public partial class coinbaseexchange : Exchange
         IList<object> entries = this.toArray(response);
         for (int i = 0; isLessThan(i, entries?.Count ?? 0); postFixIncrement(ref i))
         {
-            ((IDictionary<string,object>)getValue(entries, i))["currency"] = code;
+            ((IDictionary<string,object>)entries[i])["currency"] = code;
         }
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(entries, currency, since, limit));
     }
@@ -2266,10 +2266,10 @@ public partial class coinbaseexchange : Exchange
             response = this.toArray(transfers);
             for (int i = 0; isLessThan(i, response?.Count ?? 0); postFixIncrement(ref i))
             {
-                string? account_id = this.safeString(getValue(response, i), "account_id");
+                string? account_id = this.safeString(response[i], "account_id");
                 object account = this.safeValue(this.accountsById, account_id);
                 string? codeInner = this.safeString(account, "code");
-                ((IDictionary<string,object>)getValue(response, i))["currency"] = codeInner;
+                ((IDictionary<string,object>)response[i])["currency"] = codeInner;
             }
         } else
         {
@@ -2303,7 +2303,7 @@ public partial class coinbaseexchange : Exchange
             response = this.toArray(accountTransfers);
             for (int i = 0; isLessThan(i, response?.Count ?? 0); postFixIncrement(ref i))
             {
-                ((IDictionary<string,object>)getValue(response, i))["currency"] = code;
+                ((IDictionary<string,object>)response[i])["currency"] = code;
             }
         }
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(response, currency, since, limit));

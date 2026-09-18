@@ -179,14 +179,14 @@ public partial class xt : ccxt.xt
         object asks = getValue(orderbook, "asks");
         for (int i = 0; isLessThan(i, obBids.Count); postFixIncrement(ref i))
         {
-            object bid = getValue(obBids, i);
+            object bid = obBids[i];
             double? price = this.safeNumber(bid, 0);
             double? quantity = this.safeNumber(bid, 1);
             (bids as IOrderBookSide).store(price, quantity);
         }
         for (int i = 0; isLessThan(i, obAsks.Count); postFixIncrement(ref i))
         {
-            object ask = getValue(obAsks, i);
+            object ask = obAsks[i];
             double? price = this.safeNumber(ask, 0);
             double? quantity = this.safeNumber(ask, 1);
             (asks as IOrderBookSide).store(price, quantity);
@@ -926,7 +926,7 @@ public partial class xt : ccxt.xt
         List<object> messageHashes = this.findMessageHashes(client, "position::contract");
         for (int i = 0; isLessThan(i, messageHashes?.Count ?? 0); postFixIncrement(ref i))
         {
-            string? messageHash = ((string)getValue(messageHashes, i));
+            string? messageHash = ((string)messageHashes[i]);
             List<object> parts = messageHash.Split(new [] {"::"}, StringSplitOptions.None).ToList<object>();
             string? symbolsString = ((string)getValue(parts, 1));
             List<object> symbols = symbolsString.Split(new [] {","}, StringSplitOptions.None).ToList<object>();
@@ -1097,7 +1097,7 @@ public partial class xt : ccxt.xt
         List<object> newTickers = new List<object>() {};
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
-            object tickerData = getValue(data, i);
+            object tickerData = data[i];
             Dictionary<string, object> ticker = this.parseTicker(tickerData);
             object symbol = GetValue(ticker, "symbol");
             if ((symbol != null))
@@ -1110,7 +1110,7 @@ public partial class xt : ccxt.xt
         List<object> messageHashes = this.findMessageHashes(client, add(messageHashStart, "::"));
         for (int i = 0; isLessThan(i, messageHashes?.Count ?? 0); postFixIncrement(ref i))
         {
-            string? messageHash = ((string)getValue(messageHashes, i));
+            string? messageHash = ((string)messageHashes[i]);
             List<object> parts = messageHash.Split(new [] {"::"}, StringSplitOptions.None).ToList<object>();
             string? symbolsString = ((string)getValue(parts, 2));
             List<object> symbols = symbolsString.Split(new [] {","}, StringSplitOptions.None).ToList<object>();
@@ -1348,7 +1348,7 @@ public partial class xt : ccxt.xt
                 object asks = getValue(orderbook, "asks");
                 for (int i = 0; isLessThan(i, obAsks.Count); postFixIncrement(ref i))
                 {
-                    object ask = getValue(obAsks, i);
+                    object ask = obAsks[i];
                     double? price = this.safeNumber(ask, 0);
                     double? quantity = this.safeNumber(ask, 1);
                     (asks as IOrderBookSide).store(price, quantity);
@@ -1359,7 +1359,7 @@ public partial class xt : ccxt.xt
                 object bids = getValue(orderbook, "bids");
                 for (int i = 0; isLessThan(i, obBids.Count); postFixIncrement(ref i))
                 {
-                    object bid = getValue(obBids, i);
+                    object bid = obBids[i];
                     double? price = this.safeNumber(bid, 0);
                     double? quantity = this.safeNumber(bid, 1);
                     (bids as IOrderBookSide).store(price, quantity);
@@ -1771,7 +1771,7 @@ public partial class xt : ccxt.xt
         List<object> subMessageHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});
         for (int j = 0; isLessThan(j, messageHashes.Count); postFixIncrement(ref j))
         {
-            object unsubHash = getValue(messageHashes, j);
+            object unsubHash = messageHashes[j];
             object subHash = getValue(subMessageHashes, j);
             this.cleanUnsubscription(client, subHash, unsubHash);
         }

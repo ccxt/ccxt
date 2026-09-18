@@ -563,7 +563,7 @@ public partial class weex : ccxt.weex
         List<object> sorted = this.sortBy(newTrades, "timestamp");
         for (int j = 0; isLessThan(j, sorted?.Count ?? 0); postFixIncrement(ref j))
         {
-            object sortedTrade = getValue(sorted, j);
+            object sortedTrade = sorted[j];
             callDynamically(tradesArray, "append", new object[] {sortedTrade});
         }
         ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArray;
@@ -1353,7 +1353,7 @@ public partial class weex : ccxt.weex
         }
         for (int j = 0; isLessThan(j, symbolKeys.Count); postFixIncrement(ref j))
         {
-            object symbol = getValue(symbolKeys, j);
+            object symbol = symbolKeys[j];
             string symbolMessageHash = add(add(messageHash, "::"), symbol);
             callDynamically(client, "resolve", new object[] {trades, symbolMessageHash});
         }
@@ -1588,7 +1588,7 @@ public partial class weex : ccxt.weex
         }
         for (int i = 0; isLessThan(i, symbolKeys.Count); postFixIncrement(ref i))
         {
-            object symbol = getValue(symbolKeys, i);
+            object symbol = symbolKeys[i];
             string symbolMessageHash = add(add(messageHash, "::"), symbol);
             callDynamically(client, "resolve", new object[] {orders, symbolMessageHash});
         }
@@ -2090,7 +2090,7 @@ public partial class weex : ccxt.weex
         List<object> messageHashes = this.findMessageHashes(client, "positions::");
         for (int i = 0; isLessThan(i, messageHashes?.Count ?? 0); postFixIncrement(ref i))
         {
-            string? messageHash = ((string)getValue(messageHashes, i));
+            string? messageHash = ((string)messageHashes[i]);
             List<object> parts = messageHash.Split(new [] {"::"}, StringSplitOptions.None).ToList<object>();
             string? symbolsString = ((string)getValue(parts, 1));
             List<object> symbols = symbolsString.Split(new [] {","}, StringSplitOptions.None).ToList<object>();

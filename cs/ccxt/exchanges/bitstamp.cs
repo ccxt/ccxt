@@ -1388,7 +1388,7 @@ public partial class bitstamp : Exchange
         IList<object> arr = this.toArray(rawCurrencies);
         for (int i = 0; isLessThan(i, arr?.Count ?? 0); postFixIncrement(ref i))
         {
-            object market = getValue(arr, i);
+            object market = arr[i];
             var baseIdquoteIdVariable = new List<object> {this.safeString(market, "base_currency"), this.safeString(market, "counter_currency")};
             var baseId = ((IList<object>) baseIdquoteIdVariable)[0];
             var quoteId = ((IList<object>) baseIdquoteIdVariable)[1];
@@ -1620,7 +1620,7 @@ public partial class bitstamp : Exchange
         List<object> ids = new List<object>(((IDictionary<string,object>)transaction).Keys);
         for (int i = 0; isLessThan(i, ids.Count); postFixIncrement(ref i))
         {
-            string? id = ((string)getValue(ids, i));
+            string? id = ((string)ids[i]);
             if (getIndexOf(id, "_") < 0)
             {
                 Int64? value = this.safeInteger(transaction, id);
@@ -1713,7 +1713,7 @@ public partial class bitstamp : Exchange
             List<object> keys = new List<object>(((IDictionary<string,object>)trade).Keys);
             for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
             {
-                string? currentKey = ((string)getValue(keys, i));
+                string? currentKey = ((string)keys[i]);
                 if (currentKey != "order_id" && getIndexOf(currentKey, "_") >= 0)
                 {
                     rawMarketId = currentKey;
@@ -2157,7 +2157,7 @@ public partial class bitstamp : Exchange
         List<object> ids = new List<object>(((IDictionary<string,object>)currencies).Keys);
         for (int i = 0; isLessThan(i, ids.Count); postFixIncrement(ref i))
         {
-            string? id = ((string)getValue(ids, i));
+            string? id = ((string)ids[i]);
             object fees = this.safeValue(response, i, new Dictionary<string, object>() {});
             string? code = this.safeCurrencyCode(id);
             if ((!isEqual(codes, null)) && !this.inArray(code, codes))
@@ -3063,9 +3063,9 @@ public partial class bitstamp : Exchange
             List<object> keys = new List<object>(((IDictionary<string,object>)item).Keys);
             for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
             {
-                if (getIndexOf(getValue(keys, i), "_") >= 0)
+                if (getIndexOf(keys[i], "_") >= 0)
                 {
-                    string marketId = ((string)getValue(keys, i)).Replace((string)"_", (string)"");
+                    string marketId = ((string)keys[i]).Replace((string)"_", (string)"");
                     market = this.safeMarket(marketId, market);
                 }
             }
@@ -3546,7 +3546,7 @@ public partial class bitstamp : Exchange
                 List<object> keys = new List<object>(((IDictionary<string,object>)error).Keys);
                 for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
                 {
-                    string? key = ((string)getValue(keys, i));
+                    string? key = ((string)keys[i]);
                     object value = this.safeValue(error, key);
                     if (((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
                     {
@@ -3566,7 +3566,7 @@ public partial class bitstamp : Exchange
                 List<object> all = this.safeList(reasonInner, "__all__", new List<object>() {});
                 for (int i = 0; isLessThan(i, all.Count); postFixIncrement(ref i))
                 {
-                    ((IList<object>)errors).Add(getValue(all, i));
+                    ((IList<object>)errors).Add(all[i]);
                 }
             }
             string? code = this.safeString(response, "code");
@@ -3577,7 +3577,7 @@ public partial class bitstamp : Exchange
             string feedback = add(add(this.id, " "), body);
             for (int i = 0; isLessThan(i, errors?.Count ?? 0); postFixIncrement(ref i))
             {
-                object value = getValue(errors, i);
+                object value = errors[i];
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), value, feedback);
                 this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), value, feedback);
             }

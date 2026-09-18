@@ -390,7 +390,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         List<object> newPositions = new List<object>() {};
         for (int i = 0; isLessThan(i, rawPositions.Count); postFixIncrement(ref i))
         {
-            object rawPosition = getValue(rawPositions, i);
+            object rawPosition = rawPositions[i];
             Dictionary<string, object> position = this.parseWsPosition(rawPosition);
             Int64? timestamp = this.safeInteger(message, "timestamp");
             position["timestamp"] = timestamp;
@@ -401,7 +401,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         List<object> messageHashes = this.findMessageHashes(client, "positions::");
         for (int i = 0; isLessThan(i, messageHashes?.Count ?? 0); postFixIncrement(ref i))
         {
-            string? messageHash = ((string)getValue(messageHashes, i));
+            string? messageHash = ((string)messageHashes[i]);
             List<object> parts = messageHash.Split(new [] {"::"}, StringSplitOptions.None).ToList<object>();
             string? symbolsString = ((string)getValue(parts, 1));
             List<object> symbols = symbolsString.Split(new [] {","}, StringSplitOptions.None).ToList<object>();
@@ -1025,7 +1025,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         ccxt.pro.ArrayCache cachedOrders = this.orders;
         for (int i = 0; isLessThan(i, orders.Count); postFixIncrement(ref i))
         {
-            object order = getValue(orders, i);
+            object order = orders[i];
             Dictionary<string, object> parsed = this.parseWsOrder(order);
             object symbol = GetValue(parsed, "symbol");
             if ((symbol != null))
@@ -1041,7 +1041,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
             for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
             {
-                string? symbol = ((string)getValue(keys, i));
+                string? symbol = ((string)keys[i]);
                 string symbolMessageHash = add(add(messageHash, ":"), symbol);
                 callDynamically(client, "resolve", new object[] {this.orders, symbolMessageHash});
             }
@@ -1345,7 +1345,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         }
         for (int i = 0; isLessThan(i, bids.Count); postFixIncrement(ref i))
         {
-            object bid = getValue(bids, i);
+            object bid = bids[i];
             double? price = this.safeNumber(bid, "price");
             double? qty = this.safeNumber(bid, "qty");
             object bidsSide = getValue(orderbook, "bids");
@@ -1353,7 +1353,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         }
         for (int i = 0; isLessThan(i, asks.Count); postFixIncrement(ref i))
         {
-            object ask = getValue(asks, i);
+            object ask = asks[i];
             double? price = this.safeNumber(ask, "price");
             double? qty = this.safeNumber(ask, "qty");
             object asksSide = getValue(orderbook, "asks");
@@ -1563,7 +1563,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             };
             for (int i = 0; isLessThan(i, holdingKeys.Count); postFixIncrement(ref i))
             {
-                string? key = ((string)getValue(holdingKeys, i));
+                string? key = ((string)holdingKeys[i]);
                 string? code = this.safeCurrencyCode(key);
                 Dictionary<string, object> newAccount = this.account();
                 newAccount["total"] = this.safeString(holding, key);
@@ -1586,7 +1586,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             };
             for (int i = 0; isLessThan(i, futuresKeys.Count); postFixIncrement(ref i))
             {
-                string? key = ((string)getValue(futuresKeys, i));
+                string? key = ((string)futuresKeys[i]);
                 string? symbol = this.safeSymbol(key);
                 Dictionary<string, object> newAccount = this.account();
                 var future = this.safeValue(futures, key);
@@ -1616,7 +1616,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             };
             for (int i = 0; isLessThan(i, flexFuturesKeys.Count); postFixIncrement(ref i))
             {
-                string? key = ((string)getValue(flexFuturesKeys, i));
+                string? key = ((string)flexFuturesKeys[i]);
                 object flexFuture = this.safeValue(flexFutureCurrencies, key);
                 string? code = this.safeCurrencyCode(key);
                 Dictionary<string, object> newAccount = this.account();
@@ -1673,7 +1673,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         Dictionary<string, object> tradeSymbols = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, trades.Count); postFixIncrement(ref i))
         {
-            object trade = getValue(trades, i);
+            object trade = trades[i];
             Dictionary<string, object> parsedTrade = this.parseWsMyTrade(trade);
             if (!isEqual(GetValue(parsedTrade, "symbol"), null))
             {
@@ -1684,7 +1684,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         List<object> tradeSymbolKeys = new List<object>(((IDictionary<string,object>)tradeSymbols).Keys);
         for (int i = 0; isLessThan(i, tradeSymbolKeys.Count); postFixIncrement(ref i))
         {
-            string? symbol = ((string)getValue(tradeSymbolKeys, i));
+            string? symbol = ((string)tradeSymbolKeys[i]);
             string messageHash = add("myTrades:", symbol);
             callDynamically(client, "resolve", new object[] {stored, messageHash});
         }

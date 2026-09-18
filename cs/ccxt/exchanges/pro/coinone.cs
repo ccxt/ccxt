@@ -430,8 +430,8 @@ public partial class coinone : ccxt.coinone
             List<object> keys = new List<object>(((IDictionary<string,object>)methods).Keys);
             for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
             {
-                string? key = ((string)getValue(keys, i));
-                if (getIndexOf(topic, getValue(keys, i)) >= 0)
+                string? key = ((string)keys[i]);
+                if (getIndexOf(topic, keys[i]) >= 0)
                 {
                     object method = getValue(methods, key);
                     DynamicInvoker.InvokeMethod(method, new object[] { client, message});

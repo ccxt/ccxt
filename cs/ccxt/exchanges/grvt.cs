@@ -1713,7 +1713,7 @@ public partial class grvt : Exchange
         string? availableBalance = this.safeString(response, "available_balance");
         for (int i = 0; isLessThan(i, spotBalances.Count); postFixIncrement(ref i))
         {
-            object balance = getValue(spotBalances, i);
+            object balance = spotBalances[i];
             string? currencyId = this.safeString(balance, "currency");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -2613,7 +2613,7 @@ public partial class grvt : Exchange
         List<object> legs = new List<object>() {};
         for (int i = 0; isLessThan(i, orderLegs.Count); postFixIncrement(ref i))
         {
-            object leg = getValue(orderLegs, i);
+            object leg = orderLegs[i];
             Dictionary<string, object> market = this.market(getValue(leg, "instrument"));
             object bigInt10 = this.convertToBigIntCustom("10");
             int precisionValue = this.precisionFromString(this.safeString(GetValue(market, "precision"), "base"));

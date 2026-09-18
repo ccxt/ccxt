@@ -462,7 +462,7 @@ public partial class bitrue : ccxt.bitrue
         List<object> symbols = new List<object>(((IDictionary<string,object>)markets).Keys);
         for (int i = 0; isLessThan(i, symbols.Count); postFixIncrement(ref i))
         {
-            object candidate = getValue(markets, getValue(symbols, i));
+            object candidate = getValue(markets, symbols[i]);
             if (!isEqual(getValue(candidate, "swap"), true))
             {
                 continue;
@@ -597,7 +597,7 @@ public partial class bitrue : ccxt.bitrue
                 stored = new ArrayCache(limit);
                 ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
             }
-            Dictionary<string, object> trade = this.parseWsTrade(getValue(data, i), market);
+            Dictionary<string, object> trade = this.parseWsTrade(data[i], market);
             callDynamically(stored, "append", new object[] {trade});
             appended = true;
         }

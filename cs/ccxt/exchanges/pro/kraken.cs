@@ -641,7 +641,7 @@ public partial class kraken : ccxt.kraken
         IList<object> parsed = this.parseTrades(data, market);
         for (int i = 0; isLessThan(i, parsed?.Count ?? 0); postFixIncrement(ref i))
         {
-            callDynamically(stored, "append", new object[] {getValue(parsed, i)});
+            callDynamically(stored, "append", new object[] {parsed[i]});
         }
         callDynamically(client, "resolve", new object[] {stored, messageHash});
     }
@@ -925,7 +925,7 @@ public partial class kraken : ccxt.kraken
             {
                 for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
                 {
-                    string? symbol = ((string)getValue(symbols, i));
+                    string? symbol = ((string)symbols[i]);
                     Dictionary<string, object> market = this.market(symbol);
                     object info = this.safeValue(market, "info", new Dictionary<string, object>() {});
                     string wsName = ((string)this.safeString(info, "wsname"));
@@ -1069,7 +1069,7 @@ public partial class kraken : ccxt.kraken
             List<object> keys = new List<object>() {"asks", "bids"};
             for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
             {
-                string? key = ((string)getValue(keys, i));
+                string? key = ((string)keys[i]);
                 object bookside = getValue(orderbook, key);
                 List<object> deltas = this.safeList(first, key, new List<object>() {});
                 int deltasLength = deltas.Count;
@@ -1359,7 +1359,7 @@ public partial class kraken : ccxt.kraken
             List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
             for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
             {
-                string messageHash = add(add(name, ":"), getValue(keys, i));
+                string messageHash = add(add(name, ":"), keys[i]);
                 callDynamically(client, "resolve", new object[] {this.myTrades, messageHash});
             }
         }
@@ -1518,7 +1518,7 @@ public partial class kraken : ccxt.kraken
             List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
             for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
             {
-                string messageHash = add(add(name, ":"), getValue(keys, i));
+                string messageHash = add(add(name, ":"), keys[i]);
                 callDynamically(client, "resolve", new object[] {this.orders, messageHash});
             }
         }
@@ -1689,10 +1689,10 @@ public partial class kraken : ccxt.kraken
         };
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
-            string? currencyId = this.safeString(getValue(data, i), "asset");
+            string? currencyId = this.safeString(data[i], "asset");
             string code = ((string)this.safeCurrencyCode(currencyId));
             Dictionary<string, object> account = this.account();
-            string? eq = this.safeString(getValue(data, i), "balance");
+            string? eq = this.safeString(data[i], "balance");
             account["total"] = eq;
             result[(string)code] = account;
         }

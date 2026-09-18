@@ -743,7 +743,7 @@ public partial class onetrading : Exchange
         List<object> symbols = this.symbols;
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            string? symbol = ((string)getValue(symbols, i));
+            string? symbol = ((string)symbols[i]);
             Dictionary<string, object> market = this.market(symbol);
             IDictionary<string, object> tierObject = (isEqual(GetValue(market, "spot"), true)) ? firstSpotTier : firstFuturesTier;
             result[(string)symbol] = new Dictionary<string, object>() {
@@ -815,7 +815,7 @@ public partial class onetrading : Exchange
         List<object> symbols = this.symbols;
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            string? symbol = ((string)getValue(symbols, i));
+            string? symbol = ((string)symbols[i]);
             Dictionary<string, object> market = this.market(symbol);
             string? makerFee = (isEqual(GetValue(market, "spot"), true)) ? spotMakerFee : futuresMakerFee;
             string? takerFee = (isEqual(GetValue(market, "spot"), true)) ? spotTakerFee : futuresTakerFee;
@@ -991,7 +991,7 @@ public partial class onetrading : Exchange
         IList<object> rawTickers = this.toArray(response);
         for (int i = 0; isLessThan(i, rawTickers?.Count ?? 0); postFixIncrement(ref i))
         {
-            Dictionary<string, object> ticker = this.parseTicker(getValue(rawTickers, i));
+            Dictionary<string, object> ticker = this.parseTicker(rawTickers[i]);
             object symbol = GetValue(ticker, "symbol");
             if ((symbol != null))
             {
@@ -1288,7 +1288,7 @@ public partial class onetrading : Exchange
         };
         for (int i = 0; isLessThan(i, balances.Count); postFixIncrement(ref i))
         {
-            object balance = getValue(balances, i);
+            object balance = balances[i];
             string? currencyId = this.safeString(balance, "currency_code");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();

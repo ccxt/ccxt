@@ -983,7 +983,7 @@ public partial class gate : ccxt.gate
         bool isTicker = (isEqual(objectName, "ticker")); // whether ticker or bid-ask
         for (int i = 0; isLessThan(i, results.Count); postFixIncrement(ref i))
         {
-            object rawTicker = getValue(results, i);
+            object rawTicker = results[i];
             string? marketId = this.safeString(rawTicker, "s");
             Dictionary<string, object> market = this.safeMarket(marketId, null, "_", marketType);
             Dictionary<string, object> parsedItem = this.parseTicker(rawTicker, market);
@@ -1142,7 +1142,7 @@ public partial class gate : ccxt.gate
         IList<object> parsedTrades = this.parseTrades(result);
         for (int i = 0; isLessThan(i, parsedTrades?.Count ?? 0); postFixIncrement(ref i))
         {
-            object trade = getValue(parsedTrades, i);
+            object trade = parsedTrades[i];
             object symbol = getValue(trade, "symbol");
             object cachedTrades = this.safeValue(this.trades, symbol);
             if ((cachedTrades == null))
@@ -1259,7 +1259,7 @@ public partial class gate : ccxt.gate
         List<object> keys = new List<object>(((IDictionary<string,object>)marketIds).Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
-            string? symbol = ((string)getValue(keys, i));
+            string? symbol = ((string)keys[i]);
             object timeframe = getValue(marketIds, symbol);
             string? interval = this.findTimeframe(timeframe);
             string hash = add(add(add(add("candles", ":"), interval), ":"), symbol);
@@ -1370,7 +1370,7 @@ public partial class gate : ccxt.gate
         Dictionary<string, object> marketIds = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, parsed?.Count ?? 0); postFixIncrement(ref i))
         {
-            object trade = getValue(parsed, i);
+            object trade = parsed[i];
             callDynamically(cachedTrades, "append", new object[] {trade});
             object symbol = getValue(trade, "symbol");
             if ((symbol != null))
@@ -1381,7 +1381,7 @@ public partial class gate : ccxt.gate
         List<object> keys = new List<object>(((IDictionary<string,object>)marketIds).Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
-            string? market = ((string)getValue(keys, i));
+            string? market = ((string)keys[i]);
             string hash = add("myTrades:", market);
             callDynamically(client, "resolve", new object[] {cachedTrades, hash});
         }
@@ -1500,7 +1500,7 @@ public partial class gate : ccxt.gate
         ((IDictionary<string,object>)this.balance)["info"] = result;
         for (int i = 0; isLessThan(i, result.Count); postFixIncrement(ref i))
         {
-            object rawBalance = getValue(result, i);
+            object rawBalance = result[i];
             Dictionary<string, object> account = this.account();
             string? currencyId = this.safeString(rawBalance, "currency", "USDT"); // when not present it is USDT
             string? code = this.safeCurrencyCode(currencyId);
@@ -1688,7 +1688,7 @@ public partial class gate : ccxt.gate
         List<object> newPositions = new List<object>() {};
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
-            object rawPosition = getValue(data, i);
+            object rawPosition = data[i];
             Dictionary<string, object> position = this.parsePosition(rawPosition);
             object symbol = this.safeString(position, "symbol");
             string? side = this.safeString(position, "side");
@@ -1725,7 +1725,7 @@ public partial class gate : ccxt.gate
         List<object> messageHashes = this.findMessageHashes(client, add(type, ":positions::"));
         for (int i = 0; isLessThan(i, messageHashes?.Count ?? 0); postFixIncrement(ref i))
         {
-            string? messageHash = ((string)getValue(messageHashes, i));
+            string? messageHash = ((string)messageHashes[i]);
             List<object> parts = messageHash.Split(new [] {"::"}, StringSplitOptions.None).ToList<object>();
             string? symbolsString = ((string)getValue(parts, 1));
             List<object> symbols = symbolsString.Split(new [] {","}, StringSplitOptions.None).ToList<object>();
@@ -1886,7 +1886,7 @@ public partial class gate : ccxt.gate
         IList<object> parsedOrders = this.parseOrders(orders);
         for (int i = 0; isLessThan(i, parsedOrders?.Count ?? 0); postFixIncrement(ref i))
         {
-            object parsed = getValue(parsedOrders, i);
+            object parsed = parsedOrders[i];
             // inject order status
             object info = this.safeValue(parsed, "info");
             string? eventVar = this.safeString(info, "event");
@@ -1913,7 +1913,7 @@ public partial class gate : ccxt.gate
         List<object> keys = new List<object>(((IDictionary<string,object>)marketIds).Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
-            string messageHash = add(add(hashPrefix, ":"), getValue(keys, i));
+            string messageHash = add(add(hashPrefix, ":"), keys[i]);
             callDynamically(client, "resolve", new object[] {stored, messageHash});
         }
         callDynamically(client, "resolve", new object[] {stored, hashPrefix});
@@ -2060,7 +2060,7 @@ public partial class gate : ccxt.gate
         object cache = this.liquidations;
         for (int i = 0; isLessThan(i, rawLiquidations.Count); postFixIncrement(ref i))
         {
-            object rawLiquidation = getValue(rawLiquidations, i);
+            object rawLiquidation = rawLiquidations[i];
             Dictionary<string, object> liquidation = this.parseWsLiquidation(rawLiquidation);
             callDynamically(cache, "append", new object[] {liquidation});
             string? symbol = this.safeString(liquidation, "symbol");
@@ -2203,7 +2203,7 @@ public partial class gate : ccxt.gate
                     for (int i = 0; isLessThan(i, payload.Count); postFixIncrement(ref i))
                     {
                         object marketType = isEqual(getValue(parsedChannel, 0), "futures") ? "swap" : getValue(parsedChannel, 0);
-                        string? symbol = this.safeSymbol(getValue(payload, i), null, "_", marketType);
+                        string? symbol = this.safeSymbol(payload[i], null, "_", marketType);
                         object messageHashSymbol = add(add(getValue(parsedChannel, 1), ":"), symbol);
                         if (((messageHashSymbol != null)) && (inOp(client.subscriptions, messageHashSymbol)))
                         {
@@ -2280,7 +2280,7 @@ public partial class gate : ccxt.gate
         List<object> keys = new List<object>(((IDictionary<string,object>)client.subscriptions).Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
-            string? messageHash = ((string)getValue(keys, i));
+            string? messageHash = ((string)keys[i]);
             if (!(inOp(client.subscriptions, messageHash)))
             {
                 continue;
@@ -2297,7 +2297,7 @@ public partial class gate : ccxt.gate
                 List<object> subMessageHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});
                 for (int j = 0; isLessThan(j, messageHashes.Count); postFixIncrement(ref j))
                 {
-                    object unsubHash = getValue(messageHashes, j);
+                    object unsubHash = messageHashes[j];
                     object subHash = getValue(subMessageHashes, j);
                     this.cleanUnsubscription(client, subHash, unsubHash);
                 }
@@ -2513,7 +2513,7 @@ public partial class gate : ccxt.gate
         List<object> keys = new List<object>(((IDictionary<string,object>)findBy).Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
-            string? key = ((string)getValue(keys, i));
+            string? key = ((string)keys[i]);
             object value = getValue(findBy, key);
             if (getIndexOf(url, key) >= 0)
             {

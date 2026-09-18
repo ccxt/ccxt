@@ -919,7 +919,7 @@ public partial class bitopro : Exchange
         List<object> symbols = this.symbols;
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            string? symbol = ((string)getValue(symbols, i));
+            string? symbol = ((string)symbols[i]);
             result[(string)symbol] = new Dictionary<string, object>() {
                 { "info", first },
                 { "symbol", symbol },
@@ -1348,7 +1348,7 @@ public partial class bitopro : Exchange
         List<object> orders = new List<object>() {};
         for (int i = 0; isLessThan(i, dataKeys.Count); postFixIncrement(ref i))
         {
-            string? marketId = ((string)getValue(dataKeys, i));
+            string? marketId = ((string)dataKeys[i]);
             object orderIds = getValue(data, marketId);
             for (int j = 0; isLessThan(j, getArrayLength(orderIds)); postFixIncrement(ref j))
             {

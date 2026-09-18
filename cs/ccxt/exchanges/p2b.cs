@@ -915,7 +915,7 @@ public partial class p2b : Exchange
         List<object> keys = new List<object>(((IDictionary<string,object>)response).Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
-            string? currencyId = ((string)getValue(keys, i));
+            string? currencyId = ((string)keys[i]);
             object balance = getValue(response, currencyId);
             string? code = this.safeCurrencyCode(currencyId);
             string? used = this.safeString(balance, "freeze");
@@ -1347,7 +1347,7 @@ public partial class p2b : Exchange
         List<object> keys = new List<object>(((IDictionary<string,object>)result).Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
-            string? marketId = ((string)getValue(keys, i));
+            string? marketId = ((string)keys[i]);
             object marketOrders = getValue(result, marketId);
             IList<object> parsedOrders = this.parseOrders(marketOrders, market, sinceVar, limit);
             orders = this.arrayConcat(orders, parsedOrders);

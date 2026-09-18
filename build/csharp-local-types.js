@@ -6792,6 +6792,98 @@ function installCsharpElementAccessCastSkips (csharp) {
     csharp._elementAccessCastSkipsPatched = true;
 }
 
+// ===== U59: `x[i]` reads on a list receiver the enclosing `for` bounds =====
+//
+// The printer emits `getValue (x, i)` for every element read; the native `x[i]` is equivalent
+// only where the index is provably in range — getValue answers null off the end of a list while
+// the C# indexer throws (ArgumentOutOfRangeException). The bound proof lives in the printer
+// (ast src/csharpTranspiler.ts #csharpListIndexRead: the read sits in the body of a `for` that
+// re-tests `i < x.length` at the top of every iteration, and neither the index nor the receiver
+// moves in the body); this hook answers the two declared types that proof needs — the receiver's
+// List<object> / IList<object> and the index's `int`, so `x[i]` binds the indexer of both
+// spellings and an index the classifier leaves `object` keeps the helper (`x[i]` on an object
+// index would not compile).
+//
+// The types are the ones the emitted LINE carries, recorded while it is printed (the same
+// technique the string-equality hook uses): the printer's own table already names some
+// declarations (`const x = this.safeList (…)` prints List<object>), this module's rewrite names
+// the rest (the `object x = ` head it replaces), and an awaited initializer the wrapper skips
+// stays `object` — reading the line back makes all three exact instead of re-deriving the
+// wrapper's guards here. The hook is a separate name on purpose: `csharpLocalTypeOf` has other
+// consumers, and adding the list answers there would also fire the S14 write family this unit
+// does not own.
+function installCsharpListIndexReads (csharp) {
+    if (csharp._listIndexReadsPatched) {
+        return;
+    }
+    // VariableDeclaration -> the type its emitted declaration line carries
+    const printedDeclarationTypes = new WeakMap ();
+    const upstream = csharp.printVariableDeclarationList.bind (csharp);
+    csharp.printVariableDeclarationList = (node, identation) => {
+        const printed = upstream (node, identation);
+        const declarations = node?.declarations;
+        if (typeof printed === 'string' && declarations?.length === 1) {
+            // the value can span lines (a dict-literal argument), so the head is matched per
+            // line — the same scan the dictionary index-write record uses
+            const printedName = (typeof csharp.printNode === 'function') ? csharp.printNode (declarations[0].name, 0) : undefined;
+            for (const line of printed.split ('\n')) {
+                const match = DECLARED_LOCAL_LINE_RE.exec (line);
+                if (match !== null && (match[2] === printedName || match[2] === declarations[0].name?.escapedText)) {
+                    printedDeclarationTypes.set (declarations[0], match[1].trim ());
+                    break;
+                }
+            }
+        }
+        return printed;
+    };
+    csharp.csharpListIndexReadTypes = (node) => {
+        if (node?.kind !== ts.SyntaxKind.ElementAccessExpression) {
+            return undefined;
+        }
+        const receiver = node.expression;
+        const index = node.argumentExpression;
+        if (receiver?.kind !== ts.SyntaxKind.Identifier || index?.kind !== ts.SyntaxKind.Identifier) {
+            return undefined;
+        }
+        const receiverType = printedLocalType (csharp, printedDeclarationTypes, receiver);
+        if ((receiverType !== 'List<object>') && (receiverType !== 'IList<object>')) {
+            return undefined;
+        }
+        const indexType = printedLocalType (csharp, printedDeclarationTypes, index);
+        if (indexType !== 'int') {
+            return undefined;
+        }
+        return { receiver: receiverType, index: 'int' };
+    };
+    csharp._listIndexReadsPatched = true;
+}
+
+// the emitted type of the declaration an identifier reads, or undefined: the read must be bound
+// to a declaration that was already printed (a local, a for-header index), which is what makes
+// the recorded line the one this read sees
+function printedLocalType (csharp, printedDeclarationTypes, node) {
+    const declaration = declarationOfIdentifier (csharp, node);
+    if (declaration === undefined) {
+        return undefined;
+    }
+    return printedDeclarationTypes.get (declaration);
+}
+
+// the single variable declaration an identifier binds to, resolved through the checker so
+// sibling scopes that reuse a name (`for (let i …)` appears many times per method) cannot
+// answer for each other
+function declarationOfIdentifier (csharp, node) {
+    try {
+        const declarations = csharp.getChecker ().getSymbolAtLocation (node)?.declarations ?? [];
+        if (declarations.length === 1 && declarations[0].kind === ts.SyntaxKind.VariableDeclaration) {
+            return declarations[0];
+        }
+    } catch (e) {
+        // no transpilation context (in-memory transpiles) — the read keeps the helper
+    }
+    return undefined;
+}
+
 // ===== S22: dictionary index-write cast elision =====
 //
 // `((IDictionary<string,object>)x)["k"] = v` — the interface cast the printer wraps around every
@@ -7060,6 +7152,10 @@ export function installCsharpLocalTypes (transpiler) {
         };
     }
     installCsharpStringEquality (csharp);
+    // U59: `x[i]` reads the enclosing `for` bounds by the receiver's own length (see the
+    // list-index-reads section above) — the printer's bound proof needs the printed types of
+    // both names, which this hook answers
+    installCsharpListIndexReads (csharp);
     csharp._localTypesPatched = true;
     // S22: the declared-type record has to wrap the rewrite above — it reads the line this
     // module actually emits, not the printer's `object ... = ` it replaced

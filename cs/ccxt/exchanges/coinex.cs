@@ -1237,7 +1237,7 @@ public partial class coinex : Exchange
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         for (int j = 0; isLessThan(j, chains.Count); postFixIncrement(ref j))
         {
-            object chain = getValue(chains, j);
+            object chain = chains[j];
             string? networkId = this.safeString(chain, "chain");
             string? networkCode = this.networkIdToCode(networkId, code);
             if ((networkId == null))
@@ -1351,7 +1351,7 @@ public partial class coinex : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, markets.Count); postFixIncrement(ref i))
         {
-            object market = getValue(markets, i);
+            object market = markets[i];
             string? id = this.safeString(market, "market");
             string? baseId = this.safeString(market, "base_ccy");
             string? quoteId = this.safeString(market, "quote_ccy");
@@ -1441,7 +1441,7 @@ public partial class coinex : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, markets.Count); postFixIncrement(ref i))
         {
-            object entry = getValue(markets, i);
+            object entry = markets[i];
             object fees = this.fees;
             List<object> leverages = this.safeList(entry, "leverage", new List<object>() {});
             string? subType = this.safeString(entry, "contract_type");
@@ -2015,7 +2015,7 @@ public partial class coinex : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
-            object entry = getValue(data, i);
+            object entry = data[i];
             string? marketId = this.safeString(entry, "market");
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, type);
             string? symbol = ((string)GetValue(market, "symbol"));
@@ -2163,7 +2163,7 @@ public partial class coinex : Exchange
         List<object> balances = this.safeList(response, "data", new List<object>() {});
         for (int i = 0; isLessThan(i, balances.Count); postFixIncrement(ref i))
         {
-            object entry = getValue(balances, i);
+            object entry = balances[i];
             IDictionary<string, object> free = this.safeDict(entry, "available", new Dictionary<string, object>() {});
             IDictionary<string, object> used = this.safeDict(entry, "frozen", new Dictionary<string, object>() {});
             IDictionary<string, object> loan = this.safeDict(entry, "repaid", new Dictionary<string, object>() {});
@@ -2211,7 +2211,7 @@ public partial class coinex : Exchange
         List<object> balances = this.safeList(response, "data", new List<object>() {});
         for (int i = 0; isLessThan(i, balances.Count); postFixIncrement(ref i))
         {
-            object entry = getValue(balances, i);
+            object entry = balances[i];
             string? currencyId = this.safeString(entry, "ccy");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -2255,7 +2255,7 @@ public partial class coinex : Exchange
         List<object> balances = this.safeList(response, "data", new List<object>() {});
         for (int i = 0; isLessThan(i, balances.Count); postFixIncrement(ref i))
         {
-            object entry = getValue(balances, i);
+            object entry = balances[i];
             string? currencyId = this.safeString(entry, "ccy");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -2296,7 +2296,7 @@ public partial class coinex : Exchange
         List<object> balances = this.safeList(response, "data", new List<object>() {});
         for (int i = 0; isLessThan(i, balances.Count); postFixIncrement(ref i))
         {
-            object entry = getValue(balances, i);
+            object entry = balances[i];
             string? currencyId = this.safeString(entry, "ccy");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -2982,7 +2982,7 @@ public partial class coinex : Exchange
         List<object> results = new List<object>() {};
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
-            object entry = getValue(data, i);
+            object entry = data[i];
             string? status = null;
             Int64? code = this.safeInteger(entry, "code");
             if (!isEqual(code, null))
@@ -3079,7 +3079,7 @@ public partial class coinex : Exchange
         List<object> results = new List<object>() {};
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
-            object entry = getValue(data, i);
+            object entry = data[i];
             IDictionary<string, object> item = this.safeDict(entry, "data", new Dictionary<string, object>() {});
             Dictionary<string, object> order = this.parseOrder(item, market);
             ((IList<object>)results).Add(order);
@@ -3905,7 +3905,7 @@ public partial class coinex : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, position.Count); postFixIncrement(ref i))
         {
-            ((IList<object>)result).Add(this.parsePosition(getValue(position, i), market));
+            ((IList<object>)result).Add(this.parsePosition(position[i], market));
         }
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbols, false));
     }
@@ -4207,7 +4207,7 @@ public partial class coinex : Exchange
         object minNotional = 0;
         for (int i = 0; isLessThan(i, brackets.Count); postFixIncrement(ref i))
         {
-            object tier = getValue(brackets, i);
+            object tier = brackets[i];
             string? marketId = this.safeString(info, "market");
             market = this.safeMarket(marketId, market, null, "swap");
             double? maxNotional = this.safeNumber(tier, "amount");
@@ -4464,7 +4464,7 @@ public partial class coinex : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
-            object entry = getValue(data, i);
+            object entry = data[i];
             Int64? timestamp = this.safeInteger(entry, "created_at");
             string? currencyId = this.safeString(entry, "ccy");
             string? code = this.safeCurrencyCode(currencyId);
@@ -4813,7 +4813,7 @@ public partial class coinex : Exchange
         List<object> rates = new List<object>() {};
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
-            object entry = getValue(data, i);
+            object entry = data[i];
             string? marketId = this.safeString(entry, "market");
             string? symbolInner = this.safeSymbol(marketId, market, null, "swap");
             Int64? timestamp = this.safeInteger(entry, "funding_time");
@@ -5652,7 +5652,7 @@ public partial class coinex : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
-            object item = getValue(data, i);
+            object item = data[i];
             IDictionary<string, object> asset = this.safeDict(item, "asset", new Dictionary<string, object>() {});
             string? currencyId = this.safeString(asset, "ccy");
             if ((currencyId == null))
@@ -5718,7 +5718,7 @@ public partial class coinex : Exchange
         IDictionary<string, object> asset = this.safeDict(fee, "asset", new Dictionary<string, object>() {});
         for (int i = 0; isLessThan(i, chains.Count); postFixIncrement(ref i))
         {
-            object entry = getValue(chains, i);
+            object entry = chains[i];
             bool? isWithdrawEnabled = this.safeBool(entry, "withdraw_enabled");
             if ((isWithdrawEnabled == true))
             {

@@ -1487,7 +1487,7 @@ public partial class mexc : Exchange
         List<object> chains = this.safeList(rawCurrency, "networkList", new List<object>() {});
         for (int j = 0; isLessThan(j, chains.Count); postFixIncrement(ref j))
         {
-            object chain = getValue(chains, j);
+            object chain = chains[j];
             string? networkId = this.safeString2(chain, "netWork", "network");
             string? network = this.networkIdToCode(networkId, code);
             if ((network != null))
@@ -1615,7 +1615,7 @@ public partial class mexc : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
-            object market = getValue(data, i);
+            object market = data[i];
             string? id = this.safeString(market, "symbol");
             string? baseId = this.safeString(market, "baseAsset");
             string? quoteId = this.safeString(market, "quoteAsset");
@@ -1751,7 +1751,7 @@ public partial class mexc : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
-            object market = getValue(data, i);
+            object market = data[i];
             string? id = this.safeString(market, "symbol");
             string? baseId = this.safeString(market, "baseCoin");
             string? quoteId = this.safeString(market, "quoteCoin");
@@ -4229,7 +4229,7 @@ public partial class mexc : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
-            object account = getValue(data, i);
+            object account = data[i];
             string? currencyId = this.safeString2(account, "asset", "currency");
             string? code = this.safeCurrencyCode(currencyId);
             ((IList<object>)result).Add(new Dictionary<string, object>() {
@@ -4362,7 +4362,7 @@ public partial class mexc : Exchange
         {
             for (int i = 0; isLessThan(i, wallet?.Count ?? 0); postFixIncrement(ref i))
             {
-                object entry = getValue(wallet, i);
+                object entry = wallet[i];
                 object bs = this.safeValue(entry, "baseAsset", new Dictionary<string, object>() {});
                 object quote = this.safeValue(entry, "quoteAsset", new Dictionary<string, object>() {});
                 string? baseCode = this.safeCurrencyCode(this.safeString(bs, "asset"));
@@ -4381,7 +4381,7 @@ public partial class mexc : Exchange
         {
             for (int i = 0; isLessThan(i, wallet?.Count ?? 0); postFixIncrement(ref i))
             {
-                object entry = getValue(wallet, i);
+                object entry = wallet[i];
                 string? currencyId = this.safeString(entry, "currency");
                 string? code = this.safeCurrencyCode(currencyId);
                 Dictionary<string, object> account = this.account();
@@ -4397,7 +4397,7 @@ public partial class mexc : Exchange
         {
             for (int i = 0; isLessThan(i, wallet?.Count ?? 0); postFixIncrement(ref i))
             {
-                object entry = getValue(wallet, i);
+                object entry = wallet[i];
                 string? currencyId = this.safeString(entry, "asset");
                 string? code = this.safeCurrencyCode(currencyId);
                 Dictionary<string, object> account = this.account();
@@ -4905,7 +4905,7 @@ public partial class mexc : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, resultList.Count); postFixIncrement(ref i))
         {
-            object entry = getValue(resultList, i);
+            object entry = resultList[i];
             Int64? timestamp = this.safeInteger(entry, "settleTime");
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "info", entry },
@@ -5089,7 +5089,7 @@ public partial class mexc : Exchange
         List<object> rates = new List<object>() {};
         for (int i = 0; isLessThan(i, result.Count); postFixIncrement(ref i))
         {
-            object entry = getValue(result, i);
+            object entry = result[i];
             string? marketId = this.safeString(entry, "symbol");
             string? symbolInner = this.safeSymbol(marketId);
             Int64? timestamp = this.safeInteger(entry, "settleTime");
@@ -6466,7 +6466,7 @@ public partial class mexc : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int j = 0; isLessThan(j, networkList.Count); postFixIncrement(ref j))
         {
-            object networkEntry = getValue(networkList, j);
+            object networkEntry = networkList[j];
             string? networkId = this.safeString(networkEntry, "network");
             string? networkCode = this.safeString(getValue(this.options, "networks"), networkId, networkId);
             double? fee = this.safeNumber(networkEntry, "withdrawFee");
@@ -6556,7 +6556,7 @@ public partial class mexc : Exchange
         Dictionary<string, object> result = this.depositWithdrawFee(fee);
         for (int j = 0; isLessThan(j, networkList.Count); postFixIncrement(ref j))
         {
-            object networkEntry = getValue(networkList, j);
+            object networkEntry = networkList[j];
             string? networkId = this.safeString(networkEntry, "network");
             string? networkCode = this.networkIdToCode(networkId, this.safeString(currency, "code"));
             if ((networkCode != null))

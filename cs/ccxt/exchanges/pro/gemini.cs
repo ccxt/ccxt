@@ -282,7 +282,7 @@ public partial class gemini : ccxt.gemini
             List<object> symbols = new List<object>(((IDictionary<string,object>)storesForSymbols).Keys);
             for (int i = 0; isLessThan(i, symbols.Count); postFixIncrement(ref i))
             {
-                string? symbol = ((string)getValue(symbols, i));
+                string? symbol = ((string)symbols[i]);
                 object stored = getValue(storesForSymbols, symbol);
                 string messageHash = add("trades:", symbol);
                 callDynamically(client, "resolve", new object[] {stored, messageHash});
@@ -456,7 +456,7 @@ public partial class gemini : ccxt.gemini
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         for (int i = 0; isLessThan(i, changes.Count); postFixIncrement(ref i))
         {
-            object delta = getValue(changes, i);
+            object delta = changes[i];
             double? price = this.safeNumber(delta, 1);
             double? size = this.safeNumber(delta, 2);
             string side = (isEqual(getValue(delta, 0), "buy")) ? "bids" : "asks";
@@ -993,7 +993,7 @@ public partial class gemini : ccxt.gemini
             int eventsLength = events.Count;
             for (int i = 0; isLessThan(i, events.Count); postFixIncrement(ref i))
             {
-                object eventVar = getValue(events, i);
+                object eventVar = events[i];
                 string? eventType = this.safeString(eventVar, "type");
                 bool isOrderBook = (eventType == "change") && (inOp(eventVar, "side")) && this.inArray(getValue(eventVar, "side"), new List<object>() {"ask", "bid"});
                 string? eventReason = this.safeString(eventVar, "reason");
@@ -1006,7 +1006,7 @@ public partial class gemini : ccxt.gemini
                     ((IList<object>)orderBookItems).Add(eventVar);
                 } else if (eventType == "trade")
                 {
-                    ((IList<object>)collectedEventsOfTrades).Add(getValue(events, i));
+                    ((IList<object>)collectedEventsOfTrades).Add(events[i]);
                 }
             }
             int lengthBa = bidaskItems.Count;

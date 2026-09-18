@@ -405,7 +405,7 @@ public partial class binance : PredictionExchange
         List<object> allQueries = new List<object>() {};
         for (int i = 0; isLessThan(i, queries?.Count ?? 0); postFixIncrement(ref i))
         {
-            ((IList<object>)allQueries).Add(getValue(queries, i));
+            ((IList<object>)allQueries).Add(queries[i]);
         }
         for (int i = 0; isLessThan(i, tagsLength); postFixIncrement(ref i))
         {
@@ -1056,7 +1056,7 @@ public partial class binance : PredictionExchange
         List<object> balances = this.safeList(response, "items", new List<object>() {});
         for (int i = 0; isLessThan(i, balances.Count); postFixIncrement(ref i))
         {
-            object balance = getValue(balances, i);
+            object balance = balances[i];
             string? accountType = this.safeString(balance, "accountType");
             if (isEqual(accountType, type))
             {

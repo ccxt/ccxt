@@ -595,7 +595,7 @@ public partial class coinspot : Exchange
                 List<object> currencyIds = new List<object>(((IDictionary<string,object>)currencies).Keys);
                 for (int j = 0; isLessThan(j, currencyIds.Count); postFixIncrement(ref j))
                 {
-                    object currencyId = getValue(currencyIds, j);
+                    object currencyId = currencyIds[j];
                     object balance = getValue(currencies, currencyId);
                     string? code = this.safeCurrencyCode(currencyId);
                     Dictionary<string, object> account = this.account();
@@ -611,7 +611,7 @@ public partial class coinspot : Exchange
             List<object> currencyIds = new List<object>(((IDictionary<string,object>)balances).Keys);
             for (int i = 0; isLessThan(i, currencyIds.Count); postFixIncrement(ref i))
             {
-                object currencyId = getValue(currencyIds, i);
+                object currencyId = currencyIds[i];
                 string? code = this.safeCurrencyCode(currencyId);
                 Dictionary<string, object> account = this.account();
                 account["total"] = this.safeString(balances, currencyId);
@@ -805,7 +805,7 @@ public partial class coinspot : Exchange
         List<object> ids = new List<object>(((IDictionary<string,object>)prices).Keys);
         for (int i = 0; isLessThan(i, ids.Count); postFixIncrement(ref i))
         {
-            string? id = ((string)getValue(ids, i));
+            string? id = ((string)ids[i]);
             Dictionary<string, object> market = this.safeMarket(id);
             if (isEqual(GetValue(market, "spot"), true))
             {
@@ -910,12 +910,12 @@ public partial class coinspot : Exchange
         List<object> buyTrades = this.safeList(response, "buyorders", new List<object>() {});
         for (int i = 0; isLessThan(i, buyTrades.Count); postFixIncrement(ref i))
         {
-            ((IDictionary<string,object>)getValue(buyTrades, i))["side"] = "buy";
+            ((IDictionary<string,object>)buyTrades[i])["side"] = "buy";
         }
         List<object> sellTrades = this.safeList(response, "sellorders", new List<object>() {});
         for (int i = 0; isLessThan(i, sellTrades.Count); postFixIncrement(ref i))
         {
-            ((IDictionary<string,object>)getValue(sellTrades, i))["side"] = "sell";
+            ((IDictionary<string,object>)sellTrades[i])["side"] = "sell";
         }
         List<object> trades = this.arrayConcat(buyTrades, sellTrades);
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));

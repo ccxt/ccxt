@@ -598,7 +598,7 @@ public partial class bingx : ccxt.bingx
         }
         for (int j = 0; isLessThan(j, trades?.Count ?? 0); postFixIncrement(ref j))
         {
-            callDynamically(stored, "append", new object[] {getValue(trades, j)});
+            callDynamically(stored, "append", new object[] {trades[j]});
         }
         callDynamically(client, "resolve", new object[] {stored, messageHash});
     }
@@ -956,7 +956,7 @@ public partial class bingx : ccxt.bingx
         object stored = getValue(getValue(this.ohlcvs, symbol), ((string)unifiedTimeframe));
         for (int i = 0; isLessThan(i, candles?.Count ?? 0); postFixIncrement(ref i))
         {
-            object candle = getValue(candles, i);
+            object candle = candles[i];
             List<object> parsed = this.parseWsOHLCV(candle, market);
             callDynamically(stored, "append", new object[] {parsed});
         }
@@ -1568,7 +1568,7 @@ public partial class bingx : ccxt.bingx
         List<object> newPositions = new List<object>() {};
         for (int i = 0; isLessThan(i, rawPositions.Count); postFixIncrement(ref i))
         {
-            object rawPosition = getValue(rawPositions, i);
+            object rawPosition = rawPositions[i];
             Dictionary<string, object> position = this.parseWsPosition(rawPosition);
             string? symbol = this.safeString(position, "symbol");
             if ((symbol == null))
@@ -1584,7 +1584,7 @@ public partial class bingx : ccxt.bingx
         List<object> messageHashes = this.findMessageHashes(client, "swap:positions::");
         for (int i = 0; isLessThan(i, messageHashes?.Count ?? 0); postFixIncrement(ref i))
         {
-            string? messageHash = ((string)getValue(messageHashes, i));
+            string? messageHash = ((string)messageHashes[i]);
             List<object> parts = messageHash.Split(new [] {"::"}, StringSplitOptions.None).ToList<object>();
             string? symbolsString = ((string)getValue(parts, 1));
             List<object> filteredSymbols = symbolsString.Split(new [] {","}, StringSplitOptions.None).ToList<object>();
@@ -1642,7 +1642,7 @@ public partial class bingx : ccxt.bingx
             List<object> types = new List<object>() {"spot", "linear", "inverse"};
             for (int i = 0; isLessThan(i, types.Count); postFixIncrement(ref i))
             {
-                string? type = ((string)getValue(types, i));
+                string? type = ((string)types[i]);
                 object baseUrl = this.safeString(getValue(getValue(this.urls, "api"), "ws"), type);
                 if ((baseUrl == null))
                 {
@@ -1653,7 +1653,7 @@ public partial class bingx : ccxt.bingx
                 List<object> messageHashes = new List<object>(((IDictionary<string, ccxt.Exchange.Future>)client.futures).Keys);
                 for (int j = 0; isLessThan(j, messageHashes.Count); postFixIncrement(ref j))
                 {
-                    string? messageHash = ((string)getValue(messageHashes, j));
+                    string? messageHash = ((string)messageHashes[j]);
                     client.reject(error, messageHash);
                 }
             }
@@ -1978,7 +1978,7 @@ public partial class bingx : ccxt.bingx
         ((IDictionary<string,object>)getValue(this.balance, type))["datetime"] = this.iso8601(timestamp);
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
-            object balance = getValue(data, i);
+            object balance = data[i];
             string? currencyId = this.safeString(balance, "a");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -2094,7 +2094,7 @@ public partial class bingx : ccxt.bingx
         List<object> subMessageHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});
         for (int i = 0; isLessThan(i, messageHashes.Count); postFixIncrement(ref i))
         {
-            object unsubHash = getValue(messageHashes, i);
+            object unsubHash = messageHashes[i];
             object subHash = getValue(subMessageHashes, i);
             this.cleanUnsubscription(client, subHash, unsubHash);
         }

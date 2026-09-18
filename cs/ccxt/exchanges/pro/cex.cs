@@ -110,7 +110,7 @@ public partial class cex : ccxt.cex
         List<object> currencyIds = new List<object>(((IDictionary<string,object>)freeBalance).Keys);
         for (int i = 0; isLessThan(i, currencyIds.Count); postFixIncrement(ref i))
         {
-            string? currencyId = ((string)getValue(currencyIds, i));
+            string? currencyId = ((string)currencyIds[i]);
             Dictionary<string, object> account = this.account();
             account["free"] = this.safeString(freeBalance, currencyId);
             account["used"] = this.safeString(usedBalance, currencyId);
@@ -161,7 +161,7 @@ public partial class cex : ccxt.cex
             List<object> subscriptionKeys = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);
             for (int i = 0; isLessThan(i, subscriptionKeys.Count); postFixIncrement(ref i))
             {
-                string? subscriptionKey = ((string)getValue(subscriptionKeys, i));
+                string? subscriptionKey = ((string)subscriptionKeys[i]);
                 if (isEqual(subscriptionKey, subscriptionHash))
                 {
                     continue;
@@ -1023,7 +1023,7 @@ public partial class cex : ccxt.cex
         }
         for (int i = 0; isLessThan(i, rawOrders.Count); postFixIncrement(ref i))
         {
-            object rawOrder = getValue(rawOrders, i);
+            object rawOrder = rawOrders[i];
             Dictionary<string, object> market = this.safeMarket(symbol);
             Dictionary<string, object> order = this.parseOrder(rawOrder, market);
             order["status"] = "open";
@@ -1259,7 +1259,7 @@ public partial class cex : ccxt.cex
         List<object> sorted = this.sortBy(data, 0);
         for (int i = 0; isLessThan(i, sorted?.Count ?? 0); postFixIncrement(ref i))
         {
-            callDynamically(stored, "append", new object[] {this.parseOHLCV(getValue(sorted, i), market)});
+            callDynamically(stored, "append", new object[] {this.parseOHLCV(sorted[i], market)});
         }
         if (!(inOp(this.ohlcvs, symbol)))
         {
@@ -1327,7 +1327,7 @@ public partial class cex : ccxt.cex
         object stored = getValue(getValue(this.ohlcvs, symbol), "unknown");
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
-            List<object> ohlcv = new List<object> {this.safeTimestamp(getValue(data, i), 0), this.safeNumber(getValue(data, i), 1), this.safeNumber(getValue(data, i), 2), this.safeNumber(getValue(data, i), 3), this.safeNumber(getValue(data, i), 4), this.safeNumber(getValue(data, i), 5)};
+            List<object> ohlcv = new List<object> {this.safeTimestamp(data[i], 0), this.safeNumber(data[i], 1), this.safeNumber(data[i], 2), this.safeNumber(data[i], 3), this.safeNumber(data[i], 4), this.safeNumber(data[i], 5)};
             callDynamically(stored, "append", new object[] {ohlcv});
         }
         int dataLength = data.Count;
