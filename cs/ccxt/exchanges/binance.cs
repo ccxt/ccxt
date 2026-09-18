@@ -5353,7 +5353,7 @@ public partial class binance : Exchange
             contractSize = this.safeNumber2(market, "contractSize", "unit", this.parseNumber("1"));
             linear = (settle == quote);
             inverse = isEqual(settle, bs);
-            string feesType = ((bool) isTrue(linear)) ? "linear" : "inverse";
+            string feesType = ((bool) (linear == true)) ? "linear" : "inverse";
             fees = this.safeDict(this.fees, feesType, new Dictionary<string, object>() {});
         }
         bool? active = ((status == "TRADING"));
@@ -5426,7 +5426,7 @@ public partial class binance : Exchange
             { "settleId", settleId },
             { "type", unifiedType },
             { "spot", spot },
-            { "margin", spot && isTrue(isMarginTradingAllowed) },
+            { "margin", spot && (isMarginTradingAllowed == true) },
             { "marginModes", marginModes },
             { "swap", swap },
             { "future", future },
@@ -7186,7 +7186,7 @@ public partial class binance : Exchange
         string? takerOrMaker = null;
         if (!isEqual(buyerMaker, null))
         {
-            side = ((bool) isTrue(buyerMaker)) ? "sell" : "buy"; // this is reversed intentionally
+            side = ((bool) (buyerMaker == true)) ? "sell" : "buy"; // this is reversed intentionally
         } else if (inOp(trade, "side"))
         {
             side = this.safeStringLower(trade, "side");
@@ -9143,7 +9143,7 @@ public partial class binance : Exchange
             if ((isEqual(getValue(market, "spot"), true)) || (marketType == "margin"))
             {
                 // only supported for spot/margin api (all margin markets are spot markets)
-                if (isTrue(postOnly))
+                if ((postOnly == true))
                 {
                     uppercaseType = "LIMIT_MAKER";
                 }
@@ -9155,7 +9155,7 @@ public partial class binance : Exchange
         } else
         {
             postOnly = this.isPostOnly(isMarketOrder, (initialUppercaseType == "LIMIT_MAKER"), parameters);
-            if (isTrue(postOnly))
+            if ((postOnly == true))
             {
                 if (!isEqual(getValue(market, "contract"), true))
                 {
@@ -9387,7 +9387,7 @@ public partial class binance : Exchange
         {
             ((IDictionary<string,object>)request)["timeInForce"] = this.handleOption("createOrder", "timeInForce"); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
-        if (!isTrue(isPortfolioMargin) && (isEqual(getValue(market, "contract"), true)) && isTrue(postOnly))
+        if (!isTrue(isPortfolioMargin) && (isEqual(getValue(market, "contract"), true)) && (postOnly == true))
         {
             ((IDictionary<string,object>)request)["timeInForce"] = "GTX";
         }
@@ -10239,7 +10239,7 @@ public partial class binance : Exchange
         parameters = ((IList<object>)isPortfolioMarginparametersVariable)[1];
         bool? isConditional = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "conditional"});
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger", "conditional"});
-        bool isPortfolioMarginConditional = (isTrue(isPortfolioMargin) && isTrue(isConditional));
+        bool isPortfolioMarginConditional = (isTrue(isPortfolioMargin) && (isConditional == true));
         string orderIdRequest = ((bool) ((isPortfolioMarginConditional == true))) ? "strategyId" : "orderId";
         ((IDictionary<string,object>)request)[(string)orderIdRequest] = id;
         Dictionary<string, object> response = null;
@@ -13488,7 +13488,7 @@ public partial class binance : Exchange
         string? marginMode = null;
         string? collateralString = null;
         string? walletBalance = null;
-        if (isTrue(isolated))
+        if ((isolated == true))
         {
             marginMode = "isolated";
             walletBalance = this.safeString(position, "isolatedWallet");
@@ -14976,7 +14976,7 @@ public partial class binance : Exchange
         string? marginMode = null;
         if (!isEqual(marginModeRaw, null))
         {
-            marginMode = ((bool) isTrue(marginModeRaw)) ? "isolated" : "cross";
+            marginMode = ((bool) (marginModeRaw == true)) ? "isolated" : "cross";
         }
         string? marginTypeRaw = this.safeStringLower(leverage, "marginType");
         if ((marginTypeRaw != null))
@@ -17461,7 +17461,7 @@ public partial class binance : Exchange
         string? reMarginMode = null;
         if (!isEqual(marginModeRaw, null))
         {
-            reMarginMode = ((bool) isTrue(marginModeRaw)) ? "isolated" : "cross";
+            reMarginMode = ((bool) (marginModeRaw == true)) ? "isolated" : "cross";
         }
         string? marginTypeRaw = this.safeStringLower(marginMode, "marginType");
         if ((marginTypeRaw != null))

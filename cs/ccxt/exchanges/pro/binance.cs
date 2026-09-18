@@ -1230,7 +1230,7 @@ public partial class binance : ccxt.binance
                             // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
                             conditional = (isEqual((subtract(U, 1)), nonce));
                         }
-                        if (isTrue(conditional))
+                        if ((conditional == true))
                         {
                             this.handleOrderBookMessage(client as WebSocketClient, message, orderbook);
                             if (isLessThan(nonce, this.safeInteger(orderbook, "nonce", 0)))

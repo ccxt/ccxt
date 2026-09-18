@@ -756,7 +756,7 @@ public partial class bitget : ccxt.bitget
             callDynamically(stored, "append", new object[] {parsed});
         }
         string? messageHash = null;
-        if (isTrue(isUta))
+        if ((isUta == true))
         {
             messageHash = ("kline:" + symbol);
         } else
@@ -3255,7 +3255,7 @@ public partial class bitget : ccxt.bitget
         string? symbol = ((string)getValue(market, "symbol"));
         string? messageHash = null;
         string? subMessageHash = null;
-        if (isTrue(isUta))
+        if ((isUta == true))
         {
             messageHash = ("unsubscribe:kline:" + symbol);
             subMessageHash = ("kline:" + symbol);
