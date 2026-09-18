@@ -1,5 +1,5 @@
 import Exchange from './abstract/krakenfutures.js';
-import type { Balances, Currency, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, LedgerEntry, Leverage, Leverages, LeverageTier, LeverageTiers, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, TransferEntry, NullableDict } from './base/types.js';
+import type { Balances, Currency, Dict, FundingHistory, FundingRate, FundingRateHistory, FundingRates, int, Int, LedgerEntry, Leverage, Leverages, LeverageTier, LeverageTiers, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, TransferEntry, NullableDict } from './base/types.js';
 /**
  * @class krakenfutures
  * @augments Exchange
@@ -69,6 +69,7 @@ export default class krakenfutures extends Exchange {
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {string} [params.price] "mark" for mark-price candles or "index" for index-price candles, defaults to trade-price candles
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
@@ -274,6 +275,20 @@ export default class krakenfutures extends Exchange {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
+    /**
+     * @method
+     * @name krakenfutures#fetchFundingHistory
+     * @description fetch the funding payments history of the account
+     * @see https://docs.kraken.com/api-reference/account-history/get-account-log
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch funding payments for
+     * @param {int} [limit] the maximum number of funding payments to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding payment
+     * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
+     */
+    fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;
+    parseIncome(income: any, market?: Market): object;
     parseLedgerEntryType(type: any): string;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
     /**

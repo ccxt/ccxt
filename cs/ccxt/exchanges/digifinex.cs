@@ -774,7 +774,7 @@ public partial class digifinex : Exchange
             ((IList<object>)promisesRaw).Add(this.publicSpotGetTradesSymbols(query));
         }
         ((IList<object>)promisesRaw).Add(this.publicSwapGetPublicInstruments(parameters));
-        object promises = await promiseAll(promisesRaw);
+        List<object> promises = await promiseAll(promisesRaw);
         object spotMarkets = getValue(promises, 0);
         object swapMarkets = getValue(promises, 1);
         //
@@ -1078,9 +1078,9 @@ public partial class digifinex : Exchange
         {
             await this.loadMarkets();
         }
-        object marketType = null;
+        string? marketType = null;
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchBalance", null, parameters);
-        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         IList<object> marginModequeryVariable = (IList<object>)this.handleMarginModeAndParams("fetchBalance", parameters);
         var marginMode = ((IList<object>) marginModequeryVariable)[0];
@@ -1216,7 +1216,7 @@ public partial class digifinex : Exchange
         //         }
         //     }
         //
-        object timestamp = null;
+        Int64? timestamp = null;
         object orderBook = null;
         if (isTrue(isEqual(marketType, "swap")))
         {
@@ -1254,9 +1254,9 @@ public partial class digifinex : Exchange
         {
             market = this.market(first);
         }
-        object type = null;
+        string? type = null;
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchTickers", market, parameters);
-        type = ((IList<object>)typeparametersVariable)[0];
+        type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> response = null;
@@ -1323,7 +1323,7 @@ public partial class digifinex : Exchange
             Dictionary<string, object> rawTicker = this.extend(new Dictionary<string, object>() {
                 { "date", date },
             }, getValue(tickers, i));
-            object ticker = this.parseTicker(rawTicker);
+            Dictionary<string, object> ticker = this.parseTicker(rawTicker);
             object symbol = getValue(ticker, "symbol");
             if (isTrue(!isEqual(symbol, null)))
             {
@@ -1428,7 +1428,7 @@ public partial class digifinex : Exchange
         return ccxt.BaseExchange.ToTicker(this.parseTicker(result, market));
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         // spot: fetchTicker, fetchTickers
@@ -1474,7 +1474,7 @@ public partial class digifinex : Exchange
         string? marketId = this.safeStringUpper2(ticker, "symbol", "instrument_id");
         string? symbol = this.safeSymbol(marketId, market, null, marketType);
         market = this.safeMarket(marketId, market, null, marketType);
-        object timestamp = this.safeTimestamp(ticker, "date");
+        Int64? timestamp = this.safeTimestamp(ticker, "date");
         if (isTrue(isEqual(getValue(market, "swap"), true)))
         {
             timestamp = this.safeInteger(ticker, "timestamp");
@@ -1512,7 +1512,7 @@ public partial class digifinex : Exchange
         }, market);
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // spot: fetchTrades
@@ -1579,7 +1579,7 @@ public partial class digifinex : Exchange
         {
             market = this.safeMarket(marketId);
         }
-        object timestamp = this.safeTimestamp2(trade, "date", "timestamp");
+        Int64? timestamp = this.safeTimestamp2(trade, "date", "timestamp");
         string? side = this.safeString2(trade, "type", "side");
         string? type = null;
         string? takerOrMaker = null;
@@ -1829,7 +1829,7 @@ public partial class digifinex : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1962,7 +1962,7 @@ public partial class digifinex : Exchange
         Dictionary<string, object> market = this.market(symbol);
         object marginResult = this.handleMarginModeAndParams("createOrder", parameters);
         object marginMode = getValue(marginResult, 0);
-        object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+        Dictionary<string, object> request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         Dictionary<string, object> response = null;
         if (isTrue(isEqual(getValue(market, "swap"), true)))
         {
@@ -1996,7 +1996,7 @@ public partial class digifinex : Exchange
         {
             throw new NullResponse ((string)add(this.id, " createOrder() returned empty response")) ;
         }
-        object order = this.parseOrder(response, market);
+        Dictionary<string, object> order = this.parseOrder(response, market);
         ((IDictionary<string,object>)order)["symbol"] = getValue(market, "symbol");
         ((IDictionary<string,object>)order)["type"] = type;
         ((IDictionary<string,object>)order)["side"] = side;
@@ -2059,7 +2059,7 @@ public partial class digifinex : Exchange
                     }
                 }
             }
-            object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
+            Dictionary<string, object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
             ((IList<object>)ordersRequests).Add(orderRequest);
         }
         Dictionary<string, object> market = this.market(symbol);
@@ -2118,7 +2118,7 @@ public partial class digifinex : Exchange
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(result, market));
     }
 
-    public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(type, null)))
@@ -2143,10 +2143,10 @@ public partial class digifinex : Exchange
          * @returns {object} request to be sent to the exchange
          */
         Dictionary<string, object> market = this.market(symbol);
-        object marketType = null;
+        string? marketType = null;
         object marginMode = null;
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("createOrderRequest", market, parameters);
-        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("createOrderRequest", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
@@ -2162,12 +2162,12 @@ public partial class digifinex : Exchange
         string marketIdRequest = ((bool) isTrue(swap)) ? "instrument_id" : "symbol";
         ((IDictionary<string,object>)request)[(string)marketIdRequest] = getValue(market, "id");
         bool postOnly = this.isPostOnly(isMarketOrder, false, parameters);
-        object postOnlyParsed = null;
+        int? postOnlyParsed = null;
         if (isTrue(swap))
         {
             bool? reduceOnly = this.safeBool(parameters, "reduceOnly", false);
             string? timeInForce = this.safeString(parameters, "timeInForce");
-            object orderType = null;
+            int? orderType = null;
             if (isTrue(isEqual(side, "buy")))
             {
                 int requestType = ((bool) isTrue((isEqual(reduceOnly, true)))) ? 4 : 1;
@@ -2314,9 +2314,9 @@ public partial class digifinex : Exchange
             market = this.market(symbol);
         }
         idVar = ((object)idVar).ToString();
-        object marketType = null;
+        string? marketType = null;
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("cancelOrder", market, parameters);
-        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "order_id", idVar },
@@ -2466,7 +2466,7 @@ public partial class digifinex : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // spot: createOrder
@@ -2531,8 +2531,8 @@ public partial class digifinex : Exchange
         //         "time_stamp": 1668134664828
         //     }
         //
-        object timestamp = null;
-        object lastTradeTimestamp = null;
+        Int64? timestamp = null;
+        Int64? lastTradeTimestamp = null;
         string? timeInForce = null;
         object type = null;
         object side = this.safeString(order, "type");
@@ -2646,9 +2646,9 @@ public partial class digifinex : Exchange
         {
             market = this.market(symbol);
         }
-        object marketType = null;
+        string? marketType = null;
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
-        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         IList<object> marginModequeryVariable = (IList<object>)this.handleMarginModeAndParams("fetchOpenOrders", parameters);
         var marginMode = ((IList<object>) marginModequeryVariable)[0];
@@ -2768,9 +2768,9 @@ public partial class digifinex : Exchange
         {
             market = this.market(symbol);
         }
-        object marketType = null;
+        string? marketType = null;
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchOrders", market, parameters);
-        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         IList<object> marginModequeryVariable = (IList<object>)this.handleMarginModeAndParams("fetchOrders", parameters);
         var marginMode = ((IList<object>) marginModequeryVariable)[0];
@@ -2892,9 +2892,9 @@ public partial class digifinex : Exchange
         {
             market = this.market(symbol);
         }
-        object marketType = null;
+        string? marketType = null;
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchOrder", market, parameters);
-        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         IList<object> marginModequeryVariable = (IList<object>)this.handleMarginModeAndParams("fetchOrder", parameters);
         var marginMode = ((IList<object>) marginModequeryVariable)[0];
@@ -3009,9 +3009,9 @@ public partial class digifinex : Exchange
         {
             market = this.market(symbol);
         }
-        object marketType = null;
+        string? marketType = null;
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
-        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         IList<object> marginModequeryVariable = (IList<object>)this.handleMarginModeAndParams("fetchMyTrades", parameters);
         var marginMode = ((IList<object>) marginModequeryVariable)[0];
@@ -3138,7 +3138,7 @@ public partial class digifinex : Exchange
         currency = this.safeCurrency(currencyId, currency);
         double? amount = this.safeNumber2(item, "num", "change");
         double? after = this.safeNumber(item, "balance");
-        object timestamp = this.safeTimestamp(item, "time");
+        Int64? timestamp = this.safeTimestamp(item, "time");
         if (isTrue(isEqual(timestamp, null)))
         {
             timestamp = this.safeInteger(item, "timestamp");
@@ -3182,9 +3182,9 @@ public partial class digifinex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        object marketType = null;
+        string? marketType = null;
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchLedger", null, parameters);
-        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         IList<object> marginModequeryVariable = (IList<object>)this.handleMarginModeAndParams("fetchLedger", parameters);
         var marginMode = ((IList<object>) marginModequeryVariable)[0];
@@ -4157,7 +4157,7 @@ public partial class digifinex : Exchange
         symbols = this.marketSymbols(symbols);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
-        object marketType = null;
+        string? marketType = null;
         if (isTrue(!isEqual(symbols, null)))
         {
             object symbol = null;
@@ -4176,7 +4176,7 @@ public partial class digifinex : Exchange
             market = this.market(symbol);
         }
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchPositions", market, parameters);
-        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         IList<object> marginModequeryVariable = (IList<object>)this.handleMarginModeAndParams("fetchPositions", parameters);
         var marginMode = ((IList<object>) marginModequeryVariable)[0];
@@ -4283,9 +4283,9 @@ public partial class digifinex : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        object marketType = null;
+        string? marketType = null;
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchPosition", market, parameters);
-        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         IList<object> marginModequeryVariable = (IList<object>)this.handleMarginModeAndParams("fetchPosition", parameters);
         var marginMode = ((IList<object>) marginModequeryVariable)[0];
@@ -4360,7 +4360,7 @@ public partial class digifinex : Exchange
         //
         string dataRequest = ((bool) isTrue((isEqual(marketType, "swap")))) ? "data" : "positions";
         List<object> data = this.safeList(response, dataRequest, new List<object>() {});
-        object position = this.parsePosition(getValue(data, 0), market);
+        Dictionary<string, object> position = this.parsePosition(getValue(data, 0), market);
         if (isTrue(isEqual(marketType, "swap")))
         {
             return ccxt.BaseExchange.ToPosition(position);
@@ -4372,7 +4372,7 @@ public partial class digifinex : Exchange
         }
     }
 
-    public override object parsePosition(object position, object market = null)
+    public override Dictionary<string, object> parsePosition(object position, object market = null)
     {
         //
         // swap
@@ -5085,7 +5085,7 @@ public partial class digifinex : Exchange
      */
     public async override Task<Dictionary<string, object>> SetMarginMode(string marginMode, string symbol = null, object parameters = null)
     {
-        object marginModeVar = marginMode;
+        string marginModeVar = marginMode;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -5117,7 +5117,7 @@ public partial class digifinex : Exchange
         object endpoint = getValue(api, 1);
         string pathPart = ((bool) isTrue((isEqual(endpoint, "spot")))) ? "/v3" : "/swap/v2";
         string request = add("/", this.implodeParams(path, parameters));
-        object payload = add(pathPart, request);
+        string payload = add(pathPart, request);
         object url = add(getValue(getValue(this.urls, "api"), "rest"), payload);
         object query = this.omit(parameters, this.extractParams(path));
         string? urlencoded = null;

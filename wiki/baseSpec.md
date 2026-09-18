@@ -3162,6 +3162,7 @@ fetches information on multiple orders made by the user *classic accounts only*
 * [grvt](/exchanges/grvt.md#fetchfundinghistory)
 * [htx](/exchanges/htx.md#fetchfundinghistory)
 * [hyperliquid](/exchanges/hyperliquid.md#fetchfundinghistory)
+* [krakenfutures](/exchanges/krakenfutures.md#fetchfundinghistory)
 * [kucoin](/exchanges/kucoin.md#fetchfundinghistory)
 * [mexc](/exchanges/mexc.md#fetchfundinghistory)
 * [modetrade](/exchanges/modetrade.md#fetchfundinghistory)

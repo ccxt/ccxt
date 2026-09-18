@@ -1183,7 +1183,7 @@ class mexc(ccxt.async_support.mexc):
             'symbol': self.safe_symbol(None, market),
             'type': None,
             'side': side,
-            'takerOrMaker': 'maker' if (isMaker is not None and isMaker is not None and isMaker != 0) else 'taker',
+            'takerOrMaker': 'maker' if (isMaker is not None and isMaker != 0) else 'taker',
             'price': priceString,
             'amount': amountString,
             'cost': self.safe_string(trade, 'amount'),

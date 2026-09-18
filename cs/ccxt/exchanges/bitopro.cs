@@ -534,7 +534,7 @@ public partial class bitopro : Exchange
         });
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         //     {
@@ -697,7 +697,7 @@ public partial class bitopro : Exchange
         return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, getValue(market, "symbol"), null, "bids", "asks", "price", "amount"));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades
@@ -725,7 +725,7 @@ public partial class bitopro : Exchange
         //
         string? id = this.safeString(trade, "tradeId");
         string? orderId = this.safeString(trade, "orderId");
-        object timestamp = null;
+        Int64? timestamp = null;
         if (isTrue(isEqual(id, null)))
         {
             timestamp = this.safeTimestamp(trade, "timestamp");
@@ -916,7 +916,7 @@ public partial class bitopro : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         double? maker = this.safeNumber(first, "makerFee");
         double? taker = this.safeNumber(first, "takerFee");
-        object symbols = this.symbols;
+        List<object> symbols = this.symbols;
         for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
@@ -951,7 +951,7 @@ public partial class bitopro : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -1133,7 +1133,7 @@ public partial class bitopro : Exchange
         return ((bool) isTrue((isEqual(status, null)))) ? null : this.safeString(statuses, status);
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // createOrder

@@ -1205,7 +1205,7 @@ public partial class cryptocom : Exchange
      */
     public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -1398,7 +1398,7 @@ public partial class cryptocom : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -1672,7 +1672,7 @@ public partial class cryptocom : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(order, market));
     }
 
-    public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(type, null)))
@@ -1696,10 +1696,10 @@ public partial class cryptocom : Exchange
         }
         string? broker = this.safeString(this.options, "broker", "CCXT");
         ((IDictionary<string,object>)request)["broker_id"] = broker;
-        object marketType = null;
+        string? marketType = null;
         object marginMode = null;
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("createOrder", market, parameters);
-        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         IList<object> marginModeparametersVariable = (IList<object>)this.customHandleMarginModeAndParams("createOrder", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
@@ -1841,7 +1841,7 @@ public partial class cryptocom : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+        Dictionary<string, object> request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         Dictionary<string, object> response = await this.v1PrivatePostPrivateCreateOrder(request);
         //
         //     {
@@ -2131,13 +2131,13 @@ public partial class cryptocom : Exchange
         {
             await this.loadMarkets();
         }
-        object request = this.editOrderRequest(id, symbol, amount, price, parameters);
+        Dictionary<string, object> request = this.editOrderRequest(id, symbol, amount, price, parameters);
         Dictionary<string, object> response = await this.v1PrivatePostPrivateAmendOrder(request);
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToOrder(this.parseOrder(result));
     }
 
-    public virtual object editOrderRequest(object id, object symbol, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> editOrderRequest(object id, object symbol, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {};
@@ -2517,9 +2517,9 @@ public partial class cryptocom : Exchange
         {
             ((IDictionary<string,object>)request)["address_tag"] = tagVar;
         }
-        object networkCode = null;
+        string? networkCode = null;
         IList<object> networkCodeparametersVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
-        networkCode = ((IList<object>)networkCodeparametersVariable)[0];
+        networkCode = (string)((IList<object>)networkCodeparametersVariable)[0];
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         object networkId = this.networkCodeToId(networkCode, code);
         if (isTrue(!isEqual(networkId, null)))
@@ -2785,7 +2785,7 @@ public partial class cryptocom : Exchange
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(withdrawalList, currency, since, limit));
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         // fetchTicker
@@ -2847,7 +2847,7 @@ public partial class cryptocom : Exchange
         }, market);
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades
@@ -2945,7 +2945,7 @@ public partial class cryptocom : Exchange
         return this.safeString(timeInForces, ((string)timeInForce), timeInForce);
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // createOrder, cancelOrder
@@ -3562,9 +3562,9 @@ public partial class cryptocom : Exchange
         {
             market = this.market(symbol);
         }
-        object type = null;
+        string? type = null;
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchSettlementHistory", market, parameters);
-        type = ((IList<object>)typeparametersVariable)[0];
+        type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         this.checkRequiredArgument("fetchSettlementHistory", type, "type", new List<object>() {"future", "option", "WARRANT", "FUTURE"});
         if (isTrue(isEqual(type, "option")))
@@ -3938,7 +3938,7 @@ public partial class cryptocom : Exchange
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", null, false));
     }
 
-    public override object parsePosition(object position, object market = null)
+    public override Dictionary<string, object> parsePosition(object position, object market = null)
     {
         //
         //     {

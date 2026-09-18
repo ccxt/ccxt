@@ -814,7 +814,7 @@ public partial class upbit : Exchange
         return ccxt.BaseExchange.ToOrderBook(this.safeValue(orderbooks, symbol));
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         //       {                market: "BTC-ETH",
@@ -898,11 +898,11 @@ public partial class upbit : Exchange
         {
             // ticker/all returns every market of the requested quote currencies with a single request
             List<object> quoteIds = new List<object>() {};
-            object marketSymbols = this.symbols;
+            List<object> marketSymbols = this.symbols;
             for (int i = 0; isLessThan(i, getArrayLength(marketSymbols)); postFixIncrement(ref i))
             {
                 Dictionary<string, object> market = this.market(getValue(marketSymbols, i));
-                object quoteId = getValue(market, "quoteId");
+                string? quoteId = ((string)getValue(market, "quoteId"));
                 if (!isTrue(this.inArray(quoteId, quoteIds)))
                 {
                     ((IList<object>)quoteIds).Add(quoteId);
@@ -934,7 +934,7 @@ public partial class upbit : Exchange
                     { "markets", idsQuery },
                 }, parameters)));
             }
-            object responses = await promiseAll(promises);
+            List<object> responses = await promiseAll(promises);
             tickers = this.arraysConcat(responses);
         }
         //
@@ -1014,7 +1014,7 @@ public partial class upbit : Exchange
         return ccxt.BaseExchange.ToTicker(this.safeValue(tickers, symbol));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades
@@ -1280,7 +1280,7 @@ public partial class upbit : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -2026,7 +2026,7 @@ public partial class upbit : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         // {
         //   "market": "KRW-USDT",
@@ -2539,9 +2539,9 @@ public partial class upbit : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(((string)code));
-        object networkCode = null;
+        string? networkCode = null;
         IList<object> networkCodeparametersVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
-        networkCode = ((IList<object>)networkCodeparametersVariable)[0];
+        networkCode = (string)((IList<object>)networkCodeparametersVariable)[0];
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         if (isTrue(isEqual(networkCode, null)))
         {

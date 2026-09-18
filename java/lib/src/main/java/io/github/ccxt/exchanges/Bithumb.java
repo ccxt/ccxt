@@ -3960,6 +3960,9 @@ public class Bithumb extends BithumbApi
         Boolean hasQuery = (Helpers.isGreaterThan(queryKeysLength, 0));
         if (Helpers.isTrue(Helpers.isEqual(api, "public")))
         {
+            headers = new HashMap<String, Object>() {{
+                put( "OPEN-API-PARTNER", "CCXT" );
+            }};
             if (Helpers.isTrue(hasQuery))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
@@ -3972,6 +3975,7 @@ public class Bithumb extends BithumbApi
             {
                 headers = new HashMap<String, Object>() {{
                     put( "Accept", "application/json" );
+                    put( "OPEN-API-PARTNER", "CCXT" );
                 }};
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "access_key", Bithumb.this.apiKey );
@@ -4019,6 +4023,7 @@ public class Bithumb extends BithumbApi
                     put( "Api-Key", Bithumb.this.apiKey );
                     put( "Api-Sign", signature64 );
                     put( "Api-Nonce", nonce );
+                    put( "OPEN-API-PARTNER", "CCXT" );
                 }};
             }
         }

@@ -8,6 +8,7 @@ import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.types.Balances;
+import io.github.ccxt.types.FundingHistory;
 import io.github.ccxt.types.FundingRateHistory;
 import io.github.ccxt.types.FundingRates;
 import io.github.ccxt.types.LedgerEntry;
@@ -82,11 +83,11 @@ public class Krakenfutures extends KrakenfuturesApi
                 put( "fetchDepositAddress", false );
                 put( "fetchDepositAddresses", false );
                 put( "fetchDepositAddressesByNetwork", false );
-                put( "fetchFundingHistory", null );
+                put( "fetchFundingHistory", true );
                 put( "fetchFundingRate", "emulated" );
                 put( "fetchFundingRateHistory", true );
                 put( "fetchFundingRates", true );
-                put( "fetchIndexOHLCV", false );
+                put( "fetchIndexOHLCV", true );
                 put( "fetchIsolatedBorrowRate", false );
                 put( "fetchIsolatedBorrowRates", false );
                 put( "fetchIsolatedPositions", false );
@@ -1094,6 +1095,7 @@ public class Krakenfutures extends KrakenfuturesApi
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {string} [params.price] "mark" for mark-price candles or "index" for index-price candles, defaults to trade-price candles
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public CompletableFuture<List<OHLCV>> fetchOHLCV(Object symbol, Object... optionalArgs)
@@ -1118,10 +1120,18 @@ public class Krakenfutures extends KrakenfuturesApi
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 2000)).join();
             }
-            final Object finalParameters = parameters;
+            String priceType = this.safeString(parameters, "price", "trade");
+            if (Helpers.isTrue(Helpers.isEqual(priceType, "index")))
+            {
+                priceType = "spot"; // the venue's name for index-price candles
+            } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(priceType, "trade"))) && Helpers.isTrue((!Helpers.isEqual(priceType, "mark")))) && Helpers.isTrue((!Helpers.isEqual(priceType, "spot")))))
+            {
+                throw new NotSupported(Helpers.add(this.id, " fetchOHLCV() price parameter must be one of \"trade\", \"mark\", \"index\" or \"spot\"")) ;
+            }
+            final Object finalPriceType = priceType;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
-                put( "price_type", Krakenfutures.this.safeString(finalParameters, "price", "trade") );
+                put( "price_type", finalPriceType );
                 put( "interval", Krakenfutures.this.safeString(Krakenfutures.this.timeframes, timeframe, timeframe) );
             }};
             parameters = this.omit(parameters, "price");
@@ -3052,11 +3062,7 @@ public class Krakenfutures extends KrakenfuturesApi
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
                 Helpers.addElementToObject(request, "since", since);
-                String sort = this.safeString(parameters, "sort");
-                if (Helpers.isTrue(Helpers.isEqual(sort, null)))
-                {
-                    Helpers.addElementToObject(request, "sort", "asc");
-                }
+                Helpers.addElementToObject(request, "sort", "asc");
             }
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
@@ -3115,6 +3121,128 @@ public class Krakenfutures extends KrakenfuturesApi
             return this.parseLedger(rows, currency, since, limit);
         }).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
 
+    }
+
+    /**
+     * @method
+     * @name krakenfutures#fetchFundingHistory
+     * @description fetch the funding payments history of the account
+     * @see https://docs.kraken.com/api-reference/account-history/get-account-log
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch funding payments for
+     * @param {int} [limit] the maximum number of funding payments to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding payment
+     * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
+     */
+    public CompletableFuture<List<FundingHistory>> fetchFundingHistory(Object... optionalArgs)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object since = Helpers.getArg(optionalArgs, 1, null);
+            Object limit = Helpers.getArg(optionalArgs, 2, null);
+            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            (this.loadMarkets()).join();
+            Object market = null;
+            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            {
+                market = this.market(symbol);
+            }
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "info", "funding rate change" );
+            }};
+            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            {
+                Helpers.addElementToObject(request, "since", since);
+                Helpers.addElementToObject(request, "sort", "asc");
+            }
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(limit, null))) && Helpers.isTrue((Helpers.isEqual(symbol, null)))))
+            {
+                // the account log has no contract filter, so a symbol is applied on the
+                // client side - a server side page size would truncate the rows of other
+                // contracts away before that filter runs and under-fill the result
+                Helpers.addElementToObject(request, "count", limit);
+            }
+            Long until = this.safeInteger(parameters, "until");
+            if (Helpers.isTrue(!Helpers.isEqual(until, null)))
+            {
+                parameters = this.omit(parameters, "until");
+                Helpers.addElementToObject(request, "before", until);
+            }
+            Map<String, Object> response = (this.historyGetAccountLog(this.extend(request, parameters))).join();
+            //
+            //    {
+            //        "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+            //        "logs": [
+            //            {
+            //                "asset": "usd",
+            //                "contract": "pf_dogeusd",
+            //                "booking_uid": "124f43a6-389a-4349-abc6-06fc7eeac86b",
+            //                "collateral": null,
+            //                "date": "2026-09-17T12:00:00.000Z",
+            //                "execution": null,
+            //                "fee": 0,
+            //                "funding_rate": 9.288451412e-7,
+            //                "id": 16,
+            //                "info": "funding rate change",
+            //                "margin_account": "flex",
+            //                "mark_price": null,
+            //                "new_average_entry_price": null,
+            //                "new_balance": 0,
+            //                "old_average_entry_price": null,
+            //                "old_balance": 0.0002,
+            //                "realized_funding": -0.0002,
+            //                "realized_pnl": null,
+            //                "trade_price": null,
+            //                "conversion_spread_percentage": null,
+            //                "liquidation_fee": null,
+            //                "position_uid": null
+            //            },
+            //            ...
+            //        ]
+            //    }
+            //
+            Object logs = this.safeList(response, "logs", new ArrayList<Object>(Arrays.asList()));
+            return this.parseIncomes(logs, market, since, limit);
+        }).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
+
+    }
+
+    public Object parseIncome(Object income, Object... optionalArgs)
+    {
+        //
+        //    {
+        //        "asset": "usd",
+        //        "contract": "pf_dogeusd",
+        //        "booking_uid": "124f43a6-389a-4349-abc6-06fc7eeac86b",
+        //        "date": "2026-09-17T12:00:00.000Z",
+        //        "fee": 0,
+        //        "funding_rate": 9.288451412e-7,
+        //        "id": 16,
+        //        "info": "funding rate change",
+        //        "margin_account": "flex",
+        //        "new_balance": 0,
+        //        "old_balance": 0.0002,
+        //        "realized_funding": -0.0002,
+        //        ...
+        //    }
+        //
+        // the account log spells the contract in lower case, the market ids are upper case
+        Object market = Helpers.getArg(optionalArgs, 0, null);
+        String marketId = this.safeStringUpper(income, "contract");
+        String currencyId = this.safeString(income, "asset");
+        Long timestamp = this.parse8601(this.safeString(income, "date"));
+        return new HashMap<String, Object>() {{
+            put( "info", income );
+            put( "symbol", Krakenfutures.this.safeSymbol(marketId) );
+            put( "code", Krakenfutures.this.safeCurrencyCode(currencyId) );
+            put( "timestamp", timestamp );
+            put( "datetime", Krakenfutures.this.iso8601(timestamp) );
+            put( "id", Krakenfutures.this.safeString(income, "id") );
+            put( "amount", Krakenfutures.this.safeNumber(income, "realized_funding") );
+        }};
     }
 
     public Object parseLedgerEntryType(Object type)

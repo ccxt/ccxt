@@ -134,7 +134,7 @@ public partial class htx : ccxt.htx
     public virtual object requestId()
     {
         this.lockId();
-        object requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
+        Int64 requestId = ((Int64)this.sum(this.safeInteger(this.options, "requestId", 0), 1));
         ((IDictionary<string,object>)this.options)["requestId"] = requestId;
         this.unlockId();
         return ((object)requestId).ToString();
@@ -247,7 +247,7 @@ public partial class htx : ccxt.htx
         List<object> parts = ((string)ch).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 1);
         Dictionary<string, object> market = this.safeMarket(marketId);
-        object ticker = this.parseTicker(tick, market);
+        Dictionary<string, object> ticker = this.parseTicker(tick, market);
         object timestamp = this.safeValue(message, "ts");
         ((IDictionary<string,object>)ticker)["timestamp"] = timestamp;
         ((IDictionary<string,object>)ticker)["datetime"] = this.iso8601(timestamp);
@@ -354,7 +354,7 @@ public partial class htx : ccxt.htx
         List<object> parts = ((string)ch).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 1);
         Dictionary<string, object> market = this.safeMarket(marketId);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         object tradesCache = this.safeValue(this.trades, symbol);
         if (isTrue(isEqual(tradesCache, null)))
         {
@@ -364,7 +364,7 @@ public partial class htx : ccxt.htx
         }
         for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
-            object trade = this.parseTrade(getValue(data, i), market);
+            Dictionary<string, object> trade = this.parseTrade(getValue(data, i), market);
             callDynamically(tradesCache, "append", new object[] {trade});
         }
         callDynamically(client as WebSocketClient, "resolve", new object[] {tradesCache, ch});
@@ -388,7 +388,7 @@ public partial class htx : ccxt.htx
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object symbolVar = symbol;
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -424,7 +424,7 @@ public partial class htx : ccxt.htx
      */
     public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -465,9 +465,9 @@ public partial class htx : ccxt.htx
         List<object> parts = ((string)ch).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 1);
         Dictionary<string, object> market = this.safeMarket(marketId);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? interval = this.safeString(parts, 3);
-        object timeframe = this.findTimeframe(interval);
+        string? timeframe = this.findTimeframe(interval);
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         if (isTrue(isEqual(stored, null)))
@@ -617,7 +617,7 @@ public partial class htx : ccxt.htx
             object data = this.safeValue(message, "data");
             object messages = (orderbook as ccxt.pro.OrderBook).cache;
             object firstMessage = this.safeValue(messages, 0, new Dictionary<string, object>() {});
-            object snapshot = this.parseOrderBook(data, symbol);
+            Dictionary<string, object> snapshot = ((Dictionary<string, object>)this.parseOrderBook(data, symbol));
             object tick = this.safeValue(firstMessage, "tick");
             Int64? sequence = this.safeInteger(tick, "prevSeqNum");
             Int64? nonce = this.safeInteger(data, "seqNum");
@@ -694,7 +694,7 @@ public partial class htx : ccxt.htx
         Int64? attempts = this.safeInteger(subscription, "numAttempts", 0);
         Dictionary<string, object> market = this.market(symbol);
         object url = this.getUrlByMarketType(getValue(market, "type"), getValue(market, "linear"), false, true);
-        object requestId = this.requestId();
+        string requestId = ((string)this.requestId());
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "req", messageHash },
             { "id", requestId },
@@ -813,7 +813,7 @@ public partial class htx : ccxt.htx
         List<object> parts = ((string)ch).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 1);
         Dictionary<string, object> market = this.safeMarket(marketId);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         object tick = this.safeValue(message, "tick", new Dictionary<string, object>() {});
         Int64? seqNum = this.safeInteger(tick, "seqNum");
@@ -823,7 +823,7 @@ public partial class htx : ccxt.htx
         Int64? timestamp = this.safeInteger(message, "ts");
         if (isTrue(isEqual(eventVar, "snapshot")))
         {
-            object snapshot = this.parseOrderBook(tick, symbol, timestamp);
+            Dictionary<string, object> snapshot = ((Dictionary<string, object>)this.parseOrderBook(tick, symbol, timestamp));
             (orderbook as IOrderBook).reset(snapshot);
             ((IDictionary<string,object>)orderbook)["nonce"] = version;
         }
@@ -1930,7 +1930,7 @@ public partial class htx : ccxt.htx
         for (int i = 0; isLessThan(i, getArrayLength(rawPositions)); postFixIncrement(ref i))
         {
             object rawPosition = getValue(rawPositions, i);
-            object position = this.parsePosition(rawPosition);
+            Dictionary<string, object> position = this.parsePosition(rawPosition);
             ((IDictionary<string,object>)position)["timestamp"] = timestamp;
             ((IDictionary<string,object>)position)["datetime"] = this.iso8601(timestamp);
             string? marginMode = this.safeStringLower(position, "marginMode", defaultMarginMode);
@@ -1984,9 +1984,9 @@ public partial class htx : ccxt.htx
     public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object type = null;
+        string? type = null;
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchBalance", null, parameters);
-        type = ((IList<object>)typeparametersVariable)[0];
+        type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         object subType = null;
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("watchBalance", null, parameters, "linear");
@@ -2668,7 +2668,7 @@ public partial class htx : ccxt.htx
         //        "data": { "user-id": "35930539" }
         //    }
         //
-        Future promise = ((Future)getValue(client.futures, "auth"));
+        object promise = getValue(client.futures, "auth");
         callDynamically(promise, "resolve", new object[] {message});
     }
 
@@ -2985,7 +2985,7 @@ public partial class htx : ccxt.htx
                 {
                     for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
                     {
-                        object parsed = this.parseWsTrade(getValue(data, i), market);
+                        Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsTrade(getValue(data, i), market));
                         string? symbol = this.safeString(parsed, "symbol");
                         if (isTrue(!isEqual(symbol, null)))
                         {
@@ -2994,7 +2994,7 @@ public partial class htx : ccxt.htx
                     }
                 } else
                 {
-                    object parsed = this.parseWsTrade(data, market);
+                    Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsTrade(data, market));
                     string? symbol = this.safeString(parsed, "symbol");
                     if (isTrue(!isEqual(symbol, null)))
                     {
@@ -3017,7 +3017,7 @@ public partial class htx : ccxt.htx
                 for (int i = 0; isLessThan(i, getArrayLength(rawTrades)); postFixIncrement(ref i))
                 {
                     object trade = getValue(rawTrades, i);
-                    object parsedTrade = this.parseTrade(trade, market);
+                    Dictionary<string, object> parsedTrade = this.parseTrade(trade, market);
                     // add extra params (side, type, ...) coming from the order
                     parsedTrade = this.extend(parsedTrade, extendParams);
                     callDynamically(cachedTrades, "append", new object[] {parsedTrade});
@@ -3034,7 +3034,7 @@ public partial class htx : ccxt.htx
                 string genericOrderHash = ((string)messageHash).Replace((string)add(".", getValue(market, "lowercaseId")), (string)"");
                 string? lowerCaseBaseId = this.safeStringLower(market, "baseId");
                 genericOrderHash = ((string)genericOrderHash).Replace((string)add(".", lowerCaseBaseId), (string)"");
-                object genericTradesHash = add(add(genericOrderHash, ":"), "trade");
+                string genericTradesHash = add(add(genericOrderHash, ":"), "trade");
                 callDynamically(client as WebSocketClient, "resolve", new object[] {this.myTrades, genericTradesHash});
             }
         }
@@ -3189,7 +3189,7 @@ public partial class htx : ccxt.htx
     public async virtual Task<object> subscribePublic(object url, object symbol, object messageHash, object method = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object requestId = this.requestId();
+        string requestId = ((string)this.requestId());
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "sub", messageHash },
             { "id", requestId },
@@ -3210,7 +3210,7 @@ public partial class htx : ccxt.htx
     public async virtual Task<object> unsubscribePublic(object market, object subMessageHash, object topic, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object requestId = this.requestId();
+        string requestId = ((string)this.requestId());
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "unsub", subMessageHash },
             { "id", requestId },
@@ -3243,7 +3243,7 @@ public partial class htx : ccxt.htx
     {
         parameters ??= new Dictionary<string, object>();
         subscriptionParams ??= new Dictionary<string, object>();
-        object requestId = this.requestId();
+        string requestId = ((string)this.requestId());
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "id", requestId },
             { "messageHash", messageHash },
@@ -3347,7 +3347,7 @@ public partial class htx : ccxt.htx
                     { "Signature", signature },
                 };
             }
-            object requestId = this.requestId();
+            string requestId = ((string)this.requestId());
             Dictionary<string, object> subscription = new Dictionary<string, object>() {
                 { "id", requestId },
                 { "messageHash", messageHash },

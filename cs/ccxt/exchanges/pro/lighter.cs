@@ -79,7 +79,7 @@ public partial class lighter : ccxt.lighter
     public async virtual Task<object> subscribePublic(object messageHash, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object url = getValue(getValue(this.urls, "api"), "ws");
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "subscribe" },
         };
@@ -93,7 +93,7 @@ public partial class lighter : ccxt.lighter
     public async virtual Task<object> subscribePublicMultiple(object messageHashes, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object url = getValue(getValue(this.urls, "api"), "ws");
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "subscribe" },
         };
@@ -107,7 +107,7 @@ public partial class lighter : ccxt.lighter
     public async virtual Task<object> unsubscribe(object messageHash, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object url = getValue(getValue(this.urls, "api"), "ws");
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "unsubscribe" },
         };
@@ -185,7 +185,7 @@ public partial class lighter : ccxt.lighter
         List<object> parts = ((string)channel).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
         string? marketId = ((string)getValue(parts, 1));
         Dictionary<string, object> market = this.safeMarket(marketId);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         Int64? timestamp = this.safeInteger(message, "timestamp");
         if (!isTrue((inOp(this.orderbooks, symbol))))
         {
@@ -195,7 +195,7 @@ public partial class lighter : ccxt.lighter
         string? type = this.safeString(message, "type", "");
         if (isTrue(isEqual(type, "subscribed/order_book")))
         {
-            object parsed = this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size");
+            Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size"));
             ((IDictionary<string,object>)parsed)["nonce"] = this.safeInteger(data, "offset");
             (orderbook as IOrderBook).reset(parsed);
         } else if (isTrue(isEqual(type, "update/order_book")))
@@ -318,8 +318,8 @@ public partial class lighter : ccxt.lighter
             {
                 string? marketId = ((string)getValue(marketIds, i));
                 Dictionary<string, object> market = this.safeMarket(marketId);
-                object symbol = getValue(market, "symbol");
-                object ticker = this.parseTicker(getValue(data, marketId), market);
+                string? symbol = ((string)getValue(market, "symbol"));
+                Dictionary<string, object> ticker = this.parseTicker(getValue(data, marketId), market);
                 ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
                 callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, this.getMessageHash("ticker", symbol)});
                 callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, this.getMessageHash("ticker")});
@@ -328,8 +328,8 @@ public partial class lighter : ccxt.lighter
         {
             string? marketId = this.safeString(data, "market_id");
             Dictionary<string, object> market = this.safeMarket(marketId);
-            object symbol = getValue(market, "symbol");
-            object ticker = this.parseTicker(data, market);
+            string? symbol = ((string)getValue(market, "symbol"));
+            Dictionary<string, object> ticker = this.parseTicker(data, market);
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
             callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, this.getMessageHash("ticker", symbol)});
         }
@@ -616,7 +616,7 @@ public partial class lighter : ccxt.lighter
         List<object> parts = ((string)channel).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
         string? marketId = ((string)getValue(parts, 1));
         Dictionary<string, object> market = this.safeMarket(marketId);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         object stored = this.safeValue(this.trades, symbol);
         if (isTrue(isEqual(stored, null)))
         {
@@ -628,7 +628,7 @@ public partial class lighter : ccxt.lighter
         for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
         {
             object iReversed = subtract(subtract(dataLength, 1), i);
-            object trade = this.parseWsTrade(getValue(data, iReversed), market);
+            Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsTrade(getValue(data, iReversed), market));
             callDynamically(stored, "append", new object[] {trade});
         }
         string? messageHash = ((string)this.getMessageHash("trade", symbol));
@@ -841,7 +841,7 @@ public partial class lighter : ccxt.lighter
                 object jReversed = subtract(subtract(tradesLength, 1), j);
                 object tradeRaw = getValue(trades, jReversed);
                 ((IDictionary<string,object>)tradeRaw)["accountIndex"] = accountIndex;
-                object trade = this.parseWsOrderTrade(tradeRaw, market);
+                Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsOrderTrade(tradeRaw, market));
                 callDynamically(stored, "append", new object[] {trade});
                 object symbol = getValue(trade, "symbol");
                 if (isTrue(!isEqual(symbol, null)))
@@ -1026,7 +1026,7 @@ public partial class lighter : ccxt.lighter
         List<object> parts = ((string)channel).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
         string? marketId = ((string)getValue(parts, 1));
         Dictionary<string, object> market = this.safeMarket(marketId);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         object stored = this.safeValue(this.liquidations, symbol);
         if (isTrue(isEqual(stored, null)))
         {
@@ -1038,7 +1038,7 @@ public partial class lighter : ccxt.lighter
         for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
         {
             object iReversed = subtract(subtract(dataLength, 1), i);
-            object liquidation = this.parseWsLiquidation(getValue(data, iReversed), market);
+            Dictionary<string, object> liquidation = ((Dictionary<string, object>)this.parseWsLiquidation(getValue(data, iReversed), market));
             callDynamically(stored, "append", new object[] {liquidation});
         }
         string? messageHash = ((string)this.getMessageHash("liquidations", symbol));
@@ -1088,9 +1088,9 @@ public partial class lighter : ccxt.lighter
             await this.loadMarkets();
         }
         string? defaultType = this.safeString2(this.options, "watchBalance", "defaultType", "spot");
-        object type = null;
+        string? type = null;
         IList<object> typeparametersVariable = (IList<object>)this.handleParamString(parameters, "type", defaultType);
-        type = ((IList<object>)typeparametersVariable)[0];
+        type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         object accountIndex = null;
         var accountIndexparametersVariable = await this.handleAccountIndex(parameters, "watchBalance", "accountIndex", "account_index");
@@ -1289,7 +1289,7 @@ public partial class lighter : ccxt.lighter
     {
         IDictionary<string, object> options = this.safeDict(this.options, "requestId", this.createSafeDictionary());
         Int64? previousValue = this.safeInteger(options, url, 0);
-        object newValue = this.sum(previousValue, 1);
+        Int64 newValue = ((Int64)this.sum(previousValue, 1));
         ((IDictionary<string,object>)getValue(this.options, "requestId"))[(string)url] = newValue;
         return ((string)this.numberToString(newValue));
     }
@@ -1318,8 +1318,8 @@ public partial class lighter : ccxt.lighter
     public async override Task<ccxt.Order> CreateOrderWs(string symbol, string type, string side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object url = getValue(getValue(this.urls, "api"), "ws");
-        object requestId = this.requestId(url);
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
+        string requestId = ((string)this.requestId(url));
         string messageHash = add("jsonapi/sendtx:", requestId);
         var txTypetxInfoordermarketVariable = await this.signAndCreateOrder("createOrderWs", symbol, type, side, amount, price, parameters);
         var txType = ((IList<object>) txTypetxInfoordermarketVariable)[0];
@@ -1357,8 +1357,8 @@ public partial class lighter : ccxt.lighter
     public async override Task<ccxt.Order> CancelOrderWs(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object url = getValue(getValue(this.urls, "api"), "ws");
-        object requestId = this.requestId(url);
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
+        string requestId = ((string)this.requestId(url));
         string messageHash = add("jsonapi/sendtx:", requestId);
         var txTypetxInfomarketVariable = await this.signAndCancelOrder("cancelOrderWs", id, symbol, parameters);
         var txType = ((IList<object>) txTypetxInfomarketVariable)[0];
@@ -1394,8 +1394,8 @@ public partial class lighter : ccxt.lighter
     public async override Task<List<ccxt.Order>> CancelAllOrdersWs(string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object url = getValue(getValue(this.urls, "api"), "ws");
-        object requestId = this.requestId(url);
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
+        string requestId = ((string)this.requestId(url));
         string messageHash = add("jsonapi/sendtx:", requestId);
         var txTypetxInfoVariable = await this.signAndCancelAllOrders("cancelAllOrdersWs", symbol, parameters);
         var txType = ((IList<object>) txTypetxInfoVariable)[0];
@@ -1467,7 +1467,7 @@ public partial class lighter : ccxt.lighter
             List<object> orders = this.safeList(data, marketId, new List<object>() {});
             for (int j = 0; isLessThan(j, getArrayLength(orders)); postFixIncrement(ref j))
             {
-                object order = this.parseOrder(getValue(orders, j), market);
+                Dictionary<string, object> order = this.parseOrder(getValue(orders, j), market);
                 callDynamically(stored, "append", new object[] {order});
                 object symbol = getValue(order, "symbol");
                 if (isTrue(!isEqual(symbol, null)))

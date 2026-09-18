@@ -67,7 +67,7 @@ public partial class coinone : ccxt.coinone
         }
         Dictionary<string, object> market = this.market(symbol);
         string messageHash = add("orderbook:", getValue(market, "symbol"));
-        object url = getValue(getValue(this.urls, "api"), "ws");
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "request_type", "SUBSCRIBE" },
             { "channel", "ORDERBOOK" },
@@ -158,7 +158,7 @@ public partial class coinone : ccxt.coinone
         }
         Dictionary<string, object> market = this.market(symbol);
         string messageHash = add("ticker:", getValue(market, "symbol"));
-        object url = getValue(getValue(this.urls, "api"), "ws");
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "request_type", "SUBSCRIBE" },
             { "channel", "TICKER" },
@@ -203,7 +203,7 @@ public partial class coinone : ccxt.coinone
         //     }
         //
         object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
-        object ticker = this.parseWsTicker(data);
+        Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsTicker(data));
         object symbol = getValue(ticker, "symbol");
         ((IDictionary<string,object>)this.tickers)[(string)((string)symbol)] = ticker;
         string messageHash = add("ticker:", symbol);
@@ -289,7 +289,7 @@ public partial class coinone : ccxt.coinone
         }
         Dictionary<string, object> market = this.market(symbol);
         string messageHash = add("trade:", getValue(market, "symbol"));
-        object url = getValue(getValue(this.urls, "api"), "ws");
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "request_type", "SUBSCRIBE" },
             { "channel", "TRADE" },
@@ -325,7 +325,7 @@ public partial class coinone : ccxt.coinone
         //     }
         //
         object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
-        object trade = this.parseWsTrade(data);
+        Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsTrade(data));
         object symbol = getValue(trade, "symbol");
         object stored = this.safeValue(this.trades, symbol);
         if (isTrue(isEqual(stored, null)))

@@ -516,6 +516,7 @@ pub trait ExchangeOps {
     fn deep_extend(&self, a: Value, optional_args: &[Value]) -> Value;
     fn deepExtend(&self, a: Value, optional_args: &[Value]) -> Value;
     fn index_by(&self, arr: Value, key: Value) -> Value;
+    fn group_by(&self, arr: Value, key: Value, optional_args: &[Value]) -> Value;
     fn filter_by(&self, arr: Value, key: Value, value: Value, optional_args: &[Value]) -> Value;
     fn number_to_string(&self, n: Value) -> Value;
     fn precision_from_string(&self, s: Value) -> Value;
@@ -565,6 +566,7 @@ impl ExchangeOps for Value {
     fn deep_extend(&self, a: Value, o: &[Value]) -> Value { with_base(|e| e.deep_extend(a, o)) }
     fn deepExtend(&self, a: Value, o: &[Value]) -> Value { with_base(|e| e.deep_extend(a, o)) }
     fn index_by(&self, arr: Value, key: Value) -> Value { with_base(|e| e.index_by(arr, key)) }
+    fn group_by(&self, arr: Value, key: Value, o: &[Value]) -> Value { with_base(|e| e.group_by(arr, key, o)) }
     fn filter_by(&self, arr: Value, key: Value, value: Value, o: &[Value]) -> Value { with_base(|e| e.filter_by(arr, key, value, o)) }
     fn number_to_string(&self, n: Value) -> Value { with_base(|e| e.number_to_string(n)) }
     fn precision_from_string(&self, s: Value) -> Value { with_base(|e| e.precision_from_string(s)) }

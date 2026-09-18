@@ -1302,7 +1302,7 @@ class mexc extends \ccxt\async\mexc {
             'symbol' => $this->safe_symbol(null, $market),
             'type' => null,
             'side' => $side,
-            'takerOrMaker' => ($isMaker !== null && $isMaker !== null && $isMaker !== 0) ? 'maker' : 'taker',
+            'takerOrMaker' => ($isMaker !== null && $isMaker !== 0) ? 'maker' : 'taker',
             'price' => $priceString,
             'amount' => $amountString,
             'cost' => $this->safe_string($trade, 'amount'),

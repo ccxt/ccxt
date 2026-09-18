@@ -9,7 +9,7 @@ use crate::test_helpers::*;
 // sibling validators / method tests are re-exported from mod.rs
 use super::*;
 
-pub fn testFeatures(mut exchange: Value, mut skippedProperties: Value) -> Value {
+pub async fn testFeatures(mut exchange: Value, mut skippedProperties: Value) -> Value {
     let mut marketTypes: Value = Value::List(vec![Value::Str("spot".to_string()), Value::Str("swap".to_string()), Value::Str("future".to_string()), Value::Str("option".to_string())]);
     let mut subTypes: Value = Value::List(vec![Value::Str("linear".to_string()), Value::Str("inverse".to_string())]);
     let mut features: Value = get_value(&exchange, &Value::Str("features".to_string()));

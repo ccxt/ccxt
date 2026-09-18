@@ -685,7 +685,7 @@ public partial class kraken : Exchange
         {
             ((IList<object>)promises).Add(this.loadTimeDifference());
         }
-        object responses = await promiseAll(promises);
+        List<object> responses = await promiseAll(promises);
         object assetsResponse = getValue(responses, 0);
         //
         //     {
@@ -1180,7 +1180,7 @@ public partial class kraken : Exchange
         return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderbook, symbol));
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         //     {
@@ -1271,7 +1271,7 @@ public partial class kraken : Exchange
         {
             string? id = ((string)getValue(ids, i));
             Dictionary<string, object> market = this.safeMarket(id);
-            object symbol = getValue(market, "symbol");
+            string? symbol = ((string)getValue(market, "symbol"));
             object ticker = getValue(tickers, id);
             ((IDictionary<string,object>)result)[(string)symbol] = this.parseTicker(ticker, market);
         }
@@ -1336,7 +1336,7 @@ public partial class kraken : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1567,7 +1567,7 @@ public partial class kraken : Exchange
         return ccxt.BaseExchange.ToLedgerEntry(getValue(items, 0));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades (public)
@@ -1631,7 +1631,7 @@ public partial class kraken : Exchange
         //         "timestamp": "2025-05-27T11:24:03.847761Z"
         //     }
         //
-        object timestamp = null;
+        Int64? timestamp = null;
         string? datetime = null;
         string? side = null;
         string? type = null;
@@ -1751,7 +1751,7 @@ public partial class kraken : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object id = getValue(market, "id");
+        string? id = ((string)getValue(market, "id"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "pair", id },
         };
@@ -2119,7 +2119,7 @@ public partial class kraken : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // createOrder
@@ -2281,7 +2281,7 @@ public partial class kraken : Exchange
             // delisted market ids go here
             market = this.getDelistedMarketById(marketId);
         }
-        object timestamp = this.safeTimestamp(order, "opentm");
+        Int64? timestamp = this.safeTimestamp(order, "opentm");
         amount = this.safeString(order, "vol", amount);
         string? filled = this.safeString(order, "vol_exec");
         Dictionary<string, object> fee = null;
@@ -2552,9 +2552,9 @@ public partial class kraken : Exchange
             ((IDictionary<string,object>)request)["timeinforce"] = timeInForce;
         }
         bool isMarket = (isEqual(type, "market"));
-        object postOnly = null;
+        bool? postOnly = null;
         IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isMarket, false, parameters);
-        postOnly = ((IList<object>)postOnlyparametersVariable)[0];
+        postOnly = (bool?)((IList<object>)postOnlyparametersVariable)[0];
         parameters = ((IList<object>)postOnlyparametersVariable)[1];
         if (isTrue(isEqual(postOnly, true)))
         {
@@ -2604,7 +2604,7 @@ public partial class kraken : Exchange
         {
             throw new NotSupported ((string)add(add(add(this.id, " editOrder() does not support "), getValue(market, "type")), " orders, only spot orders are accepted")) ;
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "txid", id },
         };
         string? clientOrderId = this.safeString2(parameters, "clientOrderId", "cl_ord_id");
@@ -2615,9 +2615,9 @@ public partial class kraken : Exchange
             request = this.omit(request, "txid");
         }
         bool isMarket = (isEqual(type, "market"));
-        object postOnly = null;
+        bool? postOnly = null;
         IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isMarket, false, parameters);
-        postOnly = ((IList<object>)postOnlyparametersVariable)[0];
+        postOnly = (bool?)((IList<object>)postOnlyparametersVariable)[0];
         parameters = ((IList<object>)postOnlyparametersVariable)[1];
         if (isTrue(isEqual(postOnly, true)))
         {
@@ -2746,7 +2746,7 @@ public partial class kraken : Exchange
      */
     public async override Task<List<ccxt.Trade>> FetchOrderTrades(string id, string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         object orderTrades = this.safeValue(parameters, "trades");
         List<object> tradeIds = new List<object>() {};
@@ -2858,7 +2858,7 @@ public partial class kraken : Exchange
         {
             string? id = ((string)getValue(orderIds, i));
             object item = getValue(result, id);
-            object order = this.parseOrder(this.extend(new Dictionary<string, object>() {
+            Dictionary<string, object> order = this.parseOrder(this.extend(new Dictionary<string, object>() {
                 { "id", id },
             }, item));
             ((IList<object>)orders).Add(order);
@@ -2965,7 +2965,7 @@ public partial class kraken : Exchange
         Dictionary<string, object> response = null;
         object requestId = this.safeValue(parameters, "userref", id); // string or integer
         parameters = this.omit(parameters, "userref");
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "txid", requestId },
         };
         string? clientOrderId = this.safeString2(parameters, "clientOrderId", "cl_ord_id");
@@ -3372,7 +3372,7 @@ public partial class kraken : Exchange
         //
         string? id = this.safeString(transaction, "refid");
         string? txid = this.safeString(transaction, "txid");
-        object timestamp = this.safeTimestamp(transaction, "time");
+        Int64? timestamp = this.safeTimestamp(transaction, "time");
         string? currencyId = this.safeString(transaction, "asset");
         string? code = this.safeCurrencyCode(currencyId, currency);
         string? address = this.safeString(transaction, "info");
@@ -3917,7 +3917,7 @@ public partial class kraken : Exchange
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(results, "symbol", symbols, false));
     }
 
-    public override object parsePosition(object position, object market = null)
+    public override Dictionary<string, object> parsePosition(object position, object market = null)
     {
         //
         //             {

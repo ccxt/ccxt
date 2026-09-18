@@ -1350,7 +1350,7 @@ impl NdaxCore {
             }
             let mut bidask: Value = self.parse_order_book_bid_ask(level.clone(), &[priceKey.clone(), amountKey.clone()]);
             let mut levelSide: Value = self.safe_integer(level.clone(), Value::Int(9), &[]);
-            let mut side: Value = ternary(is_true(&(!is_equal(&levelSide, &Value::Null) && !is_equal(&levelSide, &Value::Null) && !is_equal(&levelSide, &Value::Int(0)))), asksKey.clone(), bidsKey.clone());
+            let mut side: Value = ternary(is_true(&(!is_equal(&levelSide, &Value::Null) && !is_equal(&levelSide, &Value::Int(0)))), asksKey.clone(), bidsKey.clone());
             crate::runtime::append_to_object_array(&mut result, &side, bidask.clone());
         }
         }
