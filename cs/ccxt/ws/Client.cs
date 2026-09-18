@@ -64,6 +64,9 @@ public partial class BaseExchange
 
         public List<object> mockSentMessages = new List<object>(); // frames recorded in mock mode
 
+        private bool retired = false; // set once under retiredSync: onError, a late onClose and Close() may all race into retire
+        private readonly object retiredSync = new object();
+
         public WebSocketClient(string url, string proxy, handleMessageDelegate handleMessage, pingDelegate ping = null, onCloseDelegate onClose = null, onErrorDelegate onError = null, bool isVerbose = false, Int64 keepA = 30000, bool decompressBinary = true)
         {
             this.url = url;
@@ -569,25 +572,83 @@ public partial class BaseExchange
 
         public async Task Close()
         {
+            await this.retire(new ExchangeClosedByUser("Connection closed by the user"));
+        }
+
+        // Retires this client exactly once, whichever lifecycle path gets here
+        // first (onError, a late onClose, Close()): consumers are released
+        // synchronously (every pending future rejected, futures/rejections/
+        // subscriptions cleared) and the transport is torn down so the ping
+        // loop and the receive loop both stop. See ccxt#30463 - retirement
+        // must be tied to this reference, not to the registry key, because a
+        // reconnect can install a replacement client under the same url.
+        //
+        // Deliberately NOT async. Everything except the transport close must
+        // run on the caller's thread before this method returns, because
+        // CleanupClients is void and fire-and-forgets the returned task: an
+        // await slipped in before reject() would silently defer the consumer
+        // release, and an exception thrown out of the synchronous part would
+        // get packed into the discarded task instead of surfacing at the call
+        // site. The only awaitable step is quarantined in closeTransport();
+        // its task is handed back so each caller picks its own policy -
+        // Close() awaits the full teardown, CleanupClients (running inside
+        // the dying socket's own callback) discards it.
+        public Task retire(object error)
+        {
+            lock (retiredSync)
+            {
+                if (this.retired)
+                {
+                    return Task.CompletedTask;
+                }
+                this.retired = true;
+            }
+            this.error = true;
+            this.isConnected = false; // PingLoop's while() condition
+            Task transportClosed = Task.CompletedTask;
+            try
+            {
+                this.reject(error); // no messageHash: rejects and removes every pending future
+            }
+            finally
+            {
+                // in a finally so the client sheds its lifecycle state and the
+                // transport teardown still starts even if a synchronously-run
+                // awaiter continuation throws out of reject
+                this.futures.Clear();
+                this.rejections.Clear();
+                this.subscriptions.Clear();
+                transportClosed = this.closeTransport();
+            }
+            return transportClosed;
+        }
+
+        // The async half of retirement: closing a WebSocket is a network
+        // handshake, not a local release, so this is a graceful-then-hard
+        // two-step. The await on CloseOutputAsync is load-bearing - Abort()
+        // fired before the close frame is flushed would cancel the graceful
+        // handshake it is meant to back up. Abort() then guarantees the
+        // pending ReceiveAsync (and with it the receive loop) terminates even
+        // when the peer never answers the close frame.
+        private async Task closeTransport()
+        {
             if (this.webSocket.State == WebSocketState.Open)
             {
                 try
                 {
                     await this.webSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Close", CancellationToken.None);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
-                    // Console.WriteLine(e);
+                    // socket may already be dead - Abort below is the backstop
                 }
-
             }
-            foreach (var future in this.futures.Values)
+            try
             {
-                if (!future.task.IsCompleted)
-                {
-                    future.reject(new ExchangeClosedByUser("Connection closed by the user"));
-
-                }
+                this.webSocket.Abort(); // ends the pending ReceiveAsync
+            }
+            catch (Exception)
+            {
             }
         }
     }

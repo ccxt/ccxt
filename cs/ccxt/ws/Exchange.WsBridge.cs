@@ -97,29 +97,18 @@ public partial class BaseExchange
 
     public void CleanupClients(WebSocketClient client, object error = null)
     {
-        // var client = (WebSocketClient)client2;
-        var urlClient = (this.clients.ContainsKey(client.url)) ? this.clients[client.url] : null;
-        if (urlClient != null) //  && urlClient.error
-        {
-            rejectFutures(urlClient, error);
-            // this.clients.Remove(client.url);
-            this.clients.TryRemove(client.url, out _);
-        }
-    }
-
-    void rejectFutures(WebSocketClient urlClient, object error)
-    {
-        // futures are keyed by messageHash while subscriptions are keyed by
-        // subscribeHash, the previous per key lookup only matched when the two
-        // strings were equal and left consumers hanging otherwise, mirror the js
-        // Client.reset behavior instead and reject every pending future, see
-        // https://github.com/ccxt/ccxt/issues/23490 and https://github.com/ccxt/ccxt/issues/21565
-        foreach (var KeyValue in urlClient.futures)
-        {
-            KeyValue.Value.reject(error);
-        }
-        urlClient.futures.Clear();
-        urlClient.subscriptions.Clear();
+        // retire the client that actually errored or closed - by reference, not
+        // by registry key: a concurrent reconnect may have installed a
+        // replacement client under the same url between the transport event and
+        // this callback, and that replacement must keep serving its consumers,
+        // see https://github.com/ccxt/ccxt/issues/30463 (retire rejects every
+        // pending future, per https://github.com/ccxt/ccxt/issues/23490 and
+        // https://github.com/ccxt/ccxt/issues/21565, and closes the transport)
+        _ = client.retire(error ?? new NetworkError("connection closed by remote server"));
+        // atomic compare-and-remove: drop the registry entry only while it
+        // still points at this same client, a healthy replacement stays
+        ((ICollection<KeyValuePair<string, WebSocketClient>>) this.clients)
+            .Remove(new KeyValuePair<string, WebSocketClient>(client.url, client));
     }
 
     public virtual void handleMessage(WebSocketClient client, object messageContent)

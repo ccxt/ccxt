@@ -754,8 +754,17 @@ public partial class BaseExchange
 
     private async Task closeClient(string key, WebSocketClient client)
     {
+        // detach the registry entry first so a concurrent watch dials a fresh
+        // client instead of latching onto the one being closed, and capture the
+        // removed value: a reconnect may have replaced the entry between the
+        // Close() snapshot and now, and that replacement must be retired too,
+        // see https://github.com/ccxt/ccxt/issues/30463
+        this.clients.TryRemove(key, out var removed);
         await client.Close();
-        this.clients.TryRemove(key, out _);
+        if (removed != null && !ReferenceEquals(removed, client))
+        {
+            await removed.Close();
+        }
     }
 
     public async Task Close(bool cleanInstanceCache = false)
@@ -763,15 +772,12 @@ public partial class BaseExchange
         // ##### language-specific cleanup of WS & REST resources #####
         // [WS]
         var tasks = new List<Task>();
-        if (this.clients.Keys.Count > 0)
+        foreach (var pair in this.clients.ToArray()) // snapshot: no re-lookup between key and value
         {
-            foreach (var key in this.clients.Keys)
-            {
-
-                var client = this.clients[key];
-                tasks.Add(closeClient(key, client));
-
-            }
+            tasks.Add(closeClient(pair.Key, pair.Value));
+        }
+        if (tasks.Count > 0)
+        {
             await Task.WhenAll(tasks);
         }
         if (cleanInstanceCache) {
