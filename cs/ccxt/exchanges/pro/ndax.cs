@@ -309,7 +309,7 @@ public partial class ndax : ccxt.ndax
             {
                 string? timeframe = ((string)getValue(keys, j));
                 string? interval = this.safeString(this.timeframes, timeframe, timeframe);
-                object duration = multiply(parseInt(interval), 1000);
+                Int64? duration = multiply(parseInt(interval), 1000);
                 Int64? timestamp = this.safeInteger(ohlcv, 0);
                 if (isEqual(timestamp, null))
                 {

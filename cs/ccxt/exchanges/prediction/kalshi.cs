@@ -391,7 +391,7 @@ public partial class kalshi : PredictionExchange
         string? cursor = null;
         // don't request a full 1000-market page (3+ MB) when the caller wants fewer
         Int64? pageLimit = this.safeInteger(this.options, "marketsPageLimit", 1000);
-        object limit = mathMin(maxMarkets, pageLimit);
+        Int64? limit = ((Int64?)mathMin(maxMarkets, pageLimit));
         // default to tradeable (open) markets; kalshi has thousands of closed/settled markets and
         // an unfiltered cursor pages through those, so loadMarkets would otherwise return mostly
         // closed markets. Pass params.status (e.g. 'closed', 'settled', 'unopened') to override

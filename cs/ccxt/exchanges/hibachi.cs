@@ -990,7 +990,7 @@ public partial class hibachi : Exchange
         double? makerFee = this.safeNumber(market, "maker", this.safeNumber(this.options, "defaultMakerFee", 0.00015));
         double? takerFeeValue = (isEqual(takerFee, null)) ? 0 : takerFee;
         double? makerFeeValue = (isEqual(makerFee, null)) ? 0 : makerFee;
-        object feeRate = mathMax(takerFeeValue, makerFeeValue);
+        double? feeRate = ((double?)mathMax(takerFeeValue, makerFeeValue));
         string sideInternal = "";
         if (isEqual(side, "sell"))
         {
@@ -1139,7 +1139,7 @@ public partial class hibachi : Exchange
         double? makerFee = this.safeNumber(market, "maker", 0);
         double? takerFeeValue = (isEqual(takerFee, null)) ? 0 : takerFee;
         double? makerFeeValue = (isEqual(makerFee, null)) ? 0 : makerFee;
-        object feeRate = mathMax(takerFeeValue, makerFeeValue);
+        double? feeRate = ((double?)mathMax(takerFeeValue, makerFeeValue));
         object message = this.orderMessage(market, nonce, feeRate, type, side, amount, price);
         string signature = this.signMessage(message, this.privateKey);
         Dictionary<string, object> request = new Dictionary<string, object>() {

@@ -863,18 +863,24 @@ public partial class BaseExchange
         }
     }
 
-    public static object parseInt(object a)
+    // cs90 U35: every return path of this helper is the Convert.ToInt64 box or null (the
+    // catch), so the signature names that single box instead of `object`. A call site that
+    // keeps the value in an object context (a dict slot, a request value, an object local)
+    // is unchanged — the same box, only the static type is named. Retyping the signature
+    // lets the classifier name `Int64?` at the ~10 generated declarations it feeds
+    // (build/csharp-local-types.js CSHARP_LOCAL_BARE_RETURN_TYPES) and is what makes
+    // convertToBigIntCustom (`return parseInt (x)`) provable.
+    public static Int64? parseInt(object a)
     {
-        object parsedValue = null;
         try
         {
             var floored = Math.Floor(Convert.ToDouble(a));
-            parsedValue = (Convert.ToInt64(floored));
+            return Convert.ToInt64(floored);
         }
         catch (Exception e)
         {
+            return null;
         }
-        return parsedValue;
     }
 
     public static object parseFloat(object a)

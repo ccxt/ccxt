@@ -937,7 +937,7 @@ public partial class hyperliquid : Exchange
             IDictionary<string, object> innerBaseTokenInfo = this.safeDict(baseTokenInfo, "spec", baseTokenInfo);
             // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
             string? amountPrecisionStr = this.safeString(innerBaseTokenInfo, "szDecimals");
-            object amountPrecision = parseInt(((string)amountPrecisionStr));
+            Int64? amountPrecision = parseInt(((string)amountPrecisionStr));
             double? price = this.safeNumber(extraData, "midPx");
             object pricePrecision = 0;
             if (!isEqual(price, null))
@@ -1055,7 +1055,7 @@ public partial class hyperliquid : Exchange
         double? taker = this.safeNumber(fees, "taker");
         double? maker = this.safeNumber(fees, "maker");
         string? amountPrecisionStr = this.safeString(market, "szDecimals");
-        object amountPrecision = parseInt(((string)amountPrecisionStr));
+        Int64? amountPrecision = parseInt(((string)amountPrecisionStr));
         double? price = this.safeNumber(market, "markPx", 0);
         object pricePrecision = 0;
         if (!isEqual(price, null))
@@ -1740,7 +1740,7 @@ public partial class hyperliquid : Exchange
         Dictionary<string, object> market = this.market(symbol);
         string? priceStr = this.numberToString(price);
         object integerPart = getValue(((string)((string)priceStr)).Split(new [] {"."}, StringSplitOptions.None).ToList<object>(), 0);
-        object significantDigits = mathMax(5, ((string)integerPart).Length);
+        int significantDigits = ((int)mathMax(5, ((string)integerPart).Length));
         string result = this.decimalToPrecision(price, ROUND, significantDigits, SIGNIFICANT_DIGITS, this.paddingMode);
         object maxDecimals = (isEqual(GetValue(market, "spot"), true)) ? 8 : 6;
         object subtractedValue = subtract(maxDecimals, this.precisionFromString(this.safeString(GetValue(market, "precision"), "amount")));

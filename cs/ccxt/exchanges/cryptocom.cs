@@ -1047,7 +1047,7 @@ public partial class cryptocom : Exchange
             bool? marginBuyEnabled = this.safeBool(market, "margin_buy_enabled");
             bool? marginSellEnabled = this.safeBool(market, "margin_sell_enabled");
             string? expiryString = this.omitZero(this.safeString(market, "expiry_timestamp_ms"));
-            Int64? expiry = ((Int64?)(((expiryString != null)) ? parseInt(expiryString) : null));
+            Int64? expiry = ((expiryString != null)) ? parseInt(expiryString) : null;
             object symbol = add(add(bs, "/"), quote);
             string? type = null;
             bool? contract = null;
@@ -1212,7 +1212,7 @@ public partial class cryptocom : Exchange
             await this.loadMarkets();
         }
         symbolVar = this.symbol(symbolVar);
-        Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbolVar}, parameters));
+        object tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbolVar}, parameters));
         return ccxt.BaseExchange.ToTicker(this.safeValue(tickers, symbolVar));
     }
 
@@ -1236,11 +1236,11 @@ public partial class cryptocom : Exchange
         {
             await this.loadMarkets();
         }
-        bool? paginate = false;
+        object paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
-        paginate = (bool?)paginateparametersVariable[0];
+        paginate = paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (paginate == true)
+        if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, parameters));
         }
@@ -1330,11 +1330,11 @@ public partial class cryptocom : Exchange
         {
             await this.loadMarkets();
         }
-        bool? paginate = false;
+        object paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
-        paginate = (bool?)paginateparametersVariable[0];
+        paginate = paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (paginate == true)
+        if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, parameters));
         }
@@ -1399,18 +1399,18 @@ public partial class cryptocom : Exchange
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string timeframeVar = timeframe;
-        Int64? limitVar = limit;
+        object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
-        bool? paginate = false;
+        object paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
-        paginate = (bool?)paginateparametersVariable[0];
+        paginate = paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (paginate == true)
+        if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limitVar,timeframeVar, parameters, 300));
         }
@@ -1423,7 +1423,7 @@ public partial class cryptocom : Exchange
         {
             if (isGreaterThan(limitVar, 300))
             {
-                limitVar = ((Int64?)300);
+                limitVar = 300;
             }
             request["count"] = limitVar;
         }
@@ -1878,7 +1878,7 @@ public partial class cryptocom : Exchange
         List<object> ordersRequests = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
-            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)getValue(orders, i));
+            object rawOrder = getValue(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
             string? type = this.safeString(rawOrder, "type");
             string? side = this.safeString(rawOrder, "side");
@@ -2075,16 +2075,16 @@ public partial class cryptocom : Exchange
         {
             // use createmarketBuy logic here
             string? quoteAmount = null;
-            bool? createMarketBuyOrderRequiresPrice = true;
+            object createMarketBuyOrderRequiresPrice = true;
             IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-            createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPriceparametersVariable[0];
+            createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparametersVariable[0];
             parameters = createMarketBuyOrderRequiresPriceparametersVariable[1];
             double? cost = this.safeNumber2(parameters, "cost", "notional");
             parameters = this.omit(parameters, "cost");
             if (!isEqual(cost, null))
             {
                 quoteAmount = this.costToPrecision(symbol, cost);
-            } else if (createMarketBuyOrderRequiresPrice == true)
+            } else if (isTrue(createMarketBuyOrderRequiresPrice))
             {
                 if (isEqual(price, null))
                 {
@@ -2294,7 +2294,7 @@ public partial class cryptocom : Exchange
         List<object> orderRequests = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
-            IDictionary<string, object> order = ((IDictionary<string, object>)getValue(orders, i));
+            object order = getValue(orders, i);
             string? id = this.safeString(order, "id");
             string? symbol = this.safeString(order, "symbol");
             Dictionary<string, object> market = this.market(symbol);
@@ -2401,11 +2401,11 @@ public partial class cryptocom : Exchange
         {
             await this.loadMarkets();
         }
-        bool? paginate = false;
+        object paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-        paginate = (bool?)paginateparametersVariable[0];
+        paginate = paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (paginate == true)
+        if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters, 100));
         }
@@ -2498,10 +2498,10 @@ public partial class cryptocom : Exchange
      */
     public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
     {
-        string tagVar = tag;
+        object tagVar = tag;
         parameters ??= new Dictionary<string, object>();
         IList<object> tagparametersVariable = (IList<object>)this.handleWithdrawTagAndParams(tagVar, parameters);
-        tagVar = (string)tagparametersVariable[0];
+        tagVar = tagparametersVariable[0];
         parameters = tagparametersVariable[1];
         if (isEqual(this.markets, null))
         {
@@ -2521,7 +2521,7 @@ public partial class cryptocom : Exchange
         IList<object> networkCodeparametersVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
         networkCode = (string)networkCodeparametersVariable[0];
         parameters = networkCodeparametersVariable[1];
-        string? networkId = this.networkCodeToId(networkCode, code);
+        object networkId = this.networkCodeToId(networkCode, code);
         if ((networkId != null))
         {
             request["network_id"] = networkId;
@@ -2635,8 +2635,8 @@ public partial class cryptocom : Exchange
         parameters ??= new Dictionary<string, object>();
         string? network = this.safeStringUpper(parameters, "network");
         parameters = this.omit(parameters, new List<object>() {"network"});
-        Dictionary<string, object> depositAddressesRaw = ccxt.BaseExchange.FromDepositAddresses(await this.FetchDepositAddressesByNetwork(code, parameters));
-        Dictionary<string, object> depositAddresses = depositAddressesRaw;
+        object depositAddressesRaw = ccxt.BaseExchange.FromDepositAddresses(await this.FetchDepositAddressesByNetwork(code, parameters));
+        object depositAddresses = depositAddressesRaw;
         if (inOp(depositAddresses, ((string)network)))
         {
             return ccxt.BaseExchange.ToDepositAddress(getValue(depositAddresses, ((string)network)));
@@ -3284,7 +3284,7 @@ public partial class cryptocom : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> response = await this.v1PrivatePostPrivateGetCurrencyNetworks(parameters);
-        IDictionary<string, object> data = this.safeDict(response, "result");
+        object data = this.safeValue(response, "result");
         List<object> currencyMap = this.safeList(data, "currency_map");
         return ccxt.BaseExchange.ToDepositWithdrawFees(this.parseDepositWithdrawFees(currencyMap, codes, "full_name"));
     }
@@ -3594,7 +3594,7 @@ public partial class cryptocom : Exchange
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> data = this.safeList(result, "data", new List<object>() {});
-        List<object> settlements = this.parseSettlements(data, market);
+        object settlements = this.parseSettlements(data, market);
         List<object> sorted = this.sortBy(settlements, "timestamp");
         return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, symbol, since, limit));
     }
@@ -3620,7 +3620,7 @@ public partial class cryptocom : Exchange
         };
     }
 
-    public virtual List<object> parseSettlements(object settlements, IDictionary<string, object> market)
+    public virtual object parseSettlements(object settlements, IDictionary<string, object> market)
     {
         //
         //     [
@@ -3749,11 +3749,11 @@ public partial class cryptocom : Exchange
         {
             await this.loadMarkets();
         }
-        bool? paginate = false;
+        object paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-        paginate = (bool?)paginateparametersVariable[0];
+        paginate = paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (paginate == true)
+        if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters));
         }

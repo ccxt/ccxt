@@ -355,7 +355,7 @@ public partial class limitless : PredictionExchange
             double cappedPages = Math.Ceiling(Convert.ToDouble(divide(maxMarkets, pageSize)));
             Int64? knownTotal = (!isEqual(totalMarketsCount, null)) ? totalMarketsCount : 0;
             double allPages = Math.Ceiling(Convert.ToDouble(divide(knownTotal, pageSize)));
-            object totalPages = mathMin(allPages, cappedPages);
+            double totalPages = ((double)mathMin(allPages, cappedPages));
             for (int i = 2; isLessThanOrEqual(i, totalPages); postFixIncrement(ref i))
             {
                 page = i;

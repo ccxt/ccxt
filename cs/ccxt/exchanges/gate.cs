@@ -9331,7 +9331,7 @@ public partial class gate : Exchange
         currency = this.safeCurrency(currencyId, currency);
         string? type = this.safeString(item, "type");
         string? rawTimestamp = this.safeString(item, "time");
-        object timestamp = null;
+        Int64? timestamp = null;
         if (((string)((string)rawTimestamp)).Length > 10)
         {
             timestamp = parseInt(((string)rawTimestamp));
