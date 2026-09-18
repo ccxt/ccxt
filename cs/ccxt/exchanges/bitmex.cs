@@ -3368,10 +3368,10 @@ public partial class bitmex : Exchange
             List<object> splitSymbol = ((string)symbolVar).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
             int splitSymbolLength = splitSymbol.Count;
             List<object> timeframes = new List<object>() {"nearest", "daily", "weekly", "monthly", "quarterly", "biquarterly", "perpetual"};
-            if ((splitSymbolLength > 1) && this.inArray(getValue(splitSymbol, 1), timeframes))
+            if ((splitSymbolLength > 1) && this.inArray((splitSymbol != null && 1 < splitSymbol.Count ? splitSymbol[1] : null), timeframes))
             {
-                Dictionary<string, object> code = this.currency(((string)getValue(splitSymbol, 0)));
-                symbolVar = add(add(getValue(code, "id"), ":"), getValue(splitSymbol, 1));
+                Dictionary<string, object> code = this.currency(((string)(splitSymbol != null && 0 < splitSymbol.Count ? splitSymbol[0] : null)));
+                symbolVar = add(add(getValue(code, "id"), ":"), (splitSymbol != null && 1 < splitSymbol.Count ? splitSymbol[1] : null));
                 ((IDictionary<string,object>)request)["symbol"] = symbolVar;
             } else
             {

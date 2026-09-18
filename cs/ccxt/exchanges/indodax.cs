@@ -966,7 +966,7 @@ public partial class indodax : Exchange
         IDictionary<string, object> orders = this.safeDict(response, "return", new Dictionary<string, object>() {});
         Dictionary<string, object> order = this.parseOrder(this.extend(new Dictionary<string, object>() {
             { "id", id },
-        }, getValue(orders, "order")), market);
+        }, (orders != null && orders.ContainsKey("order") ? orders["order"] : null)), market);
         ((IDictionary<string,object>)order)["info"] = response;
         return ccxt.BaseExchange.ToOrder(order);
     }
@@ -998,7 +998,7 @@ public partial class indodax : Exchange
         }
         Dictionary<string, object> response = await this.privatePostOpenOrders(this.extend(request, parameters));
         IDictionary<string, object> openOrdersResult = this.safeDict(response, "return", new Dictionary<string, object>() {});
-        object rawOrders = getValue(openOrdersResult, "orders");
+        object rawOrders = (openOrdersResult != null && openOrdersResult.ContainsKey("orders") ? openOrdersResult["orders"] : null);
         // { success: 1, return: { orders: null }} if no orders
         if (((rawOrders == null)) || ((rawOrders == null)))
         {
@@ -1051,7 +1051,7 @@ public partial class indodax : Exchange
         };
         Dictionary<string, object> response = await this.privatePostOrderHistory(this.extend(request, parameters));
         IDictionary<string, object> historyResult = this.safeDict(response, "return", new Dictionary<string, object>() {});
-        IList<object> orders = this.parseOrders(getValue(historyResult, "orders"), market);
+        IList<object> orders = this.parseOrders((historyResult != null && historyResult.ContainsKey("orders") ? historyResult["orders"] : null), market);
         orders = this.filterBy(orders, "status", "closed");
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbol, since, limit));
     }

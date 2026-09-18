@@ -1239,7 +1239,7 @@ public partial class weex : Exchange
             { "inverse", isInverse },
             { "taker", this.safeNumber(market, "takerFeeRate") },
             { "maker", this.safeNumber(market, "makerFeeRate") },
-            { "feeSide", getValue(fees, "feeSide") },
+            { "feeSide", (fees != null && fees.ContainsKey("feeSide") ? fees["feeSide"] : null) },
             { "contractSize", this.safeNumber(market, "contractVal") },
             { "expiry", null },
             { "expiryDatetime", null },
@@ -1268,9 +1268,9 @@ public partial class weex : Exchange
                 } },
             } },
             { "created", null },
-            { "percentage", getValue(fees, "percentage") },
-            { "tierBased", getValue(fees, "tierBased") },
-            { "tiers", getValue(fees, "tiers") },
+            { "percentage", (fees != null && fees.ContainsKey("percentage") ? fees["percentage"] : null) },
+            { "tierBased", (fees != null && fees.ContainsKey("tierBased") ? fees["tierBased"] : null) },
+            { "tiers", (fees != null && fees.ContainsKey("tiers") ? fees["tiers"] : null) },
             { "info", market },
         });
     }

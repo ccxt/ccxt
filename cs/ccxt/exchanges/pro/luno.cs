@@ -375,7 +375,7 @@ public partial class luno : ccxt.luno
         for (int j = 0; j < getArrayLength(handlers); postFixIncrement(ref j))
         {
             object handler = getValue(handlers, j);
-            DynamicInvoker.InvokeMethod(handler, new object[] { client, message, getValue(subscriptions, 0)});
+            DynamicInvoker.InvokeMethod(handler, new object[] { client, message, (subscriptions != null && 0 < subscriptions.Count ? subscriptions[0] : null)});
         }
     }
 }

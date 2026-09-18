@@ -986,7 +986,7 @@ public partial class bitmex : ccxt.bitmex
                 int sidesLength = cachedSides.Count;
                 if ((sidesLength == 1))
                 {
-                    side = getValue(cachedSides, 0);
+                    side = (cachedSides != null && 0 < cachedSides.Count ? cachedSides[0] : null);
                     ((IDictionary<string,object>)position)["side"] = side;
                 }
             }
@@ -1002,7 +1002,7 @@ public partial class bitmex : ccxt.bitmex
         {
             object messageHash = getValue(messageHashes, i);
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
-            string? symbolsString = ((string)getValue(parts, 1));
+            string? symbolsString = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
             List<object> symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
             object positions = this.filterByArray(newPositions, "symbol", symbols, false);
             if (!isTrue(this.isEmpty(positions)))
@@ -1837,7 +1837,7 @@ public partial class bitmex : ccxt.bitmex
             int numArgs = args.Count;
             if (numArgs > 0)
             {
-                object messageHash = getValue(args, 0);
+                object messageHash = (args != null && 0 < args.Count ? args[0] : null);
                 object broad = getValue(getValue(this.exceptions, "ws"), "broad");
                 string? broadKey = this.findBroadlyMatchedKey(broad, error);
                 object exception = null;

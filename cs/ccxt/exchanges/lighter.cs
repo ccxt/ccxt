@@ -1013,8 +1013,8 @@ public partial class lighter : Exchange
         IDictionary<string, object> marketInfo = this.safeDict(market, "info", new Dictionary<string, object>() {});
         string? amountStr = null;
         string? priceStr = this.priceToPrecision(symbol, price);
-        string? amountScale = this.pow("10", getValue(marketInfo, "size_decimals"));
-        string? priceScale = this.pow("10", getValue(marketInfo, "price_decimals"));
+        string? amountScale = this.pow("10", (marketInfo != null && marketInfo.ContainsKey("size_decimals") ? marketInfo["size_decimals"] : null));
+        string? priceScale = this.pow("10", (marketInfo != null && marketInfo.ContainsKey("price_decimals") ? marketInfo["price_decimals"] : null));
         string? triggerPriceStr = "0"; // default is 0
         object defaultClientOrderId = this.randNumber(9); // c# only support int32 2147483647.
         Int64? clientOrderId = this.safeInteger2(parameters, "client_order_index", "clientOrderId", defaultClientOrderId);
@@ -1278,8 +1278,8 @@ public partial class lighter : Exchange
         object signer = await this.loadAccount(getValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters);
         Dictionary<string, object> market = this.market(symbol);
         IDictionary<string, object> marketInfo = this.safeDict(market, "info", new Dictionary<string, object>() {});
-        string? amountScale = this.pow("10", getValue(marketInfo, "size_decimals"));
-        string? priceScale = this.pow("10", getValue(marketInfo, "price_decimals"));
+        string? amountScale = this.pow("10", (marketInfo != null && marketInfo.ContainsKey("size_decimals") ? marketInfo["size_decimals"] : null));
+        string? priceScale = this.pow("10", (marketInfo != null && marketInfo.ContainsKey("price_decimals") ? marketInfo["price_decimals"] : null));
         string? triggerPrice = this.safeStringN(parameters, new List<object>() {"stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"});
         parameters = this.omit(parameters, new List<object>() {"stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"});
         string? amountStr = null;
@@ -2160,8 +2160,8 @@ public partial class lighter : Exchange
                     string? codeId = this.safeString(asset, "symbol");
                     string? code = this.safeCurrencyCode(codeId);
                     IDictionary<string, object> balance = this.safeDict(result, code, this.account());
-                    ((IDictionary<string,object>)balance)["total"] = Precise.stringAdd(getValue(balance, "total"), this.safeString(asset, "balance"));
-                    ((IDictionary<string,object>)balance)["used"] = Precise.stringAdd(getValue(balance, "used"), this.safeString(asset, "locked_balance"));
+                    ((IDictionary<string,object>)balance)["total"] = Precise.stringAdd((balance != null && balance.ContainsKey("total") ? balance["total"] : null), this.safeString(asset, "balance"));
+                    ((IDictionary<string,object>)balance)["used"] = Precise.stringAdd((balance != null && balance.ContainsKey("used") ? balance["used"] : null), this.safeString(asset, "locked_balance"));
                     if ((code != null))
                     {
                         ((IDictionary<string,object>)result)[(string)code] = balance;
@@ -2994,7 +2994,7 @@ public partial class lighter : Exchange
         IDictionary<string, object> first = this.safeDict(rows, 0);
         if (((first != null)) && ((cursor != null)))
         {
-            ((IDictionary<string,object>)getValue(rows, 0))["cursor"] = cursor;
+            ((IDictionary<string,object>)(rows != null && 0 < rows.Count ? rows[0] : null))["cursor"] = cursor;
         }
         return ccxt.BaseExchange.ToTransferEntryList(this.parseTransfers(rows, currency, since, limit, parameters));
     }
@@ -3116,7 +3116,7 @@ public partial class lighter : Exchange
         IDictionary<string, object> first = this.safeDict(data, 0);
         if (((first != null)) && ((cursor != null)))
         {
-            ((IDictionary<string,object>)getValue(data, 0))["cursor"] = cursor;
+            ((IDictionary<string,object>)(data != null && 0 < data.Count ? data[0] : null))["cursor"] = cursor;
         }
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(data, currency, since, limit));
     }
@@ -3192,7 +3192,7 @@ public partial class lighter : Exchange
         IDictionary<string, object> first = this.safeDict(data, 0);
         if (((first != null)) && ((cursor != null)))
         {
-            ((IDictionary<string,object>)getValue(data, 0))["cursor"] = cursor;
+            ((IDictionary<string,object>)(data != null && 0 < data.Count ? data[0] : null))["cursor"] = cursor;
         }
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(data, currency, since, limit));
     }
@@ -3435,7 +3435,7 @@ public partial class lighter : Exchange
         IDictionary<string, object> first = this.safeDict(data, 0);
         if (((first != null)) && ((nextCursor != null)))
         {
-            ((IDictionary<string,object>)getValue(data, 0))["next_cursor"] = nextCursor;
+            ((IDictionary<string,object>)(data != null && 0 < data.Count ? data[0] : null))["next_cursor"] = nextCursor;
         }
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(data, market, since, limit, parameters));
     }

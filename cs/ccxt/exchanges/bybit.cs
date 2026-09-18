@@ -2278,7 +2278,7 @@ public partial class bybit : Exchange
         int dataLength = data.Count;
         if (((paginationCursor != null)) && (dataLength > 0))
         {
-            object first = getValue(data, 0);
+            object first = (data != null && 0 < data.Count ? data[0] : null);
             ((IDictionary<string,object>)first)["nextPageCursor"] = paginationCursor;
             ((List<object>)data)[Convert.ToInt32(0)] = first;
         }
@@ -10144,7 +10144,7 @@ public partial class bybit : Exchange
         Int64? timestamp = this.safeInteger(response, "time");
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> data = this.safeList(result, "list", new List<object>() {});
-        object greeks = this.parseGreeks(getValue(data, 0), market);
+        object greeks = this.parseGreeks((data != null && 0 < data.Count ? data[0] : null), market);
         return ccxt.BaseExchange.ToGreeks(this.extend(greeks, new Dictionary<string, object>() {             { "timestamp", timestamp },             { "datetime", this.iso8601(timestamp) },         }));
     }
 

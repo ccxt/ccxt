@@ -940,7 +940,7 @@ public partial class tokocrypto : Exchange
                     { "min", this.safeNumber(filter, "minPrice") },
                     { "max", this.safeNumber(filter, "maxPrice") },
                 };
-                ((IDictionary<string,object>)((IDictionary<string,object>)entry)["precision"])["price"] = getValue(filter, "tickSize");
+                ((IDictionary<string,object>)((IDictionary<string,object>)entry)["precision"])["price"] = (filter != null && filter.ContainsKey("tickSize") ? filter["tickSize"] : null);
             }
             if (filtersByType.ContainsKey("LOT_SIZE"))
             {

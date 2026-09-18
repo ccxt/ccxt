@@ -591,8 +591,8 @@ public partial class bithumb : Exchange
                 {
                     List<object> parts = ((string)marketId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
                     // to match gen 1, the quoteId is the first currency derived from the market id
-                    baseId = getValue(parts, 1);
-                    quoteId = getValue(parts, 0);
+                    baseId = (parts != null && 1 < parts.Count ? parts[1] : null);
+                    quoteId = (parts != null && 0 < parts.Count ? parts[0] : null);
                     bs = this.safeCurrencyCode(baseId);
                     quote = this.safeCurrencyCode(quoteId);
                 }
@@ -1627,8 +1627,8 @@ public partial class bithumb : Exchange
             int numParts = parts.Count;
             if (numParts > 1)
             {
-                object transactionDate = getValue(parts, 0);
-                string? transactionTime = ((string)getValue(parts, 1));
+                object transactionDate = (parts != null && 0 < parts.Count ? parts[0] : null);
+                string? transactionTime = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
                 if (((string)transactionTime).Length < 8)
                 {
                     transactionTime = ("0" + transactionTime);

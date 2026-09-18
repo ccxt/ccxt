@@ -1527,7 +1527,7 @@ public partial class cryptocom : Exchange
     {
         IDictionary<string, object> responseResult = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> data = this.safeList(responseResult, "data", new List<object>() {});
-        List<object> positionBalances = this.safeList(getValue(data, 0), "position_balances", new List<object>() {});
+        List<object> positionBalances = this.safeList((data != null && 0 < data.Count ? data[0] : null), "position_balances", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
@@ -2476,7 +2476,7 @@ public partial class cryptocom : Exchange
             address = ((IList<object>)addressrawTagVariable)[0];
             rawTag = ((IList<object>)addressrawTagVariable)[1];
             List<object> splitted = ((string)((string)rawTag)).Split(new [] {((string)"=")}, StringSplitOptions.None).ToList<object>();
-            tag = getValue(splitted, 1);
+            tag = (splitted != null && 1 < splitted.Count ? splitted[1] : null);
         } else
         {
             address = addressString;
@@ -2642,7 +2642,7 @@ public partial class cryptocom : Exchange
             return ccxt.BaseExchange.ToDepositAddress(getValue(depositAddresses, ((string)network)));
         }
         List<object> keys = new List<object>(((IDictionary<string,object>)depositAddresses).Keys);
-        return ccxt.BaseExchange.ToDepositAddress(getValue(depositAddresses, getValue(keys, 0)));
+        return ccxt.BaseExchange.ToDepositAddress(getValue(depositAddresses, (keys != null && 0 < keys.Count ? keys[0] : null)));
     }
 
     /**

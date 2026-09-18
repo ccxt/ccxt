@@ -831,7 +831,7 @@ public partial class bullish : ccxt.bullish
         {
             object messageHash = getValue(messageHashes, i);
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
-            string? symbolsString = ((string)getValue(parts, 1));
+            string? symbolsString = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
             List<object> symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
             object symbolPositions = this.filterByArray(newPositions, "symbol", symbols, false);
             if (!isTrue(this.isEmpty(symbolPositions)))

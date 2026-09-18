@@ -781,7 +781,7 @@ public partial class bingx : ccxt.bingx
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? dataType = this.safeString(message, "dataType", "");
         List<object> parts = ((string)dataType).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
-        string? firstPart = ((string)getValue(parts, 0));
+        string? firstPart = ((string)(parts != null && 0 < parts.Count ? parts[0] : null));
         bool isAllEndpoint = (isEqual(firstPart, "all"));
         string? marketId = this.safeString(data, "symbol", firstPart);
         bool isSwap = getIndexOf(client.url, "swap") >= 0;
@@ -917,7 +917,7 @@ public partial class bingx : ccxt.bingx
         bool isSwap = getIndexOf(client.url, "swap") >= 0;
         string? dataType = this.safeString(message, "dataType", "");
         List<object> parts = ((string)dataType).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
-        string? firstPart = ((string)getValue(parts, 0));
+        string? firstPart = ((string)(parts != null && 0 < parts.Count ? parts[0] : null));
         bool isAllEndpoint = (isEqual(firstPart, "all"));
         string? marketId = this.safeString(message, "s", firstPart);
         string marketType = ((bool) isSwap) ? "swap" : "spot";
@@ -1586,7 +1586,7 @@ public partial class bingx : ccxt.bingx
         {
             object messageHash = getValue(messageHashes, i);
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
-            string? symbolsString = ((string)getValue(parts, 1));
+            string? symbolsString = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
             List<object> filteredSymbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
             object positions = this.filterByArray(newPositions, "symbol", filteredSymbols, false);
             if (!isTrue(this.isEmpty(positions)))

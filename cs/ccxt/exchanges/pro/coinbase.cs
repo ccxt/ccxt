@@ -1100,7 +1100,7 @@ public partial class coinbase : ccxt.coinbase
         List<object> events = this.safeList(message, "events", new List<object>() {});
         IDictionary<string, object> firstEvent = this.safeDict(events, 0, new Dictionary<string, object>() {});
         bool isUnsub = (firstEvent.ContainsKey("subscriptions"));
-        List<object> subKeys = new List<object>(((IDictionary<string,object>)getValue(firstEvent, "subscriptions")).Keys);
+        List<object> subKeys = new List<object>(((IDictionary<string,object>)(firstEvent != null && firstEvent.ContainsKey("subscriptions") ? firstEvent["subscriptions"] : null)).Keys);
         int subKeysLength = subKeys.Count;
         if (isUnsub && (subKeysLength == 0))
         {

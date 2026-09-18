@@ -790,7 +790,7 @@ public partial class gemini : Exchange
         {
             throw new NotSupported ((string)error) ;
         }
-        List<object> rows = ((string)getValue(tables, 1)).Split(new [] {((string)"\n<tr>\n")}, StringSplitOptions.None).ToList<object>(); // eslint-disable-line quotes
+        List<object> rows = ((string)(tables != null && 1 < tables.Count ? tables[1] : null)).Split(new [] {((string)"\n<tr>\n")}, StringSplitOptions.None).ToList<object>(); // eslint-disable-line quotes
         int numRows = getArrayLength(rows);
         if (isLessThan(numRows, 2))
         {
@@ -814,17 +814,17 @@ public partial class gemini : Exchange
             //         '<td>0.01 USD', // quote currency price increment
             //         '</tr>'
             //     ]
-            string marketId = ((string)getValue(cells, 0)).Replace((string)"<td>", (string)"");
+            string marketId = ((string)(cells != null && 0 < cells.Count ? cells[0] : null)).Replace((string)"<td>", (string)"");
             marketId = ((string)marketId).Replace((string)"*", (string)"");
             // const base = this.safeCurrencyCode (baseId);
-            string minAmountString = ((string)getValue(cells, 1)).Replace((string)"<td>", (string)"");
+            string minAmountString = ((string)(cells != null && 1 < cells.Count ? cells[1] : null)).Replace((string)"<td>", (string)"");
             List<object> minAmountParts = ((string)minAmountString).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
             double? minAmount = this.safeNumber(minAmountParts, 0);
-            string amountPrecisionString = ((string)getValue(cells, 2)).Replace((string)"<td>", (string)"");
+            string amountPrecisionString = ((string)(cells != null && 2 < cells.Count ? cells[2] : null)).Replace((string)"<td>", (string)"");
             List<object> amountPrecisionParts = ((string)amountPrecisionString).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
             object idLength = (getArrayLength(marketId) - 0);
             object startingIndex = subtract(idLength, 3);
-            string pricePrecisionString = ((string)getValue(cells, 3)).Replace((string)"<td>", (string)"");
+            string pricePrecisionString = ((string)(cells != null && 3 < cells.Count ? cells[3] : null)).Replace((string)"<td>", (string)"");
             List<object> pricePrecisionParts = ((string)pricePrecisionString).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
             string? quoteId = this.safeStringLower(pricePrecisionParts, 1, slice(marketId, startingIndex, idLength));
             string? baseId = this.safeStringLower(amountPrecisionParts, 1, ((string)marketId).Replace((string)quoteId, (string)""));

@@ -1136,8 +1136,8 @@ public partial class bittrade : Exchange
         if ((type != null))
         {
             List<object> typeParts = ((string)type).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
-            side = getValue(typeParts, 0);
-            type = getValue(typeParts, 1);
+            side = (typeParts != null && 0 < typeParts.Count ? typeParts[0] : null);
+            type = (typeParts != null && 1 < typeParts.Count ? typeParts[1] : null);
         }
         string? takerOrMaker = this.safeString(trade, "role");
         string? price = this.safeString(trade, "price");
@@ -1814,8 +1814,8 @@ public partial class bittrade : Exchange
         if (inOp(order, "type"))
         {
             List<object> orderType = ((string)((IDictionary<string,object>)order)["type"]).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
-            side = getValue(orderType, 0);
-            type = getValue(orderType, 1);
+            side = (orderType != null && 0 < orderType.Count ? orderType[0] : null);
+            type = (orderType != null && 1 < orderType.Count ? orderType[1] : null);
             status = this.parseOrderStatus(this.safeString(order, "state"));
         }
         string? marketId = this.safeString(order, "symbol");

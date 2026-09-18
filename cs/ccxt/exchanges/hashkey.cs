@@ -3837,7 +3837,7 @@ public partial class hashkey : Exchange
     public virtual List<object> parseOrderSideAndReduceOnly(object unparsed)
     {
         List<object> parts = ((string)unparsed).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
-        object side = getValue(parts, 0);
+        object side = (parts != null && 0 < parts.Count ? parts[0] : null);
         bool? reduceOnly = null;
         string? secondPart = this.safeString(parts, 1);
         if ((secondPart != null))

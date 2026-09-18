@@ -1836,7 +1836,7 @@ public partial class coinbase : Exchange
             int length = realMarketIds.Count;
             if (length > 0)
             {
-                ((IDictionary<string,object>)market)["alias"] = getValue(realMarketIds, 0);
+                ((IDictionary<string,object>)market)["alias"] = (realMarketIds != null && 0 < realMarketIds.Count ? realMarketIds[0] : null);
             } else
             {
                 ((IDictionary<string,object>)market)["alias"] = null;
@@ -3270,7 +3270,7 @@ public partial class coinbase : Exchange
             int numParts = parts.Count;
             if (numParts > 3)
             {
-                accountId = getValue(parts, 3);
+                accountId = (parts != null && 3 < parts.Count ? parts[3] : null);
             }
         }
         return this.safeLedgerEntry(new Dictionary<string, object>() {

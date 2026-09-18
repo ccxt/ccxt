@@ -523,10 +523,10 @@ public partial class hyperliquid : PredictionExchange
             // e.g. "20260503-0600" → "2026-05-03T06:00:00Z"
             List<object> expParts = ((string)expiry).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
             int expPartsLength = expParts.Count;
-            if (expPartsLength >= 1 && (((string)getValue(expParts, 0)).Length == 8))
+            if (expPartsLength >= 1 && (((string)(expParts != null && 0 < expParts.Count ? expParts[0] : null)).Length == 8))
             {
-                string? ymd = ((string)getValue(expParts, 0));
-                object hm = ((bool) (expPartsLength >= 2)) ? getValue(expParts, 1) : "0000";
+                string? ymd = ((string)(expParts != null && 0 < expParts.Count ? expParts[0] : null));
+                object hm = ((bool) (expPartsLength >= 2)) ? (expParts != null && 1 < expParts.Count ? expParts[1] : null) : "0000";
                 string isoStr = (((((((((slice(ymd, 0, 4) + "-") + slice(ymd, 4, 6)) + "-") + slice(ymd, 6, 8)) + "T") + slice(hm, 0, 2)) + ":") + slice(hm, 2, 4)) + ":00Z");
                 expiryMs = this.parse8601(isoStr);
                 expiryDatetime = isoStr;
@@ -663,7 +663,7 @@ public partial class hyperliquid : PredictionExchange
         }
         string? midStr = this.numberToString(midPx);
         List<object> parts = ((string)midStr).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
-        string? intPart = ((string)getValue(parts, 0));
+        string? intPart = ((string)(parts != null && 0 < parts.Count ? parts[0] : null));
         object significantDigits = mathMax(5, ((string)intPart).Length);
         object maxDecimals = subtract(8, szDecimals);
         object pricePrecisionDecimals = mathMax(1, mathMin(maxDecimals, subtract(significantDigits, ((string)intPart).Length)));
@@ -2240,10 +2240,10 @@ public partial class hyperliquid : PredictionExchange
         {
             List<object> parts = ((string)expiryRaw).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
             int partsLength = parts.Count;
-            if (partsLength >= 1 && (((string)getValue(parts, 0)).Length == 8))
+            if (partsLength >= 1 && (((string)(parts != null && 0 < parts.Count ? parts[0] : null)).Length == 8))
             {
-                string? ymd = ((string)getValue(parts, 0));
-                object hm = ((bool) (partsLength >= 2)) ? getValue(parts, 1) : "0000";
+                string? ymd = ((string)(parts != null && 0 < parts.Count ? parts[0] : null));
+                object hm = ((bool) (partsLength >= 2)) ? (parts != null && 1 < parts.Count ? parts[1] : null) : "0000";
                 string isoStr = (((((((((slice(ymd, 0, 4) + "-") + slice(ymd, 4, 6)) + "-") + slice(ymd, 6, 8)) + "T") + slice(hm, 0, 2)) + ":") + slice(hm, 2, 4)) + ":00Z");
                 expiryMs = this.parse8601(isoStr);
                 expiryDatetime = isoStr;

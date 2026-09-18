@@ -960,7 +960,7 @@ public partial class phemex : Exchange
             // "1 USD"
             // "0.005 ETH"
             List<object> parts = ((string)contractSizeString).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
-            contractSize = this.parseNumber(getValue(parts, 0));
+            contractSize = this.parseNumber((parts != null && 0 < parts.Count ? parts[0] : null));
         } else
         {
             // "1.0"

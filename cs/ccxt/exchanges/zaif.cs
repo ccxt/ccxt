@@ -665,7 +665,7 @@ public partial class zaif : Exchange
         };
         Dictionary<string, object> response = await this.privatePostTrade(this.extend(request, parameters));
         IDictionary<string, object> data = this.safeDict(response, "return", new Dictionary<string, object>() {});
-        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", ((object)getValue(data, "order_id")).ToString() },         }, market));
+        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", ((object)(data != null && data.ContainsKey("order_id") ? data["order_id"] : null)).ToString() },         }, market));
     }
 
     /**

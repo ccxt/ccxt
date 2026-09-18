@@ -3375,7 +3375,7 @@ public partial class coinex : Exchange
         if ((clientOrderId != null))
         {
             List<object> rows = this.safeList(response, "data", new List<object>() {});
-            data = this.safeDict(getValue(rows, 0), "data", new Dictionary<string, object>() {});
+            data = this.safeDict((rows != null && 0 < rows.Count ? rows[0] : null), "data", new Dictionary<string, object>() {});
         } else
         {
             data = this.safeDict(response, "data", new Dictionary<string, object>() {});
@@ -3724,10 +3724,10 @@ public partial class coinex : Exchange
         object address = null;
         object tag = null;
         int partsLength = parts.Count;
-        if (partsLength > 1 && !isEqual(getValue(parts, 0), "cfx"))
+        if (partsLength > 1 && !isEqual((parts != null && 0 < parts.Count ? parts[0] : null), "cfx"))
         {
-            address = getValue(parts, 0);
-            tag = getValue(parts, 1);
+            address = (parts != null && 0 < parts.Count ? parts[0] : null);
+            tag = (parts != null && 1 < parts.Count ? parts[1] : null);
         } else
         {
             address = coinAddress;

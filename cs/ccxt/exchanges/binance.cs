@@ -4692,11 +4692,11 @@ public partial class binance : Exchange
             ((IList<object>)promises).Add(this.sapiGetMarginAllPairs(parameters));
         }
         List<object> results = await promiseAll(promises);
-        object responseCurrencies = (results != null && 0 < results.Count ? results[0] : null);
+        object responseCurrencies = getValue(results, 0);
         Dictionary<string, object> marginablesById = null;
         if ((fetchMargins == true))
         {
-            object responseMarginables = (results != null && 1 < results.Count ? results[1] : null);
+            object responseMarginables = getValue(results, 1);
             marginablesById = this.indexBy(responseMarginables, "assetName");
         }
         return ((IDictionary<string, object>)((object)(this.parseCurrenciesCustom(responseCurrencies, marginablesById))));
@@ -6622,7 +6622,7 @@ public partial class binance : Exchange
             string? marketId = this.safeString(getValue(response, i), "symbol");
             Dictionary<string, object> tickerMarket = this.safeMarket(marketId, null, null, "spot");
             Dictionary<string, object> parsedTicker = this.parseTicker(getValue(response, i));
-            ((IDictionary<string,object>)parsedTicker)["symbol"] = (tickerMarket != null && tickerMarket.ContainsKey("symbol") ? tickerMarket["symbol"] : null);
+            ((IDictionary<string,object>)parsedTicker)["symbol"] = getValue(tickerMarket, "symbol");
             ((IList<object>)results).Add(parsedTicker);
         }
         return this.filterByArray(results, "symbol", symbols);
@@ -11466,7 +11466,7 @@ public partial class binance : Exchange
         string? currencyId = this.safeString(trade, "fromAsset");
         object tradedCurrency = this.safeCurrencyCode(currencyId);
         Dictionary<string, object> bnb = this.currency("BNB");
-        object earnedCurrency = (bnb != null && bnb.ContainsKey("code") ? bnb["code"] : null);
+        object earnedCurrency = getValue(bnb, "code");
         object applicantSymbol = add(add(earnedCurrency, "/"), tradedCurrency);
         bool tradedCurrencyIsQuote = false;
         if ((!isEqual(this.markets, null)) && (inOp(this.markets, applicantSymbol)))
@@ -12068,7 +12068,7 @@ public partial class binance : Exchange
         };
         ((IDictionary<string,object>)request)["type"] = this.safeString(parameters, "type");
         parameters = this.omit(parameters, "type");
-        if (isEqual((request != null && request.ContainsKey("type") ? request["type"] : null), null))
+        if (isEqual(getValue(request, "type"), null))
         {
             string? symbol = this.safeString(parameters, "symbol");
             IDictionary<string, object> market = null;
@@ -12585,7 +12585,7 @@ public partial class binance : Exchange
             }
             if ((networkCode != null))
             {
-                ((IDictionary<string,object>)(result != null && result.ContainsKey("networks") ? result["networks"] : null))[(string)networkCode] = new Dictionary<string, object>() {
+                ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
                     { "withdraw", new Dictionary<string, object>() {
                         { "fee", withdrawFee },
                         { "percentage", null },
@@ -17930,7 +17930,7 @@ public partial class binance : Exchange
             response = await this.sapiGetAssetConvertTransferQueryByPage(this.extend(request, parameters));
         } else
         {
-            if (isGreaterThan((subtract((request != null && request.ContainsKey("endTime") ? request["endTime"] : null), (request != null && request.ContainsKey("startTime") ? request["startTime"] : null))), msInThirtyDays))
+            if (isGreaterThan((subtract(getValue(request, "endTime"), getValue(request, "startTime"))), msInThirtyDays))
             {
                 throw new BadRequest ((string)(this.id + " fetchConvertTradeHistory () the max interval between startTime and endTime is 30 days.")) ;
             }

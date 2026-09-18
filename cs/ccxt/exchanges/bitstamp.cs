@@ -1408,7 +1408,7 @@ public partial class bitstamp : Exchange
                 throw new ExchangeError ((string)(this.id + " parseCurrencies() missing minimumOrder")) ;
             }
             List<object> parts = ((string)minimumOrder).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
-            string? cost = ((string)getValue(parts, 0));
+            string? cost = ((string)(parts != null && 0 < parts.Count ? parts[0] : null));
             if (((bs != null)) && !(inOp(result, bs)))
             {
                 Int64? baseDecimals = this.safeInteger(market, "base_decimals");
@@ -1644,12 +1644,12 @@ public partial class bitstamp : Exchange
         }
         if ((numCurrencyIds == 2))
         {
-            object marketId = add(getValue(currencyIds, 0), getValue(currencyIds, 1));
+            object marketId = add((currencyIds != null && 0 < currencyIds.Count ? currencyIds[0] : null), (currencyIds != null && 1 < currencyIds.Count ? currencyIds[1] : null));
             if ((!isEqual(this.markets_by_id, null)) && (inOp(this.markets_by_id, marketId)))
             {
                 return this.safeMarket(marketId);
             }
-            marketId = add(getValue(currencyIds, 1), getValue(currencyIds, 0));
+            marketId = add((currencyIds != null && 1 < currencyIds.Count ? currencyIds[1] : null), (currencyIds != null && 0 < currencyIds.Count ? currencyIds[0] : null));
             if ((!isEqual(this.markets_by_id, null)) && (inOp(this.markets_by_id, marketId)))
             {
                 return this.safeMarket(marketId);
@@ -2854,8 +2854,8 @@ public partial class bitstamp : Exchange
             int numParts = addressParts.Count;
             if (numParts > 1)
             {
-                address = getValue(addressParts, 0);
-                tag = getValue(addressParts, 1);
+                address = (addressParts != null && 0 < addressParts.Count ? addressParts[0] : null);
+                tag = (addressParts != null && 1 < addressParts.Count ? addressParts[1] : null);
             }
         }
         Dictionary<string, object> fee = new Dictionary<string, object>() {

@@ -19,7 +19,7 @@ public partial class testMainClass : BaseTest
         object chosenTimeframeKey = "1m";
         if (!isTrue(exchange.inArray(chosenTimeframeKey, timeframeKeys)))
         {
-            chosenTimeframeKey = getValue(timeframeKeys, 0);
+            chosenTimeframeKey = (timeframeKeys != null && 0 < timeframeKeys.Count ? timeframeKeys[0] : null);
         }
         int limit = 10;
         int duration = exchange.parseTimeframe(chosenTimeframeKey);

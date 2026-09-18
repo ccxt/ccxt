@@ -1709,8 +1709,8 @@ public partial class htx : ccxt.htx
         if ((type != null))
         {
             List<object> typeParts = ((string)type).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
-            side = getValue(typeParts, 0);
-            type = getValue(typeParts, 1);
+            side = (typeParts != null && 0 < typeParts.Count ? typeParts[0] : null);
+            type = (typeParts != null && 1 < typeParts.Count ? typeParts[1] : null);
         }
         object aggressor = this.safeValue(trade, "aggressor");
         string? takerOrMaker = null;
@@ -1959,7 +1959,7 @@ public partial class htx : ccxt.htx
             {
                 object messageHash = getValue(messageHashes, j);
                 List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
-                string? symbolsString = ((string)getValue(parts, 1));
+                string? symbolsString = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
                 List<object> symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
                 object positions = this.filterByArray(marginModePositions, "symbol", symbols, false);
                 if (!isTrue(this.isEmpty(positions)))

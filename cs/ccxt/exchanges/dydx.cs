@@ -1482,7 +1482,7 @@ public partial class dydx : Exchange
         Dictionary<string, object> response = await this.nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress(request);
         IDictionary<string, object> account = this.safeDict(response, "info", new Dictionary<string, object>() {});
         ((IDictionary<string,object>)account)["pub_key"] = new Dictionary<string, object>() {
-            { "key", getValue(getValue(account, "pub_key"), "key") },
+            { "key", getValue((account != null && account.ContainsKey("pub_key") ? account["pub_key"] : null), "key") },
         };
         ((IDictionary<string,object>)this.options)["dydxAccount"] = account;
         return ccxt.BaseExchange.ToDict(account);
@@ -1533,10 +1533,10 @@ public partial class dydx : Exchange
         string? amountStr = this.amountToPrecision(symbol, amount);
         string? priceStr = this.priceToPrecision(symbol, price);
         IDictionary<string, object> marketInfo = this.safeDict(market, "info", new Dictionary<string, object>() {});
-        object atomicResolution = getValue(marketInfo, "atomicResolution");
+        object atomicResolution = (marketInfo != null && marketInfo.ContainsKey("atomicResolution") ? marketInfo["atomicResolution"] : null);
         string? quantumScale = this.pow("10", Precise.stringNeg(atomicResolution));
         string? quantums = Precise.stringMul(amountStr, quantumScale);
-        object quantumConversionExponent = getValue(marketInfo, "quantumConversionExponent");
+        object quantumConversionExponent = (marketInfo != null && marketInfo.ContainsKey("quantumConversionExponent") ? marketInfo["quantumConversionExponent"] : null);
         string? priceScale = this.pow("10", Precise.stringSub(Precise.stringSub(atomicResolution, quantumConversionExponent), "-6"));
         string? subticks = Precise.stringMul(priceStr, priceScale);
         int clientMetadata = 0;
@@ -1636,7 +1636,7 @@ public partial class dydx : Exchange
                     } },
                     { "clientId", clientOrderId },
                     { "orderFlags", orderFlag },
-                    { "clobPairId", getValue(marketInfo, "clobPairId") },
+                    { "clobPairId", (marketInfo != null && marketInfo.ContainsKey("clobPairId") ? marketInfo["clobPairId"] : null) },
                 } },
                 { "side", sideNumber },
                 { "quantums", this.toDydxLong(quantums) },
@@ -2134,12 +2134,12 @@ public partial class dydx : Exchange
         object denom = null;
         if ((defaultFeeDenom == "uusdc"))
         {
-            gasPrice = getValue(feeDenom, "USDC_GAS_PRICE");
-            denom = getValue(feeDenom, "USDC_DENOM");
+            gasPrice = (feeDenom != null && feeDenom.ContainsKey("USDC_GAS_PRICE") ? feeDenom["USDC_GAS_PRICE"] : null);
+            denom = (feeDenom != null && feeDenom.ContainsKey("USDC_DENOM") ? feeDenom["USDC_DENOM"] : null);
         } else
         {
-            gasPrice = getValue(feeDenom, "CHAINTOKEN_GAS_PRICE");
-            denom = getValue(feeDenom, "CHAINTOKEN_DENOM");
+            gasPrice = (feeDenom != null && feeDenom.ContainsKey("CHAINTOKEN_GAS_PRICE") ? feeDenom["CHAINTOKEN_GAS_PRICE"] : null);
+            denom = (feeDenom != null && feeDenom.ContainsKey("CHAINTOKEN_DENOM") ? feeDenom["CHAINTOKEN_DENOM"] : null);
         }
         double gasLimit = Math.Ceiling(Convert.ToDouble(this.parseToNumeric(Precise.stringMul(gasUsed, defaultFeeMultiplier))));
         string? feeAmount = Precise.stringMul(this.numberToString(gasLimit), gasPrice);

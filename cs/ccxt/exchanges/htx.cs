@@ -3472,8 +3472,8 @@ public partial class htx : Exchange
         if (((type != null)) && (getIndexOf(type, "-") >= 0))
         {
             List<object> typeParts = ((string)type).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
-            side = getValue(typeParts, 0);
-            type = getValue(typeParts, 1);
+            side = (typeParts != null && 0 < typeParts.Count ? typeParts[0] : null);
+            type = (typeParts != null && 1 < typeParts.Count ? typeParts[1] : null);
         }
         string? takerOrMaker = this.safeStringLower(trade, "role");
         string? priceString = this.safeString2(trade, "price", "trade_price");
@@ -6077,8 +6077,8 @@ public partial class htx : Exchange
                 if (getIndexOf(rawType, "-") >= 0)
                 {
                     List<object> orderType = ((string)rawType).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
-                    side = getValue(orderType, 0);
-                    type = getValue(orderType, 1);
+                    side = (orderType != null && 0 < orderType.Count ? orderType[0] : null);
+                    type = (orderType != null && 1 < orderType.Count ? orderType[1] : null);
                 } else if ((type == null))
                 {
                     type = rawType;
@@ -10241,7 +10241,7 @@ public partial class htx : Exchange
             return ccxt.BaseExchange.ToOpenInterest(this.extend(this.parseOpenInterest(result, market), new Dictionary<string, object>() {                 { "timestamp", timestamp },                 { "datetime", this.iso8601(timestamp) },             }));
         }
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        object openInterest = this.parseOpenInterest(getValue(data, 0), market);
+        object openInterest = this.parseOpenInterest((data != null && 0 < data.Count ? data[0] : null), market);
         ((IDictionary<string,object>)openInterest)["timestamp"] = timestamp;
         ((IDictionary<string,object>)openInterest)["datetime"] = this.iso8601(timestamp);
         return ccxt.BaseExchange.ToOpenInterest(openInterest);
