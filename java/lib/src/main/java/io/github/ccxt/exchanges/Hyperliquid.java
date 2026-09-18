@@ -2209,7 +2209,7 @@ public class Hyperliquid extends HyperliquidApi
 
             try
             {
-                (Helpers.promiseAll(new ArrayList<Object>(Arrays.asList(this.handleBuilderFeeApproval(), this.setRef(), this.isUnifiedEnabled("fetchBalance", null, false, new HashMap<String, Object>() {{}}))))).join(); // for now only fetchBalance requires the unified knowledge, but we can extend this to other methods as needed
+                (CompletableFuture.allOf(((CompletableFuture<?>) this.handleBuilderFeeApproval()), ((CompletableFuture<?>) this.setRef()), ((CompletableFuture<?>) this.isUnifiedEnabled("fetchBalance", null, false, new HashMap<String, Object>() {{}})))).join(); // for now only fetchBalance requires the unified knowledge, but we can extend this to other methods as needed
             } catch(Exception e)
             {
                 return false;

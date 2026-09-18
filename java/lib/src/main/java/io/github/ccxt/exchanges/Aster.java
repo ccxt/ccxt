@@ -5467,7 +5467,7 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            (Helpers.promiseAll(new ArrayList<Object>(Arrays.asList(this.loadMarkets(), this.signIn())))).join();
+            (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets()), ((CompletableFuture<?>) this.signIn()))).join();
             return null;
         });
 

@@ -1620,7 +1620,7 @@ public class Mexc extends MexcApi
             }
             Object spotMarketPromise = this.fetchSpotMarkets(parameters);
             Object swapMarketPromise = this.fetchSwapMarkets(parameters);
-            var spotMarketswapMarketVariable = (Helpers.promiseAll(new ArrayList<Object>(Arrays.asList(spotMarketPromise, swapMarketPromise)))).join();
+            var spotMarketswapMarketVariable = (CompletableFuture.allOf(((CompletableFuture<?>) spotMarketPromise), ((CompletableFuture<?>) swapMarketPromise)).thenApply(promiseAllValue -> new ArrayList<Object>(Arrays.asList(((CompletableFuture<?>) spotMarketPromise).join(), ((CompletableFuture<?>) swapMarketPromise).join())))).join();
             var spotMarket = ((List<Object>) spotMarketswapMarketVariable).get(0);
             var swapMarket = ((List<Object>) spotMarketswapMarketVariable).get(1);
             return this.arrayConcat(spotMarket, swapMarket);

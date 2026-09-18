@@ -1937,7 +1937,7 @@ public class Nado extends NadoApi
             Object symbolsRequest = this.gatewayPublicGetSymbols(parameters);
             Object pairsRequest = this.gatewayV2PublicGetPairs(parameters);
             Object assetsRequest = this.gatewayV2PublicGetAssets(parameters);
-            Object responses = (Helpers.promiseAll(new ArrayList<Object>(Arrays.asList(symbolsRequest, pairsRequest, assetsRequest)))).join();
+            Object responses = (CompletableFuture.allOf(((CompletableFuture<?>) symbolsRequest), ((CompletableFuture<?>) pairsRequest), ((CompletableFuture<?>) assetsRequest)).thenApply(promiseAllValue -> new ArrayList<Object>(Arrays.asList(((CompletableFuture<?>) symbolsRequest).join(), ((CompletableFuture<?>) pairsRequest).join(), ((CompletableFuture<?>) assetsRequest).join())))).join();
             Object symbols = this.safeList(responses, 0, new ArrayList<Object>(Arrays.asList()));
             Object pairs = this.safeList(responses, 1, new ArrayList<Object>(Arrays.asList()));
             Object assets = this.safeList(responses, 2, new ArrayList<Object>(Arrays.asList()));

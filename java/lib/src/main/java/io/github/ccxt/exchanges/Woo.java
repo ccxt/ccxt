@@ -1574,7 +1574,7 @@ public class Woo extends WooApi
             //     "success": true
             // }
             //
-            var tokenResponsetokenNetworkResponseVariable = (Helpers.promiseAll(new ArrayList<Object>(Arrays.asList(tokenResponsePromise, tokenNetworkResponsePromise)))).join();
+            var tokenResponsetokenNetworkResponseVariable = (CompletableFuture.allOf(((CompletableFuture<?>) tokenResponsePromise), ((CompletableFuture<?>) tokenNetworkResponsePromise)).thenApply(promiseAllValue -> new ArrayList<Object>(Arrays.asList(((CompletableFuture<?>) tokenResponsePromise).join(), ((CompletableFuture<?>) tokenNetworkResponsePromise).join())))).join();
             var tokenResponse = ((List<Object>) tokenResponsetokenNetworkResponseVariable).get(0);
             var tokenNetworkResponse = ((List<Object>) tokenResponsetokenNetworkResponseVariable).get(1);
             Object tokenRows = this.safeList(tokenResponse, "rows", new ArrayList<Object>(Arrays.asList()));
@@ -3280,7 +3280,7 @@ public class Woo extends WooApi
             //         "timestamp": 1721295317627
             //     }
             //
-            var mainAccountResponsesubAccountResponseVariable = (Helpers.promiseAll(new ArrayList<Object>(Arrays.asList(mainAccountPromise, subAccountPromise)))).join();
+            var mainAccountResponsesubAccountResponseVariable = (CompletableFuture.allOf(((CompletableFuture<?>) mainAccountPromise), ((CompletableFuture<?>) subAccountPromise)).thenApply(promiseAllValue -> new ArrayList<Object>(Arrays.asList(((CompletableFuture<?>) mainAccountPromise).join(), ((CompletableFuture<?>) subAccountPromise).join())))).join();
             var mainAccountResponse = ((List<Object>) mainAccountResponsesubAccountResponseVariable).get(0);
             var subAccountResponse = ((List<Object>) mainAccountResponsesubAccountResponseVariable).get(1);
             Map<String, Object> mainData = (Map<String, Object>) this.safeDict(mainAccountResponse, "data", new HashMap<String, Object>() {{}});

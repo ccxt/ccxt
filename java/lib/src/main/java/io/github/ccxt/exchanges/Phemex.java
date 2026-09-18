@@ -1339,7 +1339,7 @@ public class Phemex extends PhemexApi
             //     }
             //
             Object v1ProductsPromise = this.v1GetExchangePublicProducts(parameters);
-            var v2Productsv1ProductsVariable = (Helpers.promiseAll(new ArrayList<Object>(Arrays.asList(v2ProductsPromise, v1ProductsPromise)))).join();
+            var v2Productsv1ProductsVariable = (CompletableFuture.allOf(((CompletableFuture<?>) v2ProductsPromise), ((CompletableFuture<?>) v1ProductsPromise)).thenApply(promiseAllValue -> new ArrayList<Object>(Arrays.asList(((CompletableFuture<?>) v2ProductsPromise).join(), ((CompletableFuture<?>) v1ProductsPromise).join())))).join();
             var v2Products = ((List<Object>) v2Productsv1ProductsVariable).get(0);
             var v1Products = ((List<Object>) v2Productsv1ProductsVariable).get(1);
             Object v1ProductsData = this.safeValue(v1Products, "data", new ArrayList<Object>(Arrays.asList()));

@@ -2212,7 +2212,7 @@ public class Gate extends GateApi
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object marginPromise = this.publicMarginGetCurrencyPairs(parameters);
             Object spotMarketsPromise = this.publicSpotGetCurrencyPairs(parameters);
-            var marginResponsespotMarketsResponseVariable = (Helpers.promiseAll(new ArrayList<Object>(Arrays.asList(marginPromise, spotMarketsPromise)))).join();
+            var marginResponsespotMarketsResponseVariable = (CompletableFuture.allOf(((CompletableFuture<?>) marginPromise), ((CompletableFuture<?>) spotMarketsPromise)).thenApply(promiseAllValue -> new ArrayList<Object>(Arrays.asList(((CompletableFuture<?>) marginPromise).join(), ((CompletableFuture<?>) spotMarketsPromise).join())))).join();
             var marginResponse = ((List<Object>) marginResponsespotMarketsResponseVariable).get(0);
             var spotMarketsResponse = ((List<Object>) marginResponsespotMarketsResponseVariable).get(1);
             Map<String, Object> marginMarkets = this.indexBy(marginResponse, "id");
