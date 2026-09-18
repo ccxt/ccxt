@@ -517,7 +517,7 @@ func (this *Nado) createOrderRequestBody(ch chan any, symbol any, typeVar any, s
 		triggerDirectionparamsVariable := this.HandleTriggerDirectionAndParams(params)
 		triggerDirection = GetValue(triggerDirectionparamsVariable, 0)
 		params = GetValue(triggerDirectionparamsVariable, 1)
-		var directionSuffix any = func() any {
+		var directionSuffix string = func() string {
 			if IsEqual(triggerDirection, "ascending") {
 				return "above"
 			}
@@ -525,7 +525,7 @@ func (this *Nado) createOrderRequestBody(ch chan any, symbol any, typeVar any, s
 		}()
 		var triggerPriceX18 any = this.ConvertToX18(triggerPrice)
 		var priceRequirement map[string]any = map[string]any{}
-		AddElementToObject(priceRequirement, Add("oracle_price_", directionSuffix), triggerPriceX18)
+		AddElementToObject(priceRequirement, "oracle_price_" + directionSuffix, triggerPriceX18)
 		var trigger map[string]any = map[string]any{
 			"price_trigger": map[string]any{
 				"price_requirement": priceRequirement,
@@ -535,14 +535,14 @@ func (this *Nado) createOrderRequestBody(ch chan any, symbol any, typeVar any, s
 	} else if isStopLossOrder || isTakeProfitOrder {
 		var triggerDirection any = ""
 		if isBuy {
-			triggerDirection = func() any {
+			triggerDirection = func() string {
 				if isStopLossOrder {
 					return "above"
 				}
 				return "below"
 			}()
 		} else {
-			triggerDirection = func() any {
+			triggerDirection = func() string {
 				if isStopLossOrder {
 					return "below"
 				}
@@ -2044,7 +2044,7 @@ func (this *Nado) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	var status *string = this.SafeString(response, "data")
 
 	ch <- map[string]any{
-		"status": func() any {
+		"status": func() string {
 			if status != nil && *status == "active" {
 				return "ok"
 			}
@@ -3500,7 +3500,7 @@ func (this *Nado) ParseOrder(order any, optionalArgs ...any) any {
 		market = this.SafeMarket(marketId, market)
 		var amountString *string = this.SafeString(order, "amount")
 		if amountString != nil {
-			side = func() any {
+			side = func() string {
 				if Precise.StringLt(amountString, "0") {
 					return "sell"
 				}
@@ -3544,7 +3544,7 @@ func (this *Nado) ParseOrder(order any, optionalArgs ...any) any {
 		market = this.SafeMarket(marketId, market)
 		var amountString *string = this.SafeString(order, "amount")
 		if amountString != nil {
-			side = func() any {
+			side = func() string {
 				if Precise.StringLt(amountString, "0") {
 					return "sell"
 				}
@@ -3576,7 +3576,7 @@ func (this *Nado) ParseOrder(order any, optionalArgs ...any) any {
 		}
 		var amountString *string = this.SafeString(rawOrder, "amount")
 		if amountString != nil {
-			side = func() any {
+			side = func() string {
 				if Precise.StringLt(amountString, "0") {
 					return "sell"
 				}

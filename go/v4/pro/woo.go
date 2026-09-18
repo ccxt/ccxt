@@ -1160,7 +1160,7 @@ func (this *Woo) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var maker *bool = this.SafeBool(trade, "maker")
 	var takerOrMaker any = nil
 	if maker != nil {
-		takerOrMaker = func() any {
+		takerOrMaker = func() string {
 			if maker != nil && *maker {
 				return "maker"
 			}
@@ -1328,7 +1328,7 @@ func (this *Woo) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes97912)
 	}
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger", false)
-	var topic any = func() any {
+	var topic string = func() string {
 		if trigger != nil && *trigger == true {
 			return "algoexecutionreportv2"
 		}
@@ -1392,7 +1392,7 @@ func (this *Woo) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes101712)
 	}
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger", false)
-	var topic any = func() any {
+	var topic string = func() string {
 		if trigger != nil && *trigger == true {
 			return "algoexecutionreportv2"
 		}

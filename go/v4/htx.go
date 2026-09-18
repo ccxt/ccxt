@@ -2167,7 +2167,7 @@ func (this *Htx) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchStatus", nil, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
-	var status any = nil
+	var status string
 	var eta *int64 = nil
 	var response any = nil
 	if IsEqual(marketType, "spot") {
@@ -2187,7 +2187,7 @@ func (this *Htx) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 		//
 		var data any = this.SafeDict(response, "data", map[string]any{})
 		var marketStatus *int64 = this.SafeInteger(data, "marketStatus")
-		status = func() any {
+		status = func() string {
 			if marketStatus != nil && *marketStatus == 1 {
 				return "ok"
 			}
@@ -2229,7 +2229,7 @@ func (this *Htx) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 			etaKey = "swap_estimated_recovery_time"
 		}
 		var heartbeat *int64 = this.SafeInteger(data, heartbeatKey)
-		status = func() any {
+		status = func() string {
 			if heartbeat != nil && *heartbeat == 1 {
 				return "ok"
 			}
@@ -4485,7 +4485,7 @@ func (this *Htx) ParseCurrency(rawCurrency any) any {
 	var currencyId *string = this.SafeString(rawCurrency, "currency")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	var assetType *string = this.SafeString(rawCurrency, "assetType")
-	var typeVar any = func() any {
+	var typeVar string = func() string {
 		if assetType != nil && *assetType == "1" {
 			return "crypto"
 		}
@@ -6450,7 +6450,7 @@ func (this *Htx) ParseOrder(order any, optionalArgs ...any) any {
 	} else {
 		var reduceOnlyInteger *int64 = this.SafeInteger(order, "reduce_only")
 		if reduceOnlyInteger != nil {
-			reduceOnly = func() any {
+			reduceOnly = func() bool {
 				if reduceOnlyInteger != nil && *reduceOnlyInteger == 0 {
 					return false
 				}
@@ -6631,7 +6631,7 @@ func (this *Htx) createSpotOrderRequestBody(ch chan any, symbol any, typeVar any
 			panic(ArgumentsRequired(this.Id + " createOrder() requires a triggerPrice for a trigger order"))
 		}
 	} else {
-		var defaultOperator any = func() any {
+		var defaultOperator string = func() string {
 			if IsEqual(side, "sell") {
 				return "lte"
 			}
@@ -9279,7 +9279,7 @@ func (this *Htx) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 		var firstSymbol *string = this.SafeString(symbols, 0)
 		var market any = this.Market(firstSymbol)
 		var isLinear any = GetValue(market, "linear")
-		subType = func() any {
+		subType = func() string {
 			if isLinear == true {
 				return "linear"
 			}
@@ -9466,7 +9466,7 @@ func (this *Htx) ParseBorrowInterest(info any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(info, "symbol")
-	var marginMode any = func() any {
+	var marginMode string = func() string {
 		if marketId == nil {
 			return "cross"
 		}
@@ -10003,7 +10003,7 @@ func (this *Htx) ParsePosition(position any, optionalArgs ...any) any {
 	var entryPrice *float64 = this.SafeNumber2(position, "cost_open", "open_avg_price")
 	var initialMargin *string = this.SafeString2(position, "position_margin", "initial_margin")
 	var rawSide *string = this.SafeString(position, "direction")
-	var directionSide any = func() any {
+	var directionSide string = func() string {
 		if rawSide != nil && *rawSide == "buy" {
 			return "long"
 		}
@@ -11865,7 +11865,7 @@ func (this *Htx) setPositionModeBody(ch chan any, hedged any, optionalArgs ...an
 		retRes982212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes982212)
 	}
-	var posMode any = func() any {
+	var posMode string = func() string {
 		if EvalTruthy(hedged) {
 			return "dual_side"
 		}

@@ -430,7 +430,7 @@ func (this *Revolutx) ParseCurrency(currency any) any {
 	var status *string = this.SafeString(currency, "status")
 	var active bool = (status != nil && *status == "active")
 	var assetType *string = this.SafeString(currency, "asset_type")
-	var typeVar any = func() any {
+	var typeVar string = func() string {
 		if assetType != nil && *assetType == "crypto" {
 			return "crypto"
 		}
@@ -1607,7 +1607,7 @@ func (this *Revolutx) ParseMyTrade(trade any, optionalArgs ...any) any {
 	var side *string = this.SafeStringLower(trade, "s")
 	var timestamp *int64 = this.SafeInteger2(trade, "tdt", "pdt")
 	var isMaker *bool = this.SafeBool(trade, "im", false)
-	var takerOrMaker any = func() any {
+	var takerOrMaker string = func() string {
 		if isMaker != nil && *isMaker {
 			return "maker"
 		}

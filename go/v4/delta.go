@@ -450,7 +450,7 @@ func (this *Delta) CreateExpiredOptionMarket(symbol any) any {
 	var strike *string = this.SafeString(optionParts, 2)
 	var datetime any = this.ConvertExpireDate(expiry)
 	var timestamp *int64 = this.Parse8601(datetime)
-	var optionTypeUnified any = func() any {
+	var optionTypeUnified string = func() string {
 		if IsEqual(optionType, "C") {
 			return "call"
 		}
@@ -620,7 +620,7 @@ func (this *Delta) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	//
 	var result any = this.SafeDict(response, "result", map[string]any{})
 	var underMaintenance *string = this.SafeString(result, "under_maintenance")
-	var status any = func() any {
+	var status string = func() string {
 		if underMaintenance != nil && *underMaintenance == "true" {
 			return "maintenance"
 		}

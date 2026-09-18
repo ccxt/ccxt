@@ -417,7 +417,7 @@ func (this *Hyperliquid) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	var status *string = this.SafeString(response, "specialStatuses")
 
 	ch <- map[string]any{
-		"status": func() any {
+		"status": func() string {
 			if status == nil {
 				return "ok"
 			}
@@ -1242,7 +1242,7 @@ func (this *Hyperliquid) fetchBalanceBody(ch chan any, optionalArgs ...any) any 
 	var dex *string = this.SafeString(params, "dex")
 	var isSpot bool = ((IsEqual(typeVar, "spot")) || (isUnifiedEnabled == true)) && (dex == nil)
 	var request map[string]any = map[string]any{
-		"type": func() any {
+		"type": func() string {
 			if isSpot == true {
 				return "spotClearinghouseState"
 			}
@@ -1899,13 +1899,13 @@ func (this *Hyperliquid) PriceToPrecision(symbol any, price any) any {
 	var integerPart any = GetValue(Split(priceStr, "."), 0)
 	var significantDigits any = mathMax(5, GetLength(integerPart))
 	var result string = this.DecimalToPrecision(price, ROUND, significantDigits, SIGNIFICANT_DIGITS, this.PaddingMode)
-	var maxDecimals any = func() any {
+	var maxDecimals int = func() int {
 		if IsEqual(GetValue(market, "spot"), true) {
 			return 8
 		}
 		return 6
 	}()
-	var subtractedValue any = Subtract(maxDecimals, this.PrecisionFromString(this.SafeString(GetValue(market, "precision"), "amount")))
+	var subtractedValue int64 = Subtract(maxDecimals, this.PrecisionFromString(this.SafeString(GetValue(market, "precision"), "amount"))).(int64)
 	return this.DecimalToPrecision(result, ROUND, subtractedValue, DECIMAL_PLACES, this.PaddingMode)
 }
 func (this *Hyperliquid) HashMessage(message any) any {
@@ -1925,7 +1925,7 @@ func (this *Hyperliquid) SignMessage(message any, privateKey any) any {
 func (this *Hyperliquid) ConstructPhantomAgent(hash any, optionalArgs ...any) any {
 	isTestnet := GetArg(optionalArgs, 0, true)
 	_ = isTestnet
-	var source any = func() any {
+	var source string = func() string {
 		if EvalTruthy((isTestnet)) {
 			return "b"
 		}
@@ -2200,7 +2200,7 @@ func (this *Hyperliquid) approveBuilderFeeBody(ch chan any, builder any, maxFeeR
 	var nonce int64 = this.Milliseconds()
 	var isSandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	var payload map[string]any = map[string]any{
-		"hyperliquidChain": func() any {
+		"hyperliquidChain": func() string {
 			if isSandboxMode != nil && *isSandboxMode == true {
 				return "Testnet"
 			}
@@ -2450,7 +2450,7 @@ func (this *Hyperliquid) setUserAbstractionBody(ch chan any, abstraction any, op
 	var typeVar *string = this.SafeString(params, "type", "userSetAbstraction")
 	params = this.Omit(params, "type")
 	var payload map[string]any = map[string]any{
-		"hyperliquidChain": func() any {
+		"hyperliquidChain": func() string {
 			if isSandboxMode != nil && *isSandboxMode == true {
 				return "Testnet"
 			}
@@ -2518,7 +2518,7 @@ func (this *Hyperliquid) enableUserDexAbstractionBody(ch chan any, enabled any, 
 	var typeVar *string = this.SafeString(params, "type", "userDexAbstraction")
 	params = this.Omit(params, "type")
 	var payload map[string]any = map[string]any{
-		"hyperliquidChain": func() any {
+		"hyperliquidChain": func() string {
 			if isSandboxMode != nil && *isSandboxMode == true {
 				return "Testnet"
 			}
@@ -2828,7 +2828,7 @@ func (this *Hyperliquid) CreateOrderRequest(symbol any, typeVar any, side any, a
 	var isBuy bool = (IsEqual(side, "BUY"))
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "client_id")
 	var slippage *string = this.SafeString(params, "slippage")
-	var defaultTimeInForce any = func() any {
+	var defaultTimeInForce string = func() string {
 		if isMarket {
 			return "ioc"
 		}
@@ -2870,7 +2870,7 @@ func (this *Hyperliquid) CreateOrderRequest(symbol any, typeVar any, side any, a
 		} else {
 			triggerPrice = this.PriceToPrecision(symbol, stopLossPrice)
 		}
-		var tpSlType any = func() any {
+		var tpSlType string = func() string {
 			if isTp {
 				return "tp"
 			}
@@ -3351,13 +3351,13 @@ func (this *Hyperliquid) cancelOrdersForSymbolsBody(ch chan any, orders any, opt
 		if (id != nil) && cancelByCloid {
 			panic(BadRequest(this.Id + " cancelOrdersForSymbols() all orders must have either id or clientOrderId"))
 		}
-		var assetKey any = func() any {
+		var assetKey string = func() string {
 			if cancelByCloid {
 				return "asset"
 			}
 			return "a"
 		}()
-		var idKey any = func() any {
+		var idKey string = func() string {
 			if cancelByCloid {
 				return "cloid"
 			}
@@ -3365,16 +3365,16 @@ func (this *Hyperliquid) cancelOrdersForSymbolsBody(ch chan any, orders any, opt
 		}()
 		var market any = this.Market(symbol)
 		var cancelObj map[string]any = map[string]any{}
-		AddElementToObject(cancelObj, assetKey, this.ParseToNumeric(GetValue(market, "baseId")))
-		AddElementToObject(cancelObj, idKey, func() any {
+		cancelObj[assetKey] = this.ParseToNumeric(GetValue(market, "baseId"))
+		cancelObj[idKey] = func() any {
 			if cancelByCloid {
 				return clientOrderId
 			}
 			return this.ParseToNumeric(id)
-		}())
+		}()
 		AppendToArray(&cancelReq, cancelObj)
 	}
-	cancelAction["type"] = func() any {
+	cancelAction["type"] = func() string {
 		if cancelByCloid {
 			return "cancelByCloid"
 		}
@@ -3519,7 +3519,7 @@ func (this *Hyperliquid) EditOrdersRequest(orders any, optionalArgs ...any) any 
 		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
 		var defaultSlippage *string = this.SafeString(this.Options, "defaultSlippage")
 		var slippage *string = this.SafeString(orderParams, "slippage", defaultSlippage)
-		var defaultTimeInForce any = func() any {
+		var defaultTimeInForce string = func() string {
 			if isMarket {
 				return "ioc"
 			}
@@ -3560,7 +3560,7 @@ func (this *Hyperliquid) EditOrdersRequest(orders any, optionalArgs ...any) any 
 			} else {
 				triggerPrice = this.PriceToPrecision(symbol, stopLossPrice)
 			}
-			var tpSlType any = func() any {
+			var tpSlType string = func() string {
 				if isTp {
 					return "tp"
 				}
@@ -4440,7 +4440,7 @@ func (this *Hyperliquid) ParseOrder(order any, optionalArgs ...any) any {
 	order = this.Omit(order, []any{"ccxtStatus"})
 	var side any = DerefScalar(this.SafeString(entry, "side"))
 	if !IsEqual(side, nil) {
-		side = func() any {
+		side = func() string {
 			if IsEqual(side, "A") {
 				return "sell"
 			}
@@ -4649,7 +4649,7 @@ func (this *Hyperliquid) ParseTrade(trade any, optionalArgs ...any) any {
 	var id *string = this.SafeString(trade, "tid")
 	var side any = DerefScalar(this.SafeString(trade, "side"))
 	if !IsEqual(side, nil) {
-		side = func() any {
+		side = func() string {
 			if IsEqual(side, "A") {
 				return "sell"
 			}
@@ -4660,7 +4660,7 @@ func (this *Hyperliquid) ParseTrade(trade any, optionalArgs ...any) any {
 	var takerOrMaker any = nil
 	var crossed *bool = this.SafeBool(trade, "crossed")
 	if crossed != nil {
-		takerOrMaker = func() any {
+		takerOrMaker = func() string {
 			if crossed != nil && *crossed {
 				return "taker"
 			}
@@ -4885,7 +4885,7 @@ func (this *Hyperliquid) ParsePosition(position any, optionalArgs ...any) any {
 	var size *string = rawSize
 	var side any = nil
 	if size != nil {
-		side = func() any {
+		side = func() string {
 			if Precise.StringGt(rawSize, "0") {
 				return "long"
 			}
@@ -5267,7 +5267,7 @@ func (this *Hyperliquid) transferBody(ch chan any, code any, amount any, fromAcc
 		var strAmountFinal any = strAmount // java req
 		var toPerp bool = (IsEqual(toAccount, "perp")) || (IsEqual(toAccount, "swap"))
 		var transferPayload map[string]any = map[string]any{
-			"hyperliquidChain": func() any {
+			"hyperliquidChain": func() string {
 				if isSandboxMode != nil && *isSandboxMode == true {
 					return "Testnet"
 				}
@@ -5455,7 +5455,7 @@ func (this *Hyperliquid) withdrawBody(ch chan any, code any, amount any, address
 	} else {
 		var isSandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 		var payload map[string]any = map[string]any{
-			"hyperliquidChain": func() any {
+			"hyperliquidChain": func() string {
 				if isSandboxMode != nil && *isSandboxMode == true {
 					return "Testnet"
 				}

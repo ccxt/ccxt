@@ -337,7 +337,7 @@ func (this *Opinion) ParseOpinionMarket(raw any, optionalArgs ...any) any {
 		var settleFraction any = nil
 		if hasResult {
 			winner = (ccxt.IsEqual(tokenId, resultTokenId))
-			settleFraction = func() any {
+			settleFraction = func() int {
 				if ccxt.EvalTruthy(winner) {
 					return 1
 				}
@@ -1275,7 +1275,7 @@ func (this *Opinion) createOrderBody(ch chan any, outcome any, typeVar any, side
 	var amounts any = this.OpinionOrderRawAmounts(isMarket, sideStr, amount, price, decimals)
 	var makerAmount *string = this.SafeString(amounts, "makerAmount")
 	var takerAmount *string = this.SafeString(amounts, "takerAmount")
-	var sideInt any = func() any {
+	var sideInt int = func() int {
 		if sideStr == "BUY" {
 			return 0
 		}
@@ -1292,7 +1292,7 @@ func (this *Opinion) createOrderBody(ch chan any, outcome any, typeVar any, side
 	// signatureType (0 EOA vs 2 Gnosis Safe) and break order signing/validation
 	var makerLower string = ccxt.ToLower(maker)
 	var walletAddressLower string = ccxt.ToLower(this.WalletAddress)
-	var signatureType any = func() any {
+	var signatureType int = func() int {
 		if makerLower == walletAddressLower {
 			return 0
 		}
@@ -1338,7 +1338,7 @@ func (this *Opinion) createOrderBody(ch chan any, outcome any, typeVar any, side
 			}
 			return this.NumberToString(price)
 		}(),
-		"tradingMethod": func() any {
+		"tradingMethod": func() int {
 			if isMarket {
 				return 1
 			}
@@ -2309,7 +2309,7 @@ func (this *Opinion) OpinionOutcomeByMarketIdSide(marketId any, outcomeSide any)
 		var info any = this.SafeDict(market, "info", map[string]any{})
 		if ccxt.IsEqual(this.SafeInteger(info, "marketId"), marketId) {
 			var outcomes any = this.SafeList(market, "outcomes", []any{})
-			var index any = func() any {
+			var index int = func() int {
 				if ccxt.IsEqual(outcomeSide, 2) {
 					return 1
 				}
@@ -2694,14 +2694,14 @@ func (this *Opinion) HandleOrder(client any, message any) {
 	// unlike the REST order body (0 buy / 1 sell), the websocket channel uses 1 buy / 2 sell
 	// per the docs and confirmed live
 	var sideInt *int64 = this.SafeInteger(message, "side")
-	var side any = func() any {
+	var side string = func() string {
 		if sideInt != nil && *sideInt == 1 {
 			return "buy"
 		}
 		return "sell"
 	}()
 	var tradingMethod *int64 = this.SafeInteger(message, "tradingMethod")
-	var typeVar any = func() any {
+	var typeVar string = func() string {
 		if tradingMethod != nil && *tradingMethod == 1 {
 			return "market"
 		}

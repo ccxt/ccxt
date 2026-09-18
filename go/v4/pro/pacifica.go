@@ -135,7 +135,7 @@ func (this *Pacifica) createOrderWsBody(ch chan any, symbol any, typeVar any, si
 	operationType := ccxt.GetValue(requestoperationTypeVariable, 1)
 	params = this.Omit(params, []any{"reduceOnly", "clientOrderId", "stopLimitPrice", "timeInForce", "triggerPrice", "stopLossCloid", "stopLossPrice", "stopLossLimitPrice", "takeProfitCloid", "takeProfitPrice", "takeProfitLimitPrice", "expiryWindow", "agentAddress", "originAddress"})
 	var isTestnet any = this.IsSandboxModeEnabled
-	var urlKey any = func() any {
+	var urlKey string = func() string {
 		if ccxt.EvalTruthy((isTestnet)) {
 			return "test"
 		}
@@ -246,7 +246,7 @@ func (this *Pacifica) editOrderWsBody(ch chan any, id any, symbol any, typeVar a
 	var request any = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, market, params)
 	params = this.Omit(params, []any{"originAddress", "agentAddress", "expiryWindow", "clientOrderId"})
 	var isTestnet any = this.IsSandboxModeEnabled
-	var urlKey any = func() any {
+	var urlKey string = func() string {
 		if ccxt.EvalTruthy((isTestnet)) {
 			return "test"
 		}
@@ -333,7 +333,7 @@ func (this *Pacifica) cancelOrdersWsBody(ch chan any, ids any, optionalArgs ...a
 	var request any = this.CancelOrdersRequest(ids, symbol, params)
 	params = this.Omit(params, []any{"originAddress", "agentAddress", "expiryWindow", "clientOrderIds"})
 	var isTestnet any = this.IsSandboxModeEnabled
-	var urlKey any = func() any {
+	var urlKey string = func() string {
 		if ccxt.EvalTruthy((isTestnet)) {
 			return "test"
 		}
@@ -437,7 +437,7 @@ func (this *Pacifica) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any
 	var request any = this.CancelOrderRequest(id, symbol, params)
 	params = this.Omit(params, []any{"originAddress", "agentAddress", "expiryWindow", "trigger", "stop", "clientOrderId"})
 	var isTestnet any = this.IsSandboxModeEnabled
-	var urlKey any = func() any {
+	var urlKey string = func() string {
 		if ccxt.EvalTruthy((isTestnet)) {
 			return "test"
 		}
@@ -521,7 +521,7 @@ func (this *Pacifica) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) an
 	var request any = this.CancelAllOrdersRequest(symbol, params)
 	params = this.Omit(params, []any{"excludeReduceOnly", "agentAddress", "originAddress", "expiryWindow"})
 	var isTestnet any = this.IsSandboxModeEnabled
-	var urlKey any = func() any {
+	var urlKey string = func() string {
 		if ccxt.EvalTruthy((isTestnet)) {
 			return "test"
 		}
@@ -586,7 +586,7 @@ func (this *Pacifica) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	params = ccxt.GetValue(aggLevelparamsVariable, 1)
 	var messageHash any = ccxt.Add("orderbook:", symbol)
 	var isTestnet any = this.IsSandboxModeEnabled
-	var urlKey any = func() any {
+	var urlKey string = func() string {
 		if ccxt.EvalTruthy((isTestnet)) {
 			return "test"
 		}
@@ -643,7 +643,7 @@ func (this *Pacifica) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs
 	var subMessageHash any = ccxt.Add("orderbook:", symbol)
 	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
 	var isTestnet any = this.IsSandboxModeEnabled
-	var urlKey any = func() any {
+	var urlKey string = func() string {
 		if ccxt.EvalTruthy((isTestnet)) {
 			return "test"
 		}
@@ -781,7 +781,7 @@ func (this *Pacifica) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	symbols = this.MarketSymbols(symbols, nil, true)
 	var messageHash string = "tickers"
 	var isTestnet any = this.IsSandboxModeEnabled
-	var urlKey any = func() any {
+	var urlKey string = func() string {
 		if ccxt.EvalTruthy((isTestnet)) {
 			return "test"
 		}
@@ -837,7 +837,7 @@ func (this *Pacifica) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 	var subMessageHash string = "tickers"
 	var messageHash any = "unsubscribe:" + subMessageHash
 	var isTestnet any = this.IsSandboxModeEnabled
-	var urlKey any = func() any {
+	var urlKey string = func() string {
 		if ccxt.EvalTruthy((isTestnet)) {
 			return "test"
 		}
@@ -900,7 +900,7 @@ func (this *Pacifica) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
 	}
 	var isTestnet any = this.IsSandboxModeEnabled
-	var urlKey any = func() any {
+	var urlKey string = func() string {
 		if ccxt.EvalTruthy((isTestnet)) {
 			return "test"
 		}
@@ -962,7 +962,7 @@ func (this *Pacifica) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	params = ccxt.GetValue(userAddressparamsVariable, 1)
 	var messageHash string = "unsubscribe:myTrades"
 	var isTestnet any = this.IsSandboxModeEnabled
-	var urlKey any = func() any {
+	var urlKey string = func() string {
 		if ccxt.EvalTruthy((isTestnet)) {
 			return "test"
 		}
@@ -1113,7 +1113,7 @@ func (this *Pacifica) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	symbol = ccxt.GetValue(market, "symbol")
 	var messageHash any = ccxt.Add("trade:", symbol)
 	var isTestnet any = this.IsSandboxModeEnabled
-	var urlKey any = func() any {
+	var urlKey string = func() string {
 		if ccxt.EvalTruthy((isTestnet)) {
 			return "test"
 		}
@@ -1168,7 +1168,7 @@ func (this *Pacifica) unWatchTradesBody(ch chan any, symbol any, optionalArgs ..
 	var subMessageHash any = ccxt.Add("trade:", symbol)
 	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
 	var isTestnet any = this.IsSandboxModeEnabled
-	var urlKey any = func() any {
+	var urlKey string = func() string {
 		if ccxt.EvalTruthy((isTestnet)) {
 			return "test"
 		}
@@ -1284,7 +1284,7 @@ func (this *Pacifica) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var eventType *string = this.SafeString(trade, "te")
 	var takerOrMaker any = nil
 	if eventType != nil {
-		takerOrMaker = func() any {
+		takerOrMaker = func() string {
 			if eventType != nil && *eventType == "fulfill_maker" {
 				return "maker"
 			}
@@ -1353,7 +1353,7 @@ func (this *Pacifica) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	symbol = ccxt.GetValue(market, "symbol")
 	var isTestnet any = this.IsSandboxModeEnabled
 	var parsedTf *string = this.SafeString(this.Timeframes, timeframe, timeframe)
-	var urlKey any = func() any {
+	var urlKey string = func() string {
 		if ccxt.EvalTruthy((isTestnet)) {
 			return "test"
 		}
@@ -1411,7 +1411,7 @@ func (this *Pacifica) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
 	var isTestnet any = this.IsSandboxModeEnabled
-	var urlKey any = func() any {
+	var urlKey string = func() string {
 		if ccxt.EvalTruthy((isTestnet)) {
 			return "test"
 		}
@@ -1522,7 +1522,7 @@ func (this *Pacifica) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), symbol)
 	}
 	var isTestnet any = this.IsSandboxModeEnabled
-	var urlKey any = func() any {
+	var urlKey string = func() string {
 		if ccxt.EvalTruthy((isTestnet)) {
 			return "test"
 		}
@@ -1580,7 +1580,7 @@ func (this *Pacifica) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var messageHash string = "unsubscribe:order"
 	var isTestnet any = this.IsSandboxModeEnabled
-	var urlKey any = func() any {
+	var urlKey string = func() string {
 		if ccxt.EvalTruthy((isTestnet)) {
 			return "test"
 		}

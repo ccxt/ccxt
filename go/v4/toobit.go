@@ -1228,7 +1228,7 @@ func (this *Toobit) ParseMarket(market any) any {
 		"baseId":   baseId,
 		"quoteId":  quoteId,
 		"settleId": settleId,
-		"type": func() any {
+		"type": func() string {
 			if isContract {
 				return "swap"
 			}
@@ -1492,7 +1492,7 @@ func (this *Toobit) ParseTrade(trade any, optionalArgs ...any) any {
 	var isMaker *bool = this.SafeBool(trade, "isMaker")
 	var takerOrMaker any = nil
 	if isMaker != nil {
-		takerOrMaker = func() any {
+		takerOrMaker = func() string {
 			if isMaker != nil && *isMaker {
 				return "maker"
 			}
@@ -2232,14 +2232,14 @@ func (this *Toobit) CreateContractOrderRequest(symbol any, typeVar any, side any
 	reduceOnly = GetValue(reduceOnlyparamsVariable, 0)
 	params = GetValue(reduceOnlyparamsVariable, 1)
 	if IsEqual(side, "buy") {
-		side = func() any {
+		side = func() string {
 			if reduceOnly == true {
 				return "BUY_CLOSE"
 			}
 			return "BUY_OPEN"
 		}()
 	} else if IsEqual(side, "sell") {
-		side = func() any {
+		side = func() string {
 			if reduceOnly == true {
 				return "SELL_CLOSE"
 			}
@@ -3411,7 +3411,7 @@ func (this *Toobit) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var addressTo *string = this.SafeString(transaction, "address")
 	var addressFrom *string = this.SafeString(transaction, "fromAddress")
 	var isWithdraw bool = (InOp(transaction, "arriveQuantity"))
-	var typeVar any = func() any {
+	var typeVar string = func() string {
 		if isWithdraw {
 			return "withdrawal"
 		}
@@ -3733,7 +3733,7 @@ func (this *Toobit) ParseLeverage(leverage any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString2(leverage, "symbolId", "symbol")
 	var leverageValue *int64 = this.SafeInteger(leverage, "leverage")
 	var marginType *string = this.SafeStringLower(leverage, "marginType")
-	var marginMode any = func() any {
+	var marginMode string = func() string {
 		if marginType != nil && *marginType == "cross" {
 			return "cross"
 		}

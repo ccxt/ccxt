@@ -886,7 +886,7 @@ func (this *Binance) watchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 	if ccxt.IsEqual(ccxt.GetValue(firstMarket, "option"), true) {
 		typeVar = "option"
 	} else if ccxt.IsEqual(ccxt.GetValue(firstMarket, "contract"), true) {
-		typeVar = func() any {
+		typeVar = func() string {
 			if ccxt.IsEqual(ccxt.GetValue(firstMarket, "linear"), true) {
 				return "future"
 			}
@@ -987,7 +987,7 @@ func (this *Binance) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, op
 	if ccxt.IsEqual(ccxt.GetValue(firstMarket, "option"), true) {
 		typeVar = "option"
 	} else if ccxt.IsEqual(ccxt.GetValue(firstMarket, "contract"), true) {
-		typeVar = func() any {
+		typeVar = func() string {
 			if ccxt.IsEqual(ccxt.GetValue(firstMarket, "linear"), true) {
 				return "future"
 			}
@@ -1292,7 +1292,7 @@ func (this *Binance) HandleOrderBook(client any, message any) {
 	// symbol and stalls the orderbook future (delivery/option ids are
 	// unique, so the swap hint resolves those correctly too)
 	var isSpot any = this.IsSpotUrl(client)
-	var marketType any = func() any {
+	var marketType string = func() string {
 		if ccxt.EvalTruthy(isSpot) {
 			return "spot"
 		}
@@ -1504,7 +1504,7 @@ func (this *Binance) watchTradesForSymbolsBody(ch chan any, symbols any, optiona
 	if isOption == true {
 		typeVar = "option"
 	} else if ccxt.IsEqual(ccxt.GetValue(firstMarket, "contract"), true) {
-		typeVar = func() any {
+		typeVar = func() string {
 			if ccxt.IsEqual(ccxt.GetValue(firstMarket, "linear"), true) {
 				return "future"
 			}
@@ -1611,7 +1611,7 @@ func (this *Binance) unWatchTradesForSymbolsBody(ch chan any, symbols any, optio
 	if isOption == true {
 		typeVar = "option"
 	} else if ccxt.IsEqual(ccxt.GetValue(firstMarket, "contract"), true) {
-		typeVar = func() any {
+		typeVar = func() string {
 			if ccxt.IsEqual(ccxt.GetValue(firstMarket, "linear"), true) {
 				return "future"
 			}
@@ -1864,7 +1864,7 @@ func (this *Binance) ParseWsTrade(trade any, optionalArgs ...any) any {
 		}
 	}
 	var marketId *string = this.SafeString(trade, "s")
-	var fallbackType any = func() any {
+	var fallbackType string = func() string {
 		if ccxt.InOp(trade, "ps") {
 			return "contract"
 		}
@@ -1882,14 +1882,14 @@ func (this *Binance) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var orderId *string = this.SafeString(trade, "i")
 	if ccxt.InOp(trade, "m") {
 		if ccxt.IsEqual(side, nil) {
-			side = func() any {
+			side = func() string {
 				if ccxt.IsEqual(ccxt.GetValue(trade, "m"), true) {
 					return "sell"
 				}
 				return "buy"
 			}() // this is reversed intentionally
 		}
-		takerOrMaker = func() any {
+		takerOrMaker = func() string {
 			if ccxt.IsEqual(ccxt.GetValue(trade, "m"), true) {
 				return "maker"
 			}
@@ -1930,7 +1930,7 @@ func (this *Binance) HandleTrade(client any, message any) {
 	// resolve the market from the transport url — an ambiguous id like
 	// BTCUSDT maps to both the spot and the linear swap market
 	var isSpot any = this.IsSpotUrl(client)
-	var marketType any = func() any {
+	var marketType string = func() string {
 		if ccxt.EvalTruthy(isSpot) {
 			return "spot"
 		}
@@ -2056,7 +2056,7 @@ func (this *Binance) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
 			var stockSymbolString any = this.Symbol(ccxt.GetValue(stockSymAndTf, 0))
 			var stockMarket any = this.Market(stockSymbolString)
 			var stockTicker *string = this.SafeString2(stockMarket, "base", "id")
-			var stockTickerString any = func() any {
+			var stockTickerString string = func() string {
 				if stockTicker == nil {
 					return ""
 				}
@@ -2067,7 +2067,7 @@ func (this *Binance) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
 			if (stockInterval == nil || *stockInterval != "5m") && (stockInterval == nil || *stockInterval != "1h") && (stockInterval == nil || *stockInterval != "1d") && (stockInterval == nil || *stockInterval != "1w") && (stockInterval == nil || *stockInterval != "1M") {
 				panic(ccxt.BadRequest(this.Id + " watchOHLCVForSymbols only supports 5m, 1h, 1d, 1w, and 1M timeframes"))
 			}
-			ccxt.AppendToArray(&stockStreams, ccxt.Add(ccxt.Add(stockTickerString, "@kline_"), stockInterval))
+			ccxt.AppendToArray(&stockStreams, ccxt.Add(stockTickerString+"@kline_", stockInterval))
 			ccxt.AppendToArray(&stockMessageHashes, ccxt.Add(ccxt.Add(ccxt.Add("ohlcv::", ccxt.GetValue(stockMarket, "symbol")), "::"), stockTimeframeString))
 		}
 
@@ -2098,7 +2098,7 @@ func (this *Binance) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
 		typeVar = "option"
 		wsUrlType = "optionMarket" // eOptions klines are served from /market/ws
 	} else if ccxt.IsEqual(ccxt.GetValue(firstMarket, "contract"), true) {
-		typeVar = func() any {
+		typeVar = func() string {
 			if ccxt.IsEqual(ccxt.GetValue(firstMarket, "linear"), true) {
 				return "future"
 			}
@@ -2130,7 +2130,7 @@ func (this *Binance) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
 		}
 		var shouldUseUTC8 bool = (isUtc8 && isSpot)
 		var suffix string = "@+08:00"
-		var utcSuffix any = func() any {
+		var utcSuffix string = func() string {
 			if shouldUseUTC8 {
 				return suffix
 			}
@@ -2206,7 +2206,7 @@ func (this *Binance) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframe
 		typeVar = "option"
 		wsUrlType = "optionMarket" // eOptions klines are served from /market/ws
 	} else if ccxt.IsEqual(ccxt.GetValue(firstMarket, "contract"), true) {
-		typeVar = func() any {
+		typeVar = func() string {
 			if ccxt.IsEqual(ccxt.GetValue(firstMarket, "linear"), true) {
 				return "future"
 			}
@@ -2239,7 +2239,7 @@ func (this *Binance) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframe
 		}
 		var shouldUseUTC8 bool = (isUtc8 && isSpot)
 		var suffix string = "@+08:00"
-		var utcSuffix any = func() any {
+		var utcSuffix string = func() string {
 			if shouldUseUTC8 {
 				return suffix
 			}
@@ -2358,7 +2358,7 @@ func (this *Binance) HandleOHLCV(client any, message any) {
 	// resolve the market from the transport url — an ambiguous id like
 	// BTCUSDT maps to both the spot and the linear swap market
 	var isSpot any = this.IsSpotUrl(client)
-	var marketType any = func() any {
+	var marketType string = func() string {
 		if ccxt.EvalTruthy(isSpot) {
 			return "spot"
 		}
@@ -3033,7 +3033,7 @@ func (this *Binance) watchMultiTickerHelperBody(ch chan any, methodName any, cha
 	if ccxt.IsEqual(marketType, "option") {
 		// check option first — isLinear returns true for linear-settled options, which would incorrectly route to futures
 		// eOptions: mark price and klines stream from /market/stream; tickers/bids-asks/depth/trades from /public/stream
-		rawMarketType = func() any {
+		rawMarketType = func() string {
 			if isOptionMarkPrice {
 				return "optionMarket"
 			}
@@ -3057,9 +3057,9 @@ func (this *Binance) watchMultiTickerHelperBody(ch chan any, methodName any, cha
 	var subscriptionArgs any = []any{}
 	var messageHashes any = []any{}
 	var unsubscribeMessageHashes any = []any{}
-	var suffix any = ""
+	var suffix string = ""
 	if isMarkPrice && !isOptionMarkPrice {
-		suffix = func() any {
+		suffix = func() string {
 			if use1sFreq != nil && *use1sFreq == true {
 				return "@1s"
 			}
@@ -3154,7 +3154,7 @@ func (this *Binance) watchMultiTickerHelperBody(ch chan any, methodName any, cha
 	var url any = ccxt.Add(ccxt.Add(this.GetWsUrl(rawMarketType, this.GetFutureWsCategory(channelName)), "/"), this.Stream(rawMarketType, streamHash))
 	var requestId any = this.RequestId(url)
 	var request map[string]any = map[string]any{
-		"method": func() any {
+		"method": func() string {
 			if ccxt.EvalTruthy(isUnsubscribe) {
 				return "UNSUBSCRIBE"
 			}
@@ -3457,7 +3457,7 @@ func (this *Binance) HandleTickersAndBidsAsks(client any, message any, methodTyp
 		}
 		var tickerMarketId *string = this.SafeString(ticker, "s")
 		var tickerMarketsByIdList any = this.SafeValue(this.Markets_by_id, tickerMarketId)
-		var numTickerMarkets any = func() any {
+		var numTickerMarkets int = func() int {
 			if ccxt.IsEqual(tickerMarketsByIdList, nil) {
 				return 0
 			}
@@ -3473,7 +3473,7 @@ func (this *Binance) HandleTickersAndBidsAsks(client any, message any, methodTyp
 			return nil
 		}()
 		var isSpot any = this.IsSpotUrl(client)
-		var tickerFallbackType any = func() any {
+		var tickerFallbackType string = func() string {
 			if ccxt.EvalTruthy(isSpot) {
 				return "spot"
 			}
@@ -3859,7 +3859,7 @@ func (this *Binance) authenticateBody(ch chan any, optionalArgs ...any) any {
 	var isStock bool = (ccxt.IsEqual(typeVar, "stock"))
 	var options any = this.SafeValue(this.Options, typeVar, map[string]any{})
 	var lastAuthenticatedTime *int64 = this.SafeInteger(options, "lastAuthenticatedTime", 0)
-	var refreshRateKey any = func() any {
+	var refreshRateKey string = func() string {
 		if isStock {
 			return "stockListenKeyRefreshRate"
 		}
@@ -4103,7 +4103,7 @@ func (this *Binance) keepAliveListenKeyBody(ch chan any, optionalArgs ...any) an
 	}))
 	// whether or not to schedule another listenKey keepAlive request
 	var clients []any = ccxt.ObjectValues(this.Clients)
-	var refreshRateKey any = func() any {
+	var refreshRateKey string = func() string {
 		if isStock {
 			return "stockListenKeyRefreshRate"
 		}
@@ -4960,7 +4960,7 @@ func (this *Binance) editOrderWsBody(ch chan any, id any, symbol any, typeVar an
 	ccxt.AddElementToObject(payload, "returnRateLimits", returnRateLimits)
 	var message map[string]any = map[string]any{
 		"id": messageHash,
-		"method": func() any {
+		"method": func() string {
 			if isSwap {
 				return "order.modify"
 			}
@@ -5817,7 +5817,7 @@ func (this *Binance) ParseWsOrder(order any, optionalArgs ...any) any {
 	var executionType *string = this.SafeString(order, "x")
 	var marketId *string = this.SafeString(order, "s")
 	// futures user-data events carry the position side field, spot ones do not
-	var marketType any = func() any {
+	var marketType string = func() string {
 		if ccxt.InOp(order, "ps") {
 			return "contract"
 		}
@@ -6225,7 +6225,7 @@ func (this *Binance) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	// arrive here as future or delivery and pass untouched, which lands on
 	// the same stream the old raw-type ordering produced in every case
 	if (ccxt.IsEqual(typeVar, "spot")) || (ccxt.IsEqual(typeVar, "margin")) {
-		typeVar = func() any {
+		typeVar = func() string {
 			if ccxt.IsEqual(subType, "inverse") {
 				return "delivery"
 			}

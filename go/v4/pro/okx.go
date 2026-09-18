@@ -111,7 +111,7 @@ func (this *Okx) GetUrl(channel any, optionalArgs ...any) any {
 		panic(ccxt.ArgumentsRequired(this.Id + " getUrl() requires a channel argument"))
 	}
 	var isSandbox any = ccxt.GetValue(this.Options, "sandboxMode")
-	var sandboxSuffix any = func() any {
+	var sandboxSuffix string = func() string {
 		if isSandbox == true {
 			return "?brokerId=9999"
 		}
@@ -1179,7 +1179,7 @@ func (this *Okx) watchMyLiquidationsForSymbolsBody(ch chan any, symbols any, opt
 	}
 	var isTrigger any = this.SafeValue2(params, "stop", "trigger", false)
 	params = this.Omit(params, []any{"stop", "trigger"})
-	var accessType any = func() any {
+	var accessType string = func() string {
 		if isTrigger == true {
 			return "business"
 		}
@@ -2239,7 +2239,7 @@ func (this *Okx) OrderToTrade(order any, optionalArgs ...any) any {
 		"id":        this.SafeString(info, "tradeId"),
 		"order":     this.SafeString(order, "id"),
 		"type":      this.SafeString(order, "type"),
-		"takerOrMaker": func() any {
+		"takerOrMaker": func() string {
 			if isTaker {
 				return "taker"
 			}
@@ -2298,7 +2298,7 @@ func (this *Okx) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		retRes179912 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes179912)
 	}
-	var access any = func() any {
+	var access string = func() string {
 		if isTrigger != nil && *isTrigger == true {
 			return "business"
 		}
@@ -2309,13 +2309,13 @@ func (this *Okx) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		"access": access,
 	}))
 	ccxt.PanicOnError(retRes18028)
-	var channel any = func() any {
+	var channel string = func() string {
 		if isTrigger != nil && *isTrigger == true {
 			return "orders-algo"
 		}
 		return "orders"
 	}()
-	var messageHash any = ccxt.Add(channel, "::myTrades")
+	var messageHash any = channel + "::myTrades"
 	var market any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -2567,7 +2567,7 @@ func (this *Okx) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		retRes199812 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes199812)
 	}
-	var accessType any = func() any {
+	var accessType string = func() string {
 		if isTrigger == true {
 			return "business"
 		}
@@ -2603,7 +2603,7 @@ func (this *Okx) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"instType": uppercaseType,
 	}
-	var channel any = func() any {
+	var channel string = func() string {
 		if isTrigger == true {
 			return "orders-algo"
 		}

@@ -182,13 +182,13 @@ func (this *Bithumb) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	params = ccxt.GetValue(generationparamsVariable, 1)
 	var isGenerationTwo bool = (ccxt.IsEqual(generation, 2))
 	symbols = this.MarketSymbols(symbols, nil, false, true, true)
-	var symbolsLength any = func() any {
+	var symbolsLength int = func() int {
 		if ccxt.IsEqual(symbols, nil) {
 			return 0
 		}
 		return ccxt.GetArrayLength(symbols)
 	}()
-	if isGenerationTwo && (ccxt.IsEqual(symbolsLength, 0)) {
+	if isGenerationTwo && (symbolsLength == 0) {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchTickers() requires symbols for the generation 2 API"))
 	}
 	if ccxt.IsEqual(symbols, nil) {
@@ -627,7 +627,7 @@ func (this *Bithumb) HandleDelta(orderbook any, delta any) {
 	//    }
 	//
 	var sideId *string = this.SafeString(delta, "orderType")
-	var side any = func() any {
+	var side string = func() string {
 		if sideId != nil && *sideId == "bid" {
 			return "bids"
 		}
@@ -843,7 +843,7 @@ func (this *Bithumb) ParseWsTrade(trade any, optionalArgs ...any) any {
 		"symbol":    this.SafeSymbol(marketId, market, "_"),
 		"order":     nil,
 		"type":      nil,
-		"side": func() any {
+		"side": func() string {
 			if sideId != nil && *sideId == "1" {
 				return "buy"
 			}
@@ -1200,7 +1200,7 @@ func (this *Bithumb) ParseWsOrder(order any, optionalArgs ...any) any {
 	var sideId *string = this.SafeString(order, "ask_bid")
 	var side any = this.SafeStringLower(order, "side")
 	if sideId != nil {
-		side = func() any {
+		side = func() string {
 			if sideId != nil && *sideId == "BID" {
 				return ("buy")
 			}

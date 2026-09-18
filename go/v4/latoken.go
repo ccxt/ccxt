@@ -691,7 +691,7 @@ func (this *Latoken) ParseCurrency(currency any) any {
 		"code": code,
 		"info": currency,
 		"name": this.SafeString(currency, "name"),
-		"type": func() any {
+		"type": func() string {
 			if isCrypto {
 				return "crypto"
 			}
@@ -1095,7 +1095,7 @@ func (this *Latoken) ParseTrade(trade any, optionalArgs ...any) any {
 	var makerBuyer any = this.SafeValue(trade, "makerBuyer")
 	var side any = DerefScalar(this.SafeString(trade, "direction"))
 	if IsEqual(side, nil) {
-		side = func() any {
+		side = func() string {
 			if makerBuyer == true {
 				return "sell"
 			}
@@ -1110,7 +1110,7 @@ func (this *Latoken) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	var isBuy bool = (IsEqual(side, "buy"))
 	var isMaker bool = (makerBuyer == true) && isBuy
-	var takerOrMaker any = func() any {
+	var takerOrMaker string = func() string {
 		if isMaker {
 			return "maker"
 		}

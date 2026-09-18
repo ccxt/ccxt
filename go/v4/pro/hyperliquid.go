@@ -1120,7 +1120,7 @@ func (this *Hyperliquid) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var id *string = this.SafeString(trade, "tid")
 	var side any = ccxt.DerefScalar(this.SafeString(trade, "side"))
 	if !ccxt.IsEqual(side, nil) {
-		side = func() any {
+		side = func() string {
 			if ccxt.IsEqual(side, "A") {
 				return "sell"
 			}
@@ -1356,13 +1356,13 @@ func (this *Hyperliquid) watchBalanceBody(ch chan any, optionalArgs ...any) any 
 	params = this.SafeDict(unifiedResult, 1, params)
 	var dex *string = this.SafeString(params, "dex")
 	var isSpot bool = ((ccxt.IsEqual(typeVar, "spot")) || (ccxt.IsEqual(isUnifiedEnabled, true))) && (dex == nil)
-	var topic any = func() any {
+	var topic string = func() string {
 		if isSpot == true {
 			return "spotState"
 		}
 		return "clearinghouseState"
 	}()
-	var messageHash any = ccxt.Add(topic, "::balance")
+	var messageHash any = topic + "::balance"
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
 	var subscription map[string]any = map[string]any{
 		"type": topic,
@@ -1429,13 +1429,13 @@ func (this *Hyperliquid) unWatchBalanceBody(ch chan any, optionalArgs ...any) an
 	params = this.SafeDict(unifiedResult, 1, params)
 	var dex *string = this.SafeString(params, "dex")
 	var isSpot bool = ((ccxt.IsEqual(typeVar, "spot")) || (ccxt.IsEqual(isUnifiedEnabled, true))) && (dex == nil)
-	var topic any = func() any {
+	var topic string = func() string {
 		if isSpot == true {
 			return "spotState"
 		}
 		return "clearinghouseState"
 	}()
-	var messageHash any = ccxt.Add("unsubscribe"+":", topic)
+	var messageHash any = "unsubscribe" + ":" + topic
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",
 		"subscription": map[string]any{

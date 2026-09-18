@@ -2474,7 +2474,7 @@ func (this *Bybit) CreateExpiredOptionMarket(symbol any) any {
 		"settleId": settle,
 		"active":   false,
 		"type":     "option",
-		"subType": func() any {
+		"subType": func() string {
 			if IsEqual(base, settle) {
 				return "inverse"
 			}
@@ -2491,7 +2491,7 @@ func (this *Bybit) CreateExpiredOptionMarket(symbol any) any {
 		"contractSize":   this.ParseNumber("1"),
 		"expiry":         timestamp,
 		"expiryDatetime": datetime,
-		"optionType": func() any {
+		"optionType": func() string {
 			if optionType != nil && *optionType == "C" {
 				return "call"
 			}
@@ -3514,7 +3514,7 @@ func (this *Bybit) ParseTicker(ticker any, optionalArgs ...any) any {
 	var isSpot bool = (this.SafeString(ticker, "openInterestValue") == nil)
 	var timestamp *int64 = this.SafeInteger(ticker, "time")
 	var marketId *string = this.SafeString(ticker, "symbol")
-	var typeVar any = func() any {
+	var typeVar string = func() string {
 		if isSpot {
 			return "spot"
 		}
@@ -3812,7 +3812,7 @@ func (this *Bybit) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var isInverse *bool = this.SafeBool(market, "inverse")
-	var volumeIndex any = func() any {
+	var volumeIndex int = func() int {
 		if isInverse != nil && *isInverse == true {
 			return 6
 		}
@@ -4424,7 +4424,7 @@ func (this *Bybit) ParseTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var id *string = this.SafeStringN(trade, []any{"execId", "id", "tradeId"})
 	var marketId *string = this.SafeString(trade, "symbol")
-	var marketType any = func() any {
+	var marketType any = func() string {
 		if InOp(trade, "createType") {
 			return "contract"
 		}
@@ -4432,7 +4432,7 @@ func (this *Bybit) ParseTrade(trade any, optionalArgs ...any) any {
 	}()
 	var category *string = this.SafeString(trade, "category")
 	if category != nil {
-		marketType = func() any {
+		marketType = func() string {
 			if category != nil && *category == "spot" {
 				return "spot"
 			}
@@ -4452,7 +4452,7 @@ func (this *Bybit) ParseTrade(trade any, optionalArgs ...any) any {
 	if IsEqual(side, nil) {
 		var isBuyer *int64 = this.SafeInteger(trade, "isBuyer")
 		if isBuyer != nil {
-			side = func() any {
+			side = func() string {
 				if isBuyer == nil || *isBuyer != 0 {
 					return "buy"
 				}
@@ -4463,7 +4463,7 @@ func (this *Bybit) ParseTrade(trade any, optionalArgs ...any) any {
 	var isMaker *bool = this.SafeBool(trade, "isMaker")
 	var takerOrMaker any = nil
 	if isMaker != nil {
-		takerOrMaker = func() any {
+		takerOrMaker = func() string {
 			if isMaker != nil && *isMaker {
 				return "maker"
 			}
@@ -4478,7 +4478,7 @@ func (this *Bybit) ParseTrade(trade any, optionalArgs ...any) any {
 			if (IsEqual(lastLiquidityInd, "TAKER")) || (IsEqual(lastLiquidityInd, "MAKER")) {
 				takerOrMaker = ToLower(lastLiquidityInd)
 			} else {
-				takerOrMaker = func() any {
+				takerOrMaker = func() string {
 					if IsEqual(lastLiquidityInd, "AddedLiquidity") {
 						return "maker"
 					}
@@ -5227,7 +5227,7 @@ func (this *Bybit) ParseOrder(order any, optionalArgs ...any) any {
 	if code != nil {
 		if code == nil || *code != "0" {
 			var category *string = this.SafeString(order, "category")
-			var inferredMarketType any = func() any {
+			var inferredMarketType string = func() string {
 				if category != nil && *category == "spot" {
 					return "spot"
 				}
@@ -5248,7 +5248,7 @@ func (this *Bybit) ParseOrder(order any, optionalArgs ...any) any {
 	if !IsEqual(market, nil) {
 		marketType = GetValue(market, "type")
 	} else {
-		marketType = func() any {
+		marketType = func() string {
 			if isContract {
 				return "contract"
 			}
@@ -5774,7 +5774,7 @@ func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 				panic(ArgumentsRequired(this.Id + " stop/trigger orders require a triggerDirection parameter, either \"ascending\" or \"descending\" to determine the direction of the trigger."))
 			}
 			var isAsending bool = ((triggerDirection != nil && *triggerDirection == "ascending") || (triggerDirection != nil && *triggerDirection == "above") || (triggerDirection != nil && *triggerDirection == "1"))
-			request["triggerDirection"] = func() any {
+			request["triggerDirection"] = func() int {
 				if isAsending {
 					return 1
 				}
@@ -5784,14 +5784,14 @@ func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 		request["triggerPrice"] = this.GetPrice(symbol, triggerPrice)
 	} else if (isStopLossOrder || isTakeProfitOrder) && !endpointIsTradingStop {
 		if isBuy {
-			request["triggerDirection"] = func() any {
+			request["triggerDirection"] = func() int {
 				if isStopLossOrder {
 					return 1
 				}
 				return 2
 			}()
 		} else {
-			request["triggerDirection"] = func() any {
+			request["triggerDirection"] = func() int {
 				if isStopLossOrder {
 					return 2
 				}
@@ -5850,14 +5850,14 @@ func (this *Bybit) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 	if (!IsEqual(GetValue(market, "spot"), true)) && (hedged != nil && *hedged == true) {
 		if reduceOnly != nil && *reduceOnly == true {
 			params = this.Omit(params, "reduceOnly")
-			side = func() any {
+			side = func() string {
 				if IsEqual(side, "buy") {
 					return "sell"
 				}
 				return "buy"
 			}()
 		}
-		request["positionIdx"] = func() any {
+		request["positionIdx"] = func() int {
 			if IsEqual(side, "buy") {
 				return 1
 			}
@@ -6270,7 +6270,7 @@ func (this *Bybit) CancelOrderRequest(id any, optionalArgs ...any) any {
 		// only works for spot market
 		var isTrigger *bool = this.SafeBool2(params, "stop", "trigger", false)
 		params = this.Omit(params, []any{"stop", "trigger"})
-		request["orderFilter"] = func() any {
+		request["orderFilter"] = func() string {
 			if isTrigger != nil && *isTrigger == true {
 				return "StopOrder"
 			}
@@ -6774,13 +6774,13 @@ func (this *Bybit) fetchOrderClassicBody(ch chan any, id any, optionalArgs ...an
 	var length int = GetArrayLength(result)
 	if length == 0 {
 		var isTrigger *bool = this.SafeBool2(params, "trigger", "stop", false)
-		var extra any = func() any {
+		var extra string = func() string {
 			if isTrigger != nil && *isTrigger == true {
 				return ""
 			}
 			return " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true"
 		}()
-		panic(OrderNotFound(Add("Order "+ToString(id)+" was not found.", extra)))
+		panic(OrderNotFound("Order " + ToString(id) + " was not found." + extra))
 	}
 	if length > 1 {
 		panic(InvalidOrder(this.Id + " returned more than one order"))
@@ -6911,13 +6911,13 @@ func (this *Bybit) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	// see https://github.com/ccxt/ccxt/pull/29602
 	var innerListLength int = GetArrayLength(innerList)
 	if innerListLength == 0 {
-		var extra any = func() any {
+		var extra string = func() string {
 			if isTrigger == true {
 				return ""
 			}
 			return " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true"
 		}()
-		panic(OrderNotFound(Add("Order "+ToString(id)+" was not found.", extra)))
+		panic(OrderNotFound("Order " + ToString(id) + " was not found." + extra))
 	}
 	var order any = this.SafeDict(innerList, 0, map[string]any{})
 
@@ -7106,13 +7106,13 @@ func (this *Bybit) fetchClosedOrderBody(ch chan any, id any, optionalArgs ...any
 	var length int = GetArrayLength(result)
 	if length == 0 {
 		var isTrigger *bool = this.SafeBool2(params, "trigger", "stop", false)
-		var extra any = func() any {
+		var extra string = func() string {
 			if isTrigger != nil && *isTrigger == true {
 				return ""
 			}
 			return " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true"
 		}()
-		panic(OrderNotFound(Add("Order "+ToString(id)+" was not found.", extra)))
+		panic(OrderNotFound("Order " + ToString(id) + " was not found." + extra))
 	}
 	if length > 1 {
 		panic(InvalidOrder(this.Id + " returned more than one order"))
@@ -7165,13 +7165,13 @@ func (this *Bybit) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any) 
 	var length int = GetArrayLength(result)
 	if length == 0 {
 		var isTrigger *bool = this.SafeBool2(params, "trigger", "stop", false)
-		var extra any = func() any {
+		var extra string = func() string {
 			if isTrigger != nil && *isTrigger == true {
 				return ""
 			}
 			return " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true"
 		}()
-		panic(OrderNotFound(Add("Order "+ToString(id)+" was not found.", extra)))
+		panic(OrderNotFound("Order " + ToString(id) + " was not found." + extra))
 	}
 	if length > 1 {
 		panic(InvalidOrder(this.Id + " returned more than one order"))
@@ -8143,7 +8143,7 @@ func (this *Bybit) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var updated *int64 = this.SafeInteger(transaction, "updateTime")
 	var status *string = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
 	var feeCost *float64 = this.SafeNumber2(transaction, "depositFee", "withdrawFee")
-	var typeVar any = func() any {
+	var typeVar string = func() string {
 		if InOp(transaction, "depositFee") {
 			return "deposit"
 		}
@@ -8423,7 +8423,7 @@ func (this *Bybit) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	currency = this.SafeCurrency(currencyId, currency)
 	var amountString *string = this.SafeString2(item, "amount", "change")
 	var afterString *string = this.SafeString2(item, "wallet_balance", "cashBalance")
-	var direction any = func() any {
+	var direction string = func() string {
 		if Precise.StringLt(amountString, "0") {
 			return "out"
 		}
@@ -8434,7 +8434,7 @@ func (this *Bybit) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var amount any = nil
 	if (afterString != nil) && (amountString != nil) {
 		var difference any = func() any {
-			if IsEqual(direction, "out") {
+			if direction == "out" {
 				return amountString
 			}
 			return Precise.StringNeg(amountString)
@@ -8530,7 +8530,7 @@ func (this *Bybit) withdrawBody(ch chan any, code any, amount any, address any, 
 	accountType = GetValue(accountTypeparamsVariable, 0)
 	params = GetValue(accountTypeparamsVariable, 1)
 	if accountType == nil {
-		accountType = func() any {
+		accountType = func() string {
 			if isUta == true {
 				return "UTA"
 			}
@@ -8961,7 +8961,7 @@ func (this *Bybit) ParsePosition(position any, optionalArgs ...any) any {
 		hedged = (positionIdx == nil || *positionIdx != "0")
 	}
 	if (hedged != nil) && EvalTruthy(hedged) {
-		side = func() any {
+		side = func() string {
 			if positionIdx != nil && *positionIdx == "1" {
 				return "long"
 			}
@@ -8969,14 +8969,14 @@ func (this *Bybit) ParsePosition(position any, optionalArgs ...any) any {
 		}()
 	} else if !IsEqual(side, nil) {
 		if IsEqual(side, "Buy") {
-			side = func() any {
+			side = func() string {
 				if isHistory {
 					return "short"
 				}
 				return "long"
 			}()
 		} else if IsEqual(side, "Sell") {
-			side = func() any {
+			side = func() string {
 				if isHistory {
 					return "long"
 				}
@@ -9355,7 +9355,7 @@ func (this *Bybit) setPositionModeBody(ch chan any, hedged any, optionalArgs ...
 	}
 	if symbol != nil {
 		var isLinear bool = (IsEqual(this.SafeBool(market, "linear"), true))
-		request["category"] = func() any {
+		request["category"] = func() string {
 			if isLinear {
 				return "linear"
 			}
@@ -9407,7 +9407,7 @@ func (this *Bybit) fetchDerivativesOpenInterestHistoryBody(ch chan any, symbol a
 		PanicOnError(retRes732912)
 	}
 	var market any = this.Market(symbol)
-	var subType any = func() any {
+	var subType string = func() string {
 		if IsEqual(GetValue(market, "linear"), true) {
 			return "linear"
 		}
@@ -9516,7 +9516,7 @@ func (this *Bybit) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs .
 	if interval == nil {
 		panic(BadRequest(Add(Add(this.Id+" fetchOpenInterest() cannot use the ", timeframe), " timeframe")))
 	}
-	var subType any = func() any {
+	var subType string = func() string {
 		if IsEqual(GetValue(market, "linear"), true) {
 			return "linear"
 		}
@@ -9760,7 +9760,7 @@ func (this *Bybit) ParseBorrowRate(info any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(info, "timestamp")
 	var currencyId *string = this.SafeString2(info, "coin", "currency")
 	var hourlyBorrowRate *float64 = this.SafeNumber(info, "hourlyBorrowRate")
-	var period any = func() any {
+	var period int = func() int {
 		if hourlyBorrowRate != nil {
 			return 3600000
 		}
@@ -12049,7 +12049,7 @@ func (this *Bybit) fetchConvertCurrenciesBody(ch chan any, optionalArgs ...any) 
 	enableUnifiedMargin := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 0)
 	enableUnifiedAccount := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 1)
 	var isUnifiedAccount bool = (IsEqual(enableUnifiedMargin, true)) || (IsEqual(enableUnifiedAccount, true))
-	var accountTypeDefault any = func() any {
+	var accountTypeDefault string = func() string {
 		if isUnifiedAccount {
 			return "eb_convert_uta"
 		}
@@ -12177,7 +12177,7 @@ func (this *Bybit) fetchConvertQuoteBody(ch chan any, fromCode any, toCode any, 
 	enableUnifiedMargin := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 0)
 	enableUnifiedAccount := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 1)
 	var isUnifiedAccount bool = (IsEqual(enableUnifiedMargin, true)) || (IsEqual(enableUnifiedAccount, true))
-	var accountTypeDefault any = func() any {
+	var accountTypeDefault string = func() string {
 		if isUnifiedAccount {
 			return "eb_convert_uta"
 		}
@@ -12312,7 +12312,7 @@ func (this *Bybit) fetchConvertTradeBody(ch chan any, id any, optionalArgs ...an
 	enableUnifiedMargin := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 0)
 	enableUnifiedAccount := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 1)
 	var isUnifiedAccount bool = (IsEqual(enableUnifiedMargin, true)) || (IsEqual(enableUnifiedAccount, true))
-	var accountTypeDefault any = func() any {
+	var accountTypeDefault string = func() string {
 		if isUnifiedAccount {
 			return "eb_convert_uta"
 		}

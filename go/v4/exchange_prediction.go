@@ -534,7 +534,7 @@ func (this *PredictionExchange) ShortenSlug(slug any) any {
 		"percent":                 "pct",
 	}
 	var stopWords []any = []any{"will", "the", "a", "an", "after", "before", "in", "at", "by", "of", "there", "be", "to", "or", "and", "for", "on", "its", "that", "this", "from", "with", "as", "is", "are", "was", "were", "?", "how", "many", "who", "what", "when", "where", "which", "much"}
-	var lower any = func() any {
+	var lower string = func() string {
 		if slug == nil {
 			return ""
 		}

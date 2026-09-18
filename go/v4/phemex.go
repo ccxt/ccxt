@@ -2323,7 +2323,7 @@ func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) any {
 			if (sideId != nil && *sideId == "buy") || (sideId != nil && *sideId == "sell") {
 				side = sideId
 			} else if sideId != nil {
-				side = func() any {
+				side = func() string {
 					if sideId != nil && *sideId == "1" {
 						return "buy"
 					}
@@ -3203,7 +3203,7 @@ func (this *Phemex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 			if hedged != nil && *hedged == true {
 				var reduceOnly *bool = this.SafeBool(params, "reduceOnly")
 				if reduceOnly != nil && *reduceOnly == true {
-					side = func() any {
+					side = func() string {
 						if IsEqual(side, "buy") {
 							return "sell"
 						}
@@ -3211,7 +3211,7 @@ func (this *Phemex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 					}()
 					params = this.Omit(params, "reduceOnly")
 				}
-				posSide = func() any {
+				posSide = func() string {
 					if IsEqual(side, "buy") {
 						return "Long"
 					}
@@ -3242,14 +3242,14 @@ func (this *Phemex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 			// the flow defined per https://phemex-docs.github.io/#more-order-type-examples
 			if (IsEqual(triggerDirection, "ascending")) || (IsEqual(triggerDirection, "up")) {
 				if IsEqual(side, "sell") {
-					request["ordType"] = func() any {
+					request["ordType"] = func() string {
 						if IsEqual(typeVar, "Market") {
 							return "MarketIfTouched"
 						}
 						return "LimitIfTouched"
 					}()
 				} else if IsEqual(side, "buy") {
-					request["ordType"] = func() any {
+					request["ordType"] = func() string {
 						if IsEqual(typeVar, "Market") {
 							return "Stop"
 						}
@@ -3258,14 +3258,14 @@ func (this *Phemex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 				}
 			} else if (IsEqual(triggerDirection, "descending")) || (IsEqual(triggerDirection, "down")) {
 				if IsEqual(side, "sell") {
-					request["ordType"] = func() any {
+					request["ordType"] = func() string {
 						if IsEqual(typeVar, "Market") {
 							return "Stop"
 						}
 						return "StopLimit"
 					}()
 				} else if IsEqual(side, "buy") {
-					request["ordType"] = func() any {
+					request["ordType"] = func() string {
 						if IsEqual(typeVar, "Market") {
 							return "MarketIfTouched"
 						}
@@ -4615,7 +4615,7 @@ func (this *Phemex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	} else if IsEqual(settle, "BTC") {
 		code = "BTC"
 	} else if IsEqual(code, nil) {
-		code = func() any {
+		code = func() string {
 			if IsEqual(subType, "linear") {
 				return "USD"
 			}
@@ -4926,7 +4926,7 @@ func (this *Phemex) ParsePosition(position any, optionalArgs ...any) any {
 	var side any = nil
 	if rawSide != nil {
 		var isLong bool = ((rawSide != nil && *rawSide == "Buy") || (rawSide != nil && *rawSide == "1"))
-		side = func() any {
+		side = func() string {
 			if isLong {
 				return "long"
 			}
@@ -4983,7 +4983,7 @@ func (this *Phemex) ParsePosition(position any, optionalArgs ...any) any {
 		"marginRatio":                 this.ParseNumber(marginRatio),
 		"timestamp":                   timestamp,
 		"datetime":                    this.Iso8601(timestamp),
-		"marginMode": func() any {
+		"marginMode": func() string {
 			if isCross == true {
 				return "cross"
 			}
@@ -5317,7 +5317,7 @@ func (this *Phemex) ParseMarginModification(data any, optionalArgs ...any) any {
 	_ = market
 	market = this.SafeMarket(nil, market)
 	var inverse any = this.SafeValue(market, "inverse")
-	var codeCurrency any = func() any {
+	var codeCurrency string = func() string {
 		if inverse == true {
 			return "base"
 		}
@@ -6651,7 +6651,7 @@ func (this *Phemex) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) 
 	} else if IsEqual(settle, "BTC") {
 		code = "BTC"
 	} else if IsEqual(code, nil) {
-		code = func() any {
+		code = func() string {
 			if IsEqual(subType, "linear") {
 				return "USD"
 			}

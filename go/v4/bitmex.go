@@ -842,7 +842,7 @@ func (this *Bitmex) ParseCurrency(currency any) any {
 			},
 		},
 		"networks": networks,
-		"type": func() any {
+		"type": func() string {
 			if isCrypto {
 				return "crypto"
 			}
@@ -1453,7 +1453,7 @@ func (this *Bitmex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	var orders []any = this.ToArray(response)
 	for i := 0; i < len(orders); i++ {
 		var order any = GetValue(orders, i)
-		var side any = func() any {
+		var side string = func() string {
 			if IsEqual(GetValue(order, "side"), "Sell") {
 				return "asks"
 			}
@@ -1465,7 +1465,7 @@ func (this *Bitmex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		// https://github.com/ccxt/ccxt/issues/4927
 		// the exchange sometimes returns null price in the orderbook
 		if price != nil {
-			retRes114016 := GetValue(result, side)
+			retRes114016 := result[side]
 			AppendToArray(&retRes114016, []any{price, amount})
 		}
 	}
@@ -2469,7 +2469,7 @@ func (this *Bitmex) ParseTrade(trade any, optionalArgs ...any) any {
 	var execType *string = this.SafeString(trade, "execType")
 	var takerOrMaker any = nil
 	if (feeCostString != nil) && (execType != nil && *execType == "Trade") {
-		takerOrMaker = func() any {
+		takerOrMaker = func() string {
 			if Precise.StringLt(feeCostString, "0") {
 				return "maker"
 			}
@@ -2751,8 +2751,8 @@ func (this *Bitmex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		PanicOnError(retRes218012)
 	}
 	var market any = this.Market(symbol)
-	var orderType any = this.Capitalize(typeVar)
-	var capitalizeOrderType any = orderType
+	var orderType string = this.Capitalize(typeVar)
+	var capitalizeOrderType string = orderType
 	var reduceOnly any = this.SafeValue(params, "reduceOnly")
 	if !IsEqual(reduceOnly, nil) {
 		if (!IsEqual(GetValue(market, "swap"), true)) && (!IsEqual(GetValue(market, "future"), true)) {
@@ -2794,14 +2794,14 @@ func (this *Bitmex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		}
 		if IsEqual(typeVar, "limit") {
 			if IsEqual(side, "buy") {
-				orderType = func() any {
+				orderType = func() string {
 					if triggerAbove {
 						return "StopLimit"
 					}
 					return "LimitIfTouched"
 				}()
 			} else {
-				orderType = func() any {
+				orderType = func() string {
 					if triggerAbove {
 						return "LimitIfTouched"
 					}
@@ -2810,14 +2810,14 @@ func (this *Bitmex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 			}
 		} else if IsEqual(typeVar, "market") {
 			if IsEqual(side, "buy") {
-				orderType = func() any {
+				orderType = func() string {
 					if triggerAbove {
 						return "Stop"
 					}
 					return "MarketIfTouched"
 				}()
 			} else {
-				orderType = func() any {
+				orderType = func() string {
 					if triggerAbove {
 						return "MarketIfTouched"
 					}
@@ -2826,8 +2826,8 @@ func (this *Bitmex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 			}
 		}
 		if isTrailingAmountOrder {
-			var isStopSellOrder bool = (IsEqual(side, "sell")) && ((IsEqual(orderType, "Stop")) || (IsEqual(orderType, "StopLimit")))
-			var isBuyIfTouchedOrder bool = (IsEqual(side, "buy")) && ((IsEqual(orderType, "MarketIfTouched")) || (IsEqual(orderType, "LimitIfTouched")))
+			var isStopSellOrder bool = (IsEqual(side, "sell")) && ((orderType == "Stop") || (orderType == "StopLimit"))
+			var isBuyIfTouchedOrder bool = (IsEqual(side, "buy")) && ((orderType == "MarketIfTouched") || (orderType == "LimitIfTouched"))
 			if isStopSellOrder || isBuyIfTouchedOrder {
 				trailingAmount = Add("-", trailingAmount)
 			}
@@ -2835,14 +2835,14 @@ func (this *Bitmex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 			request["pegPriceType"] = "TrailingStopPeg"
 		} else {
 			if triggerPrice == nil {
-				panic(ArgumentsRequired(Add(Add(this.Id+" createOrder() requires a triggerPrice parameter for the ", orderType), " order type")))
+				panic(ArgumentsRequired(this.Id + " createOrder() requires a triggerPrice parameter for the " + orderType + " order type"))
 			}
 			request["stopPx"] = this.ParseToNumeric(this.PriceToPrecision(symbol, triggerPrice))
 		}
 		request["ordType"] = orderType
 		params = this.Omit(params, []any{"triggerPrice", "stopPrice", "stopPx", "triggerDirection", "trailingAmount"})
 	}
-	if (IsEqual(orderType, "Limit")) || (IsEqual(orderType, "StopLimit")) || (IsEqual(orderType, "LimitIfTouched")) {
+	if (orderType == "Limit") || (orderType == "StopLimit") || (orderType == "LimitIfTouched") {
 		request["price"] = this.ParseToNumeric(this.PriceToPrecision(symbol, price))
 	}
 	var clientOrderId *string = this.SafeString2(params, "clOrdID", "clientOrderId")
@@ -2888,14 +2888,14 @@ func (this *Bitmex) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 		var orderType any = nil
 		if IsEqual(typeVar, "limit") {
 			if IsEqual(side, "buy") {
-				orderType = func() any {
+				orderType = func() string {
 					if triggerAbove {
 						return "StopLimit"
 					}
 					return "LimitIfTouched"
 				}()
 			} else {
-				orderType = func() any {
+				orderType = func() string {
 					if triggerAbove {
 						return "LimitIfTouched"
 					}
@@ -2904,14 +2904,14 @@ func (this *Bitmex) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 			}
 		} else if IsEqual(typeVar, "market") {
 			if IsEqual(side, "buy") {
-				orderType = func() any {
+				orderType = func() string {
 					if triggerAbove {
 						return "Stop"
 					}
 					return "MarketIfTouched"
 				}()
 			} else {
-				orderType = func() any {
+				orderType = func() string {
 					if triggerAbove {
 						return "MarketIfTouched"
 					}
@@ -3458,7 +3458,7 @@ func (this *Bitmex) ParsePosition(position any, optionalArgs ...any) any {
 	var symbol any = GetValue(market, "symbol")
 	var datetime *string = this.SafeString(position, "timestamp")
 	var crossMargin any = this.SafeValue(position, "crossMargin")
-	var marginMode any = func() any {
+	var marginMode string = func() string {
 		if crossMargin == true {
 			return "cross"
 		}
@@ -3858,7 +3858,7 @@ func (this *Bitmex) setMarginModeBody(ch chan any, marginMode any, optionalArgs 
 	if (GetValue(market, "type") != "swap") && (GetValue(market, "type") != "future") {
 		panic(BadSymbol(this.Id + " setMarginMode() supports swap and future contracts only"))
 	}
-	var enabled any = func() any {
+	var enabled bool = func() bool {
 		if IsEqual(marginMode, "cross") {
 			return false
 		}

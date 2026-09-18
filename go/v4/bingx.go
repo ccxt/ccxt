@@ -1539,14 +1539,14 @@ func (this *Bingx) ParseMarket(market any) any {
 	if IsEqual(quantityPrecision, nil) {
 		quantityPrecision = this.ParseNumber(this.ParsePrecision(this.SafeString(market, "quantityPrecision")))
 	}
-	var typeVar any = func() any {
+	var typeVar string = func() string {
 		if settle != nil {
 			return "swap"
 		}
 		return "spot"
 	}()
-	var spot bool = (IsEqual(typeVar, "spot"))
-	var swap bool = (IsEqual(typeVar, "swap"))
+	var spot bool = (typeVar == "spot")
+	var swap bool = (typeVar == "swap")
 	var symbol any = Add(Add(base, "/"), quote)
 	if settle != nil {
 		symbol = Add(symbol, Add(":", settle))
@@ -1720,7 +1720,7 @@ func (this *Bingx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 		PanicOnError(retRes120712)
 	}
 	var market any = this.Market(symbol)
-	var maxLimit any = func() any {
+	var maxLimit int = func() int {
 		if IsEqual(GetValue(market, "inverse"), true) {
 			return 1000
 		}
@@ -1923,7 +1923,7 @@ func (this *Bingx) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	if !IsEqual(limit, nil) {
-		var maxLimit any = func() any {
+		var maxLimit int = func() int {
 			if IsEqual(marketType, "spot") {
 				return 500
 			}
@@ -2106,7 +2106,7 @@ func (this *Bingx) ParseTrade(trade any, optionalArgs ...any) any {
 	var takeOrMaker any = nil
 	var isMakerSide bool = (isBuyerMaker != nil && *isBuyerMaker == true) || (m != nil && *m == true)
 	if (isBuyerMaker != nil) || (m != nil) {
-		takeOrMaker = func() any {
+		takeOrMaker = func() string {
 			if isMakerSide {
 				return "maker"
 			}
@@ -2116,7 +2116,7 @@ func (this *Bingx) ParseTrade(trade any, optionalArgs ...any) any {
 	var side any = this.SafeStringLower2(trade, "side", "S")
 	if IsEqual(side, nil) {
 		if (isBuyerMaker != nil) || (m != nil) {
-			side = func() any {
+			side = func() string {
 				if isMakerSide {
 					return "sell"
 				}
@@ -2127,7 +2127,7 @@ func (this *Bingx) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	var isBuyer *bool = this.SafeBool(trade, "isBuyer")
 	if isBuyer != nil {
-		side = func() any {
+		side = func() string {
 			if isBuyer != nil && *isBuyer {
 				return "buy"
 			}
@@ -2136,7 +2136,7 @@ func (this *Bingx) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	var isMaker *bool = this.SafeBool(trade, "isMaker")
 	if isMaker != nil {
-		takeOrMaker = func() any {
+		takeOrMaker = func() string {
 			if isMaker != nil && *isMaker {
 				return "maker"
 			}
@@ -3222,7 +3222,7 @@ func (this *Bingx) ParseTicker(ticker any, optionalArgs ...any) any {
 	var lastQty *string = this.SafeString(ticker, "lastQty")
 	// in spot markets, lastQty is not present
 	// it's (bad, but) the only way we can check the tickers origin
-	var typeVar any = func() any {
+	var typeVar string = func() string {
 		if lastQty == nil {
 			return "spot"
 		}
@@ -3756,7 +3756,7 @@ func (this *Bingx) ParsePosition(position any, optionalArgs ...any) any {
 	var isolated *bool = this.SafeBool(position, "isolated")
 	var marginMode any = nil
 	if isolated != nil {
-		marginMode = func() any {
+		marginMode = func() string {
 			if isolated != nil && *isolated {
 				return "isolated"
 			}
@@ -3929,7 +3929,7 @@ func (this *Bingx) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 	var isTriggerOrder bool = (triggerPrice != nil)
 	var isStopLossPriceOrder bool = (stopLossPrice != nil)
 	var isTakeProfitPriceOrder bool = (takeProfitPrice != nil)
-	var exchangeClientOrderId any = func() any {
+	var exchangeClientOrderId string = func() string {
 		if isSpot {
 			return "newClientOrderId"
 		}
@@ -3937,7 +3937,7 @@ func (this *Bingx) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 	}()
 	var clientOrderId *string = this.SafeString2(params, exchangeClientOrderId, "clientOrderId")
 	if clientOrderId != nil {
-		AddElementToObject(request, exchangeClientOrderId, clientOrderId)
+		request[exchangeClientOrderId] = clientOrderId
 	}
 	var timeInForce *string = this.SafeStringUpper(params, "timeInForce")
 	postOnlyparamsVariable := this.HandlePostOnly(isMarketOrder, (timeInForce != nil && *timeInForce == "PostOnly"), params)
@@ -3995,7 +3995,7 @@ func (this *Bingx) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 			var twapRequest map[string]any = map[string]any{
 				"symbol": request["symbol"],
 				"side":   request["side"],
-				"positionSide": func() any {
+				"positionSide": func() string {
 					if IsEqual(side, "buy") {
 						return "LONG"
 					}
@@ -4120,19 +4120,19 @@ func (this *Bingx) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 				request["takeProfit"] = this.Json(tpRequest)
 			}
 		}
-		var positionSide any = nil
+		var positionSide string
 		var hedged *bool = this.SafeBool(params, "hedged", false)
 		if hedged != nil && *hedged == true {
 			params = this.Omit(params, "reduceOnly")
 			if IsEqual(reduceOnly, true) {
-				positionSide = func() any {
+				positionSide = func() string {
 					if IsEqual(side, "buy") {
 						return "SHORT"
 					}
 					return "LONG"
 				}()
 			} else {
-				positionSide = func() any {
+				positionSide = func() string {
 					if IsEqual(side, "buy") {
 						return "LONG"
 					}
@@ -4777,7 +4777,7 @@ func (this *Bingx) ParseOrder(order any, optionalArgs ...any) any {
 		order = newOrder
 	}
 	var positionSide *string = this.SafeString2(order, "positionSide", "ps")
-	var marketType any = func() any {
+	var marketType string = func() string {
 		if positionSide == nil {
 			return "spot"
 		}
@@ -5200,13 +5200,13 @@ func (this *Bingx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) a
 	}
 	var response any = nil
 	if IsEqual(GetValue(market, "spot"), true) {
-		var spotReqKey any = func() any {
+		var spotReqKey string = func() string {
 			if areClientOrderIds {
 				return "clientOrderIDs"
 			}
 			return "orderIds"
 		}()
-		AddElementToObject(request, spotReqKey, Join(parsedIds, ","))
+		request[spotReqKey] = Join(parsedIds, ",")
 
 		response = (<-this.SpotV1PrivatePostTradeCancelOrders(this.Extend(request, params)))
 		PanicOnError(response)
@@ -5256,7 +5256,7 @@ func (this *Bingx) cancelAllOrdersAfterBody(ch chan any, timeout any, optionalAr
 	}
 	var isActive bool = (IsGreaterThan(timeout, 0))
 	var request map[string]any = map[string]any{
-		"type": func() any {
+		"type": func() string {
 			if isActive {
 				return "ACTIVATE"
 			}
@@ -6512,7 +6512,7 @@ func (this *Bingx) ParseTransaction(transaction any, optionalArgs ...any) any {
 		}
 	}
 	var rawType *string = this.SafeString(transaction, "transferType")
-	var typeVar any = func() any {
+	var typeVar string = func() string {
 		if rawType != nil && *rawType == "0" {
 			return "deposit"
 		}
@@ -6736,7 +6736,7 @@ func (this *Bingx) ParseMarginModification(data any, optionalArgs ...any) any {
 	return map[string]any{
 		"info":   data,
 		"symbol": this.SafeString(market, "symbol"),
-		"type": func() any {
+		"type": func() string {
 			if typeVar != nil && *typeVar == "1" {
 				return "add"
 			}
@@ -6954,26 +6954,26 @@ func (this *Bingx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		request["symbol"] = GetValue(market, "id")
 		var now int64 = this.Milliseconds()
 		if !IsEqual(since, nil) {
-			var startTimeReq any = func() any {
+			var startTimeReq string = func() string {
 				if IsEqual(GetValue(market, "spot"), true) {
 					return "startTime"
 				}
 				return "startTs"
 			}()
-			AddElementToObject(request, startTimeReq, since)
+			request[startTimeReq] = since
 		} else if IsEqual(GetValue(market, "swap"), true) {
 			request["startTs"] = Subtract(now, Multiply(Multiply(Multiply(Multiply(30, 24), 60), 60), 1000)) // 30 days for swap
 		}
 		var until *int64 = this.SafeInteger(params, "until")
 		params = this.Omit(params, "until")
 		if until != nil {
-			var endTimeReq any = func() any {
+			var endTimeReq string = func() string {
 				if IsEqual(GetValue(market, "spot"), true) {
 					return "endTime"
 				}
 				return "endTs"
 			}()
-			AddElementToObject(request, endTimeReq, until)
+			request[endTimeReq] = until
 		} else if IsEqual(GetValue(market, "swap"), true) {
 			request["endTs"] = now
 		}

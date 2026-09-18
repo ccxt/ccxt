@@ -1573,7 +1573,7 @@ func (this *Coinbase) ParseTransaction(transaction any, optionalArgs ...any) any
 	var status any = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
 	if status == nil {
 		var committed *bool = this.SafeBool(transaction, "committed")
-		status = func() any {
+		status = func() string {
 			if committed != nil && *committed == true {
 				return "ok"
 			}
@@ -1829,14 +1829,14 @@ func (this *Coinbase) fetchMarketsV2Body(ch chan any, optionalArgs ...any) any {
 	for i := 0; i < len(baseIds); i++ {
 		var baseId string = GetValue(baseIds, i).(string)
 		var base *string = this.SafeCurrencyCode(baseId)
-		var typeVar any = func() any {
+		var typeVar string = func() string {
 			if func() bool { _, ok := dataById[baseId]; return ok }() {
 				return "fiat"
 			}
 			return "crypto"
 		}()
 		// https://github.com/ccxt/ccxt/issues/6066
-		if IsEqual(typeVar, "crypto") {
+		if typeVar == "crypto" {
 			for j := 0; j < GetArrayLength(data); j++ {
 				var quoteCurrency any = GetValue(data, j)
 				var quoteId *string = this.SafeString(quoteCurrency, "id")
@@ -2542,7 +2542,7 @@ func (this *Coinbase) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 		if code != nil {
 			AddElementToObject(GetValue(this.Options, "networksById"), code, ToLower(name))
 		}
-		var typeVar any = func() any {
+		var typeVar string = func() string {
 			if assetId != nil {
 				return "crypto"
 			}
@@ -2720,7 +2720,7 @@ func (this *Coinbase) fetchTickersV3Body(ch chan any, optionalArgs ...any) any {
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	if (marketType != nil) && (!IsEqual(marketType, "default")) {
-		request["product_type"] = func() any {
+		request["product_type"] = func() string {
 			if IsEqual(marketType, "swap") {
 				return "FUTURE"
 			}
@@ -3873,7 +3873,7 @@ func (this *Coinbase) createOrderBody(ch chan any, symbol any, typeVar any, side
 	if IsEqual(typeVar, "limit") {
 		if isStop {
 			if IsEqual(stopDirection, nil) {
-				stopDirection = func() any {
+				stopDirection = func() string {
 					if IsEqual(side, "buy") {
 						return "STOP_DIRECTION_STOP_DOWN"
 					}
@@ -3907,7 +3907,7 @@ func (this *Coinbase) createOrderBody(ch chan any, symbol any, typeVar any, side
 			var tpslPrice any = nil
 			if isStopLoss {
 				if IsEqual(stopDirection, nil) {
-					stopDirection = func() any {
+					stopDirection = func() string {
 						if IsEqual(side, "buy") {
 							return "STOP_DIRECTION_STOP_UP"
 						}
@@ -3917,7 +3917,7 @@ func (this *Coinbase) createOrderBody(ch chan any, symbol any, typeVar any, side
 				tpslPrice = this.PriceToPrecision(symbol, stopLossPrice)
 			} else {
 				if IsEqual(stopDirection, nil) {
-					stopDirection = func() any {
+					stopDirection = func() string {
 						if IsEqual(side, "buy") {
 							return "STOP_DIRECTION_STOP_DOWN"
 						}
@@ -6432,7 +6432,7 @@ func (this *Coinbase) ParsePosition(position any, optionalArgs ...any) any {
 	var rawMargin *string = this.SafeString(position, "margin_type")
 	var marginMode any = nil
 	if rawMargin != nil {
-		marginMode = func() any {
+		marginMode = func() string {
 			if rawMargin != nil && *rawMargin == "MARGIN_TYPE_CROSS" {
 				return "cross"
 			}
@@ -6441,7 +6441,7 @@ func (this *Coinbase) ParsePosition(position any, optionalArgs ...any) any {
 	}
 	var notionalObject any = this.SafeDict(position, "position_notional", map[string]any{})
 	var positionSide *string = this.SafeString(position, "position_side")
-	var side any = func() any {
+	var side string = func() string {
 		if positionSide != nil && *positionSide == "POSITION_SIDE_LONG" {
 			return "long"
 		}
@@ -6513,7 +6513,7 @@ func (this *Coinbase) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
 	var isSpot bool = (IsEqual(typeVar, "spot"))
-	var productType any = func() any {
+	var productType string = func() string {
 		if isSpot {
 			return "SPOT"
 		}
@@ -6678,13 +6678,13 @@ func (this *Coinbase) CreateAuthToken(seconds any, optionalArgs ...any) any {
 	}
 	// eddsa {"sub":"d2efa49a-369c-43d7-a60e-ae26e28853c2","iss":"cdp","aud":["cdp_service"],"uris":["GET api.coinbase.com/api/v3/brokerage/transaction_summary"]}
 	var nonce string = this.RandomBytes(16)
-	var aud any = func() any {
+	var aud string = func() string {
 		if EvalTruthy(useEddsa) {
 			return "cdp_service"
 		}
 		return "retail_rest_api_proxy"
 	}()
-	var iss any = func() any {
+	var iss string = func() string {
 		if EvalTruthy(useEddsa) {
 			return "cdp"
 		}
@@ -6739,13 +6739,13 @@ func (this *Coinbase) Sign(path any, optionalArgs ...any) any {
 	var version any = GetValue(api, 0)
 	var signed bool = IsEqual(GetValue(api, 1), "private")
 	var isV3 bool = (IsEqual(version, "v3"))
-	var pathPart any = func() any {
+	var pathPart string = func() string {
 		if isV3 {
 			return "api/v3"
 		}
 		return "v2"
 	}()
-	var fullPath any = Add(Add(Add("/", pathPart), "/"), this.ImplodeParams(path, params))
+	var fullPath any = Add("/"+pathPart+"/", this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var savedPath any = fullPath
 	if IsEqual(method, "GET") {

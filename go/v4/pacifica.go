@@ -1204,7 +1204,7 @@ func (this *Pacifica) ParseLeverageFromSetting(symbol any, setting any) any {
 	// }
 	var isIsolated *bool = this.SafeBool(setting, "isolated", false)
 	var leverage *int64 = this.SafeInteger(setting, "leverage")
-	var marginMode any = func() any {
+	var marginMode string = func() string {
 		if isIsolated != nil && *isIsolated == true {
 			return "isolated"
 		}
@@ -1388,7 +1388,7 @@ func (this *Pacifica) ParseMarginModeFromSetting(symbol any, setting any) any {
 	//
 	// }
 	var isIsolated *bool = this.SafeBool(setting, "isolated", false)
-	var marginMode any = func() any {
+	var marginMode string = func() string {
 		if isIsolated != nil && *isIsolated == true {
 			return "isolated"
 		}
@@ -1928,7 +1928,7 @@ func (this *Pacifica) ParseTrade(trade any, optionalArgs ...any) any {
 	var orderId *string = this.SafeString(trade, "order_id")
 	var takerOrMaker any = nil
 	if eventType != nil {
-		takerOrMaker = func() any {
+		takerOrMaker = func() string {
 			if eventType != nil && *eventType == "fulfill_maker" {
 				return "maker"
 			}
@@ -2558,7 +2558,7 @@ func (this *Pacifica) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 	// }
 	//
 	var success *bool = this.SafeBool(response, "success", false)
-	var status any = func() any {
+	var status string = func() string {
 		if success != nil && *success == true {
 			return "canceled"
 		}
@@ -3441,7 +3441,7 @@ func (this *Pacifica) ParseOrder(order any, optionalArgs ...any) any {
 	var status *string = this.SafeString2(order, "order_status", "os", "open") // open if method is fetchOpenOrders
 	var side any = DerefScalar(this.SafeString(order, "side", "d"))
 	if !IsEqual(side, nil) {
-		side = func() any {
+		side = func() string {
 			if IsEqual(side, "bid") {
 				return "buy"
 			}
@@ -3592,16 +3592,16 @@ func (this *Pacifica) ParsePosition(position any, optionalArgs ...any) any {
 	market = this.SafeMarket(marketId, market)
 	var symbol any = GetValue(market, "symbol")
 	var margin *string = this.SafeString(position, "margin")
-	var marginMode any = func() any {
+	var marginMode string = func() string {
 		if (margin != nil) && (margin == nil || *margin != "0") {
 			return "isolated"
 		}
 		return "cross"
 	}()
-	var isIsolated bool = (IsEqual(marginMode, "isolated"))
+	var isIsolated bool = (marginMode == "isolated")
 	var side any = DerefScalar(this.SafeString(position, "side"))
 	if !IsEqual(side, nil) {
-		side = func() any {
+		side = func() string {
 			if IsEqual(side, "bid") {
 				return "long"
 			}
@@ -4324,7 +4324,7 @@ func (this *Pacifica) ParseTransfer(transfer any, optionalArgs ...any) any {
 	var success *bool = this.SafeBool(transfer, "success")
 	var status any = nil
 	if success != nil {
-		status = func() any {
+		status = func() string {
 			if success != nil && *success == true {
 				return "ok"
 			}
@@ -4636,7 +4636,7 @@ func (this *Pacifica) Sign(path any, optionalArgs ...any) any {
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var isTestnet any = this.IsSandboxModeEnabled
-	var urlKey any = func() any {
+	var urlKey string = func() string {
 		if EvalTruthy((isTestnet)) {
 			return "test"
 		}

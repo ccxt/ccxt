@@ -4248,7 +4248,7 @@ func (this *Btse) setPositionModeBody(ch chan any, hedged any, optionalArgs ...a
 	retRes34558 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes34558)
 	var market any = this.Market(symbol)
-	var positionMode any = func() any {
+	var positionMode string = func() string {
 		if EvalTruthy(hedged) {
 			return "HEDGE"
 		}

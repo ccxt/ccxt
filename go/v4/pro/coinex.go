@@ -539,7 +539,7 @@ func (this *Coinex) HandleMyTrades(client any, message any) {
 	var data any = this.SafeDict(message, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "market")
 	var isSpot bool = ccxt.IsGreaterThan(ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "spot"), -1)
-	var defaultType any = func() any {
+	var defaultType string = func() string {
 		if isSpot {
 			return "spot"
 		}
@@ -605,7 +605,7 @@ func (this *Coinex) HandleTrades(client any, message any) {
 	var trades any = this.SafeList(data, "deal_list", []any{})
 	var marketId *string = this.SafeString(data, "market")
 	var isSpot bool = ccxt.IsGreaterThan(ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "spot"), -1)
-	var defaultType any = func() any {
+	var defaultType string = func() string {
 		if isSpot {
 			return "spot"
 		}
@@ -670,7 +670,7 @@ func (this *Coinex) ParseWsTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var timestamp *int64 = this.SafeInteger(trade, "created_at")
 	var isSpot bool = (ccxt.InOp(trade, "margin_market"))
-	var defaultType any = func() any {
+	var defaultType string = func() string {
 		if isSpot {
 			return "spot"
 		}
@@ -1069,7 +1069,7 @@ func (this *Coinex) HandleOrderBook(client any, message any) {
 	//     }
 	//
 	var isSpot bool = ccxt.IsGreaterThan(ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "spot"), -1)
-	var defaultType any = func() any {
+	var defaultType string = func() string {
 		if isSpot {
 			return "spot"
 		}
@@ -1424,7 +1424,7 @@ func (this *Coinex) ParseWsOrder(order any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(order, "market")
 	var status *string = this.SafeString(order, "status")
 	var isSpot bool = (ccxt.InOp(order, "margin_market"))
-	var defaultType any = func() any {
+	var defaultType string = func() string {
 		if isSpot {
 			return "spot"
 		}

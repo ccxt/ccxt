@@ -2352,7 +2352,7 @@ func (this *Hibachi) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var transactionType *string = this.SafeString(item, "transactionType")
 	var timestamp *int64 = nil
 	var typeVar any = nil
-	var direction any = nil
+	var direction string
 	var amount any = nil
 	var fee any = nil
 	var referenceId any = nil
@@ -2379,7 +2379,7 @@ func (this *Hibachi) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		// response from CapitalHistory
 		timestamp = this.SafeIntegerProduct(item, "timestampSec", 1000)
 		amount = DerefScalar(this.SafeNumber(item, "quantity"))
-		direction = func() any {
+		direction = func() string {
 			if (transactionType != nil && *transactionType == "deposit") || (transactionType != nil && *transactionType == "transfer-in") {
 				return "in"
 			}

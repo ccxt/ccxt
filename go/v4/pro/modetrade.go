@@ -691,7 +691,7 @@ func (this *Modetrade) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var takerOrMaker any = nil
 	var maker *bool = this.SafeBool(trade, "maker")
 	if maker != nil {
-		takerOrMaker = func() any {
+		takerOrMaker = func() string {
 			if maker != nil && *maker {
 				return "maker"
 			}
@@ -874,7 +874,7 @@ func (this *Modetrade) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes69412)
 	}
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger", false)
-	var topic any = func() any {
+	var topic string = func() string {
 		if trigger != nil && *trigger == true {
 			return "algoexecutionreport"
 		}
@@ -938,7 +938,7 @@ func (this *Modetrade) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes73212)
 	}
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger", false)
-	var topic any = func() any {
+	var topic string = func() string {
 		if trigger != nil && *trigger == true {
 			return "algoexecutionreport"
 		}

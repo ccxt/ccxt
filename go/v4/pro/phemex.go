@@ -569,9 +569,9 @@ func (this *Phemex) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	symbol = ccxt.GetValue(market, "symbol")
 	var isSwap any = ccxt.GetValue(market, "swap")
 	var settleIsUSDT bool = ccxt.IsEqual(ccxt.GetValue(market, "settle"), "USDT")
-	var name any = "spot_market24h"
+	var name string = "spot_market24h"
 	if isSwap == true {
-		name = func() any {
+		name = func() string {
 			if settleIsUSDT {
 				return "perp_market24h_pack_p"
 			}
@@ -580,7 +580,7 @@ func (this *Phemex) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var requestId any = this.RequestId()
-	var subscriptionHash any = ccxt.Add(name, ".subscribe")
+	var subscriptionHash any = name + ".subscribe"
 	var messageHash any = ccxt.Add("ticker:", symbol)
 	var subscribe map[string]any = map[string]any{
 		"method": subscriptionHash,
@@ -629,9 +629,9 @@ func (this *Phemex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var market any = this.Market(first)
 	var isSwap any = ccxt.GetValue(market, "swap")
 	var settleIsUSDT bool = ccxt.IsEqual(ccxt.GetValue(market, "settle"), "USDT")
-	var name any = "spot_market24h"
+	var name string = "spot_market24h"
 	if isSwap == true {
-		name = func() any {
+		name = func() string {
 			if settleIsUSDT {
 				return "perp_market24h_pack_p"
 			}
@@ -640,7 +640,7 @@ func (this *Phemex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var requestId any = this.RequestId()
-	var subscriptionHash any = ccxt.Add(name, ".subscribe")
+	var subscriptionHash any = name + ".subscribe"
 	var messageHashes any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		ccxt.AppendToArray(&messageHashes, ccxt.Add("ticker:", ccxt.GetValue(symbols, i)))
@@ -705,14 +705,14 @@ func (this *Phemex) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	var isSwap any = ccxt.GetValue(market, "swap")
 	var settleIsUSDT bool = ccxt.IsEqual(ccxt.GetValue(market, "settle"), "USDT")
 	var isUsdtSwap bool = (isSwap == true) && settleIsUSDT
-	var name any = func() any {
+	var name string = func() string {
 		if isUsdtSwap {
 			return "trade_p"
 		}
 		return "trade"
 	}()
 	var messageHash any = ccxt.Add("trade:", symbol)
-	var method any = ccxt.Add(name, ".subscribe")
+	var method any = name + ".subscribe"
 	var subscribe map[string]any = map[string]any{
 		"method": method,
 		"id":     requestId,
@@ -767,14 +767,14 @@ func (this *Phemex) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	var isSwap any = ccxt.GetValue(market, "swap")
 	var settleIsUSDT bool = ccxt.IsEqual(ccxt.GetValue(market, "settle"), "USDT")
 	var isUsdtSwap bool = (isSwap == true) && settleIsUSDT
-	var name any = func() any {
+	var name string = func() string {
 		if isUsdtSwap {
 			return "orderbook_p"
 		}
 		return "orderbook"
 	}()
 	var messageHash any = ccxt.Add("orderbook:", symbol)
-	var method any = ccxt.Add(name, ".subscribe")
+	var method any = name + ".subscribe"
 	var subscribe map[string]any = map[string]any{
 		"method": method,
 		"id":     requestId,
@@ -831,14 +831,14 @@ func (this *Phemex) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	var isSwap any = ccxt.GetValue(market, "swap")
 	var settleIsUSDT bool = ccxt.IsEqual(ccxt.GetValue(market, "settle"), "USDT")
 	var isUsdtSwap bool = (isSwap == true) && settleIsUSDT
-	var name any = func() any {
+	var name string = func() string {
 		if isUsdtSwap {
 			return "kline_p"
 		}
 		return "kline"
 	}()
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("kline:", timeframe), ":"), symbol)
-	var method any = ccxt.Add(name, ".subscribe")
+	var method any = name + ".subscribe"
 	var subscribe map[string]any = map[string]any{
 		"method": method,
 		"id":     requestId,
@@ -1734,7 +1734,7 @@ func (this *Phemex) HandleMessage(client any, message any) {
 		this.HandleOrders(client, orders)
 	}
 	if (ccxt.InOp(message, "accounts")) || (ccxt.InOp(message, "accounts_p")) || (ccxt.InOp(message, "wallets")) {
-		var typeVar any = func() any {
+		var typeVar string = func() string {
 			if ccxt.InOp(message, "accounts") {
 				return "swap"
 			}

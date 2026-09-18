@@ -1637,14 +1637,14 @@ func (this *Bydfi) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 	if EvalTruthy(hedged) {
 		params = this.Omit(params, "reduceOnly")
 		if IsEqual(side, "buy") {
-			request["positionSide"] = func() any {
+			request["positionSide"] = func() string {
 				if reduceOnly != nil && *reduceOnly == true {
 					return "SHORT"
 				}
 				return "LONG"
 			}()
 		} else if IsEqual(side, "sell") {
-			request["positionSide"] = func() any {
+			request["positionSide"] = func() string {
 				if reduceOnly != nil && *reduceOnly == true {
 					return "LONG"
 				}
@@ -3110,7 +3110,7 @@ func (this *Bydfi) setPositionModeBody(ch chan any, hedged any, optionalArgs ...
 		retRes244612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes244612)
 	}
-	var positionType any = func() any {
+	var positionType string = func() string {
 		if EvalTruthy(hedged) {
 			return "HEDGE"
 		}
@@ -3636,14 +3636,14 @@ func (this *Bydfi) FetchTransactionsHelperAsync(typeVar any, code any, since any
 func (this *Bydfi) fetchTransactionsHelperBody(ch chan any, typeVar any, code any, since any, limit any, params any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var methodName any = func() any {
+	var methodName string = func() string {
 		if IsEqual(typeVar, "deposit") {
 			return "fetchDeposits"
 		}
 		return "fetchWithdrawals"
 	}()
 	if IsEqual(code, nil) {
-		panic(ArgumentsRequired(Add(Add(this.Id+" ", methodName), "() requires a code argument")))
+		panic(ArgumentsRequired(this.Id + " " + methodName + "() requires a code argument"))
 	}
 	if IsEqual(this.Markets, nil) {
 

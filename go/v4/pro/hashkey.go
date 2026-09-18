@@ -738,14 +738,14 @@ func (this *Hashkey) ParseWsTrade(trade any, optionalArgs ...any) any {
 	if isBuyerMaker != nil {
 		if isPublicTrade {
 			takerOrMaker = "taker"
-			side = func() any {
+			side = func() string {
 				if isBuyerMaker != nil && *isBuyerMaker {
 					return "sell"
 				}
 				return "buy"
 			}()
 		} else {
-			takerOrMaker = func() any {
+			takerOrMaker = func() string {
 				if isBuyerMaker != nil && *isBuyerMaker {
 					return "maker"
 				}
@@ -1015,7 +1015,7 @@ func (this *Hashkey) HandleBalance(client any, message any) {
 	var data any = this.SafeList(message, "B", []any{})
 	var balanceUpdate any = this.SafeDict(data, 0)
 	var isSpot bool = (event != nil && *event == "outboundAccountInfo")
-	var typeVar any = func() any {
+	var typeVar string = func() string {
 		if isSpot {
 			return "spot"
 		}
@@ -1030,11 +1030,11 @@ func (this *Hashkey) HandleBalance(client any, message any) {
 	var account any = this.Account()
 	ccxt.AddElementToObject(account, "free", this.SafeString(balanceUpdate, "f"))
 	ccxt.AddElementToObject(account, "used", this.SafeString(balanceUpdate, "l"))
-	if (typeVar != nil) && (code != nil) {
+	if (!ccxt.IsEqual(typeVar, nil)) && (code != nil) {
 		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), code, account)
 	}
 	ccxt.AddElementToObject(this.Balance, typeVar, this.SafeBalance(ccxt.GetValue(this.Balance, typeVar)))
-	var messageHash any = ccxt.Add("balance:", typeVar)
+	var messageHash any = "balance:" + typeVar
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), messageHash)
 }
 func (this *Hashkey) AuthenticateAsync(optionalArgs ...any) <-chan any {

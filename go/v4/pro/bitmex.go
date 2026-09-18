@@ -1885,7 +1885,7 @@ func (this *Bitmex) HandleOrderBook(client any, message any) {
 			var size any = this.ConvertFromRawQuantity(symbol, this.SafeString(ccxt.GetValue(data, i), "size"))
 			var id *string = this.SafeString(ccxt.GetValue(data, i), "id")
 			var side any = ccxt.DerefScalar(this.SafeString(ccxt.GetValue(data, i), "side"))
-			side = func() any {
+			side = func() string {
 				if ccxt.IsEqual(side, "Buy") {
 					return "bids"
 				}
@@ -1922,7 +1922,7 @@ func (this *Bitmex) HandleOrderBook(client any, message any) {
 			}()
 			var id *string = this.SafeString(ccxt.GetValue(data, i), "id")
 			var side any = ccxt.DerefScalar(this.SafeString(ccxt.GetValue(data, i), "side"))
-			side = func() any {
+			side = func() string {
 				if ccxt.IsEqual(side, "Buy") {
 					return "bids"
 				}

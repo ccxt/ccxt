@@ -2430,7 +2430,7 @@ func (this *Bitso) ParseTransaction(transaction any, optionalArgs ...any) any {
 		}(),
 		"addressTo": withdrawalAddress,
 		"amount":    this.SafeNumber(transaction, "amount"),
-		"type": func() any {
+		"type": func() string {
 			if withdrawId == nil {
 				return "deposit"
 			}

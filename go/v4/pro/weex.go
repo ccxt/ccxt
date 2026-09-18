@@ -123,7 +123,7 @@ func (this *Weex) subscribePublicBody(ch chan any, messageHashes any, channels a
 	subscription = this.Extend(subscription, map[string]any{
 		"id": id,
 	})
-	var typeVar any = func() any {
+	var typeVar string = func() string {
 		if ccxt.EvalTruthy(isContract) {
 			return "contract"
 		}
@@ -150,7 +150,7 @@ func (this *Weex) subscribePrivateBody(ch chan any, messageHash any, subscribeHa
 	_ = params
 	subscription := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = subscription
-	var typeVar any = func() any {
+	var typeVar string = func() string {
 		if ccxt.EvalTruthy(isContract) {
 			return "contract"
 		}
@@ -726,7 +726,7 @@ func (this *Weex) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var side any = nil
 	var takerOrMaker any = nil
 	if isBuyerMaker != nil {
-		side = func() any {
+		side = func() string {
 			if isBuyerMaker != nil && *isBuyerMaker {
 				return "sell"
 			}
@@ -1481,7 +1481,7 @@ func (this *Weex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
 	params = ccxt.GetValue(marketTypeparamsVariable, 1)
 	var isContract bool = (!ccxt.IsEqual(marketType, "spot"))
-	var messageHash any = func() any {
+	var messageHash any = func() string {
 		if isContract {
 			return "myContractTrades"
 		}
@@ -1534,13 +1534,13 @@ func (this *Weex) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
 	params = ccxt.GetValue(marketTypeparamsVariable, 1)
 	var isContract bool = (!ccxt.IsEqual(marketType, "spot"))
-	var subHash any = func() any {
+	var subHash string = func() string {
 		if isContract {
 			return "myContractTrades"
 		}
 		return "myTrades"
 	}()
-	var unSubHash any = ccxt.Add("unsubscribe::", subHash)
+	var unSubHash any = "unsubscribe::" + subHash
 	var channel string = "fill"
 	var subscription map[string]any = map[string]any{
 		"unsubscribe":      true,
@@ -1739,7 +1739,7 @@ func (this *Weex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
 	params = ccxt.GetValue(marketTypeparamsVariable, 1)
 	var isContract bool = (!ccxt.IsEqual(marketType, "spot"))
-	var messageHash any = func() any {
+	var messageHash any = func() string {
 		if isContract {
 			return "contractOrders"
 		}
@@ -1791,13 +1791,13 @@ func (this *Weex) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
 	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
 	params = ccxt.GetValue(marketTypeparamsVariable, 1)
 	var isContract bool = (!ccxt.IsEqual(marketType, "spot"))
-	var subHash any = func() any {
+	var subHash string = func() string {
 		if isContract {
 			return "contractOrders"
 		}
 		return "orders"
 	}()
-	var unSubHash any = ccxt.Add("unsubscribe::", subHash)
+	var unSubHash any = "unsubscribe::" + subHash
 	var channel string = "orders"
 	var subscription map[string]any = map[string]any{
 		"unsubscribe":      true,
@@ -2073,7 +2073,7 @@ func (this *Weex) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
 	params = ccxt.GetValue(typeVarparamsVariable, 1)
 	var isContract bool = (!ccxt.IsEqual(typeVar, "spot"))
-	var urlType any = func() any {
+	var urlType string = func() string {
 		if isContract {
 			return "contract"
 		}

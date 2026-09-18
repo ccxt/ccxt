@@ -1264,7 +1264,7 @@ func (this *Krakenfutures) ParseWsOrder(order any, optionalArgs ...any) any {
 		"type":               this.SafeString(unparsedOrder, "type"),
 		"timeInForce":        nil,
 		"postOnly":           nil,
-		"side": func() any {
+		"side": func() string {
 			if direction != nil && *direction == 0 {
 				return "buy"
 			}
@@ -1845,7 +1845,7 @@ func (this *Krakenfutures) ParseWsMyTrade(trade any, optionalArgs ...any) any {
 		"symbol":    this.SafeString(market, "symbol"),
 		"order":     this.SafeString(trade, "order_id"),
 		"type":      this.SafeString(trade, "type"),
-		"side": func() any {
+		"side": func() string {
 			if isBuy == true {
 				return "buy"
 			}

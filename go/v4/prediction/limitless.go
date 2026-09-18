@@ -608,7 +608,7 @@ func (this *Limitless) ParseMarket(raw any) any {
 		var settleFractionRaw any = nil
 		if marketResolved {
 			winnerRaw = (ccxt.IsEqual(legIndex, winningOutcomeIndex))
-			settleFractionRaw = func() any {
+			settleFractionRaw = func() int {
 				if ccxt.EvalTruthy(winnerRaw) {
 					return 1
 				}
@@ -647,7 +647,7 @@ func (this *Limitless) ParseMarket(raw any) any {
 	return map[string]any{
 		"id":     slug,
 		"market": marketSymbol,
-		"marketType": func() any {
+		"marketType": func() string {
 			if outcomesLength > 2 {
 				return "categorical"
 			}
@@ -2325,7 +2325,7 @@ func (this *Limitless) ParsePredictionOrder(order any, optionalArgs ...any) any 
 	var rawSide *string = this.SafeString(rawOrder, "side")
 	var side *string = this.ParseOrderSide(rawSide)
 	var price *string = this.SafeString(rawOrder, "price")
-	var amountKey any = func() any {
+	var amountKey string = func() string {
 		if side != nil && *side == "buy" {
 			return "takerAmount"
 		}
@@ -2636,7 +2636,7 @@ func (this *Limitless) createOrderBody(ch chan any, outcome any, typeVar any, si
 	var sideValue *int64 = this.SafeInteger(sides, ccxt.ToLower(side))
 	var rank any = this.SafeDict(accountInfo, "rank")
 	// signatureType: 0 = EOA, 2 = smart-wallet (the embedded owner signs on behalf of the safe)
-	var signatureType any = func() any {
+	var signatureType any = func() int {
 		if isSmartWallet {
 			return 2
 		}
@@ -2676,7 +2676,7 @@ func (this *Limitless) createOrderBody(ch chan any, outcome any, typeVar any, si
 	var timeInForce any = ccxt.DerefScalar(this.SafeString(params, "timeInForce"))
 	params = this.Omit(params, "timeInForce")
 	if ccxt.IsEqual(timeInForce, nil) {
-		timeInForce = func() any {
+		timeInForce = func() string {
 			if isMarket {
 				return "FOK"
 			}
@@ -3337,7 +3337,7 @@ func (this *Limitless) ParsePredictionTrade(trade any, optionalArgs ...any) any 
 		panic(ccxt.ExchangeError(this.Id + " parsePredictionTrade() missing rawSide"))
 	}
 	var sellIndex int = ccxt.GetIndexOf(rawSide, "sell")
-	var side any = func() any {
+	var side string = func() string {
 		if sellIndex >= 0 {
 			return "sell"
 		}
@@ -3361,7 +3361,7 @@ func (this *Limitless) ParsePredictionTrade(trade any, optionalArgs ...any) any 
 	var rawMarket any = this.SafeDict(trade, "market", map[string]any{})
 	var slug *string = this.SafeString(rawMarket, "slug")
 	var outcomeIndex *int64 = this.SafeInteger(trade, "outcomeIndex")
-	var label any = func() any {
+	var label string = func() string {
 		if outcomeIndex != nil && *outcomeIndex == 0 {
 			return "yes"
 		}

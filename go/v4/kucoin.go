@@ -2113,7 +2113,7 @@ func (this *Kucoin) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	var response any = nil
 	if EvalTruthy(uta) {
 		var defaultType *string = this.SafeString(this.Options, "defaultType", "spot")
-		var defaultTradeType any = func() any {
+		var defaultTradeType string = func() string {
 			if defaultType != nil && *defaultType == "spot" {
 				return "SPOT"
 			}
@@ -2139,7 +2139,7 @@ func (this *Kucoin) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	var status *string = this.SafeString2(data, "status", "serverStatus")
 
 	ch <- map[string]any{
-		"status": func() any {
+		"status": func() string {
 			if status != nil && *status == "open" {
 				return "ok"
 			}
@@ -2673,7 +2673,7 @@ func (this *Kucoin) fetchUTAMarketsBody(ch chan any, optionalArgs ...any) any {
 		var quote *string = this.SafeCurrencyCode(quoteId)
 		var settle *string = this.SafeCurrencyCode(settleId)
 		var hasMargin *string = this.SafeString(market, "marginMode")
-		var isMarginable any = func() any {
+		var isMarginable bool = func() bool {
 			if hasMargin != nil && *hasMargin == "1" {
 				return true
 			}
@@ -2944,7 +2944,7 @@ func (this *Kucoin) ParseCurrency(currency any) any {
 		"id":   id,
 		"name": this.SafeString(entry, "fullName"),
 		"code": code,
-		"type": func() any {
+		"type": func() string {
 			if isFiat {
 				return "fiat"
 			}
@@ -5141,7 +5141,7 @@ func (this *Kucoin) CreateSpotOrderRequest(symbol any, typeVar any, side any, am
 			request["stopPrice"] = this.PriceToPrecision(symbol, triggerPrice)
 		} else if (!IsEqual(stopLossPrice, nil)) || (!IsEqual(takeProfitPrice, nil)) {
 			if !IsEqual(stopLossPrice, nil) {
-				request["stop"] = func() any {
+				request["stop"] = func() string {
 					if IsEqual(side, "buy") {
 						return "entry"
 					}
@@ -5149,7 +5149,7 @@ func (this *Kucoin) CreateSpotOrderRequest(symbol any, typeVar any, side any, am
 				}()
 				request["stopPrice"] = this.PriceToPrecision(symbol, stopLossPrice)
 			} else {
-				request["stop"] = func() any {
+				request["stop"] = func() string {
 					if IsEqual(side, "buy") {
 						return "loss"
 					}
@@ -5335,7 +5335,7 @@ func (this *Kucoin) CreateContractOrderRequest(symbol any, typeVar any, side any
 	var triggerPriceTypeValue *string = this.SafeString(triggerPriceTypes, triggerPriceType, triggerPriceType)
 	params = this.Omit(params, []any{"stopLossPrice", "takeProfitPrice", "triggerPrice", "stopPrice", "takeProfit", "stopLoss"})
 	if !IsEqual(triggerPrice, nil) {
-		request["stop"] = func() any {
+		request["stop"] = func() string {
 			if IsEqual(side, "buy") {
 				return "up"
 			}
@@ -5360,7 +5360,7 @@ func (this *Kucoin) CreateContractOrderRequest(symbol any, typeVar any, side any
 		request["stopPriceType"] = priceType
 	} else if (!IsEqual(stopLossPrice, nil)) || (!IsEqual(takeProfitPrice, nil)) {
 		if !IsEqual(stopLossPrice, nil) {
-			request["stop"] = func() any {
+			request["stop"] = func() string {
 				if IsEqual(side, "buy") {
 					return "up"
 				}
@@ -5368,7 +5368,7 @@ func (this *Kucoin) CreateContractOrderRequest(symbol any, typeVar any, side any
 			}()
 			request["stopPrice"] = this.PriceToPrecision(symbol, stopLossPrice)
 		} else {
-			request["stop"] = func() any {
+			request["stop"] = func() string {
 				if IsEqual(side, "buy") {
 					return "down"
 				}
@@ -5417,7 +5417,7 @@ func (this *Kucoin) CreateContractOrderRequest(symbol any, typeVar any, side any
 	if reduceOnly != nil && *reduceOnly == true {
 		request["reduceOnly"] = reduceOnly
 		if hedged == true {
-			var reduceOnlyPosSide any = func() any {
+			var reduceOnlyPosSide string = func() string {
 				if IsEqual(side, "sell") {
 					return "LONG"
 				}
@@ -5427,7 +5427,7 @@ func (this *Kucoin) CreateContractOrderRequest(symbol any, typeVar any, side any
 		}
 	} else {
 		if hedged == true {
-			var posSide any = func() any {
+			var posSide string = func() string {
 				if IsEqual(side, "buy") {
 					return "LONG"
 				}
@@ -5604,15 +5604,15 @@ func (this *Kucoin) CreateUtaOrderRequest(symbol any, typeVar any, side any, amo
 			hedged = GetValue(hedgedparamsVariable, 0)
 			params = GetValue(hedgedparamsVariable, 1)
 			if hedged == true {
-				var positionSide any = func() any {
+				var positionSide string = func() string {
 					if IsEqual(side, "buy") {
 						return "LONG"
 					}
 					return "SHORT"
 				}()
 				if reduceOnly != nil && *reduceOnly == true {
-					positionSide = func() any {
-						if IsEqual(positionSide, "LONG") {
+					positionSide = func() string {
+						if positionSide == "LONG" {
 							return "SHORT"
 						}
 						return "LONG"
@@ -5641,7 +5641,7 @@ func (this *Kucoin) CreateUtaOrderRequest(symbol any, typeVar any, side any, amo
 		if triggerDirection == nil {
 			panic(ArgumentsRequired(this.Id + " createOrder() requires a triggerDirection parameter for trigger orders. Provide params.tringgerDirection or use params.stopLossPrice or params.takeProfitPrice instead of params.triggerPrice"))
 		}
-		request["triggerDirection"] = func() any {
+		request["triggerDirection"] = func() string {
 			if triggerDirection != nil && *triggerDirection == "ascending" {
 				return "UP"
 			}
@@ -5666,7 +5666,7 @@ func (this *Kucoin) CreateUtaOrderRequest(symbol any, typeVar any, side any, amo
 		}
 	} else if (!IsEqual(stopLossPrice, nil)) || (!IsEqual(takeProfitPrice, nil)) {
 		if !IsEqual(stopLossPrice, nil) {
-			request["triggerDirection"] = func() any {
+			request["triggerDirection"] = func() string {
 				if IsEqual(side, "buy") {
 					return "UP"
 				}
@@ -5678,7 +5678,7 @@ func (this *Kucoin) CreateUtaOrderRequest(symbol any, typeVar any, side any, amo
 				request["triggerPriceType"] = this.SafeString(triggerPriceTypes, stopLossPriceType, stopLossPriceType)
 			}
 		} else {
-			request["triggerDirection"] = func() any {
+			request["triggerDirection"] = func() string {
 				if IsEqual(side, "buy") {
 					return "DOWN"
 				}
@@ -6783,7 +6783,7 @@ func (this *Kucoin) cancelAllUtaOrdersBody(ch chan any, optionalArgs ...any) any
 	}
 	var market any = this.Market(symbol)
 	var isContract any = GetValue(market, "contract")
-	var tradeType any = func() any {
+	var tradeType string = func() string {
 		if isContract == true {
 			return "FUTURES"
 		}
@@ -6793,7 +6793,7 @@ func (this *Kucoin) cancelAllUtaOrdersBody(ch chan any, optionalArgs ...any) any
 	triggerparamsVariable := this.HandleParamBool(params, "trigger", trigger)
 	trigger = GetValue(triggerparamsVariable, 0)
 	params = GetValue(triggerparamsVariable, 1)
-	var orderFilter any = func() any {
+	var orderFilter string = func() string {
 		if trigger == true {
 			return "ADVANCED"
 		}
@@ -8057,7 +8057,7 @@ func (this *Kucoin) ParseContractOrder(order any, optionalArgs ...any) any {
 	var cancelExist *bool = this.SafeBool(order, "cancelExist", false)
 	var status any = nil
 	if !IsEqual(isActive, nil) {
-		status = func() any {
+		status = func() string {
 			if isActive == true {
 				return "open"
 			}
@@ -9699,7 +9699,7 @@ func (this *Kucoin) ParseTransaction(transaction any, optionalArgs ...any) any {
 		}
 		txid = GetValue(txidParts, 0)
 	}
-	var typeVar any = func() any {
+	var typeVar string = func() string {
 		if IsEqual(txid, nil) {
 			return "withdrawal"
 		}
@@ -9724,7 +9724,7 @@ func (this *Kucoin) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var isV1 bool = !(InOp(transaction, "createdAt"))
 	// if it's a v1 structure
 	if isV1 {
-		typeVar = func() any {
+		typeVar = func() string {
 			if InOp(transaction, "address") {
 				return "withdrawal"
 			}
@@ -11754,7 +11754,7 @@ func (this *Kucoin) ParseBorrowInterest(info any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(info, "symbol")
-	var marginMode any = func() any {
+	var marginMode string = func() string {
 		if marketId == nil {
 			return "cross"
 		}
@@ -11766,7 +11766,7 @@ func (this *Kucoin) ParseBorrowInterest(info any, optionalArgs ...any) any {
 	var amountBorrowed *float64 = nil
 	var interest *float64 = nil
 	var currencyId any = nil
-	if IsEqual(marginMode, "isolated") {
+	if marginMode == "isolated" {
 		amountBorrowed = this.SafeNumber(isolatedBase, "liabilityPrincipal")
 		interest = this.SafeNumber(isolatedBase, "liabilityInterest")
 		currencyId = DerefScalar(this.SafeString(isolatedBase, "currency"))
@@ -13543,7 +13543,7 @@ func (this *Kucoin) ParsePosition(position any, optionalArgs ...any) any {
 	// currently crossMode is always set to false and only isolated positions are supported
 	var marginMode any = this.SafeStringLower(position, "marginMode")
 	if !IsEqual(crossMode, nil) {
-		marginMode = func() any {
+		marginMode = func() string {
 			if crossMode == true {
 				return "cross"
 			}
@@ -13686,13 +13686,13 @@ func (this *Kucoin) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 		var data any = this.SafeDict(response, "data", map[string]any{})
 		orders = this.SafeList(data, "items", []any{})
 	} else {
-		var requestKey any = func() any {
+		var requestKey string = func() string {
 			if useClientorderId {
 				return "clientOidsList"
 			}
 			return "orderIdsList"
 		}()
-		AddElementToObject(request, requestKey, ordersRequests)
+		request[requestKey] = ordersRequests
 
 		response = (<-this.FuturesPrivateDeleteOrdersMultiCancel(this.Extend(request, params)))
 		PanicOnError(response)
@@ -13932,7 +13932,7 @@ func (this *Kucoin) ParseMarginModification(info any, optionalArgs ...any) any {
 	market = this.SafeMarket(id, market)
 	var currencyId *string = this.SafeString(info, "settleCurrency")
 	var crossMode any = this.SafeValue(info, "crossMode")
-	var mode any = func() any {
+	var mode string = func() string {
 		if crossMode == true {
 			return "cross"
 		}
@@ -14003,7 +14003,7 @@ func (this *Kucoin) ParseMarginMode(marginMode any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marginType any = DerefScalar(this.SafeString(marginMode, "marginMode"))
-	marginType = func() any {
+	marginType = func() string {
 		if IsEqual(marginType, "ISOLATED") {
 			return "isolated"
 		}
@@ -14100,7 +14100,7 @@ func (this *Kucoin) setPositionModeBody(ch chan any, hedged any, optionalArgs ..
 		retRes1130912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes1130912)
 	}
-	var posMode any = func() any {
+	var posMode string = func() string {
 		if EvalTruthy(hedged) {
 			return "1"
 		}

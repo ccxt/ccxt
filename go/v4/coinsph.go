@@ -810,7 +810,7 @@ func (this *Coinsph) ParseCurrency(rawCurrency any) any {
 		"id":   id,
 		"name": this.SafeString(rawCurrency, "name"),
 		"code": code,
-		"type": func() any {
+		"type": func() string {
 			if isFiat != nil && *isFiat == true {
 				return "fiat"
 			}
@@ -1630,7 +1630,7 @@ func (this *Coinsph) ParseTrade(trade any, optionalArgs ...any) any {
 	var isBuyer *bool = this.SafeBool2(trade, "isBuyer", "isBuyerMaker")
 	var side any = nil
 	if isBuyer != nil {
-		side = func() any {
+		side = func() string {
 			if isBuyer != nil && *isBuyer == true {
 				return "buy"
 			}
@@ -1640,7 +1640,7 @@ func (this *Coinsph) ParseTrade(trade any, optionalArgs ...any) any {
 	var isMaker *string = this.SafeString(trade, "isMaker")
 	var takerOrMaker any = nil
 	if isMaker != nil {
-		takerOrMaker = func() any {
+		takerOrMaker = func() string {
 			if isMaker != nil && *isMaker == "true" {
 				return "maker"
 			}

@@ -2089,7 +2089,7 @@ func (this *Gate) CreateExpiredOptionMarket(symbol any) any {
 		"contractSize":   this.ParseNumber("1"),
 		"expiry":         timestamp,
 		"expiryDatetime": datetime,
-		"optionType": func() any {
+		"optionType": func() string {
 			if optionType != nil && *optionType == "C" {
 				return "call"
 			}
@@ -2656,13 +2656,13 @@ func (this *Gate) fetchOptionMarketsBody(ch chan any, optionalArgs ...any) any {
 			var expiry *int64 = this.SafeTimestamp(market, "expiration_time")
 			var strike *string = this.SafeString(market, "strike_price")
 			var isCall any = this.SafeValue(market, "is_call")
-			var optionLetter any = func() any {
+			var optionLetter string = func() string {
 				if isCall == true {
 					return "C"
 				}
 				return "P"
 			}()
-			var optionType any = func() any {
+			var optionType string = func() string {
 				if isCall == true {
 					return "call"
 				}
@@ -2800,7 +2800,7 @@ func (this *Gate) PrepareRequest(optionalArgs ...any) any {
 		var swap bool = (IsEqual(typeVar, "swap"))
 		var future bool = (IsEqual(typeVar, "future"))
 		if swap || future {
-			var defaultSettle any = func() any {
+			var defaultSettle string = func() string {
 				if swap {
 					return "usdt"
 				}
@@ -3000,7 +3000,7 @@ func (this *Gate) ParseCurrency(rawCurrency any) any {
 	var currencyId *string = this.SafeString(rawCurrency, "currency")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	// check leveraged tokens (e.g. BTC3S, ETH5L)
-	var typeVar any = func() any {
+	var typeVar string = func() string {
 		if EvalTruthy(this.IsLeveragedCurrency(currencyId)) {
 			return "leveraged"
 		}
@@ -3585,26 +3585,26 @@ func (this *Gate) ParseTradingFee(info any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var gtDiscount any = this.SafeValue(info, "gt_discount")
-	var taker any = func() any {
+	var taker string = func() string {
 		if gtDiscount == true {
 			return "gt_taker_fee"
 		}
 		return "taker_fee"
 	}()
-	var maker any = func() any {
+	var maker string = func() string {
 		if gtDiscount == true {
 			return "gt_maker_fee"
 		}
 		return "maker_fee"
 	}()
 	var contract any = this.SafeValue(market, "contract")
-	var takerKey any = func() any {
+	var takerKey string = func() string {
 		if contract == true {
 			return "futures_taker_fee"
 		}
 		return taker
 	}()
-	var makerKey any = func() any {
+	var makerKey string = func() string {
 		if contract == true {
 			return "futures_maker_fee"
 		}
@@ -4234,7 +4234,7 @@ func (this *Gate) ParseTicker(ticker any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeStringN(ticker, []any{"currency_pair", "contract", "name"})
-	var marketType any = func() any {
+	var marketType string = func() string {
 		if InOp(ticker, "mark_price") {
 			return "contract"
 		}
@@ -4758,7 +4758,7 @@ func (this *Gate) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 	AddElementToObject(request, "interval", this.SafeString(this.Timeframes, timeframe, timeframe))
-	var maxLimit any = func() any {
+	var maxLimit int = func() int {
 		if IsEqual(GetValue(market, "contract"), true) {
 			return 1999
 		}
@@ -5501,7 +5501,7 @@ func (this *Gate) ParseTrade(trade any, optionalArgs ...any) any {
 		timestamp = this.SafeTimestamp2(trade, "time", "create_time")
 	}
 	var marketId *string = this.SafeString2(trade, "currency_pair", "contract")
-	var marketType any = func() any {
+	var marketType string = func() string {
 		if InOp(trade, "contract") {
 			return "contract"
 		}
@@ -5510,7 +5510,7 @@ func (this *Gate) ParseTrade(trade any, optionalArgs ...any) any {
 	market = this.SafeMarket(marketId, market, "_", marketType)
 	var amountString *string = this.SafeString2(trade, "amount", "size")
 	var priceString *string = this.SafeString(trade, "price")
-	var contractSide any = func() any {
+	var contractSide string = func() string {
 		if Precise.StringLt(amountString, "0") {
 			return "sell"
 		}
@@ -5864,7 +5864,7 @@ func (this *Gate) ParseTransaction(transaction any, optionalArgs ...any) any {
 	if id != nil {
 		if GetValue(id, 0) == "b" {
 			// GateCode handling
-			typeVar = func() any {
+			typeVar = func() string {
 				if Precise.StringGt(amountString, "0") {
 					return "deposit"
 				}
@@ -6361,7 +6361,7 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 				if isStopLossOrder {
 					// we let trigger orders be aliases for stopLoss orders because
 					// gateio doesn't accept conventional trigger orders for spot markets
-					rule = func() any {
+					rule = func() int {
 						if IsEqual(side, "buy") {
 							return 1
 						}
@@ -6369,7 +6369,7 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 					}()
 					triggerOrderPrice = this.PriceToPrecision(symbol, stopLossPrice)
 				} else if isTakeProfitOrder {
-					rule = func() any {
+					rule = func() int {
 						if IsEqual(side, "buy") {
 							return 2
 						}
@@ -6426,7 +6426,7 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 				if isStopLossOrder {
 					// we let trigger orders be aliases for stopLoss orders because
 					// gateio doesn't accept conventional trigger orders for spot markets
-					rule = func() any {
+					rule = func() string {
 						if IsEqual(side, "buy") {
 							return ">="
 						}
@@ -6434,7 +6434,7 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 					}()
 					triggerOrderPrice = this.PriceToPrecision(symbol, stopLossPrice)
 				} else if isTakeProfitOrder {
-					rule = func() any {
+					rule = func() string {
 						if IsEqual(side, "buy") {
 							return "<="
 						}
@@ -6888,13 +6888,13 @@ func (this *Gate) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	if (contract != nil) && (contract == nil || *contract != "") {
 		var isMarketOrder bool = Precise.StringEquals(price, "0") && (IsEqual(timeInForce, "IOC"))
-		typeVar = func() any {
+		typeVar = func() string {
 			if isMarketOrder {
 				return "market"
 			}
 			return "limit"
 		}()
-		side = func() any {
+		side = func() string {
 			if Precise.StringGt(amount, "0") {
 				return "buy"
 			}
@@ -9303,7 +9303,7 @@ func (this *Gate) ParseBorrowInterest(info any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(info, "currency_pair")
 	market = this.SafeMarket(marketId, market)
-	var marginMode any = func() any {
+	var marginMode string = func() string {
 		if marketId != nil {
 			return "isolated"
 		}
@@ -10043,7 +10043,7 @@ func (this *Gate) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 	if (IsEqual(typeVar, "swap")) || (IsEqual(typeVar, "future")) {
-		var defaultSettle any = func() any {
+		var defaultSettle string = func() string {
 			if IsEqual(typeVar, "swap") {
 				return "usdt"
 			}

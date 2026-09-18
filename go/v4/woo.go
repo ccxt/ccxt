@@ -1274,7 +1274,7 @@ func (this *Woo) ParseTrade(trade any, optionalArgs ...any) any {
 	var takerOrMaker any = nil
 	if isFromFetchOrder {
 		var isMaker bool = IsEqual(this.SafeString2(trade, "is_maker", "isMaker"), "1")
-		takerOrMaker = func() any {
+		takerOrMaker = func() string {
 			if isMaker {
 				return "maker"
 			}
@@ -1881,7 +1881,7 @@ func (this *Woo) createOrderBody(ch chan any, symbol any, typeVar any, side any,
 	var isMarket bool = (orderType == "MARKET")
 	var timeInForce *string = this.SafeStringLower(params, "timeInForce")
 	var postOnly bool = this.IsPostOnly(isMarket, nil, params)
-	var clientOrderIdKey any = func() any {
+	var clientOrderIdKey string = func() string {
 		if isConditional {
 			return "clientAlgoOrderId"
 		}
@@ -1927,7 +1927,7 @@ func (this *Woo) createOrderBody(ch chan any, symbol any, typeVar any, side any,
 	}
 	var clientOrderId *string = this.SafeStringN(params, []any{"clOrdID", "clientOrderId", "client_order_id"})
 	if clientOrderId != nil {
-		AddElementToObject(request, clientOrderIdKey, clientOrderId)
+		request[clientOrderIdKey] = clientOrderId
 	}
 	if isTrailing {
 		if trailingTriggerPrice == nil {
@@ -1955,7 +1955,7 @@ func (this *Woo) createOrderBody(ch chan any, symbol any, typeVar any, side any,
 			"childOrders": []any{},
 		}
 		var childOrders any = outterOrder["childOrders"]
-		var closeSide any = func() any {
+		var closeSide string = func() string {
 			if orderSide == "BUY" {
 				return "SELL"
 			}
@@ -3703,7 +3703,7 @@ func (this *Woo) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	currency = this.SafeCurrency(code, currency)
 	var amount *float64 = this.SafeNumber(item, "amount")
 	var side *string = this.SafeString(item, "tokenSide")
-	var direction any = func() any {
+	var direction string = func() string {
 		if side != nil && *side == "DEPOSIT" {
 			return "in"
 		}
@@ -4128,7 +4128,7 @@ func (this *Woo) ParseTransfer(transfer any, optionalArgs ...any) any {
 	var success *bool = this.SafeBool(transfer, "success")
 	var status any = nil
 	if success != nil {
-		status = func() any {
+		status = func() string {
 			if success != nil && *success {
 				return "ok"
 			}

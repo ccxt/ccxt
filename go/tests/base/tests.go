@@ -518,7 +518,7 @@ func (this *testMainClass) testSafeBody(ch chan any, methodName any, exchange cc
 										}
 									}
 									// output the message
-									var failType any = func() any {
+									var failType string = func() string {
 										if EvalTruthy(shouldFail) {
 											return "[TEST_FAILURE]"
 										}
@@ -698,7 +698,7 @@ func (this *testMainClass) runTestsBody(ch chan any, exchange ccxt.ICoreExchange
 			AppendToArray(&failedMethods, testName)
 		}
 	}
-	var testPrefixString any = func() any {
+	var testPrefixString string = func() string {
 		if EvalTruthy(isPublicTest) {
 			return "PUBLIC_TESTS"
 		}
@@ -709,7 +709,7 @@ func (this *testMainClass) runTestsBody(ch chan any, exchange ccxt.ICoreExchange
 		Dump("[TEST_FAILURE]", exchange.GetId(), testPrefixString, "Failed methods : "+errorsString)
 	}
 	if EvalTruthy(this.Info) {
-		Dump(this.AddPadding(Add(Add(Add("[INFO] END ", testPrefixString), " "), exchange.GetId()), 25))
+		Dump(this.AddPadding(Add("[INFO] END "+testPrefixString+" ", exchange.GetId()), 25))
 	}
 
 	ch <- true
@@ -884,7 +884,7 @@ func (this *testMainClass) getMostActiveSymbolsBody(ch chan any, exchange ccxt.I
 	// an explicit per-exchange pin is a deliberate maintainer choice (it usually
 	// works around a venue-specific quirk), so never rank around it
 	var isSpot any = ccxt.DerefScalar(exchange.SafeBool(defaultMarket, "spot", false))
-	var preferredKey any = func() any {
+	var preferredKey string = func() string {
 		if isSpot == true {
 			return "preferredSpotSymbol"
 		}
@@ -2137,19 +2137,19 @@ func (this *testMainClass) AssertNewAndStoredOutputInner(exchange ccxt.ICoreExch
 		// a truthiness test here turns a real 0 / 0.0 / "" into "undefined", which a
 		// typed core hits constantly (its Num fields are real doubles, so an unset
 		// cost arrives as 0.0 rather than as a string). Test for undefined instead.
-		var newOutputString any = func() any {
+		var newOutputString string = func() string {
 			if !IsEqual(sanitizedNewOutput, nil) {
 				return ToString(sanitizedNewOutput)
 			}
 			return "undefined"
 		}()
-		var storedOutputString any = func() any {
+		var storedOutputString string = func() string {
 			if !IsEqual(sanitizedStoredOutput, nil) {
 				return ToString(sanitizedStoredOutput)
 			}
 			return "undefined"
 		}()
-		var messageError any = Add(Add(Add("output value mismatch:", newOutputString), " != "), storedOutputString)
+		var messageError any = "output value mismatch:" + newOutputString + " != " + storedOutputString
 		if EvalTruthy(strictTypeCheck) && (this.Lang != "C#") {
 			// upon building the request we want strict type check to make sure all the types are correct
 			// when comparing the response we want to allow some flexibility, because a 50.0 can be equal to 50 after saving it to the json file
@@ -3275,7 +3275,7 @@ func (this *testMainClass) runStaticTestsBody(ch chan any, typeVar any, optional
 	if EvalTruthy(this.RequestTestsFailed) || EvalTruthy(this.ResponseTestsFailed) || EvalTruthy(this.StaticWsTestsFailed) {
 		ExitScript(1)
 	} else {
-		var prefix any = func() any {
+		var prefix string = func() string {
 			if EvalTruthy((IsSync())) {
 				return "[SYNC]"
 			}

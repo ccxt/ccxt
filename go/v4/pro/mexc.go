@@ -363,13 +363,13 @@ func (this *Mexc) HandleTickers(client any, message any) {
 		return ccxt.GetValue(market, "spot")
 	}()
 	var spotPrefix string = "spot:"
-	var messageHashPrefix any = func() any {
+	var messageHashPrefix string = func() string {
 		if isSpot == true {
 			return spotPrefix
 		}
 		return ""
 	}()
-	var topic any = ccxt.Add(messageHashPrefix, "ticker")
+	var topic any = messageHashPrefix + "ticker"
 	var result any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(data); i++ {
 		var entry any = ccxt.GetValue(data, i)
@@ -573,7 +573,7 @@ func (this *Mexc) watchSpotPublicBody(ch chan any, channel any, messageHash any,
 	var unsubscribed *bool = this.SafeBool(params, "unsubscribed", false)
 	params = this.Omit(params, []any{"unsubscribed"})
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "spot")
-	var method any = func() any {
+	var method string = func() string {
 		if unsubscribed != nil && *unsubscribed == true {
 			return "UNSUBSCRIPTION"
 		}
@@ -1450,7 +1450,7 @@ func (this *Mexc) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var priceString *string = this.SafeString2(trade, "p", "price")
 	var amountString *string = this.SafeString2(trade, "v", "quantity")
 	var rawSide *string = this.SafeString2(trade, "S", "tradeType")
-	var side any = func() any {
+	var side string = func() string {
 		if rawSide != nil && *rawSide == "1" {
 			return "buy"
 		}
@@ -1468,7 +1468,7 @@ func (this *Mexc) ParseWsTrade(trade any, optionalArgs ...any) any {
 		"symbol":    this.SafeSymbol(nil, market),
 		"type":      nil,
 		"side":      side,
-		"takerOrMaker": func() any {
+		"takerOrMaker": func() string {
 			if (isMaker != nil) && (isMaker == nil || *isMaker != 0) {
 				return "maker"
 			}
@@ -1742,7 +1742,7 @@ func (this *Mexc) ParseWsOrder(order any, optionalArgs ...any) any {
 		"symbol":             this.SafeSymbol(nil, market),
 		"type":               this.ParseWsOrderType(typeVar),
 		"timeInForce":        this.ParseWsTimeInForce(typeVar),
-		"side": func() any {
+		"side": func() string {
 			if side != nil && *side == "1" {
 				return "buy"
 			}
@@ -1885,13 +1885,13 @@ func (this *Mexc) HandleBalance(client any, message any) {
 	//     }
 	//
 	var channel *string = this.SafeString(message, "channel")
-	var typeVar any = func() any {
+	var typeVar string = func() string {
 		if channel != nil && *channel == "spot@private.account.v3.api.pb" {
 			return "spot"
 		}
 		return "swap"
 	}()
-	var messageHash any = ccxt.Add("balance:", typeVar)
+	var messageHash any = "balance:" + typeVar
 	var data any = this.SafeDictN(message, []any{"data", "privateAccount"})
 	var futuresTimestamp *int64 = this.SafeInteger2(message, "ts", "createTime")
 	var timestamp *int64 = this.SafeInteger2(data, "time", futuresTimestamp)

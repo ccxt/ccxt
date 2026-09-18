@@ -2031,7 +2031,7 @@ func (this *Xt) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var isInverse *bool = this.SafeBool(market, "inverse")
-	var volumeIndex any = func() any {
+	var volumeIndex string = func() string {
 		if isInverse != nil && *isInverse == true {
 			return "v"
 		}
@@ -2477,7 +2477,7 @@ func (this *Xt) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		// the spot and contract payloads share the same field names, so
 		// the market type cannot be inferred from the entry itself
 		var marketId *string = this.SafeString(rawTicker, "s")
-		var marketType any = func() any {
+		var marketType string = func() string {
 			if isContract {
 				return "contract"
 			}
@@ -2551,7 +2551,7 @@ func (this *Xt) ParseTicker(ticker any, optionalArgs ...any) any {
 	}()
 	var hasSpotKeys bool = (InOp(ticker, "cv")) || (InOp(ticker, "aq"))
 	if marketType == nil {
-		marketType = func() any {
+		marketType = func() string {
 			if hasSpotKeys {
 				return "spot"
 			}
@@ -2757,7 +2757,7 @@ func (this *Xt) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		marginModeparamsVariable := this.HandleMarginModeAndParams("fetchMyTrades", params)
 		marginMode = GetValue(marginModeparamsVariable, 0)
 		params = GetValue(marginModeparamsVariable, 1)
-		var marginOrSpotRequest any = func() any {
+		var marginOrSpotRequest string = func() string {
 			if marginMode != nil {
 				return "LEVER"
 			}
@@ -2954,7 +2954,7 @@ func (this *Xt) ParseTrade(trade any, optionalArgs ...any) any {
 	}()
 	var hasSpotKeys bool = (InOp(trade, "b")) || (InOp(trade, "bizType")) || (InOp(trade, "oi"))
 	if marketType == nil {
-		marketType = func() any {
+		marketType = func() string {
 			if hasSpotKeys {
 				return "spot"
 			}
@@ -2966,7 +2966,7 @@ func (this *Xt) ParseTrade(trade any, optionalArgs ...any) any {
 	var takerOrMaker any = nil
 	var isBuyerMaker *bool = this.SafeBool(trade, "b")
 	if isBuyerMaker != nil {
-		side = func() any {
+		side = func() string {
 			if isBuyerMaker != nil && *isBuyerMaker {
 				return "sell"
 			}
@@ -2980,7 +2980,7 @@ func (this *Xt) ParseTrade(trade any, optionalArgs ...any) any {
 		} else {
 			var isMaker *bool = this.SafeBool(trade, "isMaker")
 			if isMaker != nil {
-				takerOrMaker = func() any {
+				takerOrMaker = func() string {
 					if isMaker != nil && *isMaker {
 						return "maker"
 					}
@@ -2994,7 +2994,7 @@ func (this *Xt) ParseTrade(trade any, optionalArgs ...any) any {
 		} else {
 			var bidOrAsk *string = this.SafeString(trade, "m")
 			if bidOrAsk != nil {
-				side = func() any {
+				side = func() string {
 					if bidOrAsk != nil && *bidOrAsk == "BID" {
 						return "buy"
 					}
@@ -3319,7 +3319,7 @@ func (this *Xt) createSpotOrderBody(ch chan any, symbol any, typeVar any, side a
 	marginModeparamsVariable := this.HandleMarginModeAndParams("createOrder", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
 	params = GetValue(marginModeparamsVariable, 1)
-	var marginOrSpotRequest any = func() any {
+	var marginOrSpotRequest string = func() string {
 		if marginMode != nil {
 			return "LEVER"
 		}
@@ -3426,7 +3426,7 @@ func (this *Xt) createContractOrderBody(ch chan any, symbol any, typeVar any, si
 	}
 	var reduceOnly *bool = this.SafeBool(params, "reduceOnly", false)
 	if IsEqual(side, "buy") {
-		var requestType any = func() any {
+		var requestType string = func() string {
 			if reduceOnly != nil && *reduceOnly == true {
 				return "SHORT"
 			}
@@ -3434,7 +3434,7 @@ func (this *Xt) createContractOrderBody(ch chan any, symbol any, typeVar any, si
 		}()
 		request["positionSide"] = requestType
 	} else {
-		var requestType any = func() any {
+		var requestType string = func() string {
 			if reduceOnly != nil && *reduceOnly == true {
 				return "LONG"
 			}
@@ -3471,7 +3471,7 @@ func (this *Xt) createContractOrderBody(ch chan any, symbol any, typeVar any, si
 		marginModeparamsVariable := this.HandleMarginModeAndParams("createOrder", params, "cross")
 		marginMode = GetValue(marginModeparamsVariable, 0)
 		params = GetValue(marginModeparamsVariable, 1)
-		request["positionType"] = func() any {
+		request["positionType"] = func() string {
 			if IsEqual(marginMode, "isolated") {
 				return "ISOLATED"
 			}
@@ -3507,7 +3507,7 @@ func (this *Xt) createContractOrderBody(ch chan any, symbol any, typeVar any, si
 		request["triggerPriceType"] = this.SafeString(params, "triggerPriceType", "LATEST_PRICE")
 		request["orderSide"] = ToUpper(side)
 		request["stopPrice"] = this.PriceToPrecision(symbol, triggerPrice)
-		var entrustType any = func() any {
+		var entrustType string = func() string {
 			if IsEqual(typeVar, "market") {
 				return "STOP_MARKET"
 			}
@@ -3902,7 +3902,7 @@ func (this *Xt) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		marginModeparamsVariable := this.HandleMarginModeAndParams("fetchOrders", params)
 		marginMode = GetValue(marginModeparamsVariable, 0)
 		params = GetValue(marginModeparamsVariable, 1)
-		var marginOrSpotRequest any = func() any {
+		var marginOrSpotRequest string = func() string {
 			if marginMode != nil {
 				return "LEVER"
 			}
@@ -4172,7 +4172,7 @@ func (this *Xt) fetchOrdersByStatusBody(ch chan any, status any, optionalArgs ..
 		marginModeparamsVariable := this.HandleMarginModeAndParams("fetchOrdersByStatus", params)
 		marginMode = GetValue(marginModeparamsVariable, 0)
 		params = GetValue(marginModeparamsVariable, 1)
-		var marginOrSpotRequest any = func() any {
+		var marginOrSpotRequest string = func() string {
 			if marginMode != nil {
 				return "LEVER"
 			}
@@ -4767,7 +4767,7 @@ func (this *Xt) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		marginModeparamsVariable := this.HandleMarginModeAndParams("cancelAllOrders", params)
 		marginMode = GetValue(marginModeparamsVariable, 0)
 		params = GetValue(marginModeparamsVariable, 1)
-		var marginOrSpotRequest any = func() any {
+		var marginOrSpotRequest string = func() string {
 			if marginMode != nil {
 				return "LEVER"
 			}
@@ -4990,7 +4990,7 @@ func (this *Xt) ParseOrder(order any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(order, "symbol")
-	var marketType any = func() any {
+	var marketType string = func() string {
 		if (InOp(order, "result")) || (InOp(order, "positionSide")) {
 			return "contract"
 		}
@@ -5001,14 +5001,14 @@ func (this *Xt) ParseOrder(order any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger2(order, "time", "createdTime")
 	var quantity *float64 = this.SafeNumber(order, "origQty")
 	var amount any = func() any {
-		if IsEqual(marketType, "spot") {
+		if marketType == "spot" {
 			return quantity
 		}
 		return Precise.StringMul(this.NumberToString(quantity), this.NumberToString(GetValue(market, "contractSize")))
 	}()
 	var filledQuantity *float64 = this.SafeNumber(order, "executedQty")
 	var filled any = func() any {
-		if IsEqual(marketType, "spot") {
+		if marketType == "spot" {
 			return filledQuantity
 		}
 		return Precise.StringMul(this.NumberToString(filledQuantity), this.NumberToString(GetValue(market, "contractSize")))
@@ -5197,7 +5197,7 @@ func (this *Xt) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var side *string = this.SafeString(item, "side")
-	var direction any = func() any {
+	var direction string = func() string {
 		if side != nil && *side == "ADD" {
 			return "in"
 		}
@@ -5585,7 +5585,7 @@ func (this *Xt) ParseTransaction(transaction any, optionalArgs ...any) any {
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var typeVar any = func() any {
+	var typeVar string = func() string {
 		if InOp(transaction, "fromAddr") {
 			return "deposit"
 		}
@@ -5781,7 +5781,7 @@ func (this *Xt) modifyMarginHelperBody(ch chan any, symbol any, amount any, addO
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var positionSide *string = this.SafeString(params, "positionSide")
-	var methodName any = func() any {
+	var methodName string = func() string {
 		if IsEqual(addOrReduce, "ADD") {
 			return "addMargin"
 		}
@@ -7067,7 +7067,7 @@ func (this *Xt) ParsePosition(position any, optionalArgs ...any) any {
 	// "ISOLATED"/"CROSSED" on position/list, 1 = cross / 2 = isolated on position/list-history
 	var positionType *string = this.SafeString(position, "positionType")
 	var isCross bool = (positionType != nil && *positionType == "CROSSED") || (positionType != nil && *positionType == "1")
-	var marginMode any = func() any {
+	var marginMode string = func() string {
 		if isCross {
 			return "cross"
 		}

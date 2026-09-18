@@ -660,7 +660,7 @@ func (this *Gate) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	var url any = this.GetUrlByMarket(market)
 	var isEuUrl bool = (ccxt.GetIndexOf(url, "gateeu") >= 0)
 	var isNonEuSpot bool = (ccxt.IsEqual(ccxt.GetValue(market, "spot"), true)) && !isEuUrl
-	var intervalDefault any = func() any {
+	var intervalDefault string = func() string {
 		if isNonEuSpot {
 			return "50"
 		}
@@ -672,7 +672,7 @@ func (this *Gate) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	var messageType any = this.GetTypeByMarket(market)
 	var messageHash any = ccxt.Add("orderbook"+":", symbol)
 	if ccxt.IsEqual(limit, nil) {
-		limit = func() any {
+		limit = func() int {
 			if ccxt.IsEqual(ccxt.GetValue(market, "spot"), true) {
 				return 50
 			}
@@ -741,7 +741,7 @@ func (this *Gate) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	var marketId any = ccxt.GetValue(market, "id")
 	var isEuUrl bool = (ccxt.GetIndexOf(url, "gateeu") >= 0)
 	var isNonEuSpot bool = (ccxt.IsEqual(ccxt.GetValue(market, "spot"), true)) && !isEuUrl
-	var intervalDefault any = func() any {
+	var intervalDefault string = func() string {
 		if isNonEuSpot {
 			return "50"
 		}
@@ -754,7 +754,7 @@ func (this *Gate) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	var messageType any = this.GetTypeByMarket(market)
 	var limit any = ccxt.DerefScalar(this.SafeInteger(params, "limit"))
 	if ccxt.IsEqual(limit, nil) {
-		limit = func() any {
+		limit = func() int {
 			if ccxt.IsEqual(ccxt.GetValue(market, "spot"), true) {
 				return 50
 			}
@@ -913,7 +913,7 @@ func (this *Gate) HandleOrderBook(client any, message any) {
 	var channelParts []string = ccxt.Split(channel, ".")
 	var rawMarketType *string = this.SafeString(channelParts, 0)
 	var isSpot bool = (rawMarketType != nil && *rawMarketType == "spot")
-	var marketType any = func() any {
+	var marketType string = func() string {
 		if isSpot {
 			return "spot"
 		}
@@ -1181,7 +1181,7 @@ func (this *Gate) subscribeWatchTickersAndBidsAsksBody(ch chan any, optionalArgs
 		panic(ccxt.ArgumentsRequired(this.Id + " requires a callerMethodName argument"))
 	}
 	var isWatchTickers bool = (ccxt.GetIndexOf(callerMethodName, "watchTicker") >= 0)
-	var prefix any = func() any {
+	var prefix string = func() string {
 		if isWatchTickers {
 			return "ticker"
 		}
@@ -1190,7 +1190,7 @@ func (this *Gate) subscribeWatchTickersAndBidsAsksBody(ch chan any, optionalArgs
 	var messageHashes any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
-		ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(prefix, ":"), symbol))
+		ccxt.AppendToArray(&messageHashes, ccxt.Add(prefix+":", symbol))
 	}
 
 	tickerOrBidAsk := (<-this.SubscribePublicMultipleAsync(url, messageHashes, marketIds, channel, params))
@@ -1216,7 +1216,7 @@ func (this *Gate) HandleTickerAndBidAsk(objectName any, client any, message any)
 	var channel *string = this.SafeString(message, "channel")
 	var parts []string = ccxt.Split(channel, ".")
 	var rawMarketType *string = this.SafeString(parts, 0)
-	var marketType any = func() any {
+	var marketType string = func() string {
 		if rawMarketType != nil && *rawMarketType == "futures" {
 			return "contract"
 		}
@@ -1524,7 +1524,7 @@ func (this *Gate) HandleOHLCV(client any, message any) {
 	var channel *string = this.SafeString(message, "channel")
 	var channelParts []string = ccxt.Split(channel, ".")
 	var rawMarketType *string = this.SafeString(channelParts, 0)
-	var marketType any = func() any {
+	var marketType string = func() string {
 		if rawMarketType != nil && *rawMarketType == "spot" {
 			return "spot"
 		}
@@ -2129,9 +2129,9 @@ func (this *Gate) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	// gate pushes trigger orders on dedicated channels, spot.priceorders and futures.autoorders,
 	// see https://github.com/ccxt/ccxt/issues/27202
-	var suffix any = ".orders"
+	var suffix string = ".orders"
 	if isTrigger == true {
-		suffix = func() any {
+		suffix = func() string {
 			if ccxt.IsEqual(typeId, "spot") {
 				return ".priceorders"
 			}
@@ -2139,7 +2139,7 @@ func (this *Gate) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		}()
 	}
 	var channel any = ccxt.Add(typeId, suffix)
-	var messageHash any = func() any {
+	var messageHash any = func() string {
 		if isTrigger == true {
 			return "triggerOrders"
 		}
@@ -2217,7 +2217,7 @@ func (this *Gate) HandleOrder(client any, message any) {
 	var orders any = this.SafeValue(message, "result", []any{})
 	var channel *string = this.SafeString(message, "channel", "")
 	var isTrigger bool = (ccxt.GetIndexOf(channel, "autoorders") >= 0) || (ccxt.GetIndexOf(channel, "priceorders") >= 0)
-	var hashPrefix any = func() any {
+	var hashPrefix string = func() string {
 		if isTrigger {
 			return "triggerOrders"
 		}
@@ -2247,7 +2247,7 @@ func (this *Gate) HandleOrder(client any, message any) {
 			var status *string = this.SafeString(parsed, "status")
 			if status == nil {
 				var left *int64 = this.SafeInteger(info, "left")
-				ccxt.AddElementToObject(parsed, "status", func() any {
+				ccxt.AddElementToObject(parsed, "status", func() string {
 					if left != nil && *left == 0 {
 						return "closed"
 					}
@@ -2264,7 +2264,7 @@ func (this *Gate) HandleOrder(client any, message any) {
 	}
 	var keys []string = ccxt.ObjectKeys(marketIds)
 	for i := 0; i < len(keys); i++ {
-		var messageHash any = ccxt.Add(ccxt.Add(hashPrefix, ":"), ccxt.GetValue(keys, i))
+		var messageHash any = ccxt.Add(hashPrefix+":", ccxt.GetValue(keys, i))
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, hashPrefix)

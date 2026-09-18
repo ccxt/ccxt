@@ -777,7 +777,7 @@ func (this *Blofin) watchOrdersForSymbolsBody(ch chan any, symbols any, optional
 	}
 	var trigger any = this.SafeValue2(params, "stop", "trigger")
 	params = this.Omit(params, []any{"stop", "trigger"})
-	var channel any = func() any {
+	var channel string = func() string {
 		if trigger == true {
 			return "orders-algo"
 		}
@@ -1054,7 +1054,7 @@ func (this *Blofin) watchMultipleWrapperBody(ch chan any, isPublic any, channelN
 		}}
 	}
 	var request any = this.GetSubscriptionRequest(rawSubscriptions)
-	var privateOrPublic any = func() any {
+	var privateOrPublic string = func() string {
 		if ccxt.EvalTruthy(isPublic) {
 			return "public"
 		}

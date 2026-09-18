@@ -761,7 +761,7 @@ func (this *Paradex) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	var status *string = this.SafeString(response, "status")
 
 	ch <- map[string]any{
-		"status": func() any {
+		"status": func() string {
 			if status != nil && *status == "ok" {
 				return "ok"
 			}
@@ -915,13 +915,13 @@ func (this *Paradex) ParseMarket(market any) any {
 	var isOptionPerpetual bool = (assetKind != nil && *assetKind == "PERP_OPTION")
 	var isOptionDelivery bool = (assetKind != nil && *assetKind == "OPTION")
 	var isOption bool = isOptionPerpetual || isOptionDelivery
-	var typeVar any = func() any {
+	var typeVar string = func() string {
 		if isOption {
 			return "option"
 		}
 		return "swap"
 	}()
-	var isSwap bool = (IsEqual(typeVar, "swap"))
+	var isSwap bool = (typeVar == "swap")
 	var marketId *string = this.SafeString(market, "symbol")
 	var quoteId *string = this.SafeString(market, "quote_currency")
 	var baseId *string = this.SafeString(market, "base_currency")
@@ -936,7 +936,7 @@ func (this *Paradex) ParseMarket(market any) any {
 	var takerFee any = this.ParseNumber("0.0003")
 	var makerFee any = this.ParseNumber("-0.00005")
 	if isOption {
-		var optionTypeSuffix any = func() any {
+		var optionTypeSuffix string = func() string {
 			if optionType != nil && *optionType == "CALL" {
 				return "C"
 			}
@@ -1779,7 +1779,7 @@ func (this *Paradex) ParseTrade(trade any, optionalArgs ...any) any {
 	var side *string = this.SafeStringLower(trade, "side")
 	var liability *string = this.SafeStringLower(trade, "liquidity", "taker")
 	var isTaker bool = (liability != nil && *liability == "taker")
-	var takerOrMaker any = func() any {
+	var takerOrMaker string = func() string {
 		if isTaker {
 			return "taker"
 		}
@@ -2383,7 +2383,7 @@ func (this *Paradex) signOrderRequestBody(ch chan any, request any, optionalArgs
 	var orderReq map[string]any = map[string]any{
 		"timestamp": Multiply(now, 1000),
 		"market":    this.StringToBase16(GetValue(request, "market")),
-		"side": func() any {
+		"side": func() string {
 			if IsEqual(GetValue(request, "side"), "BUY") {
 				return "1"
 			}
@@ -3943,7 +3943,7 @@ func (this *Paradex) ParseTransaction(transaction any, optionalArgs ...any) any 
 	var timestamp *int64 = this.SafeInteger(transaction, "created_at")
 	var updated *int64 = this.SafeInteger(transaction, "last_updated_at")
 	var typeVar any = DerefScalar(this.SafeString(transaction, "kind"))
-	typeVar = func() any {
+	typeVar = func() string {
 		if IsEqual(typeVar, "DEPOSIT") {
 			return "deposit"
 		}

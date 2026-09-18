@@ -1784,7 +1784,7 @@ func (this *Blofin) CreateOrderRequest(symbol any, typeVar any, side any, amount
 	var timeInForce *string = this.SafeString(params, "timeInForce", "GTC")
 	var isHedged *bool = this.SafeBool(params, "hedged", false)
 	if isHedged != nil && *isHedged == true {
-		request["positionSide"] = func() any {
+		request["positionSide"] = func() string {
 			if IsEqual(side, "buy") {
 				return "long"
 			}
@@ -1798,13 +1798,13 @@ func (this *Blofin) CreateOrderRequest(symbol any, typeVar any, side any, amount
 	if isMarketOrder || marketIOC {
 		request["orderType"] = "market"
 	} else {
-		var key any = func() any {
+		var key string = func() string {
 			if triggerPriceAny != nil {
 				return "orderPrice"
 			}
 			return "price"
 		}()
-		AddElementToObject(request, key, this.PriceToPrecision(symbol, price))
+		request[key] = this.PriceToPrecision(symbol, price)
 	}
 	var postOnly any = false
 	postOnlyparamsVariable := this.HandlePostOnly(isMarketOrder, (IsEqual(typeVar, "post_only")), params)
@@ -2039,7 +2039,7 @@ func (this *Blofin) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	var response any = nil
 	var reduceOnly *bool = this.SafeBool(params, "reduceOnly")
 	if reduceOnly != nil {
-		AddElementToObject(params, "reduceOnly", func() any {
+		AddElementToObject(params, "reduceOnly", func() string {
 			if reduceOnly != nil && *reduceOnly {
 				return "true"
 			}
@@ -2086,9 +2086,9 @@ func (this *Blofin) CreateTpslOrderRequest(symbol any, typeVar any, side any, op
 	_ = params
 	var market any = this.Market(symbol)
 	var hedged *bool = this.SafeBool(params, "hedged", false)
-	var positionSide any = "net"
+	var positionSide string = "net"
 	if hedged != nil && *hedged == true {
-		positionSide = func() any {
+		positionSide = func() string {
 			if IsEqual(side, "buy") {
 				return "short"
 			}
@@ -3952,7 +3952,7 @@ func (this *Blofin) setPositionModeBody(ch chan any, hedged any, optionalArgs ..
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	var request map[string]any = map[string]any{
-		"positionMode": func() any {
+		"positionMode": func() string {
 			if EvalTruthy(hedged) {
 				return "long_short_mode"
 			}

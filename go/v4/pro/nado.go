@@ -1941,7 +1941,7 @@ func (this *Nado) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var isTakerBuyer *bool = this.SafeBool(trade, "is_taker_buyer")
 	var side any = nil
 	if isTakerBuyer != nil {
-		side = func() any {
+		side = func() string {
 			if isTakerBuyer != nil && *isTakerBuyer {
 				return "buy"
 			}
@@ -1992,7 +1992,7 @@ func (this *Nado) ParseWsMyTrade(trade any, optionalArgs ...any) any {
 	var isBid *bool = this.SafeBool(trade, "is_bid")
 	var side any = nil
 	if isBid != nil {
-		side = func() any {
+		side = func() string {
 			if isBid != nil && *isBid {
 				return "buy"
 			}
@@ -2002,7 +2002,7 @@ func (this *Nado) ParseWsMyTrade(trade any, optionalArgs ...any) any {
 	var isTaker *bool = this.SafeBool(trade, "is_taker")
 	var takerOrMaker any = nil
 	if isTaker != nil {
-		takerOrMaker = func() any {
+		takerOrMaker = func() string {
 			if isTaker != nil && *isTaker {
 				return "taker"
 			}

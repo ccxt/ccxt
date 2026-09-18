@@ -728,7 +728,7 @@ func (this *Gemini) ParseCurrency(rawCurrency any) any {
 	var code *string = this.SafeCurrencyCode(id)
 	var fiatFlag *string = this.SafeString(rawCurrency, 7)
 	var isFiat bool = (fiatFlag != nil) && (fiatFlag == nil || *fiatFlag != "")
-	var typeVar any = func() any {
+	var typeVar string = func() string {
 		if isFiat {
 			return "fiat"
 		}
@@ -1158,7 +1158,7 @@ func (this *Gemini) ParseMarket(response any) any {
 		linear = true           // always linear
 		inverse = false
 	}
-	var typeVar any = func() any {
+	var typeVar string = func() string {
 		if swap {
 			return "swap"
 		}

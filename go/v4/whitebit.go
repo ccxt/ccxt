@@ -1035,7 +1035,7 @@ func (this *Whitebit) ParseCurrency(rawCurrency any) any {
 		"withdraw": this.SafeBool(rawCurrency, "can_withdraw"),
 		"fee":      nil,
 		"networks": networks,
-		"type": func() any {
+		"type": func() string {
 			if hasProvider {
 				return "fiat"
 			}
@@ -2414,7 +2414,7 @@ func (this *Whitebit) ParseTrade(trade any, optionalArgs ...any) any {
 	var role *int64 = this.SafeInteger(trade, "role")
 	var takerOrMaker any = nil
 	if role != nil {
-		takerOrMaker = func() any {
+		takerOrMaker = func() string {
 			if role != nil && *role == 1 {
 				return "maker"
 			}
@@ -4224,7 +4224,7 @@ func (this *Whitebit) ParseTransaction(transaction any, optionalArgs ...any) any
 			return nil
 		}(),
 		"amount": this.SafeNumber(transaction, "amount"),
-		"type": func() any {
+		"type": func() string {
 			if method != nil && *method == "1" {
 				return "deposit"
 			}

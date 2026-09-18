@@ -952,13 +952,13 @@ func (this *Bitbns) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 		"symbol":   GetValue(market, "uppercaseId"),
 	}
 	var response any = nil
-	var tail any = func() any {
+	var tail string = func() string {
 		if isTrigger != nil && *isTrigger == true {
 			return "StopLossOrder"
 		}
 		return "Order"
 	}()
-	var quoteSide any = func() any {
+	var quoteSide any = func() string {
 		if IsEqual(GetValue(market, "quoteId"), "USDT") {
 			return "usdtcancel"
 		}
@@ -1094,7 +1094,7 @@ func (this *Bitbns) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var market any = this.Market(symbol)
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop")
 	params = this.Omit(params, []any{"trigger", "stop"})
-	var quoteSide any = func() any {
+	var quoteSide string = func() string {
 		if IsEqual(GetValue(market, "quoteId"), "USDT") {
 			return "usdtListOpen"
 		}
@@ -1105,9 +1105,9 @@ func (this *Bitbns) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		"page":   0,
 		"side": func() any {
 			if isTrigger != nil && *isTrigger == true {
-				return (Add(quoteSide, "StopOrders"))
+				return (quoteSide + "StopOrders")
 			}
-			return (Add(quoteSide, "Orders"))
+			return (quoteSide + "Orders")
 		}(),
 	}
 

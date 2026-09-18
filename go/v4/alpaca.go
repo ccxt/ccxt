@@ -2418,7 +2418,7 @@ func (this *Alpaca) fetchTransactionsHelperBody(ch chan any, typeVar any, code a
 			var activityType *string = this.SafeString(entry, "activity_type")
 			var amount *string = this.SafeString(entry, "net_amount")
 			var isIncoming bool = (activityType != nil && *activityType == "CSD") || ((activityType != nil && *activityType == "TRANS") && !Precise.StringLt(amount, "0"))
-			var entryDirection any = func() any {
+			var entryDirection string = func() string {
 				if isIncoming {
 					return "INCOMING"
 				}
@@ -2624,7 +2624,7 @@ func (this *Alpaca) ParseTransaction(transaction any, optionalArgs ...any) any {
 		var isIncoming bool = (activityType != nil && *activityType == "CSD") || ((activityType != nil && *activityType == "TRANS") && !Precise.StringLt(netAmount, "0"))
 		timestamp = this.Parse8601(Add(this.SafeString(transaction, "date"), "T00:00:00Z"))
 		datetime = DerefScalar(this.Iso8601(timestamp))
-		typeVar = func() any {
+		typeVar = func() string {
 			if isIncoming {
 				return "deposit"
 			}

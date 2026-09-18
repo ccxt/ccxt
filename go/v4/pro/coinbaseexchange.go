@@ -748,7 +748,7 @@ func (this *Coinbaseexchange) ParseWsTrade(trade any, optionalArgs ...any) any {
 			"sell": "buy",
 		}, currentSide, currentSide))
 	}
-	var idKey any = func() any {
+	var idKey string = func() string {
 		if isMaker {
 			return "maker_order_id"
 		}

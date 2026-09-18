@@ -1191,7 +1191,7 @@ func (this *Coinmate) ParseTrade(trade any, optionalArgs ...any) any {
 		}
 	}
 	var takerOrMaker any = DerefScalar(this.SafeString(trade, "feeType"))
-	takerOrMaker = func() any {
+	takerOrMaker = func() string {
 		if IsEqual(takerOrMaker, "MAKER") {
 			return "maker"
 		}

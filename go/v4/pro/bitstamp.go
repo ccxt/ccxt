@@ -391,7 +391,7 @@ func (this *Bitstamp) ParseWsTrade(trade any, optionalArgs ...any) any {
 	}
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var sideRaw *int64 = this.SafeInteger(trade, "type")
-	var side any = func() any {
+	var side string = func() string {
 		if sideRaw != nil && *sideRaw == 0 {
 			return "buy"
 		}
@@ -889,7 +889,7 @@ func (this *Bitstamp) ParseWsOrder(order any, optionalArgs ...any) any {
 	_ = market
 	var id *string = this.SafeString(order, "id_str")
 	var orderTypeRaw *string = this.SafeStringLower(order, "order_type")
-	var side any = func() any {
+	var side string = func() string {
 		if orderTypeRaw != nil && *orderTypeRaw == "1" {
 			return "sell"
 		}

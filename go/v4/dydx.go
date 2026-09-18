@@ -1746,7 +1746,7 @@ func (this *Dydx) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 		}
 		goodTillBlockTime = Add(this.Seconds(), goodTillBlockTimeInSeconds)
 	}
-	var sideNumber any = func() any {
+	var sideNumber int = func() int {
 		if orderSide == "BUY" {
 			return 1
 		}
@@ -1995,7 +1995,7 @@ func (this *Dydx) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	goodTillBlockTimeInSeconds = GetValue(goodTillBlockTimeInSecondsparamsVariable, 0)
 	params = GetValue(goodTillBlockTimeInSecondsparamsVariable, 1) // default is 30 days
 	var goodTillBlockTime any = nil
-	var defaultOrderFlags any = func() any {
+	var defaultOrderFlags int = func() int {
 		if isTrigger != nil && *isTrigger == true {
 			return 32
 		}

@@ -2442,7 +2442,7 @@ func (this *Okx) CreateExpiredOptionMarket(symbol any) any {
 		"contractSize":   this.ParseNumber("1"),
 		"expiry":         timestamp,
 		"expiryDatetime": datetime,
-		"optionType": func() any {
+		"optionType": func() string {
 			if optionType != nil && *optionType == "C" {
 				return "call"
 			}
@@ -2543,7 +2543,7 @@ func (this *Okx) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	var dataLength int = GetArrayLength(data)
 	var update map[string]any = map[string]any{
 		"updated": nil,
-		"status": func() any {
+		"status": func() string {
 			if dataLength == 0 {
 				return "ok"
 			}
@@ -2846,7 +2846,7 @@ func (this *Okx) ParseMarket(market any) any {
 			if !IsEqual(expiry, nil) {
 				var ymd string = this.Yymmdd(expiry)
 				symbol = Add(Add(Add(Add(Add(Add(symbol, "-"), ymd), "-"), strikePrice), "-"), optionType)
-				optionType = func() any {
+				optionType = func() string {
 					if IsEqual(optionType, "P") {
 						return "put"
 					}
@@ -3322,7 +3322,7 @@ func (this *Okx) ParseTicker(ticker any, optionalArgs ...any) any {
 	var instType *string = this.SafeString(ticker, "instType")
 	var marketType any = nil
 	if instType != nil {
-		marketType = func() any {
+		marketType = func() string {
 			if instType != nil && *instType == "SPOT" {
 				return "spot"
 			}
@@ -3841,7 +3841,7 @@ func (this *Okx) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	_ = market
 	var res []any = this.HandleMarketTypeAndParams("fetchOHLCV", market, nil)
 	var typeVar any = GetValue(res, 0)
-	var volumeIndex any = func() any {
+	var volumeIndex int = func() int {
 		if IsEqual(typeVar, "spot") {
 			return 5
 		}
@@ -3914,7 +3914,7 @@ func (this *Okx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 	if IsEqual(limit, nil) {
 		limit = 100 // default 100, max 300
 	} else {
-		var maxLimit any = func() any {
+		var maxLimit int = func() int {
 			if isMarkOrIndex {
 				return 100
 			}
@@ -3940,7 +3940,7 @@ func (this *Okx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 		var historyBorder any = Subtract(now, (Multiply((Subtract(1440, 1)), durationInMilliseconds)))
 		if IsLessThan(since, historyBorder) {
 			defaultType = "HistoryCandles"
-			var maxLimit any = func() any {
+			var maxLimit int = func() int {
 				if isMarkOrIndex {
 					return 100
 				}
@@ -4580,7 +4580,7 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
 					if isProtective {
 						// in case of protective orders, the posSide should be opposite of position side
 						// reduceOnly is emulated and not natively supported by the exchange
-						AddElementToObject(request, "posSide", func() any {
+						AddElementToObject(request, "posSide", func() string {
 							if isBuy {
 								return "short"
 							}
@@ -4590,7 +4590,7 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
 							params = this.Omit(params, "reduceOnly")
 						}
 					} else {
-						AddElementToObject(request, "posSide", func() any {
+						AddElementToObject(request, "posSide", func() string {
 							if isBuy {
 								return "long"
 							}
@@ -8218,7 +8218,7 @@ func (this *Okx) ParsePosition(position any, optionalArgs ...any) any {
 			var posCcy *string = this.SafeString(position, "posCcy")
 			var parsedCurrency *string = this.SafeCurrencyCode(posCcy)
 			if parsedCurrency != nil {
-				side = func() any {
+				side = func() string {
 					if IsEqual(GetValue(market, "base"), parsedCurrency) {
 						return "long"
 					}
@@ -9634,7 +9634,7 @@ func (this *Okx) modifyMarginHelperBody(ch chan any, symbol any, amount any, typ
 	var errorCode *string = this.SafeString(response, "code")
 
 	ch <- this.Extend(this.ParseMarginModification(entry, market), map[string]any{
-		"status": func() any {
+		"status": func() string {
 			if errorCode != nil && *errorCode == "0" {
 				return "ok"
 			}
@@ -9698,7 +9698,7 @@ func (this *Okx) ParseMarginModification(data any, optionalArgs ...any) any {
 	// ledger uses numeric '6' (+/- amount); addMargin/reduceMargin already send 'add'/'reduce'
 	var typeVar any = nil
 	if typeRaw != nil && *typeRaw == "6" {
-		typeVar = func() any {
+		typeVar = func() string {
 			if Precise.StringGt(amountRaw, "0") {
 				return "add"
 			}
@@ -11832,7 +11832,7 @@ func (this *Okx) fetchMarginAdjustmentHistoryBody(ch chan any, optionalArgs ...a
 		panic(ArgumentsRequired(this.Id + " fetchMarginAdjustmentHistory () requires a type argument"))
 	}
 	var isAdd bool = (IsEqual(typeVar, "add"))
-	var subType any = func() any {
+	var subType string = func() string {
 		if isAdd {
 			return "160"
 		}

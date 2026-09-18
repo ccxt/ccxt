@@ -428,7 +428,7 @@ func (this *Aster) watchMarkPricesBody(ch chan any, optionalArgs ...any) any {
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
 		var market any = this.Market(symbol)
-		var suffix any = func() any {
+		var suffix string = func() string {
 			if use1sFreq != nil && *use1sFreq == true {
 				return "@1s"
 			}
@@ -506,7 +506,7 @@ func (this *Aster) unWatchMarkPricesBody(ch chan any, optionalArgs ...any) any {
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
 		var market any = this.Market(symbol)
-		var suffix any = func() any {
+		var suffix string = func() string {
 			if use1sFreq != nil && *use1sFreq == true {
 				return "@1s"
 			}
@@ -1125,14 +1125,14 @@ func (this *Aster) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var orderId *string = this.SafeString(trade, "i")
 	if ccxt.InOp(trade, "m") {
 		if ccxt.IsEqual(side, nil) {
-			side = func() any {
+			side = func() string {
 				if ccxt.IsEqual(ccxt.GetValue(trade, "m"), true) {
 					return "sell"
 				}
 				return "buy"
 			}() // this is reversed intentionally
 		}
-		takerOrMaker = func() any {
+		takerOrMaker = func() string {
 			if ccxt.IsEqual(ccxt.GetValue(trade, "m"), true) {
 				return "maker"
 			}
@@ -2397,7 +2397,7 @@ func (this *Aster) HandleMyTrade(client any, message any) {
 	var executionType *string = this.SafeString(message, "x")
 	if executionType != nil && *executionType == "TRADE" {
 		var isSwap bool = (ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "fstream") >= 0)
-		var typeVar any = func() any {
+		var typeVar string = func() string {
 			if isSwap {
 				return "swap"
 			}

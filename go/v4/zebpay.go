@@ -2556,7 +2556,7 @@ func (this *Zebpay) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	params = this.Omit(params, "defaultType")
 	var isV1 bool = IsGreaterThan(GetIndexOf(path, "v1/"), -1)
-	var marketType any = func() any {
+	var marketType string = func() string {
 		if isV1 {
 			return "swap"
 		}
@@ -2584,7 +2584,7 @@ func (this *Zebpay) Sign(path any, optionalArgs ...any) any {
 		}
 	} else {
 		this.CheckRequiredCredentials()
-		var isSpot bool = (IsEqual(marketType, "spot"))
+		var isSpot bool = (marketType == "spot")
 		AddElementToObject(params, "timestamp", timestamp)
 		if (IsEqual(method, "GET")) || ((IsEqual(method, "DELETE")) && isSpot) {
 			// For GET/DELETE: Append params to URL and sign the query string

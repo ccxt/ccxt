@@ -792,7 +792,7 @@ func (this *Binance) ParseTopicMarket(rawMarket any, rawTopic any) any {
 		var settleFractionRaw any = nil
 		if resolved && (price != nil) {
 			winnerRaw = ccxt.Precise.StringEq(price, "1")
-			settleFractionRaw = func() any {
+			settleFractionRaw = func() int {
 				if ccxt.EvalTruthy((winnerRaw)) {
 					return 1
 				}

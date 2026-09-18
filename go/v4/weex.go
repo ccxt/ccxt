@@ -1260,7 +1260,7 @@ func (this *Weex) ParseMarket(market any) any {
 		amountPrecision = this.ParseNumber(amountPrecisionString)
 		pricePrecision = this.ParseNumber(pricePrecisionString)
 	}
-	var fees any = this.SafeDict(this.Fees, func() any {
+	var fees any = this.SafeDict(this.Fees, func() string {
 		if isSpot {
 			return "spot"
 		}
@@ -1280,7 +1280,7 @@ func (this *Weex) ParseMarket(market any) any {
 		"baseId":      baseId,
 		"quoteId":     quoteId,
 		"settleId":    settleId,
-		"type": func() any {
+		"type": func() string {
 			if isSpot {
 				return "spot"
 			}
@@ -2195,14 +2195,14 @@ func (this *Weex) ParseTrade(trade any, optionalArgs ...any) any {
 	var side any = this.SafeStringLower(trade, "side")
 	var isBuyerMaker *bool = this.SafeBool(trade, "isBuyerMaker")
 	if isBuyer != nil {
-		side = func() any {
+		side = func() string {
 			if isBuyer != nil && *isBuyer {
 				return "buy"
 			}
 			return "sell"
 		}()
 	} else if isBuyerMaker != nil {
-		side = func() any {
+		side = func() string {
 			if isBuyerMaker != nil && *isBuyerMaker {
 				return "sell"
 			}
@@ -2213,14 +2213,14 @@ func (this *Weex) ParseTrade(trade any, optionalArgs ...any) any {
 	if IsEqual(market, nil) {
 		var marketId *string = this.SafeString(trade, "symbol")
 		var realizedPnl *string = this.SafeString(trade, "realizedPnl")
-		var marketType any = func() any {
+		var marketType string = func() string {
 			if realizedPnl != nil {
 				return "swap"
 			}
 			return "spot"
 		}()
 		market = this.SafeMarket(marketId, nil, nil, marketType)
-		isSpot = (IsEqual(marketType, "spot"))
+		isSpot = (marketType == "spot")
 	} else {
 		isSpot = GetValue(market, "spot")
 	}
@@ -2244,7 +2244,7 @@ func (this *Weex) ParseTrade(trade any, optionalArgs ...any) any {
 	var isMaker *bool = this.SafeBool(trade, "maker")
 	var takerOrMaker any = nil
 	if isMaker != nil {
-		takerOrMaker = func() any {
+		takerOrMaker = func() string {
 			if isMaker != nil && *isMaker {
 				return "maker"
 			}
@@ -4044,7 +4044,7 @@ func (this *Weex) ParseOrder(order any, optionalArgs ...any) any {
 	if IsEqual(market, nil) {
 		var marketId any = this.FromSandboxMarketId(this.SafeString(order, "symbol"))
 		var positionSide *string = this.SafeString(order, "positionSide")
-		var marketType any = func() any {
+		var marketType string = func() string {
 			if positionSide == nil {
 				return "spot"
 			}
@@ -5446,7 +5446,7 @@ func (this *Weex) setPositionModeBody(ch chan any, hedged any, optionalArgs ...a
 	if marginMode == nil {
 		panic(ArgumentsRequired(this.Id + " setPositionMode() also sets marginMode, so a marginMode parameter is required"))
 	}
-	var separatedType any = func() any {
+	var separatedType string = func() string {
 		if EvalTruthy(hedged) {
 			return "SEPARATED"
 		}
@@ -5489,7 +5489,7 @@ func (this *Weex) modifyMarginHelperBody(ch chan any, symbol any, amount any, ty
 		"amount":             this.CostToPrecision(symbol, amount),
 		"type":               typeVar,
 	}
-	var parsedType any = func() any {
+	var parsedType string = func() string {
 		if IsEqual(typeVar, 1) {
 			return "add"
 		}
@@ -5516,7 +5516,7 @@ func (this *Weex) ParseMarginModification(data any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var msg *string = this.SafeString(data, "msg")
-	var status any = func() any {
+	var status string = func() string {
 		if msg != nil && *msg == "success" {
 			return "ok"
 		}

@@ -1125,7 +1125,7 @@ func (this *Cryptocom) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			contract = true
 		} else if inst_type != nil && *inst_type == "WARRANT" {
 			typeVar = "option"
-			var symbolOptionType any = func() any {
+			var symbolOptionType string = func() string {
 				if optionType != nil && *optionType == "call" {
 					return "C"
 				}
@@ -4321,7 +4321,7 @@ func (this *Cryptocom) ParsePosition(position any, optionalArgs ...any) any {
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
 		"hedged":    nil,
-		"side": func() any {
+		"side": func() string {
 			if Precise.StringGt(amount, "0") {
 				return "long"
 			}
@@ -4562,13 +4562,13 @@ func (this *Cryptocom) ParseTradingFees(response any) any {
 		var symbol any = GetValue(this.Symbols, i)
 		var market any = this.Market(symbol)
 		var isSwap any = GetValue(market, "swap")
-		var takerFeeKey any = func() any {
+		var takerFeeKey string = func() string {
 			if isSwap == true {
 				return "effective_deriv_taker_rate_bps"
 			}
 			return "effective_spot_taker_rate_bps"
 		}()
-		var makerFeeKey any = func() any {
+		var makerFeeKey string = func() string {
 			if isSwap == true {
 				return "effective_deriv_maker_rate_bps"
 			}
