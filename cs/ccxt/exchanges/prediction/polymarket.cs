@@ -2785,7 +2785,7 @@ public partial class polymarket : PredictionExchange
         };
         // parseToInt: php types the number param as float, and 3.0 !== 3 (int) is true under
         // strict comparison, which would always wrongly select the EOA path
-        if (!isEqual(this.parseToInt(sigType), 3))
+        if ((this.parseToInt(sigType) != 3))
         {
             // standard EOA EIP-712 order signature
             byte[] encoded = this.ethEncodeStructuredData(orderDomain, new Dictionary<string, object>() {

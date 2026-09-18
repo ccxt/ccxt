@@ -2173,7 +2173,7 @@ public partial class apex : Exchange
         Int64? timestamp = this.safeInteger(position, "updatedTime");
         object leverage = 20;
         string? customInitialMarginRate = this.safeString2(position, "customInitialMarginRate", "customImr", "0");
-        if (!isEqual(this.precisionFromString(customInitialMarginRate), 0))
+        if ((this.precisionFromString(customInitialMarginRate) != 0))
         {
             leverage = this.parseToInt(Precise.stringDiv("1", customInitialMarginRate, 4));
         }
