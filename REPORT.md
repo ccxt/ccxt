@@ -5,8 +5,10 @@ ast-transpiler: branch `cs90-U57` in `/root/worktrees/cs90-ast/U57`,
 **sha `ceb8a83b8591fe8b276a9c184d09b939e4ef98ec`** (base pin `404e9daa7f0ab58d085ed04aaa61a19546dfeda2`).
 ccxt code sha `1f145031921e602ece7c35521c70c34af84f5489`; farm job **852, exit=0**,
 `branch_update=unchanged`, `generator=ceb8a83b859…` (the farm regenerated the whole cs tree with this
-pin and produced no change, i.e. the committed tree is the fixed point). REPORT tip gated separately —
-see the `farm` section.
+pin and produced no change, i.e. the committed tree is the fixed point). The REPORT tip
+`cab0ae4606482d0fd89c9ce9897d178fd98dc218` was gated the same way: **job 864, exit=0,
+branch_update=unchanged**; the commit that records this line is gated in turn, so the branch tip is
+always farm-green — `ccxt-farm status <tip-sha>` resolves the tip's own job.
 
 ## Family
 
