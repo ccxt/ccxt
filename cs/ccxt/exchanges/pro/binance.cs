@@ -5172,7 +5172,7 @@ public partial class binance : ccxt.binance
             string? stockBaseSymbol = baseAssetCode;
             if (((stockBaseSymbol != null)) && ((getIndexOf(stockBaseSymbol, "EQ_") == 0)))
             {
-                stockBaseSymbol = slice(stockBaseSymbol, 3, null);
+                stockBaseSymbol = ((stockBaseSymbol == null) ? null : ((string)stockBaseSymbol).Substring(Math.Min(3, ((string)stockBaseSymbol).Length)));
             }
             if ((stockBaseSymbol == null))
             {

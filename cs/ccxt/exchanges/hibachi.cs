@@ -1399,7 +1399,7 @@ public partial class hibachi : Exchange
     public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string? withdrawAddress = slice(address, -40, null);
+        string? withdrawAddress = ((address == null) ? null : ((string)address).Substring(Math.Max(((string)address).Length - 40, 0)));
         // Get the withdraw fees
         Dictionary<string, object> exchangeInfo = await this.publicGetMarketExchangeInfo(parameters);
         // {

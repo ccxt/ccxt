@@ -527,7 +527,7 @@ public partial class hyperliquid : PredictionExchange
             {
                 string? ymd = ((string)getValue(expParts, 0));
                 object hm = ((bool) (expPartsLength >= 2)) ? getValue(expParts, 1) : "0000";
-                string isoStr = (((((((((slice(ymd, 0, 4) + "-") + slice(ymd, 4, 6)) + "-") + slice(ymd, 6, 8)) + "T") + slice(hm, 0, 2)) + ":") + slice(hm, 2, 4)) + ":00Z");
+                string isoStr = (((((((((((ymd == null) ? null : ((string)ymd).Substring(0, Math.Min(4, ((string)ymd).Length))) + "-") + ((ymd == null) ? null : ((string)ymd).Substring(Math.Min(4, ((string)ymd).Length), Math.Min(6, ((string)ymd).Length) - Math.Min(4, ((string)ymd).Length)))) + "-") + ((ymd == null) ? null : ((string)ymd).Substring(Math.Min(6, ((string)ymd).Length), Math.Min(8, ((string)ymd).Length) - Math.Min(6, ((string)ymd).Length)))) + "T") + ((hm == null) ? null : ((string)hm).Substring(0, Math.Min(2, ((string)hm).Length)))) + ":") + ((hm == null) ? null : ((string)hm).Substring(Math.Min(2, ((string)hm).Length), Math.Min(4, ((string)hm).Length) - Math.Min(2, ((string)hm).Length)))) + ":00Z");
                 expiryMs = this.parse8601(isoStr);
                 expiryDatetime = isoStr;
             }
@@ -1137,7 +1137,7 @@ public partial class hyperliquid : PredictionExchange
                 continue;
             }
             // the trade/orderbook form ("#<encoding>") resolves the outcome and the mid price
-            string tradeCoin = ("#" + slice(coin, 1, null));
+            string tradeCoin = ("#" + ((coin == null) ? null : ((string)coin).Substring(Math.Min(1, ((string)coin).Length))));
             IDictionary<string, object> outcomeObj = ((IDictionary<string, object>)this.safeOutcome(tradeCoin));
             if (!isEqual(outcomes, null))
             {
@@ -1291,7 +1291,7 @@ public partial class hyperliquid : PredictionExchange
         List<object> candidates = new List<object>() {outcomeInput};
         if (((string)outcomeInput).StartsWith(((string)"+")))
         {
-            ((IList<object>)candidates).Add(("#" + slice(outcomeInput, 1, null)));
+            ((IList<object>)candidates).Add(("#" + ((outcomeInput == null) ? null : ((string)outcomeInput).Substring(Math.Min(1, ((string)outcomeInput).Length)))));
         }
         string digitChars = "0123456789";
         object inputChars = this.stringToCharsArray(outcomeInput);
@@ -2244,7 +2244,7 @@ public partial class hyperliquid : PredictionExchange
             {
                 string? ymd = ((string)getValue(parts, 0));
                 object hm = ((bool) (partsLength >= 2)) ? getValue(parts, 1) : "0000";
-                string isoStr = (((((((((slice(ymd, 0, 4) + "-") + slice(ymd, 4, 6)) + "-") + slice(ymd, 6, 8)) + "T") + slice(hm, 0, 2)) + ":") + slice(hm, 2, 4)) + ":00Z");
+                string isoStr = (((((((((((ymd == null) ? null : ((string)ymd).Substring(0, Math.Min(4, ((string)ymd).Length))) + "-") + ((ymd == null) ? null : ((string)ymd).Substring(Math.Min(4, ((string)ymd).Length), Math.Min(6, ((string)ymd).Length) - Math.Min(4, ((string)ymd).Length)))) + "-") + ((ymd == null) ? null : ((string)ymd).Substring(Math.Min(6, ((string)ymd).Length), Math.Min(8, ((string)ymd).Length) - Math.Min(6, ((string)ymd).Length)))) + "T") + ((hm == null) ? null : ((string)hm).Substring(0, Math.Min(2, ((string)hm).Length)))) + ":") + ((hm == null) ? null : ((string)hm).Substring(Math.Min(2, ((string)hm).Length), Math.Min(4, ((string)hm).Length) - Math.Min(2, ((string)hm).Length)))) + ":00Z");
                 expiryMs = this.parse8601(isoStr);
                 expiryDatetime = isoStr;
             }
@@ -2329,7 +2329,7 @@ public partial class hyperliquid : PredictionExchange
 
     public virtual object signHash(object hash, object privateKey)
     {
-        Dictionary<string, object> signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
+        Dictionary<string, object> signature = ecdsa(((hash == null) ? null : ((string)hash).Substring(Math.Max(((string)hash).Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
         // assign to a bare local before padStart — `expr['key'].padStart()` leaks an undefined
         // padStart() call in the PHP transpiler (it only rewrites padStart on a bare identifier)
         object rRaw = getValue(signature, "r");
@@ -2345,7 +2345,7 @@ public partial class hyperliquid : PredictionExchange
 
     public virtual object signMessage(object message, object privateKey)
     {
-        return this.signHash(this.hashMessage(message), slice(privateKey, -64, null));
+        return this.signHash(this.hashMessage(message), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))));
     }
 
     public virtual Dictionary<string, object> constructPhantomAgent(object hash, object isTestnet = null)
@@ -2533,7 +2533,7 @@ public partial class hyperliquid : PredictionExchange
         object normalized = address;
         if (((string)normalized).StartsWith(((string)"0x")) || ((string)normalized).StartsWith(((string)"0X")))
         {
-            normalized = slice(normalized, 2, null);
+            normalized = ((normalized == null) ? null : ((string)normalized).Substring(Math.Min(2, ((string)normalized).Length)));
         }
         return ((string)normalized).ToLower();
     }

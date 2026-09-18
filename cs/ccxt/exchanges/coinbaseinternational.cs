@@ -2054,7 +2054,7 @@ public partial class coinbaseinternational : Exchange
         double? triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "stop_price"});
         string clientOrderIdprefix = ((string)this.safeString(this.options, "brokerId", "nfqkvdjp"));
         string? clientOrderId = ((clientOrderIdprefix + "-") + this.uuid());
-        clientOrderId = slice(clientOrderId, 0, 17);
+        clientOrderId = ((clientOrderId == null) ? null : ((string)clientOrderId).Substring(0, Math.Min(17, ((string)clientOrderId).Length)));
         if (isEqual(side, null))
         {
             throw new ArgumentsRequired ((string)(this.id + " createOrder() requires a side argument")) ;

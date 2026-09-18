@@ -3367,7 +3367,7 @@ public partial class nado : Exchange
         {
             throw new ArgumentsRequired ((string)(this.id + " signHash() requires privateKey")) ;
         }
-        Dictionary<string, object> signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
+        Dictionary<string, object> signature = ecdsa(((hash == null) ? null : ((string)hash).Substring(Math.Max(((string)hash).Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
         object r = getValue(signature, "r");
         object s = getValue(signature, "s");
         string v = ((string)this.intToBase16(this.sum(27, getValue(signature, "v")))).ToLower();
@@ -3382,7 +3382,7 @@ public partial class nado : Exchange
         }
         if (((string)marketId).EndsWith(((string)"-PERP")))
         {
-            return slice(marketId, 0, -5);
+            return ((marketId == null) ? null : ((string)marketId).Substring(0, Math.Max(((string)marketId).Length - 5, 0)));
         }
         return marketId;
     }

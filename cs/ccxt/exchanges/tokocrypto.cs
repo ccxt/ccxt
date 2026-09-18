@@ -2712,7 +2712,7 @@ public partial class tokocrypto : Exchange
         string? txid = this.safeString(transaction, "txId");
         if (((txid != null)) && (getIndexOf(txid, "Internal transfer ") >= 0))
         {
-            txid = slice(txid, 18, null);
+            txid = ((txid == null) ? null : ((string)txid).Substring(Math.Min(18, ((string)txid).Length)));
         }
         string? currencyId = this.safeString2(transaction, "coin", "fiatCurrency");
         string? code = this.safeCurrencyCode(currencyId, currency);

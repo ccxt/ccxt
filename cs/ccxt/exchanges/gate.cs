@@ -2014,7 +2014,7 @@ public partial class gate : Exchange
         } else
         {
             bs = this.safeString(marketIdBase, 0);
-            expiry = slice(((string)expiry), 2, 8); // convert 20230728 to 230728
+            expiry = ((((string)expiry) == null) ? null : ((string)expiry).Substring(Math.Min(2, ((string)expiry).Length), Math.Min(8, ((string)expiry).Length) - Math.Min(2, ((string)expiry).Length))); // convert 20230728 to 230728
         }
         string? strike = this.safeString(optionParts, 2);
         string? optionType = this.safeString(optionParts, 3);
@@ -5083,7 +5083,7 @@ public partial class gate : Exchange
         if ((msString != null))
         {
             msString = Precise.stringMul(msString, "1000");
-            msString = slice(((string)msString), 0, 13);
+            msString = ((((string)msString) == null) ? null : ((string)msString).Substring(0, Math.Min(13, ((string)msString).Length)));
             timestamp = this.parseToInt(msString);
         } else
         {

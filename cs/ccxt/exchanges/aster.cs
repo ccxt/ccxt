@@ -5055,7 +5055,7 @@ public partial class aster : Exchange
             object encoded = this.encodeURIComponent(valueJsonified);
             encodedString = add(encodedString, add(add(add(key, "="), encoded), "&"));
         }
-        return slice(encodedString, 0, -1);
+        return ((encodedString == null) ? null : ((string)encodedString).Substring(0, Math.Max(((string)encodedString).Length - 1, 0)));
     }
 
     public virtual Dictionary<string, object> capitalizeKeys(object dict)

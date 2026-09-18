@@ -624,7 +624,7 @@ public partial class mudrex : Exchange
         object bs = ms;
         if ((ms != null) && ((string)ms).EndsWith(((string)"USDT")))
         {
-            bs = slice(ms, 0, -4);
+            bs = ((ms == null) ? null : ((string)ms).Substring(0, Math.Max(((string)ms).Length - 4, 0)));
         }
         string quote = "USDT";
         string settle = "USDT";

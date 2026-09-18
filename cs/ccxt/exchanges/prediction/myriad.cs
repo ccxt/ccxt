@@ -4317,10 +4317,10 @@ public partial class myriad : PredictionExchange
         // the channel pushes a signed share delta per fill/redeem/split/merge (no absolute balance);
         // apply it to the REST-seeded balance keyed by outcome id to maintain a running contracts figure
         string? deltaStr = this.safeString(data, "delta", "0");
-        string? firstChar = slice(deltaStr, 0, 1);
+        string? firstChar = ((deltaStr == null) ? null : ((string)deltaStr).Substring(0, Math.Min(1, ((string)deltaStr).Length)));
         if (isEqual(firstChar, "+"))
         {
-            deltaStr = slice(deltaStr, 1, null);
+            deltaStr = ((deltaStr == null) ? null : ((string)deltaStr).Substring(Math.Min(1, ((string)deltaStr).Length)));
         }
         string? deltaShares = Precise.stringDiv(deltaStr, "1000000000000000000");
         double? contracts = null;

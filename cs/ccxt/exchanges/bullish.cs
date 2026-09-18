@@ -986,7 +986,7 @@ public partial class bullish : Exchange
                 expiryDatetime = this.safeString(market, "expiryDatetime");
                 List<object> idParts = ((string)id).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
                 string datePart = ((string)this.safeString(idParts, 2));
-                string? dateYmd = slice(datePart, 2, null);
+                string? dateYmd = ((datePart == null) ? null : ((string)datePart).Substring(Math.Min(2, ((string)datePart).Length)));
                 symbol = add(symbol, ("-" + dateYmd));
                 if (isEqual(type, "future"))
                 {

@@ -396,17 +396,17 @@ public partial class bitflyer : Exchange
                     // no alias:
                     // { product_code: 'BTCJPY11MAR2022', market_type: 'Futures' }
                     // TODO this will break if there are products with 4 chars
-                    baseId = slice(((string)id), 0, 3);
-                    quoteId = slice(((string)id), 3, 6);
+                    baseId = ((((string)id) == null) ? null : ((string)id).Substring(0, Math.Min(3, ((string)id).Length)));
+                    quoteId = ((((string)id) == null) ? null : ((string)id).Substring(Math.Min(3, ((string)id).Length), Math.Min(6, ((string)id).Length) - Math.Min(3, ((string)id).Length)));
                     // last 9 chars are expiry date
-                    string? expiryDate = slice(((string)id), -9, null);
+                    string? expiryDate = ((((string)id) == null) ? null : ((string)id).Substring(Math.Max(((string)id).Length - 9, 0)));
                     expiry = this.parseExpiryDate(expiryDate);
                 } else
                 {
                     List<object> splitAlias = ((string)alias).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
                     string? currencyIds = this.safeString(splitAlias, 0);
-                    baseId = slice(((string)currencyIds), 0, -3);
-                    quoteId = slice(((string)currencyIds), -3, null);
+                    baseId = ((((string)currencyIds) == null) ? null : ((string)currencyIds).Substring(0, Math.Max(((string)currencyIds).Length - 3, 0)));
+                    quoteId = ((((string)currencyIds) == null) ? null : ((string)currencyIds).Substring(Math.Max(((string)currencyIds).Length - 3, 0)));
                     List<object> splitId = ((string)((string)id)).Split(new [] {((string)((string)currencyIds))}, StringSplitOptions.None).ToList<object>();
                     string? expiryDate = this.safeString(splitId, 1);
                     expiry = this.parseExpiryDate(expiryDate);

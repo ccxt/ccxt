@@ -166,7 +166,7 @@ public partial class cex : ccxt.cex
                 {
                     continue;
                 }
-                subscriptionKey = slice(subscriptionKey, 0, 3);
+                subscriptionKey = ((subscriptionKey == null) ? null : ((string)subscriptionKey).Substring(0, Math.Min(3, ((string)subscriptionKey).Length)));
                 if (isEqual(subscriptionKey, "old"))
                 {
                     throw new ExchangeError ((string)(this.id + " watchTrades() only supports watching one symbol at a time.")) ;
