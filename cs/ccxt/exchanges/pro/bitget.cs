@@ -1019,7 +1019,7 @@ public partial class bitget : ccxt.bitget
             {
                 // const ob = this.orderBook ({});
                 ccxt.pro.CountedOrderBook ob = this.countedOrderBook(new Dictionary<string, object>() {});
-                ((IDictionary<string,object>)ob)["symbol"] = symbol;
+                ob["symbol"] = symbol;
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = ob;
             }
             ccxt.pro.IOrderBook storedOrderBook = this.getOrderBook(this.orderbooks, symbol);
@@ -1027,8 +1027,8 @@ public partial class bitget : ccxt.bitget
             List<object> bids = this.safeList2(rawOrderBook, "bids", "b", new List<object>() {});
             this.handleDeltas(getValue(storedOrderBook, "asks"), asks);
             this.handleDeltas(getValue(storedOrderBook, "bids"), bids);
-            ((IDictionary<string,object>)storedOrderBook)["timestamp"] = timestamp;
-            ((IDictionary<string,object>)storedOrderBook)["datetime"] = this.iso8601(timestamp);
+            storedOrderBook["timestamp"] = timestamp;
+            storedOrderBook["datetime"] = this.iso8601(timestamp);
             object checksum = this.handleOption("watchOrderBook", "checksum", true);
             bool isSnapshot = (this.safeString(message, "action") == "snapshot"); // snapshot does not have a checksum
             // UTA order books do not provide a crc32 checksum (they rely on seq/pseq for integrity),

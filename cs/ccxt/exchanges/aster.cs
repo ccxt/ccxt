@@ -4663,7 +4663,7 @@ public partial class aster : Exchange
             //                },
             //                ...
             //
-            ((IDictionary<string,object>)this.options)["leverageBrackets"] = this.createSafeDictionary();
+            this.options["leverageBrackets"] = this.createSafeDictionary();
             IList<object> entries = this.toArray(response);
             for (int i = 0; isLessThan(i, entries?.Count ?? 0); postFixIncrement(ref i))
             {
@@ -4957,8 +4957,8 @@ public partial class aster : Exchange
             if (((walletAddress == null)) || (!isEqual(cachedPrivateKeyHash, privateKeyHash)))
             {
                 walletAddress = this.ethGetAddressFromPrivateKey(this.privateKey);
-                ((IDictionary<string,object>)this.options)["cachedWalletAddress"] = walletAddress;
-                ((IDictionary<string,object>)this.options)["privateKeyHashForCachedWalletAddress"] = privateKeyHash;
+                this.options["cachedWalletAddress"] = walletAddress;
+                this.options["privateKeyHashForCachedWalletAddress"] = privateKeyHash;
             }
             string? signerAddress = this.safeString(this.options, "signerAddress", walletAddress); // default to user's wallet
             if ((signerAddress == null))
@@ -5143,7 +5143,7 @@ public partial class aster : Exchange
         }
         if (!found)
         {
-            ((IDictionary<string,object>)this.options)["approvedBuilderFee"] = true;
+            this.options["approvedBuilderFee"] = true;
             try
             {
                 Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -5164,8 +5164,8 @@ public partial class aster : Exchange
                 }
             } catch(Exception e)
             {
-                ((IDictionary<string,object>)this.options)["approvedBuilderFee"] = false;
-                ((IDictionary<string,object>)this.options)["builderFee"] = false; // disable if err
+                this.options["approvedBuilderFee"] = false;
+                this.options["builderFee"] = false; // disable if err
             }
         }
         return null;  // just c#

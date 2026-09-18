@@ -470,7 +470,7 @@ public partial class coinbaseinternational : Exchange
             if ((this.safeBool(info, "is_default") == true))
             {
                 string? portfolioId = this.safeString(info, "portfolio_id");
-                ((IDictionary<string,object>)this.options)["portfolio"] = portfolioId;
+                this.options["portfolio"] = portfolioId;
                 return new List<object>() {portfolioId, parameters};
             }
         }

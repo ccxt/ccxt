@@ -2528,7 +2528,7 @@ public partial class gate : ccxt.gate
         // their support said that reqid must be an int32, not documented
         this.lockId();
         Int64 reqid = this.sum(this.safeInteger(this.options, "reqid", 0), 1);
-        ((IDictionary<string,object>)this.options)["reqid"] = reqid;
+        this.options["reqid"] = reqid;
         this.unlockId();
         return ((Int64)((object)(reqid))!);
     }

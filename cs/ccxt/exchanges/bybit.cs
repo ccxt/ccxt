@@ -2262,7 +2262,7 @@ public partial class bybit : Exchange
             object newUrls = this.omit(this.urls, "apiBackupDemoTrading");
             this.urls = newUrls;
         }
-        ((IDictionary<string,object>)this.options)["enableDemoTrading"] = enable;
+        this.options["enableDemoTrading"] = enable;
     }
 
     public override Int64 nonce()
@@ -2308,9 +2308,9 @@ public partial class bybit : Exchange
             {
                 // info endpoint is not available in demo trading
                 // so we're assuming UTA is enabled
-                ((IDictionary<string,object>)this.options)["enableUnifiedMargin"] = false;
-                ((IDictionary<string,object>)this.options)["enableUnifiedAccount"] = true;
-                ((IDictionary<string,object>)this.options)["unifiedMarginStatus"] = 6;
+                this.options["enableUnifiedMargin"] = false;
+                this.options["enableUnifiedAccount"] = true;
+                this.options["unifiedMarginStatus"] = 6;
                 return new List<object>() {getValue(this.options, "enableUnifiedMargin"), getValue(this.options, "enableUnifiedAccount")};
             }
             List<object> rawPromises = new List<object> {this.privateGetV5UserQueryApi(parameters), this.privateGetV5AccountInfo(parameters)};
@@ -2374,9 +2374,9 @@ public partial class bybit : Exchange
             //
             IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
             IDictionary<string, object> accountResult = this.safeDict(accountInfo, "result", new Dictionary<string, object>() {});
-            ((IDictionary<string,object>)this.options)["enableUnifiedMargin"] = (this.safeInteger(result, "unified") == 1);
-            ((IDictionary<string,object>)this.options)["enableUnifiedAccount"] = (this.safeInteger(result, "uta") == 1);
-            ((IDictionary<string,object>)this.options)["unifiedMarginStatus"] = this.safeInteger(accountResult, "unifiedMarginStatus", 6); // default to uta 2.0 pro if not found
+            this.options["enableUnifiedMargin"] = (this.safeInteger(result, "unified") == 1);
+            this.options["enableUnifiedAccount"] = (this.safeInteger(result, "uta") == 1);
+            this.options["unifiedMarginStatus"] = this.safeInteger(accountResult, "unifiedMarginStatus", 6); // default to uta 2.0 pro if not found
         }
         return new List<object>() {getValue(this.options, "enableUnifiedMargin"), getValue(this.options, "enableUnifiedAccount")};
     }

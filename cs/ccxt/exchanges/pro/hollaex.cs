@@ -527,7 +527,7 @@ public partial class hollaex : ccxt.hollaex
             expires = expires.ToString();
             // we need to memoize these values to avoid generating a new url on each method execution
             // that would trigger a new connection on each received message
-            ((IDictionary<string,object>)this.options)["ws-expires"] = expires;
+            this.options["ws-expires"] = expires;
         }
         object url = getValue(getValue(this.urls, "api"), "ws");
         string auth = add(add("CONNECT", "/stream"), expires);
@@ -698,13 +698,13 @@ public partial class hollaex : ccxt.hollaex
 
     public override void onError(WebSocketClient client, object error)
     {
-        ((IDictionary<string,object>)this.options)["ws-expires"] = null;
+        this.options["ws-expires"] = null;
         base.onError(client, error);
     }
 
     public override void onClose(WebSocketClient client, object error)
     {
-        ((IDictionary<string,object>)this.options)["ws-expires"] = null;
+        this.options["ws-expires"] = null;
         base.onClose(client, error);
     }
 }

@@ -4268,7 +4268,7 @@ public partial class binance : Exchange
     public override void setSandboxMode(object enable)
     {
         base.setSandboxMode(enable);
-        ((IDictionary<string,object>)this.options)["sandboxMode"] = enable;
+        this.options["sandboxMode"] = enable;
     }
 
     public override Dictionary<string, object> createExpiredOptionMarket(object symbol)
@@ -4611,7 +4611,7 @@ public partial class binance : Exchange
             object newUrls = this.omit(this.urls, "apiBackupDemoTrading");
             this.urls = newUrls;
         }
-        ((IDictionary<string,object>)this.options)["enableDemoTrading"] = enable;
+        this.options["enableDemoTrading"] = enable;
     }
 
     /**
@@ -5009,8 +5009,8 @@ public partial class binance : Exchange
         }
         List<object> results = await promiseAll(promisesRaw);
         List<object> markets = new List<object>() {};
-        ((IDictionary<string,object>)this.options)["crossMarginPairsData"] = new List<object>() {};
-        ((IDictionary<string,object>)this.options)["isolatedMarginPairsData"] = new List<object>() {};
+        this.options["crossMarginPairsData"] = new List<object>() {};
+        this.options["isolatedMarginPairsData"] = new List<object>() {};
         for (int i = 0; isLessThan(i, results?.Count ?? 0); postFixIncrement(ref i))
         {
             object res = this.safeValue(results, i);
@@ -5021,10 +5021,10 @@ public partial class binance : Exchange
                 // first one is the cross-margin promise
                 if ((length == 0))
                 {
-                    ((IDictionary<string,object>)this.options)["crossMarginPairsData"] = keysList;
+                    this.options["crossMarginPairsData"] = keysList;
                 } else
                 {
-                    ((IDictionary<string,object>)this.options)["isolatedMarginPairsData"] = keysList;
+                    this.options["isolatedMarginPairsData"] = keysList;
                 }
             } else
             {
@@ -13912,7 +13912,7 @@ public partial class binance : Exchange
             {
                 throw new NotSupported (add(this.id, " loadLeverageBrackets() supports linear and inverse contracts only")) ;
             }
-            ((IDictionary<string,object>)this.options)["leverageBrackets"] = this.createSafeDictionary();
+            this.options["leverageBrackets"] = this.createSafeDictionary();
             if ((response == null))
             {
                 throw new NullResponse (add(this.id, " loadLeverageBrackets() returned empty response")) ;
@@ -15888,7 +15888,7 @@ public partial class binance : Exchange
         // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
         if (isEqual(api, "private"))
         {
-            ((IDictionary<string,object>)this.options)["hasAlreadyAuthenticatedSuccessfully"] = true;
+            this.options["hasAlreadyAuthenticatedSuccessfully"] = true;
         }
         return response;
     }

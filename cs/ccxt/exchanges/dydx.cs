@@ -1442,7 +1442,7 @@ public partial class dydx : Exchange
         credentials = this.retrieveDydxCredentials(privateKey);
         ((IDictionary<string,object>)credentials)["privateKey"] = this.binaryToBase16(getValue(credentials, "privateKey"));
         ((IDictionary<string,object>)credentials)["publicKey"] = this.binaryToBase16(getValue(credentials, "publicKey"));
-        ((IDictionary<string,object>)this.options)["dydxCredentials"] = credentials;
+        this.options["dydxCredentials"] = credentials;
         return credentials;
     }
 
@@ -1484,7 +1484,7 @@ public partial class dydx : Exchange
         account["pub_key"] = new Dictionary<string, object>() {
             { "key", getValue(GetValue(account, "pub_key"), "key") },
         };
-        ((IDictionary<string,object>)this.options)["dydxAccount"] = account;
+        this.options["dydxAccount"] = account;
         return ccxt.BaseExchange.ToDict(account);
     }
 
@@ -2882,8 +2882,8 @@ public partial class dydx : Exchange
     {
         base.setSandboxMode(enable);
         // rewrite testnet parameters
-        ((IDictionary<string,object>)this.options)["chainName"] = "dydx-testnet-4";
-        ((IDictionary<string,object>)this.options)["chainId"] = 11155111;
+        this.options["chainName"] = "dydx-testnet-4";
+        this.options["chainId"] = 11155111;
         ((IDictionary<string,object>)getValue(this.options, "feeDenom"))["CHAINTOKEN_DENOM"] = "adv4tnt";
     }
 }

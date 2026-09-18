@@ -293,7 +293,7 @@ public partial class upbit : ccxt.upbit
         // therefore we reset the orderbook on each update
         // and reinitialize it again with new bidasks
         (orderbook as IOrderBook).reset(new Dictionary<string, object>() {});
-        ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
+        orderbook["symbol"] = symbol;
         object bids = getValue(orderbook, "bids");
         object asks = getValue(orderbook, "asks");
         List<object> data = this.safeList(message, "orderbook_units", new List<object>() {});
@@ -309,8 +309,8 @@ public partial class upbit : ccxt.upbit
         }
         Int64? timestamp = this.safeInteger(message, "timestamp");
         string? datetime = this.iso8601(timestamp);
-        ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
-        ((IDictionary<string,object>)orderbook)["datetime"] = datetime;
+        orderbook["timestamp"] = timestamp;
+        orderbook["datetime"] = datetime;
         string messageHash = add("orderbook:", symbol);
         callDynamically(client, "resolve", new object[] {orderbook, messageHash});
     }
@@ -391,7 +391,7 @@ public partial class upbit : ccxt.upbit
                     { "authorization", add("Bearer ", token) },
                 } },
             };
-            ((IDictionary<string,object>)this.options)["ws"] = wsOptions;
+            this.options["ws"] = wsOptions;
         }
         object url = add(getValue(getValue(this.urls, "api"), "ws"), "/private");
         var client = this.client(url);
@@ -694,7 +694,7 @@ public partial class upbit : ccxt.upbit
             object fees = this.safeValue(order, "fees");
             if ((fees != null))
             {
-                ((IDictionary<string,object>)parsed)["fees"] = fees;
+                parsed["fees"] = fees;
             }
             parsed["trades"] = this.safeValue(order, "trades");
             parsed["timestamp"] = this.safeInteger(order, "timestamp");

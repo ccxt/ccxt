@@ -462,9 +462,9 @@ public partial class gemini : ccxt.gemini
             string side = (isEqual(getValue(delta, 0), "buy")) ? "bids" : "asks";
             object bookside = getValue(orderbook, side);
             (bookside as IOrderBookSide).store(price, size);
-            ((IDictionary<string,object>)orderbook)[side] = bookside;
+            orderbook[side] = bookside;
         }
-        ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
+        orderbook["symbol"] = symbol;
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         callDynamically(client, "resolve", new object[] {orderbook, messageHash});
     }
@@ -656,12 +656,12 @@ public partial class gemini : ccxt.gemini
                 (asks as IOrderBookSide).store(price, size);
             }
         }
-        ((IDictionary<string,object>)orderbook)["bids"] = bids;
-        ((IDictionary<string,object>)orderbook)["asks"] = asks;
-        ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
-        ((IDictionary<string,object>)orderbook)["nonce"] = nonce;
-        ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
-        ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
+        orderbook["bids"] = bids;
+        orderbook["asks"] = asks;
+        orderbook["symbol"] = symbol;
+        orderbook["nonce"] = nonce;
+        orderbook["timestamp"] = timestamp;
+        orderbook["datetime"] = this.iso8601(timestamp);
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         callDynamically(client, "resolve", new object[] {orderbook, messageHash});
     }

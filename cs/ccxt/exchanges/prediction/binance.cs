@@ -1784,7 +1784,7 @@ public partial class binance : PredictionExchange
         if ((walletAddress == null))
         {
             cachedWallet = this.safeDict(wallets, 0);
-            ((IDictionary<string,object>)this.options)["wallet"] = cachedWallet;
+            this.options["wallet"] = cachedWallet;
             return ccxt.BaseExchange.ToDict(cachedWallet);
         }
         int walletLength = wallets.Count;
@@ -1801,7 +1801,7 @@ public partial class binance : PredictionExchange
         {
             throw new NotSupported (add(add(this.id, "fetchWallet could'n find wallet "), walletAddress)) ;
         }
-        ((IDictionary<string,object>)this.options)["wallet"] = cachedWallet;
+        this.options["wallet"] = cachedWallet;
         return ccxt.BaseExchange.ToDict(cachedWallet);
     }
 

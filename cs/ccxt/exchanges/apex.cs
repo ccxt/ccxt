@@ -570,7 +570,7 @@ public partial class apex : Exchange
         // }
         List<object> rows = this.safeList(spotConfig, "assets", new List<object>() {});
         List<object> chains = this.safeList(multiChain, "chains", new List<object>() {});
-        ((IDictionary<string,object>)this.options)["_temp_currencies_chains"] = chains;
+        this.options["_temp_currencies_chains"] = chains;
         Dictionary<string, object> result = this.parseCurrencies(rows);
         ((IDictionary<string,object>)this.options).Remove((string)"_temp_currencies_chains");
         return ((IDictionary<string, object>)((object)(result)));
@@ -1467,7 +1467,7 @@ public partial class apex : Exchange
         if (accountId == "0")
         {
             object accountData = ccxt.BaseExchange.FromAccount(await this.FetchAccount());
-            ((IDictionary<string,object>)this.options)["accountId"] = this.safeString(accountData, "id", "0");
+            this.options["accountId"] = this.safeString(accountData, "id", "0");
         }
         return getValue(this.options, "accountId");
     }

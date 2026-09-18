@@ -296,8 +296,8 @@ public partial class alpaca : ccxt.alpaca
             List<object> bids = this.safeList(message, "b", new List<object>() {});
             this.handleDeltas(getValue(orderbook, "asks"), asks);
             this.handleDeltas(getValue(orderbook, "bids"), bids);
-            ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
-            ((IDictionary<string,object>)orderbook)["datetime"] = datetime;
+            orderbook["timestamp"] = timestamp;
+            orderbook["datetime"] = datetime;
         }
         string messageHash = add(add("orderbook", ":"), symbol);
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;

@@ -787,8 +787,8 @@ public partial class blockchaincom : ccxt.blockchaincom
             List<object> bids = this.safeList(message, "bids", new List<object>() {});
             this.handleDeltas(getValue(orderbook, "asks"), asks);
             this.handleDeltas(getValue(orderbook, "bids"), bids);
-            ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
-            ((IDictionary<string,object>)orderbook)["datetime"] = datetime;
+            orderbook["timestamp"] = timestamp;
+            orderbook["datetime"] = datetime;
         } else
         {
             throw new NotSupported (add(add(add(this.id, " watchOrderBook() does not support "), eventVar), " yet")) ;

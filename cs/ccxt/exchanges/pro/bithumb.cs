@@ -509,13 +509,13 @@ public partial class bithumb : ccxt.bithumb
             if (!(inOp(this.orderbooks, legacySymbol)))
             {
                 ccxt.pro.OrderBook ob = this.orderBook();
-                ((IDictionary<string,object>)ob)["symbol"] = legacySymbol;
+                ob["symbol"] = legacySymbol;
                 ((IDictionary<string,object>)this.orderbooks)[(string)legacySymbol] = ob;
             }
             ccxt.pro.IOrderBook legacyOrderbook = this.getOrderBook(this.orderbooks, legacySymbol);
             this.handleDeltas(legacyOrderbook, list);
-            ((IDictionary<string,object>)legacyOrderbook)["timestamp"] = legacyTimestamp;
-            ((IDictionary<string,object>)legacyOrderbook)["datetime"] = this.iso8601(legacyTimestamp);
+            legacyOrderbook["timestamp"] = legacyTimestamp;
+            legacyOrderbook["datetime"] = this.iso8601(legacyTimestamp);
             string legacyMessageHash = add(add("orderbook", ":"), legacySymbol);
             callDynamically(client, "resolve", new object[] {legacyOrderbook, legacyMessageHash});
             return;
@@ -535,7 +535,7 @@ public partial class bithumb : ccxt.bithumb
         }
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         (orderbook as IOrderBook).reset(new Dictionary<string, object>() {});
-        ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
+        orderbook["symbol"] = symbol;
         object bids = getValue(orderbook, "bids");
         object asks = getValue(orderbook, "asks");
         List<object> units = this.safeList(message, "orderbook_units", new List<object>() {});
@@ -565,8 +565,8 @@ public partial class bithumb : ccxt.bithumb
         {
             timestamp = this.milliseconds();
         }
-        ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
-        ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
+        orderbook["timestamp"] = timestamp;
+        orderbook["datetime"] = this.iso8601(timestamp);
         string messageHash = add(add("orderbook", ":"), symbol);
         callDynamically(client, "resolve", new object[] {orderbook, messageHash});
     }
@@ -943,7 +943,7 @@ public partial class bithumb : ccxt.bithumb
         IDictionary<string, object> subscriptions = this.safeDict(wsOptions, "gen2Subscriptions", new Dictionary<string, object>() {});
         subscriptions[(string)subscriptionType] = subscription;
         wsOptions["gen2Subscriptions"] = subscriptions;
-        ((IDictionary<string,object>)this.options)["ws"] = wsOptions;
+        this.options["ws"] = wsOptions;
         List<object> request = new List<object>() {new Dictionary<string, object>() {
     { "ticket", "ccxt" },
 }};
@@ -975,7 +975,7 @@ public partial class bithumb : ccxt.bithumb
                     { "authorization", add("Bearer ", jwtToken) },
                 } },
             };
-            ((IDictionary<string,object>)this.options)["ws"] = wsOptions;
+            this.options["ws"] = wsOptions;
         }
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "privateGen2"));
         var client = this.client(url);

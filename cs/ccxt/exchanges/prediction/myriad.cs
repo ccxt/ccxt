@@ -3565,7 +3565,7 @@ public partial class myriad : PredictionExchange
         object existing = this.safeValue(this.options, "requestId");
         if ((existing == null))
         {
-            ((IDictionary<string,object>)this.options)["requestId"] = this.createSafeDictionary();
+            this.options["requestId"] = this.createSafeDictionary();
         }
         object options = getValue(this.options, "requestId");
         Int64? previousValue = this.safeInteger(options, url, 0);
@@ -3607,7 +3607,7 @@ public partial class myriad : PredictionExchange
         object connectSent = this.safeValue(client.subscriptions, "connect");
         if ((connectSent == null))
         {
-            ((IDictionary<string,object>)this.options)["wsConnected"] = false;
+            this.options["wsConnected"] = false;
             Int64 requestId = ((Int64)this.requestId(url));
             // give the anonymous connect a name so the params object is non-empty (PHP serialises an
             // empty array as a JSON array, which Centrifugo rejects)
@@ -3685,7 +3685,7 @@ public partial class myriad : PredictionExchange
         if ((connectReply != null))
         {
             // connect acknowledged — unblock connectCentrifugo so channel subscribes can be sent
-            ((IDictionary<string,object>)this.options)["wsConnected"] = true;
+            this.options["wsConnected"] = true;
             callDynamically(client, "resolve", new object[] {true, "centrifugoConnected"});
             return;
         }
@@ -3805,8 +3805,8 @@ public partial class myriad : PredictionExchange
             string? sideStr = this.safeString(change, "side");
             object bookSide = (sideStr == "bid") ? getValue(orderbook, "bids") : getValue(orderbook, "asks");
             (bookSide as IOrderBookSide).storeArray(new List<object>() {price, amount});
-            ((IDictionary<string,object>)orderbook)["timestamp"] = ts;
-            ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(ts);
+            orderbook["timestamp"] = ts;
+            orderbook["datetime"] = this.iso8601(ts);
             updated[(string)sym] = true;
         }
         List<object> updatedSymbols = new List<object>(((IDictionary<string,object>)updated).Keys);
@@ -4298,7 +4298,7 @@ public partial class myriad : PredictionExchange
                 balances[(string)id] = this.numberToString(this.safeNumber(p, "contracts", 0));
             }
         }
-        ((IDictionary<string,object>)this.options)["positionBalances"] = balances;
+        this.options["positionBalances"] = balances;
     }
 
     public virtual void handlePosition(WebSocketClient client, object data)
@@ -4335,7 +4335,7 @@ public partial class myriad : PredictionExchange
             {
                 balances[(string)posId] = updated;
             }
-            ((IDictionary<string,object>)this.options)["positionBalances"] = balances;
+            this.options["positionBalances"] = balances;
             contracts = this.parseNumber(updated);
         }
         object parsed = this.safePredictionPosition(new Dictionary<string, object>() {

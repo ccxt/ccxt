@@ -850,7 +850,7 @@ public partial class kraken : Exchange
                 { "info", market },
             });
         }
-        ((IDictionary<string,object>)this.options)["marketsByAltname"] = this.indexBy(result, "altname");
+        this.options["marketsByAltname"] = this.indexBy(result, "altname");
         return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
@@ -985,7 +985,7 @@ public partial class kraken : Exchange
                 // also, add map in commonCurrencies:
                 if (((id != null)) && ((code != null)))
                 {
-                    ((IDictionary<string,object>)this.commonCurrencies)[(string)id] = code;
+                    this.commonCurrencies[(string)id] = code;
                 }
             } else
             {

@@ -51,7 +51,7 @@ public partial class cex : ccxt.cex
     {
         this.lockId();
         Int64 requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
-        ((IDictionary<string,object>)this.options)["requestId"] = requestId;
+        this.options["requestId"] = requestId;
         this.unlockId();
         return requestId.ToString();
     }
@@ -1161,9 +1161,9 @@ public partial class cex : ccxt.cex
         object bids = this.safeValue(data, "bids", new List<object>() {});
         this.handleDeltas(getValue(storedOrderBook, "asks"), asks);
         this.handleDeltas(getValue(storedOrderBook, "bids"), bids);
-        ((IDictionary<string,object>)storedOrderBook)["timestamp"] = timestamp;
-        ((IDictionary<string,object>)storedOrderBook)["datetime"] = this.iso8601(timestamp);
-        ((IDictionary<string,object>)storedOrderBook)["nonce"] = incrementalId;
+        storedOrderBook["timestamp"] = timestamp;
+        storedOrderBook["datetime"] = this.iso8601(timestamp);
+        storedOrderBook["nonce"] = incrementalId;
         callDynamically(client, "resolve", new object[] {storedOrderBook, messageHash});
     }
 

@@ -992,8 +992,8 @@ public partial class bitrue : ccxt.bitrue
                 {
                     throw new AuthenticationError (add(this.id, " authenticate() received an empty listenKey")) ;
                 }
-                ((IDictionary<string,object>)this.options)["listenKey"] = key;
-                ((IDictionary<string,object>)this.options)["listenKeyUrl"] = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "/stream?listenKey="), key);
+                this.options["listenKey"] = key;
+                this.options["listenKeyUrl"] = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "/stream?listenKey="), key);
                 callDynamically(client, "resolve", new object[] {key, messageHash});
             } catch(Exception e)
             {
@@ -1030,8 +1030,8 @@ public partial class bitrue : ccxt.bitrue
             await this.openV1PrivatePutPoseidonApiV1ListenKeyListenKey(this.extend(request, parameters));
         } catch(Exception error)
         {
-            ((IDictionary<string,object>)this.options)["listenKey"] = null;
-            ((IDictionary<string,object>)this.options)["listenKeyUrl"] = null;
+            this.options["listenKey"] = null;
+            this.options["listenKeyUrl"] = null;
             return;
         }
         Int64? refreshTimeout = this.safeInteger(this.options, "listenKeyRefreshRate", 1800000);

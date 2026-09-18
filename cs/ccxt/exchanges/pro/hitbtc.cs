@@ -304,10 +304,10 @@ public partial class hitbtc : ccxt.hitbtc
                 this.handleDeltas(getValue(orderbook, "asks"), asks);
                 this.handleDeltas(getValue(orderbook, "bids"), bids);
             }
-            ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
-            ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
-            ((IDictionary<string,object>)orderbook)["nonce"] = nonce;
-            ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
+            orderbook["timestamp"] = timestamp;
+            orderbook["datetime"] = this.iso8601(timestamp);
+            orderbook["nonce"] = nonce;
+            orderbook["symbol"] = symbol;
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
             callDynamically(client, "resolve", new object[] {orderbook, messageHash});
         }

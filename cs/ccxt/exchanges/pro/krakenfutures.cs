@@ -1359,9 +1359,9 @@ public partial class krakenfutures : ccxt.krakenfutures
             object asksSide = getValue(orderbook, "asks");
             (asksSide as IOrderBookSide).store(price, qty);
         }
-        ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
-        ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
-        ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
+        orderbook["timestamp"] = timestamp;
+        orderbook["datetime"] = this.iso8601(timestamp);
+        orderbook["symbol"] = symbol;
         callDynamically(client, "resolve", new object[] {orderbook, messageHash});
     }
 
@@ -1396,8 +1396,8 @@ public partial class krakenfutures : ccxt.krakenfutures
             object bids = getValue(orderbook, "bids");
             (bids as IOrderBookSide).store(price, qty);
         }
-        ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
-        ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
+        orderbook["timestamp"] = timestamp;
+        orderbook["datetime"] = this.iso8601(timestamp);
         callDynamically(client, "resolve", new object[] {orderbook, messageHash});
     }
 
@@ -1891,8 +1891,8 @@ public partial class krakenfutures : ccxt.krakenfutures
             object hashedChallenge = this.hash(this.encode(challenge), sha256, "binary");
             object base64Secret = this.base64ToBinary(this.secret);
             string signature = this.hmac(hashedChallenge, base64Secret, sha512, "base64");
-            ((IDictionary<string,object>)this.options)["challenge"] = challenge;
-            ((IDictionary<string,object>)this.options)["signedChallenge"] = signature;
+            this.options["challenge"] = challenge;
+            this.options["signedChallenge"] = signature;
             var future = this.safeValue(client.futures, messageHash);
             (future as Future).resolve(true);
         } else

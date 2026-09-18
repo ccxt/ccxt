@@ -75,7 +75,7 @@ public partial class nado : ccxt.nado
     public virtual Int64 requestId()
     {
         Int64 requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
-        ((IDictionary<string,object>)this.options)["requestId"] = requestId;
+        this.options["requestId"] = requestId;
         return ((Int64)((object)(requestId))!);
     }
 
@@ -1930,9 +1930,9 @@ public partial class nado : ccxt.nado
         this.handleDeltas(getValue(orderbook, "asks"), asks);
         this.handleDeltas(getValue(orderbook, "bids"), bids);
         Int64? timestamp = this.parseWsTimestamp(message, "max_timestamp");
-        ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
-        ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
-        ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
+        orderbook["symbol"] = symbol;
+        orderbook["timestamp"] = timestamp;
+        orderbook["datetime"] = this.iso8601(timestamp);
         ((IDictionary<string,object>)orderbook)["maxTimestamp"] = this.safeString(message, "max_timestamp");
         callDynamically(client, "resolve", new object[] {orderbook, messageHash});
     }

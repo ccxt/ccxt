@@ -57,7 +57,7 @@ public partial class lbank : ccxt.lbank
         this.lockId();
         Int64? previousValue = this.safeInteger(this.options, "requestId", 0);
         Int64 newValue = this.sum(previousValue, 1);
-        ((IDictionary<string,object>)this.options)["requestId"] = newValue;
+        this.options["requestId"] = newValue;
         this.unlockId();
         return ((Int64)((object)(newValue))!);
     }

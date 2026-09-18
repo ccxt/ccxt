@@ -810,7 +810,7 @@ public partial class bitfinex : ccxt.bitfinex
                     (bookside as IOrderBookSide).storeArray(new List<object>() {price, size, counter});
                 }
             }
-            ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
+            orderbook["symbol"] = symbol;
             callDynamically(client, "resolve", new object[] {orderbook, messageHash});
         } else
         {

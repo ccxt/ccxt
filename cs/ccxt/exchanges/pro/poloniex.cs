@@ -1270,9 +1270,9 @@ public partial class poloniex : ccxt.poloniex
                         (asksSide as IOrderBookSide).store(price, amount);
                     }
                 }
-                ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
-                ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
-                ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
+                orderbook["symbol"] = symbol;
+                orderbook["timestamp"] = timestamp;
+                orderbook["datetime"] = this.iso8601(timestamp);
                 callDynamically(client, "resolve", new object[] {orderbook, messageHash});
             }
         }

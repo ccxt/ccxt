@@ -107,7 +107,7 @@ public partial class kucoin : ccxt.kucoin
         // so that multiple calls don't asynchronously
         // fetch different urls and overwrite each other
         urls[(string)connectId] = this.spawn(this.negotiateHelper, new object[] { privateChannel, connectId, parameters});
-        ((IDictionary<string,object>)this.options)["urls"] = urls;
+        this.options["urls"] = urls;
         future = getValue(urls, connectId);
         return await (future as Exchange.Future);
     }
@@ -158,7 +158,7 @@ public partial class kucoin : ccxt.kucoin
     {
         this.lockId();
         Int64 requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
-        ((IDictionary<string,object>)this.options)["requestId"] = requestId;
+        this.options["requestId"] = requestId;
         this.unlockId();
         return ((Int64)((object)(requestId))!);
     }
@@ -278,12 +278,12 @@ public partial class kucoin : ccxt.kucoin
                     });
                     IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
                     string? utaTokenString = this.safeString(data, "token");
-                    ((IDictionary<string,object>)this.options)["utaTokenLastUpdate"] = now;
-                    ((IDictionary<string,object>)this.options)["utaToken"] = utaTokenString;
+                    this.options["utaTokenLastUpdate"] = now;
+                    this.options["utaToken"] = utaTokenString;
                     callDynamically(client, "resolve", new object[] {utaTokenString, messageHash});
                 } catch(Exception e)
                 {
-                    ((IDictionary<string,object>)this.options)["utaToken"] = null;
+                    this.options["utaToken"] = null;
                     client.reject(e, messageHash);
                 }
             }

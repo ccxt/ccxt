@@ -1025,7 +1025,7 @@ public partial class woofipro : ccxt.woofipro
                 List<object> fees = this.safeList(order, "fees");
                 if ((fees != null))
                 {
-                    ((IDictionary<string,object>)parsed)["fees"] = fees;
+                    parsed["fees"] = fees;
                 }
                 parsed["trades"] = this.safeList(order, "trades", new List<object>() {});
                 parsed["timestamp"] = this.safeInteger(order, "timestamp");

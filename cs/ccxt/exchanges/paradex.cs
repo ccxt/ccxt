@@ -1762,7 +1762,7 @@ public partial class paradex : Exchange
         //     "liquidation_fee": "0.2"
         // }
         //
-        ((IDictionary<string,object>)this.options)["systemConfig"] = response;
+        this.options["systemConfig"] = response;
         return this.safeDict(this.options, "systemConfig", new Dictionary<string, object>() {});
     }
 
@@ -1809,7 +1809,7 @@ public partial class paradex : Exchange
         byte[] msg = this.ethEncodeStructuredData(domain, messageTypes, message);
         object signature = this.signMessage(msg, this.privateKey);
         object account = this.retrieveStarkAccount(signature, GetValue(systemConfig, "paraclear_account_hash"), GetValue(systemConfig, "paraclear_account_proxy_hash"));
-        ((IDictionary<string,object>)this.options)["paradexAccount"] = account;
+        this.options["paradexAccount"] = account;
         return account;
     }
 
@@ -1895,8 +1895,8 @@ public partial class paradex : Exchange
         // }
         //
         string? token = this.safeString(response, "jwt_token");
-        ((IDictionary<string,object>)this.options)["authToken"] = token;
-        ((IDictionary<string,object>)this.options)["expires"] = expires;
+        this.options["authToken"] = token;
+        this.options["expires"] = expires;
         return token;
     }
 

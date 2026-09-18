@@ -524,7 +524,7 @@ public partial class lighter : Exchange
     {
         if (!(this.options.ContainsKey("auths")))
         {
-            ((IDictionary<string,object>)this.options)["auths"] = new Dictionary<string, object>() {};
+            this.options["auths"] = new Dictionary<string, object>() {};
         }
         if (!(inOp(getValue(this.options, "auths"), strAccountIndex)))
         {
@@ -607,7 +607,7 @@ public partial class lighter : Exchange
         {
             // apiKeyIndex = this.randNumber (2);
             apiKeyIndex = 254;
-            ((IDictionary<string,object>)this.options)["apiKeyIndex"] = apiKeyIndex; // default to a value to avoid overriding other keys
+            this.options["apiKeyIndex"] = apiKeyIndex; // default to a value to avoid overriding other keys
         }
         return new List<object> {this.parseToInt(apiKeyIndex), parameters};
     }
@@ -668,7 +668,7 @@ public partial class lighter : Exchange
                     throw new ArgumentsRequired (add(add(add(add(add(add(add(this.id, " "), methodName1), "() requires an "), optionName1), " or "), optionName2), " parameter")) ;
                 }
                 accountIndex = GetValue(account, "index");
-                ((IDictionary<string,object>)this.options)["accountIndex"] = accountIndex;
+                this.options["accountIndex"] = accountIndex;
             }
         }
         return new List<object> {this.parseToInt(accountIndex), parameters};
@@ -814,10 +814,10 @@ public partial class lighter : Exchange
             Int64? takerFeeRate = this.safeInteger(this.options, "integratorTakerFee", 1000);
             Int64? makerFeeRate = this.safeInteger(this.options, "integratorMakerFee", 1000);
             await this.approveBuilderFee(builder, takerFeeRate, makerFeeRate, accountIndex, apiKeyIndex);
-            ((IDictionary<string,object>)this.options)["approvedBuilderFee"] = true;
+            this.options["approvedBuilderFee"] = true;
         } catch(Exception e)
         {
-            ((IDictionary<string,object>)this.options)["builderFee"] = false;
+            this.options["builderFee"] = false;
         }
         return true;
     }
@@ -897,8 +897,8 @@ public partial class lighter : Exchange
     public override void setSandboxMode(object enable)
     {
         base.setSandboxMode(enable);
-        ((IDictionary<string,object>)this.options)["sandboxMode"] = enable;
-        ((IDictionary<string,object>)this.options)["chainId"] = isTrue(enable) ? 300 : 304;
+        this.options["sandboxMode"] = enable;
+        this.options["chainId"] = isTrue(enable) ? 300 : 304;
     }
 
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)

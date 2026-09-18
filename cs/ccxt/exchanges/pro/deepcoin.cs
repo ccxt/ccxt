@@ -103,7 +103,7 @@ public partial class deepcoin : ccxt.deepcoin
         this.lockId();
         Int64? previousValue = this.safeInteger(this.options, "lastRequestId", 0);
         Int64 newValue = this.sum(previousValue, 1);
-        ((IDictionary<string,object>)this.options)["lastRequestId"] = newValue;
+        this.options["lastRequestId"] = newValue;
         this.unlockId();
         return ((Int64)((object)(newValue))!);
     }
@@ -235,8 +235,8 @@ public partial class deepcoin : ccxt.deepcoin
                     throw new AuthenticationError (add(this.id, " authenticate() received an empty listenKey")) ;
                 }
                 listenKeyExpiryTimestamp = this.safeTimestamp(data, "expire_time");
-                ((IDictionary<string,object>)this.options)["listenKey"] = listenKey;
-                ((IDictionary<string,object>)this.options)["listenKeyExpiryTimestamp"] = listenKeyExpiryTimestamp;
+                this.options["listenKey"] = listenKey;
+                this.options["listenKeyExpiryTimestamp"] = listenKeyExpiryTimestamp;
             }
             // settle the flight: client.resolve wakes every waiter and drops
             // the future from the registry under the client's own lock, so the

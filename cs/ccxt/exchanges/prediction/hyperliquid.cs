@@ -142,7 +142,7 @@ public partial class hyperliquid : PredictionExchange
     public override void setSandboxMode(object enabled)
     {
         base.setSandboxMode(enabled);
-        ((IDictionary<string,object>)this.options)["sandboxMode"] = enabled;
+        this.options["sandboxMode"] = enabled;
     }
 
     /**
@@ -2495,10 +2495,10 @@ public partial class hyperliquid : PredictionExchange
             // purposes only and the user is not charged; set options.feeRate/feeInt to charge a fee
             string? maxFeeRate = this.safeString(this.options, "feeRate", "0%");
             await this.approveBuilderFee(builder, maxFeeRate);
-            ((IDictionary<string,object>)this.options)["approvedBuilderFee"] = true;
+            this.options["approvedBuilderFee"] = true;
         } catch(Exception e)
         {
-            ((IDictionary<string,object>)this.options)["builderFee"] = false; // disable builder fee if an error occurs
+            this.options["builderFee"] = false; // disable builder fee if an error occurs
         }
         return null;
     }

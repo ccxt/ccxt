@@ -488,7 +488,7 @@ public partial class extended : Exchange
         IDictionary<string, object> currenciesByNumericId = this.safeDict(this.options, "currenciesByNumericId");
         if (((currenciesByNumericId == null)) || isTrue(reload))
         {
-            ((IDictionary<string,object>)this.options)["currenciesByNumericId"] = this.indexByStringifiedNumericId(this.currencies);
+            this.options["currenciesByNumericId"] = this.indexByStringifiedNumericId(this.currencies);
         }
         return ((IDictionary<string, object>)((object)(markets)));
     }
@@ -2820,7 +2820,7 @@ public partial class extended : Exchange
         }
         object accountData = ccxt.BaseExchange.FromAccount(await this.FetchAccount(parameters));
         account = getValue(accountData, "info");
-        ((IDictionary<string,object>)this.options)["account"] = account;
+        this.options["account"] = account;
         return ccxt.BaseExchange.ToDict(account);
     }
 

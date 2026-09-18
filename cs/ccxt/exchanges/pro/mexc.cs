@@ -965,8 +965,8 @@ public partial class mexc : ccxt.mexc
         {
             this.handleDelta(storedOrderBook, data);
             Int64? timestamp = this.safeIntegerN(message, new List<object>() {"t", "ts", "sendTime"});
-            ((IDictionary<string,object>)storedOrderBook)["timestamp"] = timestamp;
-            ((IDictionary<string,object>)storedOrderBook)["datetime"] = this.iso8601(timestamp);
+            storedOrderBook["timestamp"] = timestamp;
+            storedOrderBook["datetime"] = this.iso8601(timestamp);
         } catch(Exception e)
         {
             ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
@@ -2194,7 +2194,7 @@ public partial class mexc : ccxt.mexc
             await client.future(messageHash);
             return this.safeString(this.options, "listenKey");
         }
-        ((IDictionary<string,object>)this.options)["listenKeyFetching"] = true;
+        this.options["listenKeyFetching"] = true;
         client.future(messageHash); // created ahead of the request below, so concurrent callers can find it
         Dictionary<string, object> response = null;
         try
@@ -2202,18 +2202,18 @@ public partial class mexc : ccxt.mexc
             response = await this.spotPrivatePostUserDataStream(parameters);
         } catch(Exception e)
         {
-            ((IDictionary<string,object>)this.options)["listenKeyFetching"] = false;
+            this.options["listenKeyFetching"] = false;
             client.reject(e, messageHash);
             throw e;
         }
-        ((IDictionary<string,object>)this.options)["listenKeyFetching"] = false;
+        this.options["listenKeyFetching"] = false;
         //
         //    {
         //        "listenKey": "pqia91ma19a5s61cv6a81va65sdf19v8a65a1a5s61cv6a81va65sdf19v8a65a1"
         //    }
         //
         listenKey = this.safeString(response, "listenKey");
-        ((IDictionary<string,object>)this.options)["listenKey"] = listenKey;
+        this.options["listenKey"] = listenKey;
         callDynamically(client, "resolve", new object[] {listenKey, messageHash});
         Int64? listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 1200000);
         this.delay(listenKeyRefreshRate,  this.keepAliveListenKey, new object[] { listenKey, parameters});
@@ -2239,7 +2239,7 @@ public partial class mexc : ccxt.mexc
         {
             object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "spot"), "?listenKey="), listenKey);
             var client = this.client(url);
-            ((IDictionary<string,object>)this.options)["listenKey"] = null;
+            this.options["listenKey"] = null;
             client.reject(error);
             ((IDictionary<string, ccxt.Exchange.WebSocketClient>)this.clients).Remove((string)url);
         }

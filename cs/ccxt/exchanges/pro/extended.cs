@@ -131,9 +131,9 @@ public partial class extended : ccxt.extended
         }
         this.handleDeltas(getValue(orderbook, "bids"), this.safeList(data, "b", new List<object>() {}));
         this.handleDeltas(getValue(orderbook, "asks"), this.safeList(data, "a", new List<object>() {}));
-        ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
-        ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
-        ((IDictionary<string,object>)orderbook)["nonce"] = nonce;
+        orderbook["timestamp"] = timestamp;
+        orderbook["datetime"] = this.iso8601(timestamp);
+        orderbook["nonce"] = nonce;
         callDynamically(client, "resolve", new object[] {orderbook, messageHash});
     }
 

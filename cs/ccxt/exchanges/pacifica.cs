@@ -739,10 +739,10 @@ public partial class pacifica : Exchange
             string? builder = this.safeString(this.options, "builderCode", "CCXT"); // case sensitive
             string? maxFeeRate = this.safeString(this.options, "feeRate", "0.01");
             await this.approveBuilderCode(builder, maxFeeRate);
-            ((IDictionary<string,object>)this.options)["approvedBuilderFee"] = true;
+            this.options["approvedBuilderFee"] = true;
         } catch(Exception e)
         {
-            ((IDictionary<string,object>)this.options)["builderFee"] = false; // disable builder fee if an error occurs
+            this.options["builderFee"] = false; // disable builder fee if an error occurs
         }
         return true;
     }
@@ -1171,9 +1171,9 @@ public partial class pacifica : Exchange
         object settings = this.handleOption("loadAccountSettings", "settings");
         if (((settings == null)) || (isEqual(refresh, true)))
         {
-            ((IDictionary<string,object>)this.options)["settings"] = this.createSafeDictionary();
+            this.options["settings"] = this.createSafeDictionary();
             settings = ccxt.BaseExchange.FromDict(await this.FetchAccountSettings(parameters));
-            ((IDictionary<string,object>)this.options)["settings"] = settings;
+            this.options["settings"] = settings;
         }
     }
 

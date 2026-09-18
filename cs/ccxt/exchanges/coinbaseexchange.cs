@@ -2476,8 +2476,8 @@ public partial class coinbaseexchange : Exchange
         if ((accounts == null))
         {
             accounts = await this.privateGetCoinbaseAccounts();
-            ((IDictionary<string,object>)this.options)["coinbaseAccounts"] = accounts; // cache it
-            ((IDictionary<string,object>)this.options)["coinbaseAccountsByCurrencyId"] = this.indexBy(accounts, "currency");
+            this.options["coinbaseAccounts"] = accounts; // cache it
+            this.options["coinbaseAccountsByCurrencyId"] = this.indexBy(accounts, "currency");
         }
         object currencyId = GetValue(currency, "id");
         object account = this.safeValue(getValue(this.options, "coinbaseAccountsByCurrencyId"), currencyId);

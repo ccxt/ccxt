@@ -3563,9 +3563,9 @@ public partial class polymarket : PredictionExchange
         };
         // cache in options rather than the typed apiKey/secret/password fields so the
         // assignment is valid in the struct-based languages (C#/Go/Java)
-        ((IDictionary<string,object>)this.options)["l2ApiKey"] = ((IDictionary<string,object>)creds)["apiKey"];
-        ((IDictionary<string,object>)this.options)["l2Secret"] = ((IDictionary<string,object>)creds)["secret"];
-        ((IDictionary<string,object>)this.options)["l2Passphrase"] = ((IDictionary<string,object>)creds)["passphrase"];
+        this.options["l2ApiKey"] = ((IDictionary<string,object>)creds)["apiKey"];
+        this.options["l2Secret"] = ((IDictionary<string,object>)creds)["secret"];
+        this.options["l2Passphrase"] = ((IDictionary<string,object>)creds)["passphrase"];
         return ((Dictionary<string, object>)((object)(creds)));
     }
 
@@ -3710,8 +3710,8 @@ public partial class polymarket : PredictionExchange
             // storeArray([price, size]) inserts/updates or removes (size=0) the level
             object sideRef = side;
             (sideRef as IOrderBookSide).storeArray(new List<object>() {price, size});
-            ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
-            ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
+            orderbook["timestamp"] = timestamp;
+            orderbook["datetime"] = this.iso8601(timestamp);
             updated[(string)outcome] = true;
         }
         List<object> updatedSymbols = new List<object>(((IDictionary<string,object>)updated).Keys);

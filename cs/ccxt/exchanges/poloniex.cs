@@ -946,7 +946,7 @@ public partial class poloniex : Exchange
         object currenciesByNumericId = this.safeValue(this.options, "currenciesByNumericId");
         if (((currenciesByNumericId == null)) || isTrue(reload))
         {
-            ((IDictionary<string,object>)this.options)["currenciesByNumericId"] = this.indexBy(this.currencies, "numericId");
+            this.options["currenciesByNumericId"] = this.indexBy(this.currencies, "numericId");
         }
         return ((IDictionary<string, object>)((object)(markets)));
     }

@@ -1738,7 +1738,7 @@ public partial class okx : ccxt.okx
                 object update = getValue(data, i);
                 ccxt.pro.OrderBook orderbook = this.orderBook(new Dictionary<string, object>() {}, limit);
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
-                ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
+                orderbook["symbol"] = symbol;
                 this.handleOrderBookMessage(client, update, orderbook, messageHash, market);
                 if (!(inOp(client.subscriptions, messageHash)))
                 {

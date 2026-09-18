@@ -3436,7 +3436,7 @@ public partial class lbank : Exchange
                     if ((pem == null))
                     {
                         pem = this.convertSecretToPem(this.encode(this.secret));
-                        ((IDictionary<string,object>)this.options)["pem"] = pem;
+                        this.options["pem"] = pem;
                     }
                 } else
                 {

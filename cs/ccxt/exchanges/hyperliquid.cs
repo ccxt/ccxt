@@ -355,7 +355,7 @@ public partial class hyperliquid : Exchange
     public override void setSandboxMode(object enabled)
     {
         base.setSandboxMode(enabled);
-        ((IDictionary<string,object>)this.options)["sandboxMode"] = enabled;
+        this.options["sandboxMode"] = enabled;
     }
 
     public override Dictionary<string, object> market(object symbol)
@@ -466,7 +466,7 @@ public partial class hyperliquid : Exchange
         // const spotMeta = await this.publicPostInfo ({ 'type': 'spotMeta' });
         List<object> tokens = this.safeList(response, "tokens", new List<object>() {});
         // const meta = this.safeList (response, 'universe', []);
-        ((IDictionary<string,object>)this.options)["cachedCurrenciesById"] = new Dictionary<string, object>() {}; // used to map hip3 markets
+        this.options["cachedCurrenciesById"] = new Dictionary<string, object>() {}; // used to map hip3 markets
         return this.parseCurrencies(tokens);
     }
 
@@ -649,7 +649,7 @@ public partial class hyperliquid : Exchange
             ((IList<object>)rawPromises).Add(this.publicPostInfo(this.extend(request, parameters)));
         }
         List<object> promises = await promiseAll(rawPromises);
-        ((IDictionary<string,object>)this.options)["hip3TokensByName"] = new Dictionary<string, object>() {};
+        this.options["hip3TokensByName"] = new Dictionary<string, object>() {};
         List<object> markets = new List<object>() {};
         for (int i = 0; isLessThan(i, promises?.Count ?? 0); postFixIncrement(ref i))
         {
@@ -1989,7 +1989,7 @@ public partial class hyperliquid : Exchange
         {
             return true;
         }
-        ((IDictionary<string,object>)this.options)["refSet"] = true;
+        this.options["refSet"] = true;
         Dictionary<string, object> action = new Dictionary<string, object>() {
             { "type", "setReferrer" },
             { "code", this.safeString(this.options, "ref", "CCXT1") },
@@ -2080,10 +2080,10 @@ public partial class hyperliquid : Exchange
                 maxFeeRate = "0%";
             }
             await this.approveBuilderFee(builder, maxFeeRate);
-            ((IDictionary<string,object>)this.options)["approvedBuilderFee"] = true;
+            this.options["approvedBuilderFee"] = true;
         } catch(Exception e)
         {
-            ((IDictionary<string,object>)this.options)["builderFee"] = false; // disable builder fee if an error occurs
+            this.options["builderFee"] = false; // disable builder fee if an error occurs
         }
         return true;
     }
@@ -2149,7 +2149,7 @@ public partial class hyperliquid : Exchange
                 enableUnifiedMargin = isEqual(response, "unifiedAccount");
             }
             // don't cache this result if this is a different addresss
-            ((IDictionary<string,object>)this.options)["enableUnifiedMargin"] = enableUnifiedMargin; // cache this for future calls
+            this.options["enableUnifiedMargin"] = enableUnifiedMargin; // cache this for future calls
         }
         return new List<object>() {enableUnifiedMargin, parameters};
     }

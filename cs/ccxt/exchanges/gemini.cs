@@ -688,7 +688,7 @@ public partial class gemini : Exchange
         //        ]
         //    }
         //
-        ((IDictionary<string,object>)this.options)["tradingPairs"] = this.safeList(data, "tradingPairs");
+        this.options["tradingPairs"] = this.safeList(data, "tradingPairs");
         object currenciesArray = this.safeValue(data, "currencies", new List<object>() {});
         return ccxt.BaseExchange.ToCurrencies(this.parseCurrencies(currenciesArray));
     }

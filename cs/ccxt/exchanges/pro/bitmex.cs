@@ -1723,7 +1723,7 @@ public partial class bitmex : ccxt.bitmex
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.indexedOrderBook(new Dictionary<string, object>() {}, 10);
             }
             ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
-            ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
+            orderbook["symbol"] = symbol;
             for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
             {
                 double? price = this.safeFloat(getValue(data, i), "price");
@@ -1734,8 +1734,8 @@ public partial class bitmex : ccxt.bitmex
                 object bookside = getValue(orderbook, side);
                 (bookside as IOrderBookSide).storeArray(new List<object>() {price, size, id});
                 string? datetime = this.safeString(getValue(data, i), "timestamp");
-                ((IDictionary<string,object>)orderbook)["timestamp"] = this.parse8601(datetime);
-                ((IDictionary<string,object>)orderbook)["datetime"] = datetime;
+                orderbook["timestamp"] = this.parse8601(datetime);
+                orderbook["datetime"] = datetime;
             }
             object messageHash = add(add(table, ":"), symbol);
             callDynamically(client, "resolve", new object[] {orderbook, messageHash});
@@ -1765,8 +1765,8 @@ public partial class bitmex : ccxt.bitmex
                 object bookside = getValue(orderbook, side);
                 (bookside as IOrderBookSide).storeArray(new List<object>() {price, size, id});
                 string? datetime = this.safeString(getValue(data, i), "timestamp");
-                ((IDictionary<string,object>)orderbook)["timestamp"] = this.parse8601(datetime);
-                ((IDictionary<string,object>)orderbook)["datetime"] = datetime;
+                orderbook["timestamp"] = this.parse8601(datetime);
+                orderbook["datetime"] = datetime;
             }
             List<object> marketIds = new List<object>(((IDictionary<string,object>)numUpdatesByMarketId).Keys);
             for (int i = 0; isLessThan(i, marketIds.Count); postFixIncrement(ref i))

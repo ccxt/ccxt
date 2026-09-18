@@ -3540,7 +3540,7 @@ public partial class bitget : Exchange
      */
     public override void setSandboxMode(object enabled)
     {
-        ((IDictionary<string,object>)this.options)["sandboxMode"] = enabled;
+        this.options["sandboxMode"] = enabled;
     }
 
     /**
@@ -3639,7 +3639,7 @@ public partial class bitget : Exchange
             {
                 accountIsUTa = false;
             }
-            ((IDictionary<string,object>)this.options)["uta"] = accountIsUTa;
+            this.options["uta"] = accountIsUTa;
             return new List<object>() {accountIsUTa, parameters};
         }
         return new List<object>() {defaultValue, parameters};
@@ -3740,8 +3740,8 @@ public partial class bitget : Exchange
         }
         List<object> results = await promiseAll(promises);
         List<object> markets = new List<object>() {};
-        ((IDictionary<string,object>)this.options)["crossMarginPairsData"] = new List<object>() {};
-        ((IDictionary<string,object>)this.options)["isolatedMarginPairsData"] = new List<object>() {};
+        this.options["crossMarginPairsData"] = new List<object>() {};
+        this.options["isolatedMarginPairsData"] = new List<object>() {};
         for (int i = 0; isLessThan(i, results?.Count ?? 0); postFixIncrement(ref i))
         {
             IDictionary<string, object> res = this.safeDict(results, i);
@@ -3772,8 +3772,8 @@ public partial class bitget : Exchange
                         ((IList<object>)isolatedKeys).Add(entrySymbol);
                     }
                 }
-                ((IDictionary<string,object>)this.options)["crossMarginPairsData"] = crossKeys;
-                ((IDictionary<string,object>)this.options)["isolatedMarginPairsData"] = isolatedKeys;
+                this.options["crossMarginPairsData"] = crossKeys;
+                this.options["isolatedMarginPairsData"] = isolatedKeys;
             } else
             {
                 markets = this.arrayConcat(markets, data);
