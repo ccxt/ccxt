@@ -1167,7 +1167,7 @@ impl IndependentreserveCore {
         add_element_to_object(&mut request, &Value::Str("pageSize".to_string()), limit.clone());
         let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_post_get_open_orders(&[__ws_arg_3]).await;
-        let mut data: Value = self.safe_list_k(response.clone(), "Data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "Data", &[Value::List(vec![])]);
         return self.parse_orders(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1211,7 +1211,7 @@ impl IndependentreserveCore {
         add_element_to_object(&mut request, &Value::Str("pageSize".to_string()), limit.clone());
         let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_post_get_closed_orders(&[__ws_arg_4]).await;
-        let mut data: Value = self.safe_list_k(response.clone(), "Data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "Data", &[Value::List(vec![])]);
         return self.parse_orders(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1254,7 +1254,7 @@ impl IndependentreserveCore {
         if (symbol != Value::Null) {
             market = self.market(symbol.clone());
         }
-        let mut data: Value = self.safe_list_k(response.clone(), "Data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "Data", &[Value::List(vec![])]);
         return self.parse_trades(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1336,7 +1336,7 @@ impl IndependentreserveCore {
         });
         let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.public_get_get_recent_trades(&[__ws_arg_6]).await;
-        let mut trades: Value = self.safe_list_k(response.clone(), "Trades", &[Value::List(vec![])]);
+        let mut trades: Value = self.safe_list_k(response, "Trades", &[Value::List(vec![])]);
         return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1412,7 +1412,7 @@ impl IndependentreserveCore {
         m.insert("info".to_string(), self.safe_value_k(fee.clone(), "info", &[]));
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("maker".to_string(), self.safe_number_k(fee.clone(), "fee", &[]));
-        m.insert("taker".to_string(), self.safe_number_k(fee.clone(), "fee", &[]));
+        m.insert("taker".to_string(), self.safe_number_k(fee, "fee", &[]));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(true));
     m
@@ -1658,7 +1658,7 @@ impl IndependentreserveCore {
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("currency".to_string(), code.clone());
-        m.insert("cost".to_string(), self.safe_number_k(amount.clone(), "Fee", &[]));
+        m.insert("cost".to_string(), self.safe_number_k(amount, "Fee", &[]));
         m.insert("rate".to_string(), Value::Null);
     m
 }));

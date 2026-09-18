@@ -1312,7 +1312,7 @@ impl AlpacaCore {
             //        }
             //    }
             //
-            let mut trades: Value = self.safe_dict_k(response.clone(), "trades", &[Value::Map({
+            let mut trades: Value = self.safe_dict_k(response, "trades", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1401,7 +1401,7 @@ impl AlpacaCore {
         //       }
         //   }
         //
-        let mut orderbooks: Value = self.safe_dict_k(response.clone(), "orderbooks", &[Value::Map({
+        let mut orderbooks: Value = self.safe_dict_k(response, "orderbooks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1556,7 +1556,7 @@ impl AlpacaCore {
             //        }
             //     }
             //
-            let mut bars: Value = self.safe_dict_k(response.clone(), "bars", &[Value::Map({
+            let mut bars: Value = self.safe_dict_k(response, "bars", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1589,7 +1589,7 @@ impl AlpacaCore {
         //
         let mut datetime: Value = self.safe_string_k(ohlcv.clone(), "t", &[]);
         let mut timestamp: Value = self.parse8601(datetime.clone());
-        return Value::List(vec![timestamp.clone(), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number_k(ohlcv.clone(), "v", &[])]);
+        return Value::List(vec![timestamp.clone(), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number_k(ohlcv, "v", &[])]);
 
     Value::Null
 }
@@ -1708,7 +1708,7 @@ impl AlpacaCore {
         //     }
         //
         let mut results: Value = Value::List(vec![]);
-        let mut snapshots: Value = self.safe_dict_k(response.clone(), "snapshots", &[Value::Map({
+        let mut snapshots: Value = self.safe_dict_k(response, "snapshots", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);

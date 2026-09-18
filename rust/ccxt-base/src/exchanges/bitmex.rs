@@ -1762,7 +1762,7 @@ impl BitmexCore {
             let mut order: Value = get_value(&orders, &i);
             let mut side: Value = (if is_true(&(Value::Bool(crate::value::get_value_k(&order, "side").as_str() == Some("Sell")))) { Value::Str("asks".to_string()) } else { Value::Str("bids".to_string()) });
             let mut amount: Value = self.convert_from_raw_quantity(symbol.clone(), self.safe_string_k(order.clone(), "size", &[]), &[]);
-            let mut price: Value = self.safe_number_k(order.clone(), "price", &[]);
+            let mut price: Value = self.safe_number_k(order, "price", &[]);
             // https://github.com/ccxt/ccxt/issues/4926
             // https://github.com/ccxt/ccxt/issues/4927
             // the exchange sometimes returns null price in the orderbook
@@ -2446,7 +2446,7 @@ impl BitmexCore {
         let mut marketId: Value = self.safe_string_k(ohlcv.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut volume: Value = self.convert_from_raw_quantity(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), self.safe_string_k(ohlcv.clone(), "volume", &[]), &[]);
-        return Value::List(vec![self.parse8601(self.safe_string_k(ohlcv.clone(), "timestamp", &[])), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), volume.clone()]);
+        return Value::List(vec![self.parse8601(self.safe_string_k(ohlcv.clone(), "timestamp", &[])), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv, "close", &[]), volume.clone()]);
 
     Value::Null
 }
@@ -3498,7 +3498,7 @@ impl BitmexCore {
         m.insert("liquidationPrice".to_string(), self.safe_number_k(position.clone(), "liquidationPrice", &[]));
         m.insert("marginMode".to_string(), marginMode.clone());
         m.insert("marginRatio".to_string(), Value::Null);
-        m.insert("percentage".to_string(), self.safe_number_k(position.clone(), "unrealisedPnlPcnt", &[]));
+        m.insert("percentage".to_string(), self.safe_number_k(position, "unrealisedPnlPcnt", &[]));
         m.insert("stopLossPrice".to_string(), Value::Null);
         m.insert("takeProfitPrice".to_string(), Value::Null);
     m
@@ -3614,7 +3614,7 @@ impl BitmexCore {
         m.insert("fundingRate".to_string(), self.safe_number_k(contract.clone(), "fundingRate", &[]));
         m.insert("fundingTimestamp".to_string(), self.parse8601(fundingDatetime.clone()));
         m.insert("fundingDatetime".to_string(), fundingDatetime.clone());
-        m.insert("nextFundingRate".to_string(), self.safe_number_k(contract.clone(), "indicativeFundingRate", &[]));
+        m.insert("nextFundingRate".to_string(), self.safe_number_k(contract, "indicativeFundingRate", &[]));
         m.insert("nextFundingTimestamp".to_string(), Value::Null);
         m.insert("nextFundingDatetime".to_string(), Value::Null);
         m.insert("previousFundingRate".to_string(), Value::Null);
@@ -3716,7 +3716,7 @@ impl BitmexCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), info.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone()]));
-        m.insert("fundingRate".to_string(), self.safe_number_k(info.clone(), "fundingRate", &[]));
+        m.insert("fundingRate".to_string(), self.safe_number_k(info, "fundingRate", &[]));
         m.insert("timestamp".to_string(), self.parse8601(datetime.clone()));
         m.insert("datetime".to_string(), datetime.clone());
     m
@@ -4065,7 +4065,7 @@ impl BitmexCore {
     m
 }));
         let mut isAuthenticated: Value = self.check_required_credentials(&[Value::Bool(false)]);
-        let mut cost: Value = self.safe_value_k(config.clone(), "cost", &[Value::Int(1)]);
+        let mut cost: Value = self.safe_value_k(config, "cost", &[Value::Int(1)]);
         if !is_equal(&cost, &Value::Int(1)) {
             if is_true(&isAuthenticated) {
                 return cost;
@@ -4407,7 +4407,7 @@ impl BitmexCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), settlement.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone()]));
-        m.insert("price".to_string(), self.safe_number_k(settlement.clone(), "settledPrice", &[]));
+        m.insert("price".to_string(), self.safe_number_k(settlement, "settledPrice", &[]));
         m.insert("timestamp".to_string(), self.parse8601(datetime.clone()));
         m.insert("datetime".to_string(), datetime.clone());
     m
@@ -4459,7 +4459,7 @@ impl BitmexCore {
             panic!("{}", crate::exchange_errors::d_do_s_protection(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body))));
         }
         if code.as_f64().unwrap_or(f64::NAN) >= Value::Int(400).as_f64().unwrap_or(f64::NAN) {
-            let mut error: Value = self.safe_value_k(response.clone(), "error", &[Value::Map({
+            let mut error: Value = self.safe_value_k(response, "error", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);

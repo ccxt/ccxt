@@ -2190,7 +2190,7 @@ impl BingxCore {
         //        }
         //    }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
+        let mut data: Value = self.safe_dict_k(response, "data", &[]);
         return self.safe_integer_k(data.clone(), "serverTime", &[]);
 
     Value::Null
@@ -2270,7 +2270,7 @@ impl BingxCore {
         //            },
         //            ...
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         return self.parse_currencies(data.clone());
 
     Value::Null
@@ -2319,7 +2319,7 @@ impl BingxCore {
         m.insert("fee".to_string(), self.safe_number_k(rawNetwork.clone(), "withdrawFee", &[]));
         m.insert("active".to_string(), Value::Null);
         m.insert("deposit".to_string(), self.safe_bool_k(rawNetwork.clone(), "depositEnable", &[]));
-        m.insert("withdraw".to_string(), self.safe_bool_k(rawNetwork.clone(), "withdrawEnable", &[]));
+        m.insert("withdraw".to_string(), self.safe_bool_k(rawNetwork, "withdrawEnable", &[]));
         m.insert("precision".to_string(), precision.clone());
         m.insert("limits".to_string(), limits.clone());
     m
@@ -2376,8 +2376,8 @@ impl BingxCore {
         //         }
         //    }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
-        let mut markets: Value = self.safe_list_k(data.clone(), "symbols", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_dict_k(response, "data", &[]);
+        let mut markets: Value = self.safe_list_k(data, "symbols", &[Value::List(vec![])]);
         return self.parse_markets(markets.clone());
 
     Value::Null
@@ -2416,7 +2416,7 @@ impl BingxCore {
         //        ]
         //    }
         //
-        let mut markets: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut markets: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         return self.parse_markets(markets.clone());
 
     Value::Null
@@ -2442,7 +2442,7 @@ impl BingxCore {
         //         ]
         //     }
         //
-        let mut markets: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut markets: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         return self.parse_markets(markets.clone());
 
     Value::Null
@@ -2773,7 +2773,7 @@ impl BingxCore {
         if is_true(&Value::Bool(is_array(&ohlcv))) {
             return Value::List(vec![self.safe_integer(ohlcv.clone(), Value::Int(0), &[]), self.safe_number(ohlcv.clone(), Value::Int(1), &[]), self.safe_number(ohlcv.clone(), Value::Int(2), &[]), self.safe_number(ohlcv.clone(), Value::Int(3), &[]), self.safe_number(ohlcv.clone(), Value::Int(4), &[]), self.safe_number(ohlcv.clone(), Value::Int(5), &[])]);
         }
-        return Value::List(vec![self.safe_integer2(ohlcv.clone(), Value::Str("time".to_string()), Value::Str("closeTime".to_string()), &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv.clone(), "volume", &[])]);
+        return Value::List(vec![self.safe_integer2(ohlcv.clone(), Value::Str("time".to_string()), Value::Str("closeTime".to_string()), &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv, "volume", &[])]);
 
     Value::Null
 }
@@ -3531,7 +3531,7 @@ impl BingxCore {
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("id".to_string(), self.safe_string_k(income.clone(), "tranId", &[]));
-        m.insert("amount".to_string(), self.safe_number_k(income.clone(), "income", &[]));
+        m.insert("amount".to_string(), self.safe_number_k(income, "income", &[]));
         m.insert("type".to_string(), Value::Str("funding".to_string()));
     m
 });
@@ -4523,7 +4523,7 @@ impl BingxCore {
         m.insert("collateral".to_string(), Value::Null);
         m.insert("initialMargin".to_string(), self.safe_number_k(position.clone(), "initialMargin", &[]));
         m.insert("initialMarginPercentage".to_string(), Value::Null);
-        m.insert("leverage".to_string(), self.safe_number_k(position.clone(), "leverage", &[]));
+        m.insert("leverage".to_string(), self.safe_number_k(position, "leverage", &[]));
         m.insert("marginRatio".to_string(), Value::Null);
         m.insert("stopLossPrice".to_string(), Value::Null);
         m.insert("takeProfitPrice".to_string(), Value::Null);
@@ -5048,7 +5048,7 @@ impl BingxCore {
             let mut side: Value = self.safe_string_k(rawOrder.clone(), "side", &[]);
             let mut amount: Value = self.safe_number_k(rawOrder.clone(), "amount", &[]);
             let mut price: Value = self.safe_number_k(rawOrder.clone(), "price", &[]);
-            let mut orderParams: Value = self.safe_dict_k(rawOrder.clone(), "params", &[Value::Map({
+            let mut orderParams: Value = self.safe_dict_k(rawOrder, "params", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -6670,7 +6670,7 @@ impl BingxCore {
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("currency".to_string(), currencyCode.clone());
-        m.insert("amount".to_string(), self.safe_number_k(transfer.clone(), "amount", &[]));
+        m.insert("amount".to_string(), self.safe_number_k(transfer, "amount", &[]));
         m.insert("fromAccount".to_string(), fromAccount.clone());
         m.insert("toAccount".to_string(), toAccount.clone());
         m.insert("status".to_string(), self.parse_transfer_status(status.clone()));
@@ -7007,7 +7007,7 @@ impl BingxCore {
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("currency".to_string(), code.clone());
-        m.insert("cost".to_string(), self.safe_number_k(transaction.clone(), "transactionFee", &[]));
+        m.insert("cost".to_string(), self.safe_number_k(transaction, "transactionFee", &[]));
         m.insert("rate".to_string(), Value::Null);
     m
 }));
@@ -7478,7 +7478,7 @@ impl BingxCore {
     m
 }));
                 if (networksLength.as_f64() == Some(1.0)) {
-                    add_element_to_object(get_value_mut(&mut result, &Value::Str("withdraw".to_string())), &Value::Str("fee".to_string()), self.safe_number_k(network.clone(), "withdrawFee", &[]));
+                    add_element_to_object(get_value_mut(&mut result, &Value::Str("withdraw".to_string())), &Value::Str("fee".to_string()), self.safe_number_k(network, "withdrawFee", &[]));
                     add_element_to_object(get_value_mut(&mut result, &Value::Str("withdraw".to_string())), &Value::Str("percentage".to_string()), Value::Bool(false));
                 }
             }
@@ -8238,7 +8238,7 @@ impl BingxCore {
         m.insert("info".to_string(), fee.clone());
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("maker".to_string(), self.safe_number_k(fee.clone(), "makerCommissionRate", &[]));
-        m.insert("taker".to_string(), self.safe_number_k(fee.clone(), "takerCommissionRate", &[]));
+        m.insert("taker".to_string(), self.safe_number_k(fee, "takerCommissionRate", &[]));
         m.insert("percentage".to_string(), Value::Bool(false));
         m.insert("tierBased".to_string(), Value::Bool(false));
     m

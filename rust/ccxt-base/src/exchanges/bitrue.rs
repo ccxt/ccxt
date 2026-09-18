@@ -1291,7 +1291,7 @@ impl BitrueCore {
         //         ],
         //     }
         //
-        let mut coins: Value = self.safe_list_k(response.clone(), "coins", &[Value::List(vec![])]);
+        let mut coins: Value = self.safe_list_k(response, "coins", &[Value::List(vec![])]);
         return self.parse_currencies(coins.clone());
 
     Value::Null
@@ -1330,7 +1330,7 @@ impl BitrueCore {
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), self.safe_number_k(entry.clone(), "minWithdraw", &[]));
-        m.insert("max".to_string(), self.safe_number_k(entry.clone(), "maxWithdraw", &[]));
+        m.insert("max".to_string(), self.safe_number_k(entry, "maxWithdraw", &[]));
     m
 }));
     m
@@ -1390,7 +1390,7 @@ impl BitrueCore {
         let mut defaultTypes: Value = Value::List(vec![Value::Str("spot".to_string()), Value::Str("linear".to_string()), Value::Str("inverse".to_string())]);
         let mut fetchMarketsOptions: Value = self.safe_dict_k(self.options.clone(), "fetchMarkets", &[]);
         if (fetchMarketsOptions != Value::Null) {
-            types = self.safe_list_k(fetchMarketsOptions.clone(), "types", &[defaultTypes.clone()]);
+            types = self.safe_list_k(fetchMarketsOptions, "types", &[defaultTypes.clone()]);
         }  else {
             // for backward-compatibility
             types = self.safe_list_k(self.options.clone(), "fetchMarkets", &[defaultTypes.clone()]);
@@ -1534,7 +1534,7 @@ impl BitrueCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut amountFilter: Value = self.safe_dict_k(filtersByType.clone(), "LOT_SIZE", &[Value::Map({
+        let mut amountFilter: Value = self.safe_dict_k(filtersByType, "LOT_SIZE", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1594,14 +1594,14 @@ impl BitrueCore {
 }));
         m.insert("amount".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(amountFilter.clone(), "minQty", &[]));
+        m.insert("min".to_string(), self.safe_number_k(amountFilter, "minQty", &[]));
         m.insert("max".to_string(), maxQuantity.clone());
     m
 }));
         m.insert("price".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), self.safe_number_k(priceFilter.clone(), "minPrice", &[]));
-        m.insert("max".to_string(), self.safe_number_k(priceFilter.clone(), "maxPrice", &[]));
+        m.insert("max".to_string(), self.safe_number_k(priceFilter, "maxPrice", &[]));
     m
 }));
         m.insert("cost".to_string(), Value::Map({
@@ -3531,7 +3531,7 @@ impl BitrueCore {
 }));
                 }
                 if (chainDetailLength.as_f64() == Some(1.0)) {
-                    add_element_to_object(get_value_mut(&mut result, &Value::Str("withdraw".to_string())), &Value::Str("fee".to_string()), self.safe_number_k(chainDetail.clone(), "withdrawFee", &[]));
+                    add_element_to_object(get_value_mut(&mut result, &Value::Str("withdraw".to_string())), &Value::Str("fee".to_string()), self.safe_number_k(chainDetail, "withdrawFee", &[]));
                     add_element_to_object(get_value_mut(&mut result, &Value::Str("withdraw".to_string())), &Value::Str("percentage".to_string()), Value::Bool(false));
                 }
             }
@@ -3600,7 +3600,7 @@ impl BitrueCore {
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("currency".to_string(), self.safe_string_k(currency.clone(), "code", &[]));
-        m.insert("amount".to_string(), self.safe_number_k(transfer.clone(), "amount", &[]));
+        m.insert("amount".to_string(), self.safe_number_k(transfer, "amount", &[]));
         m.insert("fromAccount".to_string(), fromAccount.clone());
         m.insert("toAccount".to_string(), toAccount.clone());
         m.insert("status".to_string(), Value::Str("ok".to_string()));
@@ -4046,7 +4046,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             }
         }
-        return self.safe_value_k(config.clone(), "cost", &[Value::Int(1)]);
+        return self.safe_value_k(config, "cost", &[Value::Int(1)]);
 
     Value::Null
 }

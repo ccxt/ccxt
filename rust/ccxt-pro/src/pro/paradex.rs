@@ -332,7 +332,7 @@ impl ParadexCore {
         //         "result": { "node_id": "73cf456f7cb78d59" }
         //     }
         //
-        let mut result: Value = self.safe_dict_k(message.clone(), "result", &[]);
+        let mut result: Value = self.safe_dict_k(message, "result", &[]);
         if (result != Value::Null) {
             // client.resolve (true, messageHash);
             let mut future: Value = self.safe_value(get_value(&client, &Value::Str("futures".to_string())), Value::Str("authenticated".to_string()), &[]);
@@ -504,7 +504,7 @@ impl ParadexCore {
         //         }
         //     }
         //
-        let mut params: Value = self.safe_dict_k(message.clone(), "params", &[Value::Map({
+        let mut params: Value = self.safe_dict_k(message, "params", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -730,11 +730,11 @@ impl ParadexCore {
         //         }
         //     }
         //
-        let mut params: Value = self.safe_dict_k(message.clone(), "params", &[Value::Map({
+        let mut params: Value = self.safe_dict_k(message, "params", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut data: Value = self.safe_dict_k(params.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(params, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -922,7 +922,7 @@ impl ParadexCore {
         //         }
         //     }
         //
-        let mut params: Value = self.safe_dict_k(message.clone(), "params", &[Value::Map({
+        let mut params: Value = self.safe_dict_k(message, "params", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -965,7 +965,7 @@ impl ParadexCore {
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
-        m.insert("fundingRate".to_string(), self.safe_number_k(contract.clone(), "funding_rate", &[]));
+        m.insert("fundingRate".to_string(), self.safe_number_k(contract, "funding_rate", &[]));
         m.insert("fundingTimestamp".to_string(), Value::Null);
         m.insert("fundingDatetime".to_string(), Value::Null);
         m.insert("nextFundingRate".to_string(), Value::Null);
@@ -1004,7 +1004,7 @@ impl ParadexCore {
             if (errorCode != Value::Null) {
                 let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(error.clone())));
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), Value::Str("-32600".to_string()), feedback.clone());
-                let mut messageString: Value = self.safe_value_k(error.clone(), "message", &[]);
+                let mut messageString: Value = self.safe_value_k(error, "message", &[]);
                 if (messageString != Value::Null) {
                     self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), messageString.clone(), feedback.clone());
                 }

@@ -1693,7 +1693,7 @@ impl BitflyerCore {
         m.insert("fundingRate".to_string(), Value::Null);
         m.insert("fundingTimestamp".to_string(), Value::Null);
         m.insert("fundingDatetime".to_string(), Value::Null);
-        m.insert("nextFundingRate".to_string(), self.safe_number_k(contract.clone(), "current_funding_rate", &[]));
+        m.insert("nextFundingRate".to_string(), self.safe_number_k(contract, "current_funding_rate", &[]));
         m.insert("nextFundingTimestamp".to_string(), nextFundingTimestamp.clone());
         m.insert("nextFundingDatetime".to_string(), self.iso8601(nextFundingTimestamp.clone()));
         m.insert("previousFundingRate".to_string(), Value::Null);

@@ -1614,7 +1614,7 @@ impl BybitCore {
             orderbook.reset(snapshot.clone());
         }  else {
             let mut asks: Value = self.safe_list_k(data.clone(), "a", &[Value::List(vec![])]);
-            let mut bids: Value = self.safe_list_k(data.clone(), "b", &[Value::List(vec![])]);
+            let mut bids: Value = self.safe_list_k(data, "b", &[Value::List(vec![])]);
             self.handle_deltas(get_value(&orderbook, &Value::Str("asks".to_string())), asks.clone());
             self.handle_deltas(get_value(&orderbook, &Value::Str("bids".to_string())), bids.clone());
             add_element_to_object(&mut orderbook, &Value::Str("timestamp".to_string()), timestamp.clone());
@@ -2115,7 +2115,7 @@ impl BybitCore {
         let mut topic: Value = self.safe_string_k(message.clone(), "topic", &[Value::Str("".to_string())]);
         let mut spot: bool = topic.as_str() == Some("ticketInfo");
         let mut executionFast: bool = topic.as_str() == Some("execution.fast");
-        let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_value_k(message, "data", &[Value::List(vec![])]);
         if !is_true(&Value::Bool(is_array(&data))) {
             data = self.safe_list_k(data.clone(), "result", &[Value::List(vec![])]);
         }
@@ -2342,7 +2342,7 @@ impl BybitCore {
         }
         let mut cache: Value = self.positions.clone();
         let mut newPositions: Value = Value::List(vec![]);
-        let mut rawPositions: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut rawPositions: Value = self.safe_list_k(message, "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_218: bool = true;
@@ -2511,7 +2511,7 @@ impl BybitCore {
             }
             }
         }  else {
-            let mut rawLiquidation: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
+            let mut rawLiquidation: Value = self.safe_dict_k(message, "data", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -2679,7 +2679,7 @@ impl BybitCore {
         //    }
         //
         let mut messageHash: Value = self.safe_string_k(message.clone(), "reqId", &[]);
-        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -2776,7 +2776,7 @@ impl BybitCore {
             self.orders = ArrayCacheBySymbolById::new(limit.clone());
         }
         let mut orders: Value = self.orders.clone();
-        let mut rawOrders: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut rawOrders: Value = self.safe_list_k(message, "data", &[Value::List(vec![])]);
         let mut first: Value = self.safe_value(rawOrders.clone(), Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3069,7 +3069,7 @@ impl BybitCore {
                     m
                 })]);
                 account = self.safe_string_lower(result.clone(), Value::Str("accountType".to_string()), &[]);
-                rawBalances = self.array_concat(rawBalances.clone(), self.safe_value_k(result.clone(), "coin", &[Value::List(vec![])]));
+                rawBalances = self.array_concat(rawBalances.clone(), self.safe_value_k(result, "coin", &[Value::List(vec![])]));
             }
             }
             info = data.clone();
@@ -3207,7 +3207,7 @@ impl BybitCore {
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]);
-                let mut recordedTopics: Value = self.safe_list_k(existing.clone(), "topics", &[Value::List(vec![])]);
+                let mut recordedTopics: Value = self.safe_list_k(existing, "topics", &[Value::List(vec![])]);
                 let mut recordedLength: Value = Value::Int(recordedTopics.len() as i64);
                 {
                                         let mut j: Value = Value::Int(0);

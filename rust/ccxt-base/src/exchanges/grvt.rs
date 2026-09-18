@@ -1372,7 +1372,7 @@ impl GrvtCore {
         // }
         //
         let mut currentBuilders: Value = results.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut approvedBuilder: Value = self.safe_list_k(currentBuilders.clone(), "results", &[Value::List(vec![])]);
+        let mut approvedBuilder: Value = self.safe_list_k(currentBuilders, "results", &[Value::List(vec![])]);
         let mut length: Value = Value::Int(approvedBuilder.len() as i64);
         let mut found: bool = false;
         {
@@ -1416,7 +1416,7 @@ impl GrvtCore {
                 // }
                 //
                 let mut authResult: Value = self.safe_dict_k(authResponse.clone(), "result", &[]);
-                let mut ack: Value = self.safe_bool_k(authResult.clone(), "ack", &[]);
+                let mut ack: Value = self.safe_bool_k(authResult, "ack", &[]);
                 if (ack.as_bool() != Some(true)) {
                     panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str("Builder authorization failed, ".to_string()), self.json(authResponse.clone())))));
                 }
@@ -1477,7 +1477,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut results: Value = promise_all(&promises).await;
         let mut response: Value = results.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut result: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
+        let mut result: Value = self.safe_list_k(response, "result", &[Value::List(vec![])]);
         return self.parse_markets(result.clone());
 
     Value::Null
@@ -1624,7 +1624,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //            },
         //            ..
         //
-        let mut responseResult: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
+        let mut responseResult: Value = self.safe_list_k(response, "result", &[Value::List(vec![])]);
         return self.parse_currencies(responseResult.clone());
 
     Value::Null
@@ -1740,7 +1740,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //        }
         //    }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1861,7 +1861,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //        }
         //    }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1929,7 +1929,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //            },
         //            ...
         //
-        let mut result: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
+        let mut result: Value = self.safe_list_k(response, "result", &[Value::List(vec![])]);
         return self.parse_trades(result.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2102,7 +2102,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //        "next": "eyJvcGVuVGltZSI6MTc2NzI1ODMwMDAwMDAwMDAwMH0"
         //    }
         //
-        let mut candles: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
+        let mut candles: Value = self.safe_list_k(response, "result", &[Value::List(vec![])]);
         return self.parse_ohlc_vs(candles.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2110,7 +2110,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.safe_integer_product(ohlcv.clone(), Value::Str("open_time".to_string()), Value::Float(0.000001), &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv.clone(), "volume_b", &[])]);
+        return Value::List(vec![self.safe_integer_product(ohlcv.clone(), Value::Str("open_time".to_string()), Value::Float(0.000001), &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv, "volume_b", &[])]);
 
     Value::Null
 }
@@ -2178,7 +2178,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //        "next": "eyJmdW5kaW5nVGltZSI6MTc2MDQ5NDI2MDAwMDAwMDAwMH0"
         //    }
         //
-        let mut result: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
+        let mut result: Value = self.safe_list_k(response, "result", &[Value::List(vec![])]);
         return self.parse_funding_rate_histories(result.clone(), &[market.clone()]);
 
     Value::Null
@@ -2274,7 +2274,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //        }
         //    }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2403,7 +2403,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             //     "next": "Qw0918="
             // }
             //
-            let mut result: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
+            let mut result: Value = self.safe_list_k(response, "result", &[Value::List(vec![])]);
             return self.parse_transactions(result.clone(), &[currency.clone(), since.clone(), limit.clone()]);
         }
 
@@ -2483,7 +2483,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             //     "next": "Qw0918="
             // }
             //
-            let mut result: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
+            let mut result: Value = self.safe_list_k(response, "result", &[Value::List(vec![])]);
             return self.parse_transactions(result.clone(), &[currency.clone(), since.clone(), limit.clone()]);
         }
 
@@ -2524,7 +2524,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //        "next": ""
         //    }
         //
-        let mut rows: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
+        let mut rows: Value = self.safe_list_k(response, "result", &[Value::List(vec![])]);
         let mut transfers: Value = self.parse_transfers(rows.clone(), &[currency.clone(), since.clone(), limit.clone()]);
         return transfers;
 
@@ -2631,7 +2631,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("type".to_string(), direction.clone());
         m.insert("currency".to_string(), code.clone());
         m.insert("network".to_string(), networkCode.clone());
-        m.insert("amount".to_string(), self.safe_number_k(transaction.clone(), "num_tokens", &[]));
+        m.insert("amount".to_string(), self.safe_number_k(transaction, "num_tokens", &[]));
         m.insert("status".to_string(), Value::Null);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
@@ -2723,7 +2723,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //        "next": ""
         //    }
         //
-        let mut rows: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
+        let mut rows: Value = self.safe_list_k(response, "result", &[Value::List(vec![])]);
         let mut transfers: Value = self.parse_transfers(rows.clone(), &[currency.clone(), since.clone(), limit.clone()]);
         let mut filteredResults: Value = self.filter_transfers_by_type(transfers.clone(), Value::Str("internal".to_string()), &[Value::Bool(false)]);
         return get_value(&filteredResults, &Value::Int(1));
@@ -2824,7 +2824,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         //     }
         // }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3000,7 +3000,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         //     }
         // }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3232,7 +3232,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         //        }
         //    }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3392,7 +3392,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         //        "next": ""
         //    }
         //
-        let mut result: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
+        let mut result: Value = self.safe_list_k(response, "result", &[Value::List(vec![])]);
         return self.parse_trades(result.clone(), &[Value::Null, since.clone(), limit.clone()]);
 
     Value::Null
@@ -3465,7 +3465,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         //        ]
         //    }
         //
-        let mut result: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
+        let mut result: Value = self.safe_list_k(response, "result", &[Value::List(vec![])]);
         return self.parse_positions(result.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -3524,7 +3524,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         m.insert("collateral".to_string(), Value::Null);
         m.insert("initialMargin".to_string(), self.safe_number_k(position.clone(), "initialMargin", &[]));
         m.insert("initialMarginPercentage".to_string(), Value::Null);
-        m.insert("leverage".to_string(), self.safe_number_k(position.clone(), "leverage", &[]));
+        m.insert("leverage".to_string(), self.safe_number_k(position, "leverage", &[]));
         m.insert("marginRatio".to_string(), Value::Null);
         m.insert("stopLossPrice".to_string(), Value::Null);
         m.insert("takeProfitPrice".to_string(), Value::Null);
@@ -3568,7 +3568,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         //                "margin_type": "CROSS"
         //            },
         //
-        let mut results: Value = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]);
+        let mut results: Value = self.safe_list_k(response, "results", &[Value::List(vec![])]);
         return self.parse_leverages(results.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -3678,7 +3678,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         //                "margin_type": "CROSS"
         //            },
         //
-        let mut results: Value = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]);
+        let mut results: Value = self.safe_list_k(response, "results", &[Value::List(vec![])]);
         return self.parse_leverages(results.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -3774,7 +3774,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         //        "next": ""
         //    }
         //
-        let mut result: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
+        let mut result: Value = self.safe_list_k(response, "result", &[Value::List(vec![])]);
         return self.parse_incomes(result.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -3803,7 +3803,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("id".to_string(), self.safe_string_k(income.clone(), "tx_id", &[]));
-        m.insert("amount".to_string(), self.safe_number_k(income.clone(), "amount", &[]));
+        m.insert("amount".to_string(), self.safe_number_k(income, "amount", &[]));
     m
 });
 
@@ -3916,7 +3916,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         //        "next": ""
         //    }
         //
-        let mut result: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
+        let mut result: Value = self.safe_list_k(response, "result", &[Value::List(vec![])]);
         return self.parse_orders(result.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -4009,7 +4009,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         //        ]
         //    }
         //
-        let mut result: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
+        let mut result: Value = self.safe_list_k(response, "result", &[Value::List(vec![])]);
         return self.parse_orders(result.clone(), &[Value::Null, since.clone(), limit.clone()]);
 
     Value::Null
@@ -4106,7 +4106,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         //        }
         //    }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -4342,7 +4342,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         //        }
         //    }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -4391,7 +4391,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         //        }
         //    }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);

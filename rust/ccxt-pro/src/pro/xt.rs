@@ -408,7 +408,7 @@ impl XtCore {
                     //        }
                     //    }
                     //
-                    let mut result: Value = self.safe_dict_k(response.clone(), "result", &[]);
+                    let mut result: Value = self.safe_dict_k(response, "result", &[]);
                     listenKey = self.safe_string_k(result.clone(), "accessToken", &[]);
                 }
                 if (listenKey == Value::Null) {
@@ -458,7 +458,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn handle_delta(&self, mut orderbook: Value, mut delta: Value) {
         add_element_to_object(&mut orderbook, &Value::Str("nonce".to_string()), self.safe_integer2(delta.clone(), Value::Str("i".to_string()), Value::Str("u".to_string()), &[]));
         let mut obAsks: Value = self.safe_list_k(delta.clone(), "a", &[Value::List(vec![])]);
-        let mut obBids: Value = self.safe_list_k(delta.clone(), "b", &[Value::List(vec![])]);
+        let mut obBids: Value = self.safe_list_k(delta, "b", &[Value::List(vec![])]);
         let mut bids: Value = crate::value::get_value_k(&orderbook, "bids");
         let mut asks: Value = crate::value::get_value_k(&orderbook, "asks");
         {
@@ -1264,7 +1264,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.positions = ArrayCacheBySymbolBySide::new(Value::Null);
         }
         let mut cache: Value = self.positions.clone();
-        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1795,7 +1795,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("currency".to_string(), Value::Null);
-        m.insert("cost".to_string(), self.safe_number_k(trade.clone(), "f", &[]));
+        m.insert("cost".to_string(), self.safe_number_k(trade, "f", &[]));
         m.insert("rate".to_string(), Value::Null);
     m
 }));
@@ -1879,7 +1879,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("currency".to_string(), Value::Null);
-        m.insert("cost".to_string(), self.safe_number_k(order.clone(), "f", &[]));
+        m.insert("cost".to_string(), self.safe_number_k(order, "f", &[]));
     m
 }));
         m.insert("trades".to_string(), Value::Null);
@@ -1990,7 +1990,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //        }
         //    }
         //
-        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -2043,7 +2043,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //        }
         //    }
         //
-        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);

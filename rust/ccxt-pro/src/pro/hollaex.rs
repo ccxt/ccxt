@@ -354,7 +354,7 @@ impl HollaexCore {
         if (symbol == Value::Null) {
             return;
         }
-        let mut data: Value = self.safe_value_k(message.clone(), "data", &[]);
+        let mut data: Value = self.safe_value_k(message, "data", &[]);
         let mut timestamp: Value = self.safe_string_k(data.clone(), "timestamp", &[]);
         let mut timestampMs: Value = self.parse8601(timestamp.clone());
         let mut snapshot: Value = self.parse_order_book(data.clone(), symbol.clone(), &[timestampMs.clone()]);
@@ -432,7 +432,7 @@ impl HollaexCore {
             stored = ArrayCache::new(limit.clone());
             add_element_to_object(&mut self.trades, &symbol, stored.clone());
         }
-        let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_value_k(message, "data", &[Value::List(vec![])]);
         let mut parsedTrades: Value = self.parse_trades(data.clone(), &[market.clone()]);
         {
                         let mut j: Value = Value::Int(0);

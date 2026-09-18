@@ -1629,7 +1629,7 @@ impl HashkeyCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut costFilter: Value = self.safe_dict_k(filters.clone(), "MIN_NOTIONAL", &[Value::Map({
+        let mut costFilter: Value = self.safe_dict_k(filters, "MIN_NOTIONAL", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1659,7 +1659,7 @@ impl HashkeyCore {
             }
         }
         let mut tradingFees: Value = self.safe_dict_k(self.fees.clone(), "trading", &[]);
-        let mut fees: Value = (if is_true(&isSpot) { self.safe_dict_k(tradingFees.clone(), "spot", &[]) } else { self.safe_dict_k(tradingFees.clone(), "swap", &[]) });
+        let mut fees: Value = (if is_true(&isSpot) { self.safe_dict_k(tradingFees.clone(), "spot", &[]) } else { self.safe_dict_k(tradingFees, "swap", &[]) });
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), marketId.clone());
@@ -1708,7 +1708,7 @@ impl HashkeyCore {
         m.insert("price".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), self.safe_number_k(priceFilter.clone(), "minPrice", &[]));
-        m.insert("max".to_string(), self.safe_number_k(priceFilter.clone(), "maxPrice", &[]));
+        m.insert("max".to_string(), self.safe_number_k(priceFilter, "maxPrice", &[]));
     m
 }));
         m.insert("leverage".to_string(), Value::Map({
@@ -1747,7 +1747,7 @@ impl HashkeyCore {
     m
 }));
         let mut response: Value = self.public_get_api_v1_exchange_info(&[params.clone()]).await;
-        let mut coins: Value = self.safe_list_k(response.clone(), "coins", &[]);
+        let mut coins: Value = self.safe_list_k(response, "coins", &[]);
         return self.parse_currencies(coins.clone());
 
     Value::Null
@@ -2461,7 +2461,7 @@ impl HashkeyCore {
                 m.insert("info".to_string(), balance.clone());
             m
         });
-        let mut balances: Value = self.safe_list_k(balance.clone(), "balances", &[Value::List(vec![])]);
+        let mut balances: Value = self.safe_list_k(balance, "balances", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_724: bool = true;
@@ -3520,7 +3520,7 @@ impl HashkeyCore {
             let mut side: Value = self.safe_string_k(rawOrder.clone(), "side", &[]);
             let mut amount: Value = self.safe_number_k(rawOrder.clone(), "amount", &[]);
             let mut price: Value = self.safe_number_k(rawOrder.clone(), "price", &[]);
-            let mut orderParams: Value = self.safe_dict_k(rawOrder.clone(), "params", &[Value::Map({
+            let mut orderParams: Value = self.safe_dict_k(rawOrder, "params", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3560,7 +3560,7 @@ impl HashkeyCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut responseOrder: Value = self.safe_dict_k(responseEntry.clone(), "order", &[Value::Map({
+            let mut responseOrder: Value = self.safe_dict_k(responseEntry, "order", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -4508,7 +4508,7 @@ impl HashkeyCore {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), entry.clone());
                     m.insert("symbol".to_string(), self.safe_symbol(self.safe_string_k(entry.clone(), "symbol", &[]), &[market.clone(), Value::Null, Value::Str("swap".to_string())]));
-                    m.insert("fundingRate".to_string(), self.safe_number_k(entry.clone(), "settleRate", &[]));
+                    m.insert("fundingRate".to_string(), self.safe_number_k(entry, "settleRate", &[]));
                     m.insert("timestamp".to_string(), timestamp.clone());
                     m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
                 m
@@ -4880,7 +4880,7 @@ impl HashkeyCore {
         m.insert("type".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::Str("isolated".to_string()));
         m.insert("amount".to_string(), Value::Null);
-        m.insert("total".to_string(), self.safe_number_k(data.clone(), "margin", &[]));
+        m.insert("total".to_string(), self.safe_number_k(data, "margin", &[]));
         m.insert("code".to_string(), market.as_map().and_then(|__m| __m.get("settle")).cloned().unwrap_or(Value::Null));
         m.insert("status".to_string(), (if (success) { Value::Str("ok".to_string()) } else { Value::Str("failed".to_string()) }));
         m.insert("timestamp".to_string(), timestamp.clone());

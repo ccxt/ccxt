@@ -721,7 +721,7 @@ impl ZebpayCore {
             data = response.clone();
         }  else {
             response = self.public_swap_get_v1_system_time(&[params.clone()]).await;
-            data = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+            data = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -760,7 +760,7 @@ impl ZebpayCore {
         let mut promisesUnresolved: Value = Value::List(vec![]);
         let mut fetchMarketsOptions: Value = self.safe_dict_k(self.options.clone(), "fetchMarkets", &[]);
         let mut defaultMarkets: Value = Value::List(vec![Value::Str("spot".to_string()), Value::Str("swap".to_string())]);
-        let mut types: Value = self.safe_list_k(fetchMarketsOptions.clone(), "types", &[defaultMarkets.clone()]);
+        let mut types: Value = self.safe_list_k(fetchMarketsOptions, "types", &[defaultMarkets.clone()]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1160: bool = true;
@@ -829,7 +829,7 @@ impl ZebpayCore {
         //             ]
         //     }
         //
-        let mut rows: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut rows: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         return self.parse_currencies(rows.clone());
 
     Value::Null
@@ -1549,7 +1549,7 @@ impl ZebpayCore {
         m.insert("price".to_string(), priceString.clone());
         m.insert("amount".to_string(), amountString.clone());
         m.insert("cost".to_string(), self.safe_string_k(trade.clone(), "cost", &[]));
-        m.insert("fee".to_string(), self.safe_dict_k(trade.clone(), "fee", &[]));
+        m.insert("fee".to_string(), self.safe_dict_k(trade, "fee", &[]));
     m
 }), &[market.clone()]);
 
@@ -2576,7 +2576,7 @@ impl ZebpayCore {
         m.insert("leverage".to_string(), leverage.clone());
         m.insert("unrealizedPnl".to_string(), Value::Null);
         m.insert("contracts".to_string(), self.safe_number_k(position.clone(), "contracts", &[]));
-        m.insert("contractSize".to_string(), self.safe_number_k(market.clone(), "contractSize", &[]));
+        m.insert("contractSize".to_string(), self.safe_number_k(market, "contractSize", &[]));
         m.insert("marginRatio".to_string(), Value::Null);
         m.insert("liquidationPrice".to_string(), self.safe_number_k(position.clone(), "liquidationPrice", &[]));
         m.insert("markPrice".to_string(), Value::Null);

@@ -797,7 +797,7 @@ impl KrakenfuturesCore {
         m.insert("maintenanceMargin".to_string(), self.safe_number_k(position.clone(), "maintenance_margin", &[]));
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
         m.insert("collateral".to_string(), Value::Null);
-        m.insert("initialMargin".to_string(), self.safe_number_k(position.clone(), "initial_margin", &[]));
+        m.insert("initialMargin".to_string(), self.safe_number_k(position, "initial_margin", &[]));
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("leverage".to_string(), Value::Null);
         m.insert("marginRatio".to_string(), Value::Null);
@@ -1704,7 +1704,7 @@ impl KrakenfuturesCore {
         if (bids == Value::Null) {
             return;
         }
-        let mut asks: Value = self.safe_list_k(message.clone(), "asks", &[]);
+        let mut asks: Value = self.safe_list_k(message, "asks", &[]);
         if (asks == Value::Null) {
             return;
         }
@@ -1715,7 +1715,7 @@ impl KrakenfuturesCore {
             let mut bid: Value = get_value(&bids, &i);
             let mut bid: Value = get_value(&bids, &i);
             let mut price: Value = self.safe_number_k(bid.clone(), "price", &[]);
-            let mut qty: Value = self.safe_number_k(bid.clone(), "qty", &[]);
+            let mut qty: Value = self.safe_number_k(bid, "qty", &[]);
             let mut bidsSide: Value = get_value(&orderbook, &Value::Str("bids".to_string()));
             bidsSide.store(price.clone(), qty.clone());
         }
@@ -1727,7 +1727,7 @@ impl KrakenfuturesCore {
             let mut ask: Value = get_value(&asks, &i);
             let mut ask: Value = get_value(&asks, &i);
             let mut price: Value = self.safe_number_k(ask.clone(), "price", &[]);
-            let mut qty: Value = self.safe_number_k(ask.clone(), "qty", &[]);
+            let mut qty: Value = self.safe_number_k(ask, "qty", &[]);
             let mut asksSide: Value = get_value(&orderbook, &Value::Str("asks".to_string()));
             asksSide.store(price.clone(), qty.clone());
         }
@@ -1986,7 +1986,7 @@ impl KrakenfuturesCore {
             client.resolve(&[crate::value::get_value_k(&self.balance, "margin"), Value::Str(format!("{}{}", messageHash, Value::Str("futures".to_string())))]);
         }
         if (flexFutures != Value::Null) {
-            let mut flexFutureCurrencies: Value = self.safe_dict_k(flexFutures.clone(), "currencies", &[Value::Map({
+            let mut flexFutureCurrencies: Value = self.safe_dict_k(flexFutures, "currencies", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -2048,7 +2048,7 @@ impl KrakenfuturesCore {
         //        ]
         //    }
         //
-        let mut trades: Value = self.safe_list_k(message.clone(), "fills", &[Value::List(vec![])]);
+        let mut trades: Value = self.safe_list_k(message, "fills", &[Value::List(vec![])]);
         let mut stored: Value = self.myTrades.clone();
         if is_equal(&stored, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);

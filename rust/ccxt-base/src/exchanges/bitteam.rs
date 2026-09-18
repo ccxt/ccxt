@@ -753,11 +753,11 @@ impl BitteamCore {
         //         }
         //     }
         //
-        let mut result: Value = self.safe_value_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_value_k(response, "result", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut markets: Value = self.safe_value_k(result.clone(), "pairs", &[Value::List(vec![])]);
+        let mut markets: Value = self.safe_value_k(result, "pairs", &[Value::List(vec![])]);
         return self.parse_markets(markets.clone());
 
     Value::Null
@@ -785,7 +785,7 @@ impl BitteamCore {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            minCost = self.safe_number_k(settings.clone(), "limit_usd", &[]);
+            minCost = self.safe_number_k(settings, "limit_usd", &[]);
         }
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -959,11 +959,11 @@ impl BitteamCore {
         //         }
         //     }
         //
-        let mut responseResult: Value = self.safe_value_k(response.clone(), "result", &[Value::Map({
+        let mut responseResult: Value = self.safe_value_k(response, "result", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut currencies: Value = self.safe_value_k(responseResult.clone(), "currencies", &[Value::List(vec![])]);
+        let mut currencies: Value = self.safe_value_k(responseResult, "currencies", &[Value::List(vec![])]);
         // using another endpoint to fetch statuses of deposits and withdrawals
         let mut statusesResponse: Value = self.public_get_trade_api_cmc_assets(&[]).await;
         //
@@ -1013,7 +1013,7 @@ impl BitteamCore {
         let mut maxWithdraw: Value = self.safe_string_k(txLimits.clone(), "maxWithdraw", &[]);
         let mut minDeposit: Value = self.safe_string_k(txLimits.clone(), "minDeposit", &[]);
         let mut fee: Value = Value::Null;
-        let mut withdrawCommissionFixed: Value = self.safe_value_k(txLimits.clone(), "withdrawCommissionFixed", &[Value::Map({
+        let mut withdrawCommissionFixed: Value = self.safe_value_k(txLimits, "withdrawCommissionFixed", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1034,7 +1034,7 @@ impl BitteamCore {
             m
         })]);
         let mut deposit: Value = self.safe_value_k(statuses.clone(), "depositStatus", &[]);
-        let mut withdraw: Value = self.safe_value_k(statuses.clone(), "withdrawStatus", &[]);
+        let mut withdraw: Value = self.safe_value_k(statuses, "withdrawStatus", &[]);
         let mut networkIds: Value = object_keys(&feesByNetworkId);
         let mut networks: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1189,11 +1189,11 @@ impl BitteamCore {
         //         }
         //     }
         //
-        let mut result: Value = self.safe_value_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_value_k(response, "result", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut data: Value = self.safe_list_k(result.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(result, "data", &[Value::List(vec![])]);
         return self.parse_ohlc_vs(data.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1201,7 +1201,7 @@ impl BitteamCore {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.safe_timestamp(ohlcv.clone(), Value::Str("t".to_string()), &[]), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number_k(ohlcv.clone(), "v", &[])]);
+        return Value::List(vec![self.safe_timestamp(ohlcv.clone(), Value::Str("t".to_string()), &[]), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number_k(ohlcv, "v", &[])]);
 
     Value::Null
 }
@@ -1388,11 +1388,11 @@ impl BitteamCore {
         //         }
         //     }
         //
-        let mut result: Value = self.safe_value_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_value_k(response, "result", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut orders: Value = self.safe_list_k(result.clone(), "orders", &[Value::List(vec![])]);
+        let mut orders: Value = self.safe_list_k(result, "orders", &[Value::List(vec![])]);
         return self.parse_orders(orders.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1465,7 +1465,7 @@ impl BitteamCore {
         //         }
         //     }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1636,7 +1636,7 @@ impl BitteamCore {
         //         }
         //     }
         //
-        let mut order: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut order: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1679,7 +1679,7 @@ impl BitteamCore {
         //         }
         //     }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1727,7 +1727,7 @@ impl BitteamCore {
         //         }
         //     }
         //
-        let mut result: Value = self.safe_value_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_value_k(response, "result", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -2206,11 +2206,11 @@ impl BitteamCore {
         //         }
         //     }
         //
-        let mut result: Value = self.safe_value_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_value_k(response, "result", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut pair: Value = self.safe_dict_k(result.clone(), "pair", &[Value::Map({
+        let mut pair: Value = self.safe_dict_k(result, "pair", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2561,11 +2561,11 @@ impl BitteamCore {
         //         }
         //     }
         //
-        let mut result: Value = self.safe_value_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_value_k(response, "result", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut trades: Value = self.safe_list_k(result.clone(), "trades", &[Value::List(vec![])]);
+        let mut trades: Value = self.safe_list_k(result, "trades", &[Value::List(vec![])]);
         return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2763,7 +2763,7 @@ impl BitteamCore {
                 m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
             m
         });
-        let mut result: Value = self.safe_value_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_value_k(response, "result", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -2920,11 +2920,11 @@ impl BitteamCore {
         //         }
         //     }
         //
-        let mut result: Value = self.safe_value_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_value_k(response, "result", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut transactions: Value = self.safe_list_k(result.clone(), "transactions", &[Value::List(vec![])]);
+        let mut transactions: Value = self.safe_list_k(result, "transactions", &[Value::List(vec![])]);
         return self.parse_transactions(transactions.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
     Value::Null

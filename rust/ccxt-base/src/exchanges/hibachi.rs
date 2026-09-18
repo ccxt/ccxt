@@ -742,7 +742,7 @@ impl HibachiCore {
         //     "underlyingDecimals": 9,
         //     "underlyingSymbol": "ETH"
         // },
-        let mut rows: Value = self.safe_list_k(response.clone(), "futureContracts", &[]);
+        let mut rows: Value = self.safe_list_k(response, "futureContracts", &[]);
         return self.parse_markets(rows.clone());
 
     Value::Null
@@ -881,10 +881,10 @@ impl HibachiCore {
         let mut stats: Value = self.safe_dict_k(ticker.clone(), "stats", &[]);
         let mut bid: Value = self.safe_number_k(prices.clone(), "bidPrice", &[]);
         let mut ask: Value = self.safe_number_k(prices.clone(), "askPrice", &[]);
-        let mut last: Value = self.safe_number_k(prices.clone(), "tradePrice", &[]);
+        let mut last: Value = self.safe_number_k(prices, "tradePrice", &[]);
         let mut high: Value = self.safe_number_k(stats.clone(), "high24h", &[]);
         let mut low: Value = self.safe_number_k(stats.clone(), "low24h", &[]);
-        let mut volume: Value = self.safe_number_k(stats.clone(), "volume24h", &[]);
+        let mut volume: Value = self.safe_number_k(stats, "volume24h", &[]);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), self.safe_symbol(Value::Null, &[market.clone()]));
@@ -1034,7 +1034,7 @@ impl HibachiCore {
         //     ]
         // }
         //
-        let mut trades: Value = self.safe_list_k(response.clone(), "trades", &[Value::List(vec![])]);
+        let mut trades: Value = self.safe_list_k(response, "trades", &[Value::List(vec![])]);
         let mut tradesList: Value = Value::List(vec![]);
         if (trades != Value::Null) {
             tradesList = trades.clone();
@@ -1189,7 +1189,7 @@ impl HibachiCore {
         m.insert("fee".to_string(), Value::Null);
         m.insert("reduceOnly".to_string(), reduceOnly.clone());
         m.insert("postOnly".to_string(), postOnly.clone());
-        m.insert("triggerPrice".to_string(), self.safe_number_k(order.clone(), "triggerPrice", &[]));
+        m.insert("triggerPrice".to_string(), self.safe_number_k(order, "triggerPrice", &[]));
     m
 }), &[market.clone()]);
 
@@ -1475,7 +1475,7 @@ impl HibachiCore {
             let mut side: Value = self.safe_string_k(rawOrder.clone(), "side", &[]);
             let mut amount: Value = self.safe_value_k(rawOrder.clone(), "amount", &[]);
             let mut price: Value = self.safe_value_k(rawOrder.clone(), "price", &[]);
-            let mut orderParams: Value = self.safe_dict_k(rawOrder.clone(), "params", &[Value::Map({
+            let mut orderParams: Value = self.safe_dict_k(rawOrder, "params", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1496,7 +1496,7 @@ impl HibachiCore {
         // { "orders": [ { nonce: '1754349993908', orderId: '589642085255349248' } ] }
         //
         let mut ret: Value = Value::List(vec![]);
-        let mut responseOrders: Value = self.safe_list_k(response.clone(), "orders", &[Value::List(vec![])]);
+        let mut responseOrders: Value = self.safe_list_k(response, "orders", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_733: bool = true;
@@ -1622,7 +1622,7 @@ impl HibachiCore {
             let mut side: Value = self.safe_string_k(rawOrder.clone(), "side", &[]);
             let mut amount: Value = self.safe_value_k(rawOrder.clone(), "amount", &[]);
             let mut price: Value = self.safe_value_k(rawOrder.clone(), "price", &[]);
-            let mut orderParams: Value = self.safe_dict_k(rawOrder.clone(), "params", &[Value::Map({
+            let mut orderParams: Value = self.safe_dict_k(rawOrder, "params", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1643,7 +1643,7 @@ impl HibachiCore {
         // { "orders": [ { "orderId": "589636801329628160" } ] }
         //
         let mut ret: Value = Value::List(vec![]);
-        let mut responseOrders: Value = self.safe_list_k(response.clone(), "orders", &[Value::List(vec![])]);
+        let mut responseOrders: Value = self.safe_list_k(response, "orders", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_735: bool = true;
@@ -1749,7 +1749,7 @@ impl HibachiCore {
         // { "orders": [ { "orderId": "589636801329628160" } ] }
         //
         let mut ret: Value = Value::List(vec![]);
-        let mut responseOrders: Value = self.safe_list_k(response.clone(), "orders", &[Value::List(vec![])]);
+        let mut responseOrders: Value = self.safe_list_k(response, "orders", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_737: bool = true;
@@ -1874,8 +1874,8 @@ impl HibachiCore {
         //          "withdrawalFees": "0.012050"
         //    },
         // }
-        let mut feeConfig: Value = self.safe_dict_k(exchangeInfo.clone(), "feeConfig", &[]);
-        let mut maxFees: Value = self.safe_number_k(feeConfig.clone(), "withdrawalFees", &[]);
+        let mut feeConfig: Value = self.safe_dict_k(exchangeInfo, "feeConfig", &[]);
+        let mut maxFees: Value = self.safe_number_k(feeConfig, "withdrawalFees", &[]);
         // Generate the signature
         let mut message: Value = self.encode_withdraw_message(amount.clone(), maxFees.clone(), withdrawAddress.clone());
         let mut signature: Value = self.sign_message(message.clone(), self.privateKey.clone());
@@ -1980,7 +1980,7 @@ impl HibachiCore {
             m
         });
         add_element_to_object(&mut formattedResponse, &Value::Str("ask".to_string()), self.safe_list(self.safe_dict_k(response.clone(), "ask", &[]), Value::Str("levels".to_string()), &[]));
-        add_element_to_object(&mut formattedResponse, &Value::Str("bid".to_string()), self.safe_list(self.safe_dict_k(response.clone(), "bid", &[]), Value::Str("levels".to_string()), &[]));
+        add_element_to_object(&mut formattedResponse, &Value::Str("bid".to_string()), self.safe_list(self.safe_dict_k(response, "bid", &[]), Value::Str("levels".to_string()), &[]));
         return self.parse_order_book(formattedResponse.clone(), symbol.clone(), &[self.milliseconds(), Value::Str("bid".to_string()), Value::Str("ask".to_string()), Value::Str("price".to_string()), Value::Str("quantity".to_string())]);
 
     Value::Null
@@ -2040,7 +2040,7 @@ impl HibachiCore {
         //     ]
         // }
         //
-        let mut trades: Value = self.safe_list_k(response.clone(), "trades", &[]);
+        let mut trades: Value = self.safe_list_k(response, "trades", &[]);
         let mut tradesList: Value = Value::List(vec![]);
         if (trades != Value::Null) {
             tradesList = trades.clone();
@@ -2052,7 +2052,7 @@ impl HibachiCore {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.safe_integer_product(ohlcv.clone(), Value::Str("timestamp".to_string()), Value::Int(1000), &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv.clone(), "volumeNotional", &[])]);
+        return Value::List(vec![self.safe_integer_product(ohlcv.clone(), Value::Str("timestamp".to_string()), Value::Int(1000), &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv, "volumeNotional", &[])]);
 
     Value::Null
 }
@@ -2169,7 +2169,7 @@ impl HibachiCore {
         //         ]
         //     }
         //
-        let mut orders: Value = self.safe_list_k(response.clone(), "orders", &[Value::List(vec![])]);
+        let mut orders: Value = self.safe_list_k(response, "orders", &[Value::List(vec![])]);
         let mut parsedOrders: Value = self.parse_orders(orders.clone(), &[market.clone()]);
         return self.filter_by_symbol_since_limit(parsedOrders.clone(), &[symbol.clone(), since.clone(), limit.clone()]);
 
@@ -2287,7 +2287,7 @@ impl HibachiCore {
         //     }
         //   ]
         //
-        let mut klines: Value = self.safe_list_k(response.clone(), "klines", &[Value::List(vec![])]);
+        let mut klines: Value = self.safe_list_k(response, "klines", &[Value::List(vec![])]);
         return self.parse_ohlc_vs(klines.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2361,7 +2361,7 @@ impl HibachiCore {
         //     ],
         //   }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "positions", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "positions", &[Value::List(vec![])]);
         return self.parse_positions(data.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -2666,7 +2666,7 @@ impl HibachiCore {
         //     ]
         // }
         //
-        let mut rowsCapitalHistory: Value = self.safe_list_k(responseCapitalHistory.clone(), "transactions", &[Value::List(vec![])]);
+        let mut rowsCapitalHistory: Value = self.safe_list_k(responseCapitalHistory, "transactions", &[Value::List(vec![])]);
         let mut responseTradingHistory: Value = promises.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         //
         // {
@@ -2694,7 +2694,7 @@ impl HibachiCore {
         //     ]
         // }
         //
-        let mut rowsTradingHistory: Value = self.safe_list_k(responseTradingHistory.clone(), "tradingHistory", &[Value::List(vec![])]);
+        let mut rowsTradingHistory: Value = self.safe_list_k(responseTradingHistory, "tradingHistory", &[Value::List(vec![])]);
         let mut rows: Value = self.array_concat(rowsCapitalHistory.clone(), rowsTradingHistory.clone());
         return self.parse_ledger(rows.clone(), &[currency.clone(), since.clone(), limit.clone(), params.clone()]);
 
@@ -2831,7 +2831,7 @@ impl HibachiCore {
         //         },
         //     ]
         // }
-        let mut transactions: Value = self.safe_list_k(response.clone(), "transactions", &[Value::List(vec![])]);
+        let mut transactions: Value = self.safe_list_k(response, "transactions", &[Value::List(vec![])]);
         return self.parse_transactions(transactions.clone(), &[currency.clone(), since.clone(), limit.clone(), params.clone()]);
 
     Value::Null
@@ -2908,7 +2908,7 @@ impl HibachiCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), settlement.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone()]));
-        m.insert("price".to_string(), self.safe_number_k(settlement.clone(), "indexPrice", &[]));
+        m.insert("price".to_string(), self.safe_number_k(settlement, "indexPrice", &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
     m
@@ -2992,7 +2992,7 @@ impl HibachiCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "settlements", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "settlements", &[Value::List(vec![])]);
         let mut settlements: Value = self.parse_settlements(data.clone(), &[market.clone()]);
         let mut sorted: Value = self.sort_by(settlements.clone(), Value::Str("timestamp".to_string()), &[]);
         return self.filter_by_symbol_since_limit(sorted.clone(), &[symbol.clone(), since.clone(), limit.clone()]);
@@ -3101,7 +3101,7 @@ impl HibachiCore {
         //     "tradePrice": "2372.746570"
         // }
         //
-        let mut funding: Value = self.safe_dict_k(response.clone(), "fundingRateEstimation", &[Value::Map({
+        let mut funding: Value = self.safe_dict_k(response, "fundingRateEstimation", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3117,7 +3117,7 @@ impl HibachiCore {
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
-        m.insert("fundingRate".to_string(), self.safe_number_k(funding.clone(), "estimatedFundingRate", &[]));
+        m.insert("fundingRate".to_string(), self.safe_number_k(funding, "estimatedFundingRate", &[]));
         m.insert("fundingTimestamp".to_string(), nextFundingTimestamp.clone());
         m.insert("fundingDatetime".to_string(), self.iso8601(nextFundingTimestamp.clone()));
         m.insert("nextFundingRate".to_string(), Value::Null);
@@ -3175,7 +3175,7 @@ impl HibachiCore {
         //     ]
         // }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -3188,7 +3188,7 @@ impl HibachiCore {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), entry.clone());
                     m.insert("symbol".to_string(), symbol.clone());
-                    m.insert("fundingRate".to_string(), self.safe_number_k(entry.clone(), "fundingRate", &[]));
+                    m.insert("fundingRate".to_string(), self.safe_number_k(entry, "fundingRate", &[]));
                     m.insert("timestamp".to_string(), timestamp.clone());
                     m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
                 m

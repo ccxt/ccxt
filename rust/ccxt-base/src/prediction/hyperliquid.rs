@@ -627,7 +627,7 @@ impl HyperliquidCore {
         }), &[params.clone()]);
         let mut response: Value = self.public_post_info(&[__ws_arg_0]).await;
         let mut outcomesList: Value = self.safe_list_k(response.clone(), "outcomes", &[Value::List(vec![])]);
-        let mut questionsList: Value = self.safe_list_k(response.clone(), "questions", &[Value::List(vec![])]);
+        let mut questionsList: Value = self.safe_list_k(response, "questions", &[Value::List(vec![])]);
         let mut outcomesToQuestions: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -688,7 +688,7 @@ impl HyperliquidCore {
             let mut market: Value = self.parse_outcome_market(outcomeInfo.clone(), outcomeId.clone(), &[linkedQuestion.clone()]);
             append_to_array(&mut markets, market.clone());
             // Build outcomes dictionary from market outcomes
-            let mut marketOutcomes: Value = self.safe_list_k(market.clone(), "outcomes", &[Value::List(vec![])]);
+            let mut marketOutcomes: Value = self.safe_list_k(market, "outcomes", &[Value::List(vec![])]);
             {
                                 let mut oi: Value = Value::Int(0);
                 let mut __for_first_1192: bool = true;
@@ -1038,7 +1038,7 @@ impl HyperliquidCore {
         if (!is_string(&response)) && !is_true(&Value::Bool(is_array(&response))) {
             allMids = response.clone();
         }
-        let mut mids: Value = self.safe_dict_k(allMids.clone(), "mids", &[allMids.clone()]);
+        let mut mids: Value = self.safe_dict_k(allMids, "mids", &[allMids.clone()]);
         let mut tickers: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1119,8 +1119,8 @@ impl HyperliquidCore {
         let mut topAsk: Value = self.safe_dict(rawAsks.clone(), Value::Int(0), &[]);
         let mut bid: Value = (if is_true(&(Value::Bool(topBid != Value::Null))) { self.safe_number_k(topBid.clone(), "px", &[]) } else { Value::Null });
         let mut ask: Value = (if is_true(&(Value::Bool(topAsk != Value::Null))) { self.safe_number_k(topAsk.clone(), "px", &[]) } else { Value::Null });
-        let mut bidVolume: Value = (if is_true(&(Value::Bool(topBid != Value::Null))) { self.safe_number_k(topBid.clone(), "sz", &[]) } else { Value::Null });
-        let mut askVolume: Value = (if is_true(&(Value::Bool(topAsk != Value::Null))) { self.safe_number_k(topAsk.clone(), "sz", &[]) } else { Value::Null });
+        let mut bidVolume: Value = (if is_true(&(Value::Bool(topBid != Value::Null))) { self.safe_number_k(topBid, "sz", &[]) } else { Value::Null });
+        let mut askVolume: Value = (if is_true(&(Value::Bool(topAsk != Value::Null))) { self.safe_number_k(topAsk, "sz", &[]) } else { Value::Null });
         // Use synthetic mid if no l2Book
         let mut mid: Value = self.safe_number_k(raw.clone(), "mid", &[]);
         if (mid == Value::Null) && (bid != Value::Null) && (ask != Value::Null) {
@@ -1129,7 +1129,7 @@ impl HyperliquidCore {
         // day volume lives on the parent market's ctx; resolve it from the outcome's parent market
         let mut parentSymbol: Value = self.safe_string_k(mkt.clone(), "market", &[]);
         let mut parentMarket: Value = (if is_true(&(Value::Bool(parentSymbol != Value::Null))) { self.safe_market(&[parentSymbol.clone()]) } else { Value::Null });
-        let mut ctx: Value = (if is_true(&(Value::Bool(parentMarket != Value::Null))) { self.safe_dict(self.safe_dict_k(parentMarket.clone(), "info", &[Value::Map({
+        let mut ctx: Value = (if is_true(&(Value::Bool(parentMarket != Value::Null))) { self.safe_dict(self.safe_dict_k(parentMarket, "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Str("ctx".to_string()), &[Value::Map({
@@ -1139,7 +1139,7 @@ impl HyperliquidCore {
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-        let mut dayVolume: Value = self.safe_number_k(ctx.clone(), "dayNtlVlm", &[]);
+        let mut dayVolume: Value = self.safe_number_k(ctx, "dayNtlVlm", &[]);
         return self.safe_prediction_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("outcome".to_string(), outcome.clone());
@@ -1212,7 +1212,7 @@ impl HyperliquidCore {
         //     }
         //
         let mut timestamp: Value = self.safe_integer_k(response.clone(), "time", &[]);
-        let mut levels: Value = self.safe_list_k(response.clone(), "levels", &[Value::List(vec![])]);
+        let mut levels: Value = self.safe_list_k(response, "levels", &[Value::List(vec![])]);
         let mut rawBids: Value = self.safe_list(levels.clone(), Value::Int(0), &[Value::List(vec![])]);
         let mut rawAsks: Value = self.safe_list(levels.clone(), Value::Int(1), &[Value::List(vec![])]);
         let mut bids: Value = Value::List(vec![]);
@@ -1232,7 +1232,7 @@ impl HyperliquidCore {
             while { if !__for_first_1198 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1198 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rawAsks.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut entry: Value = get_value(&rawAsks, &i);
             let mut entry: Value = get_value(&rawAsks, &i);
-            append_to_array(&mut asks, Value::List(vec![self.safe_number_k(entry.clone(), "px", &[]), self.safe_number_k(entry.clone(), "sz", &[])]));
+            append_to_array(&mut asks, Value::List(vec![self.safe_number_k(entry.clone(), "px", &[]), self.safe_number_k(entry, "sz", &[])]));
         }
         }
         let mut orderbook: Value = self.parse_order_book(Value::Map({
@@ -1271,7 +1271,7 @@ impl HyperliquidCore {
         let mut outcomeObj: Value = self.outcome(outcome.clone());
         // markets are keyed by the parent market outcome, not the outcome handle ("MARKET:LABEL")
         let mut market: Value = self.market(self.safe_string_k(outcomeObj.clone(), "market", &[]));
-        let mut info: Value = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
+        let mut info: Value = self.safe_dict_k(outcomeObj, "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1341,7 +1341,7 @@ impl HyperliquidCore {
  */
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.safe_integer_k(ohlcv.clone(), "t", &[]), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number_k(ohlcv.clone(), "v", &[])]);
+        return Value::List(vec![self.safe_integer_k(ohlcv.clone(), "t", &[]), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number_k(ohlcv, "v", &[])]);
 
     Value::Null
 }
@@ -1384,7 +1384,7 @@ impl HyperliquidCore {
                 m.insert("info".to_string(), response.clone());
             m
         });
-        let mut balances: Value = self.safe_list_k(response.clone(), "balances", &[Value::List(vec![])]);
+        let mut balances: Value = self.safe_list_k(response, "balances", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1199: bool = true;
@@ -1466,7 +1466,7 @@ impl HyperliquidCore {
         let mut results: Value = promise_all(&promises).await;
         let mut response: Value = results.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut midsResponse: Value = results.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut balances: Value = self.safe_list_k(response.clone(), "balances", &[Value::List(vec![])]);
+        let mut balances: Value = self.safe_list_k(response, "balances", &[Value::List(vec![])]);
         let mut allMids: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1474,7 +1474,7 @@ impl HyperliquidCore {
         if (!is_string(&midsResponse)) && !is_true(&Value::Bool(is_array(&midsResponse))) {
             allMids = midsResponse.clone();
         }
-        let mut mids: Value = self.safe_dict_k(allMids.clone(), "mids", &[allMids.clone()]);
+        let mut mids: Value = self.safe_dict_k(allMids, "mids", &[allMids.clone()]);
         let mut positions: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -1585,7 +1585,7 @@ impl HyperliquidCore {
 
     pub fn find_outcome_in_market(&self, mut market: Value, optional_args: &[Value]) -> Value {
         let mut sideHint = get_arg(optional_args, 0, Value::Null);
-        let mut outcomesList: Value = self.safe_list_k(market.clone(), "outcomes", &[Value::List(vec![])]);
+        let mut outcomesList: Value = self.safe_list_k(market, "outcomes", &[Value::List(vec![])]);
         let mut normalizedHint: Value = (if is_true(&(Value::Bool((sideHint != Value::Null) && (sideHint.as_str() != Some(""))))) { to_upper(&sideHint) } else { Value::Null });
         if (normalizedHint != Value::Null) {
             {
@@ -1859,11 +1859,11 @@ impl HyperliquidCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut data: Value = self.safe_dict_k(responseObj.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(responseObj, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut statuses: Value = self.safe_list_k(data.clone(), "statuses", &[Value::List(vec![])]);
+        let mut statuses: Value = self.safe_list_k(data, "statuses", &[Value::List(vec![])]);
         let mut firstStatus: Value = self.safe_dict(statuses.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1872,7 +1872,7 @@ impl HyperliquidCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut filled: Value = self.safe_dict_k(firstStatus.clone(), "filled", &[Value::Map({
+        let mut filled: Value = self.safe_dict_k(firstStatus, "filled", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1898,7 +1898,7 @@ impl HyperliquidCore {
         m.insert("side".to_string(), side.clone());
         m.insert("price".to_string(), price.clone());
         m.insert("amount".to_string(), amount.clone());
-        m.insert("filled".to_string(), self.safe_number_k(filled.clone(), "totalSz", &[]));
+        m.insert("filled".to_string(), self.safe_number_k(filled, "totalSz", &[]));
         m.insert("remaining".to_string(), Value::Null);
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
@@ -2017,9 +2017,9 @@ impl HyperliquidCore {
             add_element_to_object(&mut request, &Value::Str("vaultAddress".to_string()), vaultAddress.clone());
         }
         let mut response: Value = self.private_post_exchange(&[request.clone()]).await;
-        let mut innerResponse: Value = self.safe_dict_k(response.clone(), "response", &[]);
-        let mut data: Value = self.safe_dict_k(innerResponse.clone(), "data", &[]);
-        let mut statuses: Value = self.safe_list_k(data.clone(), "statuses", &[Value::List(vec![])]);
+        let mut innerResponse: Value = self.safe_dict_k(response, "response", &[]);
+        let mut data: Value = self.safe_dict_k(innerResponse, "data", &[]);
+        let mut statuses: Value = self.safe_list_k(data, "statuses", &[Value::List(vec![])]);
         let mut outcomeSymbol: Value = self.safe_string_k(outcomeObj.clone(), "outcome", &[outcome.clone()]);
         let mut requestIds: Value = ids.clone();
         if (clientOrderId != Value::Null) {
@@ -2249,7 +2249,7 @@ impl HyperliquidCore {
         if (!is_string(&response)) && !is_true(&Value::Bool(is_array(&response))) {
             orderStatus = response.clone();
         }
-        let mut orderWrapper: Value = self.safe_dict_k(orderStatus.clone(), "order", &[orderStatus.clone()]);
+        let mut orderWrapper: Value = self.safe_dict_k(orderStatus, "order", &[orderStatus.clone()]);
         let mut parsed: Value = self.parse_prediction_order(orderWrapper.clone(), &[Value::Null]);
         if (outcome != Value::Null) {
             self.load_outcome(outcome.clone(), &[]).await;
@@ -2336,7 +2336,7 @@ impl HyperliquidCore {
         m.insert("triggerPrice".to_string(), triggerPrice.clone());
         m.insert("amount".to_string(), self.parse_number(totalAmount.clone(), &[]));
         m.insert("cost".to_string(), Value::Null);
-        m.insert("average".to_string(), self.safe_number_k(entry.clone(), "avgPx", &[]));
+        m.insert("average".to_string(), self.safe_number_k(entry, "avgPx", &[]));
         m.insert("filled".to_string(), self.parse_number(filled.clone(), &[]));
         m.insert("remaining".to_string(), self.parse_number(remaining.clone(), &[]));
         m.insert("fee".to_string(), Value::Null);
@@ -2746,7 +2746,7 @@ impl HyperliquidCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut desc: Value = self.safe_dict_k(firstInfo.clone(), "parsedDescription", &[Value::Map({
+        let mut desc: Value = self.safe_dict_k(firstInfo, "parsedDescription", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3152,15 +3152,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         // Check for error statuses in order responses
-        let mut responsePayload: Value = self.safe_dict_k(response.clone(), "response", &[Value::Map({
+        let mut responsePayload: Value = self.safe_dict_k(response, "response", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut data: Value = self.safe_dict_k(responsePayload.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(responsePayload, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut statuses: Value = self.safe_list_k(data.clone(), "statuses", &[Value::List(vec![])]);
+        let mut statuses: Value = self.safe_list_k(data, "statuses", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1216: bool = true;
@@ -3191,7 +3191,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 return get_value(&byType, &type_var);
             }
         }
-        return self.safe_value_k(config.clone(), "cost", &[Value::Int(1)]);
+        return self.safe_value_k(config, "cost", &[Value::Int(1)]);
 
     Value::Null
 }

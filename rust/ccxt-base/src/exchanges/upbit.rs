@@ -818,7 +818,7 @@ impl UpbitCore {
         let mut canWithdraw: Value = self.safe_value_k(withdrawLimits.clone(), "can_withdraw", &[]);
         let mut walletState: Value = self.safe_string_k(currencyInfo.clone(), "wallet_state", &[]);
         let mut walletLocked: Value = self.safe_value_k(memberInfo.clone(), "wallet_locked", &[]);
-        let mut locked: Value = self.safe_value_k(memberInfo.clone(), "locked", &[]);
+        let mut locked: Value = self.safe_value_k(memberInfo, "locked", &[]);
         let mut active: Value = Value::Bool(true);
         if is_true(&(Value::Bool(canWithdraw != Value::Null))) && (!is_equal(&canWithdraw, &Value::Bool(true))) {
             active = Value::Bool(false);
@@ -847,13 +847,13 @@ impl UpbitCore {
         m.insert("code".to_string(), code.clone());
         m.insert("name".to_string(), code.clone());
         m.insert("active".to_string(), active.clone());
-        m.insert("fee".to_string(), self.safe_number_k(currencyInfo.clone(), "withdraw_fee", &[]));
+        m.insert("fee".to_string(), self.safe_number_k(currencyInfo, "withdraw_fee", &[]));
         m.insert("precision".to_string(), Value::Null);
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(withdrawLimits.clone(), "minimum", &[]));
+        m.insert("min".to_string(), self.safe_number_k(withdrawLimits, "minimum", &[]));
         m.insert("max".to_string(), self.parse_number(maxWithdrawLimit.clone(), &[]));
     m
 }));
@@ -982,7 +982,7 @@ impl UpbitCore {
 }));
         m.insert("amount".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(ask.clone(), "min_total", &[]));
+        m.insert("min".to_string(), self.safe_number_k(ask, "min_total", &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
@@ -994,8 +994,8 @@ impl UpbitCore {
 }));
         m.insert("cost".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(bid.clone(), "min_total", &[]));
-        m.insert("max".to_string(), self.safe_number_k(marketInfo.clone(), "max_total", &[]));
+        m.insert("min".to_string(), self.safe_number_k(bid, "min_total", &[]));
+        m.insert("max".to_string(), self.safe_number_k(marketInfo, "max_total", &[]));
     m
 }));
         m.insert("info".to_string(), response.clone());
@@ -1723,7 +1723,7 @@ impl UpbitCore {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.parse8601(self.safe_string_k(ohlcv.clone(), "candle_date_time_utc", &[])), self.safe_number_k(ohlcv.clone(), "opening_price", &[]), self.safe_number_k(ohlcv.clone(), "high_price", &[]), self.safe_number_k(ohlcv.clone(), "low_price", &[]), self.safe_number_k(ohlcv.clone(), "trade_price", &[]), self.safe_number_k(ohlcv.clone(), "candle_acc_trade_volume", &[])]);
+        return Value::List(vec![self.parse8601(self.safe_string_k(ohlcv.clone(), "candle_date_time_utc", &[])), self.safe_number_k(ohlcv.clone(), "opening_price", &[]), self.safe_number_k(ohlcv.clone(), "high_price", &[]), self.safe_number_k(ohlcv.clone(), "low_price", &[]), self.safe_number_k(ohlcv.clone(), "trade_price", &[]), self.safe_number_k(ohlcv, "candle_acc_trade_volume", &[])]);
 
     Value::Null
 }
@@ -2388,7 +2388,7 @@ impl UpbitCore {
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("currency".to_string(), code.clone());
-        m.insert("cost".to_string(), self.safe_number_k(transaction.clone(), "fee", &[]));
+        m.insert("cost".to_string(), self.safe_number_k(transaction, "fee", &[]));
     m
 }));
     m
@@ -3040,7 +3040,7 @@ impl UpbitCore {
         //   { 'error': { 'message': "잘못된 엑세스 키입니다.", 'name': "invalid_access_key" } },
         //   { 'error': { 'message': "Jwt 토큰 검증에 실패했습니다.", 'name': "jwt_verification" } }
         //
-        let mut error: Value = self.safe_value_k(response.clone(), "error", &[]);
+        let mut error: Value = self.safe_value_k(response, "error", &[]);
         if (error != Value::Null) {
             let mut message: Value = self.safe_string_k(error.clone(), "message", &[]);
             let mut name: Value = self.safe_string_k(error.clone(), "name", &[]);

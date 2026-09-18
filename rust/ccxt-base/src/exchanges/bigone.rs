@@ -911,7 +911,7 @@ impl BigoneCore {
         //     ],
         // }
         //
-        let mut currenciesData: Value = self.safe_list_k(data.clone(), "data", &[Value::List(vec![])]);
+        let mut currenciesData: Value = self.safe_list_k(data, "data", &[Value::List(vec![])]);
         return self.parse_currencies(currenciesData.clone());
 
     Value::Null
@@ -1091,7 +1091,7 @@ impl BigoneCore {
         //        ...
         //    ]
         //
-        let mut markets: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut markets: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -1395,7 +1395,7 @@ impl BigoneCore {
             //         }
             //     }
             //
-            let mut ticker: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+            let mut ticker: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1474,7 +1474,7 @@ impl BigoneCore {
             //        ]
             //    }
             //
-            data = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+            data = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         }  else {
             let mut instruments: Value = self.contract_public_get_instruments(&[params.clone()]).await;
             data = self.to_array(instruments.clone());
@@ -1506,7 +1506,7 @@ impl BigoneCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1606,7 +1606,7 @@ impl BigoneCore {
     pub fn parse_contract_order_book(&self, mut orderbook: Value, mut symbol: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
         let mut responseBids: Value = self.safe_value_k(orderbook.clone(), "bids", &[]);
-        let mut responseAsks: Value = self.safe_value_k(orderbook.clone(), "asks", &[]);
+        let mut responseAsks: Value = self.safe_value_k(orderbook, "asks", &[]);
         let mut bids: Value = self.parse_contract_bids_asks(responseBids.clone());
         let mut asks: Value = self.parse_contract_bids_asks(responseAsks.clone());
         return Value::Map({
@@ -1844,7 +1844,7 @@ impl BigoneCore {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.parse8601(self.safe_string_k(ohlcv.clone(), "time", &[])), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv.clone(), "volume", &[])]);
+        return Value::List(vec![self.parse8601(self.safe_string_k(ohlcv.clone(), "time", &[])), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv, "volume", &[])]);
 
     Value::Null
 }
@@ -2327,7 +2327,7 @@ impl BigoneCore {
     m
 })]);
         let mut cancelled: Value = self.safe_list_k(data.clone(), "cancelled", &[Value::List(vec![])]);
-        let mut failed: Value = self.safe_list_k(data.clone(), "failed", &[Value::List(vec![])]);
+        let mut failed: Value = self.safe_list_k(data, "failed", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -3027,7 +3027,7 @@ impl BigoneCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut fillResponseFromRequest: Value = self.safe_bool_k(transferOptions.clone(), "fillResponseFromRequest", &[Value::Bool(true)]);
+        let mut fillResponseFromRequest: Value = self.safe_bool_k(transferOptions, "fillResponseFromRequest", &[Value::Bool(true)]);
         if (fillResponseFromRequest.as_bool() == Some(true)) {
             add_element_to_object(&mut transfer, &Value::Str("fromAccount".to_string()), fromAccount.clone());
             add_element_to_object(&mut transfer, &Value::Str("toAccount".to_string()), toAccount.clone());

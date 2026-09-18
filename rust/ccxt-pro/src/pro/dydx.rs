@@ -369,8 +369,8 @@ impl DydxCore {
         let mut marketId: Value = self.safe_string_k(message.clone(), "id", &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut content: Value = self.safe_dict_k(message.clone(), "contents", &[]);
-        let mut rawTrades: Value = self.safe_list_k(content.clone(), "trades", &[Value::List(vec![])]);
+        let mut content: Value = self.safe_dict_k(message, "contents", &[]);
+        let mut rawTrades: Value = self.safe_list_k(content, "trades", &[Value::List(vec![])]);
         let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
         if (stored == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
@@ -529,7 +529,7 @@ impl DydxCore {
         }
         add_element_to_object(&mut orderbook, &Value::Str("symbol".to_string()), symbol.clone());
         let mut asks: Value = self.safe_list_k(content.clone(), "asks", &[Value::List(vec![])]);
-        let mut bids: Value = self.safe_list_k(content.clone(), "bids", &[Value::List(vec![])]);
+        let mut bids: Value = self.safe_list_k(content, "bids", &[Value::List(vec![])]);
         self.handle_deltas(crate::value::get_value_k(&orderbook, "asks"), asks.clone());
         self.handle_deltas(crate::value::get_value_k(&orderbook, "bids"), bids.clone());
         add_element_to_object(&mut orderbook, &Value::Str("nonce".to_string()), self.safe_integer_k(message.clone(), "message_id", &[]));
@@ -689,7 +689,7 @@ impl DydxCore {
         let mut marketId: Value = self.safe_string(part.clone(), Value::Int(0), &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut content: Value = self.safe_dict_k(message.clone(), "contents", &[]);
+        let mut content: Value = self.safe_dict_k(message, "contents", &[]);
         let mut candles: Value = self.safe_list_k(content.clone(), "candles", &[]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ohlcv:".to_string()), symbol));
         let mut ohlcv: Value = self.safe_dict(candles.clone(), Value::Int(0), &[content.clone()]);

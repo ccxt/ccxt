@@ -1153,7 +1153,7 @@ impl BittradeCore {
         });
         let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.public_get_common_exchange(&[__ws_arg_0]).await;
-        return self.parse_trading_limits(self.safe_value_k(response.clone(), "data", &[Value::Map({
+        return self.parse_trading_limits(self.safe_value_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), &[]);
@@ -1175,7 +1175,7 @@ impl BittradeCore {
         m.insert("amount".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), self.safe_number_k(limits.clone(), "limit-order-must-greater-than", &[]));
-        m.insert("max".to_string(), self.safe_number_k(limits.clone(), "limit-order-must-less-than", &[]));
+        m.insert("max".to_string(), self.safe_number_k(limits, "limit-order-must-less-than", &[]));
     m
 }));
     m
@@ -1847,7 +1847,7 @@ impl BittradeCore {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.safe_timestamp(ohlcv.clone(), Value::Str("id".to_string()), &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv.clone(), "amount", &[])]);
+        return Value::List(vec![self.safe_timestamp(ohlcv.clone(), Value::Str("id".to_string()), &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv, "amount", &[])]);
 
     Value::Null
 }

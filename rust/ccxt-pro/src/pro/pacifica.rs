@@ -623,7 +623,7 @@ impl PacificaCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut results: Value = self.safe_list_k(data.clone(), "results", &[Value::List(vec![])]);
+        let mut results: Value = self.safe_list_k(data, "results", &[Value::List(vec![])]);
         let mut ordersToReturn: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -903,7 +903,7 @@ impl PacificaCore {
         //   }
         // }
         //
-        let mut entry: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
+        let mut entry: Value = self.safe_dict_k(message, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1158,7 +1158,7 @@ impl PacificaCore {
         // }
         //
         let mut parsedTickers: Value = Value::List(vec![]);
-        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message, "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_576: bool = true;
@@ -1221,7 +1221,7 @@ impl PacificaCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message, "data", &[Value::List(vec![])]);
         let mut dataLength: Value = Value::Int(data.len() as i64);
         if (dataLength.as_f64() == Some(0.0)) {
             return;
@@ -1361,7 +1361,7 @@ impl PacificaCore {
         //   ]
         // }
         //
-        let mut entry: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut entry: Value = self.safe_list_k(message, "data", &[Value::List(vec![])]);
         let mut first: Value = self.safe_dict(entry.clone(), Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1595,7 +1595,7 @@ impl PacificaCore {
         //   }
         // }
         //
-        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1757,7 +1757,7 @@ impl PacificaCore {
         //     }
         //   ]
         // }
-        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message, "data", &[Value::List(vec![])]);
         if is_equal(&self.orders, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
             self.orders = ArrayCacheBySymbolById::new(limit.clone());

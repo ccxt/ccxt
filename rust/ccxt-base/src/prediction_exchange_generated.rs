@@ -104,7 +104,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         if (singleQuery != Value::Null) {
             return Value::List(vec![singleQuery.clone()]);
         }
-        return self.safe_list_k(params.clone(), "queries", &[Value::List(vec![])]);
+        return self.safe_list_k(params, "queries", &[Value::List(vec![])]);
 
     Value::Null
 }
@@ -1883,7 +1883,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         lastTradeTimestamp = tradeTimestamp.clone();
                     }
                 }
-                let mut tradeFee: Value = self.safe_dict_k(trade.clone(), "fee", &[]);
+                let mut tradeFee: Value = self.safe_dict_k(trade, "fee", &[]);
                 if (tradeFee != Value::Null) {
                     append_to_array(&mut feeList, tradeFee.clone());
                 }
@@ -1966,7 +1966,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("label".to_string(), self.safe_string_k(outcomeOrder.clone(), "label", &[]));
                 m.insert("market".to_string(), self.safe_string_k(outcomeOrder.clone(), "market", &[]));
                 m.insert("event".to_string(), self.safe_string_k(outcomeOrder.clone(), "event", &[]));
-                m.insert("info".to_string(), self.safe_value_k(outcomeOrder.clone(), "info", &[outcomeOrder.clone()]));
+                m.insert("info".to_string(), self.safe_value_k(outcomeOrder, "info", &[outcomeOrder.clone()]));
             m
         });
         return result;
@@ -2006,7 +2006,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("outcomeId".to_string(), self.safe_string_k(trade.clone(), "outcomeId", &[]));
                 m.insert("label".to_string(), self.safe_string_k(trade.clone(), "label", &[]));
                 m.insert("market".to_string(), self.safe_string_k(trade.clone(), "market", &[]));
-                m.insert("info".to_string(), self.safe_value_k(trade.clone(), "info", &[trade.clone()]));
+                m.insert("info".to_string(), self.safe_value_k(trade, "info", &[trade.clone()]));
             m
         });
         return result;
@@ -2063,7 +2063,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("label".to_string(), self.safe_string_k(ticker.clone(), "label", &[]));
                 m.insert("market".to_string(), self.safe_string_k(ticker.clone(), "market", &[]));
                 m.insert("event".to_string(), self.safe_string_k(ticker.clone(), "event", &[]));
-                m.insert("info".to_string(), self.safe_value_k(ticker.clone(), "info", &[ticker.clone()]));
+                m.insert("info".to_string(), self.safe_value_k(ticker, "info", &[ticker.clone()]));
             m
         });
         return result;
@@ -2104,7 +2104,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("label".to_string(), self.safe_string_k(position.clone(), "label", &[]));
                 m.insert("market".to_string(), self.safe_string_k(position.clone(), "market", &[]));
                 m.insert("event".to_string(), self.safe_string_k(position.clone(), "event", &[]));
-                m.insert("info".to_string(), self.safe_value_k(position.clone(), "info", &[position.clone()]));
+                m.insert("info".to_string(), self.safe_value_k(position, "info", &[position.clone()]));
             m
         });
         return result;
@@ -2470,7 +2470,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (rpcError != Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" rpc ".to_string()))), method)), Value::Str(" error: ".to_string()))), self.json(rpcError.clone())))));
         }
-        return self.safe_value_k(response.clone(), "result", &[]);
+        return self.safe_value_k(response, "result", &[]);
 
     Value::Null
 } }

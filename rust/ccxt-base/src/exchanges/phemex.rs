@@ -1879,7 +1879,7 @@ impl PhemexCore {
         let mut v2Productsv1ProductsVariable = promise_all(&Value::List(vec![v2ProductsPromise.clone(), v1ProductsPromise.clone()])).await;
         let mut v2Products: Value = v2Productsv1ProductsVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut v1Products: Value = v2Productsv1ProductsVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut v1ProductsData: Value = self.safe_value_k(v1Products.clone(), "data", &[Value::List(vec![])]);
+        let mut v1ProductsData: Value = self.safe_value_k(v1Products, "data", &[Value::List(vec![])]);
         //
         //     {
         //         "code":0,
@@ -1915,7 +1915,7 @@ impl PhemexCore {
         //         ]
         //     }
         //
-        let mut v2ProductsData: Value = self.safe_dict_k(v2Products.clone(), "data", &[Value::Map({
+        let mut v2ProductsData: Value = self.safe_dict_k(v2Products, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1925,7 +1925,7 @@ impl PhemexCore {
         let mut riskLimits: Value = self.safe_list_k(v2ProductsData.clone(), "riskLimits", &[Value::List(vec![])]);
         let mut riskLimitsV2: Value = self.safe_list_k(v2ProductsData.clone(), "riskLimitsV2", &[Value::List(vec![])]);
         riskLimits = self.array_concat(riskLimits.clone(), riskLimitsV2.clone());
-        let mut currencies: Value = self.safe_list_k(v2ProductsData.clone(), "currencies", &[Value::List(vec![])]);
+        let mut currencies: Value = self.safe_list_k(v2ProductsData, "currencies", &[Value::List(vec![])]);
         let mut riskLimitsById: Value = self.index_by(riskLimits.clone(), Value::Str("symbol".to_string()));
         let mut v1ProductsById: Value = self.index_by(v1ProductsData.clone(), Value::Str("symbol".to_string()));
         let mut currenciesByCode: Value = self.index_by(currencies.clone(), Value::Str("currency".to_string()));
@@ -1999,11 +1999,11 @@ impl PhemexCore {
         //             ...
         //         }
         //     }
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_value_k(response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut currencies: Value = self.safe_value_k(data.clone(), "currencies", &[Value::List(vec![])]);
+        let mut currencies: Value = self.safe_value_k(data, "currencies", &[Value::List(vec![])]);
         return self.parse_currencies(currencies.clone());
 
     Value::Null
@@ -2403,7 +2403,7 @@ impl PhemexCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut rows: Value = self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])]);
+        let mut rows: Value = self.safe_list_k(data, "rows", &[Value::List(vec![])]);
         return self.parse_ohlc_vs(rows.clone(), &[market.clone(), timeframe.clone(), since.clone(), userLimit.clone()]);
 
     Value::Null
@@ -3111,7 +3111,7 @@ impl PhemexCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut balance: Value = self.safe_value_k(data.clone(), "account", &[Value::Map({
+        let mut balance: Value = self.safe_value_k(data, "account", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -5714,7 +5714,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("fundingRate".to_string(), self.safe_number_k(contract.clone(), "fundingRateRr", &[fundingRateEr.clone()]));
         m.insert("fundingTimestamp".to_string(), Value::Null);
         m.insert("fundingDatetime".to_string(), Value::Null);
-        m.insert("nextFundingRate".to_string(), self.safe_number_k(contract.clone(), "predFundingRateRr", &[nextFundingRateEr.clone()]));
+        m.insert("nextFundingRate".to_string(), self.safe_number_k(contract, "predFundingRateRr", &[nextFundingRateEr.clone()]));
         m.insert("nextFundingTimestamp".to_string(), Value::Null);
         m.insert("nextFundingDatetime".to_string(), Value::Null);
         m.insert("previousFundingRate".to_string(), Value::Null);
@@ -6279,7 +6279,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut fillResponseFromRequest: Value = self.safe_bool_k(transferOptions.clone(), "fillResponseFromRequest", &[Value::Bool(true)]);
+        let mut fillResponseFromRequest: Value = self.safe_bool_k(transferOptions, "fillResponseFromRequest", &[Value::Bool(true)]);
         if (fillResponseFromRequest.as_bool() == Some(true)) {
             if (transfer.as_map().and_then(|__m| __m.get("fromAccount")).cloned().unwrap_or(Value::Null) == Value::Null) {
                 add_element_to_object(&mut transfer, &Value::Str("fromAccount".to_string()), fromAccount.clone());
@@ -6539,7 +6539,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), item.clone());
                     m.insert("symbol".to_string(), symbol.clone());
-                    m.insert("fundingRate".to_string(), self.safe_number_k(item.clone(), "fundingRate", &[]));
+                    m.insert("fundingRate".to_string(), self.safe_number_k(item, "fundingRate", &[]));
                     m.insert("timestamp".to_string(), timestamp.clone());
                     m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
                 m
@@ -7003,7 +7003,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("fromAmount".to_string(), self.parse_number(fromAmount.clone(), &[]));
         m.insert("toCurrency".to_string(), toCode.clone());
         m.insert("toAmount".to_string(), self.parse_number(toAmount.clone(), &[]));
-        m.insert("price".to_string(), self.safe_number_k(quoteArgs.clone(), "price", &[]));
+        m.insert("price".to_string(), self.safe_number_k(quoteArgs, "price", &[]));
         m.insert("fee".to_string(), Value::Null);
     m
 });

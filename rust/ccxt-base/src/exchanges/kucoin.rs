@@ -3403,7 +3403,7 @@ impl KucoinCore {
         }
         let mut defaultTypes: Value = Value::List(vec![Value::Str("spot".to_string()), Value::Str("swap".to_string()), Value::Str("future".to_string()), Value::Str("contract".to_string())]);
         let mut fetchMarketsOptions: Value = self.safe_dict_k(self.options.clone(), "fetchMarkets", &[]);
-        let mut types: Value = self.safe_list_k(fetchMarketsOptions.clone(), "types", &[defaultTypes.clone()]);
+        let mut types: Value = self.safe_list_k(fetchMarketsOptions, "types", &[defaultTypes.clone()]);
         let mut credentialsSet: Value = self.check_required_credentials(&[Value::Bool(false)]);
         let mut requestMarginables: Value = Value::Bool(is_true(&credentialsSet) && is_true(&self.safe_bool_k(params.clone(), "marginables", &[Value::Bool(true)])));
         params = self.omit(params.clone(), Value::Str("marginables".to_string()), &[]);
@@ -3496,13 +3496,13 @@ impl KucoinCore {
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-        let mut crossItems: Value = self.safe_list_k(crossData.clone(), "items", &[Value::List(vec![])]);
+        let mut crossItems: Value = self.safe_list_k(crossData, "items", &[Value::List(vec![])]);
         let mut crossById: Value = self.index_by(crossItems.clone(), Value::Str("symbol".to_string()));
         let mut isolatedData: Value = (if is_true(&(Value::Bool(requestMarginables.as_bool() == Some(true)))) { get_value(&responses, &isolatedIndex) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-        let mut isolatedItems: Value = self.safe_list_k(isolatedData.clone(), "data", &[Value::List(vec![])]);
+        let mut isolatedItems: Value = self.safe_list_k(isolatedData, "data", &[Value::List(vec![])]);
         let mut isolatedById: Value = self.index_by(isolatedItems.clone(), Value::Str("symbol".to_string()));
         let mut tickersResponse: Value = (if is_true(&fetchTickersFees) { self.safe_dict(responses.clone(), tickersIndex.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3511,7 +3511,7 @@ impl KucoinCore {
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-        let mut tickerItems: Value = self.safe_list(self.safe_dict_k(tickersResponse.clone(), "data", &[Value::Map({
+        let mut tickerItems: Value = self.safe_list(self.safe_dict_k(tickersResponse, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Str("ticker".to_string()), &[Value::List(vec![])]);
@@ -3698,7 +3698,7 @@ impl KucoinCore {
         //    }
         //
         let mut result: Value = Value::List(vec![]);
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_881: bool = true;
@@ -3908,8 +3908,8 @@ impl KucoinCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut spotData: Value = self.safe_list_k(data.clone(), "list", &[Value::List(vec![])]);
-        let mut contractSymbolsData: Value = self.safe_list_k(contractData.clone(), "list", &[Value::List(vec![])]);
+        let mut spotData: Value = self.safe_list_k(data, "list", &[Value::List(vec![])]);
+        let mut contractSymbolsData: Value = self.safe_list_k(contractData, "list", &[Value::List(vec![])]);
         let mut symbolsData: Value = self.array_concat(spotData.clone(), contractSymbolsData.clone());
         let mut result: Value = Value::List(vec![]);
         {
@@ -4137,7 +4137,7 @@ impl KucoinCore {
             //
             response = self.public_get_currencies(&[params.clone()]).await;
         }
-        let mut currenciesData: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut currenciesData: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         let mut brokenCurrencies: Value = self.handle_option(Value::Str("fetchCurrencies".to_string()), Value::Str("brokenCurrencies".to_string()), &[Value::List(vec![])]);
         let mut filteredCurrencies: Value = self.filter_out_by_array(currenciesData.clone(), Value::Str("currency".to_string()), &[brokenCurrencies.clone()]); // remove broken entries
         return self.parse_currencies(filteredCurrencies.clone());
@@ -4290,7 +4290,7 @@ impl KucoinCore {
             //     }
             //
             response = self.private_get_accounts(&[params.clone()]).await;
-            data = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+            data = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         }
         let mut result: Value = Value::List(vec![]);
         {
@@ -4427,7 +4427,7 @@ impl KucoinCore {
         //        }
         //    }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
+        let mut data: Value = self.safe_dict_k(response, "data", &[]);
         return self.parse_deposit_withdraw_fee(data.clone(), &[currency.clone()]);
 
     Value::Null
@@ -5520,7 +5520,7 @@ impl KucoinCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut swapTimeframes: Value = self.safe_dict_k(timeframeOptions.clone(), "swap", &[Value::Map({
+        let mut swapTimeframes: Value = self.safe_dict_k(timeframeOptions, "swap", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -6919,7 +6919,7 @@ impl KucoinCore {
             let mut side: Value = self.safe_string_k(rawOrder.clone(), "side", &[]);
             let mut amount: Value = self.safe_value_k(rawOrder.clone(), "amount", &[]);
             let mut price: Value = self.safe_value_k(rawOrder.clone(), "price", &[]);
-            let mut orderParams: Value = self.safe_value_k(rawOrder.clone(), "params", &[Value::Map({
+            let mut orderParams: Value = self.safe_value_k(rawOrder, "params", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -7024,7 +7024,7 @@ impl KucoinCore {
             let mut side: Value = self.safe_string_k(rawOrder.clone(), "side", &[]);
             let mut amount: Value = self.safe_value_k(rawOrder.clone(), "amount", &[]);
             let mut price: Value = self.safe_value_k(rawOrder.clone(), "price", &[]);
-            let mut orderParams: Value = self.safe_value_k(rawOrder.clone(), "params", &[Value::Map({
+            let mut orderParams: Value = self.safe_value_k(rawOrder, "params", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -7905,7 +7905,7 @@ impl KucoinCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut orders: Value = self.safe_list_k(responseData.clone(), "items", &[Value::List(vec![])]);
+        let mut orders: Value = self.safe_list_k(responseData, "items", &[Value::List(vec![])]);
         return self.parse_orders(orders.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -8036,7 +8036,7 @@ impl KucoinCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut orders: Value = self.safe_list_k(responseData.clone(), "items", &[Value::List(vec![])]);
+        let mut orders: Value = self.safe_list_k(responseData, "items", &[Value::List(vec![])]);
         return self.parse_orders(orders.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -11285,7 +11285,7 @@ impl KucoinCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut currencies: Value = self.safe_list_k(firstAccount.clone(), "currencies", &[Value::List(vec![])]);
+            let mut currencies: Value = self.safe_list_k(firstAccount, "currencies", &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_895: bool = true;
@@ -11436,7 +11436,7 @@ impl KucoinCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut fillResponseFromRequest: Value = self.safe_bool_k(transferOptions.clone(), "fillResponseFromRequest", &[Value::Bool(true)]);
+        let mut fillResponseFromRequest: Value = self.safe_bool_k(transferOptions, "fillResponseFromRequest", &[Value::Bool(true)]);
         if (fillResponseFromRequest.as_bool() == Some(true)) {
             add_element_to_object(&mut transfer, &Value::Str("amount".to_string()), amount.clone());
             add_element_to_object(&mut transfer, &Value::Str("fromAccount".to_string()), fromAccount.clone());
@@ -11539,7 +11539,7 @@ impl KucoinCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut fillResponseFromRequest: Value = self.safe_bool_k(transferOptions.clone(), "fillResponseFromRequest", &[Value::Bool(true)]);
+        let mut fillResponseFromRequest: Value = self.safe_bool_k(transferOptions, "fillResponseFromRequest", &[Value::Bool(true)]);
         if (fillResponseFromRequest.as_bool() == Some(true)) {
             add_element_to_object(&mut transfer, &Value::Str("amount".to_string()), amount.clone());
             add_element_to_object(&mut transfer, &Value::Str("fromAccount".to_string()), fromAccount.clone());
@@ -12094,7 +12094,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         }  else if (version.as_str() == Some("v1")) && is_true(&(Value::Bool(matches!(&config, Value::Dict(__d) if __d.contains_key("v1"))))) {
             return crate::value::get_value_k(&config, "v1");
         }
-        return self.safe_value_k(config.clone(), "cost", &[Value::Int(1)]);
+        return self.safe_value_k(config, "cost", &[Value::Int(1)]);
 
     Value::Null
 }
@@ -12353,7 +12353,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("currency".to_string(), self.safe_currency_code(currencyId.clone(), &[]));
         m.insert("interest".to_string(), interest.clone());
-        m.insert("interestRate".to_string(), self.safe_number_k(info.clone(), "dailyIntRate", &[]));
+        m.insert("interestRate".to_string(), self.safe_number_k(info, "dailyIntRate", &[]));
         m.insert("amountBorrowed".to_string(), amountBorrowed.clone());
         m.insert("marginMode".to_string(), marginMode.clone());
         m.insert("timestamp".to_string(), Value::Null);
@@ -13372,7 +13372,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
             //
             let __ws_arg_130 = self.extend(request.clone(), &[params.clone()]);
             let mut utaResponse: Value = self.uta_get_market_funding_rate_history(&[__ws_arg_130]).await;
-            response = self.safe_dict_k(utaResponse.clone(), "data", &[Value::Map({
+            response = self.safe_dict_k(utaResponse, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -13423,7 +13423,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), info.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone()]));
-        m.insert("fundingRate".to_string(), self.safe_number_k(info.clone(), "fundingRate", &[]));
+        m.insert("fundingRate".to_string(), self.safe_number_k(info, "fundingRate", &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
     m
@@ -14041,7 +14041,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         m.insert("liquidationPrice".to_string(), self.safe_number_k(position.clone(), "liquidationPrice", &[]));
         m.insert("markPrice".to_string(), self.safe_number_k(position.clone(), "markPrice", &[]));
         m.insert("lastPrice".to_string(), self.safe_number_k(position.clone(), "closePrice", &[]));
-        m.insert("collateral".to_string(), self.safe_number_k(position.clone(), "maintMargin", &[]));
+        m.insert("collateral".to_string(), self.safe_number_k(position, "maintMargin", &[]));
         m.insert("marginMode".to_string(), marginMode.clone());
         m.insert("side".to_string(), side.clone());
         m.insert("percentage".to_string(), Value::Null);

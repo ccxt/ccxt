@@ -453,7 +453,7 @@ impl BtcboxCore {
         let mut response1: Value = response1response2Variable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut response2: Value = response1response2Variable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         //
-        let mut result2Data: Value = self.safe_dict_k(response2.clone(), "data", &[Value::Map({
+        let mut result2Data: Value = self.safe_dict_k(response2, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -480,7 +480,7 @@ impl BtcboxCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut tradeDetails: Value = self.safe_dict_k(details.clone(), "trade", &[Value::Map({
+            let mut tradeDetails: Value = self.safe_dict_k(details, "trade", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1243,7 +1243,7 @@ impl BtcboxCore {
         if (result == Value::Null) || is_equal(&result, &Value::Bool(true)) {
             return Value::Null;
         }
-        let mut code: Value = self.safe_value_k(response.clone(), "code", &[]);
+        let mut code: Value = self.safe_value_k(response, "code", &[]);
         let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body));
         self.throw_exactly_matched_exception(self.exceptions.clone(), code.clone(), feedback.clone());
         panic!("{}", crate::exchange_errors::exchange_error(feedback));

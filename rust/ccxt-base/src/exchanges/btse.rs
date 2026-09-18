@@ -1109,11 +1109,11 @@ impl BtseCore {
             self.load_time_difference(&[]).await;
         }
         let mut response: Value = self.public_get_public_api_market_v1_markets(&[params.clone()]).await;
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut markets: Value = self.safe_list_k(data.clone(), "symbols", &[Value::List(vec![])]);
+        let mut markets: Value = self.safe_list_k(data, "symbols", &[Value::List(vec![])]);
         return self.parse_markets(markets.clone());
 
     Value::Null
@@ -1372,7 +1372,7 @@ impl BtseCore {
         //         "time": 1786604274378
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         let mut result: Value = self.parse_ohlc_vs(data.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
         return result;
 
@@ -1431,7 +1431,7 @@ impl BtseCore {
         //         "time": 1786605670833
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1508,7 +1508,7 @@ impl BtseCore {
         //         "time": 1786607775380
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         let mut rates: Value = self.parse_funding_rate_histories(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
         if (until == Value::Null) {
             return rates;
@@ -1593,7 +1593,7 @@ impl BtseCore {
             //         "time": 1624989977940
             //     }
             //
-            response = self.safe_list_k(walletResponse.clone(), "data", &[Value::List(vec![])]);
+            response = self.safe_list_k(walletResponse, "data", &[Value::List(vec![])]);
         }  else {
             let mut wallet: Value = Value::Null;
             { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchBalance".to_string()), Value::Str("wallet".to_string()), &[Value::Str("CROSS@".to_string())]); wallet = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
@@ -1749,7 +1749,7 @@ impl BtseCore {
         //
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[]);
         if (data == Value::Null) {
-            let mut single: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+            let mut single: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1874,7 +1874,7 @@ impl BtseCore {
         // the unified endpoint serves all market types in one call, the legacy type param is accepted and ignored
         params = self.omit(params.clone(), Value::Str("type".to_string()), &[]);
         let mut response: Value = self.public_get_public_api_market_v1_ticker24hr(&[params.clone()]).await;
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         return self.parse_tickers(data.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -1938,7 +1938,7 @@ impl BtseCore {
         // a single-symbol query returns data as one object, a multi-symbol or bare query returns an array
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
         if (data == Value::Null) {
-            let mut rows: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+            let mut rows: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
             data = self.safe_dict(rows.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2026,7 +2026,7 @@ impl BtseCore {
         let mut response: Value = self.public_get_public_api_market_v1_ticker24hr(&[__ws_arg_6]).await;
         let mut interest: Value = self.safe_dict_k(response.clone(), "data", &[]);
         if (interest == Value::Null) {
-            let mut rows: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+            let mut rows: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
             interest = self.safe_dict(rows.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2055,7 +2055,7 @@ impl BtseCore {
         self.load_markets(&[]).await;
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut response: Value = self.public_get_public_api_market_v1_ticker24hr(&[params.clone()]).await;
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         let mut rows: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -2124,7 +2124,7 @@ impl BtseCore {
         let mut response: Value = self.public_get_public_api_market_v1_ticker24hr(&[__ws_arg_7]).await;
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
         if (data == Value::Null) {
-            let mut rows: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+            let mut rows: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
             data = self.safe_dict(rows.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2153,7 +2153,7 @@ impl BtseCore {
         self.load_markets(&[]).await;
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut response: Value = self.public_get_public_api_market_v1_ticker24hr(&[params.clone()]).await;
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         let mut rows: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -2292,7 +2292,7 @@ impl BtseCore {
         //         "time": 1786605671650
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         let mut trades: Value = self.parse_trades(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
         if (until == Value::Null) {
             return trades;
@@ -3155,7 +3155,7 @@ impl BtseCore {
             response = self.private_get_futures_api_v3_trade_orders(&[__ws_arg_16]).await;
         }
         // accept a bare order dict, a data envelope and a one element array
-        let mut order: Value = self.safe_value_k(response.clone(), "data", &[response.clone()]);
+        let mut order: Value = self.safe_value_k(response, "data", &[response.clone()]);
         if is_true(&Value::Bool(is_array(&order))) {
             order = self.safe_dict(order.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

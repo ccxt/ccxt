@@ -1119,7 +1119,7 @@ impl CoinsphCore {
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), self.safe_number_k(networkItem.clone(), "withdrawMin", &[]));
-        m.insert("max".to_string(), self.safe_number_k(networkItem.clone(), "withdrawMax", &[]));
+        m.insert("max".to_string(), self.safe_number_k(networkItem, "withdrawMax", &[]));
     m
 }));
         m.insert("deposit".to_string(), Value::Map({
@@ -1145,7 +1145,7 @@ impl CoinsphCore {
         m.insert("info".to_string(), rawCurrency.clone());
         m.insert("active".to_string(), Value::Null);
         m.insert("deposit".to_string(), self.safe_bool_k(rawCurrency.clone(), "depositAllEnable", &[]));
-        m.insert("withdraw".to_string(), self.safe_bool_k(rawCurrency.clone(), "withdrawAllEnable", &[]));
+        m.insert("withdraw".to_string(), self.safe_bool_k(rawCurrency, "withdrawAllEnable", &[]));
         m.insert("networks".to_string(), networks.clone());
         m.insert("fee".to_string(), Value::Null);
         m.insert("fees".to_string(), Value::Null);
@@ -1198,7 +1198,7 @@ impl CoinsphCore {
             }
             }
         }
-        return self.safe_value_k(config.clone(), "cost", &[Value::Int(1)]);
+        return self.safe_value_k(config, "cost", &[Value::Int(1)]);
 
     Value::Null
 }
@@ -1322,7 +1322,7 @@ impl CoinsphCore {
         //         ]
         //     }
         //
-        let mut markets: Value = self.safe_list_k(response.clone(), "symbols", &[Value::List(vec![])]);
+        let mut markets: Value = self.safe_list_k(response, "symbols", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -2650,7 +2650,7 @@ impl CoinsphCore {
         m.insert("info".to_string(), fee.clone());
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("maker".to_string(), self.safe_number_k(fee.clone(), "makerCommission", &[]));
-        m.insert("taker".to_string(), self.safe_number_k(fee.clone(), "takerCommission", &[]));
+        m.insert("taker".to_string(), self.safe_number_k(fee, "takerCommission", &[]));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("tierBased".to_string(), Value::Null);
     m

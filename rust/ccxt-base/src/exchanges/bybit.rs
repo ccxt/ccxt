@@ -3576,7 +3576,7 @@ impl BybitCore {
 }
 
     pub fn add_pagination_cursor_to_result(&self, mut response: Value) -> Value {
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -4051,7 +4051,7 @@ impl BybitCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut rows: Value = self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])]);
+        let mut rows: Value = self.safe_list_k(data, "rows", &[Value::List(vec![])]);
         return self.parse_currencies(rows.clone());
 
     Value::Null
@@ -4095,7 +4095,7 @@ impl BybitCore {
 }));
         m.insert("deposit".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(chain.clone(), "depositMin", &[]));
+        m.insert("min".to_string(), self.safe_number_k(chain, "depositMin", &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
@@ -4194,7 +4194,7 @@ impl BybitCore {
     m
 })]).await);
             }  else if (marketType.as_str() == Some("option")) {
-                let mut optionsCurrencies: Value = self.safe_list_k(fetchMarketsOptions.clone(), "options", &[Value::List(vec![Value::Str("BTC".to_string()), Value::Str("ETH".to_string()), Value::Str("SOL".to_string())])]);
+                let mut optionsCurrencies: Value = self.safe_list_k(fetchMarketsOptions, "options", &[Value::List(vec![Value::Str("BTC".to_string()), Value::Str("ETH".to_string()), Value::Str("SOL".to_string())])]);
                 {
                                         let mut j: Value = Value::Int(0);
                     let mut __for_first_481: bool = true;
@@ -4280,7 +4280,7 @@ impl BybitCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut markets: Value = self.safe_list_k(responseResult.clone(), "list", &[Value::List(vec![])]);
+        let mut markets: Value = self.safe_list_k(responseResult, "list", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         let mut takerFee: Value = self.parse_number(Value::Str("0.001".to_string()), &[]);
         let mut makerFee: Value = self.parse_number(Value::Str("0.001".to_string()), &[]);
@@ -4333,7 +4333,7 @@ impl BybitCore {
         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), self.safe_number_k(lotSizeFilter.clone(), "basePrecision", &[]));
-        m.insert("price".to_string(), self.safe_number_k(priceFilter.clone(), "tickSize", &[quotePrecision.clone()]));
+        m.insert("price".to_string(), self.safe_number_k(priceFilter, "tickSize", &[quotePrecision.clone()]));
     m
 }));
         m.insert("limits".to_string(), Value::Map({
@@ -4359,7 +4359,7 @@ impl BybitCore {
         m.insert("cost".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), self.safe_number_k(lotSizeFilter.clone(), "minOrderAmt", &[]));
-        m.insert("max".to_string(), self.safe_number_k(lotSizeFilter.clone(), "maxOrderAmt", &[]));
+        m.insert("max".to_string(), self.safe_number_k(lotSizeFilter, "maxOrderAmt", &[]));
     m
 }));
     m
@@ -4421,7 +4421,7 @@ impl BybitCore {
                 }  else {
                     responseInner = self.public_get_v5_market_instruments_info(&[params.clone()]).await;
                 }
-                let mut dataNew: Value = self.safe_dict_k(responseInner.clone(), "result", &[Value::Map({
+                let mut dataNew: Value = self.safe_dict_k(responseInner, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -4478,11 +4478,11 @@ impl BybitCore {
         //         "time": 1672712495660
         //     }
         //
-        let mut preLaunchData: Value = self.safe_dict_k(preLaunchMarkets.clone(), "result", &[Value::Map({
+        let mut preLaunchData: Value = self.safe_dict_k(preLaunchMarkets, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut preLaunchMarketsList: Value = self.safe_list_k(preLaunchData.clone(), "list", &[Value::List(vec![])]);
+        let mut preLaunchMarketsList: Value = self.safe_list_k(preLaunchData, "list", &[Value::List(vec![])]);
         markets = self.array_concat(markets.clone(), preLaunchMarketsList.clone());
         let mut result: Value = Value::List(vec![]);
         let mut category: Value = self.safe_string_k(data.clone(), "category", &[]);
@@ -4589,7 +4589,7 @@ impl BybitCore {
         m.insert("leverage".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), self.safe_number_k(leverage.clone(), "minLeverage", &[]));
-        m.insert("max".to_string(), self.safe_number_k(leverage.clone(), "maxLeverage", &[]));
+        m.insert("max".to_string(), self.safe_number_k(leverage, "maxLeverage", &[]));
     m
 }));
         m.insert("amount".to_string(), Value::Map({
@@ -4601,12 +4601,12 @@ impl BybitCore {
         m.insert("price".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), self.safe_number_k(priceFilter.clone(), "minPrice", &[]));
-        m.insert("max".to_string(), self.safe_number_k(priceFilter.clone(), "maxPrice", &[]));
+        m.insert("max".to_string(), self.safe_number_k(priceFilter, "maxPrice", &[]));
     m
 }));
         m.insert("cost".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), (if is_true(&linear) { self.safe_number_k(lotSizeFilter.clone(), "minNotionalValue", &[]) } else { Value::Null }));
+        m.insert("min".to_string(), (if is_true(&linear) { self.safe_number_k(lotSizeFilter, "minNotionalValue", &[]) } else { Value::Null }));
         m.insert("max".to_string(), Value::Null);
     m
 }));
@@ -4659,7 +4659,7 @@ impl BybitCore {
                         let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
                         responseInner = self.public_get_v5_market_instruments_info(&[__ws_arg_5]).await;
                     }
-                    let mut dataNew: Value = self.safe_dict_k(responseInner.clone(), "result", &[Value::Map({
+                    let mut dataNew: Value = self.safe_dict_k(responseInner, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -5482,7 +5482,7 @@ impl BybitCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut tickerList: Value = self.safe_list_k(data.clone(), "list", &[Value::List(vec![])]);
+        let mut tickerList: Value = self.safe_list_k(data, "list", &[Value::List(vec![])]);
         let mut timestamp: Value = self.safe_integer_k(response.clone(), "time", &[]);
         {
                         let mut i: Value = Value::Int(0);
@@ -5598,7 +5598,7 @@ impl BybitCore {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), entry.clone());
                     m.insert("symbol".to_string(), self.safe_symbol(self.safe_string_k(entry.clone(), "symbol", &[]), &[Value::Null, Value::Null, Value::Str("swap".to_string())]));
-                    m.insert("fundingRate".to_string(), self.safe_number_k(entry.clone(), "fundingRate", &[]));
+                    m.insert("fundingRate".to_string(), self.safe_number_k(entry, "fundingRate", &[]));
                     m.insert("timestamp".to_string(), timestamp.clone());
                     m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
                 m
@@ -6545,7 +6545,7 @@ impl BybitCore {
         m.insert("type".to_string(), type_var.clone());
         m.insert("timeInForce".to_string(), timeInForce.clone());
         m.insert("postOnly".to_string(), Value::Null);
-        m.insert("reduceOnly".to_string(), self.safe_bool_k(order.clone(), "reduceOnly", &[]));
+        m.insert("reduceOnly".to_string(), self.safe_bool_k(order, "reduceOnly", &[]));
         m.insert("side".to_string(), side.clone());
         m.insert("price".to_string(), price.clone());
         m.insert("triggerPrice".to_string(), triggerPrice.clone());
@@ -7036,7 +7036,7 @@ impl BybitCore {
             let mut side: Value = self.safe_string_k(rawOrder.clone(), "side", &[]);
             let mut amount: Value = self.safe_value_k(rawOrder.clone(), "amount", &[]);
             let mut price: Value = self.safe_value_k(rawOrder.clone(), "price", &[]);
-            let mut orderParams: Value = self.safe_dict_k(rawOrder.clone(), "params", &[Value::Map({
+            let mut orderParams: Value = self.safe_dict_k(rawOrder, "params", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -7070,7 +7070,7 @@ impl BybitCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut codes: Value = self.safe_list_k(retInfo.clone(), "list", &[Value::List(vec![])]);
+        let mut codes: Value = self.safe_list_k(retInfo, "list", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_493: bool = true;
@@ -7265,7 +7265,7 @@ impl BybitCore {
             let mut side: Value = self.safe_string_k(rawOrder.clone(), "side", &[]);
             let mut amount: Value = self.safe_value_k(rawOrder.clone(), "amount", &[]);
             let mut price: Value = self.safe_value_k(rawOrder.clone(), "price", &[]);
-            let mut orderParams: Value = self.safe_dict_k(rawOrder.clone(), "params", &[Value::Map({
+            let mut orderParams: Value = self.safe_dict_k(rawOrder, "params", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -7299,7 +7299,7 @@ impl BybitCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut codes: Value = self.safe_list_k(retInfo.clone(), "list", &[Value::List(vec![])]);
+        let mut codes: Value = self.safe_list_k(retInfo, "list", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_495: bool = true;
@@ -9024,7 +9024,7 @@ impl BybitCore {
         m.insert("tagTo".to_string(), Value::Null);
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("type".to_string(), type_var.clone());
-        m.insert("amount".to_string(), self.safe_number_k(transaction.clone(), "amount", &[]));
+        m.insert("amount".to_string(), self.safe_number_k(transaction, "amount", &[]));
         m.insert("currency".to_string(), code.clone());
         m.insert("status".to_string(), status.clone());
         m.insert("updated".to_string(), updated.clone());
@@ -9292,7 +9292,7 @@ impl BybitCore {
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("currency".to_string(), code.clone());
-        m.insert("cost".to_string(), self.safe_number_k(item.clone(), "fee", &[]));
+        m.insert("cost".to_string(), self.safe_number_k(item, "fee", &[]));
     m
 }));
     m
@@ -10431,12 +10431,12 @@ impl BybitCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut vipCoinList: Value = self.safe_list_k(data.clone(), "vipCoinList", &[Value::List(vec![])]);
+        let mut vipCoinList: Value = self.safe_list_k(data, "vipCoinList", &[Value::List(vec![])]);
         let mut firstVip: Value = self.safe_dict(vipCoinList.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut coins: Value = self.safe_list_k(firstVip.clone(), "list", &[Value::List(vec![])]);
+        let mut coins: Value = self.safe_list_k(firstVip, "list", &[Value::List(vec![])]);
         let mut coin: Value = self.safe_dict(coins.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -10547,7 +10547,7 @@ impl BybitCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut rows: Value = self.safe_list_k(data.clone(), "loanAccountList", &[Value::List(vec![])]);
+        let mut rows: Value = self.safe_list_k(data, "loanAccountList", &[Value::List(vec![])]);
         let mut interest: Value = self.parse_borrow_interests(rows.clone(), &[]);
         return self.filter_by_currency_since_limit(interest.clone(), &[code.clone(), since.clone(), limit.clone()]);
 
@@ -10613,7 +10613,7 @@ impl BybitCore {
         //   }
         //
         let mut data: Value = self.safe_dict_k(response.clone(), "result", &[]);
-        let mut rows: Value = self.safe_list_k(data.clone(), "list", &[Value::List(vec![])]);
+        let mut rows: Value = self.safe_list_k(data, "list", &[Value::List(vec![])]);
         return self.parse_borrow_rate_history(rows.clone(), code.clone(), since.clone(), limit.clone());
 
     Value::Null
@@ -11082,7 +11082,7 @@ impl BybitCore {
         m.insert("info".to_string(), fee.clone());
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("maker".to_string(), self.safe_number_k(fee.clone(), "makerFeeRate", &[]));
-        m.insert("taker".to_string(), self.safe_number_k(fee.clone(), "takerFeeRate", &[]));
+        m.insert("taker".to_string(), self.safe_number_k(fee, "takerFeeRate", &[]));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("tierBased".to_string(), Value::Null);
     m
@@ -11289,7 +11289,7 @@ impl BybitCore {
 }));
                 }
                 if (chainsLength.as_f64() == Some(1.0)) {
-                    add_element_to_object(get_value_mut(&mut result, &Value::Str("withdraw".to_string())), &Value::Str("fee".to_string()), self.safe_number_k(chain.clone(), "withdrawFee", &[]));
+                    add_element_to_object(get_value_mut(&mut result, &Value::Str("withdraw".to_string())), &Value::Str("fee".to_string()), self.safe_number_k(chain, "withdrawFee", &[]));
                     add_element_to_object(get_value_mut(&mut result, &Value::Str("withdraw".to_string())), &Value::Str("percentage".to_string()), Value::Bool(false));
                 }
             }
@@ -11354,7 +11354,7 @@ impl BybitCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut rows: Value = self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])]);
+        let mut rows: Value = self.safe_list_k(data, "rows", &[Value::List(vec![])]);
         return self.parse_deposit_withdraw_fees(rows.clone(), &[codes.clone(), Value::Str("coin".to_string())]);
 
     Value::Null
@@ -11544,7 +11544,7 @@ impl BybitCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), settlement.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone()]));
-        m.insert("price".to_string(), self.safe_number_k(settlement.clone(), "deliveryPrice", &[]));
+        m.insert("price".to_string(), self.safe_number_k(settlement, "deliveryPrice", &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
     m
@@ -12354,7 +12354,7 @@ impl BybitCore {
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("id".to_string(), self.safe_string_k(income.clone(), "execId", &[]));
         m.insert("amount".to_string(), self.safe_number_k(income.clone(), "execFee", &[]));
-        m.insert("rate".to_string(), self.safe_number_k(income.clone(), "feeRate", &[]));
+        m.insert("rate".to_string(), self.safe_number_k(income, "feeRate", &[]));
     m
 });
 
@@ -12568,7 +12568,7 @@ impl BybitCore {
         m.insert("underlyingPrice".to_string(), self.safe_number_k(chain.clone(), "underlyingPrice", &[]));
         m.insert("change".to_string(), self.safe_number_k(chain.clone(), "change24h", &[]));
         m.insert("percentage".to_string(), Value::Null);
-        m.insert("baseVolume".to_string(), self.safe_number_k(chain.clone(), "totalVolume", &[]));
+        m.insert("baseVolume".to_string(), self.safe_number_k(chain, "totalVolume", &[]));
         m.insert("quoteVolume".to_string(), Value::Null);
     m
 });
@@ -12748,7 +12748,7 @@ impl BybitCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut coins: Value = self.safe_list_k(data.clone(), "coins", &[Value::List(vec![])]);
+        let mut coins: Value = self.safe_list_k(data, "coins", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_507: bool = true;
@@ -12992,7 +12992,7 @@ impl BybitCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut result: Value = self.safe_dict_k(data.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(data, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -13074,7 +13074,7 @@ impl BybitCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut dataList: Value = self.safe_list_k(data.clone(), "list", &[Value::List(vec![])]);
+        let mut dataList: Value = self.safe_list_k(data, "list", &[Value::List(vec![])]);
         return self.parse_conversions(dataList.clone(), &[code.clone(), Value::Str("fromCoin".to_string()), Value::Str("toCoin".to_string()), since.clone(), limit.clone()]);
 
     Value::Null
@@ -13138,7 +13138,7 @@ impl BybitCore {
         m.insert("fromCurrency".to_string(), fromCode.clone());
         m.insert("fromAmount".to_string(), self.safe_number_k(conversion.clone(), "fromAmount", &[]));
         m.insert("toCurrency".to_string(), toCode.clone());
-        m.insert("toAmount".to_string(), self.safe_number_k(conversion.clone(), "toAmount", &[]));
+        m.insert("toAmount".to_string(), self.safe_number_k(conversion, "toAmount", &[]));
         m.insert("price".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
     m

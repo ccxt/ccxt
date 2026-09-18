@@ -391,7 +391,7 @@ impl ExtendedCore {
             return;
         }
         self.handle_deltas(get_value(&orderbook, &Value::Str("bids".to_string())), self.safe_list_k(data.clone(), "b", &[Value::List(vec![])]));
-        self.handle_deltas(get_value(&orderbook, &Value::Str("asks".to_string())), self.safe_list_k(data.clone(), "a", &[Value::List(vec![])]));
+        self.handle_deltas(get_value(&orderbook, &Value::Str("asks".to_string())), self.safe_list_k(data, "a", &[Value::List(vec![])]));
         add_element_to_object(&mut orderbook, &Value::Str("timestamp".to_string()), timestamp.clone());
         add_element_to_object(&mut orderbook, &Value::Str("datetime".to_string()), self.iso8601(timestamp.clone()));
         add_element_to_object(&mut orderbook, &Value::Str("nonce".to_string()), nonce.clone());
@@ -576,7 +576,7 @@ impl ExtendedCore {
                 add_element_to_object(&mut result, &code, account.clone());
             }
         }
-        let mut spotBalances: Value = self.safe_list_k(data.clone(), "spotBalances", &[Value::List(vec![])]);
+        let mut spotBalances: Value = self.safe_list_k(data, "spotBalances", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_326: bool = true;
@@ -676,11 +676,11 @@ impl ExtendedCore {
             self.myTrades = ArrayCacheBySymbolById::new(limit.clone());
         }
         let mut stored: Value = self.myTrades.clone();
-        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut rawTrades: Value = self.safe_list_k(data.clone(), "trades", &[Value::List(vec![])]);
+        let mut rawTrades: Value = self.safe_list_k(data, "trades", &[Value::List(vec![])]);
         let mut symbols: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -792,11 +792,11 @@ impl ExtendedCore {
             self.positions = ArrayCacheBySymbolBySide::new(Value::Null);
         }
         let mut stored: Value = self.positions.clone();
-        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut rawPositions: Value = self.safe_list_k(data.clone(), "positions", &[Value::List(vec![])]);
+        let mut rawPositions: Value = self.safe_list_k(data, "positions", &[Value::List(vec![])]);
         let mut newPositions: Value = Value::List(vec![]);
         let mut first: Value = self.safe_dict(rawPositions.clone(), Value::Int(0), &[]);
         if (first == Value::Null) {
@@ -872,11 +872,11 @@ impl ExtendedCore {
             self.orders = ArrayCacheBySymbolById::new(limit.clone());
         }
         let mut orders: Value = self.orders.clone();
-        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut rawOrders: Value = self.safe_list_k(data.clone(), "orders", &[]);
+        let mut rawOrders: Value = self.safe_list_k(data, "orders", &[]);
         let mut symbols: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -994,7 +994,7 @@ impl ExtendedCore {
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
-        m.insert("fundingRate".to_string(), self.safe_number_k(fundingRate.clone(), "f", &[]));
+        m.insert("fundingRate".to_string(), self.safe_number_k(fundingRate, "f", &[]));
         m.insert("fundingTimestamp".to_string(), fundingTimestamp.clone());
         m.insert("fundingDatetime".to_string(), self.iso8601(fundingTimestamp.clone()));
         m.insert("nextFundingRate".to_string(), Value::Null);

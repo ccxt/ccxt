@@ -660,7 +660,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }
         self.handle_deltas(get_value(&orderbook, &Value::Str("asks".to_string())), self.safe_value_k(books.clone(), "asks", &[Value::List(vec![])]));
-        self.handle_deltas(get_value(&orderbook, &Value::Str("bids".to_string())), self.safe_value_k(books.clone(), "bids", &[Value::List(vec![])]));
+        self.handle_deltas(get_value(&orderbook, &Value::Str("bids".to_string())), self.safe_value_k(books, "bids", &[Value::List(vec![])]));
         add_element_to_object(&mut orderbook, &Value::Str("nonce".to_string()), nonce.clone());
         add_element_to_object(&mut self.orderbooks, &symbol, orderbook.clone());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".to_string()), symbol));
@@ -828,7 +828,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             stored = ArrayCache::new(limit.clone());
             add_element_to_object(&mut self.trades, &symbol, stored.clone());
         }
-        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message, "data", &[Value::List(vec![])]);
         let mut dataLength: Value = Value::Int(data.len() as i64);
         if (dataLength.as_f64() == Some(0.0)) {
             return;
@@ -1059,7 +1059,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut messageHash: Value = self.safe_string_k(message.clone(), "subscription", &[]);
         let mut marketId: Value = self.safe_string_k(message.clone(), "instrument_name", &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
-        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message, "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_297: bool = true;
@@ -1189,7 +1189,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn handle_bid_ask(&mut self, mut client: Value, mut message: Value) {
-        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message, "data", &[Value::List(vec![])]);
         let mut ticker: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1324,7 +1324,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.ohlcvs) }, &symbol), &timeframe, stored.clone());
             }
         }
-        let mut data: Value = self.safe_value_k(message.clone(), "data", &[]);
+        let mut data: Value = self.safe_value_k(message, "data", &[]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_299: bool = true;
@@ -1410,7 +1410,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[]);
         let mut symbolSpecificMessageHash: Value = self.safe_string_k(message.clone(), "subscription", &[]);
-        let mut orders: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut orders: Value = self.safe_list_k(message, "data", &[Value::List(vec![])]);
         let mut ordersLength: Value = Value::Int(orders.len() as i64);
         if ordersLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             if is_equal(&self.orders, &Value::Null) {
@@ -1562,12 +1562,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         // each account is connected to a different endpoint
         // and has exactly one subscriptionhash which is the account type
-        let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_value_k(message, "data", &[Value::List(vec![])]);
         let mut firstData: Value = self.safe_value(data.clone(), Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut rawPositions: Value = self.safe_list_k(firstData.clone(), "positions", &[Value::List(vec![])]);
+        let mut rawPositions: Value = self.safe_list_k(firstData, "positions", &[Value::List(vec![])]);
         if (self.positions.clone() == Value::Null) {
             self.positions = ArrayCacheBySymbolBySide::new(Value::Null);
         }
@@ -1782,7 +1782,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //    }
         //
         let mut messageHash: Value = self.safe_string_k(message.clone(), "id", &[]);
-        let mut rawOrder: Value = self.safe_value_k(message.clone(), "result", &[Value::Map({
+        let mut rawOrder: Value = self.safe_value_k(message, "result", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);

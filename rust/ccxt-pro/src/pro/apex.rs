@@ -688,7 +688,7 @@ impl ApexCore {
             orderbook.reset(snapshot.clone());
         }  else {
             let mut asks: Value = self.safe_list_k(data.clone(), "a", &[Value::List(vec![])]);
-            let mut bids: Value = self.safe_list_k(data.clone(), "b", &[Value::List(vec![])]);
+            let mut bids: Value = self.safe_list_k(data, "b", &[Value::List(vec![])]);
             self.handle_deltas(get_value(&orderbook, &Value::Str("asks".to_string())), asks.clone());
             self.handle_deltas(get_value(&orderbook, &Value::Str("bids".to_string())), bids.clone());
             add_element_to_object(&mut orderbook, &Value::Str("timestamp".to_string()), timestamp.clone());
@@ -1613,7 +1613,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (positions != Value::Null) {
             self.handle_positions(client.clone(), positions.clone());
         }
-        let mut orders: Value = self.safe_list_k(contents.clone(), "orders", &[Value::List(vec![])]);
+        let mut orders: Value = self.safe_list_k(contents, "orders", &[Value::List(vec![])]);
         if (orders != Value::Null) {
             self.handle_order(client.clone(), orders.clone());
         }

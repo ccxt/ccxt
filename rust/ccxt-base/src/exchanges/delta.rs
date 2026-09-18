@@ -922,7 +922,7 @@ impl DeltaCore {
 }));
         let mut response: Value = self.public_get_settings(&[params.clone()]).await;
         // full response sample under `fetchStatus`
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1079,7 +1079,7 @@ impl DeltaCore {
         //         "success":true
         //     }
         //
-        let mut currencies: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
+        let mut currencies: Value = self.safe_list_k(response, "result", &[Value::List(vec![])]);
         return self.parse_currencies(currencies.clone());
 
     Value::Null
@@ -1123,7 +1123,7 @@ impl DeltaCore {
 }));
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(chain.clone(), "min_withdrawal_amount", &[]));
+        m.insert("min".to_string(), self.safe_number_k(chain, "min_withdrawal_amount", &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
@@ -1156,7 +1156,7 @@ impl DeltaCore {
 }));
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(rawCurrency.clone(), "min_withdrawal_amount", &[]));
+        m.insert("min".to_string(), self.safe_number_k(rawCurrency, "min_withdrawal_amount", &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
@@ -1411,7 +1411,7 @@ impl DeltaCore {
         //         "success":true
         //     }
         //
-        let mut markets: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
+        let mut markets: Value = self.safe_list_k(response, "result", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -1705,7 +1705,7 @@ impl DeltaCore {
         m.insert("bid".to_string(), self.safe_number_k(quotes.clone(), "best_bid", &[]));
         m.insert("bidVolume".to_string(), self.safe_number_k(quotes.clone(), "bid_size", &[]));
         m.insert("ask".to_string(), self.safe_number_k(quotes.clone(), "best_ask", &[]));
-        m.insert("askVolume".to_string(), self.safe_number_k(quotes.clone(), "ask_size", &[]));
+        m.insert("askVolume".to_string(), self.safe_number_k(quotes, "ask_size", &[]));
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), self.safe_string_k(ticker.clone(), "open", &[]));
         m.insert("close".to_string(), last.clone());
@@ -1872,7 +1872,7 @@ impl DeltaCore {
         //         "success": true
         //     }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2029,7 +2029,7 @@ impl DeltaCore {
         //         "success":true
         //     }
         //
-        let mut tickers: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
+        let mut tickers: Value = self.safe_list_k(response, "result", &[Value::List(vec![])]);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2102,7 +2102,7 @@ impl DeltaCore {
         //         "success":true
         //     }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2193,7 +2193,7 @@ impl DeltaCore {
         let mut feeCostString: Value = self.safe_string_k(trade.clone(), "commission", &[]);
         let mut fee: Value = Value::Null;
         if (feeCostString != Value::Null) {
-            let mut settlingAsset: Value = self.safe_dict_k(product.clone(), "settling_asset", &[Value::Map({
+            let mut settlingAsset: Value = self.safe_dict_k(product, "settling_asset", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2269,7 +2269,7 @@ impl DeltaCore {
         //         "success":true
         //     }
         //
-        let mut result: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
+        let mut result: Value = self.safe_list_k(response, "result", &[Value::List(vec![])]);
         return self.parse_trades(result.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2277,7 +2277,7 @@ impl DeltaCore {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.safe_timestamp(ohlcv.clone(), Value::Str("time".to_string()), &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv.clone(), "volume", &[])]);
+        return Value::List(vec![self.safe_timestamp(ohlcv.clone(), Value::Str("time".to_string()), &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv, "volume", &[])]);
 
     Value::Null
 }
@@ -2350,7 +2350,7 @@ impl DeltaCore {
         //         ]
         //     }
         //
-        let mut result: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
+        let mut result: Value = self.safe_list_k(response, "result", &[Value::List(vec![])]);
         return self.parse_ohlc_vs(result.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2440,7 +2440,7 @@ impl DeltaCore {
         //         "success":true
         //     }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2487,7 +2487,7 @@ impl DeltaCore {
         //         ]
         //     }
         //
-        let mut result: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
+        let mut result: Value = self.safe_list_k(response, "result", &[Value::List(vec![])]);
         return self.parse_positions(result.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -2543,11 +2543,11 @@ impl DeltaCore {
         m.insert("notional".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::Null);
         m.insert("liquidationPrice".to_string(), self.safe_number_k(position.clone(), "liquidation_price", &[]));
-        m.insert("entryPrice".to_string(), self.safe_number_k(position.clone(), "entry_price", &[]));
+        m.insert("entryPrice".to_string(), self.safe_number_k(position, "entry_price", &[]));
         m.insert("unrealizedPnl".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
         m.insert("contracts".to_string(), self.parse_number(sizeString.clone(), &[]));
-        m.insert("contractSize".to_string(), self.safe_number_k(market.clone(), "contractSize", &[]));
+        m.insert("contractSize".to_string(), self.safe_number_k(market, "contractSize", &[]));
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("side".to_string(), side.clone());
         m.insert("hedged".to_string(), Value::Null);
@@ -2796,7 +2796,7 @@ impl DeltaCore {
         //         "success":true
         //     }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2863,7 +2863,7 @@ impl DeltaCore {
         //         }
         //     }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2937,7 +2937,7 @@ impl DeltaCore {
         //         "success":true
         //     }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3045,7 +3045,7 @@ impl DeltaCore {
         //         }
         //     }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3157,7 +3157,7 @@ impl DeltaCore {
         //         }
         //     }
         //
-        let mut result: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
+        let mut result: Value = self.safe_list_k(response, "result", &[Value::List(vec![])]);
         return self.parse_orders(result.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -3245,7 +3245,7 @@ impl DeltaCore {
         //         "success":true
         //     }
         //
-        let mut result: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
+        let mut result: Value = self.safe_list_k(response, "result", &[Value::List(vec![])]);
         return self.parse_trades(result.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -3306,7 +3306,7 @@ impl DeltaCore {
         //         "success":true
         //     }
         //
-        let mut result: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
+        let mut result: Value = self.safe_list_k(response, "result", &[Value::List(vec![])]);
         return self.parse_ledger(result.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -3439,7 +3439,7 @@ impl DeltaCore {
         //        }
         //    }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3553,7 +3553,7 @@ impl DeltaCore {
         //         "success": true
         //     }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3633,7 +3633,7 @@ impl DeltaCore {
         //         "success":true
         //     }
         //
-        let mut rates: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
+        let mut rates: Value = self.safe_list_k(response, "result", &[Value::List(vec![])]);
         return self.parse_funding_rates(rates.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -3692,7 +3692,7 @@ impl DeltaCore {
         m.insert("info".to_string(), contract.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone()]));
         m.insert("markPrice".to_string(), self.safe_number_k(contract.clone(), "mark_price", &[]));
-        m.insert("indexPrice".to_string(), self.safe_number_k(contract.clone(), "spot_price", &[]));
+        m.insert("indexPrice".to_string(), self.safe_number_k(contract, "spot_price", &[]));
         m.insert("interestRate".to_string(), Value::Null);
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
         m.insert("timestamp".to_string(), timestamp.clone());
@@ -3795,7 +3795,7 @@ impl DeltaCore {
         //         "success": true
         //     }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3835,7 +3835,7 @@ impl DeltaCore {
         m.insert("type".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::Str("isolated".to_string()));
         m.insert("amount".to_string(), Value::Null);
-        m.insert("total".to_string(), self.safe_number_k(data.clone(), "margin", &[]));
+        m.insert("total".to_string(), self.safe_number_k(data, "margin", &[]));
         m.insert("code".to_string(), Value::Null);
         m.insert("status".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::Null);
@@ -3924,7 +3924,7 @@ impl DeltaCore {
         //         "success": true
         //     }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -4038,7 +4038,7 @@ impl DeltaCore {
         //         "success": true
         //     }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -4189,7 +4189,7 @@ impl DeltaCore {
         //         "success": true
         //     }
         //
-        let mut result: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
+        let mut result: Value = self.safe_list_k(response, "result", &[Value::List(vec![])]);
         let mut settlements: Value = self.parse_settlements(result.clone(), market.clone());
         let mut sorted: Value = self.sort_by(settlements.clone(), Value::Str("timestamp".to_string()), &[]);
         return self.filter_by_symbol_since_limit(sorted.clone(), &[self.safe_string_k(market.clone(), "symbol", &[]), since.clone(), limit.clone()]);
@@ -4257,7 +4257,7 @@ impl DeltaCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), settlement.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone()]));
-        m.insert("price".to_string(), self.safe_number_k(settlement.clone(), "settlement_price", &[]));
+        m.insert("price".to_string(), self.safe_number_k(settlement, "settlement_price", &[]));
         m.insert("timestamp".to_string(), self.parse8601(datetime.clone()));
         m.insert("datetime".to_string(), datetime.clone());
     m
@@ -4355,7 +4355,7 @@ impl DeltaCore {
         //         "success": true
         //     }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -4435,14 +4435,14 @@ impl DeltaCore {
         m.insert("gamma".to_string(), self.safe_number_k(stats.clone(), "gamma", &[]));
         m.insert("theta".to_string(), self.safe_number_k(stats.clone(), "theta", &[]));
         m.insert("vega".to_string(), self.safe_number_k(stats.clone(), "vega", &[]));
-        m.insert("rho".to_string(), self.safe_number_k(stats.clone(), "rho", &[]));
+        m.insert("rho".to_string(), self.safe_number_k(stats, "rho", &[]));
         m.insert("bidSize".to_string(), self.safe_number_k(quotes.clone(), "bid_size", &[]));
         m.insert("askSize".to_string(), self.safe_number_k(quotes.clone(), "ask_size", &[]));
         m.insert("bidImpliedVolatility".to_string(), self.safe_number_k(quotes.clone(), "bid_iv", &[]));
         m.insert("askImpliedVolatility".to_string(), self.safe_number_k(quotes.clone(), "ask_iv", &[]));
         m.insert("markImpliedVolatility".to_string(), self.safe_number_k(quotes.clone(), "mark_iv", &[]));
         m.insert("bidPrice".to_string(), self.safe_number_k(quotes.clone(), "best_bid", &[]));
-        m.insert("askPrice".to_string(), self.safe_number_k(quotes.clone(), "best_ask", &[]));
+        m.insert("askPrice".to_string(), self.safe_number_k(quotes, "best_ask", &[]));
         m.insert("markPrice".to_string(), self.safe_number_k(greeks.clone(), "mark_price", &[]));
         m.insert("lastPrice".to_string(), self.safe_number_k(greeks.clone(), "last_price", &[]));
         m.insert("underlyingPrice".to_string(), self.safe_number_k(greeks.clone(), "spot_price", &[]));
@@ -4479,7 +4479,7 @@ impl DeltaCore {
         //
         // {"result":{},"success":true}
         //
-        let mut position: Value = self.parse_position(self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut position: Value = self.parse_position(self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), &[]);
@@ -4571,7 +4571,7 @@ impl DeltaCore {
         //         "success": true
         //     }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -4703,7 +4703,7 @@ impl DeltaCore {
         //         "success": true
         //     }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -4782,14 +4782,14 @@ impl DeltaCore {
         m.insert("openInterest".to_string(), self.safe_number_k(chain.clone(), "oi", &[]));
         m.insert("bidPrice".to_string(), self.safe_number_k(quotes.clone(), "best_bid", &[]));
         m.insert("askPrice".to_string(), self.safe_number_k(quotes.clone(), "best_ask", &[]));
-        m.insert("midPrice".to_string(), self.safe_number_k(quotes.clone(), "impact_mid_price", &[]));
+        m.insert("midPrice".to_string(), self.safe_number_k(quotes, "impact_mid_price", &[]));
         m.insert("markPrice".to_string(), self.safe_number_k(chain.clone(), "mark_price", &[]));
         m.insert("lastPrice".to_string(), self.safe_number_k(chain.clone(), "last_price", &[]));
         m.insert("underlyingPrice".to_string(), self.safe_number_k(chain.clone(), "spot_price", &[]));
         m.insert("change".to_string(), self.safe_number_k(chain.clone(), "change", &[]));
         m.insert("percentage".to_string(), self.safe_number_k(chain.clone(), "percentage", &[]));
         m.insert("baseVolume".to_string(), self.safe_number_k(chain.clone(), "volume", &[]));
-        m.insert("quoteVolume".to_string(), self.safe_number_k(chain.clone(), "quote_volume", &[]));
+        m.insert("quoteVolume".to_string(), self.safe_number_k(chain, "quote_volume", &[]));
     m
 });
 
@@ -4984,7 +4984,7 @@ impl DeltaCore {
         //         "success": true
         //     }
         //
-        let mut result: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
+        let mut result: Value = self.safe_list_k(response, "result", &[Value::List(vec![])]);
         return self.parse_adl_ranks(result.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -5237,7 +5237,7 @@ impl DeltaCore {
         //
         // {"error":{"code":"insufficient_margin","context":{"available_balance":"0.000000000000000000","required_additional_balance":"1.618626000000000000000000000"}},"success":false}
         //
-        let mut error: Value = self.safe_dict_k(response.clone(), "error", &[Value::Map({
+        let mut error: Value = self.safe_dict_k(response, "error", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);

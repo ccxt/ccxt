@@ -647,7 +647,7 @@ impl ZaifCore {
                 m.insert("datetime".to_string(), Value::Null);
             m
         });
-        let mut funds: Value = self.safe_dict_k(balances.clone(), "funds", &[Value::Map({
+        let mut funds: Value = self.safe_dict_k(balances, "funds", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -995,7 +995,7 @@ impl ZaifCore {
         //        }
         //    }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "return", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "return", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1098,7 +1098,7 @@ impl ZaifCore {
         }
         let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_post_active_orders(&[__ws_arg_5]).await;
-        let mut data: Value = self.safe_dict_k(response.clone(), "return", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "return", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1140,7 +1140,7 @@ impl ZaifCore {
         }
         let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_post_trade_history(&[__ws_arg_6]).await;
-        let mut data: Value = self.safe_dict_k(response.clone(), "return", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "return", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1204,7 +1204,7 @@ impl ZaifCore {
         //         }
         //     }
         //
-        let mut returnData: Value = self.safe_dict_k(result.clone(), "return", &[Value::Map({
+        let mut returnData: Value = self.safe_dict_k(result, "return", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1340,7 +1340,7 @@ impl ZaifCore {
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), error.clone(), feedback.clone());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
-        let mut success: Value = self.safe_bool_k(response.clone(), "success", &[Value::Bool(true)]);
+        let mut success: Value = self.safe_bool_k(response, "success", &[Value::Bool(true)]);
         if (success.as_bool() != Some(true)) {
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }

@@ -886,7 +886,7 @@ impl KrakenCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message, "data", &[Value::List(vec![])]);
         let mut ticker: Value = data.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut symbol: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
         let mut messageHash: Value = self.get_message_hash(Value::Str("ticker".to_string()), &[Value::Null, symbol.clone()]);
@@ -943,7 +943,7 @@ impl KrakenCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message, "data", &[Value::List(vec![])]);
         let mut trade: Value = data.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut symbol: Value = self.safe_string_k(trade.clone(), "symbol", &[]);
         let mut messageHash: Value = self.get_message_hash(Value::Str("trade".to_string()), &[Value::Null, symbol.clone()]);
@@ -988,7 +988,7 @@ impl KrakenCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message, "data", &[Value::List(vec![])]);
         let mut first: Value = data.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut marketId: Value = self.safe_string_k(first.clone(), "symbol", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
@@ -1020,7 +1020,7 @@ impl KrakenCore {
             let mut candle: Value = get_value(&data, &i);
             let mut datetime: Value = self.safe_string_k(candle.clone(), "interval_begin", &[]);
             let mut timestamp: Value = self.parse8601(datetime.clone());
-            let mut parsed: Value = Value::List(vec![timestamp.clone(), self.safe_number_k(candle.clone(), "open", &[]), self.safe_number_k(candle.clone(), "high", &[]), self.safe_number_k(candle.clone(), "low", &[]), self.safe_number_k(candle.clone(), "close", &[]), self.safe_number_k(candle.clone(), "volume", &[])]);
+            let mut parsed: Value = Value::List(vec![timestamp.clone(), self.safe_number_k(candle.clone(), "open", &[]), self.safe_number_k(candle.clone(), "high", &[]), self.safe_number_k(candle.clone(), "low", &[]), self.safe_number_k(candle.clone(), "close", &[]), self.safe_number_k(candle, "volume", &[])]);
             stored.append(parsed.clone());
         }
         }
@@ -1424,7 +1424,7 @@ impl KrakenCore {
         //     }
         //
         let mut type_var: Value = self.safe_string_k(message.clone(), "type", &[]);
-        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message, "data", &[Value::List(vec![])]);
         let mut first: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1529,7 +1529,7 @@ impl KrakenCore {
             let mut delta: Value = get_value(&deltas, &j);
             let mut delta: Value = get_value(&deltas, &j);
             let mut price: Value = self.safe_number_k(delta.clone(), "price", &[]);
-            let mut amount: Value = self.safe_number_k(delta.clone(), "qty", &[]);
+            let mut amount: Value = self.safe_number_k(delta, "qty", &[]);
             bookside.store(price.clone(), amount.clone());
         }
         }
@@ -1728,7 +1728,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         "sequence": 10
         //     }
         //
-        let mut allTrades: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut allTrades: Value = self.safe_list_k(message, "data", &[Value::List(vec![])]);
         let mut allTradesLength: Value = Value::Int(allTrades.len() as i64);
         if allTradesLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             if is_equal(&self.myTrades, &Value::Null) {
@@ -1828,7 +1828,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("takerOrMaker".to_string(), takerOrMaker.clone());
         m.insert("price".to_string(), self.safe_number_k(trade.clone(), "last_price", &[]));
         m.insert("amount".to_string(), self.safe_number_k(trade.clone(), "last_qty", &[]));
-        m.insert("cost".to_string(), self.safe_number_k(trade.clone(), "cost", &[]));
+        m.insert("cost".to_string(), self.safe_number_k(trade, "cost", &[]));
         m.insert("fee".to_string(), fee.clone());
     m
 });
@@ -1894,7 +1894,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         "sequence": 8
         //     }
         //
-        let mut allOrders: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut allOrders: Value = self.safe_list_k(message, "data", &[Value::List(vec![])]);
         let mut allOrdersLength: Value = Value::Int(allOrders.len() as i64);
         if allOrdersLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);

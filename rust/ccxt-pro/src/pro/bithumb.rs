@@ -817,7 +817,7 @@ impl BithumbCore {
             let mut bidPrice: Value = self.safe_number_k(entry.clone(), "bid_price", &[]);
             let mut bidSize: Value = self.safe_number_k(entry.clone(), "bid_size", &[]);
             let mut askPrice: Value = self.safe_number_k(entry.clone(), "ask_price", &[]);
-            let mut askSize: Value = self.safe_number_k(entry.clone(), "ask_size", &[]);
+            let mut askSize: Value = self.safe_number_k(entry, "ask_size", &[]);
             if is_true(&(Value::Bool(bidPrice != Value::Null))) && is_true(&(Value::Bool(bidSize != Value::Null))) {
                 bids.store(bidPrice.clone(), bidSize.clone());
             }
@@ -969,7 +969,7 @@ impl BithumbCore {
         //     }
         //
         let mut content: Value = self.safe_dict_k(message.clone(), "content", &[]);
-        let mut rawTrades: Value = self.safe_list_k(content.clone(), "list", &[]);
+        let mut rawTrades: Value = self.safe_list_k(content, "list", &[]);
         if (rawTrades == Value::Null) {
             rawTrades = Value::List(vec![message.clone()]);
         }
@@ -1316,7 +1316,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         self.authenticate(&[]).await;
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "privateGen2");
         let mut messageHash: Value = Value::Str("myOrder".to_string());
-        let mut codes: Value = self.safe_list_k(params.clone(), "codes", &[Value::List(vec![])]);
+        let mut codes: Value = self.safe_list_k(params, "codes", &[Value::List(vec![])]);
         let mut request: Value = self.build_gen2_subscription_request(messageHash.clone(), Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), messageHash.clone());

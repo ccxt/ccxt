@@ -1640,11 +1640,11 @@ impl WooCore {
         //         "timestamp": 1751512951338
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut rows: Value = self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])]);
+        let mut rows: Value = self.safe_list_k(data, "rows", &[Value::List(vec![])]);
         return self.parse_markets(rows.clone());
 
     Value::Null
@@ -1803,11 +1803,11 @@ impl WooCore {
         //         "timestamp": 1751513988543
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut rows: Value = self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])]);
+        let mut rows: Value = self.safe_list_k(data, "rows", &[Value::List(vec![])]);
         return self.parse_trades(rows.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1968,7 +1968,7 @@ impl WooCore {
         //         "timestamp": 1751858977368
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2157,8 +2157,8 @@ impl WooCore {
         let mut tokenResponsetokenNetworkResponseVariable = promise_all(&Value::List(vec![tokenResponsePromise.clone(), tokenNetworkResponsePromise.clone()])).await;
         let mut tokenResponse: Value = tokenResponsetokenNetworkResponseVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut tokenNetworkResponse: Value = tokenResponsetokenNetworkResponseVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut tokenRows: Value = self.safe_list_k(tokenResponse.clone(), "rows", &[Value::List(vec![])]);
-        let mut tokenNetworkRows: Value = self.safe_list_k(tokenNetworkResponse.clone(), "rows", &[Value::List(vec![])]);
+        let mut tokenRows: Value = self.safe_list_k(tokenResponse, "rows", &[Value::List(vec![])]);
+        let mut tokenNetworkRows: Value = self.safe_list_k(tokenNetworkResponse, "rows", &[Value::List(vec![])]);
         let mut networksById: Value = self.group_by(tokenNetworkRows.clone(), Value::Str("token".to_string()), &[]);
         let mut tokensById: Value = self.group_by(tokenRows.clone(), Value::Str("balance_token".to_string()), &[]);
         let mut currencyIds: Value = object_keys(&tokensById);
@@ -2852,7 +2852,7 @@ impl WooCore {
         //         "timestamp": 1751941988134
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2944,7 +2944,7 @@ impl WooCore {
             let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
             response = self.v3_private_get_trade_order(&[__ws_arg_11]).await;
         }
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3015,11 +3015,11 @@ impl WooCore {
             let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
             response = self.v3_private_get_trade_orders(&[__ws_arg_13]).await;
         }
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_value_k(response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut orders: Value = self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])]);
+        let mut orders: Value = self.safe_list_k(data, "rows", &[Value::List(vec![])]);
         return self.parse_orders(orders.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -3534,7 +3534,7 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut rows: Value = self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])]);
+        let mut rows: Value = self.safe_list_k(data, "rows", &[Value::List(vec![])]);
         let mut timestamp: Value = self.safe_integer_k(response.clone(), "timestamp", &[]);
         let mut result: Value = Value::List(vec![]);
         {
@@ -3629,11 +3629,11 @@ impl WooCore {
         //         "timestamp": 1751622205410
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut rows: Value = self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])]);
+        let mut rows: Value = self.safe_list_k(data, "rows", &[Value::List(vec![])]);
         return self.parse_ohlc_vs(rows.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -3641,7 +3641,7 @@ impl WooCore {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.safe_integer_k(ohlcv.clone(), "startTimestamp", &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv.clone(), "volume", &[])]);
+        return Value::List(vec![self.safe_integer_k(ohlcv.clone(), "startTimestamp", &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv, "volume", &[])]);
 
     Value::Null
 }
@@ -3698,7 +3698,7 @@ impl WooCore {
         //       }
         //     ]
         // }
-        let mut trades: Value = self.safe_list_k(response.clone(), "rows", &[Value::List(vec![])]);
+        let mut trades: Value = self.safe_list_k(response, "rows", &[Value::List(vec![])]);
         return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone(), params.clone()]);
 
     Value::Null
@@ -3783,11 +3783,11 @@ impl WooCore {
         //         "timestamp": 1752055545121
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut trades: Value = self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])]);
+        let mut trades: Value = self.safe_list_k(data, "rows", &[Value::List(vec![])]);
         return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone(), params.clone()]);
 
     Value::Null
@@ -3856,16 +3856,16 @@ impl WooCore {
         let mut mainAccountResponsesubAccountResponseVariable = promise_all(&Value::List(vec![mainAccountPromise.clone(), subAccountPromise.clone()])).await;
         let mut mainAccountResponse: Value = mainAccountResponsesubAccountResponseVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut subAccountResponse: Value = mainAccountResponsesubAccountResponseVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut mainData: Value = self.safe_dict_k(mainAccountResponse.clone(), "data", &[Value::Map({
+        let mut mainData: Value = self.safe_dict_k(mainAccountResponse, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
         let mut mainRows: Value = Value::List(vec![mainData.clone()]);
-        let mut subData: Value = self.safe_dict_k(subAccountResponse.clone(), "data", &[Value::Map({
+        let mut subData: Value = self.safe_dict_k(subAccountResponse, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut subRows: Value = self.safe_list_k(subData.clone(), "rows", &[Value::List(vec![])]);
+        let mut subRows: Value = self.safe_list_k(subData, "rows", &[Value::List(vec![])]);
         let mut rows: Value = self.array_concat(mainRows.clone(), subRows.clone());
         return self.parse_accounts(rows.clone(), &[params.clone()]);
 
@@ -3926,7 +3926,7 @@ impl WooCore {
         //         "timestamp": 1673323746259
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
+        let mut data: Value = self.safe_dict_k(response, "data", &[]);
         return self.parse_balance(data.clone());
 
     Value::Null
@@ -3938,7 +3938,7 @@ impl WooCore {
                 m.insert("info".to_string(), response.clone());
             m
         });
-        let mut balances: Value = self.safe_list_k(response.clone(), "holding", &[Value::List(vec![])]);
+        let mut balances: Value = self.safe_list_k(response, "holding", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1130: bool = true;
@@ -3998,7 +3998,7 @@ impl WooCore {
         //         "timestamp": 1721300689532
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -4118,11 +4118,11 @@ impl WooCore {
         //         "timestamp": 1752485344719
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return Value::List(vec![currency.clone(), self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])])]);
+        return Value::List(vec![currency.clone(), self.safe_list_k(data, "rows", &[Value::List(vec![])])]);
 
     Value::Null
 }
@@ -4467,7 +4467,7 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut fillResponseFromRequest: Value = self.safe_bool_k(transferOptions.clone(), "fillResponseFromRequest", &[Value::Bool(true)]);
+        let mut fillResponseFromRequest: Value = self.safe_bool_k(transferOptions, "fillResponseFromRequest", &[Value::Bool(true)]);
         if (fillResponseFromRequest.as_bool() == Some(true)) {
             add_element_to_object(&mut transfer, &Value::Str("amount".to_string()), amount.clone());
             add_element_to_object(&mut transfer, &Value::Str("fromAccount".to_string()), fromAccount.clone());
@@ -4550,11 +4550,11 @@ impl WooCore {
         //         "timestamp": 1721295317627
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut rows: Value = self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])]);
+        let mut rows: Value = self.safe_list_k(data, "rows", &[Value::List(vec![])]);
         return self.parse_transfers(rows.clone(), &[currency.clone(), since.clone(), limit.clone(), params.clone()]);
 
     Value::Null
@@ -5004,11 +5004,11 @@ impl WooCore {
         //         "timestamp": 1721351502594
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut rows: Value = self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])]);
+        let mut rows: Value = self.safe_list_k(data, "rows", &[Value::List(vec![])]);
         return self.parse_incomes(rows.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -5062,7 +5062,7 @@ impl WooCore {
         m.insert("nextFundingRate".to_string(), Value::Null);
         m.insert("nextFundingTimestamp".to_string(), Value::Null);
         m.insert("nextFundingDatetime".to_string(), Value::Null);
-        m.insert("previousFundingRate".to_string(), self.safe_number_k(fundingRate.clone(), "lastFundingRate", &[]));
+        m.insert("previousFundingRate".to_string(), self.safe_number_k(fundingRate, "lastFundingRate", &[]));
         m.insert("previousFundingTimestamp".to_string(), lastFundingRateTimestamp.clone());
         m.insert("previousFundingDatetime".to_string(), self.iso8601(lastFundingRateTimestamp.clone()));
         m.insert("interval".to_string(), interval.clone());
@@ -5136,11 +5136,11 @@ impl WooCore {
         //         "timestamp": 1751624037798
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut rows: Value = self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])]);
+        let mut rows: Value = self.safe_list_k(data, "rows", &[Value::List(vec![])]);
         let mut first: Value = self.safe_dict(rows.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5190,11 +5190,11 @@ impl WooCore {
         //         "timestamp": 1751624037798
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut rows: Value = self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])]);
+        let mut rows: Value = self.safe_list_k(data, "rows", &[Value::List(vec![])]);
         return self.parse_funding_rates(rows.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -5267,11 +5267,11 @@ impl WooCore {
         //         "timestamp": 1751632390031
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut rows: Value = self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])]);
+        let mut rows: Value = self.safe_list_k(data, "rows", &[Value::List(vec![])]);
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -5285,7 +5285,7 @@ impl WooCore {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), entry.clone());
                     m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[]));
-                    m.insert("fundingRate".to_string(), self.safe_number_k(entry.clone(), "fundingRate", &[]));
+                    m.insert("fundingRate".to_string(), self.safe_number_k(entry, "fundingRate", &[]));
                     m.insert("timestamp".to_string(), timestamp.clone());
                     m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
                 m
@@ -5597,7 +5597,7 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut positions: Value = self.safe_list_k(result.clone(), "positions", &[Value::List(vec![])]);
+        let mut positions: Value = self.safe_list_k(result, "positions", &[Value::List(vec![])]);
         let mut first: Value = self.safe_dict(positions.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5674,7 +5674,7 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut positions: Value = self.safe_list_k(result.clone(), "positions", &[Value::List(vec![])]);
+        let mut positions: Value = self.safe_list_k(result, "positions", &[Value::List(vec![])]);
         return self.parse_positions(positions.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -6015,7 +6015,7 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut rows: Value = self.safe_list_k(data.clone(), "tradeVos", &[Value::List(vec![])]);
+        let mut rows: Value = self.safe_list_k(data, "tradeVos", &[Value::List(vec![])]);
         return self.parse_conversions(rows.clone(), &[code.clone(), Value::Str("sellAsset".to_string()), Value::Str("buyAsset".to_string()), since.clone(), limit.clone()]);
 
     Value::Null
@@ -6074,7 +6074,7 @@ impl WooCore {
         m.insert("fromAmount".to_string(), self.safe_number2(conversion.clone(), Value::Str("sellQuantity".to_string()), Value::Str("sellAmount".to_string()), &[]));
         m.insert("toCurrency".to_string(), toCode.clone());
         m.insert("toAmount".to_string(), self.safe_number2(conversion.clone(), Value::Str("buyQuantity".to_string()), Value::Str("buyAmount".to_string()), &[]));
-        m.insert("price".to_string(), self.safe_number_k(conversion.clone(), "buyPrice", &[]));
+        m.insert("price".to_string(), self.safe_number_k(conversion, "buyPrice", &[]));
         m.insert("fee".to_string(), Value::Null);
     m
 });
@@ -6239,7 +6239,7 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut positions: Value = self.safe_list_k(result.clone(), "positions", &[Value::List(vec![])]);
+        let mut positions: Value = self.safe_list_k(result, "positions", &[Value::List(vec![])]);
         return self.parse_adl_ranks(positions.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -6278,7 +6278,7 @@ impl WooCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), info.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone(), Value::Null, Value::Str("contract".to_string())]));
-        m.insert("rank".to_string(), self.safe_number_k(info.clone(), "adlQuantile", &[]));
+        m.insert("rank".to_string(), self.safe_number_k(info, "adlQuantile", &[]));
         m.insert("rating".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
         m.insert("timestamp".to_string(), timestamp.clone());

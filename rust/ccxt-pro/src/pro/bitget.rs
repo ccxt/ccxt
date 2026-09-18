@@ -1093,7 +1093,7 @@ impl BitgetCore {
             stored = ArrayCacheByTimestamp::new(limit.clone());
             add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.ohlcvs) }, &symbol), &timeframe, stored.clone());
         }
-        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message, "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_112: bool = true;
@@ -1648,7 +1648,7 @@ impl BitgetCore {
             stored = ArrayCache::new(limit.clone());
             add_element_to_object(&mut self.trades, &symbol, stored.clone());
         }
-        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message, "data", &[Value::List(vec![])]);
         let mut length: Value = Value::Int(data.len() as i64);
         {
                         let mut i: Value = Value::Int(0);
@@ -1967,7 +1967,7 @@ impl BitgetCore {
             add_element_to_object(&mut self.positions, &instType, ArrayCacheBySymbolBySide::new(Value::Null));
         }
         let mut cache: Value = get_value(&self.positions, &instType);
-        let mut rawPositions: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut rawPositions: Value = self.safe_list_k(message, "data", &[Value::List(vec![])]);
         let mut newPositions: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -2098,7 +2098,7 @@ impl BitgetCore {
         m.insert("initialMargin".to_string(), self.safe_number_k(position.clone(), "marginSize", &[]));
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("leverage".to_string(), self.safe_number_k(position.clone(), "leverage", &[]));
-        m.insert("marginRatio".to_string(), self.safe_number_k(position.clone(), "marginRate", &[]));
+        m.insert("marginRatio".to_string(), self.safe_number_k(position, "marginRate", &[]));
     m
 }));
 
@@ -2321,7 +2321,7 @@ impl BitgetCore {
         }  else {
             marketType = Value::Str("contract".to_string());
         }
-        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message, "data", &[Value::List(vec![])]);
         let mut first: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2865,7 +2865,7 @@ impl BitgetCore {
         let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
         let mut length: Value = Value::Int(data.len() as i64);
         let mut messageHash: Value = Value::Str("myTrades".to_string());
-        let mut arg: Value = self.safe_dict_k(message.clone(), "arg", &[Value::Map({
+        let mut arg: Value = self.safe_dict_k(message, "arg", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);

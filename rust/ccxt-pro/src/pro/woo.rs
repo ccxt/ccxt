@@ -640,7 +640,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         {
             let mut defaultLimit: Value = self.safe_integer_k(self.options.clone(), "watchOrderBookLimit", &[Value::Int(1000)]);
             let mut limit: Value = self.safe_integer_k(subscription.clone(), "limit", &[defaultLimit.clone()]);
-            let mut params: Value = self.safe_value_k(subscription.clone(), "params", &[]);
+            let mut params: Value = self.safe_value_k(subscription, "params", &[]);
             let mut snapshot: Value = self.fetch_rest_order_book_safe(symbol.clone(), &[limit.clone(), params.clone()]).await;
             if (self.safe_value(self.orderbooks.clone(), symbol.clone(), &[]) == Value::Null) {
                 return Value::Null;
@@ -677,7 +677,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
     pub fn handle_order_book_message(&self, mut client: Value, mut message: Value, mut orderbook: Value) -> Value {
         let mut data: Value = self.safe_dict_k(message.clone(), "data", &[]);
         self.handle_deltas(crate::value::get_value_k(&orderbook, "asks"), self.safe_value_k(data.clone(), "asks", &[Value::List(vec![])]));
-        self.handle_deltas(crate::value::get_value_k(&orderbook, "bids"), self.safe_value_k(data.clone(), "bids", &[Value::List(vec![])]));
+        self.handle_deltas(crate::value::get_value_k(&orderbook, "bids"), self.safe_value_k(data, "bids", &[Value::List(vec![])]));
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "ts", &[]);
         add_element_to_object(&mut orderbook, &Value::Str("timestamp".to_string()), timestamp.clone());
         add_element_to_object(&mut orderbook, &Value::Str("datetime".to_string()), self.iso8601(timestamp.clone()));
@@ -1673,7 +1673,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         m.insert("price".to_string(), price.clone());
         m.insert("stopPrice".to_string(), triggerPrice.clone());
         m.insert("triggerPrice".to_string(), triggerPrice.clone());
-        m.insert("reduceOnly".to_string(), self.safe_bool_k(order.clone(), "reduceOnly", &[]));
+        m.insert("reduceOnly".to_string(), self.safe_bool_k(order, "reduceOnly", &[]));
         m.insert("amount".to_string(), amount.clone());
         m.insert("cost".to_string(), Value::Null);
         m.insert("average".to_string(), avgPrice.clone());
@@ -1960,7 +1960,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut rawPositions: Value = self.safe_dict_k(data.clone(), "positions", &[Value::Map({
+        let mut rawPositions: Value = self.safe_dict_k(data, "positions", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);

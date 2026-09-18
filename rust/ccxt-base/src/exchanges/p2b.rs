@@ -583,7 +583,7 @@ impl P2bCore {
         //        ]
         //    }
         //
-        let mut markets: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
+        let mut markets: Value = self.safe_list_k(response, "result", &[Value::List(vec![])]);
         return self.parse_markets(markets.clone());
 
     Value::Null
@@ -651,7 +651,7 @@ impl P2bCore {
 }));
         m.insert("cost".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(limits.clone(), "min_total", &[]));
+        m.insert("min".to_string(), self.safe_number_k(limits, "min_total", &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
@@ -709,7 +709,7 @@ impl P2bCore {
         //        current_time: '1699252644.487566'
         //    }
         //
-        let mut result: Value = self.safe_value_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_value_k(response, "result", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -971,7 +971,7 @@ impl P2bCore {
         //        current_time: '1699255571.413828'
         //    }
         //
-        let mut result: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
+        let mut result: Value = self.safe_list_k(response, "result", &[Value::List(vec![])]);
         return self.parse_trades(result.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1110,7 +1110,7 @@ impl P2bCore {
         //        current_time: '1699256375.030494'
         //    }
         //
-        let mut result: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
+        let mut result: Value = self.safe_list_k(response, "result", &[Value::List(vec![])]);
         return self.parse_ohlc_vs(result.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1157,7 +1157,7 @@ impl P2bCore {
         //        }
         //    }
         //
-        let mut result: Value = self.safe_value_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_value_k(response, "result", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1268,7 +1268,7 @@ impl P2bCore {
         //        }
         //    }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[]);
+        let mut result: Value = self.safe_dict_k(response, "result", &[]);
         return self.parse_order(result.clone(), &[market.clone()]);
 
     Value::Null
@@ -1327,7 +1327,7 @@ impl P2bCore {
         //        }
         //    }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[]);
+        let mut result: Value = self.safe_dict_k(response, "result", &[]);
         return self.parse_order(result.clone(), &[]);
 
     Value::Null
@@ -1397,7 +1397,7 @@ impl P2bCore {
         //        ]
         //    }
         //
-        let mut result: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
+        let mut result: Value = self.safe_list_k(response, "result", &[Value::List(vec![])]);
         return self.parse_orders(result.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1463,11 +1463,11 @@ impl P2bCore {
         //        }
         //    }
         //
-        let mut result: Value = self.safe_value_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_value_k(response, "result", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut records: Value = self.safe_list_k(result.clone(), "records", &[Value::List(vec![])]);
+        let mut records: Value = self.safe_list_k(result, "records", &[Value::List(vec![])]);
         return self.parse_trades(records.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1558,11 +1558,11 @@ impl P2bCore {
         //        }
         //    }
         //
-        let mut result: Value = self.safe_value_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_value_k(response, "result", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut deals: Value = self.safe_list_k(result.clone(), "deals", &[Value::List(vec![])]);
+        let mut deals: Value = self.safe_list_k(result, "deals", &[Value::List(vec![])]);
         return self.parse_trades(deals.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1655,7 +1655,7 @@ impl P2bCore {
         //        }
         //    }
         //
-        let mut result: Value = self.safe_value_k(response.clone(), "result", &[]);
+        let mut result: Value = self.safe_value_k(response, "result", &[]);
         let mut orders: Value = Value::List(vec![]);
         let mut keys: Value = object_keys(&result);
         {

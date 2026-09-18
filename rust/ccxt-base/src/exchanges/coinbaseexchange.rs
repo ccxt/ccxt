@@ -1158,7 +1158,7 @@ impl CoinbaseexchangeCore {
         m.insert("deposit".to_string(), Value::Null);
         m.insert("withdraw".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
-        m.insert("precision".to_string(), self.safe_number_k(rawCurrency.clone(), "max_precision", &[]));
+        m.insert("precision".to_string(), self.safe_number_k(rawCurrency, "max_precision", &[]));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Map({
@@ -1170,7 +1170,7 @@ impl CoinbaseexchangeCore {
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), self.safe_number_k(details.clone(), "min_withdrawal_amount", &[]));
-        m.insert("max".to_string(), self.safe_number_k(details.clone(), "max_withdrawal_amount", &[]));
+        m.insert("max".to_string(), self.safe_number_k(details, "max_withdrawal_amount", &[]));
     m
 }));
     m
@@ -2901,7 +2901,7 @@ impl CoinbaseexchangeCore {
             return Value::Str("canceled".to_string());
         }
         let mut processed: Value = self.safe_value_k(transaction.clone(), "processed_at", &[]);
-        let mut completed: Value = self.safe_value_k(transaction.clone(), "completed_at", &[]);
+        let mut completed: Value = self.safe_value_k(transaction, "completed_at", &[]);
         if is_true(&(Value::Bool(completed != Value::Null))) && is_true(&(Value::Bool(completed != Value::Null))) {
             return Value::Str("ok".to_string());
         }  else if is_true(&(Value::Bool(processed != Value::Null))) && is_true(&(Value::Bool(processed != Value::Null))) {

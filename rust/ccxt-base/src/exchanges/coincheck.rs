@@ -724,7 +724,7 @@ impl CoincheckCore {
             market = self.market(symbol.clone());
         }
         let mut response: Value = self.private_get_exchange_orders_opens(&[params.clone()]).await;
-        let mut rawOrders: Value = self.safe_value_k(response.clone(), "orders", &[Value::List(vec![])]);
+        let mut rawOrders: Value = self.safe_value_k(response, "orders", &[Value::List(vec![])]);
         let mut parsedOrders: Value = self.parse_orders(rawOrders.clone(), &[market.clone(), since.clone(), limit.clone()]);
         let mut result: Value = Value::List(vec![]);
         {
@@ -1051,7 +1051,7 @@ impl CoincheckCore {
         //                  ]
         //      }
         //
-        let mut transactions: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut transactions: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         return self.parse_trades(transactions.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1099,7 +1099,7 @@ impl CoincheckCore {
         //          "created_at": "2021-12-08T14:10:33.000Z"
         //      }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         return self.parse_trades(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1141,7 +1141,7 @@ impl CoincheckCore {
         //         }
         //     }
         //
-        let mut fees: Value = self.safe_value_k(response.clone(), "exchange_fees", &[Value::Map({
+        let mut fees: Value = self.safe_value_k(response, "exchange_fees", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1169,7 +1169,7 @@ impl CoincheckCore {
         m.insert("info".to_string(), fee.clone());
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("maker".to_string(), self.safe_number_k(fee.clone(), "maker_fee", &[]));
-        m.insert("taker".to_string(), self.safe_number_k(fee.clone(), "taker_fee", &[]));
+        m.insert("taker".to_string(), self.safe_number_k(fee, "taker_fee", &[]));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(false));
     m
@@ -1326,7 +1326,7 @@ impl CoincheckCore {
         //     }
         //   ]
         // }
-        let mut data: Value = self.safe_list_k(response.clone(), "deposits", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "deposits", &[Value::List(vec![])]);
         return self.parse_transactions(data.clone(), &[currency.clone(), since.clone(), limit.clone(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("deposit".to_string()));
@@ -1392,7 +1392,7 @@ impl CoincheckCore {
         //     }
         //   ]
         // }
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         return self.parse_transactions(data.clone(), &[currency.clone(), since.clone(), limit.clone(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("withdrawal".to_string()));

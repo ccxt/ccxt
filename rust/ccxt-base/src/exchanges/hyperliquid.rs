@@ -909,7 +909,7 @@ impl HyperliquidCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut types: Value = self.safe_list_k(options.clone(), "types", &[Value::List(vec![])]);
+        let mut types: Value = self.safe_list_k(options, "types", &[Value::List(vec![])]);
         let mut rawPromises: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -1074,7 +1074,7 @@ impl HyperliquidCore {
     m
 })]);
             let mut collateralToken: Value = self.safe_string_k(meta.clone(), "collateralToken", &[]);
-            let mut universe: Value = self.safe_list_k(meta.clone(), "universe", &[Value::List(vec![])]);
+            let mut universe: Value = self.safe_list_k(meta, "universe", &[Value::List(vec![])]);
             let mut assetCtxs: Value = self.safe_list(response.clone(), Value::Int(1), &[Value::List(vec![])]);
             let mut result: Value = Value::List(vec![]);
             {
@@ -1179,7 +1179,7 @@ impl HyperliquidCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut universe: Value = self.safe_list_k(meta.clone(), "universe", &[Value::List(vec![])]);
+        let mut universe: Value = self.safe_list_k(meta, "universe", &[Value::List(vec![])]);
         let mut assetCtxs: Value = self.safe_list(response.clone(), Value::Int(1), &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
@@ -1324,7 +1324,7 @@ impl HyperliquidCore {
 })]);
         let mut second: Value = self.safe_list(response.clone(), Value::Int(1), &[Value::List(vec![])]);
         let mut meta: Value = self.safe_list_k(first.clone(), "universe", &[Value::List(vec![])]);
-        let mut tokens: Value = self.safe_list_k(first.clone(), "tokens", &[Value::List(vec![])]);
+        let mut tokens: Value = self.safe_list_k(first, "tokens", &[Value::List(vec![])]);
         let mut markets: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -1352,7 +1352,7 @@ impl HyperliquidCore {
     m
 })]);
             let mut taker: Value = self.safe_number_k(fees.clone(), "taker", &[]);
-            let mut maker: Value = self.safe_number_k(fees.clone(), "maker", &[]);
+            let mut maker: Value = self.safe_number_k(fees, "maker", &[]);
             let mut tokensPos: Value = self.safe_list_k(market.clone(), "tokens", &[Value::List(vec![])]);
             let mut baseTokenPos: Value = self.safe_integer(tokensPos.clone(), Value::Int(0), &[]);
             let mut quoteTokenPos: Value = self.safe_integer(tokensPos.clone(), Value::Int(1), &[]);
@@ -1379,7 +1379,7 @@ impl HyperliquidCore {
             let mut mappedBase: Value = self.safe_currency_code(mappedBaseName.clone(), &[]);
             let mut mappedQuote: Value = self.safe_currency_code(mappedQuoteId.clone(), &[]);
             let mut mappedSymbol: Value = add(&add(&mappedBase, &Value::Str("/".to_string())), &mappedQuote);
-            let mut innerBaseTokenInfo: Value = self.safe_dict_k(baseTokenInfo.clone(), "spec", &[baseTokenInfo.clone()]);
+            let mut innerBaseTokenInfo: Value = self.safe_dict_k(baseTokenInfo, "spec", &[baseTokenInfo.clone()]);
             // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
             let mut amountPrecisionStr: Value = self.safe_string_k(innerBaseTokenInfo.clone(), "szDecimals", &[]);
             let mut amountPrecision: Value = crate::runtime::parse_int(&amountPrecisionStr);
@@ -1513,7 +1513,7 @@ impl HyperliquidCore {
     m
 })]);
         let mut taker: Value = self.safe_number_k(fees.clone(), "taker", &[]);
-        let mut maker: Value = self.safe_number_k(fees.clone(), "maker", &[]);
+        let mut maker: Value = self.safe_number_k(fees, "maker", &[]);
         let mut amountPrecisionStr: Value = self.safe_string_k(market.clone(), "szDecimals", &[]);
         let mut amountPrecision: Value = crate::runtime::parse_int(&amountPrecisionStr);
         let mut price: Value = self.safe_number_k(market.clone(), "markPx", &[Value::Int(0)]);
@@ -1724,7 +1724,7 @@ impl HyperliquidCore {
         if is_true(&(Value::Bool(marginMode != Value::Null))) && is_true(&(Value::Bool(marginMode.as_str() == Some("isolated")))) {
             add_element_to_object(&mut usdcBalance, &Value::Str("free".to_string()), self.safe_number_k(response.clone(), "withdrawable", &[]));
         }  else {
-            add_element_to_object(&mut usdcBalance, &Value::Str("used".to_string()), self.safe_number_k(data.clone(), "totalMarginUsed", &[]));
+            add_element_to_object(&mut usdcBalance, &Value::Str("used".to_string()), self.safe_number_k(data, "totalMarginUsed", &[]));
         }
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1956,7 +1956,7 @@ impl HyperliquidCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut universe: Value = self.safe_list_k(meta.clone(), "universe", &[Value::List(vec![])]);
+        let mut universe: Value = self.safe_list_k(meta, "universe", &[Value::List(vec![])]);
         let mut assetCtxs: Value = self.safe_list(response.clone(), Value::Int(1), &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
@@ -2158,7 +2158,7 @@ impl HyperliquidCore {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.safe_integer_k(ohlcv.clone(), "t", &[]), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number_k(ohlcv.clone(), "v", &[])]);
+        return Value::List(vec![self.safe_integer_k(ohlcv.clone(), "t", &[]), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number_k(ohlcv, "v", &[])]);
 
     Value::Null
 }
@@ -3026,11 +3026,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut data: Value = self.safe_dict_k(responseObj.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(responseObj, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut status: Value = self.safe_dict_k(data.clone(), "status", &[Value::Map({
+        let mut status: Value = self.safe_dict_k(data, "status", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3090,11 +3090,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut data: Value = self.safe_dict_k(responseObj.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(responseObj, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut statuses: Value = self.safe_list_k(data.clone(), "statuses", &[Value::List(vec![])]);
+        let mut statuses: Value = self.safe_list_k(data, "statuses", &[Value::List(vec![])]);
         let mut ordersToBeParsed: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -3274,7 +3274,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut side: Value = self.safe_string_upper(rawOrder.clone(), Value::Str("side".to_string()), &[]);
             let mut amount: Value = self.safe_string_k(rawOrder.clone(), "amount", &[]);
             let mut price: Value = self.safe_string_k(rawOrder.clone(), "price", &[]);
-            let mut orderParams: Value = self.safe_dict_k(rawOrder.clone(), "params", &[Value::Map({
+            let mut orderParams: Value = self.safe_dict_k(rawOrder, "params", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3452,8 +3452,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //     }
         //
         let mut innerResponse: Value = self.safe_dict_k(response.clone(), "response", &[]);
-        let mut data: Value = self.safe_dict_k(innerResponse.clone(), "data", &[]);
-        let mut statuses: Value = self.safe_list_k(data.clone(), "statuses", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_dict_k(innerResponse, "data", &[]);
+        let mut statuses: Value = self.safe_list_k(data, "statuses", &[Value::List(vec![])]);
         let mut orders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -3543,7 +3543,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut data: Value = self.safe_dict_k(responseObj.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(responseObj, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3837,7 +3837,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut isBuy: Value = (Value::Bool(side.as_str() == Some("BUY")));
             let mut amount: Value = self.safe_string_k(rawOrder.clone(), "amount", &[]);
             let mut price: Value = self.safe_string_k(rawOrder.clone(), "price", &[]);
-            let mut orderParams: Value = self.safe_dict_k(rawOrder.clone(), "params", &[Value::Map({
+            let mut orderParams: Value = self.safe_dict_k(rawOrder, "params", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -4045,11 +4045,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut dataObject: Value = self.safe_dict_k(responseObject.clone(), "data", &[Value::Map({
+        let mut dataObject: Value = self.safe_dict_k(responseObject, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut statuses: Value = self.safe_list_k(dataObject.clone(), "statuses", &[Value::List(vec![])]);
+        let mut statuses: Value = self.safe_list_k(dataObject, "statuses", &[Value::List(vec![])]);
         return self.parse_orders(statuses.clone(), &[]);
 
     Value::Null
@@ -4172,7 +4172,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), entry.clone());
                     m.insert("symbol".to_string(), self.safe_symbol(Value::Null, &[market.clone()]));
-                    m.insert("fundingRate".to_string(), self.safe_number_k(entry.clone(), "fundingRate", &[]));
+                    m.insert("fundingRate".to_string(), self.safe_number_k(entry, "fundingRate", &[]));
                     m.insert("timestamp".to_string(), timestamp.clone());
                     m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
                 m
@@ -5144,14 +5144,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("entryPrice".to_string(), self.safe_number_k(entry.clone(), "entryPx", &[]));
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("notional".to_string(), self.safe_number_k(entry.clone(), "positionValue", &[]));
-        m.insert("leverage".to_string(), self.safe_number_k(leverage.clone(), "value", &[]));
+        m.insert("leverage".to_string(), self.safe_number_k(leverage, "value", &[]));
         m.insert("collateral".to_string(), self.parse_number(marginUsed.clone(), &[]));
         m.insert("initialMargin".to_string(), self.parse_number(initialMargin.clone(), &[]));
         m.insert("maintenanceMargin".to_string(), Value::Null);
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
         m.insert("unrealizedPnl".to_string(), self.parse_number(rawUnrealizedPnl.clone(), &[]));
-        m.insert("liquidationPrice".to_string(), self.safe_number_k(entry.clone(), "liquidationPx", &[]));
+        m.insert("liquidationPrice".to_string(), self.safe_number_k(entry, "liquidationPx", &[]));
         m.insert("marginMode".to_string(), marginMode.clone());
         m.insert("percentage".to_string(), self.parse_number(percentage.clone(), &[]));
     m
@@ -5512,7 +5512,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" transfer() requires a currency code for spot sub-account transfers".to_string())))));
             }
             let mut currency: Value = self.currency(code.clone());
-            let mut currencyInfo: Value = self.safe_dict_k(currency.clone(), "info", &[Value::Map({
+            let mut currencyInfo: Value = self.safe_dict_k(currency, "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -5699,7 +5699,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("tagTo".to_string(), Value::Null);
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Null);
-        m.insert("amount".to_string(), self.safe_number_k(delta.clone(), "usdc", &[]));
+        m.insert("amount".to_string(), self.safe_number_k(delta, "usdc", &[]));
         m.insert("currency".to_string(), Value::Null);
         m.insert("status".to_string(), self.safe_string_k(transaction.clone(), "status", &[]));
         m.insert("updated".to_string(), Value::Null);
@@ -5830,7 +5830,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("info".to_string(), fee.clone());
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("maker".to_string(), self.safe_number_k(fee.clone(), "userAddRate", &[]));
-        m.insert("taker".to_string(), self.safe_number_k(fee.clone(), "userCrossRate", &[]));
+        m.insert("taker".to_string(), self.safe_number_k(fee, "userCrossRate", &[]));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("tierBased".to_string(), Value::Null);
     m
@@ -6493,7 +6493,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut data: Value = self.safe_dict_k(responsePayload.clone(), "data", &[Value::Map({
+            let mut data: Value = self.safe_dict_k(responsePayload, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -6509,7 +6509,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             }
             if is_true(&Value::Bool(in_op(&data, &Value::Str("status".to_string())))) {
-                let mut errorStatus: Value = self.safe_dict_k(data.clone(), "status", &[Value::Map({
+                let mut errorStatus: Value = self.safe_dict_k(data, "status", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -6575,7 +6575,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 return get_value(&byType, &type_var);
             }
         }
-        return self.safe_value_k(config.clone(), "cost", &[Value::Int(1)]);
+        return self.safe_value_k(config, "cost", &[Value::Int(1)]);
 
     Value::Null
 }

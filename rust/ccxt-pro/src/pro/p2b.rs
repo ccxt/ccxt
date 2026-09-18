@@ -754,7 +754,7 @@ impl P2bCore {
         let mut isFullUpdate: Value = self.safe_bool(params.clone(), Value::Int(0), &[Value::Bool(false)]);
         let mut data: Value = self.safe_dict(params.clone(), Value::Int(1), &[]);
         let mut asks: Value = self.safe_list_k(data.clone(), "asks", &[]);
-        let mut bids: Value = self.safe_list_k(data.clone(), "bids", &[]);
+        let mut bids: Value = self.safe_list_k(data, "bids", &[]);
         let mut marketId: Value = self.safe_string(params.clone(), Value::Int(2), &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);

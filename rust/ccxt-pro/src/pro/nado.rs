@@ -1467,11 +1467,11 @@ impl NadoCore {
         //         "id": 100
         //     }
         //
-        let mut cancelAndPlace: Value = self.safe_dict_k(request.clone(), "cancel_and_place", &[Value::Map({
+        let mut cancelAndPlace: Value = self.safe_dict_k(request, "cancel_and_place", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut placeOrder: Value = self.safe_dict_k(cancelAndPlace.clone(), "place_order", &[Value::Map({
+        let mut placeOrder: Value = self.safe_dict_k(cancelAndPlace, "place_order", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1564,11 +1564,11 @@ impl NadoCore {
         //         "id": 100
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut cancelledOrders: Value = self.safe_list_k(data.clone(), "cancelled_orders", &[Value::List(vec![])]);
+        let mut cancelledOrders: Value = self.safe_list_k(data, "cancelled_orders", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -1627,11 +1627,11 @@ impl NadoCore {
         }
         let mut request: Value = self.parent.cancel_all_orders_request(&[symbol.clone(), params.clone()]).await;
         let mut response: Value = self.watch_execute_request(requestIdString.clone(), request.clone()).await;
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut cancelledOrders: Value = self.safe_list_k(data.clone(), "cancelled_orders", &[Value::List(vec![])]);
+        let mut cancelledOrders: Value = self.safe_list_k(data, "cancelled_orders", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -2312,7 +2312,7 @@ impl NadoCore {
         m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
-        m.insert("isolated".to_string(), self.safe_bool_k(position.clone(), "isolated", &[]));
+        m.insert("isolated".to_string(), self.safe_bool_k(position, "isolated", &[]));
         m.insert("hedged".to_string(), Value::Bool(false));
         m.insert("side".to_string(), side.clone());
         m.insert("contracts".to_string(), contracts.clone());
@@ -2432,7 +2432,7 @@ impl NadoCore {
         //     }
         //
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "time", &[]);
-        let mut bbos: Value = self.safe_dict_k(message.clone(), "bbos", &[Value::Map({
+        let mut bbos: Value = self.safe_dict_k(message, "bbos", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);

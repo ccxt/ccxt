@@ -805,7 +805,7 @@ impl CoinbaseCore {
             while { if !__for_first_256 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_256 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(events.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut tickersObj: Value = get_value(&events, &i);
             let mut tickersObj: Value = get_value(&events, &i);
-            let mut tickers: Value = self.safe_list_k(tickersObj.clone(), "tickers", &[Value::List(vec![])]);
+            let mut tickers: Value = self.safe_list_k(tickersObj, "tickers", &[Value::List(vec![])]);
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_255: bool = true;
@@ -1153,12 +1153,12 @@ impl CoinbaseCore {
         //        ]
         //    }
         //
-        let mut events: Value = self.safe_list_k(message.clone(), "events", &[]);
+        let mut events: Value = self.safe_list_k(message, "events", &[]);
         if (events == Value::Null) {
             return;
         }
         let mut event: Value = self.safe_value(events.clone(), Value::Int(0), &[]);
-        let mut trades: Value = self.safe_list_k(event.clone(), "trades", &[]);
+        let mut trades: Value = self.safe_list_k(event, "trades", &[]);
         let mut trade: Value = self.safe_dict(trades.clone(), Value::Int(0), &[]);
         let mut marketId: Value = self.safe_string_k(trade.clone(), "product_id", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
@@ -1175,7 +1175,7 @@ impl CoinbaseCore {
             while { if !__for_first_258 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_258 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(events.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut currentEvent: Value = get_value(&events, &i);
             let mut currentEvent: Value = get_value(&events, &i);
-            let mut currentTrades: Value = self.safe_list_k(currentEvent.clone(), "trades", &[]);
+            let mut currentTrades: Value = self.safe_list_k(currentEvent, "trades", &[]);
             if (currentTrades == Value::Null) {
                 continue;
             }
@@ -1224,7 +1224,7 @@ impl CoinbaseCore {
         //        ]
         //    }
         //
-        let mut events: Value = self.safe_list_k(message.clone(), "events", &[]);
+        let mut events: Value = self.safe_list_k(message, "events", &[]);
         if (events == Value::Null) {
             return;
         }
@@ -1239,7 +1239,7 @@ impl CoinbaseCore {
             while { if !__for_first_260 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_260 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(events.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut event: Value = get_value(&events, &i);
             let mut event: Value = get_value(&events, &i);
-            let mut responseOrders: Value = self.safe_list_k(event.clone(), "orders", &[]);
+            let mut responseOrders: Value = self.safe_list_k(event, "orders", &[]);
             if (responseOrders == Value::Null) {
                 continue;
             }
@@ -1345,7 +1345,7 @@ impl CoinbaseCore {
             let mut sideId: Value = self.safe_string_k(trade.clone(), "side", &[]);
             let mut side: Value = self.safe_string(self.options.as_map().and_then(|__m| __m.get("sides")).cloned().unwrap_or(Value::Null), sideId.clone(), &[]);
             let mut price: Value = self.safe_number_k(trade.clone(), "price_level", &[]);
-            let mut amount: Value = self.safe_number_k(trade.clone(), "new_quantity", &[]);
+            let mut amount: Value = self.safe_number_k(trade, "new_quantity", &[]);
             let mut orderbookSide: Value = self.safe_value(orderbook.clone(), side.clone(), &[]);
             orderbookSide.store(price.clone(), amount.clone());
         }

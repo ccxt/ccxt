@@ -569,7 +569,7 @@ impl CexCore {
 }
 
     pub fn handle_trades_inner(&mut self, mut client: Value, mut message: Value) {
-        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message, "data", &[Value::List(vec![])]);
         let mut symbol: Value = self.safe_string(self.options.as_map().and_then(|__m| __m.get("watchTrades")).cloned().unwrap_or(Value::Null), Value::Str("symbol".to_string()), &[]);
         if (symbol == Value::Null) {
             return;
@@ -1005,7 +1005,7 @@ impl CexCore {
         //             "id": "59091012962"
         //         }
         //     }
-        let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_value_k(message, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1375,7 +1375,7 @@ impl CexCore {
         //     }
         //
         let mut symbol: Value = self.safe_string_k(message.clone(), "oid", &[]); // symbol is set as requestId in watchOrders
-        let mut rawOrders: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut rawOrders: Value = self.safe_list_k(message, "data", &[Value::List(vec![])]);
         let mut myOrders: Value = self.orders.clone();
         if is_equal(&myOrders, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
@@ -1469,7 +1469,7 @@ impl CexCore {
         //         "ok": "ok"
         //     }
         //
-        let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_value_k(message, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1537,7 +1537,7 @@ impl CexCore {
         }
         let mut timestamp: Value = self.safe_integer_k(data.clone(), "time", &[]);
         let mut asks: Value = self.safe_value_k(data.clone(), "asks", &[Value::List(vec![])]);
-        let mut bids: Value = self.safe_value_k(data.clone(), "bids", &[Value::List(vec![])]);
+        let mut bids: Value = self.safe_value_k(data, "bids", &[Value::List(vec![])]);
         self.handle_deltas(crate::value::get_value_k(&storedOrderBook, "asks"), asks.clone());
         self.handle_deltas(crate::value::get_value_k(&storedOrderBook, "bids"), bids.clone());
         add_element_to_object(&mut storedOrderBook, &Value::Str("timestamp".to_string()), timestamp.clone());
@@ -1635,7 +1635,7 @@ impl CexCore {
         let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
         let mut market: Value = self.safe_market(&[symbol.clone()]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ohlcv:".to_string()), symbol));
-        let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_value_k(message, "data", &[Value::List(vec![])]);
         let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
         let mut stored = ArrayCacheByTimestamp::new(limit.clone());
         let mut sorted: Value = self.sort_by(data.clone(), Value::Int(0), &[]);
@@ -1678,14 +1678,14 @@ impl CexCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_value_k(message, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
         let mut pair: Value = self.safe_string_k(data.clone(), "pair", &[]);
         let mut symbol: Value = self.pair_to_symbol(pair.clone());
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ohlcv:".to_string()), symbol));
-        let mut ohlcv: Value = Value::List(vec![self.safe_timestamp(data.clone(), Value::Str("time".to_string()), &[]), self.safe_number_k(data.clone(), "o", &[]), self.safe_number_k(data.clone(), "h", &[]), self.safe_number_k(data.clone(), "l", &[]), self.safe_number_k(data.clone(), "c", &[]), self.safe_number_k(data.clone(), "v", &[])]);
+        let mut ohlcv: Value = Value::List(vec![self.safe_timestamp(data.clone(), Value::Str("time".to_string()), &[]), self.safe_number_k(data.clone(), "o", &[]), self.safe_number_k(data.clone(), "h", &[]), self.safe_number_k(data.clone(), "l", &[]), self.safe_number_k(data.clone(), "c", &[]), self.safe_number_k(data, "v", &[])]);
         let mut stored: Value = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[]);
         stored.append(ohlcv.clone());
         client.resolve(&[stored.clone(), messageHash.clone()]);
@@ -2011,7 +2011,7 @@ impl CexCore {
         //        "placed-cancelled": []
         //    }
         //
-        let mut canceledOrders: Value = self.safe_value_k(response.clone(), "cancel-orders", &[]);
+        let mut canceledOrders: Value = self.safe_value_k(response, "cancel-orders", &[]);
         return self.parse_orders(canceledOrders.clone(), &[Value::Null, Value::Null, Value::Null, params.clone()]);
 
     Value::Null

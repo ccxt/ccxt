@@ -754,7 +754,7 @@ impl CoinoneCore {
         //         ]
         //     }
         //
-        let mut currencies: Value = self.safe_list_k(response.clone(), "currencies", &[Value::List(vec![])]);
+        let mut currencies: Value = self.safe_list_k(response, "currencies", &[Value::List(vec![])]);
         return self.parse_currencies(currencies.clone());
 
     Value::Null
@@ -787,7 +787,7 @@ impl CoinoneCore {
 }));
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(rawCurrency.clone(), "withdrawal_min_amount", &[]));
+        m.insert("min".to_string(), self.safe_number_k(rawCurrency, "withdrawal_min_amount", &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
@@ -856,7 +856,7 @@ impl CoinoneCore {
         //         ]
         //     }
         //
-        let mut tickers: Value = self.safe_list_k(response.clone(), "tickers", &[Value::List(vec![])]);
+        let mut tickers: Value = self.safe_list_k(response, "tickers", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -1122,7 +1122,7 @@ impl CoinoneCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "tickers", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "tickers", &[Value::List(vec![])]);
         return self.parse_tickers(data.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -1187,7 +1187,7 @@ impl CoinoneCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "tickers", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "tickers", &[Value::List(vec![])]);
         let mut ticker: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1383,7 +1383,7 @@ impl CoinoneCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "transactions", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "transactions", &[Value::List(vec![])]);
         return self.parse_trades(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1728,7 +1728,7 @@ impl CoinoneCore {
         //         ]
         //     }
         //
-        let mut completeOrders: Value = self.safe_list_k(response.clone(), "completeOrders", &[Value::List(vec![])]);
+        let mut completeOrders: Value = self.safe_list_k(response, "completeOrders", &[Value::List(vec![])]);
         return self.parse_trades(completeOrders.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1809,7 +1809,7 @@ impl CoinoneCore {
         //         }
         //     }
         //
-        let mut walletAddress: Value = self.safe_dict_k(response.clone(), "walletAddress", &[Value::Map({
+        let mut walletAddress: Value = self.safe_dict_k(response, "walletAddress", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);

@@ -304,7 +304,7 @@ impl NdaxCore {
 }
 
     pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) {
-        let mut payload: Value = self.safe_value_k(message.clone(), "o", &[Value::Map({
+        let mut payload: Value = self.safe_value_k(message, "o", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -398,7 +398,7 @@ impl NdaxCore {
 }
 
     pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
-        let mut payload: Value = self.safe_list_k(message.clone(), "o", &[Value::List(vec![])]);
+        let mut payload: Value = self.safe_list_k(message, "o", &[Value::List(vec![])]);
         //
         // initial snapshot
         //
@@ -523,7 +523,7 @@ impl NdaxCore {
         //         "o": [[1608284160000,23113.52,23070.88,23075.76,23075.39,162.44964300,23075.38,23075.39,8,1608284100000]],
         //     }
         //
-        let mut payload: Value = self.safe_list_k(message.clone(), "o", &[Value::List(vec![])]);
+        let mut payload: Value = self.safe_list_k(message, "o", &[Value::List(vec![])]);
         //
         //     [
         //         [
@@ -712,7 +712,7 @@ impl NdaxCore {
         //         "o": [[2,1,1608208308265,0,20782.49,1,25000,8,1,1]]
         //     }
         //
-        let mut payload: Value = self.safe_list_k(message.clone(), "o", &[Value::List(vec![])]);
+        let mut payload: Value = self.safe_list_k(message, "o", &[Value::List(vec![])]);
         //
         //     [
         //         0,   // 0 MDUpdateId
@@ -797,7 +797,7 @@ impl NdaxCore {
         //         "o": [[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]
         //     }
         //
-        let mut payload: Value = self.safe_value_k(message.clone(), "o", &[Value::List(vec![])]);
+        let mut payload: Value = self.safe_value_k(message, "o", &[Value::List(vec![])]);
         //
         //     [
         //         [

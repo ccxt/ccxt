@@ -1306,7 +1306,7 @@ impl DeriveCore {
         //     "id": "7e07fe1d-0ab4-4d2b-9e22-b65ce9e232dc"
         // }
         //
-        let mut currencies: Value = self.safe_list_k(tokenResponse.clone(), "result", &[Value::List(vec![])]);
+        let mut currencies: Value = self.safe_list_k(tokenResponse, "result", &[Value::List(vec![])]);
         return self.parse_currencies(currencies.clone());
 
     Value::Null
@@ -1434,11 +1434,11 @@ impl DeriveCore {
         });
         let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.public_post_get_all_instruments(&[__ws_arg_0]).await;
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut data: Value = self.safe_list_k(result.clone(), "instruments", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(result, "instruments", &[Value::List(vec![])]);
         return self.parse_markets(data.clone());
 
     Value::Null
@@ -1457,11 +1457,11 @@ impl DeriveCore {
         });
         let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.public_post_get_all_instruments(&[__ws_arg_1]).await;
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut data: Value = self.safe_list_k(result.clone(), "instruments", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(result, "instruments", &[Value::List(vec![])]);
         return self.parse_markets(data.clone());
 
     Value::Null
@@ -1480,11 +1480,11 @@ impl DeriveCore {
         });
         let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.public_post_get_all_instruments(&[__ws_arg_2]).await;
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut data: Value = self.safe_list_k(result.clone(), "instruments", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(result, "instruments", &[Value::List(vec![])]);
         return self.parse_markets(data.clone());
 
     Value::Null
@@ -1698,7 +1698,7 @@ impl DeriveCore {
         //     "id": "bbd7c271-c2be-48f7-b93a-26cf6d4cb79f"
         // }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1878,11 +1878,11 @@ impl DeriveCore {
         //     "id": "b8539544-6975-4497-8163-5e51a38e4aa7"
         // }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut data: Value = self.safe_list_k(result.clone(), "trades", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(result, "trades", &[Value::List(vec![])]);
         return self.parse_trades(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2034,11 +2034,11 @@ impl DeriveCore {
         //     "id": "3200ab8d-0080-42f0-8517-c13e3d9201d8"
         // }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut data: Value = self.safe_list_k(result.clone(), "funding_rate_history", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(result, "funding_rate_history", &[Value::List(vec![])]);
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -2051,7 +2051,7 @@ impl DeriveCore {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), entry.clone());
                     m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
-                    m.insert("fundingRate".to_string(), self.safe_number_k(entry.clone(), "funding_rate", &[]));
+                    m.insert("fundingRate".to_string(), self.safe_number_k(entry, "funding_rate", &[]));
                     m.insert("timestamp".to_string(), timestamp.clone());
                     m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
                 m
@@ -2113,7 +2113,7 @@ impl DeriveCore {
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
-        m.insert("fundingRate".to_string(), self.safe_number_k(contract.clone(), "fundingRate", &[]));
+        m.insert("fundingRate".to_string(), self.safe_number_k(contract, "fundingRate", &[]));
         m.insert("fundingTimestamp".to_string(), fundingTimestamp.clone());
         m.insert("fundingDatetime".to_string(), self.iso8601(fundingTimestamp.clone()));
         m.insert("nextFundingRate".to_string(), Value::Null);
@@ -2363,10 +2363,10 @@ impl DeriveCore {
         //     "id": "397087fa-0125-42af-bfc3-f66166f9fb55"
         // }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[]);
+        let mut result: Value = self.safe_dict_k(response, "result", &[]);
         let mut rawOrder: Value = self.safe_dict_k(result.clone(), "raw_data", &[]);
         if (rawOrder == Value::Null) {
-            rawOrder = self.safe_dict_k(result.clone(), "order", &[Value::Map({
+            rawOrder = self.safe_dict_k(result, "order", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2533,8 +2533,8 @@ impl DeriveCore {
         //     "id": "fb19e991-15f6-4c80-a20c-917e762a1a38",
         //   }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[]);
-        let mut rawOrder: Value = self.safe_dict_k(result.clone(), "order", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[]);
+        let mut rawOrder: Value = self.safe_dict_k(result, "order", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2646,7 +2646,7 @@ impl DeriveCore {
                 m.insert("symbol".to_string(), symbol.clone());
             m
         });
-        let mut order: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut order: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2807,7 +2807,7 @@ impl DeriveCore {
         //     "id": "e5a88d4f-7ac7-40cd-aec9-e0e8152b8b92"
         // }
         //
-        let mut data: Value = self.safe_value_k(response.clone(), "result", &[]);
+        let mut data: Value = self.safe_value_k(response, "result", &[]);
         let mut page: Value = self.safe_integer_k(params.clone(), "page", &[]);
         if (page != Value::Null) {
             let mut pagination: Value = self.safe_dict_k(data.clone(), "pagination", &[]);
@@ -2816,7 +2816,7 @@ impl DeriveCore {
                 return Value::List(vec![]);
             }
         }
-        let mut orders: Value = self.safe_list_k(data.clone(), "orders", &[Value::List(vec![])]);
+        let mut orders: Value = self.safe_list_k(data, "orders", &[Value::List(vec![])]);
         return self.parse_orders(orders.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -3166,11 +3166,11 @@ impl DeriveCore {
         //     "id": "a16f798c-a121-44e2-b77e-c38a063f8a99"
         // }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut trades: Value = self.safe_list_k(result.clone(), "trades", &[Value::List(vec![])]);
+        let mut trades: Value = self.safe_list_k(result, "trades", &[Value::List(vec![])]);
         return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone(), params.clone()]);
 
     Value::Null
@@ -3261,7 +3261,7 @@ impl DeriveCore {
         //     "id": "a16f798c-a121-44e2-b77e-c38a063f8a99"
         // }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3273,7 +3273,7 @@ impl DeriveCore {
                 return Value::List(vec![]);
             }
         }
-        let mut trades: Value = self.safe_list_k(result.clone(), "trades", &[Value::List(vec![])]);
+        let mut trades: Value = self.safe_list_k(result, "trades", &[Value::List(vec![])]);
         return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone(), params.clone()]);
 
     Value::Null
@@ -3346,11 +3346,11 @@ impl DeriveCore {
         //     "id": "167350f1-d9fc-41d4-9797-1c78f83fda8e"
         // }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut positions: Value = self.safe_list_k(result.clone(), "positions", &[Value::List(vec![])]);
+        let mut positions: Value = self.safe_list_k(result, "positions", &[Value::List(vec![])]);
         return self.parse_positions(positions.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -3422,7 +3422,7 @@ impl DeriveCore {
         m.insert("contracts".to_string(), self.parse_number(size.clone(), &[]));
         m.insert("contractSize".to_string(), self.parse_number(contractSize.clone(), &[]));
         m.insert("marginRatio".to_string(), Value::Null);
-        m.insert("liquidationPrice".to_string(), self.safe_number_k(position.clone(), "liquidation_price", &[]));
+        m.insert("liquidationPrice".to_string(), self.safe_number_k(position, "liquidation_price", &[]));
         m.insert("markPrice".to_string(), self.parse_number(markPrice.clone(), &[]));
         m.insert("lastPrice".to_string(), Value::Null);
         m.insert("collateral".to_string(), Value::Null);
@@ -3517,7 +3517,7 @@ impl DeriveCore {
         //     "id": "524b817f-2108-467f-8795-511066f4acec"
         // }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3529,7 +3529,7 @@ impl DeriveCore {
                 return Value::List(vec![]);
             }
         }
-        let mut events: Value = self.safe_list_k(result.clone(), "events", &[Value::List(vec![])]);
+        let mut events: Value = self.safe_list_k(result, "events", &[Value::List(vec![])]);
         return self.parse_incomes(events.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -3639,7 +3639,7 @@ impl DeriveCore {
         //     "id": "27b9a64e-3379-4ce6-a126-9fb941c4a970"
         // }
         //
-        let mut result: Value = self.safe_list_k(response.clone(), "result", &[]);
+        let mut result: Value = self.safe_list_k(response, "result", &[]);
         return self.parse_balance(result.clone());
 
     Value::Null
@@ -3657,7 +3657,7 @@ impl DeriveCore {
             while { if !__for_first_638 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_638 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut subaccount: Value = get_value(&response, &i);
             let mut subaccount: Value = get_value(&response, &i);
-            let mut collaterals: Value = self.safe_list_k(subaccount.clone(), "collaterals", &[Value::List(vec![])]);
+            let mut collaterals: Value = self.safe_list_k(subaccount, "collaterals", &[Value::List(vec![])]);
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_637: bool = true;
@@ -3739,11 +3739,11 @@ impl DeriveCore {
         // }
         //
         let mut currency: Value = self.safe_currency(code.clone(), &[]);
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut events: Value = self.safe_list_k(result.clone(), "events", &[Value::List(vec![])]);
+        let mut events: Value = self.safe_list_k(result, "events", &[Value::List(vec![])]);
         return self.parse_transactions(events.clone(), &[currency.clone(), since.clone(), limit.clone(), params.clone()]);
 
     Value::Null
@@ -3803,11 +3803,11 @@ impl DeriveCore {
         // }
         //
         let mut currency: Value = self.safe_currency(code.clone(), &[]);
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut events: Value = self.safe_list_k(result.clone(), "events", &[Value::List(vec![])]);
+        let mut events: Value = self.safe_list_k(result, "events", &[Value::List(vec![])]);
         return self.parse_transactions(events.clone(), &[currency.clone(), since.clone(), limit.clone(), params.clone()]);
 
     Value::Null

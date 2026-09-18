@@ -799,7 +799,7 @@ impl LunoCore {
         //         ]
         //     }
         //
-        let mut currenciesData: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut currenciesData: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         let mut grouped: Value = self.group_by(currenciesData.clone(), Value::Str("native_currency".to_string()), &[]);
         let mut values: Value = object_values(&grouped);
         return self.parse_currencies(values.clone());
@@ -923,7 +923,7 @@ impl LunoCore {
         //     }
         //
         let mut result: Value = Value::List(vec![]);
-        let mut markets: Value = self.safe_list_k(response.clone(), "markets", &[Value::List(vec![])]);
+        let mut markets: Value = self.safe_list_k(response, "markets", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_930: bool = true;
@@ -1048,7 +1048,7 @@ impl LunoCore {
     m
 }));
         let mut response: Value = self.private_get_balance(&[params.clone()]).await;
-        let mut wallets: Value = self.safe_list_k(response.clone(), "balance", &[Value::List(vec![])]);
+        let mut wallets: Value = self.safe_list_k(response, "balance", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -1324,7 +1324,7 @@ impl LunoCore {
         }
         let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_get_listorders(&[__ws_arg_3]).await;
-        let mut orders: Value = self.safe_list_k(response.clone(), "orders", &[Value::List(vec![])]);
+        let mut orders: Value = self.safe_list_k(response, "orders", &[Value::List(vec![])]);
         return self.parse_orders(orders.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1465,7 +1465,7 @@ impl LunoCore {
         }
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut response: Value = self.public_get_tickers(&[params.clone()]).await;
-        let mut rawTickers: Value = self.safe_list_k(response.clone(), "tickers", &[Value::List(vec![])]);
+        let mut rawTickers: Value = self.safe_list_k(response, "tickers", &[Value::List(vec![])]);
         let mut tickers: Value = self.index_by(rawTickers.clone(), Value::Str("pair".to_string()));
         let mut ids: Value = object_keys(&tickers);
         let mut result: Value = Value::Map({
@@ -1662,7 +1662,7 @@ impl LunoCore {
         //          ]
         //      }
         //
-        let mut trades: Value = self.safe_list_k(response.clone(), "trades", &[Value::List(vec![])]);
+        let mut trades: Value = self.safe_list_k(response, "trades", &[Value::List(vec![])]);
         return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1722,7 +1722,7 @@ impl LunoCore {
         //          "pair": "XBTEUR"
         //     }
         //
-        let mut ohlcvs: Value = self.safe_list_k(response.clone(), "candles", &[Value::List(vec![])]);
+        let mut ohlcvs: Value = self.safe_list_k(response, "candles", &[Value::List(vec![])]);
         return self.parse_ohlc_vs(ohlcvs.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1730,7 +1730,7 @@ impl LunoCore {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.safe_integer_k(ohlcv.clone(), "timestamp", &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv.clone(), "volume", &[])]);
+        return Value::List(vec![self.safe_integer_k(ohlcv.clone(), "timestamp", &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv, "volume", &[])]);
 
     Value::Null
 }
@@ -1795,7 +1795,7 @@ impl LunoCore {
         //          ]
         //      }
         //
-        let mut trades: Value = self.safe_list_k(response.clone(), "trades", &[Value::List(vec![])]);
+        let mut trades: Value = self.safe_list_k(response, "trades", &[Value::List(vec![])]);
         return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1831,7 +1831,7 @@ impl LunoCore {
         m.insert("info".to_string(), response.clone());
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("maker".to_string(), self.safe_number_k(response.clone(), "maker_fee", &[]));
-        m.insert("taker".to_string(), self.safe_number_k(response.clone(), "taker_fee", &[]));
+        m.insert("taker".to_string(), self.safe_number_k(response, "taker_fee", &[]));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("tierBased".to_string(), Value::Null);
     m
@@ -2030,7 +2030,7 @@ impl LunoCore {
         });
         let __ws_arg_13 = self.extend(params.clone(), &[request.clone()]);
         let mut response: Value = self.private_get_accounts_id_transactions(&[__ws_arg_13]).await;
-        let mut entries: Value = self.safe_value_k(response.clone(), "transactions", &[Value::List(vec![])]);
+        let mut entries: Value = self.safe_value_k(response, "transactions", &[Value::List(vec![])]);
         return self.parse_ledger(entries.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2270,7 +2270,7 @@ impl LunoCore {
         //     }
         //
         let mut result: Value = self.deposit_withdraw_fee(response.clone());
-        add_element_to_object(get_value_mut(&mut result, &Value::Str("withdraw".to_string())), &Value::Str("fee".to_string()), self.safe_number_k(response.clone(), "fee", &[]));
+        add_element_to_object(get_value_mut(&mut result, &Value::Str("withdraw".to_string())), &Value::Str("fee".to_string()), self.safe_number_k(response, "fee", &[]));
         add_element_to_object(get_value_mut(&mut result, &Value::Str("withdraw".to_string())), &Value::Str("percentage".to_string()), Value::Bool(false));
         return self.assign_default_deposit_withdraw_fees(result.clone(), &[currency.clone()]);
 

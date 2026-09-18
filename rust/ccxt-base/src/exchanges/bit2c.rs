@@ -655,7 +655,7 @@ impl Bit2cCore {
         // their full snapshot failed to purge - it is removed here, which also
         // uncrosses the book. rows are positional price and amount pairs
         let mut rawBids: Value = self.safe_list_k(orderbook.clone(), "bids", &[Value::List(vec![])]);
-        let mut rawAsks: Value = self.safe_list_k(orderbook.clone(), "asks", &[Value::List(vec![])]);
+        let mut rawAsks: Value = self.safe_list_k(orderbook, "asks", &[Value::List(vec![])]);
         let mut bids: Value = Value::List(vec![]);
         let mut asks: Value = Value::List(vec![]);
         {
@@ -854,7 +854,7 @@ impl Bit2cCore {
         //         }
         //     }
         //
-        let mut fees: Value = self.safe_dict_k(response.clone(), "Fees", &[Value::Map({
+        let mut fees: Value = self.safe_dict_k(response, "Fees", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1010,7 +1010,7 @@ impl Bit2cCore {
             m
         })]);
         let mut asks: Value = self.safe_value_k(orders.clone(), "ask", &[Value::List(vec![])]);
-        let mut bids: Value = self.safe_list_k(orders.clone(), "bid", &[Value::List(vec![])]);
+        let mut bids: Value = self.safe_list_k(orders, "bid", &[Value::List(vec![])]);
         return self.parse_orders(self.array_concat(asks.clone(), bids.clone()), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null

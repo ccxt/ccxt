@@ -490,7 +490,7 @@ impl GeminiCore {
         //
         let mut marketId: Value = self.safe_string_lower(message.clone(), Value::Str("symbol".to_string()), &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
-        let mut trades: Value = self.safe_value_k(message.clone(), "trades", &[]);
+        let mut trades: Value = self.safe_value_k(message, "trades", &[]);
         if (trades != Value::Null) {
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut tradesLimit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
@@ -1170,7 +1170,7 @@ impl GeminiCore {
         m.insert("cost".to_string(), Value::Null);
         m.insert("amount".to_string(), self.safe_number_k(order.clone(), "original_amount", &[]));
         m.insert("filled".to_string(), self.safe_number_k(order.clone(), "executed_amount", &[]));
-        m.insert("remaining".to_string(), self.safe_number_k(order.clone(), "remaining_amount", &[]));
+        m.insert("remaining".to_string(), self.safe_number_k(order, "remaining_amount", &[]));
         m.insert("fee".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::Null);
     m
@@ -1278,7 +1278,7 @@ impl GeminiCore {
         if (type_var.as_str() == Some("update")) {
             let mut ts: Value = self.safe_integer_k(message.clone(), "timestampms", &[self.milliseconds()]);
             let mut eventId: Value = self.safe_integer_k(message.clone(), "eventId", &[]);
-            let mut events: Value = self.safe_list_k(message.clone(), "events", &[]);
+            let mut events: Value = self.safe_list_k(message, "events", &[]);
             if (events == Value::Null) {
                 return;
             }

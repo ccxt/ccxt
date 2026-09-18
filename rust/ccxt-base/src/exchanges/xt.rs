@@ -1997,7 +1997,7 @@ impl XtCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "result", &[]);
+        let mut data: Value = self.safe_dict_k(response, "result", &[]);
         return self.safe_integer_k(data.clone(), "serverTime", &[]);
 
     Value::Null
@@ -2071,12 +2071,12 @@ impl XtCore {
         //
         // note: individual network's full data is available on per-currency endpoint: https://www.xt.com/sapi/v4/balance/public/currency/11
         //
-        let mut chainsData: Value = self.safe_list_k(chainsResponse.clone(), "result", &[Value::List(vec![])]);
-        let mut currenciesResult: Value = self.safe_dict_k(currenciesResponse.clone(), "result", &[Value::Map({
+        let mut chainsData: Value = self.safe_list_k(chainsResponse, "result", &[Value::List(vec![])]);
+        let mut currenciesResult: Value = self.safe_dict_k(currenciesResponse, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut currenciesData: Value = self.safe_list_k(currenciesResult.clone(), "currencies", &[Value::List(vec![])]);
+        let mut currenciesData: Value = self.safe_list_k(currenciesResult, "currencies", &[Value::List(vec![])]);
         let mut chainsDataIndexed: Value = self.index_by(chainsData.clone(), Value::Str("currency".to_string()));
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2094,7 +2094,7 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut rawNetworks: Value = self.safe_list_k(networkEntry.clone(), "supportChains", &[Value::List(vec![])]);
+            let mut rawNetworks: Value = self.safe_list_k(networkEntry, "supportChains", &[Value::List(vec![])]);
             let mut networks: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -2129,7 +2129,7 @@ impl XtCore {
 }));
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(rawNetwork.clone(), "withdrawMinAmount", &[]));
+        m.insert("min".to_string(), self.safe_number_k(rawNetwork, "withdrawMinAmount", &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
@@ -2283,11 +2283,11 @@ impl XtCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut symbols: Value = self.safe_list_k(data.clone(), "symbols", &[Value::List(vec![])]);
+        let mut symbols: Value = self.safe_list_k(data, "symbols", &[Value::List(vec![])]);
         return self.parse_markets(symbols.clone());
 
     Value::Null
@@ -2530,7 +2530,7 @@ impl XtCore {
             }
             if (filter.as_str() == Some("PRICE")) {
                 minPrice = self.safe_number_k(entry.clone(), "min", &[]);
-                maxPrice = self.safe_number_k(entry.clone(), "max", &[]);
+                maxPrice = self.safe_number_k(entry, "max", &[]);
             }
         }
         }
@@ -2805,7 +2805,7 @@ impl XtCore {
         //         "v": "702461.58895"
         //     }
         //
-        let mut isInverse: Value = self.safe_bool_k(market.clone(), "inverse", &[]);
+        let mut isInverse: Value = self.safe_bool_k(market, "inverse", &[]);
         let mut volumeIndex: Value = (if is_true(&(Value::Bool(isInverse.as_bool() == Some(true)))) { Value::Str("v".to_string()) } else { Value::Str("a".to_string()) });
         return Value::List(vec![self.safe_integer_k(ohlcv.clone(), "t", &[]), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number2(ohlcv.clone(), Value::Str("q".to_string()), volumeIndex.clone(), &[])]);
 
@@ -3536,7 +3536,7 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut trades: Value = self.safe_list_k(data.clone(), "items", &[Value::List(vec![])]);
+        let mut trades: Value = self.safe_list_k(data, "items", &[Value::List(vec![])]);
         return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -3804,7 +3804,7 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            balances = self.safe_list_k(data.clone(), "assets", &[Value::List(vec![])]);
+            balances = self.safe_list_k(data, "assets", &[Value::List(vec![])]);
         }
         return self.parse_balance(balances.clone());
 
@@ -4583,7 +4583,7 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut orders: Value = self.safe_list_k(data.clone(), "items", &[Value::List(vec![])]);
+        let mut orders: Value = self.safe_list_k(data, "items", &[Value::List(vec![])]);
         return self.parse_orders(orders.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -4907,7 +4907,7 @@ impl XtCore {
         let mut orders: Value = Value::List(vec![]);
         let mut resultDict: Value = self.safe_dict_k(response.clone(), "result", &[]);
         if (resultDict != Value::Null) {
-            orders = self.safe_list_k(resultDict.clone(), "items", &[Value::List(vec![])]);
+            orders = self.safe_list_k(resultDict, "items", &[Value::List(vec![])]);
         }  else {
             orders = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
         }
@@ -5465,7 +5465,7 @@ impl XtCore {
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("currency".to_string(), self.safe_currency_code(self.safe_string_k(order.clone(), "feeCurrency", &[]), &[]));
-        m.insert("cost".to_string(), self.safe_number_k(order.clone(), "fee", &[]));
+        m.insert("cost".to_string(), self.safe_number_k(order, "fee", &[]));
     m
 }));
         m.insert("trades".to_string(), Value::Null);
@@ -5577,7 +5577,7 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut ledger: Value = self.safe_list_k(data.clone(), "items", &[Value::List(vec![])]);
+        let mut ledger: Value = self.safe_list_k(data, "items", &[Value::List(vec![])]);
         return self.parse_ledger(ledger.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -5616,7 +5616,7 @@ impl XtCore {
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("before".to_string(), Value::Null);
-        m.insert("after".to_string(), self.safe_number_k(item.clone(), "afterAmount", &[]));
+        m.insert("after".to_string(), self.safe_number_k(item, "afterAmount", &[]));
         m.insert("status".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5791,7 +5791,7 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut deposits: Value = self.safe_list_k(data.clone(), "items", &[Value::List(vec![])]);
+        let mut deposits: Value = self.safe_list_k(data, "items", &[Value::List(vec![])]);
         return self.parse_transactions(deposits.clone(), &[currency.clone(), since.clone(), limit.clone(), params.clone()]);
 
     Value::Null
@@ -5866,7 +5866,7 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut withdrawals: Value = self.safe_list_k(data.clone(), "items", &[Value::List(vec![])]);
+        let mut withdrawals: Value = self.safe_list_k(data, "items", &[Value::List(vec![])]);
         return self.parse_transactions(withdrawals.clone(), &[currency.clone(), since.clone(), limit.clone(), params.clone()]);
 
     Value::Null
@@ -6497,7 +6497,7 @@ impl XtCore {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), entry.clone());
                     m.insert("symbol".to_string(), symbolInner.clone());
-                    m.insert("fundingRate".to_string(), self.safe_number_k(entry.clone(), "fundingRate", &[]));
+                    m.insert("fundingRate".to_string(), self.safe_number_k(entry, "fundingRate", &[]));
                     m.insert("timestamp".to_string(), timestamp.clone());
                     m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
                 m
@@ -6914,7 +6914,7 @@ impl XtCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut items: Value = self.safe_list_k(data.clone(), "items", &[Value::List(vec![])]);
+        let mut items: Value = self.safe_list_k(data, "items", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -7101,7 +7101,7 @@ impl XtCore {
         //     }
         //
         let mut positions: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
-        let mut breakBySymbolSide: Value = self.index_position_break_list(self.safe_list_k(breakResponse.clone(), "result", &[Value::List(vec![])]));
+        let mut breakBySymbolSide: Value = self.index_position_break_list(self.safe_list_k(breakResponse, "result", &[Value::List(vec![])]));
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1157: bool = true;
@@ -7197,7 +7197,7 @@ impl XtCore {
         //     }
         //
         let mut positions: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
-        let mut breakBySymbolSide: Value = self.index_position_break_list(self.safe_list_k(breakResponse.clone(), "result", &[Value::List(vec![])]));
+        let mut breakBySymbolSide: Value = self.index_position_break_list(self.safe_list_k(breakResponse, "result", &[Value::List(vec![])]));
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);

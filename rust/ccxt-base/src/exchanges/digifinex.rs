@@ -1179,7 +1179,7 @@ impl DigifinexCore {
         //         "code":200
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         let mut groupedById: Value = self.group_by(data.clone(), Value::Str("currency".to_string()), &[]);
         let mut values: Value = object_values(&groupedById);
         return self.parse_currencies(values.clone());
@@ -1351,8 +1351,8 @@ impl DigifinexCore {
         //         ]
         //     }
         //
-        let mut spotData: Value = self.safe_value_k(spotMarkets.clone(), "symbol_list", &[Value::List(vec![])]);
-        let mut swapData: Value = self.safe_value_k(swapMarkets.clone(), "data", &[Value::List(vec![])]);
+        let mut spotData: Value = self.safe_value_k(spotMarkets, "symbol_list", &[Value::List(vec![])]);
+        let mut swapData: Value = self.safe_value_k(swapMarkets, "data", &[Value::List(vec![])]);
         let mut response: Value = self.array_concat(spotData.clone(), swapData.clone());
         let mut result: Value = Value::List(vec![]);
         {
@@ -1488,7 +1488,7 @@ impl DigifinexCore {
         //         "code":0
         //     }
         //
-        let mut markets: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut markets: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -2718,7 +2718,7 @@ impl DigifinexCore {
             add_element_to_object(&mut individualOrder, &Value::Str("order_id".to_string()), get_value(&data, &i));
             add_element_to_object(&mut individualOrder, &Value::Str("instrument_id".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             add_element_to_object(&mut individualOrder, &Value::Str("amount".to_string()), self.safe_number_k(rawOrder.clone(), "amount", &[]));
-            add_element_to_object(&mut individualOrder, &Value::Str("price".to_string()), self.safe_number_k(rawOrder.clone(), "price", &[]));
+            add_element_to_object(&mut individualOrder, &Value::Str("price".to_string()), self.safe_number_k(rawOrder, "price", &[]));
             append_to_array(&mut result, individualOrder.clone());
         }
         }
@@ -4676,7 +4676,7 @@ impl DigifinexCore {
         m.insert("fundingRate".to_string(), self.safe_number_k(contract.clone(), "funding_rate", &[]));
         m.insert("fundingTimestamp".to_string(), timestamp.clone());
         m.insert("fundingDatetime".to_string(), self.iso8601(timestamp.clone()));
-        m.insert("nextFundingRate".to_string(), self.safe_number_k(contract.clone(), "next_funding_rate", &[]));
+        m.insert("nextFundingRate".to_string(), self.safe_number_k(contract, "next_funding_rate", &[]));
         m.insert("nextFundingTimestamp".to_string(), nextTimestamp.clone());
         m.insert("nextFundingDatetime".to_string(), self.iso8601(nextTimestamp.clone()));
         m.insert("previousFundingRate".to_string(), Value::Null);
@@ -4780,7 +4780,7 @@ impl DigifinexCore {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), entry.clone());
                     m.insert("symbol".to_string(), symbolInner.clone());
-                    m.insert("fundingRate".to_string(), self.safe_number_k(entry.clone(), "rate", &[]));
+                    m.insert("fundingRate".to_string(), self.safe_number_k(entry, "rate", &[]));
                     m.insert("timestamp".to_string(), timestamp.clone());
                     m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
                 m
@@ -4856,7 +4856,7 @@ impl DigifinexCore {
         m.insert("info".to_string(), fee.clone());
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("maker".to_string(), self.safe_number_k(fee.clone(), "maker_fee_rate", &[]));
-        m.insert("taker".to_string(), self.safe_number_k(fee.clone(), "taker_fee_rate", &[]));
+        m.insert("taker".to_string(), self.safe_number_k(fee, "taker_fee_rate", &[]));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("tierBased".to_string(), Value::Null);
     m
@@ -5180,7 +5180,7 @@ impl DigifinexCore {
         m.insert("initialMargin".to_string(), Value::Null);
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("leverage".to_string(), self.safe_number2(position.clone(), Value::Str("leverage".to_string()), Value::Str("leverage_ratio".to_string()), &[]));
-        m.insert("marginRatio".to_string(), self.safe_number_k(position.clone(), "margin_ratio", &[]));
+        m.insert("marginRatio".to_string(), self.safe_number_k(position, "margin_ratio", &[]));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("stopLossPrice".to_string(), Value::Null);
         m.insert("takeProfitPrice".to_string(), Value::Null);
@@ -5878,7 +5878,7 @@ impl DigifinexCore {
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("id".to_string(), Value::Null);
-        m.insert("amount".to_string(), self.safe_number_k(income.clone(), "amount", &[]));
+        m.insert("amount".to_string(), self.safe_number_k(income, "amount", &[]));
     m
 });
 

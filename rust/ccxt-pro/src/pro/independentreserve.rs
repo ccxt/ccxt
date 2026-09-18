@@ -317,7 +317,7 @@ impl IndependentreserveCore {
         //        "Event": "Trade"
         //    }
         //
-        let mut data: Value = self.safe_value_k(message.clone(), "Data", &[Value::Map({
+        let mut data: Value = self.safe_value_k(message, "Data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);

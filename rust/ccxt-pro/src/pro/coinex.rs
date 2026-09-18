@@ -426,11 +426,11 @@ impl CoinexCore {
         //     }
         //
         let mut defaultType: Value = self.safe_string_k(self.options.clone(), "defaultType", &[]);
-        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut rawTickers: Value = self.safe_list_k(data.clone(), "state_list", &[Value::List(vec![])]);
+        let mut rawTickers: Value = self.safe_list_k(data, "state_list", &[Value::List(vec![])]);
         let mut newTickers: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -638,11 +638,11 @@ impl CoinexCore {
                 m
             });
         }
-        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut balances: Value = self.safe_list_k(data.clone(), "balance_list", &[Value::List(vec![])]);
+        let mut balances: Value = self.safe_list_k(data, "balance_list", &[Value::List(vec![])]);
         let mut firstEntry: Value = balances.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut updated: Value = self.safe_integer_k(firstEntry.clone(), "updated_at", &[]);
         let mut unrealizedPnl: Value = self.safe_string_k(firstEntry.clone(), "unrealized_pnl", &[]);
@@ -829,7 +829,7 @@ impl CoinexCore {
         //         "id": null
         //     }
         //
-        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -893,7 +893,7 @@ impl CoinexCore {
         //         "id": null
         //     }
         //
-        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1225,7 +1225,7 @@ impl CoinexCore {
             panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBookForSymbols() limit must be one of ".to_string()))), join(&limits, &Value::Str(", ".to_string()))))));
         }
         let mut defaultAggregation: Value = self.safe_string_k(options.clone(), "defaultAggregation", &[Value::Str("0".to_string())]);
-        let mut aggregations: Value = self.safe_list_k(options.clone(), "aggregations", &[Value::List(vec![])]);
+        let mut aggregations: Value = self.safe_list_k(options, "aggregations", &[Value::List(vec![])]);
         let mut aggregation: Value = self.safe_string_k(params.clone(), "aggregation", &[defaultAggregation.clone()]);
         if !is_true(&self.in_array(aggregation.clone(), aggregations.clone())) {
             panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBookForSymbols() aggregation must be one of ".to_string()))), join(&aggregations, &Value::Str(", ".to_string()))))));
@@ -1339,7 +1339,7 @@ impl CoinexCore {
         //
         let mut isSpot: bool = get_index_of(&get_value(&client, &Value::Str("url".to_string())), &Value::Str("spot".to_string())).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN);
         let mut defaultType: Value = (if isSpot { Value::Str("spot".to_string()) } else { Value::Str("swap".to_string()) });
-        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1354,7 +1354,7 @@ impl CoinexCore {
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".to_string()))), symbol));
         let mut timestamp: Value = self.safe_integer_k(depth.clone(), "updated_at", &[]);
         let mut currentOrderBook: Value = self.safe_value(self.orderbooks.clone(), symbol.clone(), &[]);
-        let mut fullOrderBook: Value = self.safe_bool_k(data.clone(), "is_full", &[Value::Bool(false)]);
+        let mut fullOrderBook: Value = self.safe_bool_k(data, "is_full", &[Value::Bool(false)]);
         if (fullOrderBook.as_bool() == Some(true)) {
             let mut snapshot: Value = self.parse_order_book(depth.clone(), symbol.clone(), &[timestamp.clone()]);
             if (currentOrderBook == Value::Null) {
@@ -1365,7 +1365,7 @@ impl CoinexCore {
             }
         }  else {
             let mut asks: Value = self.safe_list_k(depth.clone(), "asks", &[Value::List(vec![])]);
-            let mut bids: Value = self.safe_list_k(depth.clone(), "bids", &[Value::List(vec![])]);
+            let mut bids: Value = self.safe_list_k(depth, "bids", &[Value::List(vec![])]);
             self.handle_deltas(crate::value::get_value_k(&currentOrderBook, "asks"), asks.clone());
             self.handle_deltas(crate::value::get_value_k(&currentOrderBook, "bids"), bids.clone());
             add_element_to_object(&mut currentOrderBook, &Value::Str("nonce".to_string()), timestamp.clone());
@@ -1569,7 +1569,7 @@ impl CoinexCore {
         //         "id": null
         //     }
         //
-        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1830,7 +1830,7 @@ impl CoinexCore {
         //         "id": null
         //     }
         //
-        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);

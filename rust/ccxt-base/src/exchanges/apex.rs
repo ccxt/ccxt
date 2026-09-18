@@ -668,7 +668,7 @@ impl ApexCore {
     m
 }));
         let mut response: Value = self.public_get_v3_time(&[params.clone()]).await;
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -727,7 +727,7 @@ impl ApexCore {
             self.load_markets(&[]).await;
         }
         let mut response: Value = self.private_get_v3_account_balance(&[params.clone()]).await;
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -767,7 +767,7 @@ impl ApexCore {
             self.load_markets(&[]).await;
         }
         let mut response: Value = self.private_get_v3_account(&[params.clone()]).await;
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -790,11 +790,11 @@ impl ApexCore {
     m
 }));
         let mut response: Value = self.public_get_v3_symbols(&[params.clone()]).await;
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut spotConfig: Value = self.safe_dict_k(data.clone(), "spotConfig", &[Value::Map({
+        let mut spotConfig: Value = self.safe_dict_k(data, "spotConfig", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -891,8 +891,8 @@ impl ApexCore {
         //        }
         //     ]
         // }
-        let mut rows: Value = self.safe_list_k(spotConfig.clone(), "assets", &[Value::List(vec![])]);
-        let mut chains: Value = self.safe_list_k(multiChain.clone(), "chains", &[Value::List(vec![])]);
+        let mut rows: Value = self.safe_list_k(spotConfig, "assets", &[Value::List(vec![])]);
+        let mut chains: Value = self.safe_list_k(multiChain, "chains", &[Value::List(vec![])]);
         add_element_to_object(&mut self.options, &Value::Str("_temp_currencies_chains".to_string()), chains.clone());
         let mut result: Value = self.parse_currencies(rows.clone());
         remove(&mut self.options, &Value::Str("_temp_currencies_chains".to_string()));
@@ -942,13 +942,13 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(token.clone(), "minWithdraw", &[]));
+        m.insert("min".to_string(), self.safe_number_k(token, "minWithdraw", &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("deposit".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(chain.clone(), "minDeposit", &[]));
+        m.insert("min".to_string(), self.safe_number_k(chain, "minDeposit", &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
@@ -1021,15 +1021,15 @@ impl ApexCore {
     m
 }));
         let mut response: Value = self.public_get_v3_symbols(&[params.clone()]).await;
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut contractConfig: Value = self.safe_dict_k(data.clone(), "contractConfig", &[Value::Map({
+        let mut contractConfig: Value = self.safe_dict_k(data, "contractConfig", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut perpetualContract: Value = self.safe_list_k(contractConfig.clone(), "perpetualContract", &[Value::List(vec![])]);
+        let mut perpetualContract: Value = self.safe_list_k(contractConfig, "perpetualContract", &[Value::List(vec![])]);
         return self.parse_markets(perpetualContract.clone());
 
     Value::Null
@@ -1203,7 +1203,7 @@ impl ApexCore {
         });
         let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.public_get_v3_ticker(&[__ws_arg_0]).await;
-        let mut tickers: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut tickers: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         let mut rawTicker: Value = self.safe_dict(tickers.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1232,7 +1232,7 @@ impl ApexCore {
             self.load_markets(&[]).await;
         }
         let mut response: Value = self.public_get_v3_data_all_ticker_info(&[params.clone()]).await;
-        let mut tickers: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut tickers: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         return self.parse_tickers(tickers.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -1279,7 +1279,7 @@ impl ApexCore {
         }
         let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.public_get_v3_klines(&[__ws_arg_1]).await;
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1353,7 +1353,7 @@ impl ApexCore {
         //     "u": 18665465
         // }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1420,7 +1420,7 @@ impl ApexCore {
         //  }
         //  ]
         //
-        let mut trades: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut trades: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1495,7 +1495,7 @@ impl ApexCore {
         });
         let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.public_get_v3_ticker(&[__ws_arg_4]).await;
-        let mut tickers: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut tickers: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         let mut rawTicker: Value = self.safe_dict(tickers.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1607,11 +1607,11 @@ impl ApexCore {
         // }
         //
         let mut rates: Value = Value::List(vec![]);
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut resultList: Value = self.safe_list_k(data.clone(), "historyFunds", &[Value::List(vec![])]);
+        let mut resultList: Value = self.safe_list_k(data, "historyFunds", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_219: bool = true;
@@ -1624,7 +1624,7 @@ impl ApexCore {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), entry.clone());
                     m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone()]));
-                    m.insert("fundingRate".to_string(), self.safe_number_k(entry.clone(), "rate", &[]));
+                    m.insert("fundingRate".to_string(), self.safe_number_k(entry, "rate", &[]));
                     m.insert("timestamp".to_string(), timestamp.clone());
                     m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
                 m
@@ -1987,7 +1987,7 @@ impl ApexCore {
         add_element_to_object(&mut request, &Value::Str("signature".to_string()), signature.clone());
         let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_post_v3_order(&[__ws_arg_6]).await;
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2017,7 +2017,7 @@ impl ApexCore {
             self.load_markets(&[]).await;
         }
         let mut configResponse: Value = self.public_get_v3_symbols(&[params.clone()]).await;
-        let mut configData: Value = self.safe_dict_k(configResponse.clone(), "data", &[Value::Map({
+        let mut configData: Value = self.safe_dict_k(configResponse, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2025,13 +2025,13 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut contractAssets: Value = self.safe_list_k(contractConfig.clone(), "assets", &[Value::List(vec![])]);
-        let mut spotConfig: Value = self.safe_dict_k(configData.clone(), "spotConfig", &[Value::Map({
+        let mut contractAssets: Value = self.safe_list_k(contractConfig, "assets", &[Value::List(vec![])]);
+        let mut spotConfig: Value = self.safe_dict_k(configData, "spotConfig", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
         let mut spotAssets: Value = self.safe_list_k(spotConfig.clone(), "assets", &[Value::List(vec![])]);
-        let mut globalConfig: Value = self.safe_dict_k(spotConfig.clone(), "global", &[Value::Map({
+        let mut globalConfig: Value = self.safe_dict_k(spotConfig, "global", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2040,7 +2040,7 @@ impl ApexCore {
         let mut receiverSubAccountId: Value = self.safe_string_k(globalConfig.clone(), "contractAssetPoolSubAccount", &[Value::Str("".to_string())]);
         let mut receiverAccountId: Value = self.safe_string_k(globalConfig.clone(), "contractAssetPoolAccountId", &[Value::Str("".to_string())]);
         let mut accountResponse: Value = self.private_get_v3_account(&[params.clone()]).await;
-        let mut accountData: Value = self.safe_dict_k(accountResponse.clone(), "data", &[Value::Map({
+        let mut accountData: Value = self.safe_dict_k(accountResponse, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2050,7 +2050,7 @@ impl ApexCore {
 })]);
         let mut zkAccountId: Value = self.safe_string_k(spotAccount.clone(), "zkAccountId", &[Value::Str("".to_string())]);
         let mut subAccountId: Value = self.safe_string_k(spotAccount.clone(), "defaultSubAccountId", &[Value::Str("0".to_string())]);
-        let mut subAccounts: Value = self.safe_list_k(spotAccount.clone(), "subAccounts", &[Value::List(vec![])]);
+        let mut subAccounts: Value = self.safe_list_k(spotAccount, "subAccounts", &[Value::List(vec![])]);
         let mut nonce: Value = Value::Str("0".to_string());
         if Value::Int(subAccounts.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             nonce = self.safe_string(subAccounts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Str("nonce".to_string()), &[Value::Str("0".to_string())]);
@@ -2174,7 +2174,7 @@ impl ApexCore {
             });
             let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
             let mut response: Value = self.private_post_v3_transfer_out(&[__ws_arg_10]).await;
-            let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+            let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2248,7 +2248,7 @@ impl ApexCore {
         }
         let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_post_v3_delete_open_orders(&[__ws_arg_14]).await;
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2289,7 +2289,7 @@ impl ApexCore {
             let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_post_v3_delete_order(&[__ws_arg_16]).await;
         }
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2335,7 +2335,7 @@ impl ApexCore {
             let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_get_v3_order(&[__ws_arg_18]).await;
         }
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2367,7 +2367,7 @@ impl ApexCore {
             self.load_markets(&[]).await;
         }
         let mut response: Value = self.private_get_v3_open_orders(&[params.clone()]).await;
-        let mut orders: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut orders: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         return self.parse_orders(orders.clone(), &[Value::Null, since.clone(), limit.clone()]);
 
     Value::Null
@@ -2423,11 +2423,11 @@ impl ApexCore {
         }
         let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_get_v3_history_orders(&[__ws_arg_19]).await;
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut orders: Value = self.safe_list_k(data.clone(), "orders", &[Value::List(vec![])]);
+        let mut orders: Value = self.safe_list_k(data, "orders", &[Value::List(vec![])]);
         return self.parse_orders(orders.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2469,11 +2469,11 @@ impl ApexCore {
         params = self.omit(params.clone(), Value::List(vec![Value::Str("clientOrderId".to_string()), Value::Str("clientId".to_string())]), &[]);
         let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_get_v3_order_fills(&[__ws_arg_20]).await;
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut orders: Value = self.safe_list_k(data.clone(), "orders", &[Value::List(vec![])]);
+        let mut orders: Value = self.safe_list_k(data, "orders", &[Value::List(vec![])]);
         return self.parse_trades(orders.clone(), &[Value::Null, since.clone(), limit.clone()]);
 
     Value::Null
@@ -2527,11 +2527,11 @@ impl ApexCore {
         }
         let __ws_arg_21 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_get_v3_fills(&[__ws_arg_21]).await;
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut orders: Value = self.safe_list_k(data.clone(), "orders", &[Value::List(vec![])]);
+        let mut orders: Value = self.safe_list_k(data, "orders", &[Value::List(vec![])]);
         return self.parse_trades(orders.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2584,11 +2584,11 @@ impl ApexCore {
         }
         let __ws_arg_22 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_get_v3_funding(&[__ws_arg_22]).await;
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut fundingValues: Value = self.safe_list_k(data.clone(), "fundingValues", &[Value::List(vec![])]);
+        let mut fundingValues: Value = self.safe_list_k(data, "fundingValues", &[Value::List(vec![])]);
         return self.parse_incomes(fundingValues.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2623,7 +2623,7 @@ impl ApexCore {
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("id".to_string(), self.safe_string_k(income.clone(), "id", &[]));
         m.insert("amount".to_string(), self.safe_number_k(income.clone(), "fundingValue", &[]));
-        m.insert("rate".to_string(), self.safe_number_k(income.clone(), "rate", &[]));
+        m.insert("rate".to_string(), self.safe_number_k(income, "rate", &[]));
     m
 });
 
@@ -2663,7 +2663,7 @@ impl ApexCore {
         });
         let __ws_arg_23 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_post_v3_set_initial_margin_rate(&[__ws_arg_23]).await;
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2691,11 +2691,11 @@ impl ApexCore {
             self.load_markets(&[]).await;
         }
         let mut response: Value = self.private_get_v3_account(&[params.clone()]).await;
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut positions: Value = self.safe_list_k(data.clone(), "positions", &[Value::List(vec![])]);
+        let mut positions: Value = self.safe_list_k(data, "positions", &[Value::List(vec![])]);
         return self.parse_positions(positions.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -2734,7 +2734,7 @@ impl ApexCore {
         m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), self.safe_string_k(position.clone(), "id", &[]));
         m.insert("symbol".to_string(), symbol.clone());
-        m.insert("entryPrice".to_string(), self.safe_number_k(position.clone(), "entryPrice", &[]));
+        m.insert("entryPrice".to_string(), self.safe_number_k(position, "entryPrice", &[]));
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("notional".to_string(), Value::Null);
         m.insert("collateral".to_string(), Value::Null);

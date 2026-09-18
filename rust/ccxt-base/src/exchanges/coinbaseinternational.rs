@@ -842,7 +842,7 @@ impl CoinbaseinternationalCore {
             while { if !__for_first_543 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_543 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(accounts.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut account: Value = get_value(&accounts, &i);
             let mut account: Value = get_value(&accounts, &i);
-            let mut info: Value = self.safe_dict_k(account.clone(), "info", &[Value::Map({
+            let mut info: Value = self.safe_dict_k(account, "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -983,7 +983,7 @@ impl CoinbaseinternationalCore {
         //       ]
         //   }
         //
-        let mut candles: Value = self.safe_list_k(response.clone(), "aggregations", &[Value::List(vec![])]);
+        let mut candles: Value = self.safe_list_k(response, "aggregations", &[Value::List(vec![])]);
         return self.parse_ohlc_vs(candles.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -991,7 +991,7 @@ impl CoinbaseinternationalCore {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.parse8601(self.safe_string2(ohlcv.clone(), Value::Str("start".to_string()), Value::Str("time".to_string()), &[])), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv.clone(), "volume", &[])]);
+        return Value::List(vec![self.parse8601(self.safe_string2(ohlcv.clone(), Value::Str("start".to_string()), Value::Str("time".to_string()), &[])), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv, "volume", &[])]);
 
     Value::Null
 }
@@ -1061,7 +1061,7 @@ impl CoinbaseinternationalCore {
         //        ]
         //    }
         //
-        let mut rawRates: Value = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]);
+        let mut rawRates: Value = self.safe_list_k(response, "results", &[Value::List(vec![])]);
         return self.parse_funding_rate_histories(rawRates.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1095,7 +1095,7 @@ impl CoinbaseinternationalCore {
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
         m.insert("timestamp".to_string(), self.parse8601(fundingDatetime.clone()));
         m.insert("datetime".to_string(), fundingDatetime.clone());
-        m.insert("fundingRate".to_string(), self.safe_number_k(contract.clone(), "funding_rate", &[]));
+        m.insert("fundingRate".to_string(), self.safe_number_k(contract, "funding_rate", &[]));
         m.insert("fundingTimestamp".to_string(), self.parse8601(fundingDatetime.clone()));
         m.insert("fundingDatetime".to_string(), fundingDatetime.clone());
         m.insert("nextFundingRate".to_string(), Value::Null);
@@ -1156,7 +1156,7 @@ impl CoinbaseinternationalCore {
         }
         let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.v1_private_get_transfers(&[__ws_arg_2]).await;
-        let mut fundings: Value = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]);
+        let mut fundings: Value = self.safe_list_k(response, "results", &[Value::List(vec![])]);
         return self.parse_incomes(fundings.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1200,7 +1200,7 @@ impl CoinbaseinternationalCore {
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("id".to_string(), self.safe_string_k(income.clone(), "transfer_uuid", &[]));
-        m.insert("amount".to_string(), self.safe_number_k(income.clone(), "amount", &[]));
+        m.insert("amount".to_string(), self.safe_number_k(income, "amount", &[]));
         m.insert("rate".to_string(), Value::Null);
     m
 });
@@ -1254,7 +1254,7 @@ impl CoinbaseinternationalCore {
         }
         let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.v1_private_get_transfers(&[__ws_arg_3]).await;
-        let mut transfers: Value = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]);
+        let mut transfers: Value = self.safe_list_k(response, "results", &[Value::List(vec![])]);
         return self.parse_transfers(transfers.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1408,7 +1408,7 @@ impl CoinbaseinternationalCore {
             let mut __for_first_544: bool = true;
             while { if !__for_first_544 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_544 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(networksArray.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut info: Value = crate::value::get_value_k(&get_value(&networksArray, &i), "info");
-            let mut is_default: Value = self.safe_bool_k(info.clone(), "is_default", &[Value::Bool(false)]);
+            let mut is_default: Value = self.safe_bool_k(info, "is_default", &[Value::Bool(false)]);
             if (is_default.as_bool() == Some(true)) {
                 return get_value(&networksArray, &i);
             }
@@ -1522,7 +1522,7 @@ impl CoinbaseinternationalCore {
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), self.safe_number_k(network.clone(), "min_withdrawal_amt", &[]));
-        m.insert("max".to_string(), self.safe_number_k(network.clone(), "max_withdrawal_amt", &[]));
+        m.insert("max".to_string(), self.safe_number_k(network, "max_withdrawal_amt", &[]));
     m
 }));
         m.insert("deposit".to_string(), Value::Map({
@@ -1659,7 +1659,7 @@ impl CoinbaseinternationalCore {
         //        ]
         //    }
         //
-        let mut rawTransactions: Value = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]);
+        let mut rawTransactions: Value = self.safe_list_k(response, "results", &[Value::List(vec![])]);
         return self.parse_transactions(rawTransactions.clone(), &[]);
 
     Value::Null
@@ -1735,13 +1735,13 @@ impl CoinbaseinternationalCore {
         m.insert("unrealizedPnl".to_string(), self.safe_number_k(position.clone(), "unrealized_pnl", &[]));
         m.insert("side".to_string(), side.clone());
         m.insert("contracts".to_string(), self.parse_number(quantity.clone(), &[]));
-        m.insert("contractSize".to_string(), self.safe_number_k(market.clone(), "contractSize", &[]));
+        m.insert("contractSize".to_string(), self.safe_number_k(market, "contractSize", &[]));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
         m.insert("hedged".to_string(), Value::Null);
         m.insert("maintenanceMargin".to_string(), Value::Null);
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
-        m.insert("initialMargin".to_string(), self.safe_number_k(position.clone(), "im_contribution", &[]));
+        m.insert("initialMargin".to_string(), self.safe_number_k(position, "im_contribution", &[]));
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("leverage".to_string(), Value::Null);
         m.insert("liquidationPrice".to_string(), Value::Null);
@@ -2242,7 +2242,7 @@ impl CoinbaseinternationalCore {
             let mut instrument: Value = get_value(&rows, &i);
             let mut marketId: Value = self.safe_string_k(instrument.clone(), "symbol", &[]);
             let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
-            let mut quote: Value = self.safe_dict_k(instrument.clone(), "quote", &[Value::Map({
+            let mut quote: Value = self.safe_dict_k(instrument, "quote", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2327,7 +2327,7 @@ impl CoinbaseinternationalCore {
         m.insert("quoteVolume".to_string(), Value::Null);
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("markPrice".to_string(), self.safe_number_k(ticker.clone(), "mark_price", &[]));
-        m.insert("indexPrice".to_string(), self.safe_number_k(ticker.clone(), "index_price", &[]));
+        m.insert("indexPrice".to_string(), self.safe_number_k(ticker, "index_price", &[]));
     m
 }), &[]);
 
@@ -2911,7 +2911,7 @@ impl CoinbaseinternationalCore {
         //        ]
         //    }
         //
-        let mut rawOrders: Value = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]);
+        let mut rawOrders: Value = self.safe_list_k(response, "results", &[Value::List(vec![])]);
         return self.parse_orders(rawOrders.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -3016,7 +3016,7 @@ impl CoinbaseinternationalCore {
         //        ]
         //    }
         //
-        let mut trades: Value = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]);
+        let mut trades: Value = self.safe_list_k(response, "results", &[Value::List(vec![])]);
         return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null

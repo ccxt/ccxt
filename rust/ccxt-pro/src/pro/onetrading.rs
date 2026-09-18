@@ -1081,7 +1081,7 @@ impl OnetradingCore {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             self.myTrades = ArrayCacheBySymbolById::new(limit.clone());
         }
-        let mut rawOrders: Value = self.safe_list_k(message.clone(), "orders", &[Value::List(vec![])]);
+        let mut rawOrders: Value = self.safe_list_k(message, "orders", &[Value::List(vec![])]);
         let mut rawOrdersLength: Value = Value::Int(rawOrders.len() as i64);
         if (rawOrdersLength.as_f64() == Some(0.0)) {
             return;
@@ -1344,7 +1344,7 @@ impl OnetradingCore {
         }
         let mut symbol: Value = Value::Null;
         let mut orders: Value = self.orders.clone();
-        let mut update: Value = self.safe_value_k(message.clone(), "update", &[Value::Map({
+        let mut update: Value = self.safe_value_k(message, "update", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1600,7 +1600,7 @@ impl OnetradingCore {
         })]);
         let mut timeframe: Value = self.find_timeframe(timeframeId.clone(), &[timeframes.clone()]);
         let mut channel: Value = add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv.".to_string()), symbol)), Value::Str(".".to_string()))), &timeframe);
-        let mut parsed: Value = Value::List(vec![self.parse8601(dateTime.clone()), self.safe_number_k(message.clone(), "open", &[]), self.safe_number_k(message.clone(), "high", &[]), self.safe_number_k(message.clone(), "low", &[]), self.safe_number_k(message.clone(), "close", &[]), self.safe_number_k(message.clone(), "volume", &[])]);
+        let mut parsed: Value = Value::List(vec![self.parse8601(dateTime.clone()), self.safe_number_k(message.clone(), "open", &[]), self.safe_number_k(message.clone(), "high", &[]), self.safe_number_k(message.clone(), "low", &[]), self.safe_number_k(message.clone(), "close", &[]), self.safe_number_k(message, "volume", &[])]);
         { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

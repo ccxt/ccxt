@@ -672,7 +672,7 @@ impl PoloniexCore {
         //    }
         //
         let mut messageHash: Value = self.safe_string_k(message.clone(), "id", &[]);
-        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message, "data", &[Value::List(vec![])]);
         let mut orders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -985,7 +985,7 @@ impl PoloniexCore {
 
     pub fn parse_ws_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.safe_integer_k(ohlcv.clone(), "startTime", &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv.clone(), "quantity", &[])]);
+        return Value::List(vec![self.safe_integer_k(ohlcv.clone(), "startTime", &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv, "quantity", &[])]);
 
     Value::Null
 }
@@ -1610,7 +1610,7 @@ impl PoloniexCore {
             let mut limit: Value = self.safe_integer_k(subscription.clone(), "limit", &[]);
             let mut timestamp: Value = self.safe_integer_k(item.clone(), "ts", &[]);
             let mut asks: Value = self.safe_value_k(item.clone(), "asks", &[]);
-            let mut bids: Value = self.safe_value_k(item.clone(), "bids", &[]);
+            let mut bids: Value = self.safe_value_k(item, "bids", &[]);
             if snapshot || update {
                 if snapshot {
                     { let __be_tmp = self.order_book(&[Value::Map({
@@ -1674,7 +1674,7 @@ impl PoloniexCore {
         //        ]
         //    }
         //
-        let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_value_k(message, "data", &[Value::List(vec![])]);
         let mut messageHash: Value = Value::Str("balances".to_string());
         { let __t = self.parse_ws_balance(data.clone()); self.balance = __t; }
         client.resolve(&[self.balance.clone(), messageHash.clone()]);
@@ -1871,7 +1871,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //    }
         //
         let mut data: Value = self.safe_value_k(message.clone(), "data", &[]);
-        let mut success: Value = self.safe_value_k(data.clone(), "success", &[]);
+        let mut success: Value = self.safe_value_k(data, "success", &[]);
         let mut messageHash: Value = Value::Str("authenticated".to_string());
         if is_equal(&success, &Value::Bool(true)) {
             client.resolve(&[message.clone(), messageHash.clone()]);
