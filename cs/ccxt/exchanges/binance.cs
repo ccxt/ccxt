@@ -4350,8 +4350,8 @@ public partial class binance : Exchange
         // defaultType has legacy support on binance
         string? defaultType = this.safeString(this.options, "defaultType");
         string? defaultSubType = this.safeString(this.options, "defaultSubType");
-        bool isLegacyLinear = isEqual(defaultType, "future");
-        bool isLegacyInverse = isEqual(defaultType, "delivery");
+        bool isLegacyLinear = (defaultType == "future");
+        bool isLegacyInverse = (defaultType == "delivery");
         bool isLegacy = isLegacyLinear || isLegacyInverse;
         if ((symbol is string))
         {
@@ -4397,7 +4397,7 @@ public partial class binance : Exchange
                 return ccxt.BaseExchange.ToDict(getValue(markets, 0));
             } else if ((getIndexOf(symbol, "/") > -1) && (getIndexOf(symbol, ":") < 0))
             {
-                if (((defaultType != null)) && (!isEqual(defaultType, "spot")))
+                if (((defaultType != null)) && ((defaultType != "spot")))
                 {
                     // support legacy symbols
                     var bsquoteVariable = ((string)symbol).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
@@ -5726,7 +5726,7 @@ public partial class binance : Exchange
         query = this.omit(query, "type");
         object response = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (isTrue(isPortfolioMargin) || (isEqual(type, "papi")))
+        if (isTrue(isPortfolioMargin) || ((type == "papi")))
         {
             if (isTrue(this.isLinear(type, subType)))
             {
@@ -5786,13 +5786,13 @@ public partial class binance : Exchange
                 ((IDictionary<string,object>)request)["symbols"] = symbols;
             }
             response = await this.sapiGetMarginIsolatedAccount(this.extend(request, query));
-        } else if ((isEqual(type, "margin")) || (isEqual(marginMode, "cross")))
+        } else if (((type == "margin")) || (isEqual(marginMode, "cross")))
         {
             response = await this.sapiGetMarginAccount(this.extend(request, query));
-        } else if (isEqual(type, "savings"))
+        } else if ((type == "savings"))
         {
             response = await this.sapiGetLendingUnionAccount(this.extend(request, query));
-        } else if (isEqual(type, "funding"))
+        } else if ((type == "funding"))
         {
             response = await this.sapiPostAssetGetFundingAsset(this.extend(request, query));
         } else
@@ -6428,7 +6428,7 @@ public partial class binance : Exchange
             }
         }
         object response = null;
-        if (isEqual(type, "option"))
+        if ((type == "option"))
         {
             response = await this.eapiPublicGetTicker(parameters);
         } else if (isTrue(this.isLinear(type, subType)))
@@ -6437,7 +6437,7 @@ public partial class binance : Exchange
         } else if (isTrue(this.isInverse(type, subType)))
         {
             response = await this.dapiPublicGetTickerBookTicker(this.extend(request, parameters));
-        } else if (isEqual(type, "spot"))
+        } else if ((type == "spot"))
         {
             if (!isEqual(symbols, null))
             {
@@ -6491,7 +6491,7 @@ public partial class binance : Exchange
         } else if (isTrue(this.isInverse(type, subType)))
         {
             response = await this.dapiPublicGetTickerPrice(parameters);
-        } else if (isEqual(type, "spot"))
+        } else if ((type == "spot"))
         {
             response = await this.publicGetTickerPrice(parameters);
         } else
@@ -6582,7 +6582,7 @@ public partial class binance : Exchange
         } else if (isTrue(this.isInverse(type, subType)))
         {
             response = await this.dapiPublicGetTicker24hr(parameters);
-        } else if (isEqual(type, "spot"))
+        } else if ((type == "spot"))
         {
             bool? rolling = this.safeBool(parameters, "rolling", false);
             parameters = this.omit(parameters, "rolling");
@@ -6604,7 +6604,7 @@ public partial class binance : Exchange
                 }
                 response = await this.publicGetTicker24hr(this.extend(request, parameters));
             }
-        } else if (isEqual(type, "option"))
+        } else if ((type == "option"))
         {
             response = await this.eapiPublicGetTicker(parameters);
         } else
@@ -6714,7 +6714,7 @@ public partial class binance : Exchange
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         object response = null;
-        if (isEqual(type, "option"))
+        if ((type == "option"))
         {
             response = await this.eapiPublicGetMark(parameters);
         } else if (isTrue(this.isLinear(type, subType)))
@@ -7224,13 +7224,13 @@ public partial class binance : Exchange
                     { "currency", settle },
                 };
             }
-            if ((!isEqual(side, "buy")) && (!isEqual(side, "sell")))
+            if (((side != "buy")) && ((side != "sell")))
             {
-                side = ((bool) (isEqual(side, "1"))) ? "buy" : "sell";
+                side = ((bool) ((side == "1"))) ? "buy" : "sell";
             }
             if (inOp(trade, "optionSide"))
             {
-                if (!isEqual(side, "buy"))
+                if ((side != "buy"))
                 {
                     amount = Precise.stringMul("-1", amount);
                 }
@@ -7343,37 +7343,37 @@ public partial class binance : Exchange
             }
         }
         List<object> response = null;
-        if (isEqual(method, "publicGetAggTrades"))
+        if ((method == "publicGetAggTrades"))
         {
             response = await this.publicGetAggTrades(this.extend(request, parameters));
-        } else if (isEqual(method, "publicGetTrades"))
+        } else if ((method == "publicGetTrades"))
         {
             response = await this.publicGetTrades(this.extend(request, parameters));
-        } else if (isEqual(method, "publicGetHistoricalTrades"))
+        } else if ((method == "publicGetHistoricalTrades"))
         {
             response = await this.publicGetHistoricalTrades(this.extend(request, parameters));
-        } else if (isEqual(method, "fapiPublicGetAggTrades"))
+        } else if ((method == "fapiPublicGetAggTrades"))
         {
             response = await this.fapiPublicGetAggTrades(this.extend(request, parameters));
-        } else if (isEqual(method, "fapiPublicGetTrades"))
+        } else if ((method == "fapiPublicGetTrades"))
         {
             response = await this.fapiPublicGetTrades(this.extend(request, parameters));
-        } else if (isEqual(method, "fapiPublicGetHistoricalTrades"))
+        } else if ((method == "fapiPublicGetHistoricalTrades"))
         {
             response = await this.fapiPublicGetHistoricalTrades(this.extend(request, parameters));
-        } else if (isEqual(method, "dapiPublicGetAggTrades"))
+        } else if ((method == "dapiPublicGetAggTrades"))
         {
             response = await this.dapiPublicGetAggTrades(this.extend(request, parameters));
-        } else if (isEqual(method, "dapiPublicGetTrades"))
+        } else if ((method == "dapiPublicGetTrades"))
         {
             response = await this.dapiPublicGetTrades(this.extend(request, parameters));
-        } else if (isEqual(method, "dapiPublicGetHistoricalTrades"))
+        } else if ((method == "dapiPublicGetHistoricalTrades"))
         {
             response = await this.dapiPublicGetHistoricalTrades(this.extend(request, parameters));
-        } else if (isEqual(method, "eapiPublicGetTrades"))
+        } else if ((method == "eapiPublicGetTrades"))
         {
             response = await this.eapiPublicGetTrades(this.extend(request, parameters));
-        } else if (isEqual(method, "eapiPublicGetHistoricalTrades"))
+        } else if ((method == "eapiPublicGetHistoricalTrades"))
         {
             response = await this.eapiPublicGetHistoricalTrades(this.extend(request, parameters));
         } else
@@ -7573,10 +7573,10 @@ public partial class binance : Exchange
         double? triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice");
         if (!isEqual(triggerPrice, null))
         {
-            if (isEqual(uppercaseType, "MARKET"))
+            if ((uppercaseType == "MARKET"))
             {
                 uppercaseType = "STOP_LOSS";
-            } else if (isEqual(uppercaseType, "LIMIT"))
+            } else if ((uppercaseType == "LIMIT"))
             {
                 uppercaseType = "STOP_LOSS_LIMIT";
             }
@@ -7613,7 +7613,7 @@ public partial class binance : Exchange
         bool priceIsRequired = false;
         bool triggerPriceIsRequired = false;
         bool quantityIsRequired = false;
-        if (isEqual(uppercaseType, "MARKET"))
+        if ((uppercaseType == "MARKET"))
         {
             object quoteOrderQty = this.handleOption("createOrder", "quoteOrderQty", true);
             if (isEqual(quoteOrderQty, true))
@@ -7637,22 +7637,22 @@ public partial class binance : Exchange
             {
                 quantityIsRequired = true;
             }
-        } else if (isEqual(uppercaseType, "LIMIT"))
+        } else if ((uppercaseType == "LIMIT"))
         {
             priceIsRequired = true;
             timeInForceIsRequired = true;
             quantityIsRequired = true;
-        } else if ((isEqual(uppercaseType, "STOP_LOSS")) || (isEqual(uppercaseType, "TAKE_PROFIT")))
+        } else if (((uppercaseType == "STOP_LOSS")) || ((uppercaseType == "TAKE_PROFIT")))
         {
             triggerPriceIsRequired = true;
             quantityIsRequired = true;
-        } else if ((isEqual(uppercaseType, "STOP_LOSS_LIMIT")) || (isEqual(uppercaseType, "TAKE_PROFIT_LIMIT")))
+        } else if (((uppercaseType == "STOP_LOSS_LIMIT")) || ((uppercaseType == "TAKE_PROFIT_LIMIT")))
         {
             quantityIsRequired = true;
             triggerPriceIsRequired = true;
             priceIsRequired = true;
             timeInForceIsRequired = true;
-        } else if (isEqual(uppercaseType, "LIMIT_MAKER"))
+        } else if ((uppercaseType == "LIMIT_MAKER"))
         {
             priceIsRequired = true;
             quantityIsRequired = true;
@@ -8626,13 +8626,13 @@ public partial class binance : Exchange
         if ((inOp(order, "transactTime")) || (inOp(order, "updateTime")) || (inOp(order, "updatedAt")))
         {
             Int64? timestampValue = this.safeIntegerN(order, new List<object>() {"updateTime", "transactTime", "updatedAt"});
-            if (isEqual(status, "open"))
+            if ((status == "open"))
             {
                 if (isTrue(Precise.stringGt(filled, "0")))
                 {
                     lastTradeTimestamp = timestampValue;
                 }
-            } else if (isEqual(status, "closed"))
+            } else if ((status == "closed"))
             {
                 lastTradeTimestamp = timestampValue;
             }
@@ -8650,12 +8650,12 @@ public partial class binance : Exchange
         string? side = this.safeStringLower(order, "side");
         List<object> fills = this.safeList2(order, "fills", "trades", new List<object>() {});
         string? timeInForce = this.safeString(order, "timeInForce");
-        if (isEqual(timeInForce, "GTX"))
+        if ((timeInForce == "GTX"))
         {
             // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
             timeInForce = "PO";
         }
-        bool postOnly = ((type == "limit_maker")) || (isEqual(timeInForce, "PO"));
+        bool postOnly = ((type == "limit_maker")) || ((timeInForce == "PO"));
         string? stopPriceString = this.safeString2(order, "stopPrice", "triggerPrice");
         double? triggerPrice = this.parseNumber(this.omitZero(stopPriceString));
         double? feeCost = this.safeNumber(order, "fee");
@@ -9026,7 +9026,7 @@ public partial class binance : Exchange
                 }
             } else
             {
-                if ((!isEqual(uppercaseType, "STOP_LOSS")) && (!isEqual(uppercaseType, "TAKE_PROFIT")) && (!isEqual(uppercaseType, "STOP_LOSS_LIMIT")) && (!isEqual(uppercaseType, "TAKE_PROFIT_LIMIT")))
+                if (((uppercaseType != "STOP_LOSS")) && ((uppercaseType != "TAKE_PROFIT")) && ((uppercaseType != "STOP_LOSS_LIMIT")) && ((uppercaseType != "TAKE_PROFIT_LIMIT")))
                 {
                     string? stopLossOrTakeProfit = this.safeString(parameters, "stopLossOrTakeProfit");
                     parameters = this.omit(parameters, "stopLossOrTakeProfit");
@@ -9054,7 +9054,7 @@ public partial class binance : Exchange
                         }
                     }
                 }
-                if ((isEqual(uppercaseType, "STOP_LOSS")) || (isEqual(uppercaseType, "TAKE_PROFIT")))
+                if (((uppercaseType == "STOP_LOSS")) || ((uppercaseType == "TAKE_PROFIT")))
                 {
                     priceRequiredForTrailing = false;
                 }
@@ -9207,7 +9207,7 @@ public partial class binance : Exchange
         //     TAKE_PROFIT_MARKET   stopPrice
         //     TRAILING_STOP_MARKET callbackRate
         //
-        if (isEqual(uppercaseType, "MARKET"))
+        if ((uppercaseType == "MARKET"))
         {
             if ((stock == true))
             {
@@ -9277,7 +9277,7 @@ public partial class binance : Exchange
             {
                 quantityIsRequired = true;
             }
-        } else if (isEqual(uppercaseType, "LIMIT"))
+        } else if ((uppercaseType == "LIMIT"))
         {
             if ((stock == true))
             {
@@ -9287,7 +9287,7 @@ public partial class binance : Exchange
             priceIsRequired = true;
             timeInForceIsRequired = true;
             quantityIsRequired = true;
-        } else if ((isEqual(uppercaseType, "STOP_LOSS")) || (isEqual(uppercaseType, "TAKE_PROFIT")))
+        } else if (((uppercaseType == "STOP_LOSS")) || ((uppercaseType == "TAKE_PROFIT")))
         {
             triggerPriceIsRequired = true;
             quantityIsRequired = true;
@@ -9295,29 +9295,29 @@ public partial class binance : Exchange
             {
                 priceIsRequired = true;
             }
-        } else if ((isEqual(uppercaseType, "STOP_LOSS_LIMIT")) || (isEqual(uppercaseType, "TAKE_PROFIT_LIMIT")))
+        } else if (((uppercaseType == "STOP_LOSS_LIMIT")) || ((uppercaseType == "TAKE_PROFIT_LIMIT")))
         {
             quantityIsRequired = true;
             triggerPriceIsRequired = true;
             priceIsRequired = true;
             timeInForceIsRequired = true;
-        } else if (isEqual(uppercaseType, "LIMIT_MAKER"))
+        } else if ((uppercaseType == "LIMIT_MAKER"))
         {
             priceIsRequired = true;
             quantityIsRequired = true;
-        } else if (isEqual(uppercaseType, "STOP"))
+        } else if ((uppercaseType == "STOP"))
         {
             quantityIsRequired = true;
             triggerPriceIsRequired = true;
             priceIsRequired = true;
-        } else if ((isEqual(uppercaseType, "STOP_MARKET")) || (isEqual(uppercaseType, "TAKE_PROFIT_MARKET")))
+        } else if (((uppercaseType == "STOP_MARKET")) || ((uppercaseType == "TAKE_PROFIT_MARKET")))
         {
             if ((closePosition != true))
             {
                 quantityIsRequired = true;
             }
             triggerPriceIsRequired = true;
-        } else if (isEqual(uppercaseType, "TRAILING_STOP_MARKET"))
+        } else if ((uppercaseType == "TRAILING_STOP_MARKET"))
         {
             if ((closePosition != true))
             {
@@ -9580,7 +9580,7 @@ public partial class binance : Exchange
         isPortfolioMargin = ((IList<object>)isPortfolioMarginparametersVariable)[0];
         parameters = ((IList<object>)isPortfolioMarginparametersVariable)[1];
         bool? isConditional = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "conditional"});
-        bool isOptionType = isEqual(type, "option");
+        bool isOptionType = (type == "option");
         object isLinearType = this.isLinear(type, subType);
         object isInverseType = this.isInverse(type, subType);
         bool isLinearSwapConditional = isTrue(isLinearType) && ((market != null)) && (isEqual(getValue(market, "swap"), true)) && ((isConditional == true)) && (!isEqual(isPortfolioMargin, true));
@@ -9633,7 +9633,7 @@ public partial class binance : Exchange
             {
                 response = await this.dapiPrivateGetOrder(this.extend(request, parameters));
             }
-        } else if ((isEqual(type, "margin")) || ((marginMode != null)) || isTrue(isPortfolioMargin))
+        } else if (((type == "margin")) || ((marginMode != null)) || isTrue(isPortfolioMargin))
         {
             if (isTrue(isPortfolioMargin))
             {
@@ -9735,7 +9735,7 @@ public partial class binance : Exchange
         isPortfolioMargin = ((IList<object>)isPortfolioMarginparametersVariable)[0];
         parameters = ((IList<object>)isPortfolioMarginparametersVariable)[1];
         bool? isConditional = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "conditional"});
-        bool isOptionType = isEqual(type, "option");
+        bool isOptionType = (type == "option");
         object isLinearType = this.isLinear(type, subType);
         object isInverseType = this.isInverse(type, subType);
         Int64? until = this.safeIntegerN(parameters, new List<object>() {"until", "till", "endTime"});
@@ -9817,7 +9817,7 @@ public partial class binance : Exchange
             if (isTrue(isPortfolioMargin))
             {
                 response = await this.papiGetMarginAllOrders(this.extend(request, parameters));
-            } else if (isEqual(type, "margin") || (marginMode != null))
+            } else if ((type == "margin") || (marginMode != null))
             {
                 if (isEqual(marginMode, "isolated"))
                 {
@@ -10121,7 +10121,7 @@ public partial class binance : Exchange
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger", "conditional"});
         object response = null;
-        if (isEqual(type, "option"))
+        if ((type == "option"))
         {
             if (!isEqual(since, null))
             {
@@ -10174,7 +10174,7 @@ public partial class binance : Exchange
                     response = await this.dapiPrivateGetOpenOrders(this.extend(request, parameters));
                 }
             }
-        } else if (isEqual(type, "margin") || (marginMode != null) || isTrue(isPortfolioMargin))
+        } else if ((type == "margin") || (marginMode != null) || isTrue(isPortfolioMargin))
         {
             if (isTrue(isPortfolioMargin))
             {
@@ -10657,7 +10657,7 @@ public partial class binance : Exchange
         isPortfolioMargin = ((IList<object>)isPortfolioMarginparametersVariable)[0];
         parameters = ((IList<object>)isPortfolioMarginparametersVariable)[1];
         bool? isConditional = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "conditional"});
-        bool isOptionType = isEqual(type, "option");
+        bool isOptionType = (type == "option");
         object isLinearType = this.isLinear(type, subType);
         object isInverseType = this.isInverse(type, subType);
         bool isSwapConditional = ((market != null)) && (isEqual(getValue(market, "swap"), true)) && ((isConditional == true)) && (!isEqual(isPortfolioMargin, true));
@@ -10740,7 +10740,7 @@ public partial class binance : Exchange
                     response = await this.dapiPrivateDeleteOrder(this.extend(request, parameters));
                 }
             }
-        } else if ((isEqual(type, "margin")) || ((marginMode != null)) || isTrue(isPortfolioMargin))
+        } else if (((type == "margin")) || ((marginMode != null)) || isTrue(isPortfolioMargin))
         {
             if (isTrue(isPortfolioMargin))
             {
@@ -10829,7 +10829,7 @@ public partial class binance : Exchange
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("cancelAllOrders", market, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        bool isOptionType = isEqual(type, "option");
+        bool isOptionType = (type == "option");
         object isLinearType = this.isLinear(type, subType);
         object isInverseType = this.isInverse(type, subType);
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger", "conditional"});
@@ -10877,7 +10877,7 @@ public partial class binance : Exchange
             {
                 response = await this.dapiPrivateDeleteAllOpenOrders(this.extend(request, parameters));
             }
-        } else if ((isEqual(type, "margin")) || ((marginMode != null)) || isTrue(isPortfolioMargin))
+        } else if (((type == "margin")) || ((marginMode != null)) || isTrue(isPortfolioMargin))
         {
             if (isTrue(isPortfolioMargin))
             {
@@ -11093,7 +11093,7 @@ public partial class binance : Exchange
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        if ((!isEqual(stock, true)) && (!isEqual(type, "option")) && (isEqual(symbol, null)))
+        if ((!isEqual(stock, true)) && ((type != "option")) && (isEqual(symbol, null)))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchMyTrades() requires a symbol argument")) ;
         }
@@ -11124,7 +11124,7 @@ public partial class binance : Exchange
         }
         if (!isEqual(limitVar, null))
         {
-            if ((isEqual(type, "option")) || ((this.safeBool(market, "contract") == true)))
+            if (((type == "option")) || ((this.safeBool(market, "contract") == true)))
             {
                 limitVar = mathMin(limitVar, 1000); // above 1000, returns error
             }
@@ -11138,7 +11138,7 @@ public partial class binance : Exchange
             }
         }
         object response = null;
-        if (isEqual(type, "option"))
+        if ((type == "option"))
         {
             response = await this.eapiPrivateGetUserTrades(this.extend(request, parameters));
         } else
@@ -11163,12 +11163,12 @@ public partial class binance : Exchange
                     ((IDictionary<string,object>)request)["startTime"] = subtract(endTime, oneWeek);
                 }
                 response = await this.sapiGetEquityTradeHistory(this.extend(request, parameters));
-            } else if (isEqual(type, "spot") || isEqual(type, "margin"))
+            } else if ((type == "spot") || (type == "margin"))
             {
                 if (isTrue(isPortfolioMargin))
                 {
                     response = await this.papiGetMarginMyTrades(this.extend(request, parameters));
-                } else if ((isEqual(type, "margin")) || ((marginMode != null)))
+                } else if (((type == "margin")) || ((marginMode != null)))
                 {
                     if (isEqual(marginMode, "isolated"))
                     {
@@ -11498,7 +11498,7 @@ public partial class binance : Exchange
         string? priceString = null;
         if ((costString != null))
         {
-            if (((amountString != null)) && (!isEqual(amountString, "")))
+            if (((amountString != null)) && ((amountString != "")))
             {
                 priceString = Precise.stringDiv(costString, amountString);
             }
@@ -12796,7 +12796,7 @@ public partial class binance : Exchange
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("fetchTradingFees", null, parameters, "linear");
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        bool isSpotOrMargin = (isEqual(type, "spot")) || (isEqual(type, "margin"));
+        bool isSpotOrMargin = ((type == "spot")) || ((type == "margin"));
         object isLinear = this.isLinear(type, subType);
         object isInverse = this.isInverse(type, subType);
         Dictionary<string, object> response = null;
@@ -13526,7 +13526,7 @@ public partial class binance : Exchange
                 // TODO: calculate liquidation price for coinm contracts
                 string? onePlusMaintenanceMarginPercentageString = null;
                 string? entryPriceSignString = entryPriceString;
-                if (isEqual(side, "short"))
+                if ((side == "short"))
                 {
                     onePlusMaintenanceMarginPercentageString = Precise.stringAdd("1", maintenanceMarginPercentageString);
                 } else
@@ -13545,7 +13545,7 @@ public partial class binance : Exchange
                 //
                 string? onePlusMaintenanceMarginPercentageString = null;
                 string? entryPriceSignString = entryPriceString;
-                if (isEqual(side, "short"))
+                if ((side == "short"))
                 {
                     onePlusMaintenanceMarginPercentageString = Precise.stringSub("1", maintenanceMarginPercentageString);
                 } else
@@ -13735,7 +13735,7 @@ public partial class binance : Exchange
         string? contractSizeString = this.numberToString(contractSize);
         // as oppose to notionalValue
         bool linear = (inOp(position, "notional"));
-        if (isEqual(marginMode, "cross"))
+        if ((marginMode == "cross"))
         {
             // calculate collateral
             IDictionary<string, object> precision = this.safeDict(market, "precision", new Dictionary<string, object>() {});
@@ -13749,7 +13749,7 @@ public partial class binance : Exchange
                     // walletBalance = (liquidationPrice * (±1 + mmp) ± entryPrice) * contracts
                     string? onePlusMaintenanceMarginPercentageString = null;
                     string? entryPriceSignString = entryPriceString;
-                    if (isEqual(side, "short"))
+                    if ((side == "short"))
                     {
                         onePlusMaintenanceMarginPercentageString = Precise.stringAdd("1", maintenanceMarginPercentageString);
                         entryPriceSignString = Precise.stringMul("-1", entryPriceSignString);
@@ -13769,7 +13769,7 @@ public partial class binance : Exchange
                     // walletBalance = (contracts * contractSize) * (±1/entryPrice - (±1 - mmp) / liquidationPrice)
                     string? onePlusMaintenanceMarginPercentageString = null;
                     string? entryPriceSignString = entryPriceString;
-                    if (isEqual(side, "short"))
+                    if ((side == "short"))
                     {
                         onePlusMaintenanceMarginPercentageString = Precise.stringSub("1", maintenanceMarginPercentageString);
                     } else
@@ -15030,7 +15030,7 @@ public partial class binance : Exchange
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchSettlementHistory", market, parameters);
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        if (!isEqual(type, "option"))
+        if ((type != "option"))
         {
             throw new NotSupported ((string)(this.id + " fetchSettlementHistory() supports option markets only")) ;
         }
@@ -15088,7 +15088,7 @@ public partial class binance : Exchange
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchMySettlementHistory", market, parameters);
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        if (!isEqual(type, "option"))
+        if ((type != "option"))
         {
             throw new NotSupported ((string)(this.id + " fetchMySettlementHistory() supports option markets only")) ;
         }
@@ -15240,7 +15240,7 @@ public partial class binance : Exchange
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchLedgerEntry", null, parameters);
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        if (!isEqual(type, "option"))
+        if ((type != "option"))
         {
             throw new BadRequest ((string)(this.id + " fetchLedgerEntry() can only be used for type option")) ;
         }
@@ -15333,7 +15333,7 @@ public partial class binance : Exchange
         isPortfolioMargin = ((IList<object>)isPortfolioMarginparametersVariable)[0];
         parameters = ((IList<object>)isPortfolioMarginparametersVariable)[1];
         object response = null;
-        if (isEqual(type, "option"))
+        if ((type == "option"))
         {
             this.checkRequiredArgument("fetchLedger", code, "code");
             if ((currency == null))
@@ -15898,7 +15898,7 @@ public partial class binance : Exchange
         // used to modify isolated positions
         parameters ??= new Dictionary<string, object>();
         string? defaultType = this.safeString(this.options, "defaultType", "future");
-        if (isEqual(defaultType, "spot"))
+        if ((defaultType == "spot"))
         {
             defaultType = "future";
         }
@@ -16924,7 +16924,7 @@ public partial class binance : Exchange
         isPortfolioMargin = ((IList<object>)isPortfolioMarginparametersVariable)[0];
         parameters = ((IList<object>)isPortfolioMarginparametersVariable)[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(type, "spot"))
+        if ((type != "spot"))
         {
             ((IDictionary<string,object>)request)["autoCloseType"] = "LIQUIDATION";
         }
@@ -16942,7 +16942,7 @@ public partial class binance : Exchange
         }
         if (!isEqual(limit, null))
         {
-            if (isEqual(type, "spot"))
+            if ((type == "spot"))
             {
                 ((IDictionary<string,object>)request)["size"] = limit;
             } else
@@ -16954,7 +16954,7 @@ public partial class binance : Exchange
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         Dictionary<string, object> response = null;
-        if (isEqual(type, "spot"))
+        if ((type == "spot"))
         {
             if (isTrue(isPortfolioMargin))
             {

@@ -1621,7 +1621,7 @@ public partial class BaseExchange
                 ((IDictionary<string,object>)this.features)[(string)marketType] = null;
             } else
             {
-                if (isEqual(marketType, "spot"))
+                if ((marketType == "spot"))
                 {
                     ((IDictionary<string,object>)this.features)[(string)marketType] = this.featuresMapper(initialFeatures, marketType);
                 } else
@@ -2642,7 +2642,7 @@ public partial class BaseExchange
         } else if ((postOnly == null))
         {
             // timeInForce is not undefined here
-            postOnly = isEqual(timeInForce, "PO");
+            postOnly = (timeInForce == "PO");
         }
         Int64? timestamp = this.safeInteger(order, "timestamp");
         Int64? lastUpdateTimestamp = this.safeInteger(order, "lastUpdateTimestamp");
@@ -5708,7 +5708,7 @@ public partial class BaseExchange
         }
         Dictionary<string, object> market = this.market(symbol);
         string result = this.decimalToPrecision(price, ROUND, getValue(getValue(market, "precision"), "price"), this.precisionMode, this.paddingMode);
-        if (isEqual(result, "0"))
+        if ((result == "0"))
         {
             throw new InvalidOrder ((string)((add((this.id + " price of "), getValue(market, "symbol")) + " must be greater than minimum price precision of ") + this.numberToString(getValue(getValue(market, "precision"), "price")))) ;
         }
@@ -5723,7 +5723,7 @@ public partial class BaseExchange
         }
         Dictionary<string, object> market = this.market(symbol);
         string result = this.decimalToPrecision(amount, TRUNCATE, getValue(getValue(market, "precision"), "amount"), this.precisionMode, this.paddingMode);
-        if (isEqual(result, "0"))
+        if ((result == "0"))
         {
             throw new InvalidOrder ((string)((add((this.id + " amount of "), getValue(market, "symbol")) + " must be greater than minimum amount precision of ") + this.numberToString(getValue(getValue(market, "precision"), "amount")))) ;
         }
@@ -6213,10 +6213,10 @@ public partial class BaseExchange
             throw new ArgumentsRequired ((string)(this.id + " createOrder() : trigger orders require params[\"triggerDirection\"] to be either \"ascending\" or \"descending\"")) ;
         }
         // if old format was provided, overwrite to new
-        if (isEqual(triggerDirection, "up") || isEqual(triggerDirection, "above"))
+        if ((triggerDirection == "up") || (triggerDirection == "above"))
         {
             triggerDirection = "ascending";
-        } else if (isEqual(triggerDirection, "down") || isEqual(triggerDirection, "below"))
+        } else if ((triggerDirection == "down") || (triggerDirection == "below"))
         {
             triggerDirection = "descending";
         }
@@ -7589,40 +7589,40 @@ public partial class BaseExchange
         string? monthRaw = slice(date, 2, 4);
         string? month = null;
         object day = slice(date, 4, 6);
-        if (isEqual(monthRaw, "01"))
+        if ((monthRaw == "01"))
         {
             month = "JAN";
-        } else if (isEqual(monthRaw, "02"))
+        } else if ((monthRaw == "02"))
         {
             month = "FEB";
-        } else if (isEqual(monthRaw, "03"))
+        } else if ((monthRaw == "03"))
         {
             month = "MAR";
-        } else if (isEqual(monthRaw, "04"))
+        } else if ((monthRaw == "04"))
         {
             month = "APR";
-        } else if (isEqual(monthRaw, "05"))
+        } else if ((monthRaw == "05"))
         {
             month = "MAY";
-        } else if (isEqual(monthRaw, "06"))
+        } else if ((monthRaw == "06"))
         {
             month = "JUN";
-        } else if (isEqual(monthRaw, "07"))
+        } else if ((monthRaw == "07"))
         {
             month = "JUL";
-        } else if (isEqual(monthRaw, "08"))
+        } else if ((monthRaw == "08"))
         {
             month = "AUG";
-        } else if (isEqual(monthRaw, "09"))
+        } else if ((monthRaw == "09"))
         {
             month = "SEP";
-        } else if (isEqual(monthRaw, "10"))
+        } else if ((monthRaw == "10"))
         {
             month = "OCT";
-        } else if (isEqual(monthRaw, "11"))
+        } else if ((monthRaw == "11"))
         {
             month = "NOV";
-        } else if (isEqual(monthRaw, "12"))
+        } else if ((monthRaw == "12"))
         {
             month = "DEC";
         }
