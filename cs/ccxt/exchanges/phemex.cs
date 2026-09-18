@@ -866,9 +866,9 @@ public partial class phemex : Exchange
         {
             return value;
         }
-        List<object> parts = ((string)((string)value)).Split(new [] {","}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ((string)value).Split(new [] {","}, StringSplitOptions.None).ToList<object>();
         value = String.Join("", parts.ToArray());
-        parts = ((string)((string)value)).Split(new [] {" "}, StringSplitOptions.None).ToList<object>();
+        parts = ((string)value).Split(new [] {" "}, StringSplitOptions.None).ToList<object>();
         return this.safeNumber(parts, 0);
     }
 
@@ -929,7 +929,7 @@ public partial class phemex : Exchange
         string? quoteId = this.safeString(market, "quoteCurrency");
         string? settleId = this.safeString(market, "settleCurrency");
         object bs = this.safeCurrencyCode(baseId);
-        bs = ((string)((string)bs)).Replace((string)" ", (string)""); // replace space for junction codes, eg. `1000 SHIB`
+        bs = ((string)bs).Replace(" ", (string)""); // replace space for junction codes, eg. `1000 SHIB`
         string? quote = this.safeCurrencyCode(quoteId);
         string? settle = this.safeCurrencyCode(settleId);
         bool inverse = false;
@@ -950,7 +950,7 @@ public partial class phemex : Exchange
         string? makerFeeRateEr = this.safeString(market, "makerFeeRateEr");
         string? takerFeeRateEr = this.safeString(market, "takerFeeRateEr");
         string? status = this.safeString(market, "status");
-        string contractSizeString = ((string)this.safeString(market, "contractSize", " "));
+        string contractSizeString = this.safeString(market, "contractSize", " ");
         double? contractSize = null;
         if (settle == "USDT")
         {
@@ -1401,7 +1401,7 @@ public partial class phemex : Exchange
         string? id = this.safeString(rawCurrency, "currency");
         string? code = this.safeCurrencyCode(id);
         string? valueScaleString = this.safeString(rawCurrency, "valueScale");
-        object valueScale = parseInt(((string)valueScaleString));
+        object valueScale = parseInt(valueScaleString);
         string? minValueEv = this.safeString(rawCurrency, "minValueEv");
         string? maxValueEv = this.safeString(rawCurrency, "maxValueEv");
         double? minAmount = null;
@@ -1561,7 +1561,7 @@ public partial class phemex : Exchange
             return null;
         }
         string? stringN = this.numberToString(n);
-        var precise = new Precise(((string)stringN));
+        var precise = new Precise(stringN);
         precise.decimals = subtract(precise.decimals, scale);
         precise.reduce();
         string preciseString = ((object)precise).ToString();
@@ -2406,7 +2406,7 @@ public partial class phemex : Exchange
             timestamp = (isEqual(timestamp, null)) ? lastUpdateTimeNs : mathMax(timestamp, lastUpdateTimeNs);
             account["total"] = total;
             account["used"] = used;
-            result[(string)((string)code)] = account;
+            result[(string)code] = account;
         }
         result["timestamp"] = timestamp;
         result["datetime"] = this.iso8601(timestamp);
@@ -2452,7 +2452,7 @@ public partial class phemex : Exchange
         object balance = this.safeValue(data, "account", new Dictionary<string, object>() {});
         string? currencyId = this.safeString(balance, "currency");
         string? code = this.safeCurrencyCode(currencyId);
-        Dictionary<string, object> currency = this.currency(((string)code));
+        Dictionary<string, object> currency = this.currency(code);
         Int64? valueScale = this.safeInteger(currency, "valueScale", 8);
         Dictionary<string, object> account = this.account();
         string? accountBalanceEv = this.safeString2(balance, "accountBalanceEv", "accountBalanceRv");
@@ -2460,7 +2460,7 @@ public partial class phemex : Exchange
         bool needsConversion = (code != "USDT");
         account["total"] = needsConversion ? this.fromEn(accountBalanceEv, valueScale) : accountBalanceEv;
         account["used"] = needsConversion ? this.fromEn(totalUsedBalanceEv, valueScale) : totalUsedBalanceEv;
-        result[(string)((string)code)] = account;
+        result[(string)code] = account;
         return this.safeBalance(result);
     }
 
@@ -2679,7 +2679,7 @@ public partial class phemex : Exchange
             { "7", "closed" },
             { "8", "canceled" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     public virtual string? parseOrderType(string? type)
@@ -2698,7 +2698,7 @@ public partial class phemex : Exchange
             { "Limit", "limit" },
             { "Market", "market" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     public virtual string? parseTimeInForce(string? timeInForce)
@@ -2709,7 +2709,7 @@ public partial class phemex : Exchange
             { "ImmediateOrCancel", "IOC" },
             { "FillOrKill", "FOK" },
         };
-        return this.safeString(timeInForces, ((string)timeInForce), timeInForce);
+        return this.safeString(timeInForces, timeInForce, timeInForce);
     }
 
     public virtual object parseSpotOrder(object order, object market = null)
@@ -3081,7 +3081,7 @@ public partial class phemex : Exchange
         bool isStableSettled = (isEqual(GetValue(market, "settle"), "USDT")) || (isEqual(GetValue(market, "settle"), "USDC"));
         if ((clientOrderId == null))
         {
-            string brokerId = ((string)this.safeString(this.options, "brokerId", "CCXT123456"));
+            string brokerId = this.safeString(this.options, "brokerId", "CCXT123456");
             if ((brokerId != null))
             {
                 request["clOrdID"] = add(brokerId, this.uuid16());
@@ -4231,7 +4231,7 @@ public partial class phemex : Exchange
             { "Confirmed", "pending" },
             { "Cancelled", "canceled" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
@@ -5033,7 +5033,7 @@ public partial class phemex : Exchange
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "0", "ok" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     public override Dictionary<string, object> parseMarginModification(object data, IDictionary<string, object> market = null)
@@ -5343,7 +5343,7 @@ public partial class phemex : Exchange
                 {
                     if ((this.safeString(parameters, "clOrdID") == null))
                     {
-                        string id = ((string)this.safeString(this.options, "brokerId", "CCXT123456"));
+                        string id = this.safeString(this.options, "brokerId", "CCXT123456");
                         ((IDictionary<string,object>)parameters)["clOrdID"] = add(id, this.uuid16());
                     }
                 }
@@ -5651,7 +5651,7 @@ public partial class phemex : Exchange
             { "10", "ok" },
             { "11", "failed" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     /**

@@ -1667,7 +1667,7 @@ public partial class delta : Exchange
         string? type = this.safeString(metaData, "order_type");
         if ((type != null))
         {
-            type = type.Replace((string)"_order", (string)"");
+            type = type.Replace("_order", (string)"");
         }
         string? feeCostString = this.safeString(trade, "commission");
         Dictionary<string, object> fee = null;
@@ -2122,7 +2122,7 @@ public partial class delta : Exchange
         string? type = this.safeString(order, "order_type");
         if ((type != null))
         {
-            type = type.Replace((string)"_order", (string)"");
+            type = type.Replace("_order", (string)"");
         }
         string? price = this.safeString(order, "limit_price");
         string? amount = this.safeString(order, "size");

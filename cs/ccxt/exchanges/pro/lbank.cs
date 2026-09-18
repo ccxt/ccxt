@@ -547,7 +547,7 @@ public partial class lbank : ccxt.lbank
             timestamp = this.parse8601(datetime);
         }
         string? rawSide = this.safeString2(trade, "direction", 3);
-        List<object> parts = ((string)((string)rawSide)).Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = rawSide.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
         string? firstPart = this.safeString(parts, 0);
         string? secondPart = this.safeString(parts, 1);
         string? side = firstPart;

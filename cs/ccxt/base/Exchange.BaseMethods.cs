@@ -2265,7 +2265,7 @@ public partial class BaseExchange
         // Validate that source exchange has loaded markets
         if ((isEqual(sourceExchange.markets, null)) || (isEqual(sourceExchange.markets, null)))
         {
-            throw new ExchangeError ((string)"setMarketsFromExchange() source exchange must have loaded markets first. Can call by using loadMarkets function") ;
+            throw new ExchangeError ("setMarketsFromExchange() source exchange must have loaded markets first. Can call by using loadMarkets function") ;
         }
         // Set all market-related data
         this.markets = sourceExchange.markets;
@@ -2793,7 +2793,7 @@ public partial class BaseExchange
         cost = Precise.stringMul(cost, rate);
         return new Dictionary<string, object>() {
             { "type", takerOrMaker },
-            { "currency", getValue(market, ((string)key)) },
+            { "currency", getValue(market, key) },
             { "rate", this.parseNumber(rate) },
             { "cost", this.parseNumber(cost) },
         };
@@ -3442,7 +3442,7 @@ public partial class BaseExchange
                     return jsoned;  // if parsing was not successfull, exception should be thrown
                 } else
                 {
-                    throw new BadResponse ((string)"could not parse the response into json") ;
+                    throw new BadResponse ("could not parse the response into json") ;
                 }
             } else
             {
@@ -5652,7 +5652,7 @@ public partial class BaseExchange
         for (int i = 0; isLessThan(i, leverageSuffixes.Count); postFixIncrement(ref i))
         {
             string? leverageSuffix = ((string)getValue(leverageSuffixes, i));
-            bool endsWithSuffix = ((string)currencyCode).EndsWith(((string)leverageSuffix));
+            bool endsWithSuffix = ((string)currencyCode).EndsWith(leverageSuffix);
             if (endsWithSuffix)
             {
                 if (!isTrue(checkBaseCoin))
@@ -5661,7 +5661,7 @@ public partial class BaseExchange
                 } else
                 {
                     // check if base currency is inside dict
-                    string baseCurrencyCode = ((string)currencyCode).Replace((string)leverageSuffix, (string)"");
+                    string baseCurrencyCode = ((string)currencyCode).Replace(leverageSuffix, (string)"");
                     if ((!isEqual(existingCurrencies, null)) && (inOp(existingCurrencies, baseCurrencyCode)))
                     {
                         return true;
@@ -6091,7 +6091,7 @@ public partial class BaseExchange
             object item = getValue(info, i);
             object borrowRate = this.parseIsolatedBorrowRate(item);
             string? symbol = this.safeString(borrowRate, "symbol");
-            result[(string)((string)symbol)] = borrowRate;
+            result[(string)symbol] = borrowRate;
         }
         return ((object)result);
     }
@@ -6647,7 +6647,7 @@ public partial class BaseExchange
             string? code = this.safeString(currency, "code");
             if ((isEqual(codes, null)) || (this.inArray(code, codes)))
             {
-                depositWithdrawFees[(string)((string)code)] = this.parseDepositWithdrawFee(dictionary, currency);
+                depositWithdrawFees[(string)code] = this.parseDepositWithdrawFee(dictionary, currency);
             }
         }
         return ((Dictionary<string, object>)((object)(depositWithdrawFees)));
@@ -7766,16 +7766,16 @@ public partial class BaseExchange
             for (int i = 0; isLessThan(i, clientSubscriptions.Count); postFixIncrement(ref i))
             {
                 string? sub = ((string)getValue(clientSubscriptions, i));
-                if (((sub != null)) && (!isEqual(subHash, null)) && ((string)sub).StartsWith(((string)subHash)))
+                if (((sub != null)) && (!isEqual(subHash, null)) && sub.StartsWith(((string)subHash)))
                 {
-                    ((IDictionary<string,object>)client.subscriptions).Remove((string)sub);
+                    ((IDictionary<string,object>)client.subscriptions).Remove(sub);
                 }
             }
             List<object> clientFutures = new List<object>(((IDictionary<string, ccxt.Exchange.Future>)client.futures).Keys);
             for (int i = 0; isLessThan(i, clientFutures.Count); postFixIncrement(ref i))
             {
                 string? future = ((string)getValue(clientFutures, i));
-                if (((future != null)) && (!isEqual(subHash, null)) && ((string)future).StartsWith(((string)subHash)))
+                if (((future != null)) && (!isEqual(subHash, null)) && future.StartsWith(((string)subHash)))
                 {
                     var error = new UnsubscribeError(add(add(this.id, " "), future));
                     client.reject(error, future);
@@ -7863,7 +7863,7 @@ public partial class BaseExchange
                     object futures = (client as WebSocketClient).futures;
                     if (((futures != null)) && (inOp(futures, "fetchPositionsSnapshot")))
                     {
-                        ((IDictionary<string,object>)futures).Remove((string)"fetchPositionsSnapshot");
+                        ((IDictionary<string,object>)futures).Remove("fetchPositionsSnapshot");
                     }
                 }
             } else if ((topic == "ticker" || topic == "markPrice") && (!isEqual(this.tickers, null)))
@@ -7874,7 +7874,7 @@ public partial class BaseExchange
                     string? tickerSymbol = ((string)getValue(tickerSymbols, i));
                     if (inOp(this.tickers, tickerSymbol))
                     {
-                        ((IDictionary<string,object>)this.tickers).Remove((string)tickerSymbol);
+                        ((IDictionary<string,object>)this.tickers).Remove(tickerSymbol);
                     }
                 }
             } else if (topic == "bidsasks" && (!isEqual(this.bidsasks, null)))
@@ -7885,7 +7885,7 @@ public partial class BaseExchange
                     string? bidsaskSymbol = ((string)getValue(bidsaskSymbols, i));
                     if (inOp(this.bidsasks, bidsaskSymbol))
                     {
-                        ((IDictionary<string,object>)this.bidsasks).Remove((string)bidsaskSymbol);
+                        ((IDictionary<string,object>)this.bidsasks).Remove(bidsaskSymbol);
                     }
                 }
             }

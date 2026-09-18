@@ -1371,7 +1371,7 @@ public partial class pacifica : ccxt.pacifica
         }
         try
         {
-            this.handleErrors(0,((string)error), "",((string)postType), getValue(getValue(getValue(this.options, "ws"), "options"), "headers"), this.json(data), message, new Dictionary<string, object>() {}, new Dictionary<string, object>() {});
+            this.handleErrors(0,error, "",postType, getValue(getValue(getValue(this.options, "ws"), "options"), "headers"), this.json(data), message, new Dictionary<string, object>() {}, new Dictionary<string, object>() {});
         } catch(Exception e)
         {
             client.reject(e, id);
@@ -1390,7 +1390,7 @@ public partial class pacifica : ccxt.pacifica
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         if (inOp(this.orderbooks, symbol))
         {
-            ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
+            ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
         }
     }
 
@@ -1404,7 +1404,7 @@ public partial class pacifica : ccxt.pacifica
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         if (inOp(this.trades, symbol))
         {
-            ((IDictionary<string,object>)this.trades).Remove((string)symbol);
+            ((IDictionary<string,object>)this.trades).Remove(symbol);
         }
     }
 

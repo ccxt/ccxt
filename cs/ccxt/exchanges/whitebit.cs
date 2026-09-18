@@ -1246,7 +1246,7 @@ public partial class whitebit : Exchange
         for (int i = 0; isLessThan(i, depositWithdrawCodes.Count); postFixIncrement(ref i))
         {
             string? code = ((string)getValue(depositWithdrawCodes, i));
-            Dictionary<string, object> currency = this.currency(((string)code));
+            Dictionary<string, object> currency = this.currency(code);
             depositWithdrawFees[(string)code] = this.assignDefaultDepositWithdrawFees(getValue(depositWithdrawFees, code), currency);
         }
         return ((Dictionary<string, object>)((object)(depositWithdrawFees)));
@@ -3048,7 +3048,7 @@ public partial class whitebit : Exchange
             { "margin limit", "limit" },
             { "margin market", "market" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     public override Dictionary<string, object> parseOrder(object order, object market = null)
@@ -3172,7 +3172,7 @@ public partial class whitebit : Exchange
             { "PARTIALLY_FILLED", "open" },
             { "FILLED", "closed" },
         };
-        return this.safeStringLower(statuses, ((string)status), status);
+        return this.safeStringLower(statuses, status, status);
     }
 
     /**
@@ -3786,7 +3786,7 @@ public partial class whitebit : Exchange
             { "16", "pending" },
             { "17", "pending" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     /**

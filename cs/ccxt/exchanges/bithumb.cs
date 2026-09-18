@@ -778,7 +778,7 @@ public partial class bithumb : Exchange
             {
                 string? code = ((string)getValue(codes, i));
                 Dictionary<string, object> account = this.account();
-                Dictionary<string, object> currency = this.currency(((string)code));
+                Dictionary<string, object> currency = this.currency(code);
                 string? lowerCurrencyId = this.safeStringLower(currency, "id");
                 account["total"] = this.safeString(balances, add("total_", lowerCurrencyId));
                 account["used"] = this.safeString(balances, add("in_use_", lowerCurrencyId));
@@ -1670,7 +1670,7 @@ public partial class bithumb : Exchange
         if ((feeCostString != null))
         {
             string? feeCurrencyId = this.safeString(trade, "fee_currency");
-            string? feeCurrencyCode = this.commonCurrencyCode(((string)feeCurrencyId));
+            string? feeCurrencyCode = this.commonCurrencyCode(feeCurrencyId);
             fee = new Dictionary<string, object>() {
                 { "cost", feeCostString },
                 { "currency", feeCurrencyCode },
@@ -2296,7 +2296,7 @@ public partial class bithumb : Exchange
             { "cancel", "canceled" },
             { "progress", "open" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     public override Dictionary<string, object> parseOrder(object order, object market = null)
@@ -2423,7 +2423,7 @@ public partial class bithumb : Exchange
         {
             if (getIndexOf(datetime, "+09:00") > -1)
             {
-                string normalized = datetime.Replace((string)"+09:00", (string)"Z");
+                string normalized = datetime.Replace("+09:00", (string)"Z");
                 Int64? normalizedTimestamp = this.parse8601(normalized);
                 if (!isEqual(normalizedTimestamp, null))
                 {
@@ -3089,7 +3089,7 @@ public partial class bithumb : Exchange
         object timestamp = this.parse8601(datetime);
         if (((datetime != null)) && (getIndexOf(datetime, "+09:00") > -1))
         {
-            string normalized = datetime.Replace((string)"+09:00", (string)"Z");
+            string normalized = datetime.Replace("+09:00", (string)"Z");
             Int64? normalizedTimestamp = this.parse8601(normalized);
             if (!isEqual(normalizedTimestamp, null))
             {
@@ -3148,7 +3148,7 @@ public partial class bithumb : Exchange
                 { "CANCELLED", "canceled" },
             } },
         };
-        IDictionary<string, object> statuses = this.safeDict(statusesByType, ((string)type), new Dictionary<string, object>() {});
+        IDictionary<string, object> statuses = this.safeDict(statusesByType, type, new Dictionary<string, object>() {});
         return this.safeString(statuses, status, status);
     }
 
@@ -3632,7 +3632,7 @@ public partial class bithumb : Exchange
         object finalNumberStr = numberStr;
         while (isGreaterThan(getIndexOf(finalNumberStr, ","), -1))
         {
-            finalNumberStr = ((string)finalNumberStr).Replace((string)",", (string)"");
+            finalNumberStr = ((string)finalNumberStr).Replace(",", (string)"");
         }
         return finalNumberStr;
     }
@@ -3705,7 +3705,7 @@ public partial class bithumb : Exchange
         } else
         {
             this.checkRequiredCredentials();
-            bool isVersionedApi = (((string)endpoint).StartsWith("/v1/") || ((string)endpoint).StartsWith("/v2/"));
+            bool isVersionedApi = (endpoint.StartsWith("/v1/") || endpoint.StartsWith("/v2/"));
             if (isVersionedApi)
             {
                 headers = new Dictionary<string, object>() {

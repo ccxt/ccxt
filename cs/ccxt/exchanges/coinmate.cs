@@ -571,7 +571,7 @@ public partial class coinmate : Exchange
             account["free"] = this.safeString(balance, "available");
             account["used"] = this.safeString(balance, "reserved");
             account["total"] = this.safeString(balance, "balance");
-            result[(string)((string)code)] = account;
+            result[(string)code] = account;
         }
         return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
     }
@@ -805,7 +805,7 @@ public partial class coinmate : Exchange
             { "NEW", "pending" },
             { "CANCELED", "canceled" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
@@ -1236,7 +1236,7 @@ public partial class coinmate : Exchange
             { "PARTIALLY_FILLED", "open" },
             { "OPEN", "open" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     public virtual string? parseOrderType(string? type)
@@ -1245,7 +1245,7 @@ public partial class coinmate : Exchange
             { "LIMIT", "limit" },
             { "MARKET", "market" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     public override Dictionary<string, object> parseOrder(object order, object market = null)

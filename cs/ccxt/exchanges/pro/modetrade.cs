@@ -666,7 +666,7 @@ public partial class modetrade : ccxt.modetrade
             // allows further authentication attempts
             if (inOp(client.subscriptions, messageHash))
             {
-                ((IDictionary<string,object>)client.subscriptions).Remove((string)"authenticated");
+                ((IDictionary<string,object>)client.subscriptions).Remove("authenticated");
             }
         }
     }

@@ -1461,7 +1461,7 @@ public partial class bingx : Exchange
 
     public override Dictionary<string, object> parseMarket(object market)
     {
-        string id = ((string)this.safeString(market, "symbol"));
+        string id = this.safeString(market, "symbol");
         List<object> symbolParts = id.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
         string? baseId = ((string)getValue(symbolParts, 0));
         string? quoteId = ((string)getValue(symbolParts, 1));
@@ -2969,7 +2969,7 @@ public partial class bingx : Exchange
         string? percentage = this.safeString(ticker, "priceChangePercent");
         if ((percentage != null))
         {
-            percentage = percentage.Replace((string)"%", (string)"");
+            percentage = percentage.Replace("%", (string)"");
         }
         string? change = this.safeString(ticker, "priceChange");
         Int64? ts = this.safeInteger(ticker, "closeTime");
@@ -3443,8 +3443,8 @@ public partial class bingx : Exchange
         //         "totalFunding": "-2.921461693902908"
         //     }
         //
-        string marketId = ((string)this.safeString(position, "symbol", ""));
-        marketId = marketId.Replace((string)"/", (string)"-"); // standard return different format
+        string marketId = this.safeString(position, "symbol", "");
+        marketId = marketId.Replace("/", (string)"-"); // standard return different format
         bool? isolated = this.safeBool(position, "isolated");
         string? marginMode = null;
         if (!isEqual(isolated, null))
@@ -3572,7 +3572,7 @@ public partial class bingx : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },
             { "type", type },
-            { "side", ((string)((string)side)).ToUpper() },
+            { "side", ((string)side).ToUpper() },
         };
         bool isMarketOrder = isEqual(type, "MARKET");
         bool isSpot = marketType == "spot";
@@ -4155,7 +4155,7 @@ public partial class bingx : Exchange
             { "take_profit_market", "market" },
             { "stop", "limit" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     public override Dictionary<string, object> parseOrder(object order, object market = null)
@@ -4507,7 +4507,7 @@ public partial class bingx : Exchange
             }
             takeProfitPrice = this.omitZero(this.safeString(takeProfit, "stopPrice"));
         }
-        string rawType = ((string)this.safeStringLower2(order, "type", "o"));
+        string rawType = this.safeStringLower2(order, "type", "o");
         string? stopPrice = this.omitZero(this.safeString2(order, "StopPrice", "stopPrice"));
         string? triggerPrice = stopPrice;
         if ((stopPrice != null))
@@ -5628,7 +5628,7 @@ public partial class bingx : Exchange
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "CONFIRMED", "ok" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     /**
@@ -5738,7 +5738,7 @@ public partial class bingx : Exchange
         // the 0x prefix on the evm networks, see https://github.com/ccxt/ccxt/issues/24331
         if ((address != null))
         {
-            bool isPrefixed = ((string)address).StartsWith("0x") || ((string)address).StartsWith("0X");
+            bool isPrefixed = address.StartsWith("0x") || address.StartsWith("0X");
             List<object> evmNetworks = new List<object>() {"BEP20", "BSC", "ERC20", "ETH", "HECO", "MATIC", "POLYGON", "ARBITRUM", "ARB", "OPTIMISM", "AVAXC", "BASE", "FTM", "LINEA", "ZKSYNC", "OPBNB"};
             if (!isPrefixed && this.inArray(networkCode, evmNetworks))
             {
@@ -5941,7 +5941,7 @@ public partial class bingx : Exchange
         {
             if ((network != null))
             {
-                code = code.Replace((string)network, (string)"");
+                code = code.Replace(network, (string)"");
             }
         }
         string? rawType = this.safeString(transaction, "transferType");
@@ -6124,7 +6124,7 @@ public partial class bingx : Exchange
         string? type = this.safeString(data, "type");
         return new Dictionary<string, object>() {
             { "info", data },
-            { "symbol", ((string)this.safeString(market, "symbol")) },
+            { "symbol", this.safeString(market, "symbol") },
             { "type", (type == "1") ? "add" : "reduce" },
             { "marginMode", "isolated" },
             { "amount", this.safeNumber(data, "amount") },
@@ -7185,7 +7185,7 @@ public partial class bingx : Exchange
         for (int i = 0; isLessThan(i, getArrayLength(info)); postFixIncrement(ref i))
         {
             IDictionary<string, object> tier = this.safeDict(info, i);
-            string tierString = ((string)this.safeString(tier, "tier"));
+            string tierString = this.safeString(tier, "tier");
             List<object> tierParts = tierString.Split(new [] {" "}, StringSplitOptions.None).ToList<object>();
             string? marketId = this.safeString(tier, "symbol");
             market = this.safeMarket(marketId, market, null, "swap");

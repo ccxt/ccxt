@@ -2133,7 +2133,7 @@ public partial class alpaca : Exchange
         IDictionary<string, object> currency = null;
         if (!isEqual(code, null))
         {
-            currency = this.currency(((string)code));
+            currency = this.currency(code);
         }
         bool sandboxMode = isTrue(this.isSandboxModeEnabled) || isTrue(this.safeBool(this.options, "sandboxMode", false));
         if ((sandboxMode == true))
@@ -2402,7 +2402,7 @@ public partial class alpaca : Exchange
             { "INCOMING", "deposit" },
             { "OUTGOING", "withdrawal" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     /**

@@ -272,7 +272,7 @@ public partial class btcbox : Exchange
         {
             string? marketId = ((string)getValue(marketIds, i));
             List<object> symbolParts = marketId.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
-            string baseCurr = ((string)this.safeString(symbolParts, 0, ""));
+            string baseCurr = this.safeString(symbolParts, 0, "");
             string? quote = this.safeString(symbolParts, 1, "");
             string quoteId = quote.ToLower();
             string id = baseCurr.ToLower();
@@ -405,7 +405,7 @@ public partial class btcbox : Exchange
         for (int i = 0; isLessThan(i, codes.Count); postFixIncrement(ref i))
         {
             string? code = ((string)getValue(codes, i));
-            Dictionary<string, object> currency = this.currency(((string)code));
+            Dictionary<string, object> currency = this.currency(code);
             object currencyId = GetValue(currency, "id");
             object free = add(currencyId, "_balance");
             if (inOp(response, free))

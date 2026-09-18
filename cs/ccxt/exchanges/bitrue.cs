@@ -1981,7 +1981,7 @@ public partial class bitrue : Exchange
             { "REJECTED", "rejected" },
             { "EXPIRED", "expired" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     public override Dictionary<string, object> parseOrder(object order, object market = null)

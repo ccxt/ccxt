@@ -535,13 +535,13 @@ public partial class krakenfutures : Exchange
             string? id = this.safeString(market, "symbol");
             string? marketType = this.safeString(market, "type");
             string? type = null;
-            bool index = (getIndexOf(((string)marketType), " index") >= 0);
+            bool index = (getIndexOf(marketType, " index") >= 0);
             bool? linear = null;
             bool? inverse = null;
             Int64? expiry = null;
             if (!index)
             {
-                linear = (getIndexOf(((string)marketType), "_vanilla") >= 0);
+                linear = (getIndexOf(marketType, "_vanilla") >= 0);
                 inverse = !(linear == true);
                 string? settleTime = this.safeString(market, "lastTradingTime");
                 type = ((settleTime == null)) ? "swap" : "future";
@@ -555,7 +555,7 @@ public partial class krakenfutures : Exchange
             object symbol = id;
             List<object> split = id.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
             string? splitMarket = this.safeString(split, 1);
-            string? baseId = slice(((string)splitMarket), 0, subtract(((string)((string)splitMarket)).Length, 3));
+            string? baseId = slice(splitMarket, 0, subtract(splitMarket.Length, 3));
             string quoteId = "usd"; // always USD
             object bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
@@ -3033,7 +3033,7 @@ public partial class krakenfutures : Exchange
             { "cross-exchange transfer", "transfer" },
             { "admin transfer", "transfer" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     public override Dictionary<string, object> parseLedgerEntry(object item, object currency = null)

@@ -731,7 +731,7 @@ public partial class bitget : ccxt.bitget
         if ((interval == null))
         {
             isUta = false;
-            interval = channel.Replace((string)"candle", (string)"");
+            interval = channel.Replace("candle", (string)"");
         } else
         {
             isUta = true;
@@ -1577,7 +1577,7 @@ public partial class bitget : ccxt.bitget
         //     }
         //
         IDictionary<string, object> arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
-        string instType = ((string)this.safeString(arg, "instType", ""));
+        string instType = this.safeString(arg, "instType", "");
         if (isEqual(this.positions, null))
         {
             this.positions = new Dictionary<string, object>() {};
@@ -3141,7 +3141,7 @@ public partial class bitget : ccxt.bitget
         string subMessageHash = add("orderbook:", symbol);
         if (inOp(this.orderbooks, symbol))
         {
-            ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
+            ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
         }
         if (inOp(client.subscriptions, subMessageHash))
         {
@@ -3174,7 +3174,7 @@ public partial class bitget : ccxt.bitget
         string subMessageHash = add("trade:", symbol);
         if (inOp(this.trades, symbol))
         {
-            ((IDictionary<string,object>)this.trades).Remove((string)symbol);
+            ((IDictionary<string,object>)this.trades).Remove(symbol);
         }
         if (inOp(client.subscriptions, subMessageHash))
         {
@@ -3207,7 +3207,7 @@ public partial class bitget : ccxt.bitget
         string subMessageHash = add("ticker:", symbol);
         if (inOp(this.tickers, symbol))
         {
-            ((IDictionary<string,object>)this.tickers).Remove((string)symbol);
+            ((IDictionary<string,object>)this.tickers).Remove(symbol);
         }
         if (inOp(client.subscriptions, subMessageHash))
         {
@@ -3244,7 +3244,7 @@ public partial class bitget : ccxt.bitget
         if ((interval == null))
         {
             isUta = false;
-            interval = channel.Replace((string)"candle", (string)"");
+            interval = channel.Replace("candle", (string)"");
         } else
         {
             isUta = true;

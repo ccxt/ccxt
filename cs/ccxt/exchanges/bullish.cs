@@ -935,7 +935,7 @@ public partial class bullish : Exchange
         //         "premiumCapRatio": "0.1000"
         //     }
         //
-        string id = ((string)this.safeString(market, "symbol"));
+        string id = this.safeString(market, "symbol");
         string? baseId = this.safeString(market, "baseSymbol");
         string? quoteId = this.safeString(market, "quoteSymbol");
         object bs = this.safeCurrencyCode(baseId);
@@ -985,7 +985,7 @@ public partial class bullish : Exchange
             {
                 expiryDatetime = this.safeString(market, "expiryDatetime");
                 List<object> idParts = id.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
-                string datePart = ((string)this.safeString(idParts, 2));
+                string datePart = this.safeString(idParts, 2);
                 string? dateYmd = slice(datePart, 2, null);
                 symbol = add(symbol, add("-", dateYmd));
                 if (type == "future")
@@ -1064,7 +1064,7 @@ public partial class bullish : Exchange
             { "DATED_FUTURE", "future" },
             { "OPTION", "option" },
         };
-        return this.safeString(types, ((string)type), defaultType);
+        return this.safeString(types, type, defaultType);
     }
 
     /**
@@ -1523,13 +1523,13 @@ public partial class bullish : Exchange
             {
                 if (isEqual(method, "fetchOHLCV"))
                 {
-                    return ccxt.BaseExchange.FromOHLCVList(await this.FetchOHLCV(((string)symbol),timeframe,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters));
+                    return ccxt.BaseExchange.FromOHLCVList(await this.FetchOHLCV(symbol,timeframe,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters));
                 } else if (isEqual(method, "fetchFundingRateHistory"))
                 {
                     return ccxt.BaseExchange.FromFundingRateHistoryList(await this.FetchFundingRateHistory(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters));
                 } else
                 {
-                    return ccxt.BaseExchange.FromTradeList(await this.FetchTrades(((string)symbol),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters));
+                    return ccxt.BaseExchange.FromTradeList(await this.FetchTrades(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters));
                 }
             } catch(Exception e)
             {
@@ -2335,7 +2335,7 @@ public partial class bullish : Exchange
             { "CANCELLED", "canceled" },
             { "REJECTED", "rejected" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     public virtual string? parseOrderType(string? type)
@@ -2346,7 +2346,7 @@ public partial class bullish : Exchange
             { "POST_ONLY", "limit" },
             { "STOP_LIMIT", "limit" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     /**
@@ -2569,7 +2569,7 @@ public partial class bullish : Exchange
             { "PENDING", "pending" },
             { "CANCELLED", "canceled" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     public async virtual Task<object> loadAccount(object parameters = null)
@@ -2811,9 +2811,9 @@ public partial class bullish : Exchange
         string? code = this.safeString(parameters, "code");
         if ((code != null))
         {
-            request["symbol"] = getValue(this.currency(((string)code)), "id");
+            request["symbol"] = getValue(this.currency(code), "id");
             response = await this.privateGetV1AccountsAssetSymbol(this.extend(request, parameters));
-            return ccxt.BaseExchange.ToBalances(this.parseBalanceForSingleCurrency(response,((string)code)));
+            return ccxt.BaseExchange.ToBalances(this.parseBalanceForSingleCurrency(response,code));
         } else
         {
             response = await this.privateGetV1AccountsAsset(this.extend(request, parameters));
@@ -2978,7 +2978,7 @@ public partial class bullish : Exchange
             { "BUY", "long" },
             { "SELL", "short" },
         };
-        return this.safeString(sides, ((string)side), side);
+        return this.safeString(sides, side, side);
     }
 
     /**
@@ -3445,9 +3445,9 @@ public partial class bullish : Exchange
         string? token = this.safeString(response, "token");
         string? authorizer = this.safeString(response, "authorizer");
         ((IDictionary<string,object>)this.options)["authorizer"] = authorizer;
-        this.token = ((string)token);
+        this.token = token;
         ((IDictionary<string,object>)this.options)["tokenExpires"] = this.sum(this.milliseconds(), multiply(multiply(multiply(1000, 60), 60), 24)); // token expires in 24 hours
-        return ((string)token);
+        return token;
     }
 
     public async virtual Task<object> handleToken(object parameters = null)

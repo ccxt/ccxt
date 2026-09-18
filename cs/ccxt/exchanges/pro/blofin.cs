@@ -504,7 +504,7 @@ public partial class blofin : ccxt.blofin
         string? marketId = this.safeString(arg, "instId");
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)GetValue(market, "symbol"));
-        string interval = ((string)((string)channelName)).Replace((string)"candle", (string)"");
+        string interval = channelName.Replace("candle", (string)"");
         string? unifiedTimeframe = this.findTimeframe(interval);
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         object stored = this.safeValue(getValue(this.ohlcvs, symbol), unifiedTimeframe);
@@ -931,7 +931,7 @@ public partial class blofin : ccxt.blofin
             IDictionary<string, object> arg = this.safeDict(message, "arg");
             string? channelName = this.safeString(arg, "channel");
             method = this.safeValue(methods, channelName);
-            if (((method == null)) && (getIndexOf(((string)channelName), "candle") >= 0))
+            if (((method == null)) && (getIndexOf(channelName, "candle") >= 0))
             {
                 method = ((IDictionary<string,object>)methods)["candle"];
             }

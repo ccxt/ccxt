@@ -4671,7 +4671,7 @@ public partial class htx : Exchange
                     for (int j = 0; isLessThan(j, subCodes.Count); postFixIncrement(ref j))
                     {
                         string? subCode = ((string)getValue(subCodes, j));
-                        result = this.mergeBalanceAccount(result,((string)subCode), getValue(subResult, subCode));
+                        result = this.mergeBalanceAccount(result,subCode, getValue(subResult, subCode));
                     }
                 }
                 result = this.safeBalance(result);
@@ -6257,8 +6257,8 @@ public partial class htx : Exchange
             { "account-id", accountId },
             { "symbol", GetValue(market, "id") },
         };
-        string orderType = ((string)type).Replace((string)"buy-", (string)"");
-        orderType = orderType.Replace((string)"sell-", (string)"");
+        string orderType = ((string)type).Replace("buy-", (string)"");
+        orderType = orderType.Replace("sell-", (string)"");
         object options = this.safeValue(this.options, GetValue(market, "type"), new Dictionary<string, object>() {});
         string? triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopPrice", "stop-price"});
         if ((triggerPrice == null))
@@ -9074,7 +9074,7 @@ public partial class htx : Exchange
                 if (isEqual(method, "POST"))
                 {
                     object options = this.safeValue(this.options, "broker", new Dictionary<string, object>() {});
-                    string id = ((string)this.safeString(options, "id", "AA03022abc"));
+                    string id = this.safeString(options, "id", "AA03022abc");
                     if (!isArrayParams)
                     {
                         if ((isEqual(getIndexOf(pathString, "cancel"), -1)) && ((string)pathString).EndsWith("order"))
@@ -9110,7 +9110,7 @@ public partial class htx : Exchange
                     Dictionary<string, object> sortedQuery = this.keysort(query);
                     request = this.extend(request, sortedQuery);
                 }
-                string auth = this.urlencode(request, true).Replace((string)"%2c", (string)"%2C"); // in c# it manually needs to be uppercased
+                string auth = this.urlencode(request, true).Replace("%2c", (string)"%2C"); // in c# it manually needs to be uppercased
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 List<object> content2 = new List<object>() {method, hostname, url, auth};
                 string payload = String.Join("\n", content2.ToArray()); // eslint-disable-line quotes
@@ -9743,7 +9743,7 @@ public partial class htx : Exchange
             { "other-types", "transfer" },
             { "rebate", "rebate" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     public override Dictionary<string, object> parseLedgerEntry(object item, object currency = null)

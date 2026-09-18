@@ -1401,7 +1401,7 @@ public partial class kraken : Exchange
             { "transfer", "transfer" },
             { "margin", "margin" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     public override Dictionary<string, object> parseLedgerEntry(object item, object currency = null)
@@ -2487,10 +2487,10 @@ public partial class kraken : Exchange
             string? trailingPercentString = null;
             if ((trailingPercent != null))
             {
-                trailingPercentString = (((string)trailingPercent).EndsWith("%")) ? (add("+", trailingPercent)) : (add(add("+", trailingPercent), "%"));
+                trailingPercentString = (trailingPercent.EndsWith("%")) ? (add("+", trailingPercent)) : (add(add("+", trailingPercent), "%"));
             }
             string? trailingAmountString = ((trailingAmount != null)) ? add("+", trailingAmount) : null; // must use + for this
-            string offset = ((string)this.safeString(parameters, "offset", "-")); // can use + or - for this
+            string offset = this.safeString(parameters, "offset", "-"); // can use + or - for this
             string? trailingLimitAmountString = ((trailingLimitAmount != null)) ? add(offset, this.numberToString(trailingLimitAmount)) : null;
             string? trailingActivationPriceType = this.safeString(parameters, "trigger", "last");
             ((IDictionary<string,object>)request)["trigger"] = trailingActivationPriceType;
@@ -2499,7 +2499,7 @@ public partial class kraken : Exchange
                 ((IDictionary<string,object>)request)["ordertype"] = "trailing-stop-limit";
                 if ((trailingLimitPercent != null))
                 {
-                    string trailingLimitPercentString = (((string)trailingLimitPercent).EndsWith("%")) ? (add(offset, trailingLimitPercent)) : (add(add(offset, trailingLimitPercent), "%"));
+                    string trailingLimitPercentString = (trailingLimitPercent.EndsWith("%")) ? (add(offset, trailingLimitPercent)) : (add(add(offset, trailingLimitPercent), "%"));
                     ((IDictionary<string,object>)request)["price"] = trailingPercentString;
                     ((IDictionary<string,object>)request)["price2"] = trailingLimitPercentString;
                 } else if ((trailingLimitAmount != null))
@@ -4087,7 +4087,7 @@ public partial class kraken : Exchange
             bool isTriggerPercent = false;
             if ((price != null))
             {
-                isTriggerPercent = (((string)price).EndsWith("%")) ? true : false;
+                isTriggerPercent = (price.EndsWith("%")) ? true : false;
             }
             bool isCancelOrderBatch = (isEqual(path, "CancelOrderBatch"));
             bool isBatchOrder = (isEqual(path, "AddOrderBatch"));

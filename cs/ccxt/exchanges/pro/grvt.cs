@@ -519,7 +519,7 @@ public partial class grvt : ccxt.grvt
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)GetValue(market, "symbol"));
         string? secondPart = this.safeString(parts, 1, "");
-        string timeframeId = secondPart.Replace((string)"-TRADE", (string)"");
+        string timeframeId = secondPart.Replace("-TRADE", (string)"");
         string? timeframe = this.findTimeframe(timeframeId);
         string messageHash = add(add(add("ohlcv::", symbol), "::"), timeframe);
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});

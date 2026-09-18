@@ -385,8 +385,8 @@ public partial class p2b : Exchange
         string? marketId = this.safeString(market, "name");
         string? baseId = this.safeString(market, "stock");
         string? quoteId = this.safeString(market, "money");
-        string bs = ((string)this.safeCurrencyCode(baseId));
-        string quote = ((string)this.safeCurrencyCode(quoteId));
+        string bs = this.safeCurrencyCode(baseId);
+        string quote = this.safeCurrencyCode(quoteId);
         IDictionary<string, object> limits = this.safeDict(market, "limits");
         string? maxAmount = this.safeString(limits, "max_amount");
         string? maxPrice = this.safeString(limits, "max_price");
@@ -425,11 +425,11 @@ public partial class p2b : Exchange
                 } },
                 { "amount", new Dictionary<string, object>() {
                     { "min", this.safeNumber(limits, "min_amount") },
-                    { "max", this.parseNumber(this.omitZero(((string)maxAmount))) },
+                    { "max", this.parseNumber(this.omitZero(maxAmount)) },
                 } },
                 { "price", new Dictionary<string, object>() {
                     { "min", this.safeNumber(limits, "min_price") },
-                    { "max", this.parseNumber(this.omitZero(((string)maxPrice))) },
+                    { "max", this.parseNumber(this.omitZero(maxPrice)) },
                 } },
                 { "cost", new Dictionary<string, object>() {
                     { "min", this.safeNumber(limits, "min_total") },
@@ -924,7 +924,7 @@ public partial class p2b : Exchange
                 { "free", available },
                 { "used", used },
             };
-            result[(string)((string)code)] = account;
+            result[(string)code] = account;
         }
         return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
     }

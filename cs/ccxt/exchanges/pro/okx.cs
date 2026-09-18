@@ -1350,7 +1350,7 @@ public partial class okx : ccxt.okx
         string? marketId = this.safeString(arg, "instId");
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)GetValue(market, "symbol"));
-        string interval = ((string)channel).Replace((string)"candle", (string)"");
+        string interval = ((string)channel).Replace("candle", (string)"");
         // use a reverse lookup in a static map instead
         string? timeframe = this.findTimeframe(interval);
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
@@ -1615,7 +1615,7 @@ public partial class okx : ccxt.okx
             ((IDictionary<string,object>)client.subscriptions).Remove((string)messageHash);
             if ((symbol != null))
             {
-                ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
+                ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
             }
             client.reject(error, messageHash);
             return orderbook;
@@ -2176,7 +2176,7 @@ public partial class okx : ccxt.okx
         string? marketId = this.safeString(arg, "instId");
         Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
         string? symbol = ((string)GetValue(market, "symbol"));
-        string channel = ((string)this.safeString(arg, "channel", ""));
+        string channel = this.safeString(arg, "channel", "");
         List<object> data = this.safeList(message, "data", new List<object>() {});
         if (isEqual(this.positions, null))
         {
@@ -2514,7 +2514,7 @@ public partial class okx : ccxt.okx
         Int64? instIdCode = this.safeInteger(market, "instIdCode");
         if (!isEqual(instIdCode, null))
         {
-            ((IDictionary<string,object>)args).Remove((string)"instId");
+            ((IDictionary<string,object>)args).Remove("instId");
             args["instIdCode"] = instIdCode;
         }
         string? ordType = this.safeString(args, "ordType");
@@ -2563,7 +2563,7 @@ public partial class okx : ccxt.okx
         {
             string? method = this.safeString(message, "op");
             string stringMsg = this.json(message);
-            this.handleErrors(1, "",((string)client.url), ((string)method), new Dictionary<string, object>() {}, stringMsg, message, new Dictionary<string, object>() {}, new Dictionary<string, object>() {});
+            this.handleErrors(1, "",((string)client.url), method, new Dictionary<string, object>() {}, stringMsg, message, new Dictionary<string, object>() {}, new Dictionary<string, object>() {});
         }
         IList<object> orders = this.parseOrders(args, null, null, null);
         IDictionary<string, object> first = this.safeDict(orders, 0, new Dictionary<string, object>() {});
@@ -2604,7 +2604,7 @@ public partial class okx : ccxt.okx
         Int64? instIdCode = this.safeInteger(market, "instIdCode");
         if (!isEqual(instIdCode, null))
         {
-            ((IDictionary<string,object>)args).Remove((string)"instId");
+            ((IDictionary<string,object>)args).Remove("instId");
             args["instIdCode"] = instIdCode;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -2853,9 +2853,9 @@ public partial class okx : ccxt.okx
             {
                 // try to parse it from the stringified json inside msg
                 string? msg = this.safeString(message, "msg");
-                if ((msg != null) && ((string)msg).StartsWith("Illegal request: {"))
+                if ((msg != null) && msg.StartsWith("Illegal request: {"))
                 {
-                    string stringifiedJson = msg.Replace((string)"Illegal request: ", (string)"");
+                    string stringifiedJson = msg.Replace("Illegal request: ", (string)"");
                     object parsedJson = this.parseJson(stringifiedJson);
                     id = this.safeString(parsedJson, "id");
                 }
@@ -3010,7 +3010,7 @@ public partial class okx : ccxt.okx
 
     public virtual void handleUnsubscriptionOHLCV(WebSocketClient client, object symbol, object channel)
     {
-        string tf = ((string)channel).Replace((string)"candle", (string)"");
+        string tf = ((string)channel).Replace("candle", (string)"");
         string? timeframe = this.findTimeframe(tf);
         if ((timeframe == null))
         {
@@ -3055,13 +3055,13 @@ public partial class okx : ccxt.okx
         if (channel == "trades" || channel == "trades-all")
         {
             this.handleUnSubscriptionTrades(client, symbol, channel);
-        } else if (((string)channel).StartsWith("bbo") || ((string)channel).StartsWith("book"))
+        } else if (channel.StartsWith("bbo") || channel.StartsWith("book"))
         {
             this.handleUnsubscriptionOrderBook(client, symbol, channel);
         } else if (getIndexOf(channel, "tickers") > -1)
         {
             this.handleUnsubscriptionTicker(client, symbol, channel);
-        } else if (((string)channel).StartsWith("candle"))
+        } else if (channel.StartsWith("candle"))
         {
             this.handleUnsubscriptionOHLCV(client, symbol, channel);
         }

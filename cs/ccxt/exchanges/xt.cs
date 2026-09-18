@@ -4849,7 +4849,7 @@ public partial class xt : Exchange
             { "FEE", "fee" },
             { "ADL", "auto-deleveraging" },
         };
-        return this.safeString(ledgerType, ((string)type), type);
+        return this.safeString(ledgerType, type, type);
     }
 
     /**

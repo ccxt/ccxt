@@ -2052,7 +2052,7 @@ public partial class coinbaseinternational : Exchange
         Dictionary<string, object> market = this.market(symbol);
         string typeId = type.ToUpper();
         double? triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "stop_price"});
-        string clientOrderIdprefix = ((string)this.safeString(this.options, "brokerId", "nfqkvdjp"));
+        string clientOrderIdprefix = this.safeString(this.options, "brokerId", "nfqkvdjp");
         string? clientOrderId = add(add(clientOrderIdprefix, "-"), this.uuid());
         clientOrderId = slice(clientOrderId, 0, 17);
         if (isEqual(side, null))
@@ -2230,7 +2230,7 @@ public partial class coinbaseinternational : Exchange
             { "STOP", "limit" },
             { "STOP_LIMIT", "limit" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     /**

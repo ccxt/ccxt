@@ -229,7 +229,7 @@ public partial class bybit : ccxt.bybit
                 IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams(method, market, parameters, "linear");
                 subType = (string)subTypeparametersVariable[0];
                 parameters = subTypeparametersVariable[1];
-                url = getValue(getValue(url, accessibility), ((string)subType));
+                url = getValue(getValue(url, accessibility), subType);
             } else
             {
                 // option
@@ -378,7 +378,7 @@ public partial class bybit : ccxt.bybit
         string requestId = this.requestId().ToString();
         if (inOp(orderRequest, "orderFilter"))
         {
-            ((IDictionary<string,object>)orderRequest).Remove((string)"orderFilter");
+            ((IDictionary<string,object>)orderRequest).Remove("orderFilter");
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "op", "order.cancel" },
@@ -416,7 +416,7 @@ public partial class bybit : ccxt.bybit
         object url = await this.getUrlByMarketType(symbolVar, false, "watchTicker", parameters);
         parameters = this.cleanParams(parameters);
         object options = this.safeValue(this.options, "watchTicker", new Dictionary<string, object>() {});
-        string topic = ((string)this.safeString(options, "name", "tickers"));
+        string topic = this.safeString(options, "name", "tickers");
         if ((!isEqual(GetValue(market, "spot"), true)) && topic != "tickers")
         {
             throw new BadRequest (add(this.id, " watchTicker() only supports name tickers for contract markets")) ;
@@ -448,7 +448,7 @@ public partial class bybit : ccxt.bybit
         object url = await this.getUrlByMarketType(getValue(symbols, 0), false, "watchTickers", parameters);
         parameters = this.cleanParams(parameters);
         object options = this.safeValue(this.options, "watchTickers", new Dictionary<string, object>() {});
-        string topic = ((string)this.safeString(options, "name", "tickers"));
+        string topic = this.safeString(options, "name", "tickers");
         IList<object> marketIds = this.marketIds(symbols);
         List<object> topics = new List<object>() {};
         for (int i = 0; isLessThan(i, marketIds?.Count ?? 0); postFixIncrement(ref i))
@@ -486,7 +486,7 @@ public partial class bybit : ccxt.bybit
         }
         symbols = this.marketSymbols(symbols, null, false);
         object options = this.safeValue(this.options, "watchTickers", new Dictionary<string, object>() {});
-        string topic = ((string)this.safeString(options, "name", "tickers"));
+        string topic = this.safeString(options, "name", "tickers");
         List<object> messageHashes = new List<object>() {};
         List<object> subMessageHashes = new List<object>() {};
         IList<object> marketIds = this.marketIds(symbols);
@@ -2819,7 +2819,7 @@ public partial class bybit : ccxt.bybit
                     if ((reqId == subId))
                     {
                         foundSubscription = true;
-                        ((IDictionary<string,object>)client.subscriptions).Remove((string)messageHash);
+                        ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
                         client.reject(error, messageHash);
                     }
                 }
@@ -3062,7 +3062,7 @@ public partial class bybit : ccxt.bybit
             {
                 continue;
             }
-            if (((string)messageHash).StartsWith("unsubscribe"))
+            if (messageHash.StartsWith("unsubscribe"))
             {
                 object subscription = getValue(client.subscriptions, messageHash);
                 string? subId = this.safeString(subscription, "id");

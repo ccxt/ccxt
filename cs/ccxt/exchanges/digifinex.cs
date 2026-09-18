@@ -3107,7 +3107,7 @@ public partial class digifinex : Exchange
     public virtual string? parseLedgerEntryType(string? type)
     {
         Dictionary<string, object> types = new Dictionary<string, object>() {};
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     public override Dictionary<string, object> parseLedgerEntry(object item, object currency = null)
@@ -4889,7 +4889,7 @@ public partial class digifinex : Exchange
         for (int i = 0; isLessThan(i, depositWithdrawCodes.Count); postFixIncrement(ref i))
         {
             string? code = ((string)getValue(depositWithdrawCodes, i));
-            Dictionary<string, object> currency = this.currency(((string)code));
+            Dictionary<string, object> currency = this.currency(code);
             depositWithdrawFees[(string)code] = this.assignDefaultDepositWithdrawFees(getValue(depositWithdrawFees, code), currency);
         }
         return ((Dictionary<string, object>)((object)(depositWithdrawFees)));

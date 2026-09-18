@@ -1426,7 +1426,7 @@ public partial class deribit : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((code != null))
         {
-            request["currency"] = this.currencyId(((string)code));
+            request["currency"] = this.currencyId(code);
         }
         Dictionary<string, object> response = null;
         if ((code == null))
@@ -3347,7 +3347,7 @@ public partial class deribit : Exchange
         if ((code != null))
         {
             parameters = this.omit(parameters, "currency");
-            Dictionary<string, object> currency = this.currency(((string)code));
+            Dictionary<string, object> currency = this.currency(code);
             request["currency"] = GetValue(currency, "id");
         }
         Dictionary<string, object> response = await this.privateGetGetPositions(this.extend(request, parameters));
@@ -3811,7 +3811,7 @@ public partial class deribit : Exchange
             Dictionary<string, object> paginationParams = this.extend(parameters, new Dictionary<string, object>() {
                 { "isDeribitPaginationCall", true },
             });
-            return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, sinceVar, limit,((string)eachItemDuration), paginationParams, maxEntriesPerRequest));
+            return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, sinceVar, limit,eachItemDuration, paginationParams, maxEntriesPerRequest));
         }
         Int64 duration = multiply(this.parseTimeframe(eachItemDuration), 1000);
         object time = this.milliseconds();

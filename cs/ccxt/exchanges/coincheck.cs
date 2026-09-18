@@ -353,7 +353,7 @@ public partial class coincheck : Exchange
         for (int i = 0; isLessThan(i, codes.Count); postFixIncrement(ref i))
         {
             string? code = ((string)getValue(codes, i));
-            Dictionary<string, object> currency = this.currency(((string)code));
+            Dictionary<string, object> currency = this.currency(code);
             object currencyId = GetValue(currency, "id");
             if (inOp(response, currencyId))
             {
@@ -1059,7 +1059,7 @@ public partial class coincheck : Exchange
             { "confirmed", "pending" },
             { "received", "ok" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)

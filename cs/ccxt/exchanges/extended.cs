@@ -681,7 +681,7 @@ public partial class extended : Exchange
         string? baseId = this.safeString(market, "assetName", "");
         if (getIndexOf(baseId, "SPOT") >= 0)
         {
-            baseId = baseId.Replace((string)"SPOT", (string)"");
+            baseId = baseId.Replace("SPOT", (string)"");
         }
         string? quoteId = this.safeString(market, "collateralAssetName");
         object bs = this.safeCurrencyCode(baseId);
@@ -843,7 +843,7 @@ public partial class extended : Exchange
         string? currencyId = this.safeString(currency, "symbol");
         if (((currencyId != null)) && (getIndexOf(currencyId, "SPOT") >= 0))
         {
-            currencyId = currencyId.Replace((string)"SPOT", (string)"");
+            currencyId = currencyId.Replace("SPOT", (string)"");
         }
         string? code = this.safeCurrencyCode(currencyId);
         if (currencyId == "USD")
@@ -2108,7 +2108,7 @@ public partial class extended : Exchange
         object account = ccxt.BaseExchange.FromDict(await this.FetchExtendedAccount());
         string? amountString = this.currencyToPrecision(code, amount);
         string? accountId = this.safeString(account, "accountId");
-        Dictionary<string, object> settlement = this.createWithdrawalSettlementData(address, ((string)amountString), currency, account, parameters);
+        Dictionary<string, object> settlement = this.createWithdrawalSettlementData(address, amountString, currency, account, parameters);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "accountId", accountId },
             { "amount", amountString },
@@ -2222,7 +2222,7 @@ public partial class extended : Exchange
             throw new ArgumentsRequired (add(this.id, " transfer() requires a toAccount argument and params[\"toVault\"] and params[\"toL2Key\"]")) ;
         }
         string? amountString = this.currencyToPrecision(code, amount);
-        Dictionary<string, object> settlement = this.createTransferSettlementData(((string)amountString), currency, account, toVault, toL2Key, parameters);
+        Dictionary<string, object> settlement = this.createTransferSettlementData(amountString, currency, account, toVault, toL2Key, parameters);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "fromAccount", fromAccountVar },
             { "toAccount", toAccount },
@@ -2322,7 +2322,7 @@ public partial class extended : Exchange
             { "COMPLETED", "ok" },
             { "REJECTED", "failed" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     public virtual string? parseTransactionType(string? type)
@@ -2333,7 +2333,7 @@ public partial class extended : Exchange
             { "TRANSFER", "transfer" },
             { "CLAIM", "claim" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
@@ -2840,7 +2840,7 @@ public partial class extended : Exchange
         object baseRoundUp = isBuy;
         object quoteRoundUp = isBuy;
         string baseAmount = this.getExtendedStarkAmount(amountString, syntheticResolution, baseRoundUp);
-        string collateralAmount = this.getExtendedStarkAmount(((string)quoteAmount), collateralResolution, quoteRoundUp);
+        string collateralAmount = this.getExtendedStarkAmount(quoteAmount, collateralResolution, quoteRoundUp);
         if (isTrue(isBuy))
         {
             collateralAmount = Precise.stringNeg(collateralAmount);
@@ -2955,7 +2955,7 @@ public partial class extended : Exchange
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
         string uppercaseType = ((string)type).ToUpper();
-        string uppercaseSide = ((string)((string)side)).ToUpper();
+        string uppercaseSide = ((string)side).ToUpper();
         if ((isEqual(GetValue(market, "spot"), true)) && uppercaseType != "LIMIT")
         {
             throw new BadRequest (add(this.id, " createOrder() supports limit orders for spot markets only")) ;
@@ -3057,7 +3057,7 @@ public partial class extended : Exchange
         {
             request["cancelId"] = cancelId;
         }
-        Dictionary<string, object> settlement = this.createOrderSettlementData(isBuy, ((string)amountString), ((string)priceString), settlementParams);
+        Dictionary<string, object> settlement = this.createOrderSettlementData(isBuy, amountString, priceString, settlementParams);
         request["settlement"] = new Dictionary<string, object>() {
             { "signature", new Dictionary<string, object>() {
                 { "r", GetValue(settlement, "r") },
@@ -3084,7 +3084,7 @@ public partial class extended : Exchange
                 string? stopLossTriggerPriceType = this.safeString(stopLoss, "triggerPriceType");
                 string? stopLossExecutionPrice = this.safeString(stopLoss, "price");
                 string? stopLossType = this.safeString(stopLoss, "type");
-                Dictionary<string, object> stopLossSettlement = this.createOrderSettlementData(!isBuy, ((string)amountString), ((string)stopLossExecutionPrice), settlementParams);
+                Dictionary<string, object> stopLossSettlement = this.createOrderSettlementData(!isBuy, amountString, stopLossExecutionPrice, settlementParams);
                 Dictionary<string, object> requestStopLoss = new Dictionary<string, object>() {
                     { "triggerPrice", this.priceToPrecision(symbol, stopLossTrigger) },
                     { "price", this.priceToPrecision(symbol, stopLossExecutionPrice) },
@@ -3113,7 +3113,7 @@ public partial class extended : Exchange
                 string? takeProfitTriggerPriceType = this.safeString(takeProfit, "triggerPriceType");
                 string? takeProfitExecutionPrice = this.safeString(takeProfit, "price");
                 string? takeProfitType = this.safeString(takeProfit, "type");
-                Dictionary<string, object> takeProfitSettlement = this.createOrderSettlementData(!isBuy, ((string)amountString), ((string)takeProfitExecutionPrice), settlementParams);
+                Dictionary<string, object> takeProfitSettlement = this.createOrderSettlementData(!isBuy, amountString, takeProfitExecutionPrice, settlementParams);
                 Dictionary<string, object> requestTakeProfit = new Dictionary<string, object>() {
                     { "triggerPrice", this.priceToPrecision(symbol, takeProfitTrigger) },
                     { "price", this.priceToPrecision(symbol, takeProfitExecutionPrice) },
@@ -3725,7 +3725,7 @@ public partial class extended : Exchange
             { "REJECTED", "rejected" },
             { "EXPIRED", "expired" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     public override Dictionary<string, object> parseOrder(object order, object market = null)

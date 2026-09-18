@@ -358,8 +358,8 @@ public partial class bithumb : ccxt.bithumb
             ((IDictionary<string,object>)ticker)["market"] = this.safeString(ticker, "market", code);
             return this.parseTicker(ticker, market);
         }
-        string date = ((string)this.safeString(ticker, "date", ""));
-        string time = ((string)this.safeString(ticker, "time", ""));
+        string date = this.safeString(ticker, "date", "");
+        string time = this.safeString(ticker, "time", "");
         string kstDatetime = add(add(add(add(add(add(add(add(add(add(slice(date, 0, 4), "-"), slice(date, 4, 6)), "-"), slice(date, 6, 8)), "T"), slice(time, 0, 2)), ":"), slice(time, 2, 4)), ":"), slice(time, 4, 6));
         // date/time are the exchange's local KST wall-clock, not UTC — shift -9h like parseWsTrade
         object timestamp = this.parse8601(kstDatetime);
@@ -500,7 +500,7 @@ public partial class bithumb : ccxt.bithumb
                 return;
             }
             string? legacySymbol = this.safeSymbol(legacyMarketId, null, "_");
-            string timestampStr = ((string)this.safeString(content, "datetime"));
+            string timestampStr = this.safeString(content, "datetime");
             if ((timestampStr == null))
             {
                 return;
@@ -555,7 +555,7 @@ public partial class bithumb : ccxt.bithumb
                 (asks as IOrderBookSide).store(askPrice, askSize);
             }
         }
-        string gen2TimestampStr = ((string)this.safeString2(message, "timestamp", "datetime"));
+        string gen2TimestampStr = this.safeString2(message, "timestamp", "datetime");
         Int64? timestamp = null;
         if ((gen2TimestampStr != null))
         {

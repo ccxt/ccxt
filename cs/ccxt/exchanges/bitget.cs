@@ -3897,7 +3897,7 @@ public partial class bitget : Exchange
                 {
                     expiry = this.safeInteger(market, "deliveryTime");
                     expiryDatetime = this.iso8601(expiry);
-                    List<object> expiryParts = ((string)((string)expiryDatetime)).Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
+                    List<object> expiryParts = expiryDatetime.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
                     string? yearPart = this.safeString(expiryParts, 0, "");
                     string? dayPart = this.safeString(expiryParts, 2, "");
                     object year = slice(yearPart, 2, 4);
@@ -3915,12 +3915,12 @@ public partial class bitget : Exchange
                 Int64? amountDecimals = this.safeInteger(market, "volumePlace");
                 string? priceStep = this.safeString(market, "priceEndStep");
                 string? amountStep = this.safeString(market, "sizeMultiplier");
-                var precise = new Precise(((string)priceStep));
+                var precise = new Precise(priceStep);
                 precise.decimals = mathMax(precise.decimals, priceDecimals);
                 precise.reduce();
                 string priceString = ((object)precise).ToString();
                 pricePrecision = this.parseNumber(priceString);
-                var preciseAmount = new Precise(((string)amountStep));
+                var preciseAmount = new Precise(amountStep);
                 preciseAmount.decimals = mathMax(preciseAmount.decimals, amountDecimals);
                 preciseAmount.reduce();
                 string amountString = ((object)preciseAmount).ToString();
@@ -4176,7 +4176,7 @@ public partial class bitget : Exchange
                 {
                     expiry = this.safeInteger(market, "deliveryTime");
                     expiryDatetime = this.iso8601(expiry);
-                    List<object> expiryParts = ((string)((string)expiryDatetime)).Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
+                    List<object> expiryParts = expiryDatetime.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
                     string? yearPart = this.safeString(expiryParts, 0, "");
                     string? dayPart = this.safeString(expiryParts, 2, "");
                     object year = slice(yearPart, 2, 4);
@@ -4459,7 +4459,7 @@ public partial class bitget : Exchange
                 throw new ArgumentsRequired (add(this.id, " fetchMarketLeverageTiers() requires a code argument")) ;
             }
             parameters = this.omit(parameters, "code");
-            Dictionary<string, object> currency = this.currency(((string)code));
+            Dictionary<string, object> currency = this.currency(code);
             request["coin"] = GetValue(currency, "id");
             response = await this.privateMarginGetV2MarginCrossedTierData(this.extend(request, parameters));
         } else
@@ -5076,7 +5076,7 @@ public partial class bitget : Exchange
         Dictionary<string, object> types = new Dictionary<string, object>() {
             { "withdraw", "withdrawal" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     public virtual string? parseTransactionStatus(string? status)
@@ -5090,7 +5090,7 @@ public partial class bitget : Exchange
             { "fail", "failed" },
             { "reject", "failed" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     /**
@@ -7020,7 +7020,7 @@ public partial class bitget : Exchange
             { "fail_execute", "rejected" },
             { "executed", "closed" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     public override Dictionary<string, object> parseOrder(object order, object market = null)
@@ -7867,7 +7867,7 @@ public partial class bitget : Exchange
                     request["executePrice"] = this.priceToPrecision(symbol, price);
                     if (inOp(request, "price"))
                     {
-                        ((IDictionary<string,object>)request).Remove((string)"price");
+                        ((IDictionary<string,object>)request).Remove("price");
                     }
                 }
                 if (isEqual(hedged, true))
@@ -10442,7 +10442,7 @@ public partial class bitget : Exchange
             { "buy", "trade" },
             { "sell", "trade" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     /**
@@ -12453,7 +12453,7 @@ public partial class bitget : Exchange
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "successful", "ok" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     public override object parseDepositWithdrawFee(object fee, Dictionary<string, object> currency = null)
@@ -13671,9 +13671,9 @@ public partial class bitget : Exchange
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         string? fromCurrencyId = this.safeString(data, "fromCoin", fromCode);
-        Dictionary<string, object> fromCurrency = this.currency(((string)fromCurrencyId));
+        Dictionary<string, object> fromCurrency = this.currency(fromCurrencyId);
         string? toCurrencyId = this.safeString(data, "toCoin", toCode);
-        Dictionary<string, object> toCurrency = this.currency(((string)toCurrencyId));
+        Dictionary<string, object> toCurrency = this.currency(toCurrencyId);
         return ccxt.BaseExchange.ToConversion(this.parseConversion(data, fromCurrency, toCurrency));
     }
 
@@ -13733,7 +13733,7 @@ public partial class bitget : Exchange
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         string? toCurrencyId = this.safeString(data, "toCoin", toCode);
-        Dictionary<string, object> toCurrency = this.currency(((string)toCurrencyId));
+        Dictionary<string, object> toCurrency = this.currency(toCurrencyId);
         return ccxt.BaseExchange.ToConversion(this.parseConversion(data, null, toCurrency));
     }
 
@@ -14130,7 +14130,7 @@ public partial class bitget : Exchange
                     // check #21169 pr
                     if (getIndexOf(queryInner, "%24") > -1)
                     {
-                        queryInner = queryInner.Replace((string)"%24", (string)"$");
+                        queryInner = queryInner.Replace("%24", (string)"$");
                     }
                     url = add(url, queryInner);
                     // bitget signs the raw (non-percent-encoded) query string, so the

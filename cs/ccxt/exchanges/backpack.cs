@@ -959,7 +959,7 @@ public partial class backpack : Exchange
             { "SPOT", "spot" },
             { "PERP", "swap" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     /**

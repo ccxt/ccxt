@@ -1215,7 +1215,7 @@ public partial class whitebit : ccxt.whitebit
                 client.reject(e, "authenticated");
                 if (inOp(client.subscriptions, "authenticated"))
                 {
-                    ((IDictionary<string,object>)client.subscriptions).Remove((string)"authenticated");
+                    ((IDictionary<string,object>)client.subscriptions).Remove("authenticated");
                 }
                 return ((bool?)((object)(false)));
             }

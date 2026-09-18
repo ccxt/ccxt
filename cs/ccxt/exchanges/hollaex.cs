@@ -417,8 +417,8 @@ public partial class hollaex : Exchange
             object market = getValue(pairs, key);
             string? baseId = this.safeString(market, "pair_base");
             string? quoteId = this.safeString(market, "pair_2");
-            object bs = this.commonCurrencyCode(((string)((string)baseId)).ToUpper());
-            string? quote = this.commonCurrencyCode(((string)((string)quoteId)).ToUpper());
+            object bs = this.commonCurrencyCode(baseId.ToUpper());
+            string? quote = this.commonCurrencyCode(quoteId.ToUpper());
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", this.safeString(market, "name") },
                 { "symbol", add(add(bs, "/"), quote) },
@@ -1363,7 +1363,7 @@ public partial class hollaex : Exchange
             { "filled", "closed" },
             { "canceled", "canceled" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     public override Dictionary<string, object> parseOrder(object order, object market = null)

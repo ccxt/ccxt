@@ -892,7 +892,7 @@ public partial class foxbit : Exchange
         //         "15466.34096391" // taker buy quote volume
         //     ]
         // ]
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(this.toArray(response), market,((string)interval), since, limit));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(this.toArray(response), market,interval, since, limit));
     }
 
     /**
@@ -1165,17 +1165,17 @@ public partial class foxbit : Exchange
                 {
                     request["time_in_force"] = timeInForce;
                 }
-                ((IDictionary<string,object>)orderParams).Remove((string)"timeInForce");
+                ((IDictionary<string,object>)orderParams).Remove("timeInForce");
             }
             if ((postOnly == true))
             {
                 request["post_only"] = true;
-                ((IDictionary<string,object>)orderParams).Remove((string)"postOnly");
+                ((IDictionary<string,object>)orderParams).Remove("postOnly");
             }
             if (!isEqual(triggerPrice, null))
             {
                 request["stop_price"] = this.priceToPrecision(symbol, triggerPrice);
-                ((IDictionary<string,object>)orderParams).Remove((string)"triggerPrice");
+                ((IDictionary<string,object>)orderParams).Remove("triggerPrice");
             }
             if (type == "INSTANT")
             {
@@ -2177,7 +2177,7 @@ public partial class foxbit : Exchange
             { "INTERNAL_TRANSFERING", "transfer" },
             { "OTHERS", "transaction" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     public override Dictionary<string, object> parseLedgerEntry(object item, object currency = null)

@@ -973,11 +973,11 @@ public partial class bitvavo : ccxt.bitvavo
     {
         string? symbol = this.safeString(subscription, "symbol");
         Int64? limit = this.safeInteger(subscription, "limit");
-        if (((IDictionary<string, object>)this.orderbooks).ContainsKey(((string)symbol)))
+        if (((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))
         {
-            ((IDictionary<string,object>)this.orderbooks).Remove((string)((string)symbol));
+            ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
         }
-        ((IDictionary<string,object>)this.orderbooks)[(string)((string)symbol)] = this.orderBook(new Dictionary<string, object>() {}, limit);
+        ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
     }
 
     public virtual void handleOrderBookSubscriptions(WebSocketClient client, Dictionary<string, object> message, object marketIds)
@@ -1046,12 +1046,12 @@ public partial class bitvavo : ccxt.bitvavo
             {
                 continue;
             }
-            if (!((string)key).StartsWith("unsubscribe:"))
+            if (!key.StartsWith("unsubscribe:"))
             {
                 continue;
             }
             object subscription = getValue(client.subscriptions, key);
-            string subHash = key.Replace((string)"unsubscribe:", (string)"");
+            string subHash = key.Replace("unsubscribe:", (string)"");
             this.cleanCache(subscription);
             this.cleanUnsubscription(client, subHash, key);
             // bitvavo resolves-and-deletes the data futures on every message, so at
@@ -2054,7 +2054,7 @@ public partial class bitvavo : ccxt.bitvavo
         bool rejected = false;
         try
         {
-            this.handleErrors(code, ((string)error),((string)client.url), "", new Dictionary<string, object>() {}, ((string)error), message, new Dictionary<string, object>() {}, new Dictionary<string, object>() {});
+            this.handleErrors(code, error,((string)client.url), "", new Dictionary<string, object>() {}, error, message, new Dictionary<string, object>() {}, new Dictionary<string, object>() {});
         } catch(Exception e)
         {
             rejected = true;

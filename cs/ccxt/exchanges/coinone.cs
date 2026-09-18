@@ -1515,7 +1515,7 @@ public partial class coinone : Exchange
             }, parameters));
             string payload = this.stringToBase64(json);
             body = payload;
-            string secret = ((string)this.secret).ToUpper();
+            string secret = this.secret.ToUpper();
             string signature = this.hmac(this.encode(payload), this.encode(secret), sha512);
             headers = new Dictionary<string, object>() {
                 { "Content-Type", "application/json" },

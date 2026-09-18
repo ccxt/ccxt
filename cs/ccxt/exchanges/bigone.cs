@@ -1590,7 +1590,7 @@ public partial class bigone : Exchange
             { "LIMIT", "limit" },
             { "MARKET", "market" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     public override Dictionary<string, object> parseOrder(object order, object market = null)

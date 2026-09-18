@@ -5606,11 +5606,11 @@ public partial class binance : Exchange
                 string? quoteCode = this.safeCurrencyCode(this.safeString(quote, "asset"));
                 if ((baseCode != null))
                 {
-                    result = this.mergeBalanceAccount(result,((string)baseCode), this.parseBalanceHelper(bs));
+                    result = this.mergeBalanceAccount(result,baseCode, this.parseBalanceHelper(bs));
                 }
                 if ((quoteCode != null))
                 {
-                    result = this.mergeBalanceAccount(result,((string)quoteCode), this.parseBalanceHelper(quote));
+                    result = this.mergeBalanceAccount(result,quoteCode, this.parseBalanceHelper(quote));
                 }
             }
         } else if (isEqual(type, "savings"))
@@ -8004,7 +8004,7 @@ public partial class binance : Exchange
                 { "trailing_stop_market", "market" },
             };
         }
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     public override Dictionary<string, object> parseOrder(object order, object market = null)
@@ -9130,7 +9130,7 @@ public partial class binance : Exchange
                 bool isLinearSwap = (isEqual(GetValue(market, "swap"), true)) && (isEqual(GetValue(market, "linear"), true));
                 idMarketType = isLinearSwap ? "swap" : "inverse";
             }
-            string brokerId = ((string)this.safeString(broker, idMarketType, defaultId));
+            string brokerId = this.safeString(broker, idMarketType, defaultId);
             request[(string)clientOrderIdRequest] = add(brokerId, this.uuid22());
         } else
         {
@@ -15478,7 +15478,7 @@ public partial class binance : Exchange
             { "REFERRAL_KICKBACK", "referral" },
             { "COMMISSION", "commission" },
         };
-        return this.safeString(ledgerType, ((string)type), type);
+        return this.safeString(ledgerType, type, type);
     }
 
     public virtual string? getNetworkCodeByNetworkUrl(object currencyCode, object depositUrl = null)
@@ -15499,7 +15499,7 @@ public partial class binance : Exchange
             string? siteUrl = this.safeString(info, "contractAddressUrl");
             // check if url matches the field's value
             string? baseDomain = this.getBaseDomainFromUrl(siteUrl);
-            if ((siteUrl != null) && (baseDomain != null) && ((string)depositUrl).StartsWith(((string)baseDomain)))
+            if ((siteUrl != null) && (baseDomain != null) && ((string)depositUrl).StartsWith(baseDomain))
             {
                 networkCode = currentNetworkCode;
             }
@@ -15586,7 +15586,7 @@ public partial class binance : Exchange
                     string marketType = isSpotOrMargin ? "spot" : "future";
                     string defaultId = (!isSpotOrMargin) ? "x-xcKtGhcu" : "x-TKT5PX2F";
                     IDictionary<string, object> broker = this.safeDict(this.options, "broker", new Dictionary<string, object>() {});
-                    string brokerId = ((string)this.safeString(broker, marketType, defaultId));
+                    string brokerId = this.safeString(broker, marketType, defaultId);
                     ((IDictionary<string,object>)parameters)["newClientOrderId"] = add(brokerId, this.uuid22());
                 }
             }
@@ -15608,7 +15608,7 @@ public partial class binance : Exchange
                         {
                             string defaultId = "x-xcKtGhcu"; // batchOrders can not be spot or margin
                             IDictionary<string, object> broker = this.safeDict(this.options, "broker", new Dictionary<string, object>() {});
-                            string brokerId = ((string)this.safeString(broker, "future", defaultId));
+                            string brokerId = this.safeString(broker, "future", defaultId);
                             newClientOrderId = add(brokerId, this.uuid22());
                             ((IDictionary<string,object>)batchOrder)["newClientOrderId"] = newClientOrderId;
                         }
@@ -15673,7 +15673,7 @@ public partial class binance : Exchange
             object signature = null;
             if (getIndexOf(this.secret, "PRIVATE KEY") > -1)
             {
-                if (((string)this.secret).Length > 120)
+                if (this.secret.Length > 120)
                 {
                     signature = this.encodeURIComponent(rsa(query, this.secret, sha256));
                 } else
@@ -17861,11 +17861,11 @@ public partial class binance : Exchange
         IDictionary<string, object> toCurrency = null;
         if ((fromCurrencyId != null))
         {
-            fromCurrency = this.currency(((string)fromCurrencyId));
+            fromCurrency = this.currency(fromCurrencyId);
         }
         if ((toCurrencyId != null))
         {
-            toCurrency = this.currency(((string)toCurrencyId));
+            toCurrency = this.currency(toCurrencyId);
         }
         if ((data == null))
         {

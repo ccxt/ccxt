@@ -285,7 +285,7 @@ public partial class coinbase : ccxt.coinbase
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {};
         object timestamp = this.numberToString(this.seconds());
         this.checkRequiredCredentials();
-        bool isCloudAPiKey = (getIndexOf(this.apiKey, "organizations/") >= 0) || (((string)this.secret).StartsWith("-----BEGIN"));
+        bool isCloudAPiKey = (getIndexOf(this.apiKey, "organizations/") >= 0) || (this.secret.StartsWith("-----BEGIN"));
         object auth = add(add(timestamp, name), String.Join(",", ((IList<object>)productIds).ToArray()));
         if (!isCloudAPiKey)
         {
@@ -294,7 +294,7 @@ public partial class coinbase : ccxt.coinbase
             subscribe["signature"] = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
         } else
         {
-            if (((string)this.apiKey).StartsWith("-----BEGIN"))
+            if (this.apiKey.StartsWith("-----BEGIN"))
             {
                 throw new ArgumentsRequired (add(this.id, " apiKey should contain the name (eg: organizations/3b910e93....) and not the public key")) ;
             }
@@ -1157,7 +1157,7 @@ public partial class coinbase : ccxt.coinbase
             string? errorMessage = this.safeString(message, "message");
             // ternary (not ||) so the ast-transpiler emits a value-typed conditional, not a boolean
             string? errorMessageValue = ((errorMessage != null)) ? errorMessage : "unknown error";
-            throw new ExchangeError ((string)errorMessageValue) ;
+            throw new ExchangeError (errorMessageValue) ;
         }
         object method = this.safeValue(methods, channel);
         if ((method != null))

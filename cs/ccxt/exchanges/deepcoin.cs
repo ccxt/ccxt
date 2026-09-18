@@ -1191,7 +1191,7 @@ public partial class deepcoin : Exchange
             account["total"] = this.safeString(balance, "bal");
             account["used"] = this.safeString(balance, "frozenBal");
             account["free"] = this.safeString(balance, "availBal");
-            result[(string)((string)code)] = account;
+            result[(string)code] = account;
         }
         return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
     }
@@ -1366,7 +1366,7 @@ public partial class deepcoin : Exchange
             { "confirming", "pending" },
             { "succeed", "ok" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     /**
@@ -1636,7 +1636,7 @@ public partial class deepcoin : Exchange
             { "4", "transfer" },
             { "5", "fee" },
         };
-        return this.safeString(ledgerType, ((string)type), type);
+        return this.safeString(ledgerType, type, type);
     }
 
     /**
@@ -2864,7 +2864,7 @@ public partial class deepcoin : Exchange
         string? marketId = this.safeString(order, "instId");
         market = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeInteger(order, "cTime");
-        string timestampString = ((string)this.safeString(order, "cTime", ""));
+        string timestampString = this.safeString(order, "cTime", "");
         if (timestampString.Length < 13)
         {
             timestamp = this.safeTimestamp(order, "cTime");
@@ -2903,7 +2903,7 @@ public partial class deepcoin : Exchange
             { "amount", this.safeString(order, "sz") },
             { "filled", this.safeString(order, "accFillSz") },
             { "remaining", null },
-            { "triggerPrice", this.omitZero(((string)this.safeString(order, "triggerPx"))) },
+            { "triggerPrice", this.omitZero(this.safeString(order, "triggerPx")) },
             { "takeProfitPrice", this.safeString2(order, "tpTriggerPx", "tpTriggerPrice") },
             { "stopLossPrice", this.safeString2(order, "slTriggerPx", "slTriggerPrice") },
             { "cost", null },
@@ -2923,7 +2923,7 @@ public partial class deepcoin : Exchange
             { "canceled", "canceled" },
             { "partially_filled", "open" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     public virtual string? parseOrderType(string? type)
@@ -2935,7 +2935,7 @@ public partial class deepcoin : Exchange
             { "ioc", "market" },
             { "TPSL", "market" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     public virtual string? parseOrderTimeInForce(string? type)
@@ -2946,7 +2946,7 @@ public partial class deepcoin : Exchange
             { "limit", "GTC" },
             { "market", "GTC" },
         };
-        return this.safeString(timeInForces, ((string)type), type);
+        return this.safeString(timeInForces, type, type);
     }
 
     /**
@@ -3069,7 +3069,7 @@ public partial class deepcoin : Exchange
             { "contractSize", null },
             { "side", this.safeString(position, "posSide") },
             { "notional", null },
-            { "leverage", this.parseNumber(this.omitZero(((string)this.safeString(position, "lever")))) },
+            { "leverage", this.parseNumber(this.omitZero(this.safeString(position, "lever"))) },
             { "unrealizedPnl", null },
             { "realizedPnl", null },
             { "collateral", null },

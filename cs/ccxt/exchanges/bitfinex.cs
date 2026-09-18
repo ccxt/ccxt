@@ -906,8 +906,8 @@ public partial class bitfinex : Exchange
             }
             object bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
-            List<object> splitBase = ((string)((string)bs)).Split(new [] {"F0"}, StringSplitOptions.None).ToList<object>();
-            List<object> splitQuote = ((string)((string)quote)).Split(new [] {"F0"}, StringSplitOptions.None).ToList<object>();
+            List<object> splitBase = ((string)bs).Split(new [] {"F0"}, StringSplitOptions.None).ToList<object>();
+            List<object> splitQuote = quote.Split(new [] {"F0"}, StringSplitOptions.None).ToList<object>();
             bs = this.safeString(splitBase, 0);
             quote = this.safeString(splitQuote, 0);
             object symbol = add(add(bs, "/"), quote);
@@ -1099,7 +1099,7 @@ public partial class bitfinex : Exchange
             // for GOlang transpiler, do with "safe" method
             List<object> networksList = this.safeList(indexedNetworks, networkName, new List<object>() {});
             ((IList<object>)networksList).Add(networkId);
-            indexedNetworks[(string)((string)networkName)] = networksList;
+            indexedNetworks[(string)networkName] = networksList;
         }
         List<object> ids = this.safeList(response, 0, new List<object>() {});
         return ((IDictionary<string, object>)((object)(this.parseCurrenciesCustom(ids, indexed, indexedNetworks))));
@@ -1249,8 +1249,8 @@ public partial class bitfinex : Exchange
             }
             string? type = this.safeString(balance, 0);
             string? currencyId = this.safeStringLower(balance, 1, "");
-            int start = subtract(((string)((string)currencyId)).Length, 2);
-            bool isDerivativeCode = isEqual(slice(((string)currencyId), start, null), "f0");
+            int start = subtract(currencyId.Length, 2);
+            bool isDerivativeCode = isEqual(slice(currencyId, start, null), "f0");
             // this will only filter the derivative codes if the requestedType is 'derivatives'
             bool derivativeCondition = (!isDerivative || isDerivativeCode);
             if (((accountType == type)) && derivativeCondition)
@@ -1415,7 +1415,7 @@ public partial class bitfinex : Exchange
         if (isEqual(type, "derivatives"))
         {
             currencyId = this.safeString(underlying, 0, transferId);
-            int start = subtract(((string)((string)currencyId)).Length, 2);
+            int start = subtract(((string)currencyId).Length, 2);
             bool isDerivativeCode = isEqual(slice(((string)currencyId), start, null), "F0");
             if (!isDerivativeCode)
             {
@@ -1533,7 +1533,7 @@ public partial class bitfinex : Exchange
         // in PHP a non numeric string casts to 0.0 instead of undefined, so 'fUSD' would
         // look like a number and the whole array would be read off by one.
         string? firstValue = this.safeString(ticker, 0);
-        bool hasMarketId = ((firstValue != null)) && (((string)firstValue).StartsWith("t") || ((string)firstValue).StartsWith("f"));
+        bool hasMarketId = ((firstValue != null)) && (firstValue.StartsWith("t") || firstValue.StartsWith("f"));
         bool isFetchTicker = !hasMarketId;
         string? symbol = null;
         object minusIndex = 0;
@@ -1736,7 +1736,7 @@ public partial class bitfinex : Exchange
         string? amountString = this.safeString(tradeList, amountIndex);
         int priceIndex = isPrivate ? 5 : 3;
         string? priceString = this.safeString(tradeList, priceIndex);
-        if (isEqual(getValue(((string)amountString), 0), "-"))
+        if (isEqual(getValue(amountString, 0), "-"))
         {
             side = "sell";
             amountString = Precise.stringAbs(amountString);
@@ -1941,7 +1941,7 @@ public partial class bitfinex : Exchange
         {
             return null;
         }
-        List<object> parts = ((string)status).Split(new [] {" "}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = status.Split(new [] {" "}, StringSplitOptions.None).ToList<object>();
         string? state = this.safeString(parts, 0);
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "ACTIVE", "open" },
@@ -3028,7 +3028,7 @@ public partial class bitfinex : Exchange
             tag = this.safeString(data, 3);
             type = "withdrawal";
             string? networkId = this.safeString(data, 2);
-            network = this.networkIdToCode(((string)((string)networkId)).ToUpper(), code); // withdraw returns in lowercase
+            network = this.networkIdToCode(networkId.ToUpper(), code); // withdraw returns in lowercase
         } else if ((transactionLength == 22))
         {
             id = this.safeString(transaction, 0);

@@ -230,7 +230,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         if (isTrue(this.newUpdates))
         {
             Dictionary<string, object> result = new Dictionary<string, object>() {};
-            result[(string)((string)symbol)] = fundingRate;
+            result[(string)symbol] = fundingRate;
             return ccxt.BaseExchange.ToFundingRates(result);
         }
         return ccxt.BaseExchange.ToFundingRates(this.filterByArray(this.fundingRates, "symbol", symbols));
@@ -906,7 +906,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         if (type == "error")
         {
             string? errorMessage = this.safeString(message, "message");
-            throw new ExchangeError ((string)((string)errorMessage)) ;
+            throw new ExchangeError (errorMessage) ;
         }
         if (getIndexOf(channel, "CANDLES") > -1)
         {

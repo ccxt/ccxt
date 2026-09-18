@@ -1687,7 +1687,7 @@ public partial class cryptocom : Exchange
         string uppercaseType = ((string)type).ToUpper();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument_name", GetValue(market, "id") },
-            { "side", ((string)((string)side)).ToUpper() },
+            { "side", ((string)side).ToUpper() },
             { "quantity", this.amountToPrecision(symbol, amount) },
         };
         if ((uppercaseType == "LIMIT") || (uppercaseType == "STOP_LIMIT") || (uppercaseType == "TAKE_PROFIT_LIMIT"))
@@ -1966,7 +1966,7 @@ public partial class cryptocom : Exchange
         string uppercaseType = ((string)type).ToUpper();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument_name", GetValue(market, "id") },
-            { "side", ((string)((string)side)).ToUpper() },
+            { "side", ((string)side).ToUpper() },
         };
         if ((uppercaseType == "LIMIT") || (uppercaseType == "STOP_LIMIT") || (uppercaseType == "TAKE_PROFIT_LIMIT"))
         {
@@ -2475,7 +2475,7 @@ public partial class cryptocom : Exchange
             var addressrawTagVariable = ((string)addressString).Split(new [] {"?"}, StringSplitOptions.None).ToList<object>();
             address = ((IList<object>)addressrawTagVariable)[0];
             rawTag = ((IList<object>)addressrawTagVariable)[1];
-            List<object> splitted = ((string)((string)rawTag)).Split(new [] {"="}, StringSplitOptions.None).ToList<object>();
+            List<object> splitted = ((string)rawTag).Split(new [] {"="}, StringSplitOptions.None).ToList<object>();
             tag = getValue(splitted, 1);
         } else
         {
@@ -2637,9 +2637,9 @@ public partial class cryptocom : Exchange
         parameters = this.omit(parameters, new List<object>() {"network"});
         object depositAddressesRaw = ccxt.BaseExchange.FromDepositAddresses(await this.FetchDepositAddressesByNetwork(code, parameters));
         object depositAddresses = depositAddressesRaw;
-        if (inOp(depositAddresses, ((string)network)))
+        if (inOp(depositAddresses, network))
         {
-            return ccxt.BaseExchange.ToDepositAddress(getValue(depositAddresses, ((string)network)));
+            return ccxt.BaseExchange.ToDepositAddress(getValue(depositAddresses, network));
         }
         List<object> keys = new List<object>(((IDictionary<string,object>)depositAddresses).Keys);
         return ccxt.BaseExchange.ToDepositAddress(getValue(depositAddresses, getValue(keys, 0)));
@@ -2932,7 +2932,7 @@ public partial class cryptocom : Exchange
             { "REJECTED", "rejected" },
             { "EXPIRED", "expired" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     public virtual string? parseTimeInForce(string? timeInForce)
@@ -2942,7 +2942,7 @@ public partial class cryptocom : Exchange
             { "IMMEDIATE_OR_CANCEL", "IOC" },
             { "FILL_OR_KILL", "FOK" },
         };
-        return this.safeString(timeInForces, ((string)timeInForce), timeInForce);
+        return this.safeString(timeInForces, timeInForce, timeInForce);
     }
 
     public override Dictionary<string, object> parseOrder(object order, object market = null)
@@ -3446,7 +3446,7 @@ public partial class cryptocom : Exchange
             { "AUTO_CONVERSION", "conversion" },
             { "MANUAL_CONVERSION", "conversion" },
         };
-        return this.safeString(ledgerType, ((string)type), type);
+        return this.safeString(ledgerType, type, type);
     }
 
     /**
@@ -4259,7 +4259,7 @@ public partial class cryptocom : Exchange
             {
                 string paramsString = "{}";
                 string arrayString = "[]";
-                body = ((string)body).Replace((string)arrayString, (string)paramsString);
+                body = ((string)body).Replace(arrayString, (string)paramsString);
             }
             headers = new Dictionary<string, object>() {
                 { "Content-Type", "application/json" },

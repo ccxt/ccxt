@@ -362,7 +362,7 @@ public partial class gemini : ccxt.gemini
         string? timeframeId = slice(type, 8, null);
         int timeframeEndIndex = getIndexOf(timeframeId, "_");
         timeframeId = slice(timeframeId, 0, timeframeEndIndex);
-        string marketId = ((string)this.safeString(message, "symbol", "")).ToLower();
+        string marketId = this.safeString(message, "symbol", "").ToLower();
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = this.safeSymbol(marketId, market);
         List<object> changes = this.safeList(message, "changes", new List<object>() {});
@@ -449,7 +449,7 @@ public partial class gemini : ccxt.gemini
             // handle https://github.com/ccxt/ccxt/issues/29210
             if (inOp(this.orderbooks, symbol))
             {
-                ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
+                ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
             }
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
@@ -909,7 +909,7 @@ public partial class gemini : ccxt.gemini
 
     public virtual void handleError(WebSocketClient client, object message)
     {
-        throw new ExchangeError ((string)this.json(message)) ;
+        throw new ExchangeError (this.json(message)) ;
     }
 
     public override void handleMessage(WebSocketClient client, object message)

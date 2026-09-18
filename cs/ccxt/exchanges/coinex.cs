@@ -2699,7 +2699,7 @@ public partial class coinex : Exchange
         if ((clientOrderId == null))
         {
             string defaultId = "x-167673045";
-            string brokerId = ((string)this.safeString(this.options, "brokerId", defaultId));
+            string brokerId = this.safeString(this.options, "brokerId", defaultId);
             request["client_id"] = add(add(brokerId, "-"), this.uuid16());
         } else
         {
@@ -5297,7 +5297,7 @@ public partial class coinex : Exchange
             throw new ArgumentsRequired (add(this.id, " fetchIsolatedBorrowRate() requires a code parameter")) ;
         }
         parameters = this.omit(parameters, "code");
-        Dictionary<string, object> currency = this.currency(((string)code));
+        Dictionary<string, object> currency = this.currency(code);
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", GetValue(market, "id") },
@@ -5772,7 +5772,7 @@ public partial class coinex : Exchange
             throw new ArgumentsRequired (add(this.id, " fetchLeverage() requires a code parameter")) ;
         }
         parameters = this.omit(parameters, "code");
-        Dictionary<string, object> currency = this.currency(((string)code));
+        Dictionary<string, object> currency = this.currency(code);
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", GetValue(market, "id") },

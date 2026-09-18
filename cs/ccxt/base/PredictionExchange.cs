@@ -610,7 +610,7 @@ public partial class PredictionExchange : BaseExchange
             string? replacementValue = this.safeString(replacements, replacementKey);
             if ((replacementValue != null))
             {
-                s = ((string)s).Replace((string)replacementKey, (string)replacementValue);
+                s = ((string)s).Replace(replacementKey, (string)replacementValue);
             }
         }
         List<object> rawParts = ((string)s).Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
@@ -961,7 +961,7 @@ public partial class PredictionExchange : BaseExchange
             return null;
         }
         // handles join words with '_' (slug-derived) or legacy '-' separated inputs (normalized below)
-        string normalized = ((string)((string)marketPart).ToLower()).Replace((string)"-", (string)"_");
+        string normalized = ((string)marketPart).ToLower().Replace("-", (string)"_");
         List<object> rawWords = normalized.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
         List<object> words = new List<object>() {};
         bool hasLetters = false;
@@ -1095,7 +1095,7 @@ public partial class PredictionExchange : BaseExchange
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        return ccxt.BaseExchange.ToOHLCVList(await base.FetchOHLCV(((string)outcome),timeframeVar,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters));
+        return ccxt.BaseExchange.ToOHLCVList(await base.FetchOHLCV(outcome,timeframeVar,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters));
     }
 
     /**
@@ -1374,7 +1374,7 @@ public partial class PredictionExchange : BaseExchange
         parameters ??= new Dictionary<string, object>();
         if (isTrue(this.safeBool(this.options, "createMarketBuyOrderRequiresPrice", false)) || isTrue(this.safeBool(this.has, "createMarketBuyOrderWithCost", false)))
         {
-            return await this.CreateOrder(((string)outcome), "market", "buy",ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(1), parameters);
+            return await this.CreateOrder(outcome, "market", "buy",ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(1), parameters);
         }
         throw new NotSupported (add(this.id, " createMarketBuyOrderWithCost() is not supported yet")) ;
     }
@@ -1393,7 +1393,7 @@ public partial class PredictionExchange : BaseExchange
         parameters ??= new Dictionary<string, object>();
         if (isTrue(this.safeBool(this.options, "createMarketSellOrderRequiresPrice", false)) || isTrue(this.safeBool(this.has, "createMarketSellOrderWithCost", false)))
         {
-            return await this.CreateOrder(((string)outcome), "market", "sell",ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(1), parameters);
+            return await this.CreateOrder(outcome, "market", "sell",ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(1), parameters);
         }
         throw new NotSupported (add(this.id, " createMarketSellOrderWithCost() is not supported yet")) ;
     }

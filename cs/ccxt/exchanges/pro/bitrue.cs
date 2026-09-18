@@ -415,14 +415,14 @@ public partial class bitrue : ccxt.bitrue
         //     }
         //
         string? channel = this.safeString(message, "channel");
-        List<object> parts = ((string)((string)channel)).Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = channel.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
         string? channelKind = this.safeString(parts, 1);
         bool isFutures = (channelKind == "e");
         object market = null;
         if (isFutures)
         {
             string? wsBaseQuote = this.safeStringLower(parts, 2);
-            market = this.findSwapMarketByWsBaseQuote(((string)wsBaseQuote));
+            market = this.findSwapMarketByWsBaseQuote(wsBaseQuote);
         } else
         {
             string? marketId = this.safeStringUpper(parts, 1);
@@ -469,7 +469,7 @@ public partial class bitrue : ccxt.bitrue
             }
             string? baseId = this.safeStringLower(candidate, "baseId", "");
             string? quoteId = this.safeStringLower(candidate, "quoteId", "");
-            if (isEqual(add(((string)baseId), quoteId), wsBaseQuote))
+            if (isEqual(add(baseId, quoteId), wsBaseQuote))
             {
                 return candidate;
             }
@@ -577,9 +577,9 @@ public partial class bitrue : ccxt.bitrue
         //     }
         //
         string? channel = this.safeString(message, "channel");
-        List<object> parts = ((string)((string)channel)).Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = channel.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
         string? wsBaseQuote = this.safeStringLower(parts, 2);
-        object market = this.findSwapMarketByWsBaseQuote(((string)wsBaseQuote));
+        object market = this.findSwapMarketByWsBaseQuote(wsBaseQuote);
         if ((market == null))
         {
             return;
@@ -711,9 +711,9 @@ public partial class bitrue : ccxt.bitrue
         //     }
         //
         string? channel = this.safeString(message, "channel");
-        List<object> parts = ((string)((string)channel)).Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = channel.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
         string? wsBaseQuote = this.safeStringLower(parts, 2);
-        object market = this.findSwapMarketByWsBaseQuote(((string)wsBaseQuote));
+        object market = this.findSwapMarketByWsBaseQuote(wsBaseQuote);
         if ((market == null))
         {
             return;
@@ -816,9 +816,9 @@ public partial class bitrue : ccxt.bitrue
         //     }
         //
         string? channel = this.safeString(message, "channel");
-        List<object> parts = ((string)((string)channel)).Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = channel.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
         string? wsBaseQuote = this.safeStringLower(parts, 2);
-        object market = this.findSwapMarketByWsBaseQuote(((string)wsBaseQuote));
+        object market = this.findSwapMarketByWsBaseQuote(wsBaseQuote);
         if ((market == null))
         {
             return;
@@ -917,16 +917,16 @@ public partial class bitrue : ccxt.bitrue
         if (inOp(message, "channel"))
         {
             string? channel = this.safeString(message, "channel");
-            if (getIndexOf(((string)channel), "_depth_step") > -1)
+            if (getIndexOf(channel, "_depth_step") > -1)
             {
                 this.handleOrderBook(client, (Dictionary<string, object>)message);
-            } else if (getIndexOf(((string)channel), "_trade_ticker") > -1)
+            } else if (getIndexOf(channel, "_trade_ticker") > -1)
             {
                 this.handleTrades(client, (Dictionary<string, object>)message);
-            } else if (getIndexOf(((string)channel), "_kline_") > -1)
+            } else if (getIndexOf(channel, "_kline_") > -1)
             {
                 this.handleOHLCV(client, (Dictionary<string, object>)message);
-            } else if (getIndexOf(((string)channel), "_ticker") > -1)
+            } else if (getIndexOf(channel, "_ticker") > -1)
             {
                 this.handleTicker(client, (Dictionary<string, object>)message);
             }

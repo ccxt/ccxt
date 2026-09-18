@@ -820,7 +820,7 @@ public partial class bydfi : ccxt.bydfi
             { "cost", null },
             { "trades", null },
             { "fee", fee },
-            { "average", this.omitZero(((string)this.safeString(order, "ap"))) },
+            { "average", this.omitZero(this.safeString(order, "ap")) },
         }, market);
     }
 
@@ -1148,7 +1148,7 @@ public partial class bydfi : ccxt.bydfi
         for (int i = 0; isLessThan(i, messageHashes.Count); postFixIncrement(ref i))
         {
             object unsubHash = getValue(messageHashes, i);
-            string subHash = ((string)unsubHash).Replace((string)"unsubscribe::", (string)"");
+            string subHash = ((string)unsubHash).Replace("unsubscribe::", (string)"");
             this.cleanUnsubscription(client, subHash, unsubHash, subHashIsPrefix);
         }
         this.cleanCache(subscription);

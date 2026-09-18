@@ -2634,7 +2634,7 @@ public partial class aster : Exchange
             { "REJECTED", "canceled" },
             { "EXPIRED", "canceled" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     public virtual string? parseOrderType(string? type)
@@ -2648,7 +2648,7 @@ public partial class aster : Exchange
             { "TAKE_PROFIT_MARKET", "market" },
             { "TRAILING_STOP_MARKET", "market" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     public override Dictionary<string, object> parseOrder(object order, object market = null)
@@ -4013,7 +4013,7 @@ public partial class aster : Exchange
             { "INSURANCE_CLEAR", "settlement" },
             { "MARKET_MERCHANT_RETURN_REWARD", "cashback" },
         };
-        return this.safeString(ledgerType, ((string)type), type);
+        return this.safeString(ledgerType, type, type);
     }
 
     /**
@@ -4909,7 +4909,7 @@ public partial class aster : Exchange
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "SUCCESS", "ok" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     public virtual object hashMessage(object binaryMessage)
@@ -5011,7 +5011,7 @@ public partial class aster : Exchange
     { "type", "uint256" },
 }} },
                 };
-                ((IDictionary<string,object>)finalParams).Remove((string)"signer"); // signer is not needed for approveBuilder endpoint
+                ((IDictionary<string,object>)finalParams).Remove("signer"); // signer is not needed for approveBuilder endpoint
                 paramString = this.encodeValuesWithJson(finalParams);
                 paramsToEncode = this.capitalizeKeys(finalParams);
             } else
@@ -5096,7 +5096,7 @@ public partial class aster : Exchange
             }
             return false;
         }
-        if (((string)this.privateKey).Length > 66)
+        if (this.privateKey.Length > 66)
         {
             throw new NotSupported (add(this.id, " after the latest update (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.")) ;
         }

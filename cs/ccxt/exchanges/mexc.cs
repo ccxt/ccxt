@@ -4069,7 +4069,7 @@ public partial class mexc : Exchange
         string? typeRaw = this.safeString(order, "type");
         if ((timeInForce == null))
         {
-            timeInForce = ((string)this.getTifFromRawOrderType(typeRaw));
+            timeInForce = this.getTifFromRawOrderType(typeRaw);
         }
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
@@ -4146,7 +4146,7 @@ public partial class mexc : Exchange
             { "3", "closed" },
             { "4", "canceled" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     public virtual string? parseOrderTimeInForce(string? status)
@@ -4369,11 +4369,11 @@ public partial class mexc : Exchange
                 string? quoteCode = this.safeCurrencyCode(this.safeString(quote, "asset"));
                 if ((baseCode != null))
                 {
-                    result = this.mergeBalanceAccount(result,((string)baseCode), this.parseBalanceHelper(bs));
+                    result = this.mergeBalanceAccount(result,baseCode, this.parseBalanceHelper(bs));
                 }
                 if ((quoteCode != null))
                 {
-                    result = this.mergeBalanceAccount(result,((string)quoteCode), this.parseBalanceHelper(quote));
+                    result = this.mergeBalanceAccount(result,quoteCode, this.parseBalanceHelper(quote));
                 }
             }
             return this.safeBalance(result);
@@ -5253,7 +5253,7 @@ public partial class mexc : Exchange
             });
             initialMarginRate = Precise.stringAdd(initialMarginRate, riskIncrImr);
             maintenanceMarginRate = Precise.stringAdd(maintenanceMarginRate, riskIncrMmr);
-            floor = ((string)cap);
+            floor = cap;
         }
         return tiers;
     }
@@ -5475,7 +5475,7 @@ public partial class mexc : Exchange
         {
             if (isGreaterThan(limit, 1000))
             {
-                throw new ExchangeError ((string)"This exchange supports a maximum limit of 1000") ;
+                throw new ExchangeError ("This exchange supports a maximum limit of 1000") ;
             }
             request["limit"] = limit;
         }
@@ -5535,7 +5535,7 @@ public partial class mexc : Exchange
         {
             if (isGreaterThan(limit, 1000))
             {
-                throw new ExchangeError ((string)"This exchange supports a maximum limit of 1000") ;
+                throw new ExchangeError ("This exchange supports a maximum limit of 1000") ;
             }
             request["limit"] = limit;
         }
@@ -6035,7 +6035,7 @@ public partial class mexc : Exchange
             {
                 if (isGreaterThan(limit, 100))
                 {
-                    throw new ExchangeError ((string)"This exchange supports a maximum limit of 50") ;
+                    throw new ExchangeError ("This exchange supports a maximum limit of 50") ;
                 }
                 request["size"] = limit;
             }
@@ -6234,7 +6234,7 @@ public partial class mexc : Exchange
             { "FAILED", "failed" },
             { "WAIT", "pending" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     /**
@@ -6424,7 +6424,7 @@ public partial class mexc : Exchange
             string? code = this.safeString(currency, "code");
             if ((isEqual(codes, null)) || (this.inArray(code, codes)))
             {
-                withdrawFees[(string)((string)code)] = this.parseTransactionFee(entry, currency);
+                withdrawFees[(string)code] = this.parseTransactionFee(entry, currency);
             }
         }
         return new Dictionary<string, object>() {
@@ -6470,7 +6470,7 @@ public partial class mexc : Exchange
             string? networkId = this.safeString(networkEntry, "network");
             string? networkCode = this.safeString(getValue(this.options, "networks"), networkId, networkId);
             double? fee = this.safeNumber(networkEntry, "withdrawFee");
-            result[(string)((string)networkCode)] = fee;
+            result[(string)networkCode] = fee;
         }
         return ((Dictionary<string, object>)((object)(result)));
     }
@@ -6840,10 +6840,10 @@ public partial class mexc : Exchange
         {
             if (section == "broker")
             {
-                url = add(add(getValue(getValue(getValue(this.urls, "api"), section), ((string)access)), "/"), path);
+                url = add(add(getValue(getValue(getValue(this.urls, "api"), section), access), "/"), path);
             } else
             {
-                url = add(add(add(add(getValue(getValue(getValue(this.urls, "api"), section), ((string)access)), "/api/"), this.version), "/"), path);
+                url = add(add(add(add(getValue(getValue(getValue(this.urls, "api"), section), access), "/api/"), this.version), "/"), path);
             }
             object urlParams = parameters;
             if (access == "private")
@@ -6884,7 +6884,7 @@ public partial class mexc : Exchange
             }
         } else if (section == "contract" || section == "spot2")
         {
-            url = add(add(getValue(getValue(getValue(this.urls, "api"), section), ((string)access)), "/"), this.implodeParams(path, parameters));
+            url = add(add(getValue(getValue(getValue(this.urls, "api"), section), access), "/"), this.implodeParams(path, parameters));
             parameters = this.omit(parameters, this.extractParams(path));
             if (access == "public")
             {

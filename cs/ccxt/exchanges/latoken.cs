@@ -1887,7 +1887,7 @@ public partial class latoken : Exchange
             { "TRANSACTION_TYPE_DEPOSIT", "deposit" },
             { "TRANSACTION_TYPE_WITHDRAWAL", "withdrawal" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     /**

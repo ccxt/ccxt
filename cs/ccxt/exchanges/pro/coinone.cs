@@ -415,7 +415,7 @@ public partial class coinone : ccxt.coinone
         }
         if (type == "DATA")
         {
-            string topic = ((string)this.safeString(message, "channel", ""));
+            string topic = this.safeString(message, "channel", "");
             Dictionary<string, object> methods = new Dictionary<string, object>() {
                 { "ORDERBOOK", this.handleOrderBook },
                 { "TICKER", this.handleTicker },

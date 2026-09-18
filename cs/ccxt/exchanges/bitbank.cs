@@ -810,7 +810,7 @@ public partial class bitbank : Exchange
             { "CANCELED_UNFILLED", "canceled" },
             { "CANCELED_PARTIALLY_FILLED", "canceled" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     public override Dictionary<string, object> parseOrder(object order, object market = null)

@@ -1182,7 +1182,7 @@ public partial class cryptomus : Exchange
             { "expired", "expired" },
             { "failed", "failed" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     /**

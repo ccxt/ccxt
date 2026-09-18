@@ -2014,7 +2014,7 @@ public partial class gate : Exchange
         } else
         {
             bs = this.safeString(marketIdBase, 0);
-            expiry = slice(((string)expiry), 2, 8); // convert 20230728 to 230728
+            expiry = slice(expiry, 2, 8); // convert 20230728 to 230728
         }
         string? strike = this.safeString(optionParts, 2);
         string? optionType = this.safeString(optionParts, 3);
@@ -2546,7 +2546,7 @@ public partial class gate : Exchange
             {
                 IDictionary<string, object> market = this.safeDict(response, j, new Dictionary<string, object>() {});
                 string? id = this.safeString(market, "name");
-                List<object> parts = ((string)((string)underlying)).Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
+                List<object> parts = ((string)underlying).Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
                 string? baseId = this.safeString(parts, 0);
                 string? quoteId = this.safeString(parts, 1);
                 object bs = this.safeCurrencyCode(baseId);
@@ -3171,7 +3171,7 @@ public partial class gate : Exchange
         Dictionary<string, object> response = await this.privateWalletGetDepositAddress(this.extend(request, parameters));
         object addresses = this.safeValue(response, "multichain_addresses");
         string? currencyId = this.safeString(response, "currency");
-        codeVar = ((string)this.safeCurrencyCode(currencyId));
+        codeVar = this.safeCurrencyCode(currencyId);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(addresses)); postFixIncrement(ref i))
         {
@@ -3193,7 +3193,7 @@ public partial class gate : Exchange
             string? network = this.safeString(entry, "chain");
             string? address = this.safeString(entry, "address");
             string? tag = this.safeString(entry, "payment_id");
-            result[(string)((string)network)] = new Dictionary<string, object>() {
+            result[(string)network] = new Dictionary<string, object>() {
                 { "info", entry },
                 { "code", codeVar },
                 { "currency", codeVar },
@@ -3275,8 +3275,8 @@ public partial class gate : Exchange
         string? code = this.safeString(currency, "code");
         return new Dictionary<string, object>() {
             { "info", depositAddress },
-            { "currency", ((string)code) },
-            { "address", ((string)address) },
+            { "currency", code },
+            { "address", address },
             { "tag", this.safeString(depositAddress, "payment_id") },
             { "network", this.networkIdToCode(this.safeString(depositAddress, "chain"), code) },
         };
@@ -3462,7 +3462,7 @@ public partial class gate : Exchange
                     }
                 }
             }
-            result[(string)((string)code)] = new Dictionary<string, object>() {
+            result[(string)code] = new Dictionary<string, object>() {
                 { "withdraw", withdrawFees },
                 { "deposit", null },
                 { "info", entry },
@@ -4380,12 +4380,12 @@ public partial class gate : Exchange
                 object quote = this.safeValue(entry, "quote", new Dictionary<string, object>() {});
                 string? baseCode = this.safeCurrencyCode(this.safeString(bs, "currency"));
                 string? quoteCode = this.safeCurrencyCode(this.safeString(quote, "currency"));
-                result = this.mergeBalanceAccount(result, ((string)baseCode), this.parseBalanceHelper(bs));
-                result = this.mergeBalanceAccount(result, ((string)quoteCode), this.parseBalanceHelper(quote));
+                result = this.mergeBalanceAccount(result, baseCode, this.parseBalanceHelper(bs));
+                result = this.mergeBalanceAccount(result, quoteCode, this.parseBalanceHelper(quote));
             } else
             {
                 string? code = this.safeCurrencyCode(this.safeString(entry, "currency"));
-                result[(string)((string)code)] = this.parseBalanceHelper(entry);
+                result[(string)code] = this.parseBalanceHelper(entry);
             }
         }
         return ccxt.BaseExchange.ToBalances(this.safeBalance(result));
@@ -5083,7 +5083,7 @@ public partial class gate : Exchange
         if ((msString != null))
         {
             msString = Precise.stringMul(msString, "1000");
-            msString = slice(((string)msString), 0, 13);
+            msString = slice(msString, 0, 13);
             timestamp = this.parseToInt(msString);
         } else
         {
@@ -5324,7 +5324,7 @@ public partial class gate : Exchange
             { "DONE", "ok" },
             { "BCODE", "ok" },
         };
-        return this.safeString(statuses, status, ((string)status));
+        return this.safeString(statuses, status, status);
     }
 
     public virtual string? parseTransactionType(object type)
@@ -5756,7 +5756,7 @@ public partial class gate : Exchange
             {
                 string? amountToPrecision = this.amountToPrecision(symbol, amount);
                 string? signedAmount = (isEqual(side, "sell")) ? Precise.stringNeg(amountToPrecision) : amountToPrecision;
-                amount = parseInt(((string)signedAmount));
+                amount = parseInt(signedAmount);
             }
         }
         Dictionary<string, object> request = null;
@@ -6156,7 +6156,7 @@ public partial class gate : Exchange
             { "finish", "closed" },
             { "succeeded", "closed" },
         };
-        return this.safeString(statuses, status, ((string)status));
+        return this.safeString(statuses, status, status);
     }
 
     public override Dictionary<string, object> parseOrder(object order, object market = null)
@@ -7227,7 +7227,7 @@ public partial class gate : Exchange
                 object id = getValue(ids, i);
                 Dictionary<string, object> orderItem = new Dictionary<string, object>() {
                     { "id", id },
-                    { "symbol", ((string)symbol) },
+                    { "symbol", symbol },
                 };
                 ((IList<object>)ordersRequests).Add(orderItem);
             }
@@ -8178,7 +8178,7 @@ public partial class gate : Exchange
             });
             maintenanceMarginRate = Precise.stringAdd(maintenanceMarginRate, maintenanceMarginUnit);
             initialMarginRatio = Precise.stringAdd(initialMarginRatio, initialMarginUnit);
-            floor = ((string)cap);
+            floor = cap;
         }
         return tiers;
     }
@@ -8609,7 +8609,7 @@ public partial class gate : Exchange
             if (((isEqual(type, "futures")) || (isEqual(type, "delivery"))) && isEqual(method, "POST"))
             {
                 List<object> pathParts = ((string)path).Split(new [] {"/"}, StringSplitOptions.None).ToList<object>();
-                string secondPart = ((string)this.safeString(pathParts, 1, ""));
+                string secondPart = this.safeString(pathParts, 1, "");
                 requiresURLEncoding = (getIndexOf(secondPart, "dual") >= 0) || (getIndexOf(secondPart, "positions") >= 0);
             }
             if ((isEqual(method, "GET")) || (isEqual(method, "DELETE")) || requiresURLEncoding || (isEqual(method, "PATCH")))
@@ -8622,7 +8622,7 @@ public partial class gate : Exchange
                     // https://github.com/ccxt/ccxt/issues/25570
                     if (getIndexOf(queryString, "currencies=") >= 0 && getIndexOf(queryString, "%2C") >= 0)
                     {
-                        queryString = queryString.Replace((string)"%2C", (string)",");
+                        queryString = queryString.Replace("%2C", (string)",");
                     }
                     url = add(url, add("?", queryString));
                 }
@@ -8868,7 +8868,7 @@ public partial class gate : Exchange
         //
         Int64? timestamp = this.safeTimestamp(interest, "time");
         return new Dictionary<string, object>() {
-            { "symbol", ((string)this.safeString(market, "symbol")) },
+            { "symbol", this.safeString(market, "symbol") },
             { "openInterestAmount", this.safeNumber(interest, "open_interest") },
             { "openInterestValue", this.safeNumber(interest, "open_interest_usd") },
             { "timestamp", timestamp },
@@ -9332,12 +9332,12 @@ public partial class gate : Exchange
         string? type = this.safeString(item, "type");
         string? rawTimestamp = this.safeString(item, "time");
         object timestamp = null;
-        if (((string)((string)rawTimestamp)).Length > 10)
+        if (rawTimestamp.Length > 10)
         {
-            timestamp = parseInt(((string)rawTimestamp));
+            timestamp = parseInt(rawTimestamp);
         } else
         {
-            timestamp = multiply(parseInt(((string)rawTimestamp)), 1000);
+            timestamp = multiply(parseInt(rawTimestamp), 1000);
         }
         string? balanceString = this.safeString(item, "balance");
         string? changeString = this.safeString(item, "change");
@@ -9403,7 +9403,7 @@ public partial class gate : Exchange
             { "pnl", "trade" },
             { "dnw", "deposit/withdraw" },
         };
-        return this.safeString(ledgerType, ((string)type), type);
+        return this.safeString(ledgerType, type, type);
     }
 
     /**
@@ -9848,7 +9848,7 @@ public partial class gate : Exchange
         {
             sideVar = ""; // sideVar is not used but needs to be present, otherwise crashes in php
         }
-        return ((IDictionary<string, object>)((object)(ccxt.BaseExchange.FromOrder(await this.CreateOrder(symbol, "market",((string)sideVar),ccxt.BaseExchange.ToDoubleArgRequired(0),ccxt.BaseExchange.ToDoubleArg(null), parameters)))));
+        return ((IDictionary<string, object>)((object)(ccxt.BaseExchange.FromOrder(await this.CreateOrder(symbol, "market",sideVar,ccxt.BaseExchange.ToDoubleArgRequired(0),ccxt.BaseExchange.ToDoubleArg(null), parameters)))));
     }
 
     /**

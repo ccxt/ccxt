@@ -163,7 +163,7 @@ public partial class kraken : ccxt.kraken
         bool isTrailingPercentOrder = (trailingPercent != null);
         bool isTrailingLimitAmountOrder = (trailingLimitAmount != null);
         bool isTrailingLimitPercentOrder = (trailingLimitPercent != null);
-        string offset = ((string)this.safeString(parameters, "offset", "")); // can set this to - for minus
+        string offset = this.safeString(parameters, "offset", ""); // can set this to - for minus
         string? trailingAmountString = ((trailingAmount != null)) ? add(offset, this.numberToString(trailingAmount)) : null;
         string? trailingPercentString = ((trailingPercent != null)) ? add(offset, this.numberToString(trailingPercent)) : null;
         string? trailingLimitAmountString = ((trailingLimitAmount != null)) ? add(offset, this.numberToString(trailingLimitAmount)) : null;
@@ -571,7 +571,7 @@ public partial class kraken : ccxt.kraken
         //
         List<object> data = this.safeList(message, "data", new List<object>() {});
         object ticker = getValue(data, 0);
-        string symbol = ((string)this.safeString(ticker, "symbol"));
+        string symbol = this.safeString(ticker, "symbol");
         string? messageHash = this.getMessageHash("ticker", null, symbol);
         string? vwap = this.safeString(ticker, "vwap");
         string? quoteVolume = null;
@@ -628,7 +628,7 @@ public partial class kraken : ccxt.kraken
         //
         List<object> data = this.safeList(message, "data", new List<object>() {});
         object trade = getValue(data, 0);
-        string symbol = ((string)this.safeString(trade, "symbol"));
+        string symbol = this.safeString(trade, "symbol");
         string? messageHash = this.getMessageHash("trade", null, symbol);
         object stored = this.safeValue(this.trades, symbol);
         if ((stored == null))
@@ -679,7 +679,7 @@ public partial class kraken : ccxt.kraken
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = new Dictionary<string, object>() {};
         }
         Int64? interval = this.safeInteger(first, "interval");
-        string timeframe = ((string)this.findTimeframe(interval));
+        string timeframe = this.findTimeframe(interval);
         string? messageHash = this.getMessageHash("ohlcv", null, symbol);
         object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
@@ -928,7 +928,7 @@ public partial class kraken : ccxt.kraken
                     string? symbol = ((string)getValue(symbols, i));
                     Dictionary<string, object> market = this.market(symbol);
                     object info = this.safeValue(market, "info", new Dictionary<string, object>() {});
-                    string wsName = ((string)this.safeString(info, "wsname"));
+                    string wsName = this.safeString(info, "wsname");
                     ((IDictionary<string,object>)marketsByWsName)[wsName] = market;
                 }
             }
@@ -1037,7 +1037,7 @@ public partial class kraken : ccxt.kraken
         string? type = this.safeString(message, "type");
         List<object> data = this.safeList(message, "data", new List<object>() {});
         IDictionary<string, object> first = this.safeDict(data, 0, new Dictionary<string, object>() {});
-        string symbol = ((string)this.safeString(first, "symbol"));
+        string symbol = this.safeString(first, "symbol");
         List<object> a = this.safeList(first, "asks", new List<object>() {});
         object b = this.safeValue(first, "bids", new List<object>() {});
         Int64? c = this.safeInteger(first, "checksum");
@@ -1110,7 +1110,7 @@ public partial class kraken : ccxt.kraken
             if (!isEqual(localChecksum, c))
             {
                 var error = new ChecksumError(add(add(this.id, " "), this.orderbookChecksumMessage(symbol)));
-                ((IDictionary<string,object>)client.subscriptions).Remove((string)messageHash);
+                ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
                 ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
                 client.reject(error, messageHash);
                 return;
@@ -1690,7 +1690,7 @@ public partial class kraken : ccxt.kraken
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
             string? currencyId = this.safeString(getValue(data, i), "asset");
-            string code = ((string)this.safeCurrencyCode(currencyId));
+            string code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
             string? eq = this.safeString(getValue(data, i), "balance");
             account["total"] = eq;
@@ -1787,7 +1787,7 @@ public partial class kraken : ccxt.kraken
             object exception = null;
             if ((broadKey == null))
             {
-                exception = new ExchangeError(                ((string)errorMessage)); // c# requirement to convert the errorMessage to string
+                exception = new ExchangeError(                errorMessage); // c# requirement to convert the errorMessage to string
             } else
             {
                 exception = this.newException(getValue(broad, broadKey), errorMessage);

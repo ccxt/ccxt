@@ -847,7 +847,7 @@ public partial class polymarket : PredictionExchange
         {
             // gamma matches tag_slug case-insensitively but only in slug form ("fed-rates"),
             // so human-readable labels ("Fed Rates") must be slugified first
-            baseRequest["tag_slug"] = this.tagToSlug(((string)this.safeString(requestedTags, 0)));
+            baseRequest["tag_slug"] = this.tagToSlug(this.safeString(requestedTags, 0));
         }
         if (status == "active")
         {
@@ -1854,7 +1854,7 @@ public partial class polymarket : PredictionExchange
         openInterest["outcome"] = this.safeOutcomeSymbol(null, market);
         openInterest["outcomeId"] = this.safeString(market, "outcomeId");
         openInterest["market"] = this.safeString(market, "market");
-        ((IDictionary<string,object>)openInterest).Remove((string)"symbol");
+        ((IDictionary<string,object>)openInterest).Remove("symbol");
         return ((object)openInterest);
     }
 
@@ -1976,7 +1976,7 @@ public partial class polymarket : PredictionExchange
         // the /data/trades endpoint has no order filter, so fetch the user's trades and keep
         // the ones where this order was the taker or one of the matched makers
         parameters ??= new Dictionary<string, object>();
-        object trades = ccxt.BaseExchange.FromPredictionTradeList(await this.FetchMyTrades(((string)outcome),ccxt.BaseExchange.ToInt64Arg(null),ccxt.BaseExchange.ToInt64Arg(null), parameters));
+        object trades = ccxt.BaseExchange.FromPredictionTradeList(await this.FetchMyTrades(outcome,ccxt.BaseExchange.ToInt64Arg(null),ccxt.BaseExchange.ToInt64Arg(null), parameters));
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
         {
@@ -2492,7 +2492,7 @@ public partial class polymarket : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> outcomeObj = this.outcome(outcome);
         object tokenId = GetValue(outcomeObj, "outcomeId");
-        string sideStr = ((string)((string)side)).ToUpper();
+        string sideStr = ((string)side).ToUpper();
         bool isMarket = (isEqual(type, "market"));
         // CCXT type (limit/market) maps to a polymarket time-in-force: limit -> GTC, market -> FOK.
         // native override: params.orderType (GTC, GTD, FOK or FAK)
@@ -2669,7 +2669,7 @@ public partial class polymarket : PredictionExchange
         Dictionary<string, object> request = this.extend(parameters, new Dictionary<string, object>() {
             { "cost", cost },
         });
-        return await this.CreateOrder(((string)outcome), "market", "buy",ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(null), request);
+        return await this.CreateOrder(outcome, "market", "buy",ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(null), request);
     }
 
     public virtual Dictionary<string, object> polymarketOrderRawAmounts(string? side, object size, object price, object tickSize, object cost = null)
@@ -3385,14 +3385,14 @@ public partial class polymarket : PredictionExchange
                 // the L2 api secret is base64url-encoded; decode it to raw bytes for the HMAC key.
                 // unchained replaceAll: the php transpiler only converts the outermost .replaceAll
                 // in a chain, leaving the inner call as an (invalid) method call
-                string normalizedSecret = ((string)secret);
-                normalizedSecret = normalizedSecret.Replace((string)"-", (string)"+");
-                normalizedSecret = normalizedSecret.Replace((string)"_", (string)"/");
+                string normalizedSecret = secret;
+                normalizedSecret = normalizedSecret.Replace("-", (string)"+");
+                normalizedSecret = normalizedSecret.Replace("_", (string)"/");
                 object secretBytes = this.base64ToBinary(normalizedSecret);
                 string signature = this.hmac(this.encode(auth), secretBytes, sha256, "base64");
                 // url-safe base64, preserving '=' padding (matches the reference client)
-                signature = signature.Replace((string)"+", (string)"-");
-                signature = signature.Replace((string)"/", (string)"_");
+                signature = signature.Replace("+", (string)"-");
+                signature = signature.Replace("/", (string)"_");
                 headers = this.extend(headers, new Dictionary<string, object>() {
                     { "POLY_ADDRESS", address },
                     { "POLY_API_KEY", apiKey },

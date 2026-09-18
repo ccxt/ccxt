@@ -1531,7 +1531,7 @@ public partial class lighter : ccxt.lighter
                         handled = true;
                         if ((subscription != null))
                         {
-                            ((IDictionary<string,object>)client.subscriptions).Remove((string)subscription);
+                            ((IDictionary<string,object>)client.subscriptions).Remove(subscription);
                         }
                     }
                 }
@@ -1669,7 +1669,7 @@ public partial class lighter : ccxt.lighter
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         if (inOp(this.orderbooks, symbol))
         {
-            ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
+            ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
         }
     }
 
@@ -1687,14 +1687,14 @@ public partial class lighter : ccxt.lighter
             for (int i = 0; isLessThan(i, subscriptionHashes.Count); postFixIncrement(ref i))
             {
                 string? subscriptionHash = ((string)getValue(subscriptionHashes, i));
-                if (((string)subscriptionHash).StartsWith("ticker"))
+                if (subscriptionHash.StartsWith("ticker"))
                 {
                     IDictionary<string, object> subscription = this.safeDict(client.subscriptions, subscriptionHash);
                     IDictionary<string, object> subscriptionParams = this.safeDict(subscription, "params");
                     string? subscribedChannel = this.safeString(subscriptionParams, "channel");
                     if (subscribedChannel == "market_stats/all")
                     {
-                        ((IDictionary<string,object>)client.subscriptions).Remove((string)subscriptionHash);
+                        ((IDictionary<string,object>)client.subscriptions).Remove(subscriptionHash);
                         if (inOp(client.futures, subscriptionHash))
                         {
                             var error = new UnsubscribeError(add(add(this.id, " "), subscriptionHash));
@@ -1721,7 +1721,7 @@ public partial class lighter : ccxt.lighter
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         if (inOp(this.tickers, symbol))
         {
-            ((IDictionary<string,object>)this.tickers).Remove((string)symbol);
+            ((IDictionary<string,object>)this.tickers).Remove(symbol);
         }
     }
 
@@ -1733,7 +1733,7 @@ public partial class lighter : ccxt.lighter
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         if (inOp(this.trades, symbol))
         {
-            ((IDictionary<string,object>)this.trades).Remove((string)symbol);
+            ((IDictionary<string,object>)this.trades).Remove(symbol);
         }
     }
 

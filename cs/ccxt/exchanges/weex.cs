@@ -2570,7 +2570,7 @@ public partial class weex : Exchange
         parameters = this.omit(parameters, "clientOrderId");
         if ((clientOrderId == null))
         {
-            string partner = ((string)this.safeString(parameters, "partner", "b-WEEX111125"));
+            string partner = this.safeString(parameters, "partner", "b-WEEX111125");
             clientOrderId = add(add(partner, "-"), this.uuid22());
         }
         request["newClientOrderId"] = clientOrderId;
@@ -2716,7 +2716,7 @@ public partial class weex : Exchange
         string? clientOrderId = this.safeString(parameters, "clientOrderId");
         if ((clientOrderId == null))
         {
-            string partner = ((string)this.safeString(parameters, "partner", "b-WEEX111125"));
+            string partner = this.safeString(parameters, "partner", "b-WEEX111125");
             clientOrderId = add(add(partner, "-"), this.uuid22());
         }
         string? callerMethodName = this.safeString(parameters, "callerMethodName");
@@ -3758,7 +3758,7 @@ public partial class weex : Exchange
             { "TAKE_PROFIT_MARKET", "market" },
             { "STOP_MARKET", "market" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     public virtual void handleOrderOrPositionError(object errorCode, object errorMessage, object order)

@@ -949,7 +949,7 @@ public partial class coinbase : Exchange
         string? currencyId = this.safeString(currency, "code", currencyIdV3);
         string? typeV3 = this.safeString(account, "name");
         string? typeV2 = this.safeString(account, "type");
-        List<object> parts = ((string)((string)typeV3)).Split(new [] {" "}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = typeV3.Split(new [] {" "}, StringSplitOptions.None).ToList<object>();
         return new Dictionary<string, object>() {
             { "id", this.safeString2(account, "id", "uuid") },
             { "type", (!isEqual(active, null)) ? this.safeStringLower(parts, 1) : typeV2 },
@@ -1199,7 +1199,7 @@ public partial class coinbase : Exchange
             { "completed", "ok" },
             { "canceled", "canceled" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     public override Dictionary<string, object> parseTransaction(object transaction, object currency = null)
@@ -2251,11 +2251,11 @@ public partial class coinbase : Exchange
             string? name = this.safeString(currency, "name");
             if ((code != null))
             {
-                ((IDictionary<string,object>)getValue(this.options, "networks"))[(string)code] = ((string)((string)name)).ToLower();
+                ((IDictionary<string,object>)getValue(this.options, "networks"))[(string)code] = name.ToLower();
             }
             if ((code != null))
             {
-                ((IDictionary<string,object>)getValue(this.options, "networksById"))[(string)code] = ((string)((string)name)).ToLower();
+                ((IDictionary<string,object>)getValue(this.options, "networksById"))[(string)code] = name.ToLower();
             }
             string type = ((assetId != null)) ? "crypto" : "fiat";
             if ((code != null))
@@ -2286,7 +2286,7 @@ public partial class coinbase : Exchange
             }
             if ((assetId != null))
             {
-                string lowerCaseName = ((string)((string)name)).ToLower();
+                string lowerCaseName = name.ToLower();
                 if ((code != null))
                 {
                     networks[(string)code] = lowerCaseName;
@@ -2973,7 +2973,7 @@ public partial class coinbase : Exchange
             { "pro_deposit", "transaction" },
             { "pro_withdrawal", "transaction" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     public override Dictionary<string, object> parseLedgerEntry(object item, object currency = null)
@@ -3419,7 +3419,7 @@ public partial class coinbase : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string id = ((string)this.safeString(this.options, "brokerId", "ccxt"));
+        string id = this.safeString(this.options, "brokerId", "ccxt");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "client_order_id", add(add(id, "-"), this.uuid()) },
             { "product_id", GetValue(market, "id") },
@@ -3663,7 +3663,7 @@ public partial class coinbase : Exchange
             {
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorTitle, errorMessage);
                 this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorTitle, errorMessage);
-                throw new ExchangeError ((string)((string)errorMessage)) ;
+                throw new ExchangeError (errorMessage) ;
             }
         }
         IDictionary<string, object> data = this.safeDict(response, "success_response", new Dictionary<string, object>() {});
@@ -3825,7 +3825,7 @@ public partial class coinbase : Exchange
             { "FAILED", "canceled" },
             { "UNKNOWN_ORDER_STATUS", null },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     public virtual string? parseOrderType(string? type)
@@ -3840,7 +3840,7 @@ public partial class coinbase : Exchange
             { "STOP", "limit" },
             { "STOP_LIMIT", "limit" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     public virtual string? parseTimeInForce(string? timeInForce)
@@ -3852,7 +3852,7 @@ public partial class coinbase : Exchange
             { "FILL_OR_KILL", "FOK" },
             { "UNKNOWN_TIME_IN_FORCE", null },
         };
-        return this.safeString(timeInForces, ((string)timeInForce), timeInForce);
+        return this.safeString(timeInForces, timeInForce, timeInForce);
     }
 
     /**
@@ -5862,7 +5862,7 @@ public partial class coinbase : Exchange
         object uri = null;
         if (!isEqual(url, null))
         {
-            uri = add(add(method, " "), ((string)url).Replace((string)"https://", (string)""));
+            uri = add(add(method, " "), ((string)url).Replace("https://", (string)""));
             int quesPos = getIndexOf(uri, "?");
             // Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
             // Also it's not possible that the question mark is first character, only check > 0 here.
@@ -5974,12 +5974,12 @@ public partial class coinbase : Exchange
                 // https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
                 // v2: 'GET' require payload in the signature
                 // https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
-                bool isCloudAPiKey = (getIndexOf(this.apiKey, "organizations/") >= 0) || (((string)this.secret).StartsWith("-----BEGIN"));
+                bool isCloudAPiKey = (getIndexOf(this.apiKey, "organizations/") >= 0) || (this.secret.StartsWith("-----BEGIN"));
                 // using the size might be fragile, so we add an option to force v2 cloud api key if needed
-                bool isV2CloudAPiKey = (((string)this.secret).Length == 88) || isTrue(this.safeBool(this.options, "v2CloudAPiKey", false)) || ((string)this.secret).EndsWith("=");
+                bool isV2CloudAPiKey = (this.secret.Length == 88) || isTrue(this.safeBool(this.options, "v2CloudAPiKey", false)) || this.secret.EndsWith("=");
                 if (isCloudAPiKey || isV2CloudAPiKey)
                 {
-                    if (isCloudAPiKey && ((string)this.apiKey).StartsWith("-----BEGIN"))
+                    if (isCloudAPiKey && this.apiKey.StartsWith("-----BEGIN"))
                     {
                         throw new ArgumentsRequired (add(this.id, " apiKey should contain the name (eg: organizations/3b910e93....) and not the public key")) ;
                     }

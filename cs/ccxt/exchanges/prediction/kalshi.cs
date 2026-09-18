@@ -1035,7 +1035,7 @@ public partial class kalshi : PredictionExchange
         }, market);
         openInterest["outcome"] = this.safeOutcomeSymbol(null, market);
         openInterest["outcomeId"] = this.safeString(market, "outcomeId");
-        ((IDictionary<string,object>)openInterest).Remove((string)"symbol");
+        ((IDictionary<string,object>)openInterest).Remove("symbol");
         return openInterest;
     }
 
@@ -2149,7 +2149,7 @@ public partial class kalshi : PredictionExchange
         // kalshi's status filter takes a single value (resting|executed|canceled); "closed" spans
         // both executed and canceled, so fetch every order and keep the non-open ones client-side
         parameters ??= new Dictionary<string, object>();
-        object orders = ccxt.BaseExchange.FromPredictionOrderList(await this.FetchOrders(((string)outcome),ccxt.BaseExchange.ToInt64Arg(null),ccxt.BaseExchange.ToInt64Arg(null), parameters));
+        object orders = ccxt.BaseExchange.FromPredictionOrderList(await this.FetchOrders(outcome,ccxt.BaseExchange.ToInt64Arg(null),ccxt.BaseExchange.ToInt64Arg(null), parameters));
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
@@ -2434,8 +2434,8 @@ public partial class kalshi : PredictionExchange
             throw new ArgumentsRequired (add(this.id, " editOrder() requires an amount")) ;
         }
         await this.loadOutcome(outcome);
-        ccxt.BaseExchange.FromPredictionOrder(await this.CancelOrder(id,((string)outcome)));
-        return await this.CreateOrder(((string)outcome),type,side,ccxt.BaseExchange.ToDoubleArgRequired(amount),ccxt.BaseExchange.ToDoubleArg(price), parameters);
+        ccxt.BaseExchange.FromPredictionOrder(await this.CancelOrder(id,outcome));
+        return await this.CreateOrder(outcome,type,side,ccxt.BaseExchange.ToDoubleArgRequired(amount),ccxt.BaseExchange.ToDoubleArg(price), parameters);
     }
 
     /**
@@ -3094,7 +3094,7 @@ public partial class kalshi : PredictionExchange
             object pathForSigning = add(add(versionPrefix, "/"), implodedPath);
             object payload = add(add(timestamp, method), pathForSigning);
             // RSA-PSS SHA-256 signature with the private key PEM
-            List<object> keyParts = ((string)this.privateKey).Split(new [] {"\\n"}, StringSplitOptions.None).ToList<object>();
+            List<object> keyParts = this.privateKey.Split(new [] {"\\n"}, StringSplitOptions.None).ToList<object>();
             string cleanPrivateKey = String.Join("\n", keyParts.ToArray());
             string signature = rsa(payload, cleanPrivateKey, sha256, "pss");
             headers = this.extend(headers, new Dictionary<string, object>() {

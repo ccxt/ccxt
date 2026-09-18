@@ -3024,7 +3024,7 @@ public partial class bitstamp : Exchange
             { "2", "trade" },
             { "14", "transfer" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     public override Dictionary<string, object> parseLedgerEntry(object item, object currency = null)
@@ -3065,7 +3065,7 @@ public partial class bitstamp : Exchange
             {
                 if (getIndexOf(getValue(keys, i), "_") >= 0)
                 {
-                    string marketId = ((string)getValue(keys, i)).Replace((string)"_", (string)"");
+                    string marketId = ((string)getValue(keys, i)).Replace("_", (string)"");
                     market = this.safeMarket(marketId, market);
                 }
             }
@@ -3104,7 +3104,7 @@ public partial class bitstamp : Exchange
             } else if ((inOp(parsedTransaction, "currency")) && !isEqual(GetValue(parsedTransaction, "currency"), null))
             {
                 string? currencyCode = this.safeString(parsedTransaction, "currency");
-                currency = this.currency(((string)currencyCode));
+                currency = this.currency(currencyCode);
                 string? amount = this.safeString(item, getValue(currency, "id"));
                 direction = isTrue(Precise.stringGt(amount, "0")) ? "in" : "out";
             }
@@ -3278,7 +3278,7 @@ public partial class bitstamp : Exchange
          * @param {string} code Unified currency code
          * @returns {string} lowercase version of code
          */
-        return ((string)code).ToLower();
+        return code.ToLower();
     }
 
     public virtual bool isFiat(object code)
@@ -3510,7 +3510,7 @@ public partial class bitstamp : Exchange
                 }
             }
             object authBody = (!isEqual(body, null) && !isEqual(body, "")) ? body : "";
-            object auth = add(add(add(add(add(add(add(xAuth, method), ((string)url).Replace((string)"https://", (string)"")), contentType), xAuthNonce), xAuthTimestamp), xAuthVersion), authBody);
+            object auth = add(add(add(add(add(add(add(xAuth, method), ((string)url).Replace("https://", (string)"")), contentType), xAuthNonce), xAuthTimestamp), xAuthVersion), authBody);
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             ((IDictionary<string,object>)headers)["X-Auth-Signature"] = signature;
         }

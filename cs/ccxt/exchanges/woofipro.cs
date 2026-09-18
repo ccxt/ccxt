@@ -3278,7 +3278,7 @@ public partial class woofipro : Exchange
             { "BALANCE", "transaction" },
             { "COLLATERAL", "transfer" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     /**

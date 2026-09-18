@@ -748,7 +748,7 @@ public partial class hibachi : Exchange
 
     public virtual string? parseOrderStatus(string? status)
     {
-        string? uppercaseStatus = (isEqual(status, null)) ? null : ((string)status).ToUpper();
+        string? uppercaseStatus = (isEqual(status, null)) ? null : status.ToUpper();
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "PENDING", "open" },
             { "CHILD_PENDING", "open" },

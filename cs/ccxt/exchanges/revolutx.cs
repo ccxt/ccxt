@@ -289,7 +289,7 @@ public partial class revolutx : Exchange
     public override Dictionary<string, object> parseMarket(object market)
     {
         string? id = this.safeString(market, "id");
-        string bs = ((string)this.safeString(market, "base", ""));
+        string bs = this.safeString(market, "base", "");
         string? quote = this.safeString(market, "quote", "");
         string baseId = bs;
         string? quoteId = quote;

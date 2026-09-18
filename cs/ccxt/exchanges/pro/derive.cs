@@ -251,7 +251,7 @@ public partial class derive : ccxt.derive
         IDictionary<string, object> data = this.safeDict(rawData, "instrument_ticker", new Dictionary<string, object>() {});
         string? topic = this.safeString(parameters, "channel");
         Dictionary<string, object> ticker = null;
-        if ((topic != null) && ((string)topic).StartsWith("ticker_slim"))
+        if ((topic != null) && topic.StartsWith("ticker_slim"))
         {
             // the slim payload uses short keys and does not carry the instrument name,
             // so the symbol is recovered from the channel: ticker_slim.BTC-PERP.100
@@ -377,7 +377,7 @@ public partial class derive : ccxt.derive
         string? symbol = ((string)GetValue(market, "symbol"));
         if (inOp(this.orderbooks, symbol))
         {
-            ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
+            ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
         }
         if (inOp(client.subscriptions, topic))
         {
@@ -396,7 +396,7 @@ public partial class derive : ccxt.derive
         string? symbol = ((string)GetValue(market, "symbol"));
         if (inOp(this.orderbooks, symbol))
         {
-            ((IDictionary<string,object>)this.trades).Remove((string)symbol);
+            ((IDictionary<string,object>)this.trades).Remove(symbol);
         }
         if (inOp(client.subscriptions, topic))
         {
@@ -890,7 +890,7 @@ public partial class derive : ccxt.derive
             // allows further authentication attempts
             if (inOp(client.subscriptions, messageHash))
             {
-                ((IDictionary<string,object>)client.subscriptions).Remove((string)"authenticated");
+                ((IDictionary<string,object>)client.subscriptions).Remove("authenticated");
             }
         }
     }

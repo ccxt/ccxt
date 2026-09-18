@@ -5711,7 +5711,7 @@ public partial class bybit : Exchange
             object price = this.safeValue(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             Dictionary<string, object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams, isUta);
-            ((IDictionary<string,object>)orderRequest).Remove((string)"category");
+            ((IDictionary<string,object>)orderRequest).Remove("category");
             ((IList<object>)ordersRequests).Add(orderRequest);
         }
         IList<object> symbols = this.marketSymbols(orderSymbols, null, false, true, true);
@@ -5950,7 +5950,7 @@ public partial class bybit : Exchange
             object price = this.safeValue(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             Dictionary<string, object> orderRequest = this.editOrderRequest(id, symbol, type, side, amount, price, orderParams);
-            ((IDictionary<string,object>)orderRequest).Remove((string)"category");
+            ((IDictionary<string,object>)orderRequest).Remove("category");
             ((IList<object>)ordersRequests).Add(orderRequest);
         }
         orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
@@ -7329,7 +7329,7 @@ public partial class bybit : Exchange
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> chains = this.safeList(result, "chains", new List<object>() {});
         string? coin = this.safeString(result, "coin");
-        Dictionary<string, object> currencyFromResponse = this.currency(((string)coin));
+        Dictionary<string, object> currencyFromResponse = this.currency(coin);
         object parsed = this.parseDepositAddresses(chains, new List<object>() {GetValue(currencyFromResponse, "code")}, false, new Dictionary<string, object>() {
             { "currency", GetValue(currencyFromResponse, "code") },
         });
@@ -7920,7 +7920,7 @@ public partial class bybit : Exchange
             { "CURRENCY_BUY", "trade" },
             { "CURRENCY_SELL", "trade" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     /**
@@ -11162,9 +11162,9 @@ public partial class bybit : Exchange
         //
         IDictionary<string, object> data = this.safeDict(response, "result", new Dictionary<string, object>() {});
         string? fromCurrencyId = this.safeString(data, "fromCoin", fromCode);
-        Dictionary<string, object> fromCurrency = this.currency(((string)fromCurrencyId));
+        Dictionary<string, object> fromCurrency = this.currency(fromCurrencyId);
         string? toCurrencyId = this.safeString(data, "toCoin", toCode);
-        Dictionary<string, object> toCurrency = this.currency(((string)toCurrencyId));
+        Dictionary<string, object> toCurrency = this.currency(toCurrencyId);
         return ccxt.BaseExchange.ToConversion(this.parseConversion(data, fromCurrency, toCurrency));
     }
 
@@ -11272,11 +11272,11 @@ public partial class bybit : Exchange
         IDictionary<string, object> toCurrency = null;
         if ((fromCurrencyId != null))
         {
-            fromCurrency = this.currency(((string)fromCurrencyId));
+            fromCurrency = this.currency(fromCurrencyId);
         }
         if ((toCurrencyId != null))
         {
-            toCurrency = this.currency(((string)toCurrencyId));
+            toCurrency = this.currency(toCurrencyId);
         }
         return ccxt.BaseExchange.ToConversion(this.parseConversion(result, fromCurrency, toCurrency));
     }

@@ -124,7 +124,7 @@ public partial class extended : ccxt.extended
         if ((!isEqual(previousNonce, null)) && (!isEqual(nonce, add(previousNonce, 1))))
         {
             ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
-            ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
+            ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
             var error = new InvalidNonce(add(this.id, " watchOrderBook received invalid nonce"));
             client.reject(error, messageHash);
             return;
@@ -386,7 +386,7 @@ public partial class extended : ccxt.extended
         {
             Dictionary<string, object> trade = this.parseTrade(getValue(rawTrades, i));
             string? symbol = this.safeString(trade, "symbol");
-            symbols[(string)((string)symbol)] = true;
+            symbols[(string)symbol] = true;
             callDynamically(stored, "append", new object[] {trade});
         }
         List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
@@ -558,7 +558,7 @@ public partial class extended : ccxt.extended
         {
             Dictionary<string, object> order = this.parseOrder(getValue((IList<object>)(rawOrders), i));
             string? symbol = this.safeString(order, "symbol");
-            symbols[(string)((string)symbol)] = true;
+            symbols[(string)symbol] = true;
             callDynamically(orders, "append", new object[] {order});
         }
         List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
@@ -624,7 +624,7 @@ public partial class extended : ccxt.extended
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> fundingRate = this.parseWsFundingRate(data, null, message);
         string? symbol = this.safeString(fundingRate, "symbol");
-        ((IDictionary<string,object>)this.fundingRates)[(string)((string)symbol)] = fundingRate;
+        ((IDictionary<string,object>)this.fundingRates)[(string)symbol] = fundingRate;
         string messageHash = add("fundingRate:", symbol);
         callDynamically(client, "resolve", new object[] {fundingRate, messageHash});
     }
@@ -906,14 +906,14 @@ public partial class extended : ccxt.extended
         string? candleType = this.safeString(subscription, "candleType");
         object cacheKey = (candleType == "trades") ? timeframe : add(add(timeframe, ":"), candleType);
         string? messageHash = this.safeString(subscription, "messageHash");
-        ((IDictionary<string,object>)this.ohlcvs)[(string)((string)symbol)] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        object stored = this.safeValue(getValue(this.ohlcvs, ((string)symbol)), cacheKey);
+        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        object stored = this.safeValue(getValue(this.ohlcvs, symbol), cacheKey);
         if ((stored == null))
         {
             Int64? defaultLimit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             Int64? limit = this.safeInteger(subscription, "limit", defaultLimit);
             stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)getValue(this.ohlcvs, ((string)symbol)))[(string)((string)cacheKey)] = stored;
+            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)((string)cacheKey)] = stored;
         }
         Int64? previousNonce = this.safeInteger(subscription, "nonce");
         Int64? nonce = this.safeInteger(message, "seq");

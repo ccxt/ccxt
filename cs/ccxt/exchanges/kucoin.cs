@@ -4270,7 +4270,7 @@ public partial class kucoin : Exchange
         // BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
         if ((address != null))
         {
-            address = address.Replace((string)"bitcoincash:", (string)"");
+            address = address.Replace("bitcoincash:", (string)"");
         }
         string? code = null;
         if (!isEqual(currency, null))
@@ -9325,7 +9325,7 @@ public partial class kucoin : Exchange
         IDictionary<string, object> currency = null;
         if ((code != null))
         {
-            currency = this.currency(((string)code));
+            currency = this.currency(code);
         }
         object requestedType = "spot";
         IList<object> requestedTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchBalance", null, parameters);
@@ -9466,11 +9466,11 @@ public partial class kucoin : Exchange
                 string? quoteCode = this.safeCurrencyCode(this.safeString(quote, "currency"));
                 if ((baseCode != null))
                 {
-                    result = this.mergeBalanceAccount(result,((string)baseCode), this.parseBalanceHelper(bs));
+                    result = this.mergeBalanceAccount(result,baseCode, this.parseBalanceHelper(bs));
                 }
                 if ((quoteCode != null))
                 {
-                    result = this.mergeBalanceAccount(result,((string)quoteCode), this.parseBalanceHelper(quote));
+                    result = this.mergeBalanceAccount(result,quoteCode, this.parseBalanceHelper(quote));
                 }
             }
         } else if (cross)
@@ -9537,7 +9537,7 @@ public partial class kucoin : Exchange
         {
             throw new ArgumentsRequired (add(this.id, " fetchContractBalance() requires a code parameter")) ;
         }
-        Dictionary<string, object> currency = this.currency(((string)code));
+        Dictionary<string, object> currency = this.currency(code);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", GetValue(currency, "id") },
         };
@@ -9705,7 +9705,7 @@ public partial class kucoin : Exchange
                     string? currencyCode = this.safeCurrencyCode(currencyId);
                     if ((currencyCode != null))
                     {
-                        result = this.mergeBalanceAccount(result,((string)currencyCode), this.parseBalanceHelper(currencyEntry));
+                        result = this.mergeBalanceAccount(result,currencyCode, this.parseBalanceHelper(currencyEntry));
                     }
                 }
             }
@@ -9755,9 +9755,9 @@ public partial class kucoin : Exchange
         parameters = utaparametersVariable[1];
         if (isTrue(uta))
         {
-            return await this.TransferUta(code, amount,((string)fromAccount),((string)toAccount), parameters);
+            return await this.TransferUta(code, amount,fromAccount,toAccount, parameters);
         }
-        return await this.TransferClassic(code, amount,((string)fromAccount),((string)toAccount), parameters);
+        return await this.TransferClassic(code, amount,fromAccount,toAccount, parameters);
     }
 
     /**
@@ -10136,7 +10136,7 @@ public partial class kucoin : Exchange
             { "KCS_RETURNED_FEES", "fee" },
             { "AUTO_EXCHANGE_USER", "trade" },
         };
-        return this.safeString(types, ((string)type), type);
+        return this.safeString(types, type, type);
     }
 
     public virtual string? parseLedgerDirection(object direction)
@@ -10928,7 +10928,7 @@ public partial class kucoin : Exchange
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
             string? code = ((string)getValue(keys, i));
-            borrowRateHistories[(string)code] = this.filterByCurrencySinceLimit(getValue(borrowRateHistories, code),((string)code), since, limit);
+            borrowRateHistories[(string)code] = this.filterByCurrencySinceLimit(getValue(borrowRateHistories, code),code, since, limit);
         }
         return ((Dictionary<string, object>)((object)(borrowRateHistories)));
     }

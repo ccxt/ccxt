@@ -259,10 +259,10 @@ public partial class woo : ccxt.woo
                     }
                 } catch(Exception e)
                 {
-                    ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
+                    ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
                     if ((topic != null))
                     {
-                        ((IDictionary<string,object>)client.subscriptions).Remove((string)topic);
+                        ((IDictionary<string,object>)client.subscriptions).Remove(topic);
                     }
                     client.reject(e, topic);
                 }
@@ -295,7 +295,7 @@ public partial class woo : ccxt.woo
         }
         if (((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))
         {
-            ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
+            ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
         }
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
         this.spawn(this.fetchOrderBookSnapshot, new object[] { client, message, subscription});
@@ -344,7 +344,7 @@ public partial class woo : ccxt.woo
         {
             if ((messageHash != null))
             {
-                ((IDictionary<string,object>)client.subscriptions).Remove((string)messageHash);
+                ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
             }
             client.reject(e, messageHash);
         }
@@ -1928,7 +1928,7 @@ public partial class woo : ccxt.woo
             // allows further authentication attempts
             if (inOp(client.subscriptions, messageHash))
             {
-                ((IDictionary<string,object>)client.subscriptions).Remove((string)"authenticated");
+                ((IDictionary<string,object>)client.subscriptions).Remove("authenticated");
             }
         }
     }

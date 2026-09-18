@@ -405,9 +405,9 @@ public partial class bitflyer : Exchange
                 {
                     List<object> splitAlias = alias.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
                     string? currencyIds = this.safeString(splitAlias, 0);
-                    baseId = slice(((string)currencyIds), 0, -3);
-                    quoteId = slice(((string)currencyIds), -3, null);
-                    List<object> splitId = id.Split(new [] {((string)((string)currencyIds))}, StringSplitOptions.None).ToList<object>();
+                    baseId = slice(currencyIds, 0, -3);
+                    quoteId = slice(currencyIds, -3, null);
+                    List<object> splitId = id.Split(new [] {currencyIds}, StringSplitOptions.None).ToList<object>();
                     string? expiryDate = this.safeString(splitId, 1);
                     expiry = this.parseExpiryDate(expiryDate);
                 }
@@ -840,7 +840,7 @@ public partial class bitflyer : Exchange
             { "EXPIRED", "canceled" },
             { "REJECTED", "canceled" },
         };
-        return this.safeString(statuses, ((string)status), status);
+        return this.safeString(statuses, status, status);
     }
 
     public override Dictionary<string, object> parseOrder(object order, object market = null)
