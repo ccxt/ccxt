@@ -637,10 +637,7 @@
             },
             "fetchTrades": {
                 "side": "side is undefined",
-                "cost": "calculation minor precision issue: https://app.travis-ci.com/github/ccxt/ccxt/builds/273719064#L4610"
-            },
-            "fetchTrades": {
-                "side": "side is undefined",
+                "cost": "calculation minor precision issue: https://app.travis-ci.com/github/ccxt/ccxt/builds/273719064#L4610",
                 "requireBothSides": "same",
                 "sideSequence": "todo check"
             },
