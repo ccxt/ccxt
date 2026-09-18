@@ -1477,7 +1477,7 @@ public partial class woo : ccxt.woo
         bool awaitPositionsSnapshot = ((bool)this.handleOption("watchPositions", "awaitPositionsSnapshot", true));
         if ((isEqual(fetchPositionsSnapshot, true)) && (isEqual(awaitPositionsSnapshot, true)) && (isEqual(this.positions, null)))
         {
-            object snapshot = await client.future("fetchPositionsSnapshot");
+            ccxt.pro.ArrayCache snapshot = ((ccxt.pro.ArrayCache)await client.future("fetchPositionsSnapshot"));
             return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1513,7 +1513,7 @@ public partial class woo : ccxt.woo
     {
         object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions());
         this.positions = new ArrayCacheBySymbolBySide();
-        object cache = this.positions;
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.positions);
         for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
             object position = getValue(positions, i);
@@ -1526,7 +1526,7 @@ public partial class woo : ccxt.woo
         // don't remove the future from the .futures cache
         if (inOp(client.futures, messageHash))
         {
-            var future = getValue(client.futures, messageHash);
+            Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve(cache);
             callDynamically(client, "resolve", new object[] {cache, "positions"});
         }
@@ -1566,7 +1566,7 @@ public partial class woo : ccxt.woo
         {
             this.positions = new ArrayCacheBySymbolBySide();
         }
-        object cache = this.positions;
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.positions);
         List<object> newPositions = new List<object>() {};
         for (int i = 0; isLessThan(i, postitionsIds.Count); postFixIncrement(ref i))
         {
@@ -1779,8 +1779,8 @@ public partial class woo : ccxt.woo
         List<object> unsubMessageHashes = this.safeList(subscription, "unsubMessageHashes", new List<object>() {});
         for (int i = 0; isLessThan(i, subMessageHashes.Count); postFixIncrement(ref i))
         {
-            object subHash = getValue(subMessageHashes, i);
-            object unsubHash = getValue(unsubMessageHashes, i);
+            string? subHash = ((string)getValue(subMessageHashes, i));
+            string? unsubHash = ((string)getValue(unsubMessageHashes, i));
             this.cleanUnsubscription(client, subHash, unsubHash);
         }
         this.cleanCache(subscription);
@@ -1919,7 +1919,7 @@ public partial class woo : ccxt.woo
         if (isEqual(success, true))
         {
             // client.resolve (message, messageHash);
-            var future = this.safeValue(client.futures, "authenticated");
+            Future future = ((Future)this.safeValue(client.futures, "authenticated"));
             (future as Future).resolve(true);
         } else
         {

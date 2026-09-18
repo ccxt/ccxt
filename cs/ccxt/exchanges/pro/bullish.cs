@@ -817,7 +817,7 @@ public partial class bullish : ccxt.bullish
         {
             this.positions = new ArrayCacheBySymbolBySide();
         }
-        object positions = this.positions;
+        ccxt.pro.ArrayCache positions = ((ccxt.pro.ArrayCache)this.positions);
         List<object> newPositions = new List<object>() {};
         for (int i = 0; isLessThan(i, rawPositions.Count); postFixIncrement(ref i))
         {

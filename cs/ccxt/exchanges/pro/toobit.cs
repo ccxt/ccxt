@@ -883,7 +883,7 @@ public partial class toobit : ccxt.toobit
         // don't remove the future from the .futures cache
         if (inOp(client.futures, messageHash))
         {
-            var future = getValue(client.futures, messageHash);
+            Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve();
             callDynamically(client, "resolve", new object[] {getValue(this.balance, type), add(type, ":fetchBalanceSnapshot")});
             callDynamically(client, "resolve", new object[] {getValue(this.balance, type), add(type, ":balance")}); // we should also resolve right away after snapshot, so user doesn't double-fetch balance
@@ -1156,7 +1156,7 @@ public partial class toobit : ccxt.toobit
         ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.safeValue(this.positions, type));
         if ((cache == null))
         {
-            object snapshot = await client.future(add(type, ":fetchPositionsSnapshot"));
+            ccxt.pro.ArrayCache snapshot = ((ccxt.pro.ArrayCache)await client.future(add(type, ":fetchPositionsSnapshot")));
             return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true));
         }
         object newPositions = await this.watch(url, messageHash, null, messageHash);
@@ -1209,7 +1209,7 @@ public partial class toobit : ccxt.toobit
         // don't remove the future from the .futures cache
         if (inOp(client.futures, messageHash))
         {
-            var future = getValue(client.futures, messageHash);
+            Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve(cache);
             callDynamically(client, "resolve", new object[] {cache, add(type, ":positions")});
         }

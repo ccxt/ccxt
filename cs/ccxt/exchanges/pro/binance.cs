@@ -9,7 +9,7 @@ public partial class binance : ccxt.binance
 {
     public override Dictionary<string, object> describe()
     {
-        Dictionary<string, object> superDescribe = base.describe();
+        object superDescribe = base.describe();
         return this.deepExtend(superDescribe, this.describeData());
     }
 
@@ -513,7 +513,7 @@ public partial class binance : ccxt.binance
             Int64? limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
             this.liquidations = new ArrayCache(limit);
         }
-        ccxt.pro.ArrayCache cache = this.liquidations;
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.liquidations);
         callDynamically(cache, "append", new object[] {liquidation});
         callDynamically(client, "resolve", new object[] {new List<object>() {liquidation}, "liquidations"});
         callDynamically(client, "resolve", new object[] {new List<object>() {liquidation}, add("liquidations::", symbol)});
@@ -1239,7 +1239,7 @@ public partial class binance : ccxt.binance
                             }
                         } else
                         {
-                            bool checksum = ((bool)this.handleOption("watchOrderBook", "checksum", true));
+                            object checksum = this.handleOption("watchOrderBook", "checksum", true);
                             if (isEqual(checksum, true))
                             {
                                 throw new ChecksumError (add(add(this.id, " "), this.orderbookChecksumMessage(symbol))) ;
@@ -1263,7 +1263,7 @@ public partial class binance : ccxt.binance
                             }
                         } else
                         {
-                            bool checksum = ((bool)this.handleOption("watchOrderBook", "checksum", true));
+                            object checksum = this.handleOption("watchOrderBook", "checksum", true);
                             if (isEqual(checksum, true))
                             {
                                 throw new ChecksumError (add(add(this.id, " "), this.orderbookChecksumMessage(symbol))) ;
@@ -1341,7 +1341,7 @@ public partial class binance : ccxt.binance
         for (int j = 0; isLessThan(j, messageHashes.Count); postFixIncrement(ref j))
         {
             object unsubHash = getValue(messageHashes, j);
-            object subHash = getValue(subMessageHashes, j);
+            string? subHash = ((string)getValue(subMessageHashes, j));
             this.cleanUnsubscription(client, subHash, unsubHash);
         }
         this.cleanCache(subscription);
@@ -1364,7 +1364,7 @@ public partial class binance : ccxt.binance
      */
     public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        Int64? limitVar = limit;
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -1445,7 +1445,7 @@ public partial class binance : ccxt.binance
         {
             object first = this.safeValue(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar}));
+            limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -3700,7 +3700,7 @@ public partial class binance : ccxt.binance
         // don't remove the future from the .futures cache
         if (inOp(client.futures, messageHash))
         {
-            var future = getValue(client.futures, messageHash);
+            Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve();
             callDynamically(client, "resolve", new object[] {getValue(this.balance, type), add(type, ":balance")});
         }
@@ -4920,7 +4920,7 @@ public partial class binance : ccxt.binance
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object symbolVar = symbol;
-        Int64? limitVar = limit;
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -4963,7 +4963,7 @@ public partial class binance : ccxt.binance
             object stockOrders = await this.watch(stockUrl, stockMessageHash, this.extend(stockRequest, stockQuery), stockMessageHash, stockSubscribe);
             if (isTrue(this.newUpdates))
             {
-                limitVar = ((Int64?)callDynamically(stockOrders, "getLimit", new object[] {symbolVar, limitVar}));
+                limitVar = callDynamically(stockOrders, "getLimit", new object[] {symbolVar, limitVar});
             }
             return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(stockOrders, symbolVar, since, limitVar, true));
         }
@@ -5028,7 +5028,7 @@ public partial class binance : ccxt.binance
         object orders = await this.watch(url, messageHash, message, type);
         if (isTrue(this.newUpdates))
         {
-            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
@@ -5675,12 +5675,12 @@ public partial class binance : ccxt.binance
         var client = this.client(url);
         this.setBalanceCache(client, type, isPortfolioMargin);
         this.setPositionsCache(client, type, symbols, isPortfolioMargin);
-        bool fetchPositionsSnapshot = ((bool)this.handleOption("watchPositions", "fetchPositionsSnapshot", true));
-        bool awaitPositionsSnapshot = ((bool)this.handleOption("watchPositions", "awaitPositionsSnapshot", true));
+        object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
+        object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
         object cache = this.safeValue(this.positions, type);
         if ((isEqual(fetchPositionsSnapshot, true)) && (isEqual(awaitPositionsSnapshot, true)) && ((cache == null)))
         {
-            object snapshot = await client.future(add(type, ":fetchPositionsSnapshot"));
+            ccxt.pro.ArrayCache snapshot = ((ccxt.pro.ArrayCache)await client.future(add(type, ":fetchPositionsSnapshot")));
             return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true));
         }
         object newPositions = await this.watch(url, messageHash, null, type);
@@ -5706,7 +5706,7 @@ public partial class binance : ccxt.binance
         {
             return;
         }
-        bool fetchPositionsSnapshot = ((bool)this.handleOption("watchPositions", "fetchPositionsSnapshot", false));
+        object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", false);
         if (isEqual(fetchPositionsSnapshot, true))
         {
             object messageHash = add(type, ":fetchPositionsSnapshot");
@@ -5745,7 +5745,7 @@ public partial class binance : ccxt.binance
         // don't remove the future from the .futures cache
         if (inOp(client.futures, messageHash))
         {
-            var future = getValue(client.futures, messageHash);
+            Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve(cache);
             callDynamically(client, "resolve", new object[] {cache, add(type, ":position")});
         }
@@ -6122,7 +6122,7 @@ public partial class binance : ccxt.binance
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object symbolVar = symbol;
-        Int64? limitVar = limit;
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -6191,7 +6191,7 @@ public partial class binance : ccxt.binance
         object trades = await this.watch(url, messageHash, message, type);
         if (isTrue(this.newUpdates))
         {
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolVar, since, limitVar, true));
     }

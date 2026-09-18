@@ -471,7 +471,7 @@ public partial class extended : ccxt.extended
         {
             this.positions = new ArrayCacheBySymbolBySide();
         }
-        object stored = this.positions;
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.positions);
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         List<object> rawPositions = this.safeList(data, "positions", new List<object>() {});
         List<object> newPositions = new List<object>() {};

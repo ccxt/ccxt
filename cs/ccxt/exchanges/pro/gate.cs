@@ -1644,7 +1644,7 @@ public partial class gate : ccxt.gate
         // don't remove the future from the .futures cache
         if (inOp(client.futures, messageHash))
         {
-            var future = getValue(client.futures, messageHash);
+            Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve(cache);
             callDynamically(client, "resolve", new object[] {cache, add(type, ":position")});
         }
@@ -2057,7 +2057,7 @@ public partial class gate : ccxt.gate
             Int64? limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
             this.liquidations = new ArrayCache(limit);
         }
-        object cache = this.liquidations;
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.liquidations);
         for (int i = 0; isLessThan(i, rawLiquidations.Count); postFixIncrement(ref i))
         {
             object rawLiquidation = getValue(rawLiquidations, i);
@@ -2615,7 +2615,7 @@ public partial class gate : ccxt.gate
     public virtual void handleAuthenticationMessage(WebSocketClient client, Dictionary<string, object> message)
     {
         string messageHash = "authenticated";
-        var future = this.safeValue(client.futures, messageHash);
+        Future future = ((Future)this.safeValue(client.futures, messageHash));
         (future as Future).resolve(true);
     }
 

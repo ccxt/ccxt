@@ -182,7 +182,7 @@ public partial class backpack : ccxt.backpack
             {
                 if (isEqual(messageHash, "unsubscribe:positions"))
                 {
-                    object cache = this.positions;
+                    ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.positions);
                     List<object> keys = new List<object>(((IDictionary<string,object>)cache).Keys);
                     for (int j = 0; isLessThan(j, keys.Count); postFixIncrement(ref j))
                     {
@@ -1429,7 +1429,7 @@ public partial class backpack : ccxt.backpack
         {
             this.positions = new ArrayCacheBySymbolById();
         }
-        object cache = this.positions;
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.positions);
         Dictionary<string, object> parsedPosition = this.parseWsPosition(data);
         Int64? microseconds = this.safeInteger(data, "E", 0);
         Int64? timestamp = this.parseToInt(divide(microseconds, 1000));

@@ -85,7 +85,7 @@ public partial class paradex : ccxt.paradex
         if ((result != null))
         {
             // client.resolve (true, messageHash);
-            var future = this.safeValue(client.futures, "authenticated");
+            Future future = ((Future)this.safeValue(client.futures, "authenticated"));
             if ((future != null))
             {
                 (future as Future).resolve(true);

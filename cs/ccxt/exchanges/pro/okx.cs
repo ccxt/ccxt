@@ -217,7 +217,7 @@ public partial class okx : ccxt.okx
      */
     public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        Int64? limitVar = limit;
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         int symbolsLength = getArrayLength(symbols);
         if ((symbolsLength == 0))
@@ -264,7 +264,7 @@ public partial class okx : ccxt.okx
         {
             object first = this.safeValue(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar}));
+            limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -958,7 +958,7 @@ public partial class okx : ccxt.okx
                 Int64? limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
                 this.liquidations = new ArrayCache(limit);
             }
-            ccxt.pro.ArrayCache cache = this.liquidations;
+            ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.liquidations);
             callDynamically(cache, "append", new object[] {liquidation});
             callDynamically(client, "resolve", new object[] {new List<object>() {liquidation}, "liquidations"});
             callDynamically(client, "resolve", new object[] {new List<object>() {liquidation}, add("liquidations::", symbol)});
@@ -1071,7 +1071,7 @@ public partial class okx : ccxt.okx
                 Int64? limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
                 this.liquidations = new ArrayCache(limit);
             }
-            ccxt.pro.ArrayCache cache = this.liquidations;
+            ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.liquidations);
             callDynamically(cache, "append", new object[] {liquidation});
             callDynamically(client, "resolve", new object[] {new List<object>() {liquidation}, "myLiquidations"});
             callDynamically(client, "resolve", new object[] {new List<object>() {liquidation}, add("myLiquidations::", symbol)});
@@ -1183,7 +1183,7 @@ public partial class okx : ccxt.okx
     {
         string symbolVar = symbol;
         string timeframeVar = timeframe;
-        Int64? limitVar = limit;
+        object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -1196,7 +1196,7 @@ public partial class okx : ccxt.okx
         object ohlcv = await this.subscribe("public", name, name, symbolVar, parameters);
         if (isTrue(this.newUpdates))
         {
-            limitVar = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar});
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }
@@ -1997,7 +1997,7 @@ public partial class okx : ccxt.okx
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object symbolVar = symbol;
-        Int64? limitVar = limit;
+        object limitVar = limit;
         // By default, receive order updates from any instrument type
         parameters ??= new Dictionary<string, object>();
         object type = null;
@@ -2050,7 +2050,7 @@ public partial class okx : ccxt.okx
         object orders = await this.subscribe("private", messageHash, channel, null, this.extend(request, parameters));
         if (isTrue(this.newUpdates))
         {
-            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
@@ -2182,7 +2182,7 @@ public partial class okx : ccxt.okx
         {
             this.positions = new ArrayCacheBySymbolBySide();
         }
-        object cache = this.positions;
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.positions);
         List<object> newPositions = new List<object>() {};
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
@@ -2224,7 +2224,7 @@ public partial class okx : ccxt.okx
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object symbolVar = symbol;
-        Int64? limitVar = limit;
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         object type = null;
         // By default, receive order updates from any instrument type
@@ -2275,7 +2275,7 @@ public partial class okx : ccxt.okx
         object orders = await this.subscribe("private", channel, channel, symbolVar, this.extend(request, parameters));
         if (isTrue(this.newUpdates))
         {
-            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
@@ -2476,7 +2476,7 @@ public partial class okx : ccxt.okx
     public virtual object requestId()
     {
         string ts = this.milliseconds().ToString();
-        int randomNumber = this.randNumber(4);
+        object randomNumber = this.randNumber(4);
         string randomPart = randomNumber.ToString();
         return add(ts, randomPart);
     }
@@ -2786,7 +2786,7 @@ public partial class okx : ccxt.okx
         //
         //     { event: "login", success: true }
         //
-        var future = this.safeValue(client.futures, "authenticated");
+        Future future = ((Future)this.safeValue(client.futures, "authenticated"));
         (future as Future).resolve(true);
     }
 

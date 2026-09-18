@@ -883,7 +883,7 @@ public partial class whitebit : ccxt.whitebit
         // don't remove the future from the .futures cache
         if (inOp(client.futures, messageHash))
         {
-            var future = getValue(client.futures, messageHash);
+            Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve();
             callDynamically(client, "resolve", new object[] {this.balance, subscriptionHash});
         }
@@ -1005,7 +1005,7 @@ public partial class whitebit : ccxt.whitebit
         }
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Int64 id = this.nonce();
-        var client = this.safeValue(this.clients, url);
+        WebSocketClient client = ((WebSocketClient)this.safeValue(this.clients, url));
         Dictionary<string, object> request = null;
         List<object> marketIds = new List<object>() {};
         if ((client == null))
@@ -1031,7 +1031,7 @@ public partial class whitebit : ccxt.whitebit
             return await this.watch(url, messageHash, message, method, subscription);
         } else
         {
-            IDictionary<string, object> subscription = this.safeDict(((WebSocketClient)client).subscriptions, method, new Dictionary<string, object>() {});
+            IDictionary<string, object> subscription = this.safeDict(client.subscriptions, method, new Dictionary<string, object>() {});
             bool hasSymbolSubscription = true;
             Dictionary<string, object> market = this.market(symbol);
             string? marketId = ((string)getValue(market, "id"));
@@ -1062,9 +1062,9 @@ public partial class whitebit : ccxt.whitebit
                     { "method", method },
                     { "params", marketIdsNew },
                 };
-                if (inOp(((WebSocketClient)client).subscriptions, method))
+                if (inOp(client.subscriptions, method))
                 {
-                    ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)method);
+                    ((IDictionary<string,object>)client.subscriptions).Remove((string)method);
                 }
                 return await this.watch(url, messageHash, resubRequest, method, subscription);
             }
@@ -1185,7 +1185,7 @@ public partial class whitebit : ccxt.whitebit
         //
         //     { error: null, result: { status: "success" }, id: 1656084550 }
         //
-        var future = getValue(client.futures, "authenticated");
+        Future future = ((Future)getValue(client.futures, "authenticated"));
         (future as Future).resolve(1);
         return message;
     }

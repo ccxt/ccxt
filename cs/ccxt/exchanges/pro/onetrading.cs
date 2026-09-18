@@ -1147,12 +1147,12 @@ public partial class onetrading : ccxt.onetrading
         }
         string messageHash = add(add(add("ohlcv.", symbolVar), "."), timeframeVar);
         string subscriptionHash = "CANDLESTICKS";
-        var client = this.safeValue(this.clients, url);
+        WebSocketClient client = ((WebSocketClient)this.safeValue(this.clients, url));
         string type = "SUBSCRIBE";
         IDictionary<string, object> subscription = new Dictionary<string, object>() {};
         if ((client != null))
         {
-            subscription = this.safeDict(((WebSocketClient)client).subscriptions, subscriptionHash);
+            subscription = this.safeDict(client.subscriptions, subscriptionHash);
             if ((subscription != null))
             {
                 object ohlcvMarket = this.safeValue(subscription, marketId, new Dictionary<string, object>() {});
@@ -1160,7 +1160,7 @@ public partial class onetrading : ccxt.onetrading
                 if ((marketSubscribed != true))
                 {
                     type = "UPDATE_SUBSCRIPTION";
-                    ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[subscriptionHash] = null;
+                    ((IDictionary<string,object>)client.subscriptions)[subscriptionHash] = null;
                 }
             } else
             {
@@ -1398,7 +1398,7 @@ public partial class onetrading : ccxt.onetrading
         //        "time": "2022-06-24T20:45:25.447488Z"
         //    }
         //
-        var future = this.safeValue(client.futures, "authenticated");
+        Future future = ((Future)this.safeValue(client.futures, "authenticated"));
         if ((future != null))
         {
             (future as Future).resolve(true);
@@ -1414,7 +1414,7 @@ public partial class onetrading : ccxt.onetrading
         int numSymbols = getArrayLength(symbols);
         if ((numSymbols == 0))
         {
-            object marketsById = this.markets_by_id;
+            IDictionary<string, object> marketsById = this.markets_by_id;
             if ((marketsById == null))
             {
                 return new List<object>() {};
@@ -1425,12 +1425,12 @@ public partial class onetrading : ccxt.onetrading
             marketIds = this.marketIds(symbols);
         }
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
-        var client = this.safeValue(this.clients, url);
+        WebSocketClient client = ((WebSocketClient)this.safeValue(this.clients, url));
         string type = "SUBSCRIBE";
         IDictionary<string, object> subscription = new Dictionary<string, object>() {};
         if ((client != null))
         {
-            subscription = this.safeDict(((WebSocketClient)client).subscriptions, subscriptionHash);
+            subscription = this.safeDict(client.subscriptions, subscriptionHash);
             if ((subscription != null))
             {
                 for (int i = 0; isLessThan(i, marketIds?.Count ?? 0); postFixIncrement(ref i))
@@ -1440,7 +1440,7 @@ public partial class onetrading : ccxt.onetrading
                     if ((marketSubscribed != true))
                     {
                         type = "UPDATE_SUBSCRIPTION";
-                        ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)subscriptionHash] = null;
+                        ((IDictionary<string,object>)client.subscriptions)[(string)subscriptionHash] = null;
                     }
                 }
             } else

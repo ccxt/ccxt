@@ -918,7 +918,7 @@ public partial class bydfi : ccxt.bydfi
         {
             this.positions = new ArrayCacheBySymbolBySide();
         }
-        object cache = this.positions;
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.positions);
         Dictionary<string, object> parsedPosition = this.parseWsPosition(rawPosition, market);
         Int64? timestamp = this.safeInteger(message, "T");
         parsedPosition["timestamp"] = timestamp;
@@ -1045,7 +1045,7 @@ public partial class bydfi : ccxt.bydfi
         Dictionary<string, object> response = ccxt.BaseExchange.FromBalances(await this.FetchBalance(parameters));
         this.balance = this.extend(response, this.balance);
         // don't remove the future from the .futures cache
-        var future = getValue(client.futures, messageHash);
+        Future future = ((Future)getValue(client.futures, messageHash));
         (future as Future).resolve();
         callDynamically(client, "resolve", new object[] {this.balance, "balance"});
     }

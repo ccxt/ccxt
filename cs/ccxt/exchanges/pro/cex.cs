@@ -155,10 +155,10 @@ public partial class cex : ccxt.cex
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         string messageHash = "trades";
         string subscriptionHash = add("old:", symbolVar);
-        var client = this.safeValue(this.clients, url);
+        WebSocketClient client = ((WebSocketClient)this.safeValue(this.clients, url));
         if ((client != null))
         {
-            List<object> subscriptionKeys = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);
+            List<object> subscriptionKeys = new List<object>(((IDictionary<string,object>)client.subscriptions).Keys);
             for (int i = 0; isLessThan(i, subscriptionKeys.Count); postFixIncrement(ref i))
             {
                 string? subscriptionKey = ((string)getValue(subscriptionKeys, i));
@@ -1700,7 +1700,7 @@ public partial class cex : ccxt.cex
         //         "timestamp":1448034593
         //     }
         //
-        var future = this.safeValue(client.futures, "authenticated");
+        Future future = ((Future)this.safeValue(client.futures, "authenticated"));
         if ((future != null))
         {
             (future as Future).resolve(true);

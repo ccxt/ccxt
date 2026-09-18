@@ -1110,7 +1110,7 @@ public partial class coinbase : ccxt.coinbase
             for (int i = 0; isLessThan(i, messageHashes.Count); postFixIncrement(ref i))
             {
                 object messageHash = getValue(messageHashes, i);
-                object subHash = getValue(subMessageHashes, i);
+                string? subHash = ((string)getValue(subMessageHashes, i));
                 this.cleanUnsubscription(client, subHash, messageHash);
             }
             this.cleanCache(unSubObject);

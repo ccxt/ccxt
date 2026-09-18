@@ -1072,7 +1072,7 @@ public partial class bitfinex : ccxt.bitfinex
         for (int i = 0; isLessThan(i, messageHashes.Count); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
-            object subHash = getValue(subMessageHashes, i);
+            string? subHash = ((string)getValue(subMessageHashes, i));
             this.cleanUnsubscription(client, subHash, messageHash);
         }
         this.cleanCache(subscription);
@@ -1163,7 +1163,7 @@ public partial class bitfinex : ccxt.bitfinex
         if (status == "OK")
         {
             // we resolve the future here permanently so authentication only happens once
-            var future = this.safeValue(client.futures, messageHash);
+            Future future = ((Future)this.safeValue(client.futures, messageHash));
             (future as Future).resolve(true);
         } else
         {

@@ -989,7 +989,7 @@ public partial class kucoin : ccxt.kucoin
     {
         object symbolVar = symbol;
         object timeframeVar = timeframe;
-        Int64? limitVar = limit;
+        object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -1028,7 +1028,7 @@ public partial class kucoin : ccxt.kucoin
         }
         if (isTrue(this.newUpdates))
         {
-            limitVar = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar});
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }
@@ -1226,7 +1226,7 @@ public partial class kucoin : ccxt.kucoin
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object symbolVar = symbol;
-        Int64? limitVar = limit;
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         object uta = false;
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchTrades", "uta", uta);
@@ -1244,7 +1244,7 @@ public partial class kucoin : ccxt.kucoin
             {
                 object first = this.safeValue(trades, 0);
                 string? tradeSymbol = this.safeString(first, "symbol");
-                limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar}));
+                limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
             }
             return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
         }
@@ -1265,7 +1265,7 @@ public partial class kucoin : ccxt.kucoin
      */
     public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        Int64? limitVar = limit;
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         int symbolsLength = getArrayLength(symbols);
         if ((symbolsLength == 0))
@@ -1301,7 +1301,7 @@ public partial class kucoin : ccxt.kucoin
         {
             object first = this.safeValue(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar}));
+            limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -2090,7 +2090,7 @@ public partial class kucoin : ccxt.kucoin
             for (int i = 0; isLessThan(i, messageHashes.Count); postFixIncrement(ref i))
             {
                 object messageHash = getValue(messageHashes, i);
-                object subHash = getValue(subMessageHashes, i);
+                string? subHash = ((string)getValue(subMessageHashes, i));
                 this.cleanUnsubscription(client, subHash, messageHash);
             }
             string? topic = this.safeString(subscription, "topic");
@@ -2161,7 +2161,7 @@ public partial class kucoin : ccxt.kucoin
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object symbolVar = symbol;
-        Int64? limitVar = limit;
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -2219,7 +2219,7 @@ public partial class kucoin : ccxt.kucoin
         }
         if (isTrue(this.newUpdates))
         {
-            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
@@ -2620,7 +2620,7 @@ public partial class kucoin : ccxt.kucoin
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object symbolVar = symbol;
-        Int64? limitVar = limit;
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -2672,7 +2672,7 @@ public partial class kucoin : ccxt.kucoin
         }
         if (isTrue(this.newUpdates))
         {
-            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
+            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolVar, since, limitVar, true));
     }
@@ -2968,7 +2968,7 @@ public partial class kucoin : ccxt.kucoin
         // don't remove the future from the .futures cache
         if (inOp(client.futures, messageHash))
         {
-            var future = getValue(client.futures, messageHash);
+            Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve();
             callDynamically(client, "resolve", new object[] {getValue(this.balance, type), add(type, ":balance")});
         }
@@ -3158,12 +3158,12 @@ public partial class kucoin : ccxt.kucoin
         string messageHash = add("position:", GetValue(market, "symbol"));
         var client = this.client(url);
         this.setPositionCache(client, symbol);
-        bool fetchPositionSnapshot = ((bool)this.handleOption("watchPosition", "fetchPositionSnapshot", true));
-        bool awaitPositionSnapshot = ((bool)this.handleOption("watchPosition", "awaitPositionSnapshot", true));
+        object fetchPositionSnapshot = this.handleOption("watchPosition", "fetchPositionSnapshot", true);
+        object awaitPositionSnapshot = this.handleOption("watchPosition", "awaitPositionSnapshot", true);
         object currentPosition = this.getCurrentPosition(symbol);
         if ((isEqual(fetchPositionSnapshot, true)) && (isEqual(awaitPositionSnapshot, true)) && ((currentPosition == null)))
         {
-            object snapshot = await client.future(add("fetchPositionSnapshot:", symbol));
+            ccxt.pro.ArrayCache snapshot = ((ccxt.pro.ArrayCache)await client.future(add("fetchPositionSnapshot:", symbol)));
             return ccxt.BaseExchange.ToPosition(snapshot);
         }
         return ccxt.BaseExchange.ToPosition(await this.subscribe(url, messageHash, topic, this.extend(request, parameters)));
@@ -3210,12 +3210,12 @@ public partial class kucoin : ccxt.kucoin
         object url = await this.getUtaUrl();
         var client = this.client(url);
         this.setPositionsCache(client, uta);
-        bool fetchPositionSnapshot = ((bool)this.handleOption("watchPositions", "fetchPositionsSnapshot", true));
-        bool awaitPositionSnapshot = ((bool)this.handleOption("watchPositions", "awaitPositionsSnapshot", true));
-        object cache = this.positions;
+        object fetchPositionSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
+        object awaitPositionSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.positions);
         if ((isEqual(fetchPositionSnapshot, true)) && (isEqual(awaitPositionSnapshot, true)) && ((cache == null)))
         {
-            object snapshot = await client.future("fetchPositionsSnapshot");
+            ccxt.pro.ArrayCache snapshot = ((ccxt.pro.ArrayCache)await client.future("fetchPositionsSnapshot"));
             return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true));
         }
         string channel = "positionAll";
@@ -3248,7 +3248,7 @@ public partial class kucoin : ccxt.kucoin
         {
             return;
         }
-        bool fetchPositionsSnapshot = ((bool)this.handleOption("watchPositions", "fetchPositionsSnapshot", false));
+        object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", false);
         if (isEqual(fetchPositionsSnapshot, true))
         {
             string messageHash = "fetchPositionsSnapshot";
@@ -3267,7 +3267,7 @@ public partial class kucoin : ccxt.kucoin
     {
         object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(null, new Dictionary<string, object>() { { "uta", uta }, }));
         this.positions = new ArrayCacheBySymbolById();
-        object cache = this.positions;
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.positions);
         for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
             object position = getValue(positions, i);
@@ -3280,7 +3280,7 @@ public partial class kucoin : ccxt.kucoin
         // don't remove the future from the .futures cache
         if (inOp(client.futures, messageHash))
         {
-            var future = getValue(client.futures, messageHash);
+            Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve(cache);
             callDynamically(client, "resolve", new object[] {cache, "positions"});
         }
@@ -3288,7 +3288,7 @@ public partial class kucoin : ccxt.kucoin
 
     public virtual void setPositionCache(WebSocketClient client, object symbol)
     {
-        bool fetchPositionSnapshot = ((bool)this.handleOption("watchPosition", "fetchPositionSnapshot", false));
+        object fetchPositionSnapshot = this.handleOption("watchPosition", "fetchPositionSnapshot", false);
         if (isEqual(fetchPositionSnapshot, true))
         {
             string messageHash = add("fetchPositionSnapshot:", symbol);
@@ -3304,12 +3304,12 @@ public partial class kucoin : ccxt.kucoin
     {
         object position = ccxt.BaseExchange.FromPosition(await this.FetchPosition(((string)symbol)));
         this.positions = new ArrayCacheBySymbolById();
-        object cache = this.positions;
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.positions);
         callDynamically(cache, "append", new object[] {position});
         // don't remove the future from the .futures cache
         if (inOp(client.futures, messageHash))
         {
-            var future = getValue(client.futures, messageHash);
+            Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve(cache);
             callDynamically(client, "resolve", new object[] {position, add("position:", symbol)});
         }
@@ -3413,7 +3413,7 @@ public partial class kucoin : ccxt.kucoin
         List<object> parts = topic.Split(new [] {":"}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 1);
         string? symbol = this.safeSymbol(marketId, null, "");
-        object cache = this.positions;
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.positions);
         object currentPosition = this.getCurrentPosition(symbol);
         string messageHash = add("position:", symbol);
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
@@ -3466,7 +3466,7 @@ public partial class kucoin : ccxt.kucoin
         IDictionary<string, object> data = this.safeDict(message, "d", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "s");
         string? symbol = this.safeSymbol(marketId);
-        object cache = this.positions;
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.positions);
         object currentPosition = this.getCurrentPosition(symbol);
         Dictionary<string, object> newPosition = this.parseWsUtaPosition(data);
         List<object> keys = new List<object>(((IDictionary<string,object>)newPosition).Keys);

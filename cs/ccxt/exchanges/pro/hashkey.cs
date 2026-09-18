@@ -746,7 +746,7 @@ public partial class hashkey : ccxt.hashkey
         {
             this.positions = new ArrayCacheBySymbolBySide();
         }
-        object positions = this.positions;
+        ccxt.pro.ArrayCache positions = ((ccxt.pro.ArrayCache)this.positions);
         Dictionary<string, object> parsed = this.parseWsPosition(message);
         callDynamically(positions, "append", new object[] {parsed});
         string messageHash = "positions";
@@ -859,7 +859,7 @@ public partial class hashkey : ccxt.hashkey
         // don't remove the future from the .futures cache
         if (inOp(client.futures, messageHash))
         {
-            var future = getValue(client.futures, messageHash);
+            Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve();
             callDynamically(client, "resolve", new object[] {getValue(this.balance, type), add("balance:", type)});
         }

@@ -1563,7 +1563,7 @@ public partial class coinex : ccxt.coinex
         string messageHash = "authenticated";
         if ((status == "ok") || (errorCode == "0"))
         {
-            var future = this.safeValue(client.futures, messageHash);
+            Future future = ((Future)this.safeValue(client.futures, messageHash));
             (future as Future).resolve(true);
         } else
         {
@@ -1583,7 +1583,7 @@ public partial class coinex : ccxt.coinex
         if ((subscription != null))
         {
             string? futureIndex = this.safeString(subscription, "future");
-            var future = this.safeValue(client.futures, futureIndex);
+            Future future = ((Future)this.safeValue(client.futures, futureIndex));
             if ((future != null))
             {
                 (future as Future).resolve(true);

@@ -725,10 +725,10 @@ public partial class apex : ccxt.apex
         var client = this.client(url);
         await this.authenticate(url);
         this.setPositionsCache(client, symbols);
-        object cache = this.positions;
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.positions);
         if ((cache == null))
         {
-            object snapshot = await client.future("fetchPositionsSnapshot");
+            ccxt.pro.ArrayCache snapshot = ((ccxt.pro.ArrayCache)await client.future("fetchPositionsSnapshot"));
             return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true));
         }
         List<object> topics = new List<object>() {"positions"};
@@ -897,7 +897,7 @@ public partial class apex : ccxt.apex
         List<object> fetchFunctions = new List<object> {this.FetchPositions()};
         List<object> promises = await promiseAll(fetchFunctions);
         this.positions = new ArrayCacheBySymbolBySide();
-        object cache = this.positions;
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.positions);
         for (int i = 0; isLessThan(i, promises?.Count ?? 0); postFixIncrement(ref i))
         {
             object positions = getValue(promises, i);
@@ -910,7 +910,7 @@ public partial class apex : ccxt.apex
         // don't remove the future from the .futures cache
         if (inOp(client.futures, messageHash))
         {
-            var future = getValue(client.futures, messageHash);
+            Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve(cache);
             callDynamically(client, "resolve", new object[] {cache, "positions"});
         }
@@ -944,7 +944,7 @@ public partial class apex : ccxt.apex
         {
             this.positions = new ArrayCacheBySymbolBySide();
         }
-        object cache = this.positions;
+        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.positions);
         List<object> newPositions = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(lists)); postFixIncrement(ref i))
         {
@@ -1259,7 +1259,7 @@ public partial class apex : ccxt.apex
         string messageHash = "authenticated";
         if ((isEqual(success, true)) || ((code == 0)))
         {
-            var future = this.safeValue(client.futures, messageHash);
+            Future future = ((Future)this.safeValue(client.futures, messageHash));
             (future as Future).resolve(true);
         } else
         {
