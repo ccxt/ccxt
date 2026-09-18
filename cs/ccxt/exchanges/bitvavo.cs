@@ -769,7 +769,7 @@ public partial class bitvavo : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", getValue(market, "id") },
+            { "market", (market.ContainsKey("id") ? market["id"] : null) },
         };
         object response = await this.publicGetTicker24h(this.extend(request, parameters));
         //
@@ -910,7 +910,7 @@ public partial class bitvavo : Exchange
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, parameters));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", getValue(market, "id") },
+            { "market", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(limit, null))
         {
@@ -1114,7 +1114,7 @@ public partial class bitvavo : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", getValue(market, "id") },
+            { "market", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.privateGetAccountFees(this.extend(request, parameters));
         //
@@ -1159,7 +1159,7 @@ public partial class bitvavo : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", getValue(market, "id") },
+            { "market", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(limit, null))
         {
@@ -1182,7 +1182,7 @@ public partial class bitvavo : Exchange
         //         ]
         //     }
         //
-        Dictionary<string, object> orderbook = ((Dictionary<string, object>)this.parseOrderBook(response, getValue(market, "symbol")));
+        Dictionary<string, object> orderbook = ((Dictionary<string, object>)this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null)));
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(response, "nonce");
         return ccxt.BaseExchange.ToOrderBook(orderbook);
     }
@@ -1209,7 +1209,7 @@ public partial class bitvavo : Exchange
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", getValue(market, "id") },
+            { "market", (market.ContainsKey("id") ? market["id"] : null) },
             { "interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
         if (!isEqual(since, null))
@@ -1647,7 +1647,7 @@ public partial class bitvavo : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", getValue(market, "id") },
+            { "market", (market.ContainsKey("id") ? market["id"] : null) },
             { "side", side },
             { "orderType", type },
         };
@@ -1674,7 +1674,7 @@ public partial class bitvavo : Exchange
             }
             if (!isEqual(cost, null))
             {
-                object precision = getValue(this.currency(((string)getValue(market, "quote"))), "precision");
+                object precision = getValue(this.currency(((string)(market.ContainsKey("quote") ? market["quote"] : null))), "precision");
                 ((IDictionary<string,object>)request)["amountQuote"] = this.decimalToPrecision(cost, TRUNCATE, precision, this.precisionMode);
             } else
             {
@@ -1867,7 +1867,7 @@ public partial class bitvavo : Exchange
         {
             throw new ArgumentsRequired ((string)(this.id + " editOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
         }
-        ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
+        ((IDictionary<string,object>)request)["market"] = (market.ContainsKey("id") ? market["id"] : null);
         return request;
     }
 
@@ -1907,7 +1907,7 @@ public partial class bitvavo : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", getValue(market, "id") },
+            { "market", (market.ContainsKey("id") ? market["id"] : null) },
         };
         string? clientOrderId = this.safeString(parameters, "clientOrderId");
         if ((clientOrderId == null))
@@ -1977,7 +1977,7 @@ public partial class bitvavo : Exchange
         if ((symbol != null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["market"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         object operatorId = null;
         IList<object> operatorIdparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "cancelAllOrders", "operatorId");
@@ -2067,7 +2067,7 @@ public partial class bitvavo : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", getValue(market, "id") },
+            { "market", (market.ContainsKey("id") ? market["id"] : null) },
         };
         string? clientOrderId = this.safeString(parameters, "clientOrderId");
         if ((clientOrderId == null))
@@ -2117,7 +2117,7 @@ public partial class bitvavo : Exchange
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", getValue(market, "id") },
+            { "market", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(since, null))
         {
@@ -2230,7 +2230,7 @@ public partial class bitvavo : Exchange
         if ((symbol != null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["market"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         List<object> response = await this.privateGetOrdersOpen(this.extend(request, parameters));
         //
@@ -2403,7 +2403,7 @@ public partial class bitvavo : Exchange
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", getValue(market, "id") },
+            { "market", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(since, null))
         {

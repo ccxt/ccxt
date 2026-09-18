@@ -66,7 +66,7 @@ public partial class hollaex : ccxt.hollaex
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add(("orderbook" + ":"), getValue(market, "id"));
+        string messageHash = add(("orderbook" + ":"), (market.ContainsKey("id") ? market["id"] : null));
         object orderbook = await this.watchPublic(messageHash, parameters);
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
@@ -97,7 +97,7 @@ public partial class hollaex : ccxt.hollaex
         string? marketId = this.safeString(message, "symbol");
         object channel = this.safeString(message, "topic");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         if ((symbol == null))
         {
             return;
@@ -145,8 +145,8 @@ public partial class hollaex : ccxt.hollaex
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
-        string messageHash = add(("trade" + ":"), getValue(market, "id"));
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        string messageHash = add(("trade" + ":"), (market.ContainsKey("id") ? market["id"] : null));
         object trades = await this.watchPublic(messageHash, parameters);
         if (isTrue(this.newUpdates))
         {
@@ -175,7 +175,7 @@ public partial class hollaex : ccxt.hollaex
         object channel = this.safeString(message, "topic");
         string? marketId = this.safeString(message, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         object stored = this.safeValue(this.trades, symbol);
         if ((stored == null))
         {
@@ -219,8 +219,8 @@ public partial class hollaex : ccxt.hollaex
         if ((symbolVar != null))
         {
             market = this.market(symbolVar);
-            symbolVar = getValue(market, "symbol");
-            messageHash = messageHash + add(":", getValue(market, "id"));
+            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            messageHash = messageHash + add(":", (market.ContainsKey("id") ? market["id"] : null));
         }
         object trades = await this.watchPrivate(messageHash, parameters);
         if (isTrue(this.newUpdates))
@@ -277,7 +277,7 @@ public partial class hollaex : ccxt.hollaex
             callDynamically(stored, "append", new object[] {parsed});
             object symbol = getValue(trade, "symbol");
             Dictionary<string, object> market = this.market(symbol);
-            string? marketId = ((string)getValue(market, "id"));
+            string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
             if ((marketId != null))
             {
                 ((IDictionary<string,object>)marketIds)[(string)marketId] = true;
@@ -319,8 +319,8 @@ public partial class hollaex : ccxt.hollaex
         if ((symbolVar != null))
         {
             market = this.market(symbolVar);
-            symbolVar = getValue(market, "symbol");
-            messageHash = messageHash + add(":", getValue(market, "id"));
+            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            messageHash = messageHash + add(":", (market.ContainsKey("id") ? market["id"] : null));
         }
         object orders = await this.watchPrivate(messageHash, parameters);
         if (isTrue(this.newUpdates))
@@ -419,7 +419,7 @@ public partial class hollaex : ccxt.hollaex
             callDynamically(stored, "append", new object[] {parsed});
             object symbol = getValue(order, "symbol");
             Dictionary<string, object> market = this.market(symbol);
-            string? marketId = ((string)getValue(market, "id"));
+            string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
             if ((marketId != null))
             {
                 ((IDictionary<string,object>)marketIds)[(string)marketId] = true;

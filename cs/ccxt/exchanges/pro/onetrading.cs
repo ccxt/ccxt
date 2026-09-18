@@ -153,7 +153,7 @@ public partial class onetrading : ccxt.onetrading
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string subscriptionHash = "MARKET_TICKER";
         string messageHash = add("ticker.", symbolVar);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -296,7 +296,7 @@ public partial class onetrading : ccxt.onetrading
         if ((symbolVar != null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = getValue(market, "symbol");
+            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
             messageHash = messageHash + add(":", symbolVar);
         }
         await this.authenticate(parameters);
@@ -344,7 +344,7 @@ public partial class onetrading : ccxt.onetrading
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string messageHash = add("book:", symbolVar);
         string subscriptionHash = "ORDER_BOOK";
         object depth = 0;
@@ -483,7 +483,7 @@ public partial class onetrading : ccxt.onetrading
         if ((symbolVar != null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = getValue(market, "symbol");
+            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
             messageHash = messageHash + add(":", symbolVar);
         }
         await this.authenticate(parameters);
@@ -1136,8 +1136,8 @@ public partial class onetrading : ccxt.onetrading
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
-        string? marketId = ((string)getValue(market, "id"));
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         object timeframes = this.safeValue(this.options, "timeframes", new Dictionary<string, object>() {});
         object timeframeId = this.safeValue(timeframes, timeframeVar);

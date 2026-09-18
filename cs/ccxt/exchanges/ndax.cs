@@ -959,7 +959,7 @@ public partial class ndax : Exchange
         limitVar = ((bool) (isEqual(limitVar, null))) ? 100 : limitVar; // default 100
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "omsId", omsId },
-            { "InstrumentId", getValue(market, "id") },
+            { "InstrumentId", (market.ContainsKey("id") ? market["id"] : null) },
             { "Depth", limitVar },
         };
         List<object> response = await this.publicGetGetL2Snapshot(this.extend(request, parameters));
@@ -1131,7 +1131,7 @@ public partial class ndax : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "omsId", omsId },
-            { "InstrumentId", getValue(market, "id") },
+            { "InstrumentId", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetGetLevel1(this.extend(request, parameters));
         //
@@ -1210,7 +1210,7 @@ public partial class ndax : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "omsId", omsId },
-            { "InstrumentId", getValue(market, "id") },
+            { "InstrumentId", (market.ContainsKey("id") ? market["id"] : null) },
             { "Interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
         int duration = this.parseTimeframe(timeframeVar);
@@ -1448,7 +1448,7 @@ public partial class ndax : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "omsId", omsId },
-            { "InstrumentId", getValue(market, "id") },
+            { "InstrumentId", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(limit, null))
         {
@@ -1891,7 +1891,7 @@ public partial class ndax : Exchange
         int orderSide = ((bool) (isEqual(side, "buy"))) ? 0 : 1;
         string? amountString = this.amountToPrecision(symbol, amount);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "InstrumentId", this.parseToInt(getValue(market, "id")) },
+            { "InstrumentId", this.parseToInt((market.ContainsKey("id") ? market["id"] : null)) },
             { "omsId", omsId },
             { "AccountId", accountId },
             { "TimeInForce", 1 },
@@ -1960,7 +1960,7 @@ public partial class ndax : Exchange
         string? amountString = this.amountToPrecision(symbol, amount);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "OrderIdToReplace", parseInt(id) },
-            { "InstrumentId", this.parseToInt(getValue(market, "id")) },
+            { "InstrumentId", this.parseToInt((market.ContainsKey("id") ? market["id"] : null)) },
             { "omsId", omsId },
             { "AccountId", accountId },
             { "TimeInForce", 1 },
@@ -2025,7 +2025,7 @@ public partial class ndax : Exchange
         if ((symbol != null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["InstrumentId"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["InstrumentId"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if (!isEqual(since, null))
         {
@@ -2110,7 +2110,7 @@ public partial class ndax : Exchange
         if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            ((IDictionary<string,object>)request)["IntrumentId"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["IntrumentId"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         Dictionary<string, object> response = await this.privatePostCancelAllOrders(this.extend(request, parameters));
         //
@@ -2286,7 +2286,7 @@ public partial class ndax : Exchange
         if ((symbol != null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["InstrumentId"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["InstrumentId"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if (!isEqual(since, null))
         {

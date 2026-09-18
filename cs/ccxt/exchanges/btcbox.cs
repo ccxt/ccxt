@@ -461,10 +461,10 @@ public partial class btcbox : Exchange
         int numSymbols = this.symbols.Count;
         if (numSymbols > 1)
         {
-            ((IDictionary<string,object>)request)["coin"] = getValue(market, "baseId");
+            ((IDictionary<string,object>)request)["coin"] = (market.ContainsKey("baseId") ? market["baseId"] : null);
         }
         Dictionary<string, object> response = await this.publicGetDepth(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, getValue(market, "symbol")));
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null)));
     }
 
     public override Dictionary<string, object> parseTicker(object ticker, object market = null)
@@ -516,7 +516,7 @@ public partial class btcbox : Exchange
         int numSymbols = this.symbols.Count;
         if (numSymbols > 1)
         {
-            ((IDictionary<string,object>)request)["coin"] = getValue(market, "baseId");
+            ((IDictionary<string,object>)request)["coin"] = (market.ContainsKey("baseId") ? market["baseId"] : null);
         }
         Dictionary<string, object> response = await this.publicGetTicker(this.extend(request, parameters));
         return ccxt.BaseExchange.ToTicker(this.parseTicker(response, market));
@@ -601,7 +601,7 @@ public partial class btcbox : Exchange
         int numSymbols = this.symbols.Count;
         if (numSymbols > 1)
         {
-            ((IDictionary<string,object>)request)["coin"] = getValue(market, "baseId");
+            ((IDictionary<string,object>)request)["coin"] = (market.ContainsKey("baseId") ? market["baseId"] : null);
         }
         List<object> response = await this.publicGetOrders(this.extend(request, parameters));
         //
@@ -643,7 +643,7 @@ public partial class btcbox : Exchange
             { "amount", amount },
             { "price", price },
             { "type", side },
-            { "coin", getValue(market, "baseId") },
+            { "coin", (market.ContainsKey("baseId") ? market["baseId"] : null) },
         };
         Dictionary<string, object> response = await this.privatePostTradeAdd(this.extend(request, parameters));
         //
@@ -681,7 +681,7 @@ public partial class btcbox : Exchange
         Dictionary<string, object> market = this.market(symbolVar);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", id },
-            { "coin", getValue(market, "baseId") },
+            { "coin", (market.ContainsKey("baseId") ? market["baseId"] : null) },
         };
         Dictionary<string, object> response = await this.privatePostTradeCancel(this.extend(request, parameters));
         //
@@ -794,7 +794,7 @@ public partial class btcbox : Exchange
         Dictionary<string, object> market = this.market(symbolVar);
         Dictionary<string, object> request = this.extend(new Dictionary<string, object>() {
             { "id", id },
-            { "coin", getValue(market, "baseId") },
+            { "coin", (market.ContainsKey("baseId") ? market["baseId"] : null) },
         }, parameters);
         Dictionary<string, object> response = await this.privatePostTradeView(this.extend(request, parameters));
         //
@@ -827,7 +827,7 @@ public partial class btcbox : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", type },
-            { "coin", getValue(market, "baseId") },
+            { "coin", (market.ContainsKey("baseId") ? market["baseId"] : null) },
         };
         List<object> response = await this.privatePostTradeList(this.extend(request, parameters));
         //

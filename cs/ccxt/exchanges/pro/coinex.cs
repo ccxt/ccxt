@@ -465,7 +465,7 @@ public partial class coinex : ccxt.coinex
         if ((symbolVar != null))
         {
             market = this.market(symbolVar);
-            symbolVar = getValue(market, "symbol");
+            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         }
         string? type = null;
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchMyTrades", market, parameters, "spot");
@@ -478,7 +478,7 @@ public partial class coinex : ccxt.coinex
         if ((market != null))
         {
             messageHash = messageHash + add(":", symbolVar);
-            ((IList<object>)subscribedSymbols).Add(getValue(market, "id"));
+            ((IList<object>)subscribedSymbols).Add((market.ContainsKey("id") ? market["id"] : null));
         } else
         {
             if ((type == "spot"))
@@ -531,9 +531,9 @@ public partial class coinex : ccxt.coinex
         bool isSpot = getIndexOf(client.url, "spot") > -1;
         string defaultType = ((bool) isSpot) ? "spot" : "swap";
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, defaultType);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("myTrades:" + symbol);
-        string messageWithType = add("myTrades:", getValue(market, "type"));
+        string messageWithType = add("myTrades:", (market.ContainsKey("type") ? market["type"] : null));
         object stored = this.safeValue(this.trades, symbol);
         if ((stored == null))
         {
@@ -595,7 +595,7 @@ public partial class coinex : ccxt.coinex
         bool isSpot = getIndexOf(client.url, "spot") > -1;
         string defaultType = ((bool) isSpot) ? "spot" : "swap";
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, defaultType);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("trades:" + symbol);
         object stored = this.safeValue(this.trades, symbol);
         if ((stored == null))
@@ -704,7 +704,7 @@ public partial class coinex : ccxt.coinex
         }
         Dictionary<string, object> market = this.market(symbol);
         object tickers = ccxt.BaseExchange.FromTickers(await this.WatchTickers(new List<object>() {symbol}, parameters));
-        return ccxt.BaseExchange.ToTicker(getValue(tickers, getValue(market, "symbol")));
+        return ccxt.BaseExchange.ToTicker(getValue(tickers, (market.ContainsKey("symbol") ? market["symbol"] : null)));
     }
 
     /**
@@ -734,7 +734,7 @@ public partial class coinex : ccxt.coinex
             {
                 object symbol = getValue(symbols, i);
                 market = this.market(symbol);
-                ((IList<object>)messageHashes).Add(add("tickers::", getValue(market, "symbol")));
+                ((IList<object>)messageHashes).Add(add("tickers::", (market.ContainsKey("symbol") ? market["symbol"] : null)));
             }
         } else
         {
@@ -814,8 +814,8 @@ public partial class coinex : ccxt.coinex
             {
                 object symbol = getValue(symbols, i);
                 market = this.market(symbol);
-                ((IList<object>)subscribedSymbols).Add(getValue(market, "id"));
-                ((IList<object>)messageHashes).Add(add("trades:", getValue(market, "symbol")));
+                ((IList<object>)subscribedSymbols).Add((market.ContainsKey("id") ? market["id"] : null));
+                ((IList<object>)messageHashes).Add(add("trades:", (market.ContainsKey("symbol") ? market["symbol"] : null)));
             }
         } else
         {
@@ -896,8 +896,8 @@ public partial class coinex : ccxt.coinex
         {
             object symbol = getValue(symbols, i);
             market = this.market(symbol);
-            ((IList<object>)messageHashes).Add(add("orderbook:", getValue(market, "symbol")));
-            ((IDictionary<string,object>)watchOrderBookSubscriptions)[(string)symbol] = new List<object>() {getValue(market, "id"), limitVar, aggregation, true};
+            ((IList<object>)messageHashes).Add(add("orderbook:", (market.ContainsKey("symbol") ? market["symbol"] : null)));
+            ((IDictionary<string,object>)watchOrderBookSubscriptions)[(string)symbol] = new List<object>() {(market.ContainsKey("id") ? market["id"] : null), limitVar, aggregation, true};
         }
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams(callerMethodName, market, parameters);
         type = (string)((IList<object>)typeparametersVariable)[0];
@@ -987,7 +987,7 @@ public partial class coinex : ccxt.coinex
         IDictionary<string, object> depth = this.safeDict(data, "depth", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "market");
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, defaultType);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string name = "orderbook";
         string messageHash = ((name + ":") + symbol);
         Int64? timestamp = this.safeInteger(depth, "updated_at");
@@ -1049,7 +1049,7 @@ public partial class coinex : ccxt.coinex
         if ((symbolVar != null))
         {
             market = this.market(symbolVar);
-            symbolVar = getValue(market, "symbol");
+            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         }
         string? type = null;
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchOrders", market, parameters, "spot");
@@ -1229,7 +1229,7 @@ public partial class coinex : ccxt.coinex
         object orders = this.orders;
         callDynamically(orders, "append", new object[] {parsedOrder});
         string messageHash = "orders";
-        string messageWithType = add((messageHash + ":"), getValue(market, "type"));
+        string messageWithType = add((messageHash + ":"), (market.ContainsKey("type") ? market["type"] : null));
         (client as WebSocketClient).resolve(this.orders, messageWithType);
         messageHash = messageHash + (":" + symbol);
         (client as WebSocketClient).resolve(this.orders, messageHash);
@@ -1408,7 +1408,7 @@ public partial class coinex : ccxt.coinex
             {
                 object symbol = getValue(symbols, i);
                 market = this.market(symbol);
-                ((IList<object>)messageHashes).Add(add("bidsasks:", getValue(market, "symbol")));
+                ((IList<object>)messageHashes).Add(add("bidsasks:", (market.ContainsKey("symbol") ? market["symbol"] : null)));
             }
         } else
         {

@@ -241,7 +241,7 @@ public partial class hitbtc : ccxt.hitbtc
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "params", new Dictionary<string, object>() {
-                { "symbols", new List<object>() {getValue(market, "id")} },
+                { "symbols", new List<object>() {(market.ContainsKey("id") ? market["id"] : null)} },
             } },
         };
         object orderbook = await this.subscribePublic(name, "orderbooks", new List<object>() {symbol}, this.deepExtend(request, parameters));
@@ -281,7 +281,7 @@ public partial class hitbtc : ccxt.hitbtc
         {
             string? marketId = ((string)getValue(marketIds, i));
             Dictionary<string, object> market = this.safeMarket(marketId);
-            string? symbol = ((string)getValue(market, "symbol"));
+            string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             object item = getValue(data, marketId);
             string messageHash = ("orderbooks::" + symbol);
             if (!(inOp(this.orderbooks, symbol)))
@@ -456,7 +456,7 @@ public partial class hitbtc : ccxt.hitbtc
         {
             string? marketId = ((string)getValue(marketIds, i));
             Dictionary<string, object> market = this.safeMarket(marketId);
-            string? symbol = ((string)getValue(market, "symbol"));
+            string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsTicker(getValue(data, marketId), market));
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
             ((IList<object>)result).Add(ticker);
@@ -593,7 +593,7 @@ public partial class hitbtc : ccxt.hitbtc
         {
             string? marketId = ((string)getValue(marketIds, i));
             Dictionary<string, object> market = this.safeMarket(marketId);
-            string? symbol = ((string)getValue(market, "symbol"));
+            string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsBidAsk(getValue(data, marketId), market));
             ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = ticker;
             ((IList<object>)result).Add(ticker);
@@ -641,7 +641,7 @@ public partial class hitbtc : ccxt.hitbtc
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "params", new Dictionary<string, object>() {
-                { "symbols", new List<object>() {getValue(market, "id")} },
+                { "symbols", new List<object>() {(market.ContainsKey("id") ? market["id"] : null)} },
             } },
         };
         if (!isEqual(limitVar, null))
@@ -705,7 +705,7 @@ public partial class hitbtc : ccxt.hitbtc
             string? marketId = ((string)getValue(marketIds, i));
             Dictionary<string, object> market = this.safeMarket(marketId);
             Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
-            string? symbol = ((string)getValue(market, "symbol"));
+            string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             object stored = this.safeValue(this.trades, symbol);
             if ((stored == null))
             {
@@ -790,7 +790,7 @@ public partial class hitbtc : ccxt.hitbtc
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "params", new Dictionary<string, object>() {
-                { "symbols", new List<object>() {getValue(market, "id")} },
+                { "symbols", new List<object>() {(market.ContainsKey("id") ? market["id"] : null)} },
             } },
         };
         if (!isEqual(limitVar, null))
@@ -854,7 +854,7 @@ public partial class hitbtc : ccxt.hitbtc
         {
             string? marketId = ((string)getValue(marketIds, i));
             Dictionary<string, object> market = this.safeMarket(marketId);
-            string? symbol = ((string)getValue(market, "symbol"));
+            string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
             object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
             if ((stored == null))
@@ -1369,7 +1369,7 @@ public partial class hitbtc : ccxt.hitbtc
         if ((symbol != null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         string? marketType = null;
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchOpenOrdersWs", market, parameters);

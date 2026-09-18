@@ -81,10 +81,10 @@ public partial class alpaca : ccxt.alpaca
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add("ticker:", getValue(market, "symbol"));
+        string messageHash = add("ticker:", (market.ContainsKey("symbol") ? market["symbol"] : null));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "action", "subscribe" },
-            { "quotes", new List<object>() {getValue(market, "id")} },
+            { "quotes", new List<object>() {(market.ContainsKey("id") ? market["id"] : null)} },
         };
         return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, this.extend(request, parameters), messageHash));
     }
@@ -177,10 +177,10 @@ public partial class alpaca : ccxt.alpaca
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "action", "subscribe" },
-            { "bars", new List<object>() {getValue(market, "id")} },
+            { "bars", new List<object>() {(market.ContainsKey("id") ? market["id"] : null)} },
         };
         string messageHash = add("ohlcv:", symbolVar);
         object ohlcv = await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
@@ -243,11 +243,11 @@ public partial class alpaca : ccxt.alpaca
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string messageHash = add(("orderbook" + ":"), symbolVar);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "action", "subscribe" },
-            { "orderbooks", new List<object>() {getValue(market, "id")} },
+            { "orderbooks", new List<object>() {(market.ContainsKey("id") ? market["id"] : null)} },
         };
         object orderbook = await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
@@ -341,11 +341,11 @@ public partial class alpaca : ccxt.alpaca
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string messageHash = add("trade:", symbolVar);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "action", "subscribe" },
-            { "trades", new List<object>() {getValue(market, "id")} },
+            { "trades", new List<object>() {(market.ContainsKey("id") ? market["id"] : null)} },
         };
         object trades = await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
         if (isTrue(this.newUpdates))
@@ -451,7 +451,7 @@ public partial class alpaca : ccxt.alpaca
         if ((symbolVar != null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = getValue(market, "symbol");
+            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
             messageHash = add("orders:", symbolVar);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {

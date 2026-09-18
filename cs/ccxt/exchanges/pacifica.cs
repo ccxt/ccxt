@@ -1189,7 +1189,7 @@ public partial class pacifica : Exchange
         {
             object marketId = getValue(getValue(settings, i), "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
-            string? symbol = ((string)getValue(market, "symbol"));
+            string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             ((IDictionary<string,object>)settingsBySymbol)[(string)symbol] = getValue(settings, i);
         }
         return ((Dictionary<string, object>)((object)(settingsBySymbol)));
@@ -1289,7 +1289,7 @@ public partial class pacifica : Exchange
         aggLevel = ((IList<object>)aggLevelparametersVariable)[0];
         parameters = ((IList<object>)aggLevelparametersVariable)[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "agg_level", aggLevel },
         };
         Dictionary<string, object> response = await this.publicGetBook(this.extend(request, parameters));
@@ -1466,7 +1466,7 @@ public partial class pacifica : Exchange
         }
         string? tf = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "interval", tf },
             { "start_time", since },
         };
@@ -1556,7 +1556,7 @@ public partial class pacifica : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetTrades(this.extend(request, parameters));
         //
@@ -1860,7 +1860,7 @@ public partial class pacifica : Exchange
          */
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> sigPayload = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "side", this.mapSide(side) },
         };
         string? operationType = null;
@@ -2248,7 +2248,7 @@ public partial class pacifica : Exchange
         {
             Dictionary<string, object> market = this.market(symbol);
             ((IDictionary<string,object>)sigPayload)["all_symbols"] = false;
-            ((IDictionary<string,object>)sigPayload)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)sigPayload)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         } else
         {
             ((IDictionary<string,object>)sigPayload)["all_symbols"] = true;
@@ -2321,7 +2321,7 @@ public partial class pacifica : Exchange
         }
         string? clientOrderId = this.safeString(parameters, "clientOrderId");
         Dictionary<string, object> sigPayload = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if ((clientOrderId != null))
         {
@@ -2448,7 +2448,7 @@ public partial class pacifica : Exchange
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, parameters, "next_cursor", "cursor", null, defaultLimit));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(limit, null))
         {
@@ -2481,7 +2481,7 @@ public partial class pacifica : Exchange
             Int64? timestamp = this.safeInteger(entry, "created_at");
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "info", entry },
-                { "symbol", getValue(market, "symbol") },
+                { "symbol", (market.ContainsKey("symbol") ? market["symbol"] : null) },
                 { "fundingRate", this.safeNumber(entry, "funding_rate") },
                 { "timestamp", timestamp },
                 { "datetime", this.iso8601(timestamp) },
@@ -3226,7 +3226,7 @@ public partial class pacifica : Exchange
         Dictionary<string, object> market = this.market(symbol);
         bool isIsolated = (isEqual(marginMode, "isolated"));
         Dictionary<string, object> sigPayload = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "is_isolated", isIsolated },
         };
         Dictionary<string, object> request = this.postActionRequest(operationType, sigPayload, parameters);
@@ -3263,7 +3263,7 @@ public partial class pacifica : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> sigPayload = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "leverage", leverage },
         };
         Dictionary<string, object> request = this.postActionRequest(operationType, sigPayload, parameters);

@@ -1170,7 +1170,7 @@ public partial class coinbaseexchange : Exchange
             object entry = this.safeValue(response, marketId, new List<object>() {});
             object first = this.safeValue(entry, 0, new List<object>() {});
             Dictionary<string, object> market = this.safeMarket(marketId, null, delimiter);
-            string? symbol = ((string)getValue(market, "symbol"));
+            string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             ((IDictionary<string,object>)result)[(string)symbol] = this.parseTicker(first, market);
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbols));
@@ -1194,7 +1194,7 @@ public partial class coinbaseexchange : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "id", getValue(market, "id") },
+            { "id", (market.ContainsKey("id") ? market["id"] : null) },
         };
         // publicGetProductsIdTicker or publicGetProductsIdStats
         string? method = this.safeString(this.options, "fetchTickerMethod", "publicGetProductsIdTicker");
@@ -1343,7 +1343,7 @@ public partial class coinbaseexchange : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "product_id", getValue(market, "id") },
+            { "product_id", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(limit, null))
         {
@@ -1383,7 +1383,7 @@ public partial class coinbaseexchange : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "id", getValue(market, "id") },
+            { "id", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(limit, null))
         {
@@ -1495,7 +1495,7 @@ public partial class coinbaseexchange : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Int64? parsedTimeframe = this.safeInteger(this.timeframes, timeframeVar);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "id", getValue(market, "id") },
+            { "id", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(parsedTimeframe, null))
         {
@@ -1771,7 +1771,7 @@ public partial class coinbaseexchange : Exchange
         if ((symbol != null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["product_id"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["product_id"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if (!isEqual(limit, null))
         {
@@ -1836,7 +1836,7 @@ public partial class coinbaseexchange : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", type },
             { "side", side },
-            { "product_id", getValue(market, "id") },
+            { "product_id", (market.ContainsKey("id") ? market["id"] : null) },
         };
         string? clientOrderId = this.safeString2(parameters, "clientOrderId", "client_oid");
         if ((clientOrderId != null))
@@ -1938,7 +1938,7 @@ public partial class coinbaseexchange : Exchange
         if ((symbol != null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["product_id"] = getValue(market, "symbol"); // the request will be more performant if you include it
+            ((IDictionary<string,object>)request)["product_id"] = (market.ContainsKey("symbol") ? market["symbol"] : null); // the request will be more performant if you include it
         }
         object response = null;
         if ((clientOrderId == null))
@@ -1972,7 +1972,7 @@ public partial class coinbaseexchange : Exchange
         if ((symbol != null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["product_id"] = getValue(market, "symbol"); // the request will be more performant if you include it
+            ((IDictionary<string,object>)request)["product_id"] = (market.ContainsKey("symbol") ? market["symbol"] : null); // the request will be more performant if you include it
         }
         List<object> response = await this.privateDeleteOrders(this.extend(request, parameters));
         return ccxt.BaseExchange.ToOrderList(new List<object> {this.safeOrder(new Dictionary<string, object>() {     { "info", response }, })});

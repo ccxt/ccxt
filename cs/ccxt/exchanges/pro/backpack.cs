@@ -219,8 +219,8 @@ public partial class backpack : ccxt.backpack
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
-        string topic = add(("ticker" + "."), getValue(market, "id"));
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        string topic = add(("ticker" + "."), (market.ContainsKey("id") ? market["id"] : null));
         string messageHash = add(("ticker" + ":"), symbolVar);
         return ccxt.BaseExchange.ToTicker(await this.watchPublic(new List<object>() {topic}, new List<object>() {messageHash}, parameters));
     }
@@ -567,8 +567,8 @@ public partial class backpack : ccxt.backpack
             Dictionary<string, object> market = this.market(marketId);
             string? tf = this.safeString(symbolAndTimeframe, 1);
             string? interval = this.safeString(this.timeframes, tf, tf);
-            ((IList<object>)topics).Add(add((("kline." + interval) + "."), getValue(market, "id")));
-            ((IList<object>)messageHashes).Add(((add("candles:", getValue(market, "symbol")) + ":") + interval));
+            ((IList<object>)topics).Add(add((("kline." + interval) + "."), (market.ContainsKey("id") ? market["id"] : null)));
+            ((IList<object>)messageHashes).Add(((add("candles:", (market.ContainsKey("symbol") ? market["symbol"] : null)) + ":") + interval));
         }
         var symboltimeframecandlesVariable = await this.watchPublic(topics, messageHashes, parameters);
         var symbol = ((IList<object>) symboltimeframecandlesVariable)[0];
@@ -612,8 +612,8 @@ public partial class backpack : ccxt.backpack
             Dictionary<string, object> market = this.market(marketId);
             string? tf = this.safeString(symbolAndTimeframe, 1);
             string? interval = this.safeString(this.timeframes, tf, tf);
-            ((IList<object>)topics).Add(add((("kline." + interval) + "."), getValue(market, "id")));
-            ((IList<object>)messageHashes).Add(((add("unsubscribe:candles:", getValue(market, "symbol")) + ":") + interval));
+            ((IList<object>)topics).Add(add((("kline." + interval) + "."), (market.ContainsKey("id") ? market["id"] : null)));
+            ((IList<object>)messageHashes).Add(((add("unsubscribe:candles:", (market.ContainsKey("symbol") ? market["symbol"] : null)) + ":") + interval));
         }
         return await this.watchPublic(topics, messageHashes, parameters, true);
     }
@@ -642,7 +642,7 @@ public partial class backpack : ccxt.backpack
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "s");
         Dictionary<string, object> market = this.market(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? stream = this.safeString(message, "stream", "");
         List<object> parts = ((string)stream).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         string? timeframe = this.safeString(parts, 1, "");
@@ -817,7 +817,7 @@ public partial class backpack : ccxt.backpack
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "s");
         Dictionary<string, object> market = this.market(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         if (!(inOp(this.trades, symbol)))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -1126,13 +1126,13 @@ public partial class backpack : ccxt.backpack
         if ((symbolVar != null))
         {
             market = this.market(symbolVar);
-            symbolVar = getValue(market, "symbol");
+            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         }
         string topic = "account.orderUpdate";
         string messageHash = "orders";
         if ((market != null))
         {
-            topic = add("account.orderUpdate.", getValue(market, "id"));
+            topic = add("account.orderUpdate.", (market.ContainsKey("id") ? market["id"] : null));
             messageHash = add("orders:", symbolVar);
         }
         object orders = await this.watchPrivate(new List<object>() {topic}, new List<object>() {messageHash}, parameters);
@@ -1163,13 +1163,13 @@ public partial class backpack : ccxt.backpack
         if ((symbol != null))
         {
             market = this.market(symbol);
-            symbol = getValue(market, "symbol");
+            symbol = (market.ContainsKey("symbol") ? market["symbol"] : null);
         }
         string topic = "account.orderUpdate";
         string messageHash = "unsubscribe:orders";
         if ((market != null))
         {
-            topic = add("account.orderUpdate.", getValue(market, "id"));
+            topic = add("account.orderUpdate.", (market.ContainsKey("id") ? market["id"] : null));
             messageHash = add("unsubscribe:orders:", symbol);
         }
         return await this.watchPrivate(new List<object>() {topic}, new List<object>() {messageHash}, parameters, true);
@@ -1205,7 +1205,7 @@ public partial class backpack : ccxt.backpack
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "s");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsOrder(data, market));
         object orders = this.orders;
         if ((orders == null))

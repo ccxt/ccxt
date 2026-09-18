@@ -147,7 +147,7 @@ public partial class bitget : ccxt.bitget
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string messageHash = add("ticker:", symbolVar);
         object instType = null;
         object uta = null;
@@ -163,7 +163,7 @@ public partial class bitget : ccxt.bitget
         string topicOrChannel = ((bool) isTrue(uta)) ? "topic" : "channel";
         string symbolOrInstId = ((bool) isTrue(uta)) ? "symbol" : "instId";
         ((IDictionary<string,object>)args)[(string)topicOrChannel] = "ticker";
-        ((IDictionary<string,object>)args)[(string)symbolOrInstId] = getValue(market, "id");
+        ((IDictionary<string,object>)args)[(string)symbolOrInstId] = (market.ContainsKey("id") ? market["id"] : null);
         return ccxt.BaseExchange.ToTicker(await this.watchPublic(uta, messageHash, args, parameters));
     }
 
@@ -564,7 +564,7 @@ public partial class bitget : ccxt.bitget
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         object timeframes = this.safeValue(this.options, "timeframes");
         string? interval = this.safeString(timeframes, timeframeVar);
         string? messageHash = null;
@@ -582,7 +582,7 @@ public partial class bitget : ccxt.bitget
         if (isTrue(uta))
         {
             ((IDictionary<string,object>)args)["topic"] = "kline";
-            ((IDictionary<string,object>)args)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)args)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             ((IDictionary<string,object>)args)["interval"] = interval;
             parameters = this.extend(parameters, new Dictionary<string, object>() {
                 { "uta", true },
@@ -591,7 +591,7 @@ public partial class bitget : ccxt.bitget
         } else
         {
             ((IDictionary<string,object>)args)["channel"] = ("candle" + interval);
-            ((IDictionary<string,object>)args)["instId"] = getValue(market, "id");
+            ((IDictionary<string,object>)args)["instId"] = (market.ContainsKey("id") ? market["id"] : null);
             messageHash = add((add("candles:", timeframeVar) + ":"), symbolVar);
         }
         object ohlcv = await this.watchPublic(uta, messageHash, args, parameters);
@@ -642,7 +642,7 @@ public partial class bitget : ccxt.bitget
         {
             channel = "kline";
             ((IDictionary<string,object>)args)["topic"] = channel;
-            ((IDictionary<string,object>)args)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)args)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             ((IDictionary<string,object>)args)["interval"] = interval;
             parameters = this.extend(parameters, new Dictionary<string, object>() {
                 { "uta", true },
@@ -653,7 +653,7 @@ public partial class bitget : ccxt.bitget
         {
             channel = ("candle" + interval);
             ((IDictionary<string,object>)args)["channel"] = channel;
-            ((IDictionary<string,object>)args)["instId"] = getValue(market, "id");
+            ((IDictionary<string,object>)args)["instId"] = (market.ContainsKey("id") ? market["id"] : null);
             messageHash = ("candles:" + interval);
         }
         return await this.unWatchChannel(symbol, channel, messageHash, "watchOHLCV", parameters);
@@ -723,7 +723,7 @@ public partial class bitget : ccxt.bitget
         string marketType = ((bool) ((instType == "spot"))) ? "spot" : "contract";
         string? marketId = this.safeString2(arg, "instId", "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         string? channel = this.safeString2(arg, "channel", "topic", "");
         string? interval = this.safeString(arg, "interval");
@@ -857,7 +857,7 @@ public partial class bitget : ccxt.bitget
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add((add("unsubscribe:", messageHashTopic) + ":"), getValue(market, "symbol"));
+        string messageHash = add((add("unsubscribe:", messageHashTopic) + ":"), (market.ContainsKey("symbol") ? market["symbol"] : null));
         object instType = null;
         object uta = null;
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, "uta", false);
@@ -872,7 +872,7 @@ public partial class bitget : ccxt.bitget
         if (isTrue(uta))
         {
             ((IDictionary<string,object>)args)["topic"] = channel;
-            ((IDictionary<string,object>)args)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)args)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             ((IDictionary<string,object>)args)["interval"] = this.safeString(parameters, "interval", "1m");
             parameters = this.extend(parameters, new Dictionary<string, object>() {
                 { "uta", true },
@@ -881,7 +881,7 @@ public partial class bitget : ccxt.bitget
         } else
         {
             ((IDictionary<string,object>)args)["channel"] = channel;
-            ((IDictionary<string,object>)args)["instId"] = getValue(market, "id");
+            ((IDictionary<string,object>)args)["instId"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         return await this.unWatchPublic(uta, messageHash, args, parameters);
     }
@@ -934,7 +934,7 @@ public partial class bitget : ccxt.bitget
             string topicOrChannel = ((bool) isTrue(uta)) ? "topic" : "channel";
             string symbolOrInstId = ((bool) isTrue(uta)) ? "symbol" : "instId";
             ((IDictionary<string,object>)args)[(string)topicOrChannel] = channel;
-            ((IDictionary<string,object>)args)[(string)symbolOrInstId] = getValue(market, "id");
+            ((IDictionary<string,object>)args)[(string)symbolOrInstId] = (market.ContainsKey("id") ? market["id"] : null);
             ((IList<object>)topics).Add(args);
             ((IList<object>)messageHashes).Add(add("orderbook:", symbol));
         }
@@ -1006,7 +1006,7 @@ public partial class bitget : ccxt.bitget
         string marketType = ((bool) ((instType == "spot"))) ? "spot" : "contract";
         string? marketId = this.safeString2(arg, "instId", "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("orderbook:" + symbol);
         object data = this.safeValue(message, "data");
         object rawOrderBook = this.safeValue(data, 0);
@@ -1181,7 +1181,7 @@ public partial class bitget : ccxt.bitget
             string topicOrChannel = ((bool) isTrue(uta)) ? "topic" : "channel";
             string symbolOrInstId = ((bool) isTrue(uta)) ? "symbol" : "instId";
             ((IDictionary<string,object>)args)[(string)topicOrChannel] = ((bool) isTrue(uta)) ? "publicTrade" : "trade";
-            ((IDictionary<string,object>)args)[(string)symbolOrInstId] = getValue(market, "id");
+            ((IDictionary<string,object>)args)[(string)symbolOrInstId] = (market.ContainsKey("id") ? market["id"] : null);
             ((IList<object>)topics).Add(args);
             ((IList<object>)messageHashes).Add(add("trade:", symbol));
         }
@@ -1270,7 +1270,7 @@ public partial class bitget : ccxt.bitget
         string marketType = ((bool) ((instType == "spot"))) ? "spot" : "contract";
         string? marketId = this.safeString2(arg, "instId", "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         object stored = this.safeValue(this.trades, symbol);
         if ((stored == null))
         {
@@ -1756,8 +1756,8 @@ public partial class bitget : ccxt.bitget
         if ((symbolVar != null))
         {
             market = this.market(symbolVar);
-            symbolVar = getValue(market, "symbol");
-            marketId = getValue(market, "id");
+            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            marketId = (market.ContainsKey("id") ? market["id"] : null);
             messageHash = add(add(messageHash, ":"), symbolVar);
         }
         object uta = null;
@@ -2337,7 +2337,7 @@ public partial class bitget : ccxt.bitget
         if ((symbolVar != null))
         {
             market = this.market(symbolVar);
-            symbolVar = getValue(market, "symbol");
+            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
             messageHash = add(add(messageHash, ":"), symbolVar);
         }
         string? type = null;
@@ -3136,8 +3136,8 @@ public partial class bitget : ccxt.bitget
         string type = ((bool) ((instType == "spot"))) ? "spot" : "contract";
         string? instId = this.safeString2(arg, "instId", "symbol");
         Dictionary<string, object> market = this.safeMarket(instId, null, null, type);
-        string? symbol = ((string)getValue(market, "symbol"));
-        string messageHash = add("unsubscribe:orderbook:", getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string messageHash = add("unsubscribe:orderbook:", (market.ContainsKey("symbol") ? market["symbol"] : null));
         string subMessageHash = ("orderbook:" + symbol);
         if (inOp(this.orderbooks, symbol))
         {
@@ -3169,8 +3169,8 @@ public partial class bitget : ccxt.bitget
         string type = ((bool) ((instType == "spot"))) ? "spot" : "contract";
         string? instId = this.safeString2(arg, "instId", "symbol");
         Dictionary<string, object> market = this.safeMarket(instId, null, null, type);
-        string? symbol = ((string)getValue(market, "symbol"));
-        string messageHash = add("unsubscribe:trade:", getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string messageHash = add("unsubscribe:trade:", (market.ContainsKey("symbol") ? market["symbol"] : null));
         string subMessageHash = ("trade:" + symbol);
         if (inOp(this.trades, symbol))
         {
@@ -3202,8 +3202,8 @@ public partial class bitget : ccxt.bitget
         string type = ((bool) ((instType == "spot"))) ? "spot" : "contract";
         string? instId = this.safeString2(arg, "instId", "symbol");
         Dictionary<string, object> market = this.safeMarket(instId, null, null, type);
-        string? symbol = ((string)getValue(market, "symbol"));
-        string messageHash = add("unsubscribe:ticker:", getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string messageHash = add("unsubscribe:ticker:", (market.ContainsKey("symbol") ? market["symbol"] : null));
         string subMessageHash = ("ticker:" + symbol);
         if (inOp(this.tickers, symbol))
         {
@@ -3252,7 +3252,7 @@ public partial class bitget : ccxt.bitget
         object timeframes = this.safeValue(this.options, "timeframes");
         string? timeframe = this.findTimeframe(interval, timeframes);
         Dictionary<string, object> market = this.safeMarket(instId, null, null, type);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? messageHash = null;
         string? subMessageHash = null;
         if (isTrue(isUta))

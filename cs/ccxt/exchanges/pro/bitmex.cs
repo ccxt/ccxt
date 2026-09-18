@@ -101,7 +101,7 @@ public partial class bitmex : ccxt.bitmex
             {
                 object symbol = getValue(symbols, i);
                 Dictionary<string, object> market = this.market(symbol);
-                string subscription = add((name + ":"), getValue(market, "id"));
+                string subscription = add((name + ":"), (market.ContainsKey("id") ? market["id"] : null));
                 ((IList<object>)rawSubscriptions).Add(subscription);
                 string messageHash = add("ticker:", symbol);
                 ((IList<object>)messageHashes).Add(messageHash);
@@ -423,7 +423,7 @@ public partial class bitmex : ccxt.bitmex
             {
                 object symbol = getValue(symbols, i);
                 Dictionary<string, object> market = this.market(symbol);
-                ((IList<object>)subscriptionHashes).Add(add("liquidation:", getValue(market, "id")));
+                ((IList<object>)subscriptionHashes).Add(add("liquidation:", (market.ContainsKey("id") ? market["id"] : null)));
                 ((IList<object>)messageHashes).Add(add("liquidations::", symbol));
             }
         }
@@ -694,7 +694,7 @@ public partial class bitmex : ccxt.bitmex
         {
             string? marketId = ((string)getValue(marketIds, i));
             Dictionary<string, object> market = this.safeMarket(marketId);
-            string? symbol = ((string)getValue(market, "symbol"));
+            string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             string messageHash = ((table + ":") + symbol);
             IList<object> trades = this.parseTrades(getValue(dataByMarketIds, marketId), market);
             object stored = this.safeValue(this.trades, symbol);
@@ -1430,7 +1430,7 @@ public partial class bitmex : ccxt.bitmex
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            object topic = add(add(table, ":"), getValue(market, "id"));
+            object topic = add(add(table, ":"), (market.ContainsKey("id") ? market["id"] : null));
             ((IList<object>)topics).Add(topic);
             object messageHash = add(add(table, ":"), symbol);
             ((IList<object>)messageHashes).Add(messageHash);
@@ -1471,7 +1471,7 @@ public partial class bitmex : ccxt.bitmex
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            string topic = add((table + ":"), getValue(market, "id"));
+            string topic = add((table + ":"), (market.ContainsKey("id") ? market["id"] : null));
             ((IList<object>)topics).Add(topic);
             string messageHash = add((table + ":"), symbol);
             ((IList<object>)messageHashes).Add(messageHash);
@@ -1515,9 +1515,9 @@ public partial class bitmex : ccxt.bitmex
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string table = ("tradeBin" + this.safeString(this.timeframes, timeframeVar, timeframeVar));
-        string messageHash = add((table + ":"), getValue(market, "id"));
+        string messageHash = add((table + ":"), (market.ContainsKey("id") ? market["id"] : null));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "op", "subscribe" },
@@ -1609,8 +1609,8 @@ public partial class bitmex : ccxt.bitmex
             object candle = getValue(candles, i);
             string? marketId = this.safeString(candle, "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
-            string? symbol = ((string)getValue(market, "symbol"));
-            object messageHash = add(add(table, ":"), getValue(market, "id"));
+            string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+            object messageHash = add(add(table, ":"), (market.ContainsKey("id") ? market["id"] : null));
             List<object> result = new List<object>() {subtract(this.parseToInt(this.parse8601(this.safeString(candle, "timestamp"))), multiply(duration, 1000)), null, this.safeFloat(candle, "high"), this.safeFloat(candle, "low"), this.safeFloat(candle, "close"), this.safeFloat(candle, "volume")};
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
             object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
@@ -1711,7 +1711,7 @@ public partial class bitmex : ccxt.bitmex
                 return;  // protecting from weird update
             }
             Dictionary<string, object> market = this.safeMarket(marketId);
-            string? symbol = ((string)getValue(market, "symbol"));
+            string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             if (isEqual(table, "orderBookL2"))
             {
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.indexedOrderBook();
@@ -1755,7 +1755,7 @@ public partial class bitmex : ccxt.bitmex
                 }
                 ((IDictionary<string,object>)numUpdatesByMarketId)[(string)marketId] = this.sum(getValue(numUpdatesByMarketId, marketId), 1);
                 Dictionary<string, object> market = this.safeMarket(marketId);
-                string? symbol = ((string)getValue(market, "symbol"));
+                string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
                 ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
                 double? price = this.safeNumber(getValue(data, i), "price");
                 object size = ((bool) ((action == "delete"))) ? 0 : this.convertFromRawQuantity(symbol, this.safeString(getValue(data, i), "size", "0"));
@@ -1773,7 +1773,7 @@ public partial class bitmex : ccxt.bitmex
             {
                 string? marketId = ((string)getValue(marketIds, i));
                 Dictionary<string, object> market = this.safeMarket(marketId);
-                string? symbol = ((string)getValue(market, "symbol"));
+                string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
                 object messageHash = add(add(table, ":"), symbol);
                 ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
                 (client as WebSocketClient).resolve(orderbook, messageHash);

@@ -504,7 +504,7 @@ public partial class upbit : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        return await this.FetchMarketById(((string)getValue(market, "id")), parameters);
+        return await this.FetchMarketById(((string)(market.ContainsKey("id") ? market["id"] : null)), parameters);
     }
 
     public async virtual Task<ccxt.MarketInterface> FetchMarketById(string id, object parameters = null)
@@ -902,7 +902,7 @@ public partial class upbit : Exchange
             for (int i = 0; i < getArrayLength(marketSymbols); postFixIncrement(ref i))
             {
                 Dictionary<string, object> market = this.market(getValue(marketSymbols, i));
-                string? quoteId = ((string)getValue(market, "quoteId"));
+                string? quoteId = ((string)(market.ContainsKey("quoteId") ? market["quoteId"] : null));
                 if (!this.inArray(quoteId, quoteIds))
                 {
                     ((IList<object>)quoteIds).Add(quoteId);
@@ -1117,7 +1117,7 @@ public partial class upbit : Exchange
             limitVar = 200;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", getValue(market, "id") },
+            { "market", (market.ContainsKey("id") ? market["id"] : null) },
             { "count", limitVar },
         };
         List<object> response = await this.publicGetTradesTicks(this.extend(request, parameters));
@@ -1165,7 +1165,7 @@ public partial class upbit : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", getValue(market, "id") },
+            { "market", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.privateGetOrdersChance(this.extend(request, parameters));
         //
@@ -1296,7 +1296,7 @@ public partial class upbit : Exchange
             limitVar = 200;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", getValue(market, "id") },
+            { "market", (market.ContainsKey("id") ? market["id"] : null) },
             { "timeframe", timeframeValue },
             { "count", limitVar },
         };
@@ -1434,7 +1434,7 @@ public partial class upbit : Exchange
             throw new InvalidOrder ((string)(this.id + " createOrder() supports only buy or sell in the side argument.")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", getValue(market, "id") },
+            { "market", (market.ContainsKey("id") ? market["id"] : null) },
             { "side", orderSide },
         };
         if (isEqual(type, "limit"))
@@ -2221,7 +2221,7 @@ public partial class upbit : Exchange
         if ((symbol != null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["market"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if (!isEqual(limit, null))
         {
@@ -2280,7 +2280,7 @@ public partial class upbit : Exchange
         if ((symbol != null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["market"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if (!isEqual(since, null))
         {
@@ -2347,7 +2347,7 @@ public partial class upbit : Exchange
         if ((symbol != null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["market"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if (!isEqual(since, null))
         {

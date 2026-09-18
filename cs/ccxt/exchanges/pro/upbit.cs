@@ -409,7 +409,7 @@ public partial class upbit : ccxt.upbit
         {
             await this.loadMarkets();
             Dictionary<string, object> market = this.market(symbol);
-            symbol = getValue(market, "symbol");
+            symbol = (market.ContainsKey("symbol") ? market["symbol"] : null);
             List<object> symbols = new List<object>() {symbol};
             IList<object> marketIds = this.marketIds(symbols);
             ((IDictionary<string,object>)request)["codes"] = marketIds;

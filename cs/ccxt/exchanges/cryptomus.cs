@@ -628,7 +628,7 @@ public partial class cryptomus : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currencyPair", getValue(market, "id") },
+            { "currencyPair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         object level = 0;
         IList<object> levelparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrderBook", "level", level);
@@ -680,7 +680,7 @@ public partial class cryptomus : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currencyPair", getValue(market, "id") },
+            { "currencyPair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetV1ExchangeMarketTradesCurrencyPair(this.extend(request, parameters));
         //
@@ -824,7 +824,7 @@ public partial class cryptomus : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", getValue(market, "id") },
+            { "market", (market.ContainsKey("id") ? market["id"] : null) },
             { "direction", side },
             { "tag", "ccxt" },
         };
@@ -946,7 +946,7 @@ public partial class cryptomus : Exchange
         if ((symbol != null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["market"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if (!isEqual(limit, null))
         {
@@ -1033,7 +1033,7 @@ public partial class cryptomus : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((market != null))
         {
-            ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["market"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         Dictionary<string, object> response = await this.privateGetV2UserApiExchangeOrders(this.extend(request, parameters));
         //

@@ -1216,7 +1216,7 @@ public partial class binance : PredictionExchange
             await this.loadOutcome(outcome);
             outcomeObj = this.outcome(outcome);
             Dictionary<string, object> market = this.market(getValue(outcomeObj, "market"));
-            ((IDictionary<string,object>)request)["marketId"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["marketId"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if (!isEqual(limit, null))
         {
@@ -1484,7 +1484,7 @@ public partial class binance : PredictionExchange
             await this.loadOutcome(outcome);
             outcomeObj = this.outcome(outcome);
             Dictionary<string, object> market = this.market(getValue(outcomeObj, "market"));
-            ((IDictionary<string,object>)request)["marketTopicId"] = getValue(getValue(market, "info"), "marketTopicId");
+            ((IDictionary<string,object>)request)["marketTopicId"] = getValue((market.ContainsKey("info") ? market["info"] : null), "marketTopicId");
         }
         object wallet = ccxt.BaseExchange.FromDict(await this.FetchWallet("fetchOrders", parameters));
         ((IDictionary<string,object>)request)["walletAddress"] = getValue(wallet, "walletAddress");

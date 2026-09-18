@@ -211,7 +211,7 @@ public partial class toobit : ccxt.toobit
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
             ((IList<object>)messageHashes).Add(add("trade::", symbol));
-            string? rawHash = ((string)getValue(market, "id"));
+            string? rawHash = ((string)(market.ContainsKey("id") ? market["id"] : null));
             ((IList<object>)subParams).Add(rawHash);
         }
         IList<object> marketIds = this.marketIds(symbols);
@@ -258,7 +258,7 @@ public partial class toobit : ccxt.toobit
         //
         string? marketId = this.safeString(message, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         if (!(inOp(this.trades, symbol)))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -334,7 +334,7 @@ public partial class toobit : ccxt.toobit
             object data = getValue(symbolsAndTimeframes, i);
             string? symbolStr = this.safeString(data, 0);
             Dictionary<string, object> market = this.market(symbolStr);
-            string? marketId = ((string)getValue(market, "id"));
+            string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
             string? unfiedTimeframe = this.safeString(data, 1, "1m");
             string? rawTimeframe = this.safeString(timeframes, unfiedTimeframe, unfiedTimeframe);
             if ((selectedTimeframe != null) && !isEqual(selectedTimeframe, rawTimeframe))
@@ -393,7 +393,7 @@ public partial class toobit : ccxt.toobit
         //
         string? marketId = this.safeString(message, "symbol");
         Dictionary<string, object> market = this.market(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
         string? timeframeId = this.safeString(parameters, "klineType");
         string? timeframe = this.findTimeframe(timeframeId);
@@ -489,7 +489,7 @@ public partial class toobit : ccxt.toobit
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
             ((IList<object>)messageHashes).Add(add("ticker::", symbol));
-            string? rawHash = ((string)getValue(market, "id"));
+            string? rawHash = ((string)(market.ContainsKey("id") ? market["id"] : null));
             ((IList<object>)subParams).Add(rawHash);
         }
         IList<object> marketIds = this.marketIds(symbols);
@@ -627,7 +627,7 @@ public partial class toobit : ccxt.toobit
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
             ((IList<object>)messageHashes).Add(add((add("orderBook::", symbol) + "::"), channel));
-            string? rawHash = ((string)getValue(market, "id"));
+            string? rawHash = ((string)(market.ContainsKey("id") ? market["id"] : null));
             ((IList<object>)subParams).Add(rawHash);
         }
         IList<object> marketIds = this.marketIds(symbols);
@@ -672,7 +672,7 @@ public partial class toobit : ccxt.toobit
         }
         string? marketId = this.safeString(message, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         List<object> data = this.safeList(message, "data", new List<object>() {});
         for (int i = 0; i < data.Count; postFixIncrement(ref i))
         {

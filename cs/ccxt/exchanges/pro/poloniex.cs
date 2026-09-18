@@ -239,7 +239,7 @@ public partial class poloniex : ccxt.poloniex
             uppercaseType = "LIMIT_MAKER";
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "side", ((string)side).ToUpper() },
             { "type", ((string)type).ToUpper() },
         };
@@ -274,7 +274,7 @@ public partial class poloniex : ccxt.poloniex
             ((IDictionary<string,object>)request)["amount"] = quoteAmount;
         } else
         {
-            ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision(getValue(market, "symbol"), amount);
+            ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision((market.ContainsKey("symbol") ? market["symbol"] : null), amount);
             if (!isEqual(price, null))
             {
                 ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
@@ -1033,7 +1033,7 @@ public partial class poloniex : ccxt.poloniex
         {
             string? marketId = ((string)getValue(marketIds, i));
             Dictionary<string, object> market = this.market(marketId);
-            string? symbol = ((string)getValue(market, "symbol"));
+            string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             string messageHash = ("orders::" + symbol);
             (client as WebSocketClient).resolve(orders, messageHash);
         }
@@ -1233,7 +1233,7 @@ public partial class poloniex : ccxt.poloniex
             object item = getValue(data, i);
             string? marketId = this.safeString(item, "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
-            string? symbol = ((string)getValue(market, "symbol"));
+            string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             string name = "book_lv2";
             string messageHash = ((name + "::") + symbol);
             object subscription = this.safeValue(((WebSocketClient)client).subscriptions, messageHash, new Dictionary<string, object>() {});

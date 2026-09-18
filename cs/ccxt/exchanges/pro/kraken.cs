@@ -330,7 +330,7 @@ public partial class kraken : ccxt.kraken
                 { "order_type", type },
                 { "side", side },
                 { "order_qty", this.parseToNumeric(this.amountToPrecision(symbol, amount)) },
-                { "symbol", getValue(market, "symbol") },
+                { "symbol", (market.ContainsKey("symbol") ? market["symbol"] : null) },
                 { "token", token },
             } },
             { "req_id", requestId },
@@ -889,7 +889,7 @@ public partial class kraken : ccxt.kraken
         await this.loadMarkets();
         string name = "ohlc";
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "publicV2");
         Int64 requestId = ((Int64)this.requestId());
         string? messageHash = ((string)this.getMessageHash("ohlcv", null, symbolVar));

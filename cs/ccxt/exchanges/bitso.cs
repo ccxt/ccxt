@@ -845,12 +845,12 @@ public partial class bitso : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "book", getValue(market, "id") },
+            { "book", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetOrderBook(this.extend(request, parameters));
         object orderbook = this.safeValue(response, "payload");
         Int64? timestamp = this.parse8601(this.safeString(orderbook, "updated_at"));
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderbook, getValue(market, "symbol"), timestamp, "bids", "asks", "price", "amount"));
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderbook, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "bids", "asks", "price", "amount"));
     }
 
     public override Dictionary<string, object> parseTicker(object ticker, object market = null)
@@ -917,7 +917,7 @@ public partial class bitso : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "book", getValue(market, "id") },
+            { "book", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetTicker(this.extend(request, parameters));
         object ticker = this.safeValue(response, "payload");
@@ -963,7 +963,7 @@ public partial class bitso : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "book", getValue(market, "id") },
+            { "book", (market.ContainsKey("id") ? market["id"] : null) },
             { "time_bucket", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
         if (!isEqual(since, null))
@@ -1159,7 +1159,7 @@ public partial class bitso : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "book", getValue(market, "id") },
+            { "book", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetTrades(this.extend(request, parameters));
         List<object> payload = this.safeList(response, "payload", new List<object>() {});
@@ -1285,7 +1285,7 @@ public partial class bitso : Exchange
             });
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "book", getValue(market, "id") },
+            { "book", (market.ContainsKey("id") ? market["id"] : null) },
             { "limit", limitVar },
         };
         Dictionary<string, object> response = await this.privateGetUserTrades(this.extend(request, parameters));
@@ -1315,14 +1315,14 @@ public partial class bitso : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "book", getValue(market, "id") },
+            { "book", (market.ContainsKey("id") ? market["id"] : null) },
             { "side", side },
             { "type", type },
-            { "major", this.amountToPrecision(getValue(market, "symbol"), amount) },
+            { "major", this.amountToPrecision((market.ContainsKey("symbol") ? market["symbol"] : null), amount) },
         };
         if (isEqual(type, "limit"))
         {
-            ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(getValue(market, "symbol"), price);
+            ((IDictionary<string,object>)request)["price"] = this.priceToPrecision((market.ContainsKey("symbol") ? market["symbol"] : null), price);
         }
         Dictionary<string, object> response = await this.privatePostOrders(this.extend(request, parameters));
         IDictionary<string, object> payload = this.safeDict(response, "payload", new Dictionary<string, object>() {});
@@ -1539,7 +1539,7 @@ public partial class bitso : Exchange
             });
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "book", getValue(market, "id") },
+            { "book", (market.ContainsKey("id") ? market["id"] : null) },
             { "limit", limitVar },
         };
         Dictionary<string, object> response = await this.privateGetOpenOrders(this.extend(request, parameters));

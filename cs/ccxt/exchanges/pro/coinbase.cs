@@ -91,7 +91,7 @@ public partial class coinbase : ccxt.coinbase
         {
             market = this.market(symbol);
             messageHash = add(add(name, "::"), symbol);
-            productIds = new List<object>() {getValue(market, "id")};
+            productIds = new List<object>() {(market.ContainsKey("id") ? market["id"] : null)};
         }
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
@@ -150,7 +150,7 @@ public partial class coinbase : ccxt.coinbase
             market = this.market(symbol);
             watchMessageHash = add(add(name, "::"), symbol);
             unWatchMessageHash = add(add(unWatchMessageHash, "::"), symbol);
-            productIds = new List<object>() {getValue(market, "id")};
+            productIds = new List<object>() {(market.ContainsKey("id") ? market["id"] : null)};
         }
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         // '{"type": "unsubscribe", "product_ids": ["BTC-USD", "ETH-USD"], "channel": "ticker"}'
@@ -202,7 +202,7 @@ public partial class coinbase : ccxt.coinbase
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            string? marketId = ((string)getValue(market, "id"));
+            string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
             ((IList<object>)productIds).Add(marketId);
             ((IList<object>)messageHashes).Add(add(add(name, "::"), symbol));
         }
@@ -251,7 +251,7 @@ public partial class coinbase : ccxt.coinbase
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            string? marketId = ((string)getValue(market, "id"));
+            string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
             ((IList<object>)productIds).Add(marketId);
             ((IList<object>)watchMessageHashes).Add(add(add(name, "::"), symbol));
             ((IList<object>)unWatchMessageHashes).Add(add((add("unsubscribe:", name) + "::"), symbol));
@@ -747,7 +747,7 @@ public partial class coinbase : ccxt.coinbase
         }
         string name = "level2";
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         object orderbook = await this.subscribe(name, false, symbolVar, parameters);
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
@@ -1043,7 +1043,7 @@ public partial class coinbase : ccxt.coinbase
             string? marketId = this.safeString(eventVar, "product_id");
             // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
             Dictionary<string, object> market = this.safeMarket(marketId);
-            string? symbol = ((string)getValue(market, "symbol"));
+            string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             string messageHash = ("level2::" + symbol);
             object subscription = this.safeValue(((WebSocketClient)client).subscriptions, messageHash, new Dictionary<string, object>() {});
             Int64? limit = this.safeInteger(subscription, "limit");

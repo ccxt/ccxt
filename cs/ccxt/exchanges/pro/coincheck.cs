@@ -62,11 +62,11 @@ public partial class coincheck : ccxt.coincheck
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add("orderbook:", getValue(market, "symbol"));
+        string messageHash = add("orderbook:", (market.ContainsKey("symbol") ? market["symbol"] : null));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "subscribe" },
-            { "channel", add(getValue(market, "id"), "-orderbook") },
+            { "channel", add((market.ContainsKey("id") ? market["id"] : null), "-orderbook") },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
         object orderbook = await this.watch(url, messageHash, message, messageHash);
@@ -134,12 +134,12 @@ public partial class coincheck : ccxt.coincheck
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
-        string messageHash = add("trade:", getValue(market, "symbol"));
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        string messageHash = add("trade:", (market.ContainsKey("symbol") ? market["symbol"] : null));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "subscribe" },
-            { "channel", add(getValue(market, "id"), "-trades") },
+            { "channel", add((market.ContainsKey("id") ? market["id"] : null), "-trades") },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
         object trades = await this.watch(url, messageHash, message, messageHash);

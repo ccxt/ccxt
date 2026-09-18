@@ -721,7 +721,7 @@ public partial class cex : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "pair", getValue(market, "id") },
+            { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(since, null))
         {
@@ -812,7 +812,7 @@ public partial class cex : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "pair", getValue(market, "id") },
+            { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicPostGetOrderBook(this.extend(request, parameters));
         //
@@ -835,7 +835,7 @@ public partial class cex : Exchange
         //
         IDictionary<string, object> orderBook = this.safeDict(response, "data", new Dictionary<string, object>() {});
         Int64? timestamp = this.safeInteger(orderBook, "timestamp");
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderBook, getValue(market, "symbol"), timestamp));
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderBook, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp));
     }
 
     /**
@@ -870,7 +870,7 @@ public partial class cex : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "pair", getValue(market, "id") },
+            { "pair", (market.ContainsKey("id") ? market["id"] : null) },
             { "resolution", getValue(this.timeframes, timeframeVar) },
             { "dataType", dataType },
         };
@@ -1161,7 +1161,7 @@ public partial class cex : Exchange
         if ((symbol != null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["pair"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["pair"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if (!isEqual(limit, null))
         {
@@ -1446,8 +1446,8 @@ public partial class cex : Exchange
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "clientOrderId", this.uuid() },
-            { "currency1", getValue(market, "baseId") },
-            { "currency2", getValue(market, "quoteId") },
+            { "currency1", (market.ContainsKey("baseId") ? market["baseId"] : null) },
+            { "currency2", (market.ContainsKey("quoteId") ? market["quoteId"] : null) },
             { "accountId", accountId },
             { "orderType", this.capitalize(((string)type).ToLower()) },
             { "side", ((string)side).ToUpper() },

@@ -109,7 +109,7 @@ public partial class Exchange
         {
             await this.loadMarkets();
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = getValue(market, "symbol");
+            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
             object tickers = ccxt.BaseExchange.FromTickers(await this.FetchMarkPrices(new List<object>() {symbolVar}, parameters));
             IDictionary<string, object> ticker = this.safeDict(tickers, symbolVar);
             if ((ticker == null))
@@ -584,7 +584,7 @@ public partial class Exchange
         {
             await this.loadMarkets();
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = getValue(market, "symbol");
+            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
             object tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickersWs(new List<object>() {symbolVar}, parameters));
             IDictionary<string, object> ticker = this.safeDict(tickers, symbolVar);
             if ((ticker == null))
@@ -744,7 +744,7 @@ public partial class Exchange
         {
             await this.loadMarkets();
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = getValue(market, "symbol");
+            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
             object tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbolVar}, parameters));
             IDictionary<string, object> ticker = this.safeDict(tickers, symbolVar);
             if ((ticker == null))

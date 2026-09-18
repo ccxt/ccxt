@@ -83,10 +83,10 @@ public partial class whitebit : ccxt.whitebit
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         object timeframes = this.safeValue(this.options, "timeframes", new Dictionary<string, object>() {});
         Int64? interval = this.safeInteger(timeframes, timeframeVar);
-        string? marketId = ((string)getValue(market, "id"));
+        string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
         // currently there is no way of knowing
         // the interval upon getting an update
         // so that can't be part of the message hash, and the user can only subscribe
@@ -128,7 +128,7 @@ public partial class whitebit : ccxt.whitebit
             object data = getValue(parameters, i);
             string? marketId = this.safeString(data, 7);
             Dictionary<string, object> market = this.safeMarket(marketId);
-            string? symbol = ((string)getValue(market, "symbol"));
+            string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             string messageHash = (("candles" + ":") + symbol);
             object parsed = this.parseOHLCV(data, market);
             // this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol);
@@ -173,13 +173,13 @@ public partial class whitebit : ccxt.whitebit
         {
             limitVar = 10; // max 100
         }
-        string messageHash = add(("orderbook" + ":"), getValue(market, "symbol"));
+        string messageHash = add(("orderbook" + ":"), (market.ContainsKey("symbol") ? market["symbol"] : null));
         string method = "depth_subscribe";
         object options = this.safeValue(this.options, "watchOrderBook", new Dictionary<string, object>() {});
         string? defaultPriceInterval = this.safeString(options, "priceInterval", "0");
         string? priceInterval = this.safeString(parameters, "priceInterval", defaultPriceInterval);
         parameters = this.omit(parameters, "priceInterval");
-        List<object> reqParams = new List<object>() {getValue(market, "id"), limitVar, priceInterval, true};
+        List<object> reqParams = new List<object>() {(market.ContainsKey("id") ? market["id"] : null), limitVar, priceInterval, true};
         object orderbook = await this.watchPublic(messageHash, method, reqParams, parameters);
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
@@ -227,7 +227,7 @@ public partial class whitebit : ccxt.whitebit
         object isSnapshot = this.safeValue(parameters, 0);
         string? marketId = this.safeString(parameters, 2);
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         object data = this.safeValue(parameters, 1);
         Int64? timestamp = this.safeTimestamp(data, "timestamp");
         if (!(inOp(this.orderbooks, symbol)))
@@ -286,7 +286,7 @@ public partial class whitebit : ccxt.whitebit
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string method = "market_subscribe";
         string messageHash = add("ticker:", symbolVar);
         // every time we want to subscribe to another market we have to "re-subscribe" sending it all again
@@ -318,8 +318,8 @@ public partial class whitebit : ccxt.whitebit
         for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
         {
             Dictionary<string, object> market = this.market(getValue(symbols, i));
-            ((IList<object>)messageHashes).Add(add("ticker:", getValue(market, "symbol")));
-            ((IList<object>)args).Add(getValue(market, "id"));
+            ((IList<object>)messageHashes).Add(add("ticker:", (market.ContainsKey("symbol") ? market["symbol"] : null)));
+            ((IList<object>)args).Add((market.ContainsKey("id") ? market["id"] : null));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", id },
@@ -354,7 +354,7 @@ public partial class whitebit : ccxt.whitebit
         object tickers = this.safeValue(message, "params", new List<object>() {});
         string? marketId = this.safeString(tickers, 0);
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         object rawTicker = this.safeValue(tickers, 1, new Dictionary<string, object>() {});
         string messageHash = (("ticker" + ":") + symbol);
         Dictionary<string, object> ticker = this.parseTicker(rawTicker, market);
@@ -404,7 +404,7 @@ public partial class whitebit : ccxt.whitebit
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string messageHash = add(("trades" + ":"), symbolVar);
         string method = "trades_subscribe";
         // every time we want to subscribe to another market we have to 're-subscribe' sending it all again
@@ -445,7 +445,7 @@ public partial class whitebit : ccxt.whitebit
         object parameters = this.safeValue(message, "params", new List<object>() {});
         string? marketId = this.safeString(parameters, 0);
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         object stored = this.safeValue(this.trades, symbol);
         if ((stored == null))
         {
@@ -459,7 +459,7 @@ public partial class whitebit : ccxt.whitebit
         {
             callDynamically(stored, "append", new object[] {getValue(parsedTrades, j)});
         }
-        string messageHash = add("trades:", getValue(market, "symbol"));
+        string messageHash = add("trades:", (market.ContainsKey("symbol") ? market["symbol"] : null));
         (client as WebSocketClient).resolve(stored, messageHash);
     }
 
@@ -489,7 +489,7 @@ public partial class whitebit : ccxt.whitebit
         }
         await this.authenticate();
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string messageHash = add("myTrades:", symbolVar);
         string method = "deals_subscribe";
         object trades = await this.watchMultipleSubscription(messageHash, method, symbolVar, true, parameters);
@@ -631,7 +631,7 @@ public partial class whitebit : ccxt.whitebit
         }
         await this.authenticate();
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string messageHash = add("orders:", symbolVar);
         string method = "ordersPending_subscribe";
         object trades = await this.watchMultipleSubscription(messageHash, method, symbolVar, false, parameters);
@@ -1012,7 +1012,7 @@ public partial class whitebit : ccxt.whitebit
         {
             Dictionary<string, object> subscription = new Dictionary<string, object>() {};
             Dictionary<string, object> market = this.market(symbol);
-            string? marketId = ((string)getValue(market, "id"));
+            string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
             if ((marketId != null))
             {
                 ((IDictionary<string,object>)subscription)[(string)marketId] = true;
@@ -1034,7 +1034,7 @@ public partial class whitebit : ccxt.whitebit
             IDictionary<string, object> subscription = this.safeDict(((WebSocketClient)client).subscriptions, method, new Dictionary<string, object>() {});
             bool hasSymbolSubscription = true;
             Dictionary<string, object> market = this.market(symbol);
-            string? marketId = ((string)getValue(market, "id"));
+            string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
             bool? isSubscribed = this.safeBool(subscription, marketId, false);
             if ((isSubscribed != true))
             {

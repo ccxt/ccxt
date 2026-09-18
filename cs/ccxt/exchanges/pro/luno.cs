@@ -56,8 +56,8 @@ public partial class luno : ccxt.luno
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
-        string subscriptionHash = add("/stream/", getValue(market, "id"));
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        string subscriptionHash = add("/stream/", (market.ContainsKey("id") ? market["id"] : null));
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "symbol", symbolVar },
         };
@@ -171,8 +171,8 @@ public partial class luno : ccxt.luno
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
-        string subscriptionHash = add("/stream/", getValue(market, "id"));
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        string subscriptionHash = add("/stream/", (market.ContainsKey("id") ? market["id"] : null));
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "symbol", symbolVar },
         };

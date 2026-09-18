@@ -70,8 +70,8 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         if ((symbol != null))
         {
             market = this.market(symbol);
-            messageHash = add(messageHash, add(":", getValue(market, "id")));
-            ((IList<object>)productIds).Add(getValue(market, "id"));
+            messageHash = add(messageHash, add(":", (market.ContainsKey("id") ? market["id"] : null)));
+            ((IList<object>)productIds).Add((market.ContainsKey("id") ? market["id"] : null));
         }
         object url = getValue(getValue(this.urls, "api"), "ws");
         if (inOp(parameters, "signature"))
@@ -104,8 +104,8 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         {
             object symbol = getValue(symbols, i);
             market = this.market(symbol);
-            ((IList<object>)productIds).Add(getValue(market, "id"));
-            ((IList<object>)messageHashes).Add(add(add(messageHashStart, ":"), getValue(market, "symbol")));
+            ((IList<object>)productIds).Add((market.ContainsKey("id") ? market["id"] : null));
+            ((IList<object>)messageHashes).Add(add(add(messageHashStart, ":"), (market.ContainsKey("symbol") ? market["symbol"] : null)));
         }
         object url = getValue(getValue(this.urls, "api"), "ws");
         if (inOp(parameters, "signature"))
@@ -439,19 +439,19 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
-        string messageHash = add((name + ":"), getValue(market, "id"));
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        string messageHash = add((name + ":"), (market.ContainsKey("id") ? market["id"] : null));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "type", "subscribe" },
-            { "product_ids", new List<object>() {getValue(market, "id")} },
+            { "product_ids", new List<object>() {(market.ContainsKey("id") ? market["id"] : null)} },
             { "channels", new List<object>() {name} },
         };
         Dictionary<string, object> request = this.extend(subscribe, parameters);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "messageHash", messageHash },
             { "symbol", symbolVar },
-            { "marketId", getValue(market, "id") },
+            { "marketId", (market.ContainsKey("id") ? market["id"] : null) },
             { "limit", limit },
         };
         object authentication = this.authenticate();
@@ -1013,7 +1013,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         string? type = this.safeString(message, "type");
         string? marketId = this.safeString(message, "product_id");
         Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string name = "level2";
         string messageHash = ((name + ":") + marketId);
         object subscription = this.safeValue(((WebSocketClient)client).subscriptions, messageHash, new Dictionary<string, object>() {});

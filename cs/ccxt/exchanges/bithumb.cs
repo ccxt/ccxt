@@ -531,7 +531,7 @@ public partial class bithumb : Exchange
     public override string? amountToPrecision(object symbol, object amount)
     {
         Dictionary<string, object> market = this.market(symbol);
-        return this.decimalToPrecision(amount, TRUNCATE, getValue(getValue(market, "precision"), "amount"), DECIMAL_PLACES);
+        return this.decimalToPrecision(amount, TRUNCATE, getValue((market.ContainsKey("precision") ? market["precision"] : null), "amount"), DECIMAL_PLACES);
     }
 
     public virtual string? getGen2MarketId(object market)
@@ -913,8 +913,8 @@ public partial class bithumb : Exchange
             };
         } else
         {
-            ((IDictionary<string,object>)request)["baseId"] = getValue(market, "baseId");
-            ((IDictionary<string,object>)request)["quoteId"] = getValue(market, "quoteId");
+            ((IDictionary<string,object>)request)["baseId"] = (market.ContainsKey("baseId") ? market["baseId"] : null);
+            ((IDictionary<string,object>)request)["quoteId"] = (market.ContainsKey("quoteId") ? market["quoteId"] : null);
             if (!isEqual(limit, null))
             {
                 ((IDictionary<string,object>)request)["count"] = limit; // default 30, max 30
@@ -1366,8 +1366,8 @@ public partial class bithumb : Exchange
             data = this.safeDict(response, 0, new Dictionary<string, object>() {});
         } else
         {
-            ((IDictionary<string,object>)request)["baseId"] = getValue(market, "baseId");
-            ((IDictionary<string,object>)request)["quoteId"] = getValue(market, "quoteId");
+            ((IDictionary<string,object>)request)["baseId"] = (market.ContainsKey("baseId") ? market["baseId"] : null);
+            ((IDictionary<string,object>)request)["quoteId"] = (market.ContainsKey("quoteId") ? market["quoteId"] : null);
             response = await this.publicGetPublicTickerBaseIdQuoteId(this.extend(request, parameters));
             //
             //     {
@@ -1528,8 +1528,8 @@ public partial class bithumb : Exchange
                 { "1M", "1mm" },
             };
             ((IDictionary<string,object>)request)["interval"] = this.safeString(legacyTimeframes, timeframeVar, timeframeVar);
-            ((IDictionary<string,object>)request)["baseId"] = getValue(market, "baseId");
-            ((IDictionary<string,object>)request)["quoteId"] = getValue(market, "quoteId");
+            ((IDictionary<string,object>)request)["baseId"] = (market.ContainsKey("baseId") ? market["baseId"] : null);
+            ((IDictionary<string,object>)request)["quoteId"] = (market.ContainsKey("quoteId") ? market["quoteId"] : null);
             response = await this.publicGetPublicCandlestickBaseIdQuoteIdInterval(this.extend(request, parameters));
             //
             //     {
@@ -1748,8 +1748,8 @@ public partial class bithumb : Exchange
             data = response;
         } else
         {
-            ((IDictionary<string,object>)request)["baseId"] = getValue(market, "baseId");
-            ((IDictionary<string,object>)request)["quoteId"] = getValue(market, "quoteId");
+            ((IDictionary<string,object>)request)["baseId"] = (market.ContainsKey("baseId") ? market["baseId"] : null);
+            ((IDictionary<string,object>)request)["quoteId"] = (market.ContainsKey("quoteId") ? market["quoteId"] : null);
             response = await this.publicGetPublicTransactionHistoryBaseIdQuoteId(this.extend(request, parameters));
             //
             //     {
@@ -2001,8 +2001,8 @@ public partial class bithumb : Exchange
             response = await this.privatePostV2Orders(request);
         } else
         {
-            ((IDictionary<string,object>)request)["order_currency"] = getValue(market, "base");
-            ((IDictionary<string,object>)request)["payment_currency"] = getValue(market, "quote");
+            ((IDictionary<string,object>)request)["order_currency"] = (market.ContainsKey("base") ? market["base"] : null);
+            ((IDictionary<string,object>)request)["payment_currency"] = (market.ContainsKey("quote") ? market["quote"] : null);
             ((IDictionary<string,object>)request)["units"] = this.amountToPrecision(symbol, amount);
             if (isEqual(type, "limit"))
             {
@@ -2599,8 +2599,8 @@ public partial class bithumb : Exchange
                 limitVar = 100;
             }
             ((IDictionary<string,object>)request)["count"] = limitVar;
-            ((IDictionary<string,object>)request)["order_currency"] = getValue(market, "base");
-            ((IDictionary<string,object>)request)["payment_currency"] = getValue(market, "quote");
+            ((IDictionary<string,object>)request)["order_currency"] = (market.ContainsKey("base") ? market["base"] : null);
+            ((IDictionary<string,object>)request)["payment_currency"] = (market.ContainsKey("quote") ? market["quote"] : null);
             response = await this.privatePostInfoOrders(this.extend(request, parameters));
         }
         List<object> data = this.safeList(response, "data", new List<object>() {});

@@ -99,12 +99,12 @@ public partial class lbank : ccxt.lbank
         object watchOHLCVOptions = this.safeValue(this.options, "watchOHLCV", new Dictionary<string, object>() {});
         object timeframes = this.safeValue(watchOHLCVOptions, "timeframes", new Dictionary<string, object>() {});
         string? timeframeId = this.safeString(timeframes, timeframeVar, timeframeVar);
-        string messageHash = ((add("fetchOHLCV:", getValue(market, "symbol")) + ":") + timeframeId);
+        string messageHash = ((add("fetchOHLCV:", (market.ContainsKey("symbol") ? market["symbol"] : null)) + ":") + timeframeId);
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "action", "request" },
             { "request", "kbar" },
             { "kbar", timeframeId },
-            { "pair", getValue(market, "id") },
+            { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(since, null))
         {
@@ -146,13 +146,13 @@ public partial class lbank : ccxt.lbank
         object watchOHLCVOptions = this.safeValue(this.options, "watchOHLCV", new Dictionary<string, object>() {});
         object timeframes = this.safeValue(watchOHLCVOptions, "timeframes", new Dictionary<string, object>() {});
         string? timeframeId = this.safeString(timeframes, timeframeVar, timeframeVar);
-        string messageHash = ((add("ohlcv:", getValue(market, "symbol")) + ":") + timeframeId);
+        string messageHash = ((add("ohlcv:", (market.ContainsKey("symbol") ? market["symbol"] : null)) + ":") + timeframeId);
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "action", "subscribe" },
             { "subscribe", "kbar" },
             { "kbar", timeframeId },
-            { "pair", getValue(market, "id") },
+            { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
         object ohlcv = await this.watch(url, messageHash, request, messageHash);
@@ -278,11 +278,11 @@ public partial class lbank : ccxt.lbank
         Dictionary<string, object> market = this.market(symbol);
         this.checkContractMarket(market, "fetchTickerWs");
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
-        string messageHash = add("fetchTicker:", getValue(market, "symbol"));
+        string messageHash = add("fetchTicker:", (market.ContainsKey("symbol") ? market["symbol"] : null));
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "action", "request" },
             { "request", "tick" },
-            { "pair", getValue(market, "id") },
+            { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> request = this.deepExtend(message, parameters);
         Int64 requestId = ((Int64)this.requestId());
@@ -308,11 +308,11 @@ public partial class lbank : ccxt.lbank
         Dictionary<string, object> market = this.market(symbol);
         this.checkContractMarket(market, "watchTicker");
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
-        string messageHash = add("ticker:", getValue(market, "symbol"));
+        string messageHash = add("ticker:", (market.ContainsKey("symbol") ? market["symbol"] : null));
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "action", "subscribe" },
             { "subscribe", "tick" },
-            { "pair", getValue(market, "id") },
+            { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> request = this.deepExtend(message, parameters);
         return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, request, messageHash, request));
@@ -424,7 +424,7 @@ public partial class lbank : ccxt.lbank
         Dictionary<string, object> market = this.market(symbol);
         this.checkContractMarket(market, "fetchTradesWs");
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
-        string messageHash = add("fetchTrades:", getValue(market, "symbol"));
+        string messageHash = add("fetchTrades:", (market.ContainsKey("symbol") ? market["symbol"] : null));
         if (isEqual(limit, null))
         {
             limit = 10;
@@ -432,7 +432,7 @@ public partial class lbank : ccxt.lbank
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "action", "request" },
             { "request", "trade" },
-            { "pair", getValue(market, "id") },
+            { "pair", (market.ContainsKey("id") ? market["id"] : null) },
             { "size", limit },
         };
         Dictionary<string, object> request = this.deepExtend(message, parameters);
@@ -461,11 +461,11 @@ public partial class lbank : ccxt.lbank
         Dictionary<string, object> market = this.market(symbol);
         this.checkContractMarket(market, "watchTrades");
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
-        string messageHash = add("trades:", getValue(market, "symbol"));
+        string messageHash = add("trades:", (market.ContainsKey("symbol") ? market["symbol"] : null));
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "action", "subscribe" },
             { "subscribe", "trade" },
-            { "pair", getValue(market, "id") },
+            { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> request = this.deepExtend(message, parameters);
         object trades = await this.watch(url, messageHash, request, messageHash, request);
@@ -603,8 +603,8 @@ public partial class lbank : ccxt.lbank
         {
             Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = this.symbol(symbolVar);
-            messageHash = add("orders:", getValue(market, "symbol"));
-            pair = ((string)getValue(market, "id"));
+            messageHash = add("orders:", (market.ContainsKey("symbol") ? market["symbol"] : null));
+            pair = ((string)(market.ContainsKey("id") ? market["id"] : null));
         }
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "action", "subscribe" },
@@ -840,7 +840,7 @@ public partial class lbank : ccxt.lbank
         Dictionary<string, object> market = this.market(symbol);
         this.checkContractMarket(market, "fetchOrderBookWs");
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
-        string messageHash = add("fetchOrderbook:", getValue(market, "symbol"));
+        string messageHash = add("fetchOrderbook:", (market.ContainsKey("symbol") ? market["symbol"] : null));
         if (isEqual(limit, null))
         {
             limit = 100;
@@ -849,7 +849,7 @@ public partial class lbank : ccxt.lbank
             { "action", "request" },
             { "request", "depth" },
             { "depth", limit },
-            { "pair", getValue(market, "id") },
+            { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
         object orderbook = await this.watch(url, messageHash, request, messageHash);
@@ -877,7 +877,7 @@ public partial class lbank : ccxt.lbank
         Dictionary<string, object> market = this.market(symbol);
         this.checkContractMarket(market, "watchOrderBook");
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
-        string messageHash = add("orderbook:", getValue(market, "symbol"));
+        string messageHash = add("orderbook:", (market.ContainsKey("symbol") ? market["symbol"] : null));
         parameters = this.omit(parameters, "aggregation");
         if (isEqual(limitVar, null))
         {
@@ -887,7 +887,7 @@ public partial class lbank : ccxt.lbank
             { "action", "subscribe" },
             { "subscribe", "depth" },
             { "depth", limitVar },
-            { "pair", getValue(market, "id") },
+            { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
         object orderbook = await this.watch(url, messageHash, request, messageHash);

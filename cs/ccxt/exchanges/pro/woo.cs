@@ -147,7 +147,7 @@ public partial class woo : ccxt.woo
         method = ((IList<object>)methodparametersVariable)[0];
         parameters = ((IList<object>)methodparametersVariable)[1];
         Dictionary<string, object> market = this.market(symbol);
-        object topic = add(add(getValue(market, "id"), "@"), method);
+        object topic = add(add((market.ContainsKey("id") ? market["id"] : null), "@"), method);
         string urlUid = ((bool) (!isEqual(this.uid, ""))) ? add("/", this.uid) : "";
         object url = add(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), urlUid);
         Int64 requestId = ((Int64)this.requestId(url));
@@ -159,7 +159,7 @@ public partial class woo : ccxt.woo
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "id", ((object)requestId).ToString() },
             { "name", method },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", (market.ContainsKey("symbol") ? market["symbol"] : null) },
             { "limit", limit },
             { "params", parameters },
         };
@@ -193,9 +193,9 @@ public partial class woo : ccxt.woo
         method = ((IList<object>)methodparametersVariable)[0];
         parameters = ((IList<object>)methodparametersVariable)[1];
         Dictionary<string, object> market = this.market(symbol);
-        object subHash = add(add(getValue(market, "id"), "@"), method);
+        object subHash = add(add((market.ContainsKey("id") ? market["id"] : null), "@"), method);
         string topic = "orderbook";
-        return await this.unwatchPublic(subHash, getValue(market, "symbol"), topic, parameters);
+        return await this.unwatchPublic(subHash, (market.ContainsKey("symbol") ? market["symbol"] : null), topic, parameters);
     }
 
     public virtual void handleOrderBook(WebSocketClient client, object message)
@@ -225,7 +225,7 @@ public partial class woo : ccxt.woo
         IDictionary<string, object> data = this.safeDict(message, "data");
         string? marketId = this.safeString(data, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? topic = this.safeString(message, "topic");
         if ((topic == null))
         {
@@ -394,8 +394,8 @@ public partial class woo : ccxt.woo
         }
         string name = "ticker";
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
-        object topic = add(add(getValue(market, "id"), "@"), name);
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        object topic = add(add((market.ContainsKey("id") ? market["id"] : null), "@"), name);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
             { "topic", topic },
@@ -424,9 +424,9 @@ public partial class woo : ccxt.woo
         method = ((IList<object>)methodparametersVariable)[0];
         parameters = ((IList<object>)methodparametersVariable)[1];
         Dictionary<string, object> market = this.market(symbol);
-        object subHash = add(add(getValue(market, "id"), "@"), method);
+        object subHash = add(add((market.ContainsKey("id") ? market["id"] : null), "@"), method);
         string topic = "ticker";
-        return await this.unwatchPublic(subHash, getValue(market, "symbol"), topic, parameters);
+        return await this.unwatchPublic(subHash, (market.ContainsKey("symbol") ? market["symbol"] : null), topic, parameters);
     }
 
     public virtual object parseWsTicker(object ticker, object market = null)
@@ -492,8 +492,8 @@ public partial class woo : ccxt.woo
         Int64? timestamp = this.safeInteger(message, "ts");
         ((IDictionary<string,object>)data)["date"] = timestamp;
         Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsTicker(data, market));
-        ((IDictionary<string,object>)ticker)["symbol"] = getValue(market, "symbol");
-        ((IDictionary<string,object>)this.tickers)[(string)getValue(market, "symbol")] = ticker;
+        ((IDictionary<string,object>)ticker)["symbol"] = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        ((IDictionary<string,object>)this.tickers)[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = ticker;
         (client as WebSocketClient).resolve(ticker, topic);
         return message;
     }
@@ -593,7 +593,7 @@ public partial class woo : ccxt.woo
             object ticker = this.parseWsTicker(this.extend(getValue(data, i), new Dictionary<string, object>() {
                 { "date", timestamp },
             }), market);
-            ((IDictionary<string,object>)this.tickers)[(string)getValue(market, "symbol")] = ticker;
+            ((IDictionary<string,object>)this.tickers)[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = ticker;
             ((IList<object>)result).Add(ticker);
         }
         (client as WebSocketClient).resolve(result, topic);
@@ -746,7 +746,7 @@ public partial class woo : ccxt.woo
         Dictionary<string, object> market = this.market(symbol);
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         string name = "kline";
-        object topic = add(add(add(add(getValue(market, "id"), "@"), name), "_"), interval);
+        object topic = add(add(add(add((market.ContainsKey("id") ? market["id"] : null), "@"), name), "_"), interval);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
             { "topic", topic },
@@ -755,7 +755,7 @@ public partial class woo : ccxt.woo
         object ohlcv = await this.watchPublic(topic, message);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(ohlcv, "getLimit", new object[] {getValue(market, "symbol"), limitVar});
+            limitVar = callDynamically(ohlcv, "getLimit", new object[] {(market.ContainsKey("symbol") ? market["symbol"] : null), limitVar});
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }
@@ -784,9 +784,9 @@ public partial class woo : ccxt.woo
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         string topic = "ohlcv";
         string name = "kline";
-        object subHash = add(add(add(add(getValue(market, "id"), "@"), name), "_"), interval);
-        ((IDictionary<string,object>)parameters)["symbolsAndTimeframes"] = new List<object>() {new List<object>() {getValue(market, "symbol"), timeframeVar}};
-        return await this.unwatchPublic(subHash, getValue(market, "symbol"), topic, parameters);
+        object subHash = add(add(add(add((market.ContainsKey("id") ? market["id"] : null), "@"), name), "_"), interval);
+        ((IDictionary<string,object>)parameters)["symbolsAndTimeframes"] = new List<object>() {new List<object>() {(market.ContainsKey("symbol") ? market["symbol"] : null), timeframeVar}};
+        return await this.unwatchPublic(subHash, (market.ContainsKey("symbol") ? market["symbol"] : null), topic, parameters);
     }
 
     public virtual void handleOHLCV(WebSocketClient client, object message)
@@ -813,7 +813,7 @@ public partial class woo : ccxt.woo
         object topic = this.safeValue(message, "topic");
         string? marketId = this.safeString(data, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? interval = this.safeString(data, "type");
         string? timeframe = this.findTimeframe(interval);
         List<object> parsed = new List<object> {this.safeInteger(data, "startTime"), this.safeFloat(data, "open"), this.safeFloat(data, "high"), this.safeFloat(data, "low"), this.safeFloat(data, "close"), this.safeFloat(data, "volume")};
@@ -853,8 +853,8 @@ public partial class woo : ccxt.woo
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
-        object topic = add(getValue(market, "id"), "@trade");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        object topic = add((market.ContainsKey("id") ? market["id"] : null), "@trade");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
             { "topic", topic },
@@ -863,7 +863,7 @@ public partial class woo : ccxt.woo
         object trades = await this.watchPublic(topic, message);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {getValue(market, "symbol"), limitVar});
+            limitVar = callDynamically(trades, "getLimit", new object[] {(market.ContainsKey("symbol") ? market["symbol"] : null), limitVar});
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolVar, since, limitVar, true));
     }
@@ -886,8 +886,8 @@ public partial class woo : ccxt.woo
         }
         Dictionary<string, object> market = this.market(symbol);
         string topic = "trades";
-        object subHash = add(getValue(market, "id"), "@trade");
-        return await this.unwatchPublic(subHash, getValue(market, "symbol"), topic, parameters);
+        object subHash = add((market.ContainsKey("id") ? market["id"] : null), "@trade");
+        return await this.unwatchPublic(subHash, (market.ContainsKey("symbol") ? market["symbol"] : null), topic, parameters);
     }
 
     public virtual void handleTrade(WebSocketClient client, object message)
@@ -910,7 +910,7 @@ public partial class woo : ccxt.woo
         object data = this.safeValue(message, "data");
         string? marketId = this.safeString(data, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         object trade = this.parseWsTrade(this.extend(data, new Dictionary<string, object>() {
             { "timestamp", timestamp },
         }), market);
@@ -1107,7 +1107,7 @@ public partial class woo : ccxt.woo
         if ((symbolVar != null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = getValue(market, "symbol");
+            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
             messageHash = messageHash + add(":", symbolVar);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1152,7 +1152,7 @@ public partial class woo : ccxt.woo
         if ((symbolVar != null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = getValue(market, "symbol");
+            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
             messageHash = messageHash + add(":", symbolVar);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1576,7 +1576,7 @@ public partial class woo : ccxt.woo
             Dictionary<string, object> position = this.parsePosition(rawPosition, market);
             ((IList<object>)newPositions).Add(position);
             callDynamically(cache, "append", new object[] {position});
-            string messageHash = add("positions::", getValue(market, "symbol"));
+            string messageHash = add("positions::", (market.ContainsKey("symbol") ? market["symbol"] : null));
             (client as WebSocketClient).resolve(position, messageHash);
         }
         (client as WebSocketClient).resolve(newPositions, "positions");
@@ -1686,8 +1686,8 @@ public partial class woo : ccxt.woo
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
-        object topic = add(getValue(market, "id"), "@estfundingrate");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        object topic = add((market.ContainsKey("id") ? market["id"] : null), "@estfundingrate");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
             { "topic", topic },

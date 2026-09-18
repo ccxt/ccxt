@@ -78,13 +78,13 @@ public partial class bitvavo : ccxt.bitvavo
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object messageHash = add(add(name, "@"), getValue(market, "id"));
+        object messageHash = add(add(name, "@"), (market.ContainsKey("id") ? market["id"] : null));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "action", "subscribe" },
             { "channels", new List<object>() {new Dictionary<string, object>() {
     { "name", name },
-    { "markets", new List<object>() {getValue(market, "id")} },
+    { "markets", new List<object>() {(market.ContainsKey("id") ? market["id"] : null)} },
 }} },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
@@ -104,7 +104,7 @@ public partial class bitvavo : ccxt.bitvavo
         for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             Dictionary<string, object> market = this.market(getValue(symbols, i));
-            ((IList<object>)args).Add(((string)getValue(market, "id")));
+            ((IList<object>)args).Add(((string)(market.ContainsKey("id") ? market["id"] : null)));
         }
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -298,7 +298,7 @@ public partial class bitvavo : ccxt.bitvavo
         //
         string? marketId = this.safeString(message, "market");
         Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string name = "trades";
         string messageHash = ((name + "@") + marketId);
         Dictionary<string, object> trade = this.parseTrade(message, market);
@@ -339,8 +339,8 @@ public partial class bitvavo : ccxt.bitvavo
         for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
         {
             Dictionary<string, object> market = this.market(getValue(symbols, i));
-            ((IList<object>)marketIds).Add(((string)getValue(market, "id")));
-            ((IList<object>)messageHashes).Add(add((name + "@"), getValue(market, "id")));
+            ((IList<object>)marketIds).Add(((string)(market.ContainsKey("id") ? market["id"] : null)));
+            ((IList<object>)messageHashes).Add(add((name + "@"), (market.ContainsKey("id") ? market["id"] : null)));
         }
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -399,8 +399,8 @@ public partial class bitvavo : ccxt.bitvavo
         for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
         {
             Dictionary<string, object> market = this.market(getValue(symbols, i));
-            ((IList<object>)marketIds).Add(((string)getValue(market, "id")));
-            ((IList<object>)subMessageHashes).Add(add((name + "@"), getValue(market, "id")));
+            ((IList<object>)marketIds).Add(((string)(market.ContainsKey("id") ? market["id"] : null)));
+            ((IList<object>)subMessageHashes).Add(add((name + "@"), (market.ContainsKey("id") ? market["id"] : null)));
         }
         List<object> channels = new List<object>() {new Dictionary<string, object>() {
     { "name", name },
@@ -435,9 +435,9 @@ public partial class bitvavo : ccxt.bitvavo
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string name = "candles";
-        string? marketId = ((string)getValue(market, "id"));
+        string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         string messageHash = ((((name + "@") + marketId) + "_") + interval);
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
@@ -497,7 +497,7 @@ public partial class bitvavo : ccxt.bitvavo
         string name = "candles";
         string? marketId = this.safeString(message, "market");
         Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? interval = this.safeString(message, "interval");
         // use a reverse lookup in a static map instead
         string? timeframe = this.findTimeframe(interval);
@@ -554,8 +554,8 @@ public partial class bitvavo : ccxt.bitvavo
                 ((IDictionary<string,object>)marketIdsByInterval)[(string)interval] = new List<object>() {};
             }
             object intervalIds = getValue(marketIdsByInterval, interval);
-            ((IList<object>)intervalIds).Add(getValue(market, "id"));
-            ((IList<object>)messageHashes).Add(((add((("multi:" + name) + "@"), getValue(market, "id")) + "_") + interval));
+            ((IList<object>)intervalIds).Add((market.ContainsKey("id") ? market["id"] : null));
+            ((IList<object>)messageHashes).Add(((add((("multi:" + name) + "@"), (market.ContainsKey("id") ? market["id"] : null)) + "_") + interval));
         }
         List<object> channels = new List<object>() {};
         List<object> intervals = new List<object>(((IDictionary<string,object>)marketIdsByInterval).Keys);
@@ -634,10 +634,10 @@ public partial class bitvavo : ccxt.bitvavo
                 ((IDictionary<string,object>)marketIdsByInterval)[(string)interval] = new List<object>() {};
             }
             object intervalIds = getValue(marketIdsByInterval, interval);
-            ((IList<object>)intervalIds).Add(getValue(market, "id"));
+            ((IList<object>)intervalIds).Add((market.ContainsKey("id") ? market["id"] : null));
             // both the single-symbol and the multi-symbol watch hashes must be released
-            ((IList<object>)subMessageHashes).Add(((add((name + "@"), getValue(market, "id")) + "_") + interval));
-            ((IList<object>)subMessageHashes).Add(((add((("multi:" + name) + "@"), getValue(market, "id")) + "_") + interval));
+            ((IList<object>)subMessageHashes).Add(((add((name + "@"), (market.ContainsKey("id") ? market["id"] : null)) + "_") + interval));
+            ((IList<object>)subMessageHashes).Add(((add((("multi:" + name) + "@"), (market.ContainsKey("id") ? market["id"] : null)) + "_") + interval));
         }
         List<object> channels = new List<object>() {};
         List<object> intervals = new List<object>(((IDictionary<string,object>)marketIdsByInterval).Keys);
@@ -674,22 +674,22 @@ public partial class bitvavo : ccxt.bitvavo
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string name = "book";
-        string messageHash = add((name + "@"), getValue(market, "id"));
+        string messageHash = add((name + "@"), (market.ContainsKey("id") ? market["id"] : null));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "action", "subscribe" },
             { "channels", new List<object>() {new Dictionary<string, object>() {
     { "name", name },
-    { "markets", new List<object>() {getValue(market, "id")} },
+    { "markets", new List<object>() {(market.ContainsKey("id") ? market["id"] : null)} },
 }} },
         };
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "messageHash", messageHash },
             { "name", name },
             { "symbol", symbolVar },
-            { "marketId", getValue(market, "id") },
+            { "marketId", (market.ContainsKey("id") ? market["id"] : null) },
             { "method", this.handleOrderBookSubscription },
             { "limit", limit },
             { "params", parameters },
@@ -723,8 +723,8 @@ public partial class bitvavo : ccxt.bitvavo
         for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
         {
             Dictionary<string, object> market = this.market(getValue(symbols, i));
-            ((IList<object>)marketIds).Add(((string)getValue(market, "id")));
-            ((IList<object>)messageHashes).Add(add((name + "@"), getValue(market, "id")));
+            ((IList<object>)marketIds).Add(((string)(market.ContainsKey("id") ? market["id"] : null)));
+            ((IList<object>)messageHashes).Add(add((name + "@"), (market.ContainsKey("id") ? market["id"] : null)));
         }
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -785,8 +785,8 @@ public partial class bitvavo : ccxt.bitvavo
         for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
         {
             Dictionary<string, object> market = this.market(getValue(symbols, i));
-            ((IList<object>)marketIds).Add(((string)getValue(market, "id")));
-            ((IList<object>)subMessageHashes).Add(add((name + "@"), getValue(market, "id")));
+            ((IList<object>)marketIds).Add(((string)(market.ContainsKey("id") ? market["id"] : null)));
+            ((IList<object>)subMessageHashes).Add(add((name + "@"), (market.ContainsKey("id") ? market["id"] : null)));
         }
         List<object> channels = new List<object>() {new Dictionary<string, object>() {
     { "name", name },
@@ -856,8 +856,8 @@ public partial class bitvavo : ccxt.bitvavo
         object eventVar = this.safeString(message, "event");
         string? marketId = this.safeString(message, "market");
         Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
-        string? symbol = ((string)getValue(market, "symbol"));
-        object messageHash = add(add(eventVar, "@"), getValue(market, "id"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        object messageHash = add(add(eventVar, "@"), (market.ContainsKey("id") ? market["id"] : null));
         ccxt.pro.IOrderBook orderbook = this.safeOrderBook(this.orderbooks, symbol);
         if ((orderbook == null))
         {
@@ -1091,8 +1091,8 @@ public partial class bitvavo : ccxt.bitvavo
         }
         await this.authenticate();
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
-        string? marketId = ((string)getValue(market, "id"));
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         string name = "account";
         string messageHash = add("order:", symbolVar);
@@ -1136,8 +1136,8 @@ public partial class bitvavo : ccxt.bitvavo
         }
         await this.authenticate();
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
-        string? marketId = ((string)getValue(market, "id"));
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         string name = "account";
         string messageHash = add("myTrades:", symbolVar);
@@ -1273,7 +1273,7 @@ public partial class bitvavo : ccxt.bitvavo
         if ((symbol != null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["market"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         return ccxt.BaseExchange.ToOrderList(await this.watchRequest("privateCancelOrders", this.extend(request, parameters)));
     }
@@ -1325,7 +1325,7 @@ public partial class bitvavo : ccxt.bitvavo
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "orderId", id },
-            { "market", getValue(market, "id") },
+            { "market", (market.ContainsKey("id") ? market["id"] : null) },
         };
         return ccxt.BaseExchange.ToOrder(await this.watchRequest("privateGetOrder", this.extend(request, parameters)));
     }
@@ -1399,7 +1399,7 @@ public partial class bitvavo : ccxt.bitvavo
         if ((symbol != null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["market"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         object orders = await this.watchRequest("privateGetOrdersOpen", this.extend(request, parameters));
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbol, since, limit));
@@ -1903,7 +1903,7 @@ public partial class bitvavo : ccxt.bitvavo
         //
         string? marketId = this.safeString(message, "market");
         Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("order:" + symbol);
         Dictionary<string, object> order = this.parseOrder(message, market);
         if ((this.orders == null))
@@ -1935,7 +1935,7 @@ public partial class bitvavo : ccxt.bitvavo
         //
         string? marketId = this.safeString(message, "market");
         Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("myTrades:" + symbol);
         Dictionary<string, object> trade = this.parseTrade(message, market);
         if ((this.myTrades == null))

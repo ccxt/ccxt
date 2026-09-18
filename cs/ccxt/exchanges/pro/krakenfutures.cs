@@ -145,7 +145,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         if ((length == 1))
         {
             Dictionary<string, object> market = this.market(getValue(marketIds, 0));
-            messageHash = add(add(messageHash, ":"), getValue(market, "symbol"));
+            messageHash = add(add(messageHash, ":"), (market.ContainsKey("symbol") ? market["symbol"] : null));
         }
         ((IDictionary<string,object>)subscribe)["product_ids"] = marketIds;
         Dictionary<string, object> request = this.extend(subscribe, parameters);
@@ -517,7 +517,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            messageHash = messageHash + add(":", getValue(market, "symbol"));
+            messageHash = messageHash + add(":", (market.ContainsKey("symbol") ? market["symbol"] : null));
         }
         object orders = await this.subscribePrivate(name, messageHash, parameters);
         if (isTrue(this.newUpdates))
@@ -551,7 +551,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            messageHash = messageHash + add(":", getValue(market, "symbol"));
+            messageHash = messageHash + add(":", (market.ContainsKey("symbol") ? market["symbol"] : null));
         }
         object trades = await this.subscribePrivate(name, messageHash, parameters);
         if (isTrue(this.newUpdates))
@@ -637,7 +637,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         if ((marketId != null))
         {
             Dictionary<string, object> market = this.market(marketId);
-            string? symbol = ((string)getValue(market, "symbol"));
+            string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             string? messageHash = ((string)this.getMessageHash("trade", null, symbol));
             if ((this.safeList(this.trades, symbol) == null))
             {
@@ -1326,7 +1326,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         //
         string? marketId = this.safeString(message, "product_id");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? messageHash = ((string)this.getMessageHash("orderbook", null, symbol));
         IDictionary<string, object> subscription = this.safeDict(((WebSocketClient)client).subscriptions, messageHash, new Dictionary<string, object>() {});
         Int64? limit = this.safeInteger(subscription, "limit");
@@ -1380,7 +1380,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         //
         string? marketId = this.safeString(message, "product_id");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? messageHash = ((string)this.getMessageHash("orderbook", null, symbol));
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         string? side = this.safeString(message, "side");
@@ -1756,7 +1756,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             Dictionary<string, object> market = this.market(getValue(symbols, i));
             if (!isTrue(this.subscriptionExistsForHash(url, messageHash)))
             {
-                ((IList<object>)rawSubs).Add(getValue(market, "id"));
+                ((IList<object>)rawSubs).Add((market.ContainsKey("id") ? market["id"] : null));
             }
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};

@@ -116,7 +116,7 @@ public partial class paradex : ccxt.paradex
         if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            messageHash = add(messageHash, getValue(market, "id"));
+            messageHash = add(messageHash, (market.ContainsKey("id") ? market["id"] : null));
         } else
         {
             messageHash = add(messageHash, "ALL");
@@ -191,7 +191,7 @@ public partial class paradex : ccxt.paradex
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = (add("order_book.", getValue(market, "id")) + ".snapshot@15@100ms");
+        string messageHash = (add("order_book.", (market.ContainsKey("id") ? market["id"] : null)) + ".snapshot@15@100ms");
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
@@ -240,7 +240,7 @@ public partial class paradex : ccxt.paradex
         string? marketId = this.safeString(data, "market");
         Dictionary<string, object> market = this.safeMarket(marketId);
         Int64? timestamp = this.safeInteger(data, "last_updated_at");
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         if (!(inOp(this.orderbooks, symbol)))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
@@ -377,8 +377,8 @@ public partial class paradex : ccxt.paradex
         if ((symbolVar != null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = getValue(market, "symbol");
-            channel = add(channel, getValue(market, "id"));
+            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            channel = add(channel, (market.ContainsKey("id") ? market["id"] : null));
             messageHash = messageHash + add(":", symbolVar);
         } else
         {
@@ -478,7 +478,7 @@ public partial class paradex : ccxt.paradex
         IDictionary<string, object> data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         object channel = this.safeString(parameters, "channel");
         object messageHash = add(add(channel, "."), symbol);
         Dictionary<string, object> ticker = this.parseTicker(data, market);

@@ -555,12 +555,12 @@ public partial class independentreserve : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "primaryCurrencyCode", getValue(market, "baseId") },
-            { "secondaryCurrencyCode", getValue(market, "quoteId") },
+            { "primaryCurrencyCode", (market.ContainsKey("baseId") ? market["baseId"] : null) },
+            { "secondaryCurrencyCode", (market.ContainsKey("quoteId") ? market["quoteId"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetGetOrderBook(this.extend(request, parameters));
         Int64? timestamp = this.parse8601(this.safeString(response, "CreatedTimestampUtc"));
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, getValue(market, "symbol"), timestamp, "BuyOrders", "SellOrders", "Price", "Volume"));
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "BuyOrders", "SellOrders", "Price", "Volume"));
     }
 
     public override Dictionary<string, object> parseTicker(object ticker, object market = null)
@@ -630,8 +630,8 @@ public partial class independentreserve : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "primaryCurrencyCode", getValue(market, "baseId") },
-            { "secondaryCurrencyCode", getValue(market, "quoteId") },
+            { "primaryCurrencyCode", (market.ContainsKey("baseId") ? market["baseId"] : null) },
+            { "secondaryCurrencyCode", (market.ContainsKey("quoteId") ? market["quoteId"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetGetMarketSummary(this.extend(request, parameters));
         // {
@@ -849,8 +849,8 @@ public partial class independentreserve : Exchange
         if ((symbol != null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["primaryCurrencyCode"] = getValue(market, "baseId");
-            ((IDictionary<string,object>)request)["secondaryCurrencyCode"] = getValue(market, "quoteId");
+            ((IDictionary<string,object>)request)["primaryCurrencyCode"] = (market.ContainsKey("baseId") ? market["baseId"] : null);
+            ((IDictionary<string,object>)request)["secondaryCurrencyCode"] = (market.ContainsKey("quoteId") ? market["quoteId"] : null);
         }
         if (isEqual(limitVar, null))
         {
@@ -886,8 +886,8 @@ public partial class independentreserve : Exchange
         if ((symbol != null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["primaryCurrencyCode"] = getValue(market, "baseId");
-            ((IDictionary<string,object>)request)["secondaryCurrencyCode"] = getValue(market, "quoteId");
+            ((IDictionary<string,object>)request)["primaryCurrencyCode"] = (market.ContainsKey("baseId") ? market["baseId"] : null);
+            ((IDictionary<string,object>)request)["secondaryCurrencyCode"] = (market.ContainsKey("quoteId") ? market["quoteId"] : null);
         }
         if (isEqual(limitVar, null))
         {
@@ -1003,8 +1003,8 @@ public partial class independentreserve : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "primaryCurrencyCode", getValue(market, "baseId") },
-            { "secondaryCurrencyCode", getValue(market, "quoteId") },
+            { "primaryCurrencyCode", (market.ContainsKey("baseId") ? market["baseId"] : null) },
+            { "secondaryCurrencyCode", (market.ContainsKey("quoteId") ? market["quoteId"] : null) },
             { "numberOfRecentTradesToRetrieve", 50 },
         };
         Dictionary<string, object> response = await this.publicGetGetRecentTrades(this.extend(request, parameters));
@@ -1058,7 +1058,7 @@ public partial class independentreserve : Exchange
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            object fee = this.safeValue(fees, getValue(market, "base"), new Dictionary<string, object>() {});
+            object fee = this.safeValue(fees, (market.ContainsKey("base") ? market["base"] : null), new Dictionary<string, object>() {});
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", this.safeValue(fee, "info") },
                 { "symbol", symbol },
@@ -1094,8 +1094,8 @@ public partial class independentreserve : Exchange
         string orderType = this.capitalize(type);
         orderType = add(orderType, ((bool) (isEqual(side, "sell"))) ? "Offer" : "Bid");
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "primaryCurrencyCode", getValue(market, "baseId") },
-            { "secondaryCurrencyCode", getValue(market, "quoteId") },
+            { "primaryCurrencyCode", (market.ContainsKey("baseId") ? market["baseId"] : null) },
+            { "secondaryCurrencyCode", (market.ContainsKey("quoteId") ? market["quoteId"] : null) },
             { "orderType", orderType },
         };
         object response = null;

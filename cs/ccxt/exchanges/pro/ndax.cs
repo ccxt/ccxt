@@ -55,7 +55,7 @@ public partial class ndax : ccxt.ndax
         }
         Dictionary<string, object> market = this.market(symbol);
         string name = "SubscribeLevel1";
-        string messageHash = add((name + ":"), getValue(market, "id"));
+        string messageHash = add((name + ":"), (market.ContainsKey("id") ? market["id"] : null));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Int64 requestId = ((Int64)this.requestId());
         Dictionary<string, object> payload = new Dictionary<string, object>() {
@@ -108,7 +108,7 @@ public partial class ndax : ccxt.ndax
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
         }
         string name = "SubscribeLevel1";
-        string messageHash = add((name + ":"), getValue(market, "id"));
+        string messageHash = add((name + ":"), (market.ContainsKey("id") ? market["id"] : null));
         (client as WebSocketClient).resolve(ticker, messageHash);
     }
 
@@ -134,9 +134,9 @@ public partial class ndax : ccxt.ndax
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string name = "SubscribeTrades";
-        string messageHash = add((name + ":"), getValue(market, "id"));
+        string messageHash = add((name + ":"), (market.ContainsKey("id") ? market["id"] : null));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Int64 requestId = ((Int64)this.requestId());
         Dictionary<string, object> payload = new Dictionary<string, object>() {
@@ -208,7 +208,7 @@ public partial class ndax : ccxt.ndax
         {
             string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
-            string messageHash = add((name + ":"), getValue(market, "id"));
+            string messageHash = add((name + ":"), (market.ContainsKey("id") ? market["id"] : null));
             object tradesArray = this.safeValue(this.trades, symbol);
             (client as WebSocketClient).resolve(tradesArray, messageHash);
         }
@@ -239,9 +239,9 @@ public partial class ndax : ccxt.ndax
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string name = "SubscribeTicker";
-        string messageHash = add((add((name + ":"), timeframeVar) + ":"), getValue(market, "id"));
+        string messageHash = add((add((name + ":"), timeframeVar) + ":"), (market.ContainsKey("id") ? market["id"] : null));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Int64 requestId = ((Int64)this.requestId());
         Dictionary<string, object> payload = new Dictionary<string, object>() {
@@ -298,7 +298,7 @@ public partial class ndax : ccxt.ndax
             object ohlcv = getValue(payload, i);
             string? marketId = this.safeString(ohlcv, 8);
             Dictionary<string, object> market = this.safeMarket(marketId);
-            string? symbol = ((string)getValue(market, "symbol"));
+            string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             if ((marketId != null))
             {
                 ((IDictionary<string,object>)updates)[(string)marketId] = new Dictionary<string, object>() {};
@@ -375,7 +375,7 @@ public partial class ndax : ccxt.ndax
                 string? timeframe = ((string)getValue(timeframes, j));
                 string messageHash = ((((name + ":") + timeframe) + ":") + marketId);
                 Dictionary<string, object> market = this.safeMarket(marketId);
-                string? symbol = ((string)getValue(market, "symbol"));
+                string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
                 object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe, new List<object>() {});
                 (client as WebSocketClient).resolve(stored, messageHash);
             }
@@ -403,9 +403,9 @@ public partial class ndax : ccxt.ndax
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string name = "SubscribeLevel2";
-        string messageHash = add((name + ":"), getValue(market, "id"));
+        string messageHash = add((name + ":"), (market.ContainsKey("id") ? market["id"] : null));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Int64 requestId = ((Int64)this.requestId());
         limitVar = ((bool) (isEqual(limitVar, null))) ? 100 : limitVar;
@@ -425,7 +425,7 @@ public partial class ndax : ccxt.ndax
             { "messageHash", messageHash },
             { "name", name },
             { "symbol", symbolVar },
-            { "marketId", getValue(market, "id") },
+            { "marketId", (market.ContainsKey("id") ? market["id"] : null) },
             { "method", this.handleOrderBookSubscription },
             { "limit", limitVar },
             { "params", parameters },
@@ -467,7 +467,7 @@ public partial class ndax : ccxt.ndax
             return;
         }
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         ccxt.pro.IOrderBook orderbook = this.safeOrderBook(this.orderbooks, symbol);
         if ((orderbook == null))
         {

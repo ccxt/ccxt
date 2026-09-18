@@ -192,9 +192,9 @@ public partial class grvt : ccxt.grvt
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            object marketId = getValue(market, "id");
+            object marketId = (market.ContainsKey("id") ? market["id"] : null);
             ((IList<object>)rawHashes).Add(add(add(marketId, "@"), ((object)interval).ToString()));
-            ((IList<object>)messageHashes).Add(add("ticker::", getValue(market, "symbol")));
+            ((IList<object>)messageHashes).Add(add("ticker::", (market.ContainsKey("symbol") ? market["symbol"] : null)));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "stream", channel },
@@ -293,7 +293,7 @@ public partial class grvt : ccxt.grvt
         List<object> parts = ((string)selector).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 0);
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsTicker(data, market));
         ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
         (client as WebSocketClient).resolve(ticker, ("ticker::" + symbol));
@@ -349,10 +349,10 @@ public partial class grvt : ccxt.grvt
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            object marketId = getValue(market, "id");
+            object marketId = (market.ContainsKey("id") ? market["id"] : null);
             Int64? limitRaw = this.safeInteger(parameters, "limit", 50); // 50, 200, 500, 1000
             ((IList<object>)rawHashes).Add(add(add(marketId, "@"), ((object)limitRaw).ToString()));
-            ((IList<object>)messageHashes).Add(add("trade::", getValue(market, "symbol")));
+            ((IList<object>)messageHashes).Add(add("trade::", (market.ContainsKey("symbol") ? market["symbol"] : null)));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "stream", "v1.trade" },
@@ -397,7 +397,7 @@ public partial class grvt : ccxt.grvt
         List<object> parts = ((string)selector).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 0);
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         if (!(inOp(this.trades, symbol)))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -468,11 +468,11 @@ public partial class grvt : ccxt.grvt
             object data = getValue(symbolsAndTimeframes, i);
             string? symbolString = this.safeString(data, 0);
             Dictionary<string, object> market = this.market(symbolString);
-            object marketId = getValue(market, "id");
+            object marketId = (market.ContainsKey("id") ? market["id"] : null);
             string? unfiedTimeframe = this.safeString(data, 1, "1");
             string? timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
             ((IList<object>)rawHashes).Add(add(add(add(marketId, "@"), timeframeId), "-TRADE"));
-            ((IList<object>)messageHashes).Add(((add("ohlcv::", getValue(market, "symbol")) + "::") + unfiedTimeframe));
+            ((IList<object>)messageHashes).Add(((add("ohlcv::", (market.ContainsKey("symbol") ? market["symbol"] : null)) + "::") + unfiedTimeframe));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "stream", "v1.candle" },
@@ -517,7 +517,7 @@ public partial class grvt : ccxt.grvt
         List<object> parts = ((string)selector).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 0);
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? secondPart = this.safeString(parts, 1, "");
         string timeframeId = ((string)secondPart).Replace((string)"-TRADE", (string)"");
         string? timeframe = this.findTimeframe(timeframeId);
@@ -611,9 +611,9 @@ public partial class grvt : ccxt.grvt
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            object marketId = getValue(market, "id");
+            object marketId = (market.ContainsKey("id") ? market["id"] : null);
             ((IList<object>)rawHashes).Add(add(add(marketId, "@"), extraPart));
-            ((IList<object>)messageHashes).Add(add("orderbook::", getValue(market, "symbol")));
+            ((IList<object>)messageHashes).Add(add("orderbook::", (market.ContainsKey("symbol") ? market["symbol"] : null)));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "stream", channel },
@@ -656,7 +656,7 @@ public partial class grvt : ccxt.grvt
         List<object> parts = ((string)selector).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 0);
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         Int64? timestamp = this.safeIntegerProduct(data, "event_time", 0.000001);
         if (!(inOp(this.orderbooks, symbol)))
         {
@@ -751,8 +751,8 @@ public partial class grvt : ccxt.grvt
         if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            ((IList<object>)rawHashes).Add(add((subAccountId + "-"), getValue(market, "id")));
-            ((IList<object>)messageHashes).Add(add("myTrades::", getValue(market, "symbol")));
+            ((IList<object>)rawHashes).Add(add((subAccountId + "-"), (market.ContainsKey("id") ? market["id"] : null)));
+            ((IList<object>)messageHashes).Add(add("myTrades::", (market.ContainsKey("symbol") ? market["symbol"] : null)));
         } else
         {
             ((IList<object>)messageHashes).Add("myTrades");
@@ -853,8 +853,8 @@ public partial class grvt : ccxt.grvt
             {
                 object symbol = getValue(symbols, i);
                 Dictionary<string, object> market = this.market(symbol);
-                ((IList<object>)rawHashes).Add(add((subAccountId + "-"), getValue(market, "id")));
-                ((IList<object>)messageHashes).Add(add("positions::", getValue(market, "symbol")));
+                ((IList<object>)rawHashes).Add(add((subAccountId + "-"), (market.ContainsKey("id") ? market["id"] : null)));
+                ((IList<object>)messageHashes).Add(add("positions::", (market.ContainsKey("symbol") ? market["symbol"] : null)));
             }
         } else
         {
@@ -953,8 +953,8 @@ public partial class grvt : ccxt.grvt
         } else
         {
             Dictionary<string, object> market = this.market(symbol);
-            ((IList<object>)messageHashes).Add(add("order::", getValue(market, "symbol")));
-            ((IList<object>)rawHashes).Add(add((subAccountId + "-"), getValue(market, "id")));
+            ((IList<object>)messageHashes).Add(add("order::", (market.ContainsKey("symbol") ? market["symbol"] : null)));
+            ((IList<object>)rawHashes).Add(add((subAccountId + "-"), (market.ContainsKey("id") ? market["id"] : null)));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "stream", "v1.order" },
