@@ -2333,7 +2333,7 @@ public class Bybit extends BybitApi
         Object dataLength = ((List<?>)data).size();
         if ((!java.util.Objects.equals(paginationCursor, null)) && (Helpers.isGreaterThan(dataLength, 0)))
         {
-            Object first = Helpers.GetValue(data, 0);
+            Object first = (data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0));
             Helpers.addElementToObject(first, "nextPageCursor", paginationCursor);
             Helpers.addElementToObject(data, 0, first);
         }
@@ -2373,8 +2373,8 @@ public class Bybit extends BybitApi
                 }
                 List<Object> rawPromises = new ArrayList<Object>(Arrays.asList(this.privateGetV5UserQueryApi(parameters), this.privateGetV5AccountInfo(parameters)));
                 Object promises = (Helpers.promiseAll(rawPromises)).join();
-                Object response = Helpers.GetValue(promises, 0);
-                Object accountInfo = Helpers.GetValue(promises, 1);
+                Object response = (promises == null || 0 >= ((List<?>)promises).size() ? null : ((List<?>)promises).get(0));
+                Object accountInfo = (promises == null || 1 >= ((List<?>)promises).size() ? null : ((List<?>)promises).get(1));
                 //
                 //     {
                 //         "retCode": 0,
@@ -4103,7 +4103,7 @@ public class Bybit extends BybitApi
             if (!java.util.Objects.equals(symbols, null))
             {
                 symbols = this.marketSymbols(symbols);
-                market = this.market(Helpers.GetValue(symbols, 0));
+                market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                 Object symbolsLength = ((List<?>)symbols).size();
                 if (Helpers.isEqual(symbolsLength, 1))
                 {
@@ -5443,7 +5443,7 @@ public class Bybit extends BybitApi
                 (this.loadMarkets()).join();
             }
             Object types = (this.isUnifiedEnabled()).join();
-            Object enableUnifiedAccount = Helpers.GetValue(types, 1);
+            Object enableUnifiedAccount = (types == null || 1 >= ((List<?>)types).size() ? null : ((List<?>)types).get(1));
             if (!java.util.Objects.equals(enableUnifiedAccount, true))
             {
                 throw new NotSupported((this.id + " createMarketSellOrderWithCost() supports UTA accounts only")) ;
@@ -5510,7 +5510,7 @@ public class Bybit extends BybitApi
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object parts = (this.isUnifiedEnabled()).join();
-            Object enableUnifiedAccount = Helpers.GetValue(parts, 1);
+            Object enableUnifiedAccount = (parts == null || 1 >= ((List<?>)parts).size() ? null : ((List<?>)parts).get(1));
             Boolean isTrailingOrder = !java.util.Objects.equals(this.safeString2(parameters, "trailingAmount", "trailingStop"), null);
             Boolean isStopLossOrder = !java.util.Objects.equals(this.safeString(parameters, "stopLossPrice"), null);
             Boolean isTakeProfitOrder = !java.util.Objects.equals(this.safeString(parameters, "takeProfitPrice"), null);
@@ -5926,7 +5926,7 @@ public class Bybit extends BybitApi
                 (this.loadMarkets()).join();
             }
             Object accounts = (this.isUnifiedEnabled()).join();
-            Object isUta = Helpers.GetValue(accounts, 1);
+            Object isUta = (accounts == null || 1 >= ((List<?>)accounts).size() ? null : ((List<?>)accounts).get(1));
             List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
             List<Object> orderSymbols = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
@@ -5944,7 +5944,7 @@ public class Bybit extends BybitApi
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
             Object symbols = this.marketSymbols(orderSymbols, null, false, true, true);
-            Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
+            Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
             Long unifiedMarginStatus = this.safeInteger(this.options, "unifiedMarginStatus", 6);
             Object category = null;
             var categoryparametersVariable = this.getBybitType("createOrders", market, parameters);
@@ -6202,7 +6202,7 @@ public class Bybit extends BybitApi
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
             orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
-            Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(orderSymbols, 0));
+            Map<String, Object> market = (Map<String, Object>) this.market((orderSymbols == null || 0 >= ((List<?>)orderSymbols).size() ? null : ((List<?>)orderSymbols).get(0)));
             Long unifiedMarginStatus = this.safeInteger(this.options, "unifiedMarginStatus", 6);
             Object category = null;
             var categoryparametersVariable = this.getBybitType("editOrders", market, parameters);
@@ -6376,7 +6376,7 @@ public class Bybit extends BybitApi
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object types = (this.isUnifiedEnabled()).join();
-            Object enableUnifiedAccount = Helpers.GetValue(types, 1);
+            Object enableUnifiedAccount = (types == null || 1 >= ((List<?>)types).size() ? null : ((List<?>)types).get(1));
             if (!java.util.Objects.equals(enableUnifiedAccount, true))
             {
                 throw new NotSupported((this.id + " cancelOrders() supports UTA accounts only")) ;
@@ -6527,7 +6527,7 @@ public class Bybit extends BybitApi
                 (this.loadMarkets()).join();
             }
             Object types = (this.isUnifiedEnabled()).join();
-            Object enableUnifiedAccount = Helpers.GetValue(types, 1);
+            Object enableUnifiedAccount = (types == null || 1 >= ((List<?>)types).size() ? null : ((List<?>)types).get(1));
             if (!java.util.Objects.equals(enableUnifiedAccount, true))
             {
                 throw new NotSupported((this.id + " cancelOrdersForSymbols() supports UTA accounts only")) ;
@@ -8071,7 +8071,7 @@ public class Bybit extends BybitApi
             Object enableUnified = (this.isUnifiedEnabled()).join();
             Object currency = null;
             String currencyKey = "coin";
-            if (java.util.Objects.equals(Helpers.GetValue(enableUnified, 1), true))
+            if (java.util.Objects.equals((enableUnified == null || 1 >= ((List<?>)enableUnified).size() ? null : ((List<?>)enableUnified).get(1)), true))
             {
                 currencyKey = "currency";
                 if (!java.util.Objects.equals(since, null))
@@ -8099,7 +8099,7 @@ public class Bybit extends BybitApi
             subType = ((List<Object>) subTypeparametersVariable).get(0);
             parameters = ((List<Object>) subTypeparametersVariable).get(1);
             Object response = null;
-            if (java.util.Objects.equals(Helpers.GetValue(enableUnified, 1), true))
+            if (java.util.Objects.equals((enableUnified == null || 1 >= ((List<?>)enableUnified).size() ? null : ((List<?>)enableUnified).get(1)), true))
             {
                 Long unifiedMarginStatus = this.safeInteger(this.options, "unifiedMarginStatus", 5); // 3/4 uta 1.0, 5/6 uta 2.0
                 if (java.util.Objects.equals(subType, "inverse") && (Helpers.isLessThan(unifiedMarginStatus, 5)))
@@ -8360,7 +8360,7 @@ public class Bybit extends BybitApi
             parameters = ((List<Object>) tagparametersVariable).get(1);
             Object accountType = null;
             Object accounts = (this.isUnifiedEnabled()).join();
-            Object isUta = Helpers.GetValue(accounts, 1);
+            Object isUta = (accounts == null || 1 >= ((List<?>)accounts).size() ? null : ((List<?>)accounts).get(1));
             List<Object> accountTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "withdraw", "accountType");
             accountType = ((List<Object>) accountTypeparametersVariable).get(0);
             parameters = ((List<Object>) accountTypeparametersVariable).get(1);
@@ -8540,7 +8540,7 @@ public class Bybit extends BybitApi
                     throw new ArgumentsRequired((this.id + " fetchPositions() does not accept an array with more than one symbol")) ;
                 } else if (Helpers.isEqual(symbolsLength, 1))
                 {
-                    symbol = Helpers.GetValue(symbols, 0);
+                    symbol = (symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0));
                 }
                 symbols = this.marketSymbols(symbols);
             } else if (!java.util.Objects.equals(symbols, null))
@@ -9370,7 +9370,7 @@ public class Bybit extends BybitApi
             String id = this.safeString(result, "symbol");
             Map<String, Object> safeMarketObj = (Map<String, Object>) this.safeMarket(id, market, null, "contract");
             Object data = this.addPaginationCursorToResult(response);
-            return this.parseOpenInterest(Helpers.GetValue(data, 0), safeMarketObj);
+            return this.parseOpenInterest((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0)), safeMarketObj);
         }).thenApply(OpenInterest::new);
 
     }
@@ -10742,7 +10742,7 @@ public class Bybit extends BybitApi
             Long timestamp = this.safeInteger(response, "time");
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object data = this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
-            Object greeks = this.parseGreeks(Helpers.GetValue(data, 0), market);
+            Object greeks = this.parseGreeks((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0)), market);
             return this.extend(greeks, new HashMap<String, Object>() {{
                 put( "timestamp", timestamp );
                 put( "datetime", Bybit.this.iso8601(timestamp) );
@@ -10784,7 +10784,7 @@ public class Bybit extends BybitApi
                 Object symbolsLength = ((List<?>)symbols).size();
                 if (Helpers.isEqual(symbolsLength, 1))
                 {
-                    market = this.market(Helpers.GetValue(symbols, 0));
+                    market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                     ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
                 }
             }
@@ -11125,7 +11125,7 @@ public class Bybit extends BybitApi
             Object symbol = null;
             if (!java.util.Objects.equals(symbols, null))
             {
-                market = this.market(Helpers.GetValue(symbols, 0));
+                market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                 if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
                 {
                     throw new NotSupported((this.id + " fetchLeverageTiers() is not supported for spot market")) ;
@@ -11591,7 +11591,7 @@ final Object finalMarket = market;
                 symbolsLength = ((List<?>)symbols).size();
                 if (Helpers.isGreaterThan(symbolsLength, 0))
                 {
-                    market = this.market(Helpers.GetValue(symbols, 0));
+                    market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                 }
             }
             Long until = this.safeInteger(parameters, "until");

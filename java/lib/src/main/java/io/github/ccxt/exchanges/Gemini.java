@@ -820,7 +820,7 @@ public class Gemini extends GeminiApi
                 ((List<Object>)promises).add(this.fetchMarketsFromWeb(parameters)); // get usd markets
                 ((List<Object>)promises).add(this.fetchUSDTMarkets(parameters)); // get usdt markets
                 Object promisesResult = (Helpers.promiseAll(promises)).join();
-                return this.arrayConcat(Helpers.GetValue(promisesResult, 0), Helpers.GetValue(promisesResult, 1));
+                return this.arrayConcat((promisesResult == null || 0 >= ((List<?>)promisesResult).size() ? null : ((List<?>)promisesResult).get(0)), (promisesResult == null || 1 >= ((List<?>)promisesResult).size() ? null : ((List<?>)promisesResult).get(1)));
             }
             return (this.fetchMarketsFromAPI(parameters)).join();
         });

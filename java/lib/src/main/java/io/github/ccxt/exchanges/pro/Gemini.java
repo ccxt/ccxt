@@ -650,7 +650,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
                 throw new NotSupported((this.id + " watchMultiple requires at least one symbol")) ;
             }
             symbols = this.marketSymbols(symbols, null, false, true, true);
-            Map<String, Object> firstMarket = (Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
+            Map<String, Object> firstMarket = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
             if ((!java.util.Objects.equals(((Map<String, Object>)firstMarket).get("spot"), true)) && (!java.util.Objects.equals(((Map<String, Object>)firstMarket).get("linear"), true)))
             {
                 throw new NotSupported((this.id + " watchMultiple supports only spot or linear-swap symbols")) ;

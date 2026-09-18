@@ -628,7 +628,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         //     }
         //
         Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        Object ticker = Helpers.GetValue(data, 0);
+        Object ticker = (data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0));
         Object symbol = this.safeString(ticker, "symbol");
         Object messageHash = this.getMessageHash("ticker", null, symbol);
         String vwap = this.safeString(ticker, "vwap");
@@ -688,7 +688,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         //     }
         //
         Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        Object trade = Helpers.GetValue(data, 0);
+        Object trade = (data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0));
         Object symbol = this.safeString(trade, "symbol");
         Object messageHash = this.getMessageHash("trade", null, symbol);
         Object stored = this.safeValue(this.trades, symbol);
@@ -732,7 +732,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         //     }
         //
         Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        Object first = Helpers.GetValue(data, 0);
+        Object first = (data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0));
         String marketId = this.safeString(first, "symbol");
         String symbol = this.safeSymbol(marketId);
         if (!(((Map<?, ?>)this.ohlcvs).containsKey(symbol)))

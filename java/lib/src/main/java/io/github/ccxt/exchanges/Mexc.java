@@ -2732,7 +2732,7 @@ public class Mexc extends MexcApi
             {
                 Object length = ((List<?>)symbols).size();
                 isSingularMarket = Helpers.isEqual(length, 1);
-                market = this.market(Helpers.GetValue(symbols, 0));
+                market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
             }
             List<Object> marketTypequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
             var marketType = ((List<Object>) marketTypequeryVariable).get(0);
@@ -7228,7 +7228,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                 Object symbolsLength = ((List<?>)symbols).size();
                 if (Helpers.isEqual(symbolsLength, 1))
                 {
-                    Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
+                    Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                     ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
                 }
             }

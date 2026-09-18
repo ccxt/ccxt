@@ -1016,7 +1016,7 @@ public class Poloniex extends PoloniexApi
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             List<Object> promises = new ArrayList<Object>(Arrays.asList(this.fetchSpotMarkets(parameters), this.fetchSwapMarkets(parameters)));
             Object results = (Helpers.promiseAll(promises)).join();
-            return this.arrayConcat(Helpers.GetValue(results, 0), Helpers.GetValue(results, 1));
+            return this.arrayConcat((results == null || 0 >= ((List<?>)results).size() ? null : ((List<?>)results).get(0)), (results == null || 1 >= ((List<?>)results).size() ? null : ((List<?>)results).get(1)));
         });
 
     }
@@ -1431,7 +1431,7 @@ public class Poloniex extends PoloniexApi
                 Object symbolsLength = ((List<?>)symbols).size();
                 if (Helpers.isGreaterThan(symbolsLength, 0))
                 {
-                    market = this.market(Helpers.GetValue(symbols, 0));
+                    market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                     if (Helpers.isEqual(symbolsLength, 1))
                     {
                         ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));

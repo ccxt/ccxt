@@ -5756,7 +5756,7 @@ final Object finalMinNotional = minNotional;
             //     }
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTicker(Helpers.GetValue(data, 0), market);
+            return this.parseTicker((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0)), market);
         }).thenApply(Ticker::new);
 
     }
@@ -5798,7 +5798,7 @@ final Object finalMinNotional = minNotional;
                 response = (this.publicMixGetV2MixMarketSymbolPrice(this.extend(request, parameters))).join();
             }
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseTicker(Helpers.GetValue(data, 0), market);
+            return this.parseTicker((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0)), market);
         }).thenApply(Ticker::new);
 
     }
@@ -11854,7 +11854,7 @@ final Object finalMinNotional = minNotional;
                 }
             }
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseFundingRate(Helpers.GetValue(data, 0), market);
+            return this.parseFundingRate((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0)), market);
         }).thenApply(FundingRate::new);
 
     }
@@ -12725,10 +12725,10 @@ final Object finalMinNotional = minNotional;
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object data = this.safeList2(interest, "openInterestList", "list", new ArrayList<Object>(Arrays.asList()));
         Long timestamp = this.safeInteger(interest, "ts");
-        String marketId = this.safeString(Helpers.GetValue(data, 0), "symbol");
+        String marketId = this.safeString((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0)), "symbol");
         return this.safeOpenInterest(new HashMap<String, Object>() {{
             put( "symbol", Bitget.this.safeSymbol(marketId, market, null, "contract") );
-            put( "openInterestAmount", Bitget.this.safeNumber2(Helpers.GetValue(data, 0), "size", "openInterest") );
+            put( "openInterestAmount", Bitget.this.safeNumber2((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0)), "size", "openInterest") );
             put( "openInterestValue", null );
             put( "timestamp", timestamp );
             put( "datetime", Bitget.this.iso8601(timestamp) );
@@ -14005,7 +14005,7 @@ final Object finalMinNotional = minNotional;
             }
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
             Object order = this.safeList2(data, "successList", "list", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOrder(Helpers.GetValue(order, 0), market);
+            return this.parseOrder((order == null || 0 >= ((List<?>)order).size() ? null : ((List<?>)order).get(0)), market);
         }).thenApply(Order::new);
 
     }
@@ -14173,7 +14173,7 @@ final Object finalMinNotional = minNotional;
                 Object symbolsLength = ((List<?>)symbols).size();
                 if (Helpers.isGreaterThan(symbolsLength, 0))
                 {
-                    market = this.market(Helpers.GetValue(symbols, 0));
+                    market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                     ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
                 }
             }

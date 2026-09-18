@@ -472,7 +472,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             Object market = null;
             if (!java.util.Objects.equals(symbols, null))
             {
-                market = this.market(Helpers.GetValue(symbols, 0));
+                market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
             }
             Object tickers = (this.subscribe(name, "public", "watchTickers", market, symbols, parameters)).join();
             if (this.newUpdates)

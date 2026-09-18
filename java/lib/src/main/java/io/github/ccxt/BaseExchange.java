@@ -4721,9 +4721,9 @@ public Object describe()
             if (Helpers.isGreaterThan(arrayLength, 0))
             {
                 Boolean ascending = true;
-                if ((Helpers.inOp(Helpers.GetValue(array, 0), key)))
+                if ((Helpers.inOp((array == null || 0 >= ((List<?>)array).size() ? null : ((List<?>)array).get(0)), key)))
                 {
-                    Object first = Helpers.GetValue(Helpers.GetValue(array, 0), key);
+                    Object first = Helpers.GetValue((array == null || 0 >= ((List<?>)array).size() ? null : ((List<?>)array).get(0)), key);
                     Object last = Helpers.GetValue(Helpers.GetValue(array, Helpers.subtract(arrayLength, 1)), key);
                     if (!java.util.Objects.equals(first, null) && !java.util.Objects.equals(last, null))
                     {
@@ -6598,19 +6598,19 @@ public Object describe()
                 // move properties that are defined in trades up into the order
                 if (java.util.Objects.equals(((Map<String, Object>)order).get("symbol"), null))
                 {
-                    ((Map<String, Object>)order).put("symbol", Helpers.GetValue(Helpers.GetValue(trades, 0), "symbol"));
+                    ((Map<String, Object>)order).put("symbol", Helpers.GetValue((trades == null || 0 >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(0)), "symbol"));
                 }
                 if (java.util.Objects.equals(((Map<String, Object>)order).get("side"), null))
                 {
-                    ((Map<String, Object>)order).put("side", Helpers.GetValue(Helpers.GetValue(trades, 0), "side"));
+                    ((Map<String, Object>)order).put("side", Helpers.GetValue((trades == null || 0 >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(0)), "side"));
                 }
                 if (java.util.Objects.equals(((Map<String, Object>)order).get("type"), null))
                 {
-                    ((Map<String, Object>)order).put("type", Helpers.GetValue(Helpers.GetValue(trades, 0), "type"));
+                    ((Map<String, Object>)order).put("type", Helpers.GetValue((trades == null || 0 >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(0)), "type"));
                 }
                 if (java.util.Objects.equals(((Map<String, Object>)order).get("id"), null))
                 {
-                    ((Map<String, Object>)order).put("id", Helpers.GetValue(Helpers.GetValue(trades, 0), "order"));
+                    ((Map<String, Object>)order).put("id", Helpers.GetValue((trades == null || 0 >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(0)), "order"));
                 }
                 if (Boolean.TRUE.equals(parseFilled))
                 {
@@ -6708,7 +6708,7 @@ public Object describe()
             ((Map<String, Object>)order).put("fees", reducedFees);
             if (Boolean.TRUE.equals(parseFee) && (Helpers.isEqual(reducedLength, 1)))
             {
-                ((Map<String, Object>)order).put("fee", Helpers.GetValue(reducedFees, 0));
+                ((Map<String, Object>)order).put("fee", (reducedFees == null || 0 >= ((List<?>)reducedFees).size() ? null : ((List<?>)reducedFees).get(0)));
             }
         }
         if (java.util.Objects.equals(amount, null))
@@ -7160,7 +7160,7 @@ public Object describe()
             fees = reducedFees;
             if (Helpers.isEqual(reducedLength, 1))
             {
-                fee = Helpers.GetValue(reducedFees, 0);
+                fee = (reducedFees == null || 0 >= ((List<?>)reducedFees).size() ? null : ((List<?>)reducedFees).get(0));
             } else if (Helpers.isEqual(reducedLength, 0))
             {
                 fee = null;
@@ -8073,8 +8073,8 @@ public Object describe()
         Map<String, Object> networkIdsByCodes = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
         // try the preferred form first, fall back to its alternative (e.g. when only 'ETH' or only 'ERC20' is defined)
         Object chainPair = this.prioritizedNetworkAliases(networkCode, currencyCode, false);
-        Object preferredChain = (((java.util.Objects.equals(chainPair, null)))) ? networkCode : Helpers.GetValue(chainPair, 0);
-        Object alternativeChain = (((java.util.Objects.equals(chainPair, null)))) ? networkCode : Helpers.GetValue(chainPair, 1);
+        Object preferredChain = (((java.util.Objects.equals(chainPair, null)))) ? networkCode : (chainPair == null || 0 >= ((List<?>)chainPair).size() ? null : ((List<?>)chainPair).get(0));
+        Object alternativeChain = (((java.util.Objects.equals(chainPair, null)))) ? networkCode : (chainPair == null || 1 >= ((List<?>)chainPair).size() ? null : ((List<?>)chainPair).get(1));
         String networkId = this.safeString2(networkIdsByCodes, preferredChain, alternativeChain);
         if (!java.util.Objects.equals(networkId, null))
         {
@@ -8130,8 +8130,8 @@ public Object describe()
         {
             return networkCode;
         }
-        Object preferredChain = Helpers.GetValue(chainPair, 0);
-        Object alternativeChain = Helpers.GetValue(chainPair, 1);
+        Object preferredChain = (chainPair == null || 0 >= ((List<?>)chainPair).size() ? null : ((List<?>)chainPair).get(0));
+        Object alternativeChain = (chainPair == null || 1 >= ((List<?>)chainPair).size() ? null : ((List<?>)chainPair).get(1));
         // when the exchange explicitly defines both forms in options.networks (e.g. BTC + BRC20),
         // it disambiguates them — trust the direct id→code inversion instead of guessing
         if (java.util.Objects.equals(currencyCode, null))
@@ -10238,7 +10238,7 @@ public Object describe()
                 } else
                 {
                     Object keys = Helpers.objectKeys(addressStructures);
-                    Object key = Helpers.GetValue(keys, 0);
+                    Object key = (keys == null || 0 >= ((List<?>)keys).size() ? null : ((List<?>)keys).get(0));
                     return this.safeDict(addressStructures, key);
                 }
             } else
@@ -11524,8 +11524,8 @@ public Object describe()
         Object numNetworks = ((List<?>)networkKeys).size();
         if (Helpers.isEqual(numNetworks, 1))
         {
-            Helpers.addElementToObject(fee, "withdraw", Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(fee, "networks"), Helpers.GetValue(networkKeys, 0)), "withdraw"));
-            Helpers.addElementToObject(fee, "deposit", Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(fee, "networks"), Helpers.GetValue(networkKeys, 0)), "deposit"));
+            Helpers.addElementToObject(fee, "withdraw", Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(fee, "networks"), (networkKeys == null || 0 >= ((List<?>)networkKeys).size() ? null : ((List<?>)networkKeys).get(0))), "withdraw"));
+            Helpers.addElementToObject(fee, "deposit", Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(fee, "networks"), (networkKeys == null || 0 >= ((List<?>)networkKeys).size() ? null : ((List<?>)networkKeys).get(0))), "deposit"));
             return fee;
         }
         String currencyCode = this.safeString(currency, "code");

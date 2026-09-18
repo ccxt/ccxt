@@ -1531,7 +1531,7 @@ public class Bitmex extends BitmexApi
             Object numResults = ((List<?>)response).size();
             if (Helpers.isEqual(numResults, 1))
             {
-                return Helpers.GetValue(response, 0);
+                return (response == null || 0 >= ((List<?>)response).size() ? null : ((List<?>)response).get(0));
             }
             throw new OrderNotFound((((this.id + ": The order ") + id) + " not found.")) ;
         }).thenApply(Order::new);

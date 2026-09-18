@@ -1473,8 +1473,8 @@ public class Xt extends XtApi
             }
             List<Object> promisesUnresolved = new ArrayList<Object>(Arrays.asList(this.fetchSpotMarkets(parameters), this.fetchSwapAndFutureMarkets(parameters)));
             Object promises = (Helpers.promiseAll(promisesUnresolved)).join();
-            Object spotMarkets = Helpers.GetValue(promises, 0);
-            Object swapAndFutureMarkets = Helpers.GetValue(promises, 1);
+            Object spotMarkets = (promises == null || 0 >= ((List<?>)promises).size() ? null : ((List<?>)promises).get(0));
+            Object swapAndFutureMarkets = (promises == null || 1 >= ((List<?>)promises).size() ? null : ((List<?>)promises).get(1));
             return this.arrayConcat(spotMarkets, swapAndFutureMarkets);
         });
 
@@ -2311,7 +2311,7 @@ public class Xt extends XtApi
             if (!java.util.Objects.equals(symbols, null))
             {
                 symbols = this.marketSymbols(symbols);
-                market = this.market(Helpers.GetValue(symbols, 0));
+                market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object type = null;
@@ -2423,7 +2423,7 @@ public class Xt extends XtApi
             Object market = null;
             if (!java.util.Objects.equals(symbols, null))
             {
-                market = this.market(Helpers.GetValue(symbols, 0));
+                market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
             }
             Object type = null;
             Object subType = null;
@@ -6677,7 +6677,7 @@ final Object finalMarket = market;
                 Object symbolsLength = ((List<?>)symbols).size();
                 if (Helpers.isEqual(symbolsLength, 1))
                 {
-                    market = this.market(Helpers.GetValue(symbols, 0));
+                    market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                     ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
                 }
             }

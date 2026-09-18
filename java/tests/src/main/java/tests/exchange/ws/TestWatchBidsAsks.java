@@ -77,7 +77,7 @@ public class TestWatchBidsAsks extends BaseTest {
                 Object checkedSymbol = null;
                 if (!java.util.Objects.equals(argSymbols, null) && Helpers.isEqual(((List<?>)argSymbols).size(), 1))
                 {
-                    checkedSymbol = Helpers.GetValue(argSymbols, 0);
+                    checkedSymbol = (argSymbols == null || 0 >= ((List<?>)argSymbols).size() ? null : ((List<?>)argSymbols).get(0));
                 }
                 TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol);
                 for (var i = 0; i < ((List<?>)values).size(); i++)

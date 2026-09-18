@@ -1871,7 +1871,7 @@ public class Bitfinex extends BitfinexApi
         Long timestamp = this.safeInteger(tradeList, timestampIndex);
         if (Helpers.isTrue(isPrivate))
         {
-            Object marketId = Helpers.GetValue(tradeList, 1);
+            Object marketId = (tradeList == null || 1 >= ((List<?>)tradeList).size() ? null : ((List<?>)tradeList).get(1));
             symbol = this.safeSymbol(marketId);
             orderId = this.safeString(tradeList, 3);
             Long maker = this.safeInteger(tradeList, 8);
@@ -1885,7 +1885,7 @@ public class Bitfinex extends BitfinexApi
                 put( "cost", finalFeeCostString );
                 put( "currency", feeCurrency );
             }};
-            Object orderType = Helpers.GetValue(tradeList, 6);
+            Object orderType = (tradeList == null || 6 >= ((List<?>)tradeList).size() ? null : ((List<?>)tradeList).get(6));
             type = this.safeString(((Map<String, Object>)this.options).get("exchangeTypes"), orderType);
         }
         final Object finalSymbol = symbol;

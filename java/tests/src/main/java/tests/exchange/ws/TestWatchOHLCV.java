@@ -28,7 +28,7 @@ public class TestWatchOHLCV extends BaseTest {
         Object chosenTimeframeKey = "1m";
         if (!Helpers.isTrue(exchange.inArray(chosenTimeframeKey, timeframeKeys)))
         {
-            chosenTimeframeKey = Helpers.GetValue(timeframeKeys, 0);
+            chosenTimeframeKey = (timeframeKeys == null || 0 >= ((List<?>)timeframeKeys).size() ? null : ((List<?>)timeframeKeys).get(0));
         }
         Integer limit = 10;
         Object duration = exchange.parseTimeframe(chosenTimeframeKey);

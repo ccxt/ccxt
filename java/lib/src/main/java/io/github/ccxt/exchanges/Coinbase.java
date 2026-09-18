@@ -1985,7 +1985,7 @@ public class Coinbase extends CoinbaseApi
                 Object length = ((List<?>)realMarketIds).size();
                 if (Helpers.isGreaterThan(length, 0))
                 {
-                    Helpers.addElementToObject(market, "alias", Helpers.GetValue(realMarketIds, 0));
+                    Helpers.addElementToObject(market, "alias", (realMarketIds == null || 0 >= ((List<?>)realMarketIds).size() ? null : ((List<?>)realMarketIds).get(0)));
                 } else
                 {
                     Helpers.addElementToObject(market, "alias", null);
@@ -5939,7 +5939,7 @@ public class Coinbase extends CoinbaseApi
             Object market = null;
             if (!java.util.Objects.equals(symbols, null))
             {
-                market = this.market(Helpers.GetValue(symbols, 0));
+                market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
             }
             Object type = null;
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchPositions", market, parameters);
@@ -6590,8 +6590,8 @@ public class Coinbase extends CoinbaseApi
                 Object numErrors = ((List<?>)errors).size();
                 if (Helpers.isGreaterThan(numErrors, 0))
                 {
-                    errorCode = this.safeString(Helpers.GetValue(errors, 0), "id");
-                    String errorMessage = this.safeString(Helpers.GetValue(errors, 0), "message");
+                    errorCode = this.safeString((errors == null || 0 >= ((List<?>)errors).size() ? null : ((List<?>)errors).get(0)), "id");
+                    String errorMessage = this.safeString((errors == null || 0 >= ((List<?>)errors).size() ? null : ((List<?>)errors).get(0)), "message");
                     if (!java.util.Objects.equals(errorCode, null))
                     {
                         this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);

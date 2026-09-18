@@ -5942,7 +5942,7 @@ final Object finalPointFee = pointFee;
             ((List<Object>)ordersRequests).add(orderRequest);
         }
         Object symbols = this.marketSymbols(orderSymbols, null, false, true, true);
-        Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
+        Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
         if ((java.util.Objects.equals(((Map<String, Object>)market).get("future"), true)) || (java.util.Objects.equals(((Map<String, Object>)market).get("option"), true)))
         {
             throw new NotSupported((this.id + " createOrders() does not support futures or options markets")) ;
@@ -5972,7 +5972,7 @@ final Object finalPointFee = pointFee;
             }
             (this.loadUnifiedStatus()).join();
             Object ordersRequests = this.createOrdersRequest(orders, parameters);
-            Object firstOrder = Helpers.GetValue(orders, 0);
+            Object firstOrder = (orders == null || 0 >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(0));
             Map<String, Object> market = (Map<String, Object>) this.market(((Map<String, Object>)firstOrder).get("symbol"));
             Object response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
@@ -8301,7 +8301,7 @@ final Object finalRebate = rebate;
                 Object symbolsLength = ((List<?>)symbols).size();
                 if (Helpers.isGreaterThan(symbolsLength, 0))
                 {
-                    market = this.market(Helpers.GetValue(symbols, 0));
+                    market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                 }
             }
             Object type = null;
@@ -10795,7 +10795,7 @@ final Object finalI = i;
                 Object symbolsLength = ((List<?>)symbols).size();
                 if (Helpers.isEqual(symbolsLength, 1))
                 {
-                    market = this.market(Helpers.GetValue(symbols, 0));
+                    market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                 }
             }
             Object marketType = null;

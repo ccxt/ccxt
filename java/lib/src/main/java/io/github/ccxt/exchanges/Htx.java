@@ -2842,7 +2842,7 @@ public class Htx extends HtxApi
                 if (!java.util.Objects.equals(createdDate, null))
                 {
                     Object createdArray = this.stringToCharsArray(createdDate);
-                    createdDate = (((((((Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(createdArray, 0), Helpers.GetValue(createdArray, 1)), Helpers.GetValue(createdArray, 2)), Helpers.GetValue(createdArray, 3)) + "-") + Helpers.GetValue(createdArray, 4)) + Helpers.GetValue(createdArray, 5)) + "-") + Helpers.GetValue(createdArray, 6)) + Helpers.GetValue(createdArray, 7)) + " 00:00:00");
+                    createdDate = (((((((Helpers.add(Helpers.add(Helpers.add((createdArray == null || 0 >= ((List<?>)createdArray).size() ? null : ((List<?>)createdArray).get(0)), (createdArray == null || 1 >= ((List<?>)createdArray).size() ? null : ((List<?>)createdArray).get(1))), (createdArray == null || 2 >= ((List<?>)createdArray).size() ? null : ((List<?>)createdArray).get(2))), (createdArray == null || 3 >= ((List<?>)createdArray).size() ? null : ((List<?>)createdArray).get(3))) + "-") + (createdArray == null || 4 >= ((List<?>)createdArray).size() ? null : ((List<?>)createdArray).get(4))) + (createdArray == null || 5 >= ((List<?>)createdArray).size() ? null : ((List<?>)createdArray).get(5))) + "-") + (createdArray == null || 6 >= ((List<?>)createdArray).size() ? null : ((List<?>)createdArray).get(6))) + (createdArray == null || 7 >= ((List<?>)createdArray).size() ? null : ((List<?>)createdArray).get(7))) + " 00:00:00");
                     created = this.parse8601(createdDate);
                 }
     final Object finalId = id;
@@ -10808,7 +10808,7 @@ public class Htx extends HtxApi
                 }});
             }
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object openInterest = this.parseOpenInterest(Helpers.GetValue(data, 0), market);
+            Object openInterest = this.parseOpenInterest((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0)), market);
             Helpers.addElementToObject(openInterest, "timestamp", timestamp);
             Helpers.addElementToObject(openInterest, "datetime", this.iso8601(timestamp));
             return openInterest;

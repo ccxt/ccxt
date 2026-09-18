@@ -410,7 +410,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         for (var j = 0; j < ((List<?>)handlers).size(); j++)
         {
             Object handler = Helpers.GetValue(handlers, j);
-            Helpers.callDynamically(this, handler, new Object[] {client, message, Helpers.GetValue(subscriptions, 0)});
+            Helpers.callDynamically(this, handler, new Object[] {client, message, (subscriptions == null || 0 >= ((List<?>)subscriptions).size() ? null : ((List<?>)subscriptions).get(0))});
         }
     }
 }

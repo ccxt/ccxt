@@ -1130,7 +1130,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 return Helpers.GetValue(networksArray, i);
             }
         }
-        return Helpers.GetValue(networksArray, 0);
+        return (networksArray == null || 0 >= ((List<?>)networksArray).size() ? null : ((List<?>)networksArray).get(0));
     }
 
     public CompletableFuture<Object> loadCurrencyNetworks(Object code, Object... optionalArgs)

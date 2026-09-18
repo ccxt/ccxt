@@ -723,7 +723,7 @@ public class Kraken extends KrakenApi
                 ((List<Object>)promises).add(this.loadTimeDifference());
             }
             Object responses = (Helpers.promiseAll(promises)).join();
-            Object assetsResponse = Helpers.GetValue(responses, 0);
+            Object assetsResponse = (responses == null || 0 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(0));
             //
             //     {
             //         "error": [],
@@ -1682,7 +1682,7 @@ public class Kraken extends KrakenApi
             Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             Object items = (this.fetchLedgerEntriesByIds(new ArrayList<Object>(Arrays.asList(id)), code, parameters)).join();
-            return Helpers.GetValue(items, 0);
+            return (items == null || 0 >= ((List<?>)items).size() ? null : ((List<?>)items).get(0));
         }).thenApply(LedgerEntry::new);
 
     }
@@ -1765,8 +1765,8 @@ public class Kraken extends KrakenApi
         if ((trade instanceof List))
         {
             timestamp = this.safeTimestamp(trade, 2);
-            side = (((java.util.Objects.equals(Helpers.GetValue(trade, 3), "s")))) ? "sell" : "buy";
-            type = (((java.util.Objects.equals(Helpers.GetValue(trade, 4), "l")))) ? "limit" : "market";
+            side = (((java.util.Objects.equals((trade == null || 3 >= ((List<?>)trade).size() ? null : ((List<?>)trade).get(3)), "s")))) ? "sell" : "buy";
+            type = (((java.util.Objects.equals((trade == null || 4 >= ((List<?>)trade).size() ? null : ((List<?>)trade).get(4)), "l")))) ? "limit" : "market";
             price = this.safeString(trade, 0);
             amount = this.safeString(trade, 1);
             Object tradeLength = ((List<?>)trade).size();
@@ -2093,9 +2093,9 @@ public class Kraken extends KrakenApi
                 put( "volume", Kraken.this.amountToPrecision(symbol, amount) );
             }};
             Object orderRequest = this.orderRequest("createOrder", symbol, type, request, amount, price, parameters);
-            String flags = this.safeString(Helpers.GetValue(orderRequest, 0), "oflags", "");
+            String flags = this.safeString((orderRequest == null || 0 >= ((List<?>)orderRequest).size() ? null : ((List<?>)orderRequest).get(0)), "oflags", "");
             Boolean isUsingCost = Helpers.isGreaterThan(Helpers.getIndexOf(flags, "viqc"), Helpers.opNeg(1));
-            Map<String, Object> response = (this.privatePostAddOrder(this.extend(Helpers.GetValue(orderRequest, 0), Helpers.GetValue(orderRequest, 1)))).join();
+            Map<String, Object> response = (this.privatePostAddOrder(this.extend((orderRequest == null || 0 >= ((List<?>)orderRequest).size() ? null : ((List<?>)orderRequest).get(0)), (orderRequest == null || 1 >= ((List<?>)orderRequest).size() ? null : ((List<?>)orderRequest).get(1))))).join();
             //
             //     {
             //         "error": [],
@@ -2166,7 +2166,7 @@ public class Kraken extends KrakenApi
                     put( "volume", parsedAmount );
                 }};
                 Object orderRequest = this.orderRequest("createOrders", marketId, type, req, amount, price, orderParams);
-                ((List<Object>)ordersRequests).add(Helpers.GetValue(orderRequest, 0));
+                ((List<Object>)ordersRequests).add((orderRequest == null || 0 >= ((List<?>)orderRequest).size() ? null : ((List<?>)orderRequest).get(0)));
             }
             orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
             Object response = null;

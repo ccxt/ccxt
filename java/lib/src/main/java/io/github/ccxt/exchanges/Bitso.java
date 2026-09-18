@@ -1722,7 +1722,7 @@ public class Bitso extends BitsoApi
                 Object numOrders = ((List<?>)payload).size();
                 if (Helpers.isEqual(numOrders, 1))
                 {
-                    return this.parseOrder(Helpers.GetValue(payload, 0));
+                    return this.parseOrder((payload == null || 0 >= ((List<?>)payload).size() ? null : ((List<?>)payload).get(0)));
                 }
             }
             throw new OrderNotFound((((this.id + ": The order ") + id) + " not found.")) ;

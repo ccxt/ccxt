@@ -25,7 +25,7 @@ public class TestFetchLedgerEntry extends BaseTest {
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, items, code);
         if (Helpers.isGreaterThan(length, 0))
         {
-            Object firstItem = Helpers.GetValue(items, 0);
+            Object firstItem = (items == null || 0 >= ((List<?>)items).size() ? null : ((List<?>)items).get(0));
             Object id = ((Map<String, Object>)firstItem).get("id");
             if (!java.util.Objects.equals(id, null))
             {

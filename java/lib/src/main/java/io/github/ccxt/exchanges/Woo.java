@@ -2940,7 +2940,7 @@ public class Woo extends WooApi
                     // BadRequest, so callers (and the live test harness) can tell "wrong market
                     // type" apart from a malformed request, marketSymbols still enforces that the
                     // rest of the list matches
-                    Map<String, Object> firstMarket = (Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
+                    Map<String, Object> firstMarket = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                     if (!java.util.Objects.equals(((Map<String, Object>)firstMarket).get("swap"), true))
                     {
                         throw new NotSupported((this.id + " fetchTickers() supports swap markets only")) ;
@@ -5051,7 +5051,7 @@ public class Woo extends WooApi
                 Object symbolsLength = ((List<?>)symbols).size();
                 if (Helpers.isEqual(symbolsLength, 1))
                 {
-                    Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
+                    Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                     ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
                 }
             }
@@ -5593,7 +5593,7 @@ public class Woo extends WooApi
                 Object symbolsLength = ((List<?>)symbols).size();
                 if (Helpers.isEqual(symbolsLength, 1))
                 {
-                    Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
+                    Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                     ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
                 }
             }

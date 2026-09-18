@@ -4277,7 +4277,7 @@ public class Bingx extends BingxApi
             }
             Object symbols = this.marketSymbols(marketIds, null, false, true, true);
             Object symbolsLength = ((List<?>)symbols).size();
-            Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
+            Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
             if (java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true))
             {
                 throw new NotSupported((this.id + " createOrders() is not supported for inverse swap markets")) ;

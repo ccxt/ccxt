@@ -241,7 +241,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 (this.loadMarkets()).join();
             }
             Object request = this.createOrdersRequest(orders, parameters);
-            Object firstOrder = Helpers.GetValue(orders, 0);
+            Object firstOrder = (orders == null || 0 >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(0));
             Map<String, Object> market = (Map<String, Object>) this.market(((Map<String, Object>)firstOrder).get("symbol"));
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
@@ -1054,7 +1054,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             callerMethodName = ((List<Object>) callerMethodNameparametersVariable).get(0);
             parameters = ((List<Object>) callerMethodNameparametersVariable).get(1);
             symbols = this.marketSymbols(symbols, null, false);
-            Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
+            Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
             String messageType = this.getTypeByMarket(market);
             Object marketIds = this.marketIds(symbols);
             Object channelName = null;
@@ -1185,7 +1185,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             }
             symbols = this.marketSymbols(symbols);
             Object marketIds = this.marketIds(symbols);
-            Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
+            Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
             String messageType = this.getTypeByMarket(market);
             Object channel = Helpers.add(messageType, ".trades");
             Object messageHashes = new ArrayList<Object>(Arrays.asList());
@@ -1227,7 +1227,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             }
             symbols = this.marketSymbols(symbols);
             Object marketIds = this.marketIds(symbols);
-            Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
+            Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
             String messageType = this.getTypeByMarket(market);
             Object channel = Helpers.add(messageType, ".trades");
             Object subMessageHashes = new ArrayList<Object>(Arrays.asList());
@@ -2194,7 +2194,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 {
                     throw new BadRequest((this.id + " watchMyLiquidationsForSymbols() only allows one symbol at a time. To listen to several symbols call watchMyLiquidationsForSymbols() several times.")) ;
                 }
-                messageHash = ("myLiquidations::" + Helpers.GetValue(symbols, 0));
+                messageHash = ("myLiquidations::" + (symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                 ((List<Object>)payload).add(((Map<String, Object>)market).get("id"));
             }
             Object channel = Helpers.add(typeId, ".liquidates");

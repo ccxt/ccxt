@@ -1768,7 +1768,7 @@ public class Apex extends ApexApi
             String nonce = "0";
             if (((List<?>)subAccounts).size() > 0)
             {
-                nonce = this.safeString(Helpers.GetValue(subAccounts, 0), "nonce", "0");
+                nonce = this.safeString((subAccounts == null || 0 >= ((List<?>)subAccounts).size() ? null : ((List<?>)subAccounts).get(0)), "nonce", "0");
             }
             String finalNonce = nonce; // java req
             String ethAddress = this.safeString(accountData, "ethereumAddress", "");

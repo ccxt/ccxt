@@ -3240,7 +3240,7 @@ public class Hitbtc extends HitbtcApi
             if (!java.util.Objects.equals(symbols, null))
             {
                 symbols = this.marketSymbols(symbols);
-                market = this.market(Helpers.GetValue(symbols, 0));
+                market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
             }
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMarginMode", market, parameters);
@@ -3489,7 +3489,7 @@ public class Hitbtc extends HitbtcApi
             if (!java.util.Objects.equals(symbols, null))
             {
                 symbols = this.marketSymbols(symbols);
-                market = this.market(Helpers.GetValue(symbols, 0));
+                market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                 Object queryMarketIds = this.marketIds(symbols);
                 ((Map<String, Object>)request).put("symbols", String.join(",", (List<String>)queryMarketIds));
             }

@@ -476,7 +476,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 throw new ArgumentsRequired((this.id + " watchBidsAsks required symbols argument")) ;
             }
             Object markets = this.requireValue(this.marketsForSymbols(symbols), "watchBidsAsks() markets is required");
-            List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchBidsAsks", Helpers.GetValue(markets, 0), parameters);
+            List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchBidsAsks", (markets == null || 0 >= ((List<?>)markets).size() ? null : ((List<?>)markets).get(0)), parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((List<Object>) marketTypeparametersVariable).get(1);
             Boolean isSpot = java.util.Objects.equals(marketType, "spot");
@@ -2081,7 +2081,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 throw new ArgumentsRequired((this.id + " watchBidsAsks required symbols argument")) ;
             }
             Object markets = this.requireValue(this.marketsForSymbols(symbols), "unWatchBidsAsks() markets is required");
-            List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchBidsAsks", Helpers.GetValue(markets, 0), parameters);
+            List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchBidsAsks", (markets == null || 0 >= ((List<?>)markets).size() ? null : ((List<?>)markets).get(0)), parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((List<Object>) marketTypeparametersVariable).get(1);
             Boolean isSpot = java.util.Objects.equals(marketType, "spot");

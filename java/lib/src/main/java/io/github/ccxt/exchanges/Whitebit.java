@@ -5416,10 +5416,10 @@ public class Whitebit extends WhitebitApi
                     Object errorsLength = ((List<?>)errorKeys).size();
                     if (Helpers.isGreaterThan(errorsLength, 0))
                     {
-                        Object errorKey = Helpers.GetValue(errorKeys, 0);
+                        Object errorKey = (errorKeys == null || 0 >= ((List<?>)errorKeys).size() ? null : ((List<?>)errorKeys).get(0));
                         Object errorMessageArray = this.safeList(errorObject, errorKey, new ArrayList<Object>(Arrays.asList()));
                         Object errorMessageLength = ((List<?>)errorMessageArray).size();
-                        errorInfo = (((Helpers.isGreaterThan(errorMessageLength, 0)))) ? Helpers.GetValue(errorMessageArray, 0) : body;
+                        errorInfo = (((Helpers.isGreaterThan(errorMessageLength, 0)))) ? (errorMessageArray == null || 0 >= ((List<?>)errorMessageArray).size() ? null : ((List<?>)errorMessageArray).get(0)) : body;
                     }
                 }
                 this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorInfo, feedback);
@@ -5436,10 +5436,10 @@ public class Whitebit extends WhitebitApi
                 Object errorInfo = body;
                 if (Helpers.isGreaterThan(errKeysLength, 0))
                 {
-                    Object errorKey = Helpers.GetValue(errKeys, 0);
+                    Object errorKey = (errKeys == null || 0 >= ((List<?>)errKeys).size() ? null : ((List<?>)errKeys).get(0));
                     Object errorMessageArray = this.safeList(errMsg, errorKey, new ArrayList<Object>(Arrays.asList()));
                     Object errorMessageLength = ((List<?>)errorMessageArray).size();
-                    errorInfo = (((Helpers.isGreaterThan(errorMessageLength, 0)))) ? Helpers.GetValue(errorMessageArray, 0) : body;
+                    errorInfo = (((Helpers.isGreaterThan(errorMessageLength, 0)))) ? (errorMessageArray == null || 0 >= ((List<?>)errorMessageArray).size() ? null : ((List<?>)errorMessageArray).get(0)) : body;
                 }
                 Object feedback = ((this.id + " ") + body);
                 this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorInfo, feedback);

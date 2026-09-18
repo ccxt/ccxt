@@ -636,8 +636,8 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
                 Object symbolAndTimeframe = Helpers.GetValue(symbolsAndTimeframes, i);
-                Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbolAndTimeframe, 0));
-                Object timeframeString = Helpers.GetValue(symbolAndTimeframe, 1);
+                Map<String, Object> market = (Map<String, Object>) this.market((symbolAndTimeframe == null || 0 >= ((List<?>)symbolAndTimeframe).size() ? null : ((List<?>)symbolAndTimeframe).get(0)));
+                Object timeframeString = (symbolAndTimeframe == null || 1 >= ((List<?>)symbolAndTimeframe).size() ? null : ((List<?>)symbolAndTimeframe).get(1));
                 String interval = this.safeString(this.timeframes, timeframeString, timeframeString);
                 if (!(((Map<?, ?>)marketIdsByInterval).containsKey(interval)))
                 {
@@ -726,8 +726,8 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
                 Object symbolAndTimeframe = Helpers.GetValue(symbolsAndTimeframes, i);
-                Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbolAndTimeframe, 0));
-                Object timeframeString = Helpers.GetValue(symbolAndTimeframe, 1);
+                Map<String, Object> market = (Map<String, Object>) this.market((symbolAndTimeframe == null || 0 >= ((List<?>)symbolAndTimeframe).size() ? null : ((List<?>)symbolAndTimeframe).get(0)));
+                Object timeframeString = (symbolAndTimeframe == null || 1 >= ((List<?>)symbolAndTimeframe).size() ? null : ((List<?>)symbolAndTimeframe).get(1));
                 String interval = this.safeString(this.timeframes, timeframeString, timeframeString);
                 if (!(((Map<?, ?>)marketIdsByInterval).containsKey(interval)))
                 {

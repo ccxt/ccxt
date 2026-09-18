@@ -164,7 +164,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 // not sure why but it is happening sometimes
                 return this.safeOrder(new HashMap<String, Object>() {{}});
             }
-            Object parsedOrder = Helpers.GetValue(orders, 0);
+            Object parsedOrder = (orders == null || 0 >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(0));
             return parsedOrder;
         }).thenApply(Order::new);
 

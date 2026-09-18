@@ -2510,7 +2510,7 @@ public class Hyperliquid extends HyperliquidApi
             var order = ((List<Object>) orderglobalParamsVariable).get(0);
             var globalParams = ((List<Object>) orderglobalParamsVariable).get(1);
             Object orders = (this.createOrders((Object)(new ArrayList<Object>(Arrays.asList(order))), (Object)(globalParams))).join();
-            return Helpers.GetValue(orders, 0);
+            return (orders == null || 0 >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(0));
         }).thenApply(Order::new);
 
     }
@@ -3500,7 +3500,7 @@ final Object finalClientOrderId = clientOrderId;
             var order = ((List<Object>) orderglobalParamsVariable).get(0);
             var globalParams = ((List<Object>) orderglobalParamsVariable).get(1);
             Object orders = (this.editOrders((Object)(new ArrayList<Object>(Arrays.asList(order))), (Object)(globalParams))).join();
-            return Helpers.GetValue(orders, 0);
+            return (orders == null || 0 >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(0));
         }).thenApply(Order::new);
 
     }

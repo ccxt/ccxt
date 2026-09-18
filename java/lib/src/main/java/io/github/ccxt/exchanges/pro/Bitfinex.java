@@ -1540,7 +1540,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         //
         if ((message instanceof List))
         {
-            if (java.util.Objects.equals(Helpers.GetValue(message, 1), "hb"))
+            if (java.util.Objects.equals((message == null || 1 >= ((List<?>)message).size() ? null : ((List<?>)message).get(1)), "hb"))
             {
                 return;  // skip heartbeats within subscription channels for now
             }

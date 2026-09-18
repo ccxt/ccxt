@@ -1735,7 +1735,7 @@ public class Toobit extends ToobitApi
                 Object length = ((List<?>)symbols).size();
                 if (Helpers.isEqual(length, 1))
                 {
-                    Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
+                    Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                     ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
                 }
             }
@@ -1797,7 +1797,7 @@ public class Toobit extends ToobitApi
                 Object length = ((List<?>)symbols).size();
                 if (Helpers.isEqual(length, 1))
                 {
-                    Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
+                    Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                     ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
                 }
             }
@@ -1879,7 +1879,7 @@ public class Toobit extends ToobitApi
                 Object length = ((List<?>)symbols).size();
                 if (Helpers.isEqual(length, 1))
                 {
-                    Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
+                    Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                     ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
                 }
             }
@@ -2234,8 +2234,8 @@ public class Toobit extends ToobitApi
             ((Map<String, Object>)request).put("timeInForce", "LIMIT_MAKER");
         }
         Object values = this.handleTriggerPricesAndParams(symbol, parameters);
-        Object triggerPrice = Helpers.GetValue(values, 0);
-        parameters = Helpers.GetValue(values, 3);
+        Object triggerPrice = (values == null || 0 >= ((List<?>)values).size() ? null : ((List<?>)values).get(0));
+        parameters = (values == null || 3 >= ((List<?>)values).size() ? null : ((List<?>)values).get(3));
         if (!java.util.Objects.equals(triggerPrice, null))
         {
             ((Map<String, Object>)request).put("stopPrice", triggerPrice);

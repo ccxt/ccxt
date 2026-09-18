@@ -1720,12 +1720,12 @@ public class Bitstamp extends BitstampApi
         }
         if (Helpers.isEqual(numCurrencyIds, 2))
         {
-            Object marketId = Helpers.add(Helpers.GetValue(currencyIds, 0), Helpers.GetValue(currencyIds, 1));
+            Object marketId = Helpers.add((currencyIds == null || 0 >= ((List<?>)currencyIds).size() ? null : ((List<?>)currencyIds).get(0)), (currencyIds == null || 1 >= ((List<?>)currencyIds).size() ? null : ((List<?>)currencyIds).get(1)));
             if ((!java.util.Objects.equals(this.markets_by_id, null)) && (((Map<?, ?>)this.markets_by_id).containsKey(marketId)))
             {
                 return this.safeMarket(marketId);
             }
-            marketId = Helpers.add(Helpers.GetValue(currencyIds, 1), Helpers.GetValue(currencyIds, 0));
+            marketId = Helpers.add((currencyIds == null || 1 >= ((List<?>)currencyIds).size() ? null : ((List<?>)currencyIds).get(1)), (currencyIds == null || 0 >= ((List<?>)currencyIds).size() ? null : ((List<?>)currencyIds).get(0)));
             if ((!java.util.Objects.equals(this.markets_by_id, null)) && (((Map<?, ?>)this.markets_by_id).containsKey(marketId)))
             {
                 return this.safeMarket(marketId);

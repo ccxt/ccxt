@@ -1446,7 +1446,7 @@ public class Paradex extends ParadexApi
                 Object symbolsLength = ((List<?>)symbols).size();
                 if (Helpers.isEqual(symbolsLength, 1))
                 {
-                    target = ((String)((Map<String, Object>)this.market(Helpers.GetValue(symbols, 0))).get("id"));
+                    target = ((String)((Map<String, Object>)this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)))).get("id"));
                 }
             }
             final Object finalTarget = target;
@@ -2951,7 +2951,7 @@ public class Paradex extends ParadexApi
             Object ordersLength = ((List<?>)orders).size();
             if ((!java.util.Objects.equals(paginationCursor, null)) && (Helpers.isGreaterThan(ordersLength, 0)))
             {
-                Object first = Helpers.GetValue(orders, 0);
+                Object first = (orders == null || 0 >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(0));
                 Helpers.addElementToObject(first, "next", paginationCursor);
                 Helpers.addElementToObject(orders, 0, first);
             }
