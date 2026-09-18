@@ -1755,7 +1755,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
 
     public void handleDeltas(Object bookside, Object deltas)
     {
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(deltas)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
         {
             this.handleDelta(bookside, Helpers.GetValue(deltas, i));
         }

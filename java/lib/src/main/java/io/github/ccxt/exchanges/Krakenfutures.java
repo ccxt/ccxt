@@ -575,13 +575,13 @@ public class Krakenfutures extends KrakenfuturesApi
                 String id = this.safeString(market, "symbol");
                 String marketType = this.safeString(market, "type");
                 String type = null;
-                Boolean index = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(marketType, " index"), 0));
+                Boolean index = (Helpers.getIndexOf(marketType, " index") >= 0);
                 Object linear = null;
                 Object inverse = null;
                 Object expiry = null;
                 if (!Boolean.TRUE.equals(index))
                 {
-                    linear = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(marketType, "_vanilla"), 0));
+                    linear = (Helpers.getIndexOf(marketType, "_vanilla") >= 0);
                     inverse = !Helpers.isTrue(linear);
                     String settleTime = this.safeString(market, "lastTradingTime");
                     type = (((java.util.Objects.equals(settleTime, null)))) ? "swap" : "future";
@@ -693,7 +693,7 @@ public class Krakenfutures extends KrakenfuturesApi
             }
             Object settlementCurrencies = Helpers.GetValue(((Map<String, Object>)this.options).get("settlementCurrencies"), "flex");
             List<Object> currencies = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(settlementCurrencies)); i++)
+            for (var i = 0; i < Helpers.getArrayLength(settlementCurrencies); i++)
             {
                 Object code = Helpers.GetValue(settlementCurrencies, i);
                 ((List<Object>)currencies).add(new HashMap<String, Object>() {{
@@ -1464,10 +1464,10 @@ public class Krakenfutures extends KrakenfuturesApi
         String fillType = this.safeString(trade, "fillType");
         if (!java.util.Objects.equals(fillType, null))
         {
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(fillType, "taker"), 0))
+            if (Helpers.getIndexOf(fillType, "taker") >= 0)
             {
                 takerOrMaker = "taker";
-            } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(fillType, "maker"), 0))
+            } else if (Helpers.getIndexOf(fillType, "maker") >= 0)
             {
                 takerOrMaker = "maker";
             }
@@ -3770,7 +3770,7 @@ public class Krakenfutures extends KrakenfuturesApi
             //
             Object rates = this.safeValue(response, "rates");
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rates)); i++)
+            for (var i = 0; i < Helpers.getArrayLength(rates); i++)
             {
                 Object item = Helpers.GetValue(rates, i);
                 String datetime = this.safeString(item, "timestamp");
@@ -4041,7 +4041,7 @@ public class Krakenfutures extends KrakenfuturesApi
         {
             return tiers;
         }
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marginLevels)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(marginLevels); i++)
         {
             Object tier = Helpers.GetValue(marginLevels, i);
             String initialMargin = this.safeString(tier, "initialMargin");

@@ -779,7 +779,7 @@ public class Kraken extends KrakenApi
             {
                 Object id = Helpers.GetValue(keys, i);
                 Boolean isSynthetic = false;
-                if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(id, ":BTNL"), 0))
+                if (Helpers.getIndexOf(id, ":BTNL") >= 0)
                 {
                     isSynthetic = true;
                 }
@@ -1028,7 +1028,7 @@ public class Kraken extends KrakenApi
         {
             throw new ExchangeError((this.id + " parseCurrency() missing id")) ;
         }
-        if (Helpers.isLessThan(Helpers.getIndexOf(id, "."), 0))
+        if (Helpers.getIndexOf(id, ".") < 0)
         {
             String altName = this.safeString(rawCurrency, "altname");
             // handle cases like below:
@@ -1058,7 +1058,7 @@ public class Kraken extends KrakenApi
         {
             throw new ExchangeError((this.id + " parseCurrency() missing code")) ;
         }
-        Boolean isFiat = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(code, ".HOLD"), 0);
+        Boolean isFiat = Helpers.getIndexOf(code, ".HOLD") >= 0;
         rawCurrency = this.omit(rawCurrency, "_coin_id");
         final Object finalId = id;
         final Object finalCode = code;
@@ -1095,7 +1095,7 @@ public class Kraken extends KrakenApi
         {
             return (String) currencyId;
         }
-        if (Helpers.isGreaterThan(Helpers.getIndexOf(currencyId, "."), 0))
+        if (Helpers.getIndexOf(currencyId, ".") > 0)
         {
             // if ID contains .M, .S or .F, then it can't contain X or Z prefix. in such case, ID equals to ALTNAME
             Object parts = Helpers.split(currencyId, ".");
@@ -2480,10 +2480,10 @@ public class Kraken extends KrakenApi
                     put( "cost", feeCost );
                     put( "rate", null );
                 }};
-                if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(flags, "fciq"), 0))
+                if (Helpers.getIndexOf(flags, "fciq") >= 0)
                 {
                     ((Map<String, Object>)fee).put("currency", ((Map<String, Object>)market).get("quote"));
-                } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(flags, "fcib"), 0))
+                } else if (Helpers.getIndexOf(flags, "fcib") >= 0)
                 {
                     ((Map<String, Object>)fee).put("currency", ((Map<String, Object>)market).get("base"));
                 }
@@ -2961,7 +2961,7 @@ final Object finalId = id;
                 throw new ArgumentsRequired((this.id + " fetchOrderTrades() requires a unified order structure in the params argument or a 'trades' param (an array of trade id strings)")) ;
             } else
             {
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orderTrades)); i++)
+                for (var i = 0; i < Helpers.getArrayLength(orderTrades); i++)
                 {
                     Object orderTrade = Helpers.GetValue(orderTrades, i);
                     if ((orderTrade instanceof String))
@@ -3208,7 +3208,7 @@ final Object finalId = id;
             {
                 if ((!java.util.Objects.equals(this.last_http_response, null)) && (!java.util.Objects.equals(this.last_http_response, "")))
                 {
-                    if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(this.last_http_response, "EOrder:Unknown order"), 0))
+                    if (Helpers.getIndexOf(this.last_http_response, "EOrder:Unknown order") >= 0)
                     {
                         throw new OrderNotFound(((this.id + " cancelOrder() error ") + this.last_http_response)) ;
                     }
@@ -3701,7 +3701,7 @@ final Object finalId = id;
         Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
         Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(transactions)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(transactions); i++)
         {
             Object transaction = this.parseTransaction(this.extend(new HashMap<String, Object>() {{
                 put( "type", type );
@@ -4049,7 +4049,7 @@ final Object finalId = id;
                         {
                             throw new ExchangeError((this.id + " fetchDepositAddress() missing entry")) ;
                         }
-                        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(entry, network), 0))
+                        if (Helpers.getIndexOf(entry, network) >= 0)
                         {
                             depositMethod = entry;
                             break;
@@ -4507,7 +4507,7 @@ final Object finalId = id;
                     Object numErrors = Helpers.getArrayLength(Helpers.GetValue(response, "error"));
                     if (Helpers.isGreaterThan(numErrors, 0))
                     {
-                        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(Helpers.GetValue(response, "error"))); i++)
+                        for (var i = 0; i < Helpers.getArrayLength(Helpers.GetValue(response, "error")); i++)
                         {
                             Object error = Helpers.GetValue(Helpers.GetValue(response, "error"), i);
                             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), error, message);

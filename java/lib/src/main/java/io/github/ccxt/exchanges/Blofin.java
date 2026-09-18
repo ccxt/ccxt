@@ -2948,7 +2948,7 @@ public class Blofin extends BlofinApi
                 ids = this.parseIds(ids);
                 if (!java.util.Objects.equals(tpslIds, null))
                 {
-                    for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tpslIds)); i++)
+                    for (var i = 0; i < Helpers.getArrayLength(tpslIds); i++)
                     {
     final Object finalTpslIds = tpslIds;
                         final Object finalI = i;
@@ -2980,7 +2980,7 @@ public class Blofin extends BlofinApi
                 }
             } else
             {
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(clientOrderIds)); i++)
+                for (var i = 0; i < Helpers.getArrayLength(clientOrderIds); i++)
                 {
     final Object finalClientOrderIds = clientOrderIds;
                     final Object finalI = i;

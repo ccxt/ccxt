@@ -1203,7 +1203,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
 
     public void handleDeltas(Object bookside, Object deltas)
     {
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(deltas)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
         {
             this.handleDelta(bookside, Helpers.GetValue(deltas, i));
         }
@@ -3279,11 +3279,11 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         {
             Helpers.callDynamically(this, method, new Object[] {client, message});
         }
-        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(topic, "candle"), 0))
+        if (Helpers.getIndexOf(topic, "candle") >= 0)
         {
             this.handleOHLCV(client, message);
         }
-        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(topic, "books"), 0))
+        if (Helpers.getIndexOf(topic, "books") >= 0)
         {
             this.handleOrderBook(client, message);
         }
@@ -3493,20 +3493,20 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         {
             Object arg = Helpers.GetValue(argsList, i);
             String channel = this.safeString2(arg, "channel", "topic", "");
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(channel, "books"), 0))
+            if (Helpers.getIndexOf(channel, "books") >= 0)
             {
                 // for now only unWatchOrderBook is supported
                 this.handleOrderBookUnSubscription(client, message);
-            } else if ((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(channel, "trade"), 0)) || (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(channel, "publicTrade"), 0)))
+            } else if ((Helpers.getIndexOf(channel, "trade") >= 0) || (Helpers.getIndexOf(channel, "publicTrade") >= 0))
             {
                 this.handleTradesUnSubscription(client, message);
-            } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(channel, "ticker"), 0))
+            } else if (Helpers.getIndexOf(channel, "ticker") >= 0)
             {
                 this.handleTickerUnSubscription(client, message);
-            } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(channel, "candle"), 0))
+            } else if (Helpers.getIndexOf(channel, "candle") >= 0)
             {
                 this.handleOHLCVUnSubscription(client, message);
-            } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(channel, "kline"), 0))
+            } else if (Helpers.getIndexOf(channel, "kline") >= 0)
             {
                 this.handleOHLCVUnSubscription(client, message);
             }

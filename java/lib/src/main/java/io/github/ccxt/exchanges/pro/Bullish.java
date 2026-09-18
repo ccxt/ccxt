@@ -431,7 +431,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         // 300 = '54885.0000000'
         // 301 = '0.06141566'
         // 302 ='53714.0000000'
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(entry)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(entry); i++)
         {
             if (!Helpers.isEqual(Helpers.mod(i, 2), 0))
             {

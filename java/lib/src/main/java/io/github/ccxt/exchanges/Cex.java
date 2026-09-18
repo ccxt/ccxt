@@ -2304,7 +2304,7 @@ public class Cex extends CexApi
             throw new ExchangeError((String)feedback) ;
         }
         // check errors in order-engine (the responses are not standard, so we parse here)
-        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "do_my_new_order"), 0))
+        if (Helpers.getIndexOf(url, "do_my_new_order") >= 0)
         {
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String rejectReason = this.safeString(data, "rejectReason");

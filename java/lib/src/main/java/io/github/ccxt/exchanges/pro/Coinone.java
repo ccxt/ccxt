@@ -474,7 +474,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object key = Helpers.GetValue(keys, i);
-                if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(topic, Helpers.GetValue(keys, i)), 0))
+                if (Helpers.getIndexOf(topic, Helpers.GetValue(keys, i)) >= 0)
                 {
                     Object method = Helpers.GetValue(methods, key);
                     Helpers.callDynamically(this, method, new Object[] {client, message});

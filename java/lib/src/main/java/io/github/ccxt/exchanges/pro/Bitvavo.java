@@ -138,7 +138,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             symbols = this.marketSymbols(symbols);
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList(methodName));
             List<Object> args = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
+            for (var i = 0; i < Helpers.getArrayLength(symbols); i++)
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
                 ((List<Object>)args).add(((String)((Map<String, Object>)market).get("id")));
@@ -596,7 +596,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe), stored);
         }
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(candles)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(candles); i++)
         {
             Object candle = Helpers.GetValue(candles, i);
             Object parsed = this.parseOHLCV(candle, market);
@@ -938,7 +938,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
 
     public void handleDeltas(Object bookside, Object deltas)
     {
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(deltas)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
         {
             this.handleDelta(bookside, Helpers.GetValue(deltas, i));
         }
@@ -1089,7 +1089,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         // unroll the accumulated deltas
         Object messages = ((List<Object>)Helpers.GetValue(orderbook, "cache"));
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messages)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(messages); i++)
         {
             Object messageItem = Helpers.GetValue(messages, i);
             this.handleOrderBookMessage(client, messageItem, orderbook);
@@ -1120,7 +1120,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
     public void handleOrderBookSubscriptions(Client client, Object message, Object marketIds)
     {
         String name = "book";
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(marketIds); i++)
         {
             String marketId = this.safeString(marketIds, i);
             String symbol = this.safeSymbol(marketId, null, "-");

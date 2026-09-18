@@ -3213,7 +3213,7 @@ public class Derive extends DeriveApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
             Object subaccount = Helpers.GetValue(response, i);
             Object collaterals = this.safeList(subaccount, "collaterals", new ArrayList<Object>(Arrays.asList()));

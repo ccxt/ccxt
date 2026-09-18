@@ -1155,7 +1155,7 @@ public class Bitopro extends BitoproApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
             Object balance = Helpers.GetValue(response, i);
             String currencyId = this.safeString(balance, "currency");
@@ -1460,7 +1460,7 @@ public class Bitopro extends BitoproApi
         {
             Object marketId = Helpers.GetValue(dataKeys, i);
             Object orderIds = Helpers.GetValue(data, marketId);
-            for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(orderIds)); j++)
+            for (var j = 0; j < Helpers.getArrayLength(orderIds); j++)
             {
 final Object finalJ = j;
                                 ((List<Object>)orders).add(this.safeOrder(new HashMap<String, Object>() {{

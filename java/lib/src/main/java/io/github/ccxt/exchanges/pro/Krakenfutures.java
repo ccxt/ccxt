@@ -996,7 +996,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 String totalCost = "0";
                 String totalAmount = "0";
                 Object trades = Helpers.GetValue(previousOrder, "trades");
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(trades)); i++)
+                for (var i = 0; i < Helpers.getArrayLength(trades); i++)
                 {
                     Object currentTrade = Helpers.GetValue(trades, i);
                     totalCost = Precise.stringAdd(totalCost, this.numberToString(Helpers.GetValue(currentTrade, "cost")));
@@ -1055,7 +1055,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                     messageHash = "orders:verbose";
                 }
                 // get order without symbol
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
+                for (var i = 0; i < Helpers.getArrayLength(orders); i++)
                 {
                     Object currentOrder = Helpers.GetValue(orders, i);
                     if (Helpers.isEqual(Helpers.GetValue(currentOrder, "id"), Helpers.GetValue(message, "order_id")))
@@ -1878,7 +1878,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             symbols = this.marketSymbols(symbols, null, false, true, false);
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             List<Object> rawSubs = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
+            for (var i = 0; i < Helpers.getArrayLength(symbols); i++)
             {
                 Object messageHash = this.getMessageHash(unifiedName, null, this.symbol(Helpers.GetValue(symbols, i)));
                 ((List<Object>)messageHashes).add(messageHash);
@@ -1949,7 +1949,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         // below rejects every pending future on the connection, so a stray
         // re-subscribe warning would kill unrelated in-flight watch* calls —
         // mirrors the bitmart 90008 fix.
-        if (!java.util.Objects.equals(errMsg, null) && Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(errMsg, "Already subscribed"), 0))
+        if (!java.util.Objects.equals(errMsg, null) && Helpers.getIndexOf(errMsg, "Already subscribed") >= 0)
         {
             return false;
         }

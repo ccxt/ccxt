@@ -307,7 +307,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         Object thirdKey = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : 2;
         bidasks = this.toArray(bidasks);
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(bidasks)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(bidasks); i++)
         {
             ((List<Object>)result).add(this.customParseBidAsk(Helpers.GetValue(bidasks, i), priceKey, amountKey, thirdKey));
         }

@@ -151,21 +151,21 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             Object messageHash = Helpers.GetValue(messageHashes, i);
             Object subMessageHash = Helpers.replace(((String)messageHash), "unsubscribe:", "");
             this.cleanUnsubscription(client, subMessageHash, messageHash);
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(messageHash, "ticker"), 0))
+            if (Helpers.getIndexOf(messageHash, "ticker") >= 0)
             {
                 Object symbol = Helpers.replace(((String)messageHash), "unsubscribe:ticker:", "");
                 if (((Map<?, ?>)this.tickers).containsKey(symbol))
                 {
                     ((Map<String,Object>)this.tickers).remove((String)symbol);
                 }
-            } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(messageHash, "bidask"), 0))
+            } else if (Helpers.getIndexOf(messageHash, "bidask") >= 0)
             {
                 Object symbol = Helpers.replace(((String)messageHash), "unsubscribe:bidask:", "");
                 if (((Map<?, ?>)this.bidsasks).containsKey(symbol))
                 {
                     ((Map<String,Object>)this.bidsasks).remove((String)symbol);
                 }
-            } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(messageHash, "candles"), 0))
+            } else if (Helpers.getIndexOf(messageHash, "candles") >= 0)
             {
                 List<Object> splitHashes = (List<Object>) Helpers.split(messageHash, ":");
                 String symbol = this.safeString(splitHashes, 2);
@@ -177,21 +177,21 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                         ((Map<String,Object>)Helpers.GetValue(this.ohlcvs, symbol)).remove((String)timeframe);
                     }
                 }
-            } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(messageHash, "orderbook"), 0))
+            } else if (Helpers.getIndexOf(messageHash, "orderbook") >= 0)
             {
                 Object symbol = Helpers.replace(((String)messageHash), "unsubscribe:orderbook:", "");
                 if (((Map<?, ?>)this.orderbooks).containsKey(symbol))
                 {
                     ((Map<String,Object>)this.orderbooks).remove((String)symbol);
                 }
-            } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(messageHash, "trades"), 0))
+            } else if (Helpers.getIndexOf(messageHash, "trades") >= 0)
             {
                 Object symbol = Helpers.replace(((String)messageHash), "unsubscribe:trades:", "");
                 if (((Map<?, ?>)this.trades).containsKey(symbol))
                 {
                     ((Map<String,Object>)this.trades).remove((String)symbol);
                 }
-            } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(messageHash, "orders"), 0))
+            } else if (Helpers.getIndexOf(messageHash, "orders") >= 0)
             {
                 if (java.util.Objects.equals(messageHash, "unsubscribe:orders"))
                 {
@@ -214,7 +214,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                         ((Map<String,Object>)cache).remove((String)symbol);
                     }
                 }
-            } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(messageHash, "positions"), 0))
+            } else if (Helpers.getIndexOf(messageHash, "positions") >= 0)
             {
                 if (java.util.Objects.equals(messageHash, "unsubscribe:positions"))
                 {
@@ -1203,7 +1203,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
 
     public void handleBidAsks(Object bookSide, Object bidAsks)
     {
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(bidAsks)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(bidAsks); i++)
         {
             Object bidAsk = this.parseOrderBookBidAsk(Helpers.GetValue(bidAsks, i));
             Helpers.callDynamically(bookSide, "storeArray", new Object[]{bidAsk});
@@ -1229,7 +1229,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         {
             return Helpers.opNeg(1);
         }
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(cache)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(cache); i++)
         {
             Object delta = Helpers.GetValue(cache, i);
             Long deltaStart = this.safeInteger(delta, "U");

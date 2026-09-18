@@ -6301,7 +6301,7 @@ public class Bingx extends BingxApi
         String network = this.safeString(transaction, "network");
         String currencyId = this.safeString(transaction, "coin");
         Object code = this.safeCurrencyCode(currencyId, currency);
-        if ((!java.util.Objects.equals(code, null)) && (!java.util.Objects.equals(network, null)) && (!java.util.Objects.equals(code, network)) && Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(code, network), 0))
+        if ((!java.util.Objects.equals(code, null)) && (!java.util.Objects.equals(network, null)) && (!java.util.Objects.equals(code, network)) && Helpers.getIndexOf(code, network) >= 0)
         {
             if (!java.util.Objects.equals(network, null))
             {
@@ -6913,7 +6913,7 @@ public class Bingx extends BingxApi
         Object copied = this.clone(parameters);
         List<Object> rawKeys = Helpers.objectKeys(parameters);
         Object keys = this.sort(rawKeys);
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(keys); i++)
         {
             Object key = Helpers.GetValue(keys, i);
             Object value = Helpers.GetValue(parameters, key);
@@ -7555,7 +7555,7 @@ public class Bingx extends BingxApi
         Object keys = this.sort(rawKeys);
         Object adjustedValue = null;
         Object result = null;
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(keys); i++)
         {
             Object key = Helpers.GetValue(keys, i);
             Object value = Helpers.GetValue(parameters, key);
@@ -7671,7 +7671,7 @@ public class Bingx extends BingxApi
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         List<Object> tiers = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(info)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(info); i++)
         {
             Map<String, Object> tier = (Map<String, Object>) this.safeDict(info, i);
             Object tierString = this.safeString(tier, "tier");

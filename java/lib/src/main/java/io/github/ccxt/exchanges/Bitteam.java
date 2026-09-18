@@ -2786,13 +2786,13 @@ public class Bitteam extends BitteamApi
         {
             if (Helpers.isEqual(code, 404))
             {
-                if ((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "/ccxt/order/"), 0)) && (java.util.Objects.equals(method, "GET")))
+                if ((Helpers.getIndexOf(url, "/ccxt/order/") >= 0) && (java.util.Objects.equals(method, "GET")))
                 {
                     List<Object> parts = (List<Object>) Helpers.split(url, "/order/");
                     String orderId = this.safeString(parts, 1);
                     throw new OrderNotFound((Helpers.add((this.id + " order "), orderId) + " not found")) ;
                 }
-                if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "/cmc/orderbook/"), 0))
+                if (Helpers.getIndexOf(url, "/cmc/orderbook/") >= 0)
                 {
                     List<Object> parts = (List<Object>) Helpers.split(url, "/cmc/orderbook/");
                     String symbolId = this.safeString(parts, 1);

@@ -4485,7 +4485,7 @@ public class Woofipro extends WoofiproApi
             Object ts = String.valueOf(this.nonce());
             url = Helpers.add(url, pathWithParams);
             String apiKey = this.apiKey;
-            if (Helpers.isLessThan(Helpers.getIndexOf(apiKey, "ed25519:"), 0))
+            if (Helpers.getIndexOf(apiKey, "ed25519:") < 0)
             {
                 apiKey = ("ed25519:" + apiKey);
             }
@@ -4516,7 +4516,7 @@ public class Woofipro extends WoofiproApi
                 }
             }
             Object secret = this.secret;
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(secret, "ed25519:"), 0))
+            if (Helpers.getIndexOf(secret, "ed25519:") >= 0)
             {
                 List<Object> parts = (List<Object>) Helpers.split(secret, "ed25519:");
                 secret = Helpers.GetValue(parts, 1);

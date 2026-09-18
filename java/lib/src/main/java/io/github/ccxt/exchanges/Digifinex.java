@@ -1115,7 +1115,7 @@ public class Digifinex extends DigifinexApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
             Object balance = Helpers.GetValue(response, i);
             String currencyId = this.safeString(balance, "currency");
@@ -4169,7 +4169,7 @@ public class Digifinex extends DigifinexApi
         //     },
         //
         Map<String, Object> result = new HashMap<String, Object>() {{}};
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(info)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(info); i++)
         {
             Object item = Helpers.GetValue(info, i);
             String currency = this.safeString(item, codeKey);
@@ -5067,7 +5067,7 @@ public class Digifinex extends DigifinexApi
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         List<Object> tiers = new ArrayList<Object>(Arrays.asList());
         Object brackets = this.safeValue(info, "open_max_limits", new HashMap<String, Object>() {{}});
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(brackets)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(brackets); i++)
         {
             Object tier = Helpers.GetValue(brackets, i);
             String marketId = this.safeString(info, "instrument_id");
@@ -5209,7 +5209,7 @@ final Object finalI = i;
         Object currencyIdKey = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
         Map<String, Object> depositWithdrawFees = new HashMap<String, Object>() {{}};
         codes = this.marketCodes(codes);
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
             Object entry = Helpers.GetValue(response, i);
             String currencyId = this.safeString(entry, "currency");

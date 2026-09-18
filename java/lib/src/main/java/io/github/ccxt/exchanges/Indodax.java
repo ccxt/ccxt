@@ -1764,7 +1764,7 @@ public class Indodax extends IndodaxApi
                         {
                             throw new ExchangeError((this.id + " fetchDepositAddresses() missing networkId")) ;
                         }
-                        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(networkId, ","), 0))
+                        if (Helpers.getIndexOf(networkId, ",") >= 0)
                         {
                             network = new ArrayList<Object>(Arrays.asList());
                             if (java.util.Objects.equals(networkId, null))

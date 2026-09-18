@@ -1266,7 +1266,7 @@ public class Mercado extends MercadoApi
     public Object ordersToTrades(Object orders)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(orders); i++)
         {
             List<Object> trades = (List<Object>) this.safeList(Helpers.GetValue(orders, i), "trades", new ArrayList<Object>(Arrays.asList()));
             for (var y = 0; y < ((List<?>)trades).size(); y++)

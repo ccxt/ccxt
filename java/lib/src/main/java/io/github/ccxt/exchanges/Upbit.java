@@ -787,7 +787,7 @@ public class Upbit extends UpbitApi
             put( "timestamp", null );
             put( "datetime", null );
         }};
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
             Object balance = Helpers.GetValue(response, i);
             String currencyId = this.safeString(balance, "currency");
@@ -1061,7 +1061,7 @@ public class Upbit extends UpbitApi
                 }
                 Object sortedQuoteIds = this.sort(quoteIds); // market iteration order differs per language
                 Object quoteCurrencies = "";
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(sortedQuoteIds)); i++)
+                for (var i = 0; i < Helpers.getArrayLength(sortedQuoteIds); i++)
                 {
                     if (!java.util.Objects.equals(quoteCurrencies, ""))
                     {

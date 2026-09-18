@@ -4384,7 +4384,7 @@ public class Weex extends WeexApi
         {
             throw new ExchangeError((this.id + " parseLedgerEntry() missing amountRaw")) ;
         }
-        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(amountRaw, "-"), 0))
+        if (Helpers.getIndexOf(amountRaw, "-") >= 0)
         {
             direction = "out";
         }
@@ -5449,7 +5449,7 @@ public class Weex extends WeexApi
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
         Object endpoint = this.implodeParams(path, parameters);
         Object query = this.omit(parameters, this.extractParams(path));
-        Boolean isBatch = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(path, "batch"), 0));
+        Boolean isBatch = (Helpers.getIndexOf(path, "batch") >= 0);
         if (!Helpers.isTrue(isBatch) && ((java.util.Objects.equals(method, "GET")) || (java.util.Objects.equals(method, "DELETE"))))
         {
             if (((List<?>)Helpers.objectKeys(query)).size() > 0)

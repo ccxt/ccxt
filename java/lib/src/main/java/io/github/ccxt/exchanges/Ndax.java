@@ -962,7 +962,7 @@ public class Ndax extends NdaxApi
             put( "datetime", null );
             put( "nonce", null );
         }};
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orderbook)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(orderbook); i++)
         {
             Object level = Helpers.GetValue(orderbook, i);
             if (java.util.Objects.equals(timestamp, null))
@@ -1625,7 +1625,7 @@ public class Ndax extends NdaxApi
             put( "timestamp", null );
             put( "datetime", null );
         }};
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
             Object balance = Helpers.GetValue(response, i);
             String currencyId = this.safeString(balance, "ProductId");

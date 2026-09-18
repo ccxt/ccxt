@@ -297,7 +297,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
 
     public void handleDeltas(Object bookside, Object deltas)
     {
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(deltas)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
         {
             this.handleDelta(bookside, Helpers.GetValue(deltas, i));
         }
@@ -1045,7 +1045,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             }
         }
         Object data = this.safeValue(message, "data");
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(data); i++)
         {
             Object tick = Helpers.GetValue(data, i);
             Object parsed = this.parseOHLCV(tick, market);

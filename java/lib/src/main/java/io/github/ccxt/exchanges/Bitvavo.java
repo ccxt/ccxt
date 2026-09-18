@@ -582,7 +582,7 @@ public class Bitvavo extends BitvavoApi
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         Object fees = this.fees;
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(markets)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(markets); i++)
         {
             Object market = Helpers.GetValue(markets, i);
             String id = this.safeString(market, "market");
@@ -1391,7 +1391,7 @@ final Object finalBase = base;
             put( "timestamp", null );
             put( "datetime", null );
         }};
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
             Object balance = Helpers.GetValue(response, i);
             String currencyId = this.safeString(balance, "symbol");

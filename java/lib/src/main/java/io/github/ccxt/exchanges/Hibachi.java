@@ -2687,7 +2687,7 @@ public class Hibachi extends HibachiApi
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(settlements)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(settlements); i++)
         {
             ((List<Object>)result).add(this.parseSettlement(Helpers.GetValue(settlements, i), market));
         }

@@ -183,7 +183,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
 
     public void handleDeltas(Object bookside, Object deltas)
     {
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(deltas)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
         {
             this.handleDelta(bookside, Helpers.GetValue(deltas, i));
         }
@@ -1323,7 +1323,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         //
         String channel = this.safeString(message, "channel", "");
         String type = "spot";
-        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(channel, "user_stats:"), 0))
+        if (Helpers.getIndexOf(channel, "user_stats:") >= 0)
         {
             type = "swap";
         }
@@ -1745,42 +1745,42 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             return;
         }
         String channel = this.safeString(message, "channel", "");
-        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(channel, "order_book:"), 0))
+        if (Helpers.getIndexOf(channel, "order_book:") >= 0)
         {
             this.handleOrderBook(client, message);
             return;
         }
-        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(channel, "market_stats:"), 0))
+        if (Helpers.getIndexOf(channel, "market_stats:") >= 0)
         {
             this.handleTicker(client, message);
             return;
         }
-        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(channel, "trade:"), 0))
+        if (Helpers.getIndexOf(channel, "trade:") >= 0)
         {
             this.handleTrades(client, message);
             return;
         }
-        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(channel, "account_all_trades:"), 0))
+        if (Helpers.getIndexOf(channel, "account_all_trades:") >= 0)
         {
             this.handleMyTrades(client, message);
             return;
         }
-        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(channel, "account_all_assets:"), 0))
+        if (Helpers.getIndexOf(channel, "account_all_assets:") >= 0)
         {
             this.handleBalance(client, message);
             return;
         }
-        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(channel, "user_stats:"), 0))
+        if (Helpers.getIndexOf(channel, "user_stats:") >= 0)
         {
             this.handleBalance(client, message);
             return;
         }
-        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(channel, "account_orders:"), 0))
+        if (Helpers.getIndexOf(channel, "account_orders:") >= 0)
         {
             this.handleOrders(client, message);
             return;
         }
-        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(channel, "account_all_orders:"), 0))
+        if (Helpers.getIndexOf(channel, "account_all_orders:") >= 0)
         {
             this.handleOrders(client, message);
             return;

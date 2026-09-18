@@ -2980,7 +2980,7 @@ public class Backpack extends BackpackApi
     public Object generateBatchPayload(Object parameters, Object ts, Object recvWindow, Object instruction)
     {
         Object payload = "";
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(parameters)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(parameters); i++)
         {
             Map<String, Object> order = (Map<String, Object>) this.safeDict(parameters, i, new HashMap<String, Object>() {{}});
             Map<String, Object> sortedOrder = this.keysort(order);

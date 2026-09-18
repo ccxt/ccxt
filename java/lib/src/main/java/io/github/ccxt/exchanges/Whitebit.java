@@ -4647,7 +4647,7 @@ public class Whitebit extends WhitebitApi
         Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
         Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(contracts)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(contracts); i++)
         {
             Object contract = Helpers.GetValue(contracts, i);
             ((List<Object>)result).add(this.parseFundingHistory(contract, market));

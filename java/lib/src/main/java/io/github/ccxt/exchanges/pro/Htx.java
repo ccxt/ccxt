@@ -408,7 +408,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             tradesCache = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, tradesCache);
         }
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(data); i++)
         {
             Object trade = this.parseTrade(Helpers.GetValue(data, i), market);
             Helpers.callDynamically(tradesCache, "append", new Object[]{trade});
@@ -722,7 +722,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
                 // unroll the accumulated deltas
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messages)); i++)
+                for (var i = 0; i < Helpers.getArrayLength(messages); i++)
                 {
                     this.handleOrderBookMessage(client, Helpers.GetValue(messages, i));
                 }
@@ -804,7 +804,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
 
     public void handleDeltas(Object bookside, Object deltas)
     {
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(deltas)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
         {
             this.handleDelta(bookside, Helpers.GetValue(deltas, i));
         }
@@ -1716,7 +1716,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         Object type = null;
         if (!java.util.Objects.equals(typeSide, null))
         {
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(typeSide, "-"), 0))
+            if (Helpers.getIndexOf(typeSide, "-") >= 0)
             {
                 typeSideParts = Helpers.split(typeSide, "-");
                 type = this.safeStringLower(typeSideParts, 1);
@@ -2680,7 +2680,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             this.handleMyTrade(client, message);
             return;
         }
-        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(privateType, "accounts.update"), 0))
+        if (Helpers.getIndexOf(privateType, "accounts.update") >= 0)
         {
             this.handleBalance(client, message);
             return;
@@ -2695,19 +2695,19 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         if (java.util.Objects.equals(op, "notify"))
         {
             String topic = this.safeString(message, "topic", "");
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(topic, "orders"), 0))
+            if (Helpers.getIndexOf(topic, "orders") >= 0)
             {
                 this.handleOrder(client, message);
             }
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(topic, "trade"), 0))
+            if (Helpers.getIndexOf(topic, "trade") >= 0)
             {
                 this.handleMyTrade(client, message);
             }
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(topic, "account"), 0))
+            if (Helpers.getIndexOf(topic, "account") >= 0)
             {
                 this.handleBalance(client, message);
             }
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(topic, "positions"), 0))
+            if (Helpers.getIndexOf(topic, "positions") >= 0)
             {
                 this.handlePositions(client, message);
             }

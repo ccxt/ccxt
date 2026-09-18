@@ -873,7 +873,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             if (Boolean.TRUE.equals(isRaw))
             {
                 Object deltas = Helpers.GetValue(message, 1);
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(deltas)); i++)
+                for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
                 {
                     Object delta = Helpers.GetValue(deltas, i);
                     Object delta2 = Helpers.GetValue(delta, 2);
@@ -887,7 +887,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             } else
             {
                 Object deltas = Helpers.GetValue(message, 1);
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(deltas)); i++)
+                for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
                 {
                     Object delta = Helpers.GetValue(deltas, i);
                     Object amount = this.safeNumber(delta, 2);

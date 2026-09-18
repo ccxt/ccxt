@@ -373,7 +373,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
                 Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
                 Object messages = ((List<Object>)Helpers.GetValue(orderbook, "cache"));
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messages)); i++)
+                for (var i = 0; i < Helpers.getArrayLength(messages); i++)
                 {
                     Object messageItem = Helpers.GetValue(messages, i);
                     Long ts = this.safeInteger(messageItem, "ts");
@@ -427,7 +427,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
 
     public void handleDeltas(Object bookside, Object deltas)
     {
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(deltas)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
         {
             this.handleDelta(bookside, Helpers.GetValue(deltas, i));
         }
@@ -665,7 +665,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         Object data = this.safeValue(message, "data");
         Long timestamp = this.safeInteger(message, "ts");
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(data); i++)
         {
             String marketId = this.safeString(Helpers.GetValue(data, i), "symbol");
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);

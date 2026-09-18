@@ -1055,7 +1055,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
     {
         Object url = client.url;
         Map<String, Object> request = new HashMap<String, Object>() {{}};
-        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "v2"), 0))
+        if (Helpers.getIndexOf(url, "v2") >= 0)
         {
             ((Map<String, Object>)request).put("method", "ping");
         } else
@@ -1241,7 +1241,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
     public void customHandleDeltas(Object bookside, Object deltas)
     {
         // const sortOrder = (key === 'bids') ? true : false;
-        for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(deltas)); j++)
+        for (var j = 0; j < Helpers.getArrayLength(deltas); j++)
         {
             Object delta = Helpers.GetValue(deltas, j);
             Double price = this.safeNumber(delta, "price");

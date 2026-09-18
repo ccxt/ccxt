@@ -10054,7 +10054,7 @@ public class Kucoin extends KucoinApi
             {
                 Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 Object assets = this.safeValue(data, "assets", data);
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(assets)); i++)
+                for (var i = 0; i < Helpers.getArrayLength(assets); i++)
                 {
                     Object entry = Helpers.GetValue(assets, i);
                     Map<String, Object> base = (Map<String, Object>) this.safeDict(entry, "baseAsset", new HashMap<String, Object>() {{}});
@@ -11581,7 +11581,7 @@ public class Kucoin extends KucoinApi
         //     ]
         //
         Map<String, Object> borrowRateHistories = new HashMap<String, Object>() {{}};
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
             Object item = Helpers.GetValue(response, i);
             String code = this.safeCurrencyCode(this.safeString(item, "currency"));
@@ -13777,7 +13777,7 @@ public class Kucoin extends KucoinApi
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         List<Object> tiers = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(info)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(info); i++)
         {
             Map<String, Object> tier = (Map<String, Object>) this.safeDict(info, i, new HashMap<String, Object>() {{}});
             String marketId = this.safeString(tier, "symbol");

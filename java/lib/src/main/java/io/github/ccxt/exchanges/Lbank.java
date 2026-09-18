@@ -1621,7 +1621,7 @@ public class Lbank extends LbankApi
         Object balances = this.safeValue(data, "balances");
         if (!java.util.Objects.equals(balances, null))
         {
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balances)); i++)
+            for (var i = 0; i < Helpers.getArrayLength(balances); i++)
             {
                 Object item = Helpers.GetValue(balances, i);
                 String currencyId = this.safeString(item, "asset");
@@ -3579,7 +3579,7 @@ public class Lbank extends LbankApi
         //
         Object codes = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Map<String, Object> result = new HashMap<String, Object>() {{}};
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
             Object fee = Helpers.GetValue(response, i);
             Object canWithdraw = this.safeValue(fee, "canWithDraw");

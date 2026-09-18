@@ -666,7 +666,7 @@ public class Hyperliquid extends HyperliquidApi
             //     ]
             //
             Map<String, Object> perpDexesOffset = new HashMap<String, Object>() {{}};
-            for (var i = 1; Helpers.isLessThan(i, Helpers.getArrayLength(fetchDexes)); i++)
+            for (var i = 1; i < Helpers.getArrayLength(fetchDexes); i++)
             {
                 // builder-deployed perp dexs start at 110000
                 Map<String, Object> dex = (Map<String, Object>) this.safeDict(fetchDexes, i, new HashMap<String, Object>() {{}});
@@ -2777,7 +2777,7 @@ public class Hyperliquid extends HyperliquidApi
         String defaultSlippage = this.safeString(this.options, "defaultSlippage");
         defaultSlippage = this.safeString(parameters, "slippage", defaultSlippage);
         Boolean hasClientOrderId = false;
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(orders); i++)
         {
             Object rawOrder = Helpers.GetValue(orders, i);
             Object orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
@@ -2789,7 +2789,7 @@ public class Hyperliquid extends HyperliquidApi
         }
         if (Helpers.isTrue(hasClientOrderId))
         {
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
+            for (var i = 0; i < Helpers.getArrayLength(orders); i++)
             {
                 Object rawOrder = Helpers.GetValue(orders, i);
                 Object orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
@@ -2804,7 +2804,7 @@ public class Hyperliquid extends HyperliquidApi
         Long nonce = this.milliseconds();
         List<Object> orderReq = new ArrayList<Object>(Arrays.asList());
         String grouping = "na";
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(orders); i++)
         {
             Object rawOrder = Helpers.GetValue(orders, i);
             String marketId = this.safeString(rawOrder, "symbol");
@@ -3125,7 +3125,7 @@ public class Hyperliquid extends HyperliquidApi
                 clientOrderId = new ArrayList<Object>(Arrays.asList(clientOrderId));
             }
             ((Map<String, Object>)cancelAction).put("type", "cancelByCloid");
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(clientOrderId)); i++)
+            for (var i = 0; i < Helpers.getArrayLength(clientOrderId); i++)
             {
 final Object finalClientOrderId = clientOrderId;
                 final Object finalI = i;
@@ -3321,7 +3321,7 @@ final Object finalClientOrderId = clientOrderId;
         Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
         this.checkRequiredCredentials();
         Boolean hasClientOrderId = false;
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(orders); i++)
         {
             Object rawOrder = Helpers.GetValue(orders, i);
             Object orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
@@ -3333,7 +3333,7 @@ final Object finalClientOrderId = clientOrderId;
         }
         if (Helpers.isTrue(hasClientOrderId))
         {
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
+            for (var i = 0; i < Helpers.getArrayLength(orders); i++)
             {
                 Object rawOrder = Helpers.GetValue(orders, i);
                 Object orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
@@ -3346,7 +3346,7 @@ final Object finalClientOrderId = clientOrderId;
         }
         parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("slippage", "clientOrderId", "client_id", "slippage", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "timeInForce")));
         List<Object> modifies = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(orders); i++)
         {
             Object rawOrder = Helpers.GetValue(orders, i);
             String id = this.safeString(rawOrder, "id");
@@ -4235,10 +4235,10 @@ final Object finalClientOrderId = clientOrderId;
         Object takeProfitPrice = null;
         if (!java.util.Objects.equals(triggerPx, null))
         {
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(orderTypeRaw, "stop"), 0))
+            if (Helpers.getIndexOf(orderTypeRaw, "stop") >= 0)
             {
                 stopLossPrice = triggerPx;
-            } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(orderTypeRaw, "take profit"), 0))
+            } else if (Helpers.getIndexOf(orderTypeRaw, "take profit") >= 0)
             {
                 takeProfitPrice = triggerPx;
             }

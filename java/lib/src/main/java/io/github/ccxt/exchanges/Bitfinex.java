@@ -940,7 +940,7 @@ public class Bitfinex extends BitfinexApi
                 Object market = this.safeValue(pairObj, 1, new HashMap<String, Object>() {{}});
                 Boolean spot = true;
                 String type = null;
-                if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(id, "F0"), 0))
+                if (Helpers.getIndexOf(id, "F0") >= 0)
                 {
                     spot = false;
                     type = "swap";
@@ -951,7 +951,7 @@ public class Bitfinex extends BitfinexApi
                 Boolean swap = java.util.Objects.equals(type, "swap");
                 Object baseId = null;
                 Object quoteId = null;
-                if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(id, ":"), 0))
+                if (Helpers.getIndexOf(id, ":") >= 0)
                 {
                     List<Object> parts = (List<Object>) Helpers.split(id, ":");
                     baseId = Helpers.GetValue(parts, 0);
@@ -1161,7 +1161,7 @@ public class Bitfinex extends BitfinexApi
                 put( "marginables", Bitfinex.this.safeList(response, 10, new ArrayList<Object>(Arrays.asList())) );
             }};
             Map<String, Object> indexedNetworks = new HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(((Map<String, Object>)indexed).get("networks"))); i++)
+            for (var i = 0; i < Helpers.getArrayLength(((Map<String, Object>)indexed).get("networks")); i++)
             {
                 Object networkObj = Helpers.GetValue(((Map<String, Object>)indexed).get("networks"), i);
                 String networkId = this.safeString(networkObj, 0);
@@ -1181,7 +1181,7 @@ public class Bitfinex extends BitfinexApi
     public Object parseCurrenciesCustom(Object ids, Object indexed, Object indexedNetworks)
     {
         List<Object> allowedIds = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(ids); i++)
         {
             Object id = Helpers.GetValue(ids, i);
             if (Helpers.isTrue(((String)id).endsWith("F0")))
@@ -2142,7 +2142,7 @@ public class Bitfinex extends BitfinexApi
         Boolean postOnly = false;
         if (!java.util.Objects.equals(flags, null))
         {
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(flags)); i++)
+            for (var i = 0; i < Helpers.getArrayLength(flags); i++)
             {
                 if (java.util.Objects.equals(Helpers.GetValue(flags, i), "postOnly"))
                 {
@@ -3899,22 +3899,22 @@ public class Bitfinex extends BitfinexApi
         if (java.util.Objects.equals(type, null))
         {
             return null;
-        } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "fee"), 0) || Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "charged"), 0))
+        } else if (Helpers.getIndexOf(type, "fee") >= 0 || Helpers.getIndexOf(type, "charged") >= 0)
         {
             return "fee";
-        } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "rebate"), 0))
+        } else if (Helpers.getIndexOf(type, "rebate") >= 0)
         {
             return "rebate";
-        } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "deposit"), 0) || Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "withdrawal"), 0))
+        } else if (Helpers.getIndexOf(type, "deposit") >= 0 || Helpers.getIndexOf(type, "withdrawal") >= 0)
         {
             return "transaction";
-        } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "transfer"), 0))
+        } else if (Helpers.getIndexOf(type, "transfer") >= 0)
         {
             return "transfer";
-        } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "payment"), 0))
+        } else if (Helpers.getIndexOf(type, "payment") >= 0)
         {
             return "payout";
-        } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "exchange"), 0) || Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "position"), 0))
+        } else if (Helpers.getIndexOf(type, "exchange") >= 0 || Helpers.getIndexOf(type, "position") >= 0)
         {
             return "trade";
         } else

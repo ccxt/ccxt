@@ -68,7 +68,7 @@ public class TestTrade extends BaseTest {
             // todo: remove undefined check and probably non-empty array check later
             if (!java.util.Objects.equals(((Map<String, Object>)entry).get("fees"), null))
             {
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(((Map<String, Object>)entry).get("fees"))); i++)
+                for (var i = 0; i < Helpers.getArrayLength(((Map<String, Object>)entry).get("fees")); i++)
                 {
                     TestSharedMethods.AssertFeeStructure(exchange, skippedProperties, method, ((Map<String, Object>)entry).get("fees"), i);
                 }

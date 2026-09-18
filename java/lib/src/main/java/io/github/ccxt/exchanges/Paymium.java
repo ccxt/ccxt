@@ -693,7 +693,7 @@ public class Paymium extends PaymiumApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
-            if (Helpers.isLessThan(Helpers.getIndexOf(toAccount, "@"), 0))
+            if (Helpers.getIndexOf(toAccount, "@") < 0)
             {
                 throw new ExchangeError((this.id + " transfer() only allows transfers to an email address")) ;
             }

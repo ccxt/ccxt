@@ -1503,7 +1503,7 @@ public class Blockchaincom extends BlockchaincomApi
             Map<String, Object> result = new HashMap<String, Object>() {{
                 put( "info", response );
             }};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balances)); i++)
+            for (var i = 0; i < Helpers.getArrayLength(balances); i++)
             {
                 Object entry = Helpers.GetValue(balances, i);
                 String currencyId = this.safeString(entry, "currency");

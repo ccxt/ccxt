@@ -898,7 +898,7 @@ public class Onetrading extends OnetradingApi
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         List<Object> takerFees = new ArrayList<Object>(Arrays.asList());
         List<Object> makerFees = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(feeTiers)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(feeTiers); i++)
         {
             Object tier = Helpers.GetValue(feeTiers, i);
             Double volume = this.safeNumber(tier, "volume");

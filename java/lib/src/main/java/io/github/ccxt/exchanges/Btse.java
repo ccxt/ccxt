@@ -1292,7 +1292,7 @@ public class Btse extends BtseApi
         Map<String, Object> totals = new HashMap<String, Object>() {{}};
         Map<String, Object> frees = new HashMap<String, Object>() {{}};
         Map<String, Object> useds = new HashMap<String, Object>() {{}};
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
             Object row = Helpers.GetValue(response, i);
             Object assets = this.safeList(row, "assets");
@@ -1441,7 +1441,7 @@ public class Btse extends BtseApi
             {
                 Object symbolKey = Helpers.GetValue(symbolKeys, i);
                 Object tiersList = Helpers.GetValue(result, symbolKey);
-                for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(tiersList)); j++)
+                for (var j = 0; j < Helpers.getArrayLength(tiersList); j++)
                 {
                     if ((j == 0))
                     {

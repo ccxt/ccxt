@@ -5644,7 +5644,7 @@ public class Coinbase extends CoinbaseApi
     {
         Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(ids); i++)
         {
             Map<String, Object> id = this.extend(this.parseDepositMethodId(Helpers.GetValue(ids, i)), parameters);
             ((List<Object>)result).add(id);
@@ -6453,7 +6453,7 @@ public class Coinbase extends CoinbaseApi
                 // https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
                 // v2: 'GET' require payload in the signature
                 // https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
-                Boolean isCloudAPiKey = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(this.apiKey, "organizations/"), 0)) || Helpers.isTrue((this.secret.startsWith("-----BEGIN")));
+                Boolean isCloudAPiKey = (Helpers.getIndexOf(this.apiKey, "organizations/") >= 0) || Helpers.isTrue((this.secret.startsWith("-----BEGIN")));
                 // using the size might be fragile, so we add an option to force v2 cloud api key if needed
                 Boolean isV2CloudAPiKey = Helpers.isEqual(this.secret.length(), 88) || Helpers.isTrue(this.safeBool(this.options, "v2CloudAPiKey", false)) || Helpers.isTrue(this.secret.endsWith("="));
                 if (Boolean.TRUE.equals(isCloudAPiKey) || Boolean.TRUE.equals(isV2CloudAPiKey))

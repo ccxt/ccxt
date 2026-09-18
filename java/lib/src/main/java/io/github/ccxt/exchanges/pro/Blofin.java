@@ -956,7 +956,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             Object symbolsLength = Helpers.getArrayLength(symbols);
             if (Helpers.isGreaterThan(symbolsLength, 0))
             {
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
+                for (var i = 0; i < Helpers.getArrayLength(symbols); i++)
                 {
                     Object current = Helpers.GetValue(symbols, i);
                     Object market = null;
@@ -1061,7 +1061,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             Map<String, Object> arg = (Map<String, Object>) this.safeDict(message, "arg");
             String channelName = this.safeString(arg, "channel");
             method = this.safeValue(methods, channelName);
-            if ((java.util.Objects.equals(method, null)) && (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(channelName, "candle"), 0)))
+            if ((java.util.Objects.equals(method, null)) && (Helpers.getIndexOf(channelName, "candle") >= 0))
             {
                 method = methods.get("candle");
             }

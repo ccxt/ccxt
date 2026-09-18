@@ -579,7 +579,7 @@ public class TestSharedMethods extends BaseTest {
                 {
                     Object orders = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, pluralFetchName, new Object[] { symbol, sinceTime })).join();
                     Boolean found = false;
-                    for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(orders)); j++)
+                    for (var j = 0; j < Helpers.getArrayLength(orders); j++)
                     {
                         Object currentOrder = Helpers.GetValue(orders, j);
                         if (java.util.Objects.equals(Helpers.GetValue(currentOrder, "id"), originalId))
@@ -799,7 +799,7 @@ public class TestSharedMethods extends BaseTest {
         // sync-flavored php shared by both lanes, so the actual fetchOHLCV await must live
         // in the per-lane callers - this tells them whether the probe is needed
         Object eMessage = exchange.exceptionMessage(ex, false); // typed string so the php transpile uses mb_strpos, not in_array
-        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(eMessage, "percentage should be above"), 0) || Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(eMessage, "percentage should be below"), 0))
+        if (Helpers.getIndexOf(eMessage, "percentage should be above") >= 0 || Helpers.getIndexOf(eMessage, "percentage should be below") >= 0)
         {
             Object symbol = Helpers.GetValue(ticker, "symbol");
             if (!java.util.Objects.equals(symbol, null))
@@ -822,7 +822,7 @@ public class TestSharedMethods extends BaseTest {
         // per tickerExceptionNeedsOhlcv, are fetched by the per-lane caller and passed in
         Object ohlcv = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object eMessage = exchange.exceptionMessage(ex, false); // typed string so the php transpile uses mb_strpos, not in_array
-        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(eMessage, "percentage should be above"), 0) || Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(eMessage, "percentage should be below"), 0))
+        if (Helpers.getIndexOf(eMessage, "percentage should be above") >= 0 || Helpers.getIndexOf(eMessage, "percentage should be below") >= 0)
         {
             Object symbol = Helpers.GetValue(ticker, "symbol");
             if (!java.util.Objects.equals(symbol, null))

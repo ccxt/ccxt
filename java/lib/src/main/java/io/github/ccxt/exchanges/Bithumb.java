@@ -570,7 +570,7 @@ public class Bithumb extends BithumbApi
     public Object getGen2MarketId(Object market)
     {
         String marketId = this.safeString(market, "id");
-        if ((!java.util.Objects.equals(marketId, null)) && (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(marketId, "-"), 0)))
+        if ((!java.util.Objects.equals(marketId, null)) && (Helpers.getIndexOf(marketId, "-") >= 0))
         {
             return marketId;
         }
@@ -835,7 +835,7 @@ public class Bithumb extends BithumbApi
             }
         } else
         {
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+            for (var i = 0; i < Helpers.getArrayLength(response); i++)
             {
                 Object entry = Helpers.GetValue(response, i);
                 Object account = this.account();

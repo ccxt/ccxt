@@ -50,7 +50,7 @@ public class TestWatchOrders extends BaseTest {
                 }
                 TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
                 now = exchange.milliseconds();
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+                for (var i = 0; i < Helpers.getArrayLength(response); i++)
                 {
                     TestOrder.testOrder(exchange, skippedProperties, method, Helpers.GetValue(response, i), symbol, now);
                 }

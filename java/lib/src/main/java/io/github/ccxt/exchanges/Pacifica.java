@@ -4463,7 +4463,7 @@ public class Pacifica extends PacificaApi
             Object result = new HashMap<String, Object>() {{}};
             List<Object> keys = Helpers.objectKeys(value);
             Object sortedKeys = this.sort(keys);
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(sortedKeys)); i++)
+            for (var i = 0; i < Helpers.getArrayLength(sortedKeys); i++)
             {
                 Object key = Helpers.GetValue(sortedKeys, i);
                 Helpers.addElementToObject(result, key, this.sortJsonKeys(Helpers.GetValue(value, key)));
