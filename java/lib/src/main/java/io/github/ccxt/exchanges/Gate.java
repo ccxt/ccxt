@@ -2080,7 +2080,7 @@ public class Gate extends GateApi
         } else
         {
             base = this.safeString(marketIdBase, 0);
-            expiry = Helpers.slice(expiry, 2, 8); // convert 20230728 to 230728
+            expiry = (expiry == null ? null : ((String)expiry).substring(Math.min(2, ((String)expiry).length()), Math.min(8, ((String)expiry).length()))); // convert 20230728 to 230728
         }
         String strike = this.safeString(optionParts, 2);
         String optionType = this.safeString(optionParts, 3);
@@ -5345,7 +5345,7 @@ public class Gate extends GateApi
         if (!java.util.Objects.equals(msString, null))
         {
             msString = Precise.stringMul(msString, "1000");
-            msString = Helpers.slice(msString, 0, 13);
+            msString = (msString == null ? null : ((String)msString).substring(0, Math.min(13, ((String)msString).length())));
             timestamp = this.parseToInt(msString);
         } else
         {

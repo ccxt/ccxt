@@ -403,7 +403,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         //     }
         //
         String type = this.safeString(message, "type", "");
-        Object timeframeId = Helpers.slice(type, 8, null);
+        Object timeframeId = (type == null ? null : ((String)type).substring(Math.min(8, ((String)type).length())));
         Object timeframeEndIndex = Helpers.getIndexOf(timeframeId, "_");
         timeframeId = Helpers.slice(timeframeId, 0, timeframeEndIndex);
         Object marketId = this.safeString(message, "symbol", "").toLowerCase();

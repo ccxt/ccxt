@@ -202,7 +202,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
                     {
                         continue;
                     }
-                    subscriptionKey = Helpers.slice(subscriptionKey, 0, 3);
+                    subscriptionKey = (subscriptionKey == null ? null : ((String)subscriptionKey).substring(0, Math.min(3, ((String)subscriptionKey).length())));
                     if (java.util.Objects.equals(subscriptionKey, "old"))
                     {
                         throw new ExchangeError((this.id + " watchTrades() only supports watching one symbol at a time.")) ;

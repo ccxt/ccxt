@@ -432,17 +432,17 @@ public class Bitflyer extends BitflyerApi
                         // no alias:
                         // { product_code: 'BTCJPY11MAR2022', market_type: 'Futures' }
                         // TODO this will break if there are products with 4 chars
-                        baseId = Helpers.slice(id, 0, 3);
-                        quoteId = Helpers.slice(id, 3, 6);
+                        baseId = (id == null ? null : ((String)id).substring(0, Math.min(3, ((String)id).length())));
+                        quoteId = (id == null ? null : ((String)id).substring(Math.min(3, ((String)id).length()), Math.min(6, ((String)id).length())));
                         // last 9 chars are expiry date
-                        Object expiryDate = Helpers.slice(id, Helpers.opNeg(9), null);
+                        Object expiryDate = (id == null ? null : ((String)id).substring(Math.max(((String)id).length() - 9, 0)));
                         expiry = this.parseExpiryDate(expiryDate);
                     } else
                     {
                         Object splitAlias = Helpers.split(alias, "_");
                         String currencyIds = this.safeString(splitAlias, 0);
-                        baseId = Helpers.slice(currencyIds, 0, Helpers.opNeg(3));
-                        quoteId = Helpers.slice(currencyIds, Helpers.opNeg(3), null);
+                        baseId = (currencyIds == null ? null : ((String)currencyIds).substring(0, Math.max(((String)currencyIds).length() - 3, 0)));
+                        quoteId = (currencyIds == null ? null : ((String)currencyIds).substring(Math.max(((String)currencyIds).length() - 3, 0)));
                         Object splitId = Helpers.split(id, currencyIds);
                         String expiryDate = this.safeString(splitId, 1);
                         expiry = this.parseExpiryDate(expiryDate);

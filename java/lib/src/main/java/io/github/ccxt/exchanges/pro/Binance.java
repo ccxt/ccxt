@@ -5579,7 +5579,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object stockBaseSymbol = baseAssetCode;
             if ((!java.util.Objects.equals(stockBaseSymbol, null)) && (Helpers.isEqual(Helpers.getIndexOf(stockBaseSymbol, "EQ_"), 0)))
             {
-                stockBaseSymbol = Helpers.slice(stockBaseSymbol, 3, null);
+                stockBaseSymbol = (stockBaseSymbol == null ? null : ((String)stockBaseSymbol).substring(Math.min(3, ((String)stockBaseSymbol).length())));
             }
             if (java.util.Objects.equals(stockBaseSymbol, null))
             {

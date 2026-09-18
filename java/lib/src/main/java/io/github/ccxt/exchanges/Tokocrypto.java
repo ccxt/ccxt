@@ -2892,7 +2892,7 @@ public class Tokocrypto extends TokocryptoApi
         String txid = this.safeString(transaction, "txId");
         if ((!java.util.Objects.equals(txid, null)) && (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(txid, "Internal transfer "), 0)))
         {
-            txid = Helpers.slice(txid, 18, null);
+            txid = (txid == null ? null : ((String)txid).substring(Math.min(18, ((String)txid).length())));
         }
         String currencyId = this.safeString2(transaction, "coin", "fiatCurrency");
         String code = this.safeCurrencyCode(currencyId, currency);

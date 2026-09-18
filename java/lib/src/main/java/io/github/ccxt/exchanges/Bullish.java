@@ -1034,7 +1034,7 @@ public class Bullish extends BullishApi
                 expiryDatetime = this.safeString(market, "expiryDatetime");
                 Object idParts = Helpers.split(id, "-");
                 Object datePart = this.safeString(idParts, 2);
-                Object dateYmd = Helpers.slice(datePart, 2, null);
+                Object dateYmd = (datePart == null ? null : ((String)datePart).substring(Math.min(2, ((String)datePart).length())));
                 symbol = (symbol + ("-" + dateYmd));
                 if (java.util.Objects.equals(type, "future"))
                 {

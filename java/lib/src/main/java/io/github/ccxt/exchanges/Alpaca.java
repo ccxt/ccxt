@@ -675,7 +675,7 @@ public class Alpaca extends AlpacaApi
             {
                 throw new ExchangeError((this.id + " fetchTime() missing timestamp")) ;
             }
-            Object localTime = Helpers.slice(timestamp, 0, 23);
+            Object localTime = (timestamp == null ? null : ((String)timestamp).substring(0, Math.min(23, ((String)timestamp).length())));
             if (java.util.Objects.equals(timestamp, null))
             {
                 throw new ExchangeError((this.id + " fetchTime() missing timestamp")) ;

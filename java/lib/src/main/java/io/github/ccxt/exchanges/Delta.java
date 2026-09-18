@@ -481,7 +481,7 @@ public class Delta extends DeltaApi
         }
         if (!java.util.Objects.equals(expiry, null))
         {
-            expiry = Helpers.add(Helpers.add(Helpers.slice(expiry, 4, null), Helpers.slice(expiry, 2, 4)), Helpers.slice(expiry, 0, 2));
+            expiry = Helpers.add(Helpers.add((expiry == null ? null : ((String)expiry).substring(Math.min(4, ((String)expiry).length()))), (expiry == null ? null : ((String)expiry).substring(Math.min(2, ((String)expiry).length()), Math.min(4, ((String)expiry).length())))), (expiry == null ? null : ((String)expiry).substring(0, Math.min(2, ((String)expiry).length()))));
         }
         String settle = quote;
         String strike = this.safeString(optionParts, 2);

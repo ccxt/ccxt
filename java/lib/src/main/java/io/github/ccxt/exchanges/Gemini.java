@@ -1454,12 +1454,12 @@ public class Gemini extends GeminiApi
             Object idLength = Helpers.subtract(marketId.length(), 0);
             if (Helpers.isEqual(idLength, 7))
             {
-                baseId = Helpers.slice(marketId, 0, 4);
-                quoteId = Helpers.slice(marketId, 4, 7);
+                baseId = (marketId == null ? null : ((String)marketId).substring(0, Math.min(4, ((String)marketId).length())));
+                quoteId = (marketId == null ? null : ((String)marketId).substring(Math.min(4, ((String)marketId).length()), Math.min(7, ((String)marketId).length())));
             } else
             {
-                baseId = Helpers.slice(marketId, 0, 3);
-                quoteId = Helpers.slice(marketId, 3, 6);
+                baseId = (marketId == null ? null : ((String)marketId).substring(0, Math.min(3, ((String)marketId).length())));
+                quoteId = (marketId == null ? null : ((String)marketId).substring(Math.min(3, ((String)marketId).length()), Math.min(6, ((String)marketId).length())));
             }
             base = this.safeCurrencyCode(baseId);
             quote = this.safeCurrencyCode(quoteId);

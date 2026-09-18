@@ -958,8 +958,8 @@ public class Bitfinex extends BitfinexApi
                     quoteId = Helpers.GetValue(parts, 1);
                 } else
                 {
-                    baseId = Helpers.slice(id, 0, 3);
-                    quoteId = Helpers.slice(id, 3, 6);
+                    baseId = (id == null ? null : ((String)id).substring(0, Math.min(3, ((String)id).length())));
+                    quoteId = (id == null ? null : ((String)id).substring(Math.min(3, ((String)id).length()), Math.min(6, ((String)id).length())));
                 }
                 Object base = this.safeCurrencyCode(baseId);
                 Object quote = this.safeCurrencyCode(quoteId);
