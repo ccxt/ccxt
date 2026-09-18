@@ -2134,7 +2134,7 @@ impl BitfinexCore {
             m
         });
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("len".to_string()), limit.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("len".to_string(), limit.clone()); }
         }
         let mut fullRequest: Value = self.extend(request.clone(), &[params.clone()]);
         let mut orderbook: Value = self.public_get_book_symbol_precision(&[fullRequest.clone()]).await;
@@ -2316,9 +2316,9 @@ impl BitfinexCore {
         });
         if (symbols != Value::Null) {
             let mut ids: Value = self.market_ids(&[symbols.clone()]);
-            add_element_to_object(&mut request, &Value::Str("symbols".to_string()), join(&ids, &Value::Str(",".to_string())));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("symbols".to_string(), join(&ids, &Value::Str(",".to_string()))); }
         }  else {
-            add_element_to_object(&mut request, &Value::Str("symbols".to_string()), Value::Str("ALL".to_string()));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("symbols".to_string(), Value::Str("ALL".to_string())); }
         }
         let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
         let mut tickers: Value = self.public_get_tickers(&[__ws_arg_3]).await;
@@ -2766,13 +2766,13 @@ impl BitfinexCore {
         let mut orderType: Value = to_upper(&type_var);
         if (trailingAmount != Value::Null) {
             orderType = Value::Str("TRAILING STOP".to_string());
-            add_element_to_object(&mut request, &Value::Str("price_trailing".to_string()), trailingAmount.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price_trailing".to_string(), trailingAmount.clone()); }
         }  else if (triggerPrice != Value::Null) {
             // request['price'] is taken as triggerPrice for stop orders
-            add_element_to_object(&mut request, &Value::Str("price".to_string()), self.price_to_precision(symbol.clone(), triggerPrice.clone()));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price".to_string(), self.price_to_precision(symbol.clone(), triggerPrice.clone())); }
             if (type_var.as_str() == Some("limit")) {
                 orderType = Value::Str("STOP LIMIT".to_string());
-                add_element_to_object(&mut request, &Value::Str("price_aux_limit".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price_aux_limit".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
             }  else {
                 orderType = Value::Str("STOP".to_string());
             }
@@ -2787,7 +2787,7 @@ impl BitfinexCore {
             panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not allow market IOC and FOK orders".to_string())))));
         }
         if is_true(&(Value::Bool(type_var.as_str() != Some("market")))) && is_true(&(Value::Bool(triggerPrice == Value::Null))) {
-            add_element_to_object(&mut request, &Value::Str("price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
         }
         if ioc {
             orderType = Value::Str("IOC".to_string());
@@ -2800,7 +2800,7 @@ impl BitfinexCore {
             // The EXCHANGE prefix is only required for non margin spot markets
             orderType = Value::Str(format!("{}{}", Value::Str("EXCHANGE ".to_string()), orderType));
         }
-        add_element_to_object(&mut request, &Value::Str("type".to_string()), orderType.clone());
+        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("type".to_string(), orderType.clone()); }
         // flag values may be summed to combine flags
         let mut flags: Value = Value::Int(0);
         if postOnly {
@@ -2810,10 +2810,10 @@ impl BitfinexCore {
             flags = self.sum(&[flags.clone(), Value::Int(1024)]);
         }
         if (flags.as_f64() != Some(0.0)) {
-            add_element_to_object(&mut request, &Value::Str("flags".to_string()), flags.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("flags".to_string(), flags.clone()); }
         }
         if (clientOrderId != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("cid".to_string()), clientOrderId.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("cid".to_string(), clientOrderId.clone()); }
         }
         params = self.omit(params.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("timeInForce".to_string()), Value::Str("postOnly".to_string()), Value::Str("reduceOnly".to_string()), Value::Str("trailingAmount".to_string()), Value::Str("clientOrderId".to_string())]), &[]);
         return self.extend(request.clone(), &[params.clone()]);
@@ -3316,7 +3316,7 @@ impl BitfinexCore {
             response = self.private_post_auth_r_orders(&[__ws_arg_12]).await;
         }  else {
             market = self.market(symbol.clone());
-            add_element_to_object(&mut request, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
             let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_post_auth_r_orders_symbol(&[__ws_arg_13]).await;
         }
@@ -3568,15 +3568,15 @@ impl BitfinexCore {
             m
         });
         if (since != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("start".to_string()), since.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("start".to_string(), since.clone()); }
         }
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default 25, max 1000
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); } // default 25, max 1000
         }
         let mut response: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol.clone());
-            add_element_to_object(&mut request, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
             let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_post_auth_r_trades_symbol_hist(&[__ws_arg_17]).await;
         }  else {
@@ -4036,15 +4036,15 @@ impl BitfinexCore {
             m
         });
         if (since != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("start".to_string()), since.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("start".to_string(), since.clone()); }
         }
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // max 1000
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); } // max 1000
         }
         let mut response: Value = Value::Null;
         if (code != Value::Null) {
             currency = self.currency(code.clone());
-            add_element_to_object(&mut request, &Value::Str("currency".to_string()), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
             let __ws_arg_21 = self.extend(request.clone(), &[params.clone()]);
             let mut currencyMovements: Value = self.private_post_auth_r_movements_currency_hist(&[__ws_arg_21]).await;
             response = self.to_array(currencyMovements.clone());
@@ -4104,7 +4104,7 @@ impl BitfinexCore {
             m
         });
         if (tag != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("payment_id".to_string()), tag.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("payment_id".to_string(), tag.clone()); }
         }
         let mut withdrawOptions: Value = self.safe_value_k(self.options.clone(), "withdraw", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -4112,7 +4112,7 @@ impl BitfinexCore {
         })]);
         let mut includeFee: Value = self.safe_bool_k(withdrawOptions.clone(), "includeFee", &[Value::Bool(false)]);
         if (includeFee.as_bool() == Some(true)) {
-            add_element_to_object(&mut request, &Value::Str("fee_deduct".to_string()), Value::Int(1));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("fee_deduct".to_string(), Value::Int(1)); }
         }
         let __ws_arg_23 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_post_auth_w_withdraw(&[__ws_arg_23]).await;
@@ -5237,7 +5237,7 @@ impl BitfinexCore {
             response = self.private_post_auth_r_orders(&[__ws_arg_33]).await;
         }  else {
             market = self.market(symbol.clone());
-            add_element_to_object(&mut request, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
             let __ws_arg_34 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_post_auth_r_orders_symbol(&[__ws_arg_34]).await;
         }
@@ -5330,7 +5330,7 @@ impl BitfinexCore {
         if (amount != Value::Null) {
             let mut amountString: Value = self.amount_to_precision(symbol.clone(), amount.clone());
             amountString = (if is_true(&(Value::Bool(side.as_str() == Some("buy")))) { amountString.clone() } else { crate::precise::Precise::stringNeg(&amountString) });
-            add_element_to_object(&mut request, &Value::Str("amount".to_string()), amountString.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("amount".to_string(), amountString.clone()); }
         }
         let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string()), &[]);
         let mut trailingAmount: Value = self.safe_string_k(params.clone(), "trailingAmount", &[]);
@@ -5339,17 +5339,17 @@ impl BitfinexCore {
         let mut reduceOnly: Value = self.safe_bool_k(params.clone(), "reduceOnly", &[Value::Bool(false)]);
         let mut clientOrderId: Value = self.safe_integer2(params.clone(), Value::Str("cid".to_string()), Value::Str("clientOrderId".to_string()), &[]);
         if (trailingAmount != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("price_trailing".to_string()), trailingAmount.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price_trailing".to_string(), trailingAmount.clone()); }
         }  else if (triggerPrice != Value::Null) {
             // request['price'] is taken as triggerPrice for stop orders
-            add_element_to_object(&mut request, &Value::Str("price".to_string()), self.price_to_precision(symbol.clone(), triggerPrice.clone()));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price".to_string(), self.price_to_precision(symbol.clone(), triggerPrice.clone())); }
             if (type_var.as_str() == Some("limit")) {
-                add_element_to_object(&mut request, &Value::Str("price_aux_limit".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price_aux_limit".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
             }
         }
         let mut postOnly: bool = is_true(&(Value::Bool(postOnlyParam.as_bool() == Some(true)))) || is_true(&(Value::Bool(timeInForce.as_str() == Some("PO"))));
         if is_true(&(Value::Bool(type_var.as_str() != Some("market")))) && is_true(&(Value::Bool(triggerPrice == Value::Null))) {
-            add_element_to_object(&mut request, &Value::Str("price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
         }
         // flag values may be summed to combine flags
         let mut flags: Value = Value::Int(0);
@@ -5360,14 +5360,14 @@ impl BitfinexCore {
             flags = self.sum(&[flags.clone(), Value::Int(1024)]);
         }
         if (flags.as_f64() != Some(0.0)) {
-            add_element_to_object(&mut request, &Value::Str("flags".to_string()), flags.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("flags".to_string(), flags.clone()); }
         }
         if (clientOrderId != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("cid".to_string()), clientOrderId.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("cid".to_string(), clientOrderId.clone()); }
         }
         let mut leverage: Value = self.safe_integer2(params.clone(), Value::Str("leverage".to_string()), Value::Str("lev".to_string()), &[]);
         if (leverage != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("lev".to_string()), leverage.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("lev".to_string(), leverage.clone()); }
         }
         params = self.omit(params.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("timeInForce".to_string()), Value::Str("postOnly".to_string()), Value::Str("reduceOnly".to_string()), Value::Str("trailingAmount".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("leverage".to_string())]), &[]);
         let __ws_arg_35 = self.extend(request.clone(), &[params.clone()]);

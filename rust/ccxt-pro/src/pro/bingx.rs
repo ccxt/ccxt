@@ -480,7 +480,7 @@ impl BingxCore {
             m
         });
         if (marketType.as_str() == Some("swap")) {
-            add_element_to_object(&mut request, &Value::Str("reqType".to_string()), Value::Str("sub".to_string()));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("reqType".to_string(), Value::Str("sub".to_string())); }
         }
         let mut subscription: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -741,7 +741,7 @@ impl BingxCore {
             m
         });
         if (marketType.as_str() == Some("swap")) {
-            add_element_to_object(&mut request, &Value::Str("reqType".to_string()), Value::Str("sub".to_string()));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("reqType".to_string(), Value::Str("sub".to_string())); }
         }
         let mut subscription: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -955,7 +955,7 @@ impl BingxCore {
             m
         });
         if (marketType.as_str() == Some("swap")) {
-            add_element_to_object(&mut request, &Value::Str("reqType".to_string()), Value::Str("sub".to_string()));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("reqType".to_string(), Value::Str("sub".to_string())); }
         }
         let mut subscriptionArgs: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1361,7 +1361,7 @@ impl BingxCore {
             m
         });
         if (marketType.as_str() == Some("swap")) {
-            add_element_to_object(&mut request, &Value::Str("reqType".to_string()), Value::Str("sub".to_string()));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("reqType".to_string(), Value::Str("sub".to_string())); }
         }
         let mut subscriptionArgs: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();

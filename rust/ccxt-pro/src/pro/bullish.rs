@@ -739,7 +739,7 @@ impl BullishCore {
         });
         let mut tradingAccountId: Value = self.safe_string_k(params.clone(), "tradingAccountId", &[]);
         if (tradingAccountId != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("tradingAccountId".to_string()), tradingAccountId.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("tradingAccountId".to_string(), tradingAccountId.clone()); }
             params = self.omit(params.clone(), Value::Str("tradingAccountId".to_string()), &[]);
         }
         let mut orders: Value = self.watch_private(messageHash.clone(), subscribeHash.clone(), &[request.clone(), params.clone()]).await;
@@ -884,7 +884,7 @@ impl BullishCore {
         });
         let mut tradingAccountId: Value = self.safe_string_k(params.clone(), "tradingAccountId", &[]);
         if (tradingAccountId != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("tradingAccountId".to_string()), tradingAccountId.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("tradingAccountId".to_string(), tradingAccountId.clone()); }
             params = self.omit(params.clone(), Value::Str("tradingAccountId".to_string()), &[]);
         }
         let mut trades: Value = self.watch_private(messageHash.clone(), subscribeHash.clone(), &[request.clone(), params.clone()]).await;
@@ -1012,7 +1012,7 @@ impl BullishCore {
         let mut tradingAccountId: Value = self.safe_string_k(params.clone(), "tradingAccountId", &[]);
         if (tradingAccountId != Value::Null) {
             params = self.omit(params.clone(), Value::Str("tradingAccountId".to_string()), &[]);
-            add_element_to_object(&mut request, &Value::Str("tradingAccountId".to_string()), tradingAccountId.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("tradingAccountId".to_string(), tradingAccountId.clone()); }
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str("::".to_string()), tradingAccountId))));
         }
         return self.watch_private(messageHash.clone(), messageHash.clone(), &[request.clone(), params.clone()]).await;

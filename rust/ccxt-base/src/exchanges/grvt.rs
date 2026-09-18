@@ -1841,7 +1841,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             limit = Value::Int(100);
         }
         if limit.as_f64().unwrap_or(f64::NAN) <= Value::Int(500).as_f64().unwrap_or(f64::NAN) {
-            add_element_to_object(&mut request, &Value::Str("depth".to_string()), self.find_nearest_ceiling(Value::List(vec![Value::Int(10), Value::Int(50), Value::Int(100), Value::Int(500)]), limit.clone()));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("depth".to_string(), self.find_nearest_ceiling(Value::List(vec![Value::Int(10), Value::Int(50), Value::Int(100), Value::Int(500)]), limit.clone())); }
         }
         let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.public_market_post_full_v1_book(&[__ws_arg_4]).await;
@@ -3421,8 +3421,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         });
         if (symbols != Value::Null) {
             symbols = self.market_symbols(&[symbols.clone()]);
-            add_element_to_object(&mut request, &Value::Str("base".to_string()), Value::List(vec![]));
-            add_element_to_object(&mut request, &Value::Str("quote".to_string()), Value::List(vec![]));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("base".to_string(), Value::List(vec![])); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("quote".to_string(), Value::List(vec![])); }
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_722: bool = true;
@@ -4042,9 +4042,9 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string()), &[]);
         if (clientOrderId != Value::Null) {
             params = self.omit(params.clone(), Value::Str("clientOrderId".to_string()), &[Value::Str("client_order_id".to_string())]);
-            add_element_to_object(&mut request, &Value::Str("client_order_id".to_string()), clientOrderId.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("client_order_id".to_string(), clientOrderId.clone()); }
         }  else {
-            add_element_to_object(&mut request, &Value::Str("order_id".to_string()), id.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("order_id".to_string(), id.clone()); }
         }
         let __ws_arg_25 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_trading_post_full_v1_order(&[__ws_arg_25]).await;
@@ -4328,9 +4328,9 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         });
         if (symbol != Value::Null) {
             let mut market: Value = self.market(symbol.clone());
-            add_element_to_object(&mut request, &Value::Str("base".to_string()), Value::List(vec![]));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("base".to_string(), Value::List(vec![])); }
             crate::runtime::append_to_object_array(&mut request, &Value::Str("base".to_string()), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null));
-            add_element_to_object(&mut request, &Value::Str("quote".to_string()), Value::List(vec![]));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("quote".to_string(), Value::List(vec![])); }
             crate::runtime::append_to_object_array(&mut request, &Value::Str("quote".to_string()), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null));
         }
         let __ws_arg_26 = self.extend(request.clone(), &[params.clone()]);
@@ -4378,9 +4378,9 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string()), &[]);
         if (clientOrderId != Value::Null) {
             params = self.omit(params.clone(), Value::Str("clientOrderId".to_string()), &[]);
-            add_element_to_object(&mut request, &Value::Str("client_order_id".to_string()), clientOrderId.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("client_order_id".to_string(), clientOrderId.clone()); }
         }  else {
-            add_element_to_object(&mut request, &Value::Str("order_id".to_string()), id.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("order_id".to_string(), id.clone()); }
         }
         let __ws_arg_27 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_trading_post_full_v1_cancel_order(&[__ws_arg_27]).await;

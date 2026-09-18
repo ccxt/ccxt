@@ -3193,7 +3193,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (payload != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("payload".to_string()), payload.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("payload".to_string(), payload.clone()); }
         }
         let mut client: Value = self.client(&[url.clone()]);
         if !is_true(&(Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash)))) {

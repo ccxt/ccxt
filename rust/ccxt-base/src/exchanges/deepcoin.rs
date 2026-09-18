@@ -1316,11 +1316,11 @@ impl DeepcoinCore {
             m
         });
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
         }
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         if (until != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("after".to_string()), until.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("after".to_string(), until.clone()); }
             params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
         }
         let mut calculateUntil: Value = self.safe_bool_k(params.clone(), "calculateUntil", &[Value::Bool(false)]);
@@ -1336,7 +1336,7 @@ impl DeepcoinCore {
                     endTime = crate::runtime::Math::min(&endTime, &until);
                 }
                 let mut now: Value = self.milliseconds();
-                add_element_to_object(&mut request, &Value::Str("after".to_string()), crate::runtime::Math::min(&endTime, &now));
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("after".to_string(), crate::runtime::Math::min(&endTime, &now)); }
             }
         }
         let mut response: Value = Value::Null;
@@ -1512,10 +1512,10 @@ impl DeepcoinCore {
             m
         });
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("limit".to_string()), crate::runtime::Math::min(&limit, &Value::Int(500)));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), crate::runtime::Math::min(&limit, &Value::Int(500))); }
         }
         let mut productGroup: Value = self.get_product_group_from_market(market.clone());
-        add_element_to_object(&mut request, &Value::Str("productGroup".to_string()), productGroup.clone());
+        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("productGroup".to_string(), productGroup.clone()); }
         let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.public_get_deepcoin_market_trades(&[__ws_arg_12]).await;
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
@@ -1731,17 +1731,17 @@ impl DeepcoinCore {
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
             currency = self.currency(code.clone());
-            add_element_to_object(&mut request, &Value::Str("coin".to_string()), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("coin".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         if (since != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("startTime".to_string(), since.clone()); }
         }
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("size".to_string()), limit.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("size".to_string(), limit.clone()); }
         }
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         if (until != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("endTime".to_string()), until.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("endTime".to_string(), until.clone()); }
             params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
         }
         let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
@@ -1797,17 +1797,17 @@ impl DeepcoinCore {
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
             currency = self.currency(code.clone());
-            add_element_to_object(&mut request, &Value::Str("coin".to_string()), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("coin".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         if (since != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("startTime".to_string(), since.clone()); }
         }
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("size".to_string()), limit.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("size".to_string(), limit.clone()); }
         }
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         if (until != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("endTime".to_string()), until.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("endTime".to_string(), until.clone()); }
             params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
         }
         let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
@@ -2092,17 +2092,17 @@ impl DeepcoinCore {
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
             currency = self.currency(code.clone());
-            add_element_to_object(&mut request, &Value::Str("ccy".to_string()), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("ccy".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         if (since != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("after".to_string()), since.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("after".to_string(), since.clone()); }
         }
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
         }
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         if (until != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("before".to_string()), until.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("before".to_string(), until.clone()); }
             params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
         }
         let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
@@ -2458,7 +2458,7 @@ impl DeepcoinCore {
         });
         let mut clientOrderId: Value = self.safe_string_k(params.clone(), "clientOrderId", &[]);
         if (clientOrderId != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("clOrdId".to_string()), clientOrderId.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("clOrdId".to_string(), clientOrderId.clone()); }
             params = self.omit(params.clone(), Value::Str("clientOrderId".to_string()), &[]);
         }
         let mut stopLoss: Value = self.safe_dict_k(params.clone(), "stopLoss", &[Value::Map({
@@ -2468,7 +2468,7 @@ impl DeepcoinCore {
         let mut stopLossPrice: Value = self.safe_string_k(stopLoss.clone(), "triggerPrice", &[]);
         if (stopLossPrice != Value::Null) {
             params = self.omit(params.clone(), Value::List(vec![Value::Str("stopLoss".to_string())]), &[]);
-            add_element_to_object(&mut request, &Value::Str("slTriggerPx".to_string()), self.price_to_precision(symbol.clone(), stopLossPrice.clone()));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("slTriggerPx".to_string(), self.price_to_precision(symbol.clone(), stopLossPrice.clone())); }
         }
         let mut takeProfit: Value = self.safe_dict_k(params.clone(), "takeProfit", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2477,14 +2477,14 @@ impl DeepcoinCore {
         let mut takeProfitPrice: Value = self.safe_string_k(takeProfit.clone(), "triggerPrice", &[]);
         if (takeProfitPrice != Value::Null) {
             params = self.omit(params.clone(), Value::List(vec![Value::Str("takeProfit".to_string())]), &[]);
-            add_element_to_object(&mut request, &Value::Str("tpTriggerPx".to_string()), self.price_to_precision(symbol.clone(), takeProfitPrice.clone()));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("tpTriggerPx".to_string(), self.price_to_precision(symbol.clone(), takeProfitPrice.clone())); }
         }
         let mut isMarketOrder: bool = type_var.as_str() == Some("market");
         if (price != Value::Null) {
             if isMarketOrder {
                 panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not require a price argument for market orders".to_string())))));
             }
-            add_element_to_object(&mut request, &Value::Str("px".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("px".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
         }  else if !isMarketOrder {
             panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument for limit orders".to_string())))));
         }
@@ -2495,22 +2495,22 @@ impl DeepcoinCore {
                     panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() accepts a cost parameter for spot market orders only".to_string())))));
                 }
                 params = self.omit(params.clone(), Value::Str("cost".to_string()), &[]);
-                add_element_to_object(&mut request, &Value::Str("sz".to_string()), self.cost_to_precision(symbol.clone(), cost.clone()));
-                add_element_to_object(&mut request, &Value::Str("tgtCcy".to_string()), Value::Str("quote_ccy".to_string()));
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("sz".to_string(), self.cost_to_precision(symbol.clone(), cost.clone())); }
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("tgtCcy".to_string(), Value::Str("quote_ccy".to_string())); }
             }  else {
-                add_element_to_object(&mut request, &Value::Str("sz".to_string()), self.amount_to_precision(symbol.clone(), amount.clone()));
-                add_element_to_object(&mut request, &Value::Str("tgtCcy".to_string()), Value::Str("base_ccy".to_string()));
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("sz".to_string(), self.amount_to_precision(symbol.clone(), amount.clone())); }
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("tgtCcy".to_string(), Value::Str("base_ccy".to_string())); }
             }
-            add_element_to_object(&mut request, &Value::Str("side".to_string()), side.clone());
-            add_element_to_object(&mut request, &Value::Str("tdMode".to_string()), Value::Str("cash".to_string()));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("side".to_string(), side.clone()); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("tdMode".to_string(), Value::Str("cash".to_string())); }
         }  else {
-            add_element_to_object(&mut request, &Value::Str("sz".to_string()), self.amount_to_precision(symbol.clone(), amount.clone()));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("sz".to_string(), self.amount_to_precision(symbol.clone(), amount.clone())); }
             let mut marginMode: Value = Value::Str("cross".to_string());
             { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("createOrder".to_string()), &[params.clone(), marginMode.clone()]); marginMode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-            add_element_to_object(&mut request, &Value::Str("tdMode".to_string()), marginMode.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("tdMode".to_string(), marginMode.clone()); }
             let mut mrgPosition: Value = Value::Str("merge".to_string());
             { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".to_string()), Value::Str("mrgPosition".to_string()), &[mrgPosition.clone()]); mrgPosition = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-            add_element_to_object(&mut request, &Value::Str("mrgPosition".to_string()), mrgPosition.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("mrgPosition".to_string(), mrgPosition.clone()); }
             let mut posSide: Value = Value::Null;
             let mut reduceOnly: Value = self.safe_bool_k(params.clone(), "reduceOnly", &[Value::Bool(false)]);
             if (reduceOnly.as_bool() == Some(true)) {
@@ -2526,7 +2526,7 @@ impl DeepcoinCore {
                     posSide = Value::Str("short".to_string());
                 }
             }
-            add_element_to_object(&mut request, &Value::Str("posSide".to_string()), posSide.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("posSide".to_string(), posSide.clone()); }
         }
         return self.extend(request.clone(), &[params.clone()]);
 
@@ -2580,10 +2580,10 @@ impl DeepcoinCore {
         //         request['triggerPrice'] = this.priceToPrecision (symbol, stopLossPrice);
         //     }
         // } else {
-        add_element_to_object(&mut request, &Value::Str("triggerPrice".to_string()), self.price_to_precision(symbol.clone(), triggerPrice.clone()));
+        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("triggerPrice".to_string(), self.price_to_precision(symbol.clone(), triggerPrice.clone())); }
         // }
         if (price != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
         }  else if (type_var.as_str() == Some("limit")) {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument for limit trigger orders".to_string())))));
         }
@@ -2595,26 +2595,26 @@ impl DeepcoinCore {
         }
         let mut reduceOnly: Value = self.safe_bool_k(params.clone(), "reduceOnly", &[Value::Bool(false)]);
         params = self.omit(params.clone(), Value::Str("reduceOnly".to_string()), &[]);
-        add_element_to_object(&mut request, &Value::Str("isCrossMargin".to_string()), isCrossMargin.clone());
-        add_element_to_object(&mut request, &Value::Str("tdMode".to_string()), marginMode.clone());
+        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("isCrossMargin".to_string(), isCrossMargin.clone()); }
+        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("tdMode".to_string(), marginMode.clone()); }
         if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             if (reduceOnly.as_bool() == Some(true)) {
                 if (side.as_str() == Some("buy")) {
-                    add_element_to_object(&mut request, &Value::Str("posSide".to_string()), Value::Str("short".to_string()));
+                    if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("posSide".to_string(), Value::Str("short".to_string())); }
                 }  else if (side.as_str() == Some("sell")) {
-                    add_element_to_object(&mut request, &Value::Str("posSide".to_string()), Value::Str("long".to_string()));
+                    if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("posSide".to_string(), Value::Str("long".to_string())); }
                 }
             }  else {
                 if (side.as_str() == Some("buy")) {
-                    add_element_to_object(&mut request, &Value::Str("posSide".to_string()), Value::Str("long".to_string()));
+                    if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("posSide".to_string(), Value::Str("long".to_string())); }
                 }  else if (side.as_str() == Some("sell")) {
-                    add_element_to_object(&mut request, &Value::Str("posSide".to_string()), Value::Str("short".to_string()));
+                    if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("posSide".to_string(), Value::Str("short".to_string())); }
                 }
             }
         }
         let mut mrgPosition: Value = Value::Str("merge".to_string());
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".to_string()), Value::Str("mrgPosition".to_string()), &[mrgPosition.clone()]); mrgPosition = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        add_element_to_object(&mut request, &Value::Str("mrgPosition".to_string()), mrgPosition.clone());
+        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("mrgPosition".to_string(), mrgPosition.clone()); }
         return self.extend(request.clone(), &[params.clone()]);
 
     Value::Null
@@ -2884,13 +2884,13 @@ impl DeepcoinCore {
         });
         if (symbol != Value::Null) {
             market = self.market(symbol.clone());
-            add_element_to_object(&mut request, &Value::Str("instId".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("instId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         let mut marketType: Value = Value::Str("spot".to_string());
         { let __destr_tmp = self.handle_market_type_and_params(methodName.clone(), &[market.clone(), params.clone(), marketType.clone()]); marketType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        add_element_to_object(&mut request, &Value::Str("instType".to_string()), self.convert_to_instrument_type(marketType.clone()));
+        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("instType".to_string(), self.convert_to_instrument_type(marketType.clone())); }
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default 100
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); } // default 100
         }
         let mut response: Value = Value::Null;
         if (trigger.as_bool() == Some(true)) {
@@ -3096,13 +3096,13 @@ impl DeepcoinCore {
             m
         });
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
         }
         let mut trigger: Value = self.safe_bool_k(params.clone(), "trigger", &[Value::Bool(false)]);
         let mut response: Value = Value::Null;
         if (trigger.as_bool() == Some(true)) {
             params = self.omit(params.clone(), Value::Str("trigger".to_string()), &[]);
-            add_element_to_object(&mut request, &Value::Str("instType".to_string()), self.convert_to_instrument_type(market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null)));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("instType".to_string(), self.convert_to_instrument_type(market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null))); }
             //
             //     {
             //         "code": "0",
@@ -3137,7 +3137,7 @@ impl DeepcoinCore {
             let __ws_arg_23 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_get_deepcoin_trade_trigger_orders_pending(&[__ws_arg_23]).await;
         }  else {
-            add_element_to_object(&mut request, &Value::Str("index".to_string()), index.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("index".to_string(), index.clone()); }
             //
             //     {
             //         "code": "0",
@@ -3350,10 +3350,10 @@ impl DeepcoinCore {
                 panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" editOrder() with stopLossPrice or takeProfitPrice cannot have price or amount. Either use stopLossPrice/takeProfitPrice or price/amount to edit order.".to_string())))));
             }
             if (stopLossPrice != Value::Null) {
-                add_element_to_object(&mut request, &Value::Str("slTriggerPx".to_string()), (if is_true(&(Value::Bool(symbol.as_str() != Some("")))) { self.price_to_precision(symbol.clone(), stopLossPrice.clone()) } else { self.number_to_string(stopLossPrice.clone()) }));
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("slTriggerPx".to_string(), (if is_true(&(Value::Bool(symbol.as_str() != Some("")))) { self.price_to_precision(symbol.clone(), stopLossPrice.clone()) } else { self.number_to_string(stopLossPrice.clone()) })); }
             }
             if (takeProfitPrice != Value::Null) {
-                add_element_to_object(&mut request, &Value::Str("tpTriggerPx".to_string()), (if is_true(&(Value::Bool(symbol.as_str() != Some("")))) { self.price_to_precision(symbol.clone(), takeProfitPrice.clone()) } else { self.number_to_string(takeProfitPrice.clone()) }));
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("tpTriggerPx".to_string(), (if is_true(&(Value::Bool(symbol.as_str() != Some("")))) { self.price_to_precision(symbol.clone(), takeProfitPrice.clone()) } else { self.number_to_string(takeProfitPrice.clone()) })); }
             }
             params = self.omit(params.clone(), Value::List(vec![Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string())]), &[]);
             let __ws_arg_28 = self.extend(request.clone(), &[params.clone()]);
@@ -3361,16 +3361,16 @@ impl DeepcoinCore {
         }  else {
             if (price != Value::Null) {
                 if (symbol != Value::Null) {
-                    add_element_to_object(&mut request, &Value::Str("price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
+                    if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
                 }  else {
-                    add_element_to_object(&mut request, &Value::Str("price".to_string()), self.number_to_string(price.clone()));
+                    if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price".to_string(), self.number_to_string(price.clone())); }
                 }
             }
             if (amount != Value::Null) {
                 if (symbol != Value::Null) {
-                    add_element_to_object(&mut request, &Value::Str("volume".to_string()), self.amount_to_precision(symbol.clone(), amount.clone()));
+                    if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("volume".to_string(), self.amount_to_precision(symbol.clone(), amount.clone())); }
                 }  else {
-                    add_element_to_object(&mut request, &Value::Str("volume".to_string()), self.number_to_string(amount.clone()));
+                    if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("volume".to_string(), self.number_to_string(amount.clone())); }
                 }
             }
             let __ws_arg_29 = self.extend(request.clone(), &[params.clone()]);
@@ -3997,7 +3997,7 @@ impl DeepcoinCore {
             m
         });
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("size".to_string()), limit.clone()); // default 20, max 100
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("size".to_string(), limit.clone()); } // default 20, max 100
         }
         let __ws_arg_36 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.public_get_deepcoin_trade_fund_rate_history(&[__ws_arg_36]).await;
@@ -4101,18 +4101,18 @@ impl DeepcoinCore {
             m
         });
         if (market != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("instId".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("instId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         if (since != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("begin".to_string()), since.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("begin".to_string(), since.clone()); }
         }
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default 100, max 100
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); } // default 100, max 100
         }
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         if (until != Value::Null) {
             params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
-            add_element_to_object(&mut request, &Value::Str("end".to_string()), until.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("end".to_string(), until.clone()); }
         }
         let __ws_arg_37 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_get_deepcoin_trade_fills(&[__ws_arg_37]).await;
@@ -4224,7 +4224,7 @@ impl DeepcoinCore {
         }  else {
             if (positionId != Value::Null) {
                 params = self.omit(params.clone(), Value::Str("positionId".to_string()), &[]);
-                add_element_to_object(&mut request, &Value::Str("positionIds".to_string()), Value::List(vec![positionId.clone()]));
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("positionIds".to_string(), Value::List(vec![positionId.clone()])); }
             }
             let __ws_arg_39 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_post_deepcoin_trade_close_position_by_ids(&[__ws_arg_39]).await;

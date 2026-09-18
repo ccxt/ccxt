@@ -1843,7 +1843,7 @@ impl HyperliquidCore {
             m
         });
         if (vaultAddress != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("vaultAddress".to_string()), vaultAddress.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("vaultAddress".to_string(), vaultAddress.clone()); }
         }
         let mut response: Value = self.private_post_exchange(&[request.clone()]).await;
         //
@@ -2014,7 +2014,7 @@ impl HyperliquidCore {
             m
         });
         if (vaultAddress != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("vaultAddress".to_string()), vaultAddress.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("vaultAddress".to_string(), vaultAddress.clone()); }
         }
         let mut response: Value = self.private_post_exchange(&[request.clone()]).await;
         let mut innerResponse: Value = self.safe_dict_k(response.clone(), "response", &[]);
@@ -2235,10 +2235,10 @@ impl HyperliquidCore {
         });
         if (clientOrderId != Value::Null) {
             params = self.omit(params.clone(), Value::Str("clientOrderId".to_string()), &[]);
-            add_element_to_object(&mut request, &Value::Str("oid".to_string()), clientOrderId.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("oid".to_string(), clientOrderId.clone()); }
         }  else {
             let mut isCloid: bool = Value::Int(id.len() as i64).as_f64().unwrap_or(f64::NAN) >= Value::Int(34).as_f64().unwrap_or(f64::NAN);
-            add_element_to_object(&mut request, &Value::Str("oid".to_string()), (if isCloid { id.clone() } else { self.parse_to_numeric(id.clone()) }));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("oid".to_string(), (if isCloid { id.clone() } else { self.parse_to_numeric(id.clone()) })); }
         }
         let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.public_post_info(&[__ws_arg_10]).await;
@@ -2482,15 +2482,15 @@ impl HyperliquidCore {
             m
         });
         if (since != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("type".to_string()), Value::Str("userFillsByTime".to_string()));
-            add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("type".to_string(), Value::Str("userFillsByTime".to_string())); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("startTime".to_string(), since.clone()); }
         }  else {
-            add_element_to_object(&mut request, &Value::Str("type".to_string()), Value::Str("userFills".to_string()));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("type".to_string(), Value::Str("userFills".to_string())); }
         }
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
         if (until != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("endTime".to_string()), until.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("endTime".to_string(), until.clone()); }
         }
         let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.public_post_info(&[__ws_arg_12]).await;

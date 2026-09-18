@@ -2370,7 +2370,7 @@ impl OkxCore {
             });
             // Only add params['access'] to prevent sending custom parameters, such as extraParams.
             if is_true(&Value::Bool(matches!(&params, Value::Dict(__d) if __d.contains_key("access")))) {
-                add_element_to_object(&mut request, &Value::Str("access".to_string()), crate::value::get_value_k(&params, "access"));
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("access".to_string(), crate::value::get_value_k(&params, "access")); }
             }
             self.watch(url.clone(), messageHash.clone(), &[request.clone(), messageHash.clone()]).await;
         }

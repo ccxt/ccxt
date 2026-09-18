@@ -2514,7 +2514,7 @@ impl PolymarketCore {
                 m.insert("market".to_string(), conditionId.clone());
             m
         });
-        add_element_to_object(&mut request, &Value::Str("limit".to_string()), self.safe_integer_k(self.options.clone(), "tradesPageSize", &[Value::Int(500)]));
+        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), self.safe_integer_k(self.options.clone(), "tradesPageSize", &[Value::Int(500)])); }
         let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.data_public_get_trades(&[__ws_arg_6]).await;
         let mut rawTrades: Value = (if is_true(&Value::Bool(is_array(&response))) { response.clone() } else { self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]) });
@@ -2563,7 +2563,7 @@ impl PolymarketCore {
         let mut outcomeObj: Value = Value::Null;
         if (outcome != Value::Null) {
             outcomeObj = self.load_outcome(outcome.clone(), &[]).await;
-            add_element_to_object(&mut request, &Value::Str("asset_id".to_string()), crate::value::get_value_k(&outcomeObj, "outcomeId"));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("asset_id".to_string(), crate::value::get_value_k(&outcomeObj, "outcomeId")); }
         }
         let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.clob_private_get_data_trades(&[__ws_arg_7]).await;
@@ -2932,7 +2932,7 @@ impl PolymarketCore {
         let mut outcomeObj: Value = Value::Null;
         if (outcome != Value::Null) {
             outcomeObj = self.load_outcome(outcome.clone(), &[]).await;
-            add_element_to_object(&mut request, &Value::Str("asset_id".to_string()), crate::value::get_value_k(&outcomeObj, "outcomeId"));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("asset_id".to_string(), crate::value::get_value_k(&outcomeObj, "outcomeId")); }
         }
         let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.clob_private_get_data_orders(&[__ws_arg_10]).await;

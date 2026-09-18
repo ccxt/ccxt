@@ -1426,7 +1426,7 @@ impl BlofinCore {
         });
         limit = (if is_true(&(Value::Bool(limit == Value::Null))) { Value::Int(50) } else { limit.clone() });
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("size".to_string()), limit.clone()); // max 100
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("size".to_string(), limit.clone()); } // max 100
         }
         let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.public_get_market_books(&[__ws_arg_0]).await;
@@ -1777,7 +1777,7 @@ impl BlofinCore {
         });
         let mut response: Value = Value::Null;
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default 100
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); } // default 100
         }
         let mut method: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchTrades".to_string()), Value::Str("method".to_string()), &[Value::Str("publicGetMarketTrades".to_string())]); method = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
@@ -1841,7 +1841,7 @@ impl BlofinCore {
         });
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         if (until != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("after".to_string()), until.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("after".to_string(), until.clone()); }
             params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
         }
         let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
@@ -1891,14 +1891,14 @@ impl BlofinCore {
             m
         });
         if (since != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("before".to_string()), crate::runtime::Math::max(&(match (&(since), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &Value::Int(0)));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("before".to_string(), crate::runtime::Math::max(&(match (&(since), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &Value::Int(0))); }
         }
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
         }
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         if (until != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("after".to_string()), until.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("after".to_string(), until.clone()); }
             params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
         }
         let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
@@ -2190,7 +2190,7 @@ impl BlofinCore {
     m
 })]);
             let mut parsedAccountType: Value = self.safe_string(options.clone(), accountType.clone(), &[accountType.clone()]);
-            add_element_to_object(&mut request, &Value::Str("accountType".to_string()), parsedAccountType.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("accountType".to_string(), parsedAccountType.clone()); }
             let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_get_asset_balances(&[__ws_arg_7]).await;
         }  else {
@@ -2226,20 +2226,20 @@ impl BlofinCore {
         });
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("createOrder".to_string()), &[params.clone(), Value::Str("cross".to_string())]); marginMode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        add_element_to_object(&mut request, &Value::Str("marginMode".to_string()), marginMode.clone());
+        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("marginMode".to_string(), marginMode.clone()); }
         let mut triggerPriceAny: Value = self.safe_string_n(params.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string())]), &[]);
         let mut triggerPriceSlTp: Value = self.safe_string2(params.clone(), Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string()), &[]);
         let mut timeInForce: Value = self.safe_string_k(params.clone(), "timeInForce", &[Value::Str("GTC".to_string())]);
         let mut isHedged: Value = self.safe_bool_k(params.clone(), "hedged", &[Value::Bool(false)]);
         if (isHedged.as_bool() == Some(true)) {
-            add_element_to_object(&mut request, &Value::Str("positionSide".to_string()), (if is_true(&(Value::Bool(side.as_str() == Some("buy")))) { Value::Str("long".to_string()) } else { Value::Str("short".to_string()) }));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("positionSide".to_string(), (if is_true(&(Value::Bool(side.as_str() == Some("buy")))) { Value::Str("long".to_string()) } else { Value::Str("short".to_string()) })); }
         }
         let mut isMarketOrder: Value = Value::Bool(type_var.as_str() == Some("market"));
         params = self.omit(params.clone(), Value::List(vec![Value::Str("timeInForce".to_string())]), &[]);
         let mut ioc: bool = is_true(&(Value::Bool(timeInForce.as_str() == Some("IOC")))) || is_true(&(Value::Bool(type_var.as_str() == Some("ioc"))));
         let mut marketIOC: bool = is_true(&isMarketOrder) && ioc;
         if is_true(&isMarketOrder) || marketIOC {
-            add_element_to_object(&mut request, &Value::Str("orderType".to_string()), Value::Str("market".to_string()));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("orderType".to_string(), Value::Str("market".to_string())); }
         }  else {
             let mut key: Value = (if is_true(&(Value::Bool(triggerPriceAny != Value::Null))) { Value::Str("orderPrice".to_string()) } else { Value::Str("price".to_string()) });
             add_element_to_object(&mut request, &key, self.price_to_precision(symbol.clone(), price.clone()));
@@ -2247,7 +2247,7 @@ impl BlofinCore {
         let mut postOnly: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_post_only(isMarketOrder.clone(), Value::Bool(type_var.as_str() == Some("post_only")), &[params.clone()]); postOnly = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if is_true(&postOnly) {
-            add_element_to_object(&mut request, &Value::Str("type".to_string()), Value::Str("post_only".to_string()));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("type".to_string(), Value::Str("post_only".to_string())); }
         }
         let mut stopLoss: Value = self.safe_dict_k(params.clone(), "stopLoss", &[]);
         let mut takeProfit: Value = self.safe_dict_k(params.clone(), "takeProfit", &[]);
@@ -2257,24 +2257,24 @@ impl BlofinCore {
         if hasStopLoss || hasTakeProfit {
             if hasStopLoss {
                 let mut slTriggerPrice: Value = self.safe_string2(stopLoss.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
-                add_element_to_object(&mut request, &Value::Str("slTriggerPrice".to_string()), self.price_to_precision(symbol.clone(), slTriggerPrice.clone()));
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("slTriggerPrice".to_string(), self.price_to_precision(symbol.clone(), slTriggerPrice.clone())); }
                 let mut slOrderPrice: Value = self.safe_string_k(stopLoss.clone(), "price", &[Value::Str("-1".to_string())]);
-                add_element_to_object(&mut request, &Value::Str("slOrderPrice".to_string()), self.price_to_precision(symbol.clone(), slOrderPrice.clone()));
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("slOrderPrice".to_string(), self.price_to_precision(symbol.clone(), slOrderPrice.clone())); }
             }
             if hasTakeProfit {
                 let mut tpTriggerPrice: Value = self.safe_string2(takeProfit.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
-                add_element_to_object(&mut request, &Value::Str("tpTriggerPrice".to_string()), self.price_to_precision(symbol.clone(), tpTriggerPrice.clone()));
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("tpTriggerPrice".to_string(), self.price_to_precision(symbol.clone(), tpTriggerPrice.clone())); }
                 let mut tpPrice: Value = self.safe_string_k(takeProfit.clone(), "price", &[Value::Str("-1".to_string())]);
-                add_element_to_object(&mut request, &Value::Str("tpOrderPrice".to_string()), self.price_to_precision(symbol.clone(), tpPrice.clone()));
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("tpOrderPrice".to_string(), self.price_to_precision(symbol.clone(), tpPrice.clone())); }
             }
         }  else if (triggerPriceAny != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("orderType".to_string()), Value::Str("trigger".to_string()));
-            add_element_to_object(&mut request, &Value::Str("triggerPrice".to_string()), self.price_to_precision(symbol.clone(), triggerPriceAny.clone()));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("orderType".to_string(), Value::Str("trigger".to_string())); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("triggerPrice".to_string(), self.price_to_precision(symbol.clone(), triggerPriceAny.clone())); }
             if is_true(&isMarketOrder) {
-                add_element_to_object(&mut request, &Value::Str("orderPrice".to_string()), Value::Str("-1".to_string()));
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("orderPrice".to_string(), Value::Str("-1".to_string())); }
             }
             if (triggerPriceSlTp != Value::Null) {
-                add_element_to_object(&mut request, &Value::Str("reduceOnly".to_string()), Value::Bool(true));
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("reduceOnly".to_string(), Value::Bool(true)); }
             }
             params = self.omit(params.clone(), Value::List(vec![Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string()), Value::Str("triggerPrice".to_string())]), &[]);
         }
@@ -2530,7 +2530,7 @@ impl BlofinCore {
             m
         });
         if (amount != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("size".to_string()), self.amount_to_precision(symbol.clone(), amount.clone()));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("size".to_string(), self.amount_to_precision(symbol.clone(), amount.clone())); }
         }
         let mut marginMode: Value = self.safe_string_k(params.clone(), "marginMode", &[Value::Str("cross".to_string())]); // cross or isolated
         if (marginMode.as_str() != Some("cross")) && (marginMode.as_str() != Some("isolated")) {
@@ -2539,32 +2539,32 @@ impl BlofinCore {
         let mut stopLossPrice: Value = self.safe_string_k(params.clone(), "stopLossPrice", &[]);
         let mut takeProfitPrice: Value = self.safe_string_k(params.clone(), "takeProfitPrice", &[]);
         if (stopLossPrice != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("slTriggerPrice".to_string()), self.price_to_precision(symbol.clone(), stopLossPrice.clone()));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("slTriggerPrice".to_string(), self.price_to_precision(symbol.clone(), stopLossPrice.clone())); }
             if (type_var.as_str() == Some("market")) {
-                add_element_to_object(&mut request, &Value::Str("slOrderPrice".to_string()), Value::Str("-1".to_string()));
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("slOrderPrice".to_string(), Value::Str("-1".to_string())); }
             }  else {
                 let mut slLimitPrice: Value = self.safe_string_k(params.clone(), "stopLossLimitPrice", &[]);
                 if (slLimitPrice == Value::Null) {
                     panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createTpslOrder() requires a \"stopLossLimitPrice\" parameter (instead of \"price\" argument) for stop loss orders when the order type is not market".to_string())))));
                 }
-                add_element_to_object(&mut request, &Value::Str("slOrderPrice".to_string()), self.price_to_precision(symbol.clone(), slLimitPrice.clone()));
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("slOrderPrice".to_string(), self.price_to_precision(symbol.clone(), slLimitPrice.clone())); }
                 params = self.omit(params.clone(), Value::Str("stopLossLimitPrice".to_string()), &[]);
             }
         }
         if (takeProfitPrice != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("tpTriggerPrice".to_string()), self.price_to_precision(symbol.clone(), takeProfitPrice.clone()));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("tpTriggerPrice".to_string(), self.price_to_precision(symbol.clone(), takeProfitPrice.clone())); }
             if (type_var.as_str() == Some("market")) {
-                add_element_to_object(&mut request, &Value::Str("tpOrderPrice".to_string()), Value::Str("-1".to_string()));
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("tpOrderPrice".to_string(), Value::Str("-1".to_string())); }
             }  else {
                 let mut tpLimitPrice: Value = self.safe_string_k(params.clone(), "takeProfitLimitPrice", &[]);
                 if (tpLimitPrice == Value::Null) {
                     panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createTpslOrder() requires a \"takeProfitLimitPrice\" parameter (instead of \"price\" argument) for take profit orders when the order type is not market".to_string())))));
                 }
-                add_element_to_object(&mut request, &Value::Str("tpOrderPrice".to_string()), self.price_to_precision(symbol.clone(), tpLimitPrice.clone()));
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("tpOrderPrice".to_string(), self.price_to_precision(symbol.clone(), tpLimitPrice.clone())); }
                 params = self.omit(params.clone(), Value::Str("takeProfitLimitPrice".to_string()), &[]);
             }
         }
-        add_element_to_object(&mut request, &Value::Str("marginMode".to_string()), marginMode.clone());
+        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("marginMode".to_string(), marginMode.clone()); }
         params = self.omit(params.clone(), Value::List(vec![Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string()), Value::Str("reduceOnly".to_string()), Value::Str("hedged".to_string())]), &[]);
         return self.extend(request.clone(), &[params.clone()]);
 
@@ -2606,14 +2606,14 @@ impl BlofinCore {
         let mut isTpsl: Value = self.safe_bool2(params.clone(), Value::Str("tpsl".to_string()), Value::Str("TPSL".to_string()), &[Value::Bool(false)]);
         let mut clientOrderId: Value = self.safe_string_k(params.clone(), "clientOrderId", &[]);
         if (clientOrderId != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("clientOrderId".to_string()), clientOrderId.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("clientOrderId".to_string(), clientOrderId.clone()); }
         }  else {
             if is_true(&(Value::Bool(isTrigger.as_bool() != Some(true)))) && is_true(&(Value::Bool(isTpsl.as_bool() != Some(true)))) {
-                add_element_to_object(&mut request, &Value::Str("orderId".to_string()), to_string_val(&id));
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("orderId".to_string(), to_string_val(&id)); }
             }  else if (isTpsl.as_bool() == Some(true)) {
-                add_element_to_object(&mut request, &Value::Str("tpslId".to_string()), to_string_val(&id));
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("tpslId".to_string(), to_string_val(&id)); }
             }  else if (isTrigger.as_bool() == Some(true)) {
-                add_element_to_object(&mut request, &Value::Str("algoId".to_string()), to_string_val(&id));
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("algoId".to_string(), to_string_val(&id)); }
             }
         }
         let mut query: Value = self.omit(params.clone(), Value::List(vec![Value::Str("orderId".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), Value::Str("tpsl".to_string())]), &[]);
@@ -2719,10 +2719,10 @@ impl BlofinCore {
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol.clone());
-            add_element_to_object(&mut request, &Value::Str("instId".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("instId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default 100, max 100
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); } // default 100, max 100
         }
         let mut isTrigger: Value = self.safe_bool_n(params.clone(), Value::List(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string())]), &[Value::Bool(false)]);
         let mut isTpSl: Value = self.safe_bool2(params.clone(), Value::Str("tpsl".to_string()), Value::Str("TPSL".to_string()), &[Value::Bool(false)]);
@@ -2734,7 +2734,7 @@ impl BlofinCore {
             let __ws_arg_11 = self.extend(request.clone(), &[query.clone()]);
             response = self.private_get_trade_orders_tpsl_pending(&[__ws_arg_11]).await;
         }  else if is_true(&(Value::Bool(isTrigger.as_bool() == Some(true)))) || is_true(&(Value::Bool(method.as_str() == Some("privateGetTradeOrdersAlgoPending")))) {
-            add_element_to_object(&mut request, &Value::Str("orderType".to_string()), Value::Str("trigger".to_string()));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("orderType".to_string(), Value::Str("trigger".to_string())); }
             let __ws_arg_12 = self.extend(request.clone(), &[query.clone()]);
             response = self.private_get_trade_orders_algo_pending(&[__ws_arg_12]).await;
         }  else {
@@ -3036,7 +3036,7 @@ impl BlofinCore {
             m
         });
         let mut dest: Value = self.safe_string_k(params.clone(), "dest", &[Value::Str("onchain".to_string())]);
-        add_element_to_object(&mut request, &Value::Str("dest".to_string()), dest.clone());
+        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("dest".to_string(), dest.clone()); }
         params = self.omit(params.clone(), Value::Str("dest".to_string()), &[]);
         if (dest.as_str() == Some("onchain")) {
             self.check_address(&[address.clone()]);
@@ -3044,11 +3044,11 @@ impl BlofinCore {
             // No", but the live venue rejects on-chain withdrawals without
             // it (152001 "Parameter addrType cannot be empty") - default to
             // 1 = wallet address, callers can override for other kinds
-            add_element_to_object(&mut request, &Value::Str("addrType".to_string()), self.safe_string_k(params.clone(), "addrType", &[Value::Str("1".to_string())]));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("addrType".to_string(), self.safe_string_k(params.clone(), "addrType", &[Value::Str("1".to_string())])); }
             params = self.omit(params.clone(), Value::Str("addrType".to_string()), &[]);
         }
         if (tag != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("tag".to_string()), tag.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("tag".to_string(), tag.clone()); }
         }
         // consume the unified network key unconditionally so it never leaks
         // onto the wire; an explicit raw params['chain'] takes precedence
@@ -3057,7 +3057,7 @@ impl BlofinCore {
         let mut chain: Value = self.safe_string_k(params.clone(), "chain", &[]);
         if (chain == Value::Null) {
             if (networkCode != Value::Null) {
-                add_element_to_object(&mut request, &Value::Str("chain".to_string()), self.network_code_to_chain_id(networkCode.clone()));
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("chain".to_string(), self.network_code_to_chain_id(networkCode.clone())); }
             }  else if (dest.as_str() == Some("onchain")) {
                 panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires a params[\"network\"] or params[\"chain\"] for on-chain withdrawals".to_string())))));
             }
@@ -4020,7 +4020,7 @@ impl BlofinCore {
             m
         });
         if (clientOrderId != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("clientOrderId".to_string()), clientOrderId.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("clientOrderId".to_string(), clientOrderId.clone()); }
         }
         let __ws_arg_27 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_post_trade_close_position(&[__ws_arg_27]).await;
@@ -4066,13 +4066,13 @@ impl BlofinCore {
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol.clone());
-            add_element_to_object(&mut request, &Value::Str("instId".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("instId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default 100, max 100
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); } // default 100, max 100
         }
         if (since != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("begin".to_string()), since.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("begin".to_string(), since.clone()); }
         }
         let mut isTrigger: Value = self.safe_bool_n(params.clone(), Value::List(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string()), Value::Str("tpsl".to_string()), Value::Str("TPSL".to_string())]), &[Value::Bool(false)]);
         let mut method: Value = Value::Null;

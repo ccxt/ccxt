@@ -676,7 +676,7 @@ impl LimitlessCore {
                 let mut __for_first_1261: bool = true;
                 while { if !__for_first_1261 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1261 = false; i.as_f64().unwrap_or(f64::NAN) <= totalPages.as_f64().unwrap_or(f64::NAN) } {
                 page = i.clone();
-                add_element_to_object(&mut request, &Value::Str("page".to_string()), page.clone());
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("page".to_string(), page.clone()); }
                 let __ws_arg_2 = self.extend(request.clone(), &[rest.clone()]);
                 append_to_array(&mut promises, self.limitless_public_get_markets_active(&[__ws_arg_2]).await);
             }
@@ -699,7 +699,7 @@ impl LimitlessCore {
             if lastPageLength.as_f64().unwrap_or(f64::NAN) >= pageSize.as_f64().unwrap_or(f64::NAN) && allRawLength.as_f64().unwrap_or(f64::NAN) < maxMarkets.as_f64().unwrap_or(f64::NAN) {
                 while is_true(&Value::Bool(true)) {
                     page = self.sum(&[page.clone(), Value::Int(1)]);
-                    add_element_to_object(&mut request, &Value::Str("page".to_string()), page.clone());
+                    if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("page".to_string(), page.clone()); }
                     let __ws_arg_3 = self.extend(request.clone(), &[rest.clone()]);
                     let mut response: Value = self.limitless_public_get_markets_active(&[__ws_arg_3]).await;
                     let mut responseRows: Value = Value::List(vec![]);
@@ -1860,7 +1860,7 @@ impl LimitlessCore {
             m
         });
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("limit".to_string()), crate::runtime::Math::min(&limit, &Value::Int(100)));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), crate::runtime::Math::min(&limit, &Value::Int(100))); }
         }
         let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.limitless_public_get_markets_slug_events(&[__ws_arg_19]).await;
@@ -2225,7 +2225,7 @@ impl LimitlessCore {
             m
         });
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
         }
         let __ws_arg_22 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.limitless_private_get_markets_slug_user_orders(&[__ws_arg_22]).await;
@@ -2962,7 +2962,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if is_true(&postOnly) {
-            add_element_to_object(&mut request, &Value::Str("postOnly".to_string()), postOnly.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("postOnly".to_string(), postOnly.clone()); }
         }
         let __ws_arg_24 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.limitless_private_post_orders(&[__ws_arg_24]).await;
@@ -3325,7 +3325,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut slug: Value = self.safe_string_k(params.clone(), "slug", &[]);
         if (outcome != Value::Null) {
             let mut outcomeObj: Value = self.load_outcome(outcome.clone(), &[]).await;
-            add_element_to_object(&mut request, &Value::Str("slug".to_string()), self.safe_string_k(crate::value::get_value_k(&outcomeObj, "info"), "slug", &[]));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("slug".to_string(), self.safe_string_k(crate::value::get_value_k(&outcomeObj, "info"), "slug", &[])); }
         }  else if (slug == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders requires either an outcome argument or a slug parameter".to_string())))));
         }
@@ -3377,7 +3377,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("limit".to_string()), crate::runtime::Math::min(&limit, &maxLimit));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), crate::runtime::Math::min(&limit, &maxLimit)); }
         }
         let __ws_arg_29 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.limitless_private_get_portfolio_history(&[__ws_arg_29]).await;
@@ -4059,7 +4059,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             });
             let mut response: Value = Value::Null;
             if (categoryId != Value::Null) {
-                add_element_to_object(&mut request, &Value::Str("categoryId".to_string()), categoryId.clone());
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("categoryId".to_string(), categoryId.clone()); }
                 let __ws_arg_32 = self.extend(request.clone(), &[rest.clone()]);
                 response = self.limitless_public_get_markets_active_category_id(&[__ws_arg_32]).await;
             }  else {

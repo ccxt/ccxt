@@ -1328,9 +1328,9 @@ impl KrakenCore {
             m
         });
         if get_index_of(&url, &Value::Str("v2".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-            add_element_to_object(&mut request, &Value::Str("method".to_string()), Value::Str("ping".to_string()));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("method".to_string(), Value::Str("ping".to_string())); }
         }  else {
-            add_element_to_object(&mut request, &Value::Str("event".to_string()), Value::Str("ping".to_string()));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("event".to_string(), Value::Str("ping".to_string())); }
         }
         return request;
 
@@ -2072,7 +2072,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("req_id".to_string(), self.request_id());
             m
         });
-        { let __be_tmp = self.deep_extend(crate::value::get_value_k(&request, "params"), &[params.clone()]); add_element_to_object(&mut request, &Value::Str("params".to_string()), __be_tmp); };
+        { let __be_tmp = self.deep_extend(crate::value::get_value_k(&request, "params"), &[params.clone()]); if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("params".to_string(), __be_tmp); } };
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "publicV2");
         return self.watch_multiple(url.clone(), messageHashes.clone(), &[request.clone(), messageHashes.clone(), subscriptionArgs.clone()]).await;
 

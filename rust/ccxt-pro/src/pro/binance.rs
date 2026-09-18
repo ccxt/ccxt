@@ -3834,11 +3834,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ensureUserDataStreamWsSubscribeListenToken() requires a symbol argument for isolated margin mode".to_string())))));
                     }
                     let mut marketId: Value = self.market_id(symbol.clone());
-                    add_element_to_object(&mut request, &Value::Str("symbol".to_string()), marketId.clone());
-                    add_element_to_object(&mut request, &Value::Str("isIsolated".to_string()), Value::Bool(true));
+                    if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("symbol".to_string(), marketId.clone()); }
+                    if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("isIsolated".to_string(), Value::Bool(true)); }
                 }
                 if (validity != Value::Null) {
-                    add_element_to_object(&mut request, &Value::Str("validity".to_string()), validity.clone());
+                    if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("validity".to_string(), validity.clone()); }
                 }
                 let mut response: Value = self.parent.sapi_post_user_listen_token(&[request.clone()]).await;
                 let mut listenToken: Value = self.safe_string_k(response.clone(), "token", &[]);
@@ -4130,7 +4130,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
                 self.parent.eapi_private_put_listen_key(&[__ws_arg_18]).await;
             }  else {
-                add_element_to_object(&mut request, &Value::Str("listenKey".to_string()), listenKey.clone());
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("listenKey".to_string(), listenKey.clone()); }
                 let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
                 self.parent.public_put_user_data_stream(&[__ws_arg_19]).await;
             }

@@ -1395,7 +1395,7 @@ impl ExtendedCore {
                 append_to_array(&mut marketIds, market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             }
             }
-            add_element_to_object(&mut request, &Value::Str("market".to_string()), marketIds.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("market".to_string(), marketIds.clone()); }
         }
         let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.v1_public_get_info_markets(&[__ws_arg_1]).await;
@@ -1656,10 +1656,10 @@ impl ExtendedCore {
         });
         if (symbol != Value::Null) {
             market = self.market(symbol.clone());
-            add_element_to_object(&mut request, &Value::Str("market".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("market".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
         }
         let __ws_arg_4 = self.extend(params.clone(), &[request.clone()]);
         let mut response: Value = self.v1_private_get_user_trades(&[__ws_arg_4]).await;
@@ -1751,13 +1751,13 @@ impl ExtendedCore {
         });
         if (symbol != Value::Null) {
             market = self.market(symbol.clone());
-            add_element_to_object(&mut request, &Value::Str("market".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("market".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         if (since != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("startTime".to_string(), since.clone()); }
         }
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
         }
         let __ws_arg_5 = self.extend(params.clone(), &[request.clone()]);
         let mut response: Value = self.v1_private_get_user_funding_history(&[__ws_arg_5]).await;
@@ -1988,7 +1988,7 @@ impl ExtendedCore {
             m
         });
         if (until != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("endTime".to_string()), until.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("endTime".to_string(), until.clone()); }
         }
         let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.v1_public_get_info_candles_market_candle_type(&[__ws_arg_6]).await;
@@ -2452,7 +2452,7 @@ impl ExtendedCore {
             m
         });
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
         }
         let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.v1_private_get_user_asset_operations(&[__ws_arg_9]).await;
@@ -2577,7 +2577,7 @@ impl ExtendedCore {
             m
         });
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
         }
         let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.v1_private_get_user_asset_operations(&[__ws_arg_10]).await;
@@ -2809,7 +2809,7 @@ impl ExtendedCore {
             m
         });
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
         }
         let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.v1_private_get_user_asset_operations(&[__ws_arg_14]).await;
@@ -3340,7 +3340,7 @@ impl ExtendedCore {
         });
         if (symbols != Value::Null) {
             let mut marketIds: Value = self.market_ids(&[symbols.clone()]);
-            add_element_to_object(&mut request, &Value::Str("market".to_string()), marketIds.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("market".to_string(), marketIds.clone()); }
         }
         let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.v1_private_get_user_positions(&[__ws_arg_19]).await;
@@ -3435,7 +3435,7 @@ impl ExtendedCore {
         });
         if (symbols != Value::Null) {
             let mut marketIds: Value = self.market_ids(&[symbols.clone()]);
-            add_element_to_object(&mut request, &Value::Str("market".to_string()), marketIds.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("market".to_string(), marketIds.clone()); }
         }
         let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.v1_private_get_user_positions_history(&[__ws_arg_20]).await;
@@ -3841,17 +3841,17 @@ impl ExtendedCore {
             m
         });
         if (builderFeeRate != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("builderFee".to_string()), builderFeeRate.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("builderFee".to_string(), builderFeeRate.clone()); }
         }
         if (builderId != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("builderId".to_string()), builderId.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("builderId".to_string(), builderId.clone()); }
         }
         let mut cancelId: Value = self.safe_string2(params.clone(), Value::Str("cancelId".to_string()), Value::Str("previousOrderId".to_string()), &[]);
         if (cancelId != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("cancelId".to_string()), cancelId.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("cancelId".to_string(), cancelId.clone()); }
         }
         let mut settlement: Value = self.create_order_settlement_data(isBuy.clone(), amountString.clone(), priceString.clone(), &[settlementParams.clone()]);
-        add_element_to_object(&mut request, &Value::Str("settlement".to_string()), Value::Map({
+        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("settlement".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("signature".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3862,7 +3862,7 @@ impl ExtendedCore {
         m.insert("starkKey".to_string(), starkKey.clone());
         m.insert("collateralPosition".to_string(), collateralPosition.clone());
     m
-}));
+})); }
         let mut triggerPriceStr: Value = self.safe_string2(params.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
         let mut stopLossTriggerPrice: Value = self.safe_string_k(params.clone(), "stopLossPrice", &[]);
         let mut takeProfitTriggerPrice: Value = self.safe_string_k(params.clone(), "takeProfitPrice", &[]);
@@ -3873,7 +3873,7 @@ impl ExtendedCore {
         let mut hasStopLoss: bool = stopLoss != Value::Null;
         let mut hasTakeProfit: bool = takeProfit != Value::Null;
         if hasStopLoss || hasTakeProfit {
-            add_element_to_object(&mut request, &Value::Str("tpSlType".to_string()), Value::Str("ORDER".to_string()));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("tpSlType".to_string(), Value::Str("ORDER".to_string())); }
             if hasStopLoss {
                 let mut stopLossTrigger: Value = self.safe_string_k(stopLoss.clone(), "triggerPrice", &[]);
                 let mut stopLossTriggerPriceType: Value = self.safe_string_k(stopLoss.clone(), "triggerPriceType", &[]);
@@ -3904,7 +3904,7 @@ impl ExtendedCore {
                 if (stopLossType != Value::Null) {
                     add_element_to_object(&mut requestStopLoss, &Value::Str("priceType".to_string()), stopLossType.clone());
                 }
-                add_element_to_object(&mut request, &Value::Str("stopLoss".to_string()), requestStopLoss.clone());
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("stopLoss".to_string(), requestStopLoss.clone()); }
             }
             if hasTakeProfit {
                 let mut takeProfitTrigger: Value = self.safe_string_k(takeProfit.clone(), "triggerPrice", &[]);
@@ -3936,7 +3936,7 @@ impl ExtendedCore {
                 if (takeProfitType != Value::Null) {
                     add_element_to_object(&mut requestTakeProfit, &Value::Str("priceType".to_string()), takeProfitType.clone());
                 }
-                add_element_to_object(&mut request, &Value::Str("takeProfit".to_string()), requestTakeProfit.clone());
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("takeProfit".to_string(), requestTakeProfit.clone()); }
             }
         }  else {
             if (triggerPriceStr != Value::Null) {
@@ -3950,8 +3950,8 @@ impl ExtendedCore {
                     m
                 });
                 add_element_to_object(&mut trigger, &Value::Str("direction".to_string()), triggerDirection.clone());
-                add_element_to_object(&mut request, &Value::Str("type".to_string()), Value::Str("CONDITIONAL".to_string()));
-                add_element_to_object(&mut request, &Value::Str("trigger".to_string()), trigger.clone());
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("type".to_string(), Value::Str("CONDITIONAL".to_string())); }
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("trigger".to_string(), trigger.clone()); }
             }  else if isStopLossOrder || isTakeProfitOrder {
                 triggerPriceStr = (if isStopLossOrder { stopLossTriggerPrice.clone() } else { takeProfitTriggerPrice.clone() });
                 let mut trigger: Value = Value::Map({
@@ -3964,8 +3964,8 @@ impl ExtendedCore {
                 }  else {
                     add_element_to_object(&mut trigger, &Value::Str("direction".to_string()), (if isStopLossOrder { Value::Str("DOWN".to_string()) } else { Value::Str("UP".to_string()) }));
                 }
-                add_element_to_object(&mut request, &Value::Str("type".to_string()), Value::Str("CONDITIONAL".to_string()));
-                add_element_to_object(&mut request, &Value::Str("trigger".to_string()), trigger.clone());
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("type".to_string(), Value::Str("CONDITIONAL".to_string())); }
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("trigger".to_string(), trigger.clone()); }
             }
         }
         params = self.omit(params.clone(), Value::List(vec![Value::Str("clientOrderId".to_string()), Value::Str("client_id".to_string()), Value::Str("timeInForce".to_string()), Value::Str("postOnly".to_string()), Value::Str("reduceOnly".to_string()), Value::Str("reduce_only".to_string()), Value::Str("fee".to_string()), Value::Str("nonce".to_string()), Value::Str("expiryEpochMillis".to_string()), Value::Str("settlementExpiration".to_string()), Value::Str("cancelId".to_string()), Value::Str("previousOrderId".to_string()), Value::Str("brokerId".to_string()), Value::Str("referralCode".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("triggerDirection".to_string()), Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string()), Value::Str("stopLoss".to_string()), Value::Str("takeProfit".to_string())]), &[]);
@@ -4252,7 +4252,7 @@ impl ExtendedCore {
         if hasOrderIds {
             let mut idsLength: Value = Value::Int(ids.len() as i64);
             if idsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-                add_element_to_object(&mut request, &Value::Str("orderIds".to_string()), ids.clone());
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("orderIds".to_string(), ids.clone()); }
             }
         }
         if (clientOrderIds == Value::Null) && (clientOrderId != Value::Null) {
@@ -4262,7 +4262,7 @@ impl ExtendedCore {
         if (clientOrderIds != Value::Null) {
             let mut clientOrderIdsLength: Value = Value::Int(clientOrderIds.len() as i64);
             if clientOrderIdsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-                add_element_to_object(&mut request, &Value::Str("externalOrderIds".to_string()), clientOrderIds.clone());
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("externalOrderIds".to_string(), clientOrderIds.clone()); }
             }
         }
         if !hasOrderIds && !hasClientOrderIds {
@@ -4299,7 +4299,7 @@ impl ExtendedCore {
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol.clone());
-            add_element_to_object(&mut request, &Value::Str("markets".to_string()), Value::List(vec![market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)]));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("markets".to_string(), Value::List(vec![market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)])); }
         }
         let __ws_arg_26 = self.extend(request.clone(), &[params.clone()]);
         self.v1_private_post_user_order_mass_cancel(&[__ws_arg_26]).await;
@@ -4427,7 +4427,7 @@ impl ExtendedCore {
         });
         if (symbol != Value::Null) {
             market = self.market(symbol.clone());
-            add_element_to_object(&mut request, &Value::Str("market".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("market".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         let __ws_arg_30 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.v1_private_get_user_orders(&[__ws_arg_30]).await;
@@ -4498,10 +4498,10 @@ impl ExtendedCore {
         });
         if (symbol != Value::Null) {
             market = self.market(symbol.clone());
-            add_element_to_object(&mut request, &Value::Str("market".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("market".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
         }
         let __ws_arg_31 = self.extend(params.clone(), &[request.clone()]);
         let mut response: Value = self.v1_private_get_user_orders_history(&[__ws_arg_31]).await;

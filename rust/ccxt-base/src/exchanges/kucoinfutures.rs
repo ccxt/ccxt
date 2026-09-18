@@ -289,11 +289,11 @@ impl KucoinfuturesCore {
         let mut toAccountString: Value = self.parse_transfer_type(toAccount.clone());
         let mut response: Value = Value::Null;
         if (toAccountString.as_str() == Some("TRADE")) || (toAccountString.as_str() == Some("MAIN")) {
-            add_element_to_object(&mut request, &Value::Str("recAccountType".to_string()), toAccountString.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("recAccountType".to_string(), toAccountString.clone()); }
             let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
             response = self.parent.futures_private_post_transfer_out(&[__ws_arg_0]).await;
         }  else if (toAccount.as_str() == Some("future")) || (toAccount.as_str() == Some("swap")) || (toAccount.as_str() == Some("contract")) {
-            add_element_to_object(&mut request, &Value::Str("payAccountType".to_string()), self.parse_transfer_type(fromAccount.clone()));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("payAccountType".to_string(), self.parse_transfer_type(fromAccount.clone())); }
             let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
             response = self.parent.futures_private_post_transfer_in(&[__ws_arg_1]).await;
         }  else {

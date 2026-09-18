@@ -761,7 +761,7 @@ impl BitbnsCore {
             m
         });
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); } // default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
         }
         let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.www_get_order_fetch_orderbook(&[__ws_arg_0]).await;
@@ -1082,18 +1082,18 @@ impl BitbnsCore {
             m
         });
         if (type_var.as_str() == Some("limit")) {
-            add_element_to_object(&mut request, &Value::Str("rate".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("rate".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
         }  else {
-            add_element_to_object(&mut request, &Value::Str("market".to_string()), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("market".to_string(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null)); }
         }
         if (triggerPrice != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("t_rate".to_string()), self.price_to_precision(symbol.clone(), triggerPrice.clone()));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("t_rate".to_string(), self.price_to_precision(symbol.clone(), triggerPrice.clone())); }
         }
         if (targetRate != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("target_rate".to_string()), self.price_to_precision(symbol.clone(), targetRate.clone()));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("target_rate".to_string(), self.price_to_precision(symbol.clone(), targetRate.clone())); }
         }
         if (trailRate != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("trail_rate".to_string()), self.price_to_precision(symbol.clone(), trailRate.clone()));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("trail_rate".to_string(), self.price_to_precision(symbol.clone(), trailRate.clone())); }
         }
         let mut response: Value = Value::Null;
         if (type_var.as_str() == Some("limit")) {
@@ -1158,7 +1158,7 @@ impl BitbnsCore {
         let mut tail: Value = (if is_true(&(Value::Bool(isTrigger.as_bool() == Some(true)))) { Value::Str("StopLossOrder".to_string()) } else { Value::Str("Order".to_string()) });
         let mut quoteSide: Value = (if is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null).as_str() == Some("USDT")))) { Value::Str("usdtcancel".to_string()) } else { Value::Str("cancel".to_string()) });
         quoteSide = Value::Str(format!("{}{}", quoteSide, tail));
-        add_element_to_object(&mut request, &Value::Str("side".to_string()), quoteSide.clone());
+        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("side".to_string(), quoteSide.clone()); }
         let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
         response = self.v2_post_cancel(&[__ws_arg_3]).await;
         let mut parsed: Value = (if is_true(&(Value::Bool(response == Value::Null))) { Value::Map({
@@ -1426,7 +1426,7 @@ impl BitbnsCore {
             m
         });
         if (since != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("since".to_string()), self.iso8601(since.clone()));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("since".to_string(), self.iso8601(since.clone())); }
         }
         let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.v1_post_list_executed_orders_symbol(&[__ws_arg_6]).await;
