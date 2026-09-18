@@ -2356,12 +2356,12 @@ pub(crate) fn url_pct(s: &str) -> String {
     }).collect()
 }
 
-/// Pins `method_name_to_snake_case` — the transform that decides whether a
-/// paginated `this[method](...)` re-entry lands on a `call_dynamic` arm — against
-/// the two implementations it must agree with: the transpiler's `toSnakeCase`
-/// (`build/rustTranspiler.ts`, which names the arms) and `Exchange::to_snake_case`
-/// (which names the implicit-API entries the `_` arm falls through to).
-/// Requested in review on #30385.
+/// Pins the `mock_response` contract that `request_typed` implements: the canned
+/// payload is returned by `fetch_typed` only AFTER the request has been built and
+/// signed, so `last_request_url` / `_headers` / `_body` still describe the real
+/// request a static *response* fixture would have sent; and the payload stays set
+/// until the caller replaces or clears it, so one fixture can serve the several
+/// `fetch_typed` calls a single paginating `fetchX` issues.
 #[cfg(all(test, feature = "transpiled-base"))]
 mod response_mock_tests {
     use super::ExchangeRuntime;
@@ -2438,6 +2438,12 @@ mod response_mock_tests {
     }
 }
 
+/// Pins `method_name_to_snake_case` — the transform that decides whether a
+/// paginated `this[method](...)` re-entry lands on a `call_dynamic` arm — against
+/// the two implementations it must agree with: the transpiler's `toSnakeCase`
+/// (`build/rustTranspiler.ts`, which names the arms) and `Exchange::to_snake_case`
+/// (which names the implicit-API entries the `_` arm falls through to).
+/// Requested in review on #30385.
 #[cfg(test)]
 mod method_name_snake_case_tests {
     use super::{method_name_to_snake_case, Exchange};
