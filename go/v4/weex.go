@@ -2137,7 +2137,7 @@ func (this *Weex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	//     ]
 	//
 	var responseList []any = []any{}
-	if !IsEqual(response, nil) {
+	if response != nil {
 		responseList = this.ToArray(response)
 	}
 
@@ -2821,7 +2821,7 @@ func (this *Weex) createSpotOrderBody(ch chan any, symbol any, typeVar any, side
 	//         "transactTime": 1775608924724
 	//     }
 	//
-	if IsEqual(response, nil) {
+	if response == nil {
 		panic(NullResponse(this.Id + " parseOrder() returned empty response"))
 	}
 
@@ -2932,7 +2932,7 @@ func (this *Weex) createContractOrderBody(ch chan any, symbol any, typeVar any, 
 		response = (<-this.ContractPrivatePostCapiV3Order(request))
 		PanicOnError(response)
 	}
-	if IsEqual(response, nil) {
+	if response == nil {
 		panic(NullResponse(this.Id + " createOrder() returned empty response"))
 	}
 
@@ -3190,7 +3190,7 @@ func (this *Weex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 		response = (<-this.ContractPrivateDeleteCapiV3Order(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	if IsEqual(response, nil) {
+	if response == nil {
 		panic(NullResponse(this.Id + " parseOrder() returned empty response"))
 	}
 	var order any = this.ParseOrder(response, market)
@@ -3423,7 +3423,7 @@ func (this *Weex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 		response = (<-this.ContractPrivateGetCapiV3Order(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	if IsEqual(response, nil) {
+	if response == nil {
 		panic(NullResponse(this.Id + " parseOrder() returned empty response"))
 	}
 
@@ -4309,7 +4309,7 @@ func (this *Weex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(response)
 	}
 	var responseList []any = []any{}
-	if !IsEqual(response, nil) {
+	if response != nil {
 		responseList = this.ToArray(response)
 	}
 

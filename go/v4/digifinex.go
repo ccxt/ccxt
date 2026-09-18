@@ -2168,7 +2168,7 @@ func (this *Digifinex) createOrderBody(ch chan any, symbol any, typeVar any, sid
 	//         "data": "1590873693003714560"
 	//     }
 	//
-	if IsEqual(response, nil) {
+	if response == nil {
 		panic(NullResponse(this.Id + " createOrder() returned empty response"))
 	}
 	var order any = this.ParseOrder(response, market)
@@ -3989,7 +3989,7 @@ func (this *Digifinex) transferBody(ch chan any, code any, amount any, fromAccou
 		response = (<-this.PrivateSpotPostTransfer(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	if IsEqual(response, nil) {
+	if response == nil {
 		panic(NullResponse(this.Id + " transfer() returned empty response"))
 	}
 

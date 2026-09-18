@@ -549,7 +549,7 @@ func (this *Kalshi) fetchOutcomeBody(ch chan any, outcomeSymbol any) any {
 			}(this)
 
 		}
-		if !ccxt.IsEqual(response, nil) {
+		if response != nil {
 			var rawMarket any = this.SafeDict(response, "market", response)
 			var parsed any = this.ParseMarket(rawMarket)
 			if ccxt.IsEqual(this.Markets, nil) {

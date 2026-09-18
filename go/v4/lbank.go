@@ -1877,7 +1877,7 @@ func (this *Lbank) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	//    }
 	//
 	var balanceResponse any = func() any {
-		if IsEqual(response, nil) {
+		if response == nil {
 			return map[string]any{}
 		}
 		return response

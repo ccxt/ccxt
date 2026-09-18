@@ -1696,7 +1696,7 @@ func (this *Luno) createOrderBody(ch chan any, symbol any, typeVar any, side any
 		response = (<-this.PrivatePostPostorder(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	if IsEqual(response, nil) {
+	if response == nil {
 		panic(NullResponse(this.Id + " createOrder() returned empty response"))
 	}
 

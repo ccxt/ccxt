@@ -2444,7 +2444,7 @@ func (this *Bitstamp) createOrderBody(ch chan any, symbol any, typeVar any, side
 		}
 	}
 	var orderResponse any = func() any {
-		if IsEqual(response, nil) {
+		if response == nil {
 			return map[string]any{}
 		}
 		return response

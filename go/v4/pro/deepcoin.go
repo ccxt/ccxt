@@ -289,7 +289,7 @@ func (this *Deepcoin) authenticateBody(ch chan any, optionalArgs ...any) any {
 					ccxt.PanicOnError(response)
 				}
 			}
-			if !ccxt.IsEqual(response, nil) {
+			if response != nil {
 				var data any = this.SafeDict(response, "data", map[string]any{})
 				listenKey = ccxt.DerefScalar(this.SafeString(data, "listenkey"))
 				if ccxt.IsEqual(listenKey, nil) {

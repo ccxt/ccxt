@@ -2903,7 +2903,7 @@ func (this *Woofipro) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 	}
 	if trigger != nil && *trigger == true {
 		var parsedResponse any = func() any {
-			if IsEqual(response, nil) {
+			if response == nil {
 				return map[string]any{}
 			}
 			return response

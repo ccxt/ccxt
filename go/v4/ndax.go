@@ -3259,7 +3259,7 @@ func (this *Ndax) ParseTransaction(transaction any, optionalArgs ...any) any {
 	}
 	var templateForm any = this.ParseJson(this.SafeValue2(transaction, "TemplateForm", "DepositInfo"))
 	var updated *int64 = this.SafeInteger(transaction, "LastUpdateTimeStamp")
-	if !IsEqual(templateForm, nil) {
+	if templateForm != nil {
 		updated = this.SafeInteger(templateForm, "LastUpdated", updated)
 	}
 	var address *string = this.SafeString2(templateForm, "ExternalAddress", "ToAddress")

@@ -1042,24 +1042,24 @@ func (this *Polymarket) ParseEventToMarkets(event any) any {
 		var parsedTokenIds any = this.ParseJson(this.SafeString(market, "clobTokenIds", "[]"))
 		var parsedPrices any = this.ParseJson(this.SafeString(market, "outcomePrices", "[]"))
 		var parsedOutcomesLength any = nil
-		if !ccxt.IsEqual(parsedOutcomes, nil) {
+		if parsedOutcomes != nil {
 			parsedOutcomesLength = ccxt.GetArrayLength(parsedOutcomes)
 		}
 		var parsedTokenIdsLength any = nil
-		if !ccxt.IsEqual(parsedTokenIds, nil) {
+		if parsedTokenIds != nil {
 			parsedTokenIdsLength = ccxt.GetArrayLength(parsedTokenIds)
 		}
 		var parsedPricesLength any = nil
-		if !ccxt.IsEqual(parsedPrices, nil) {
+		if parsedPrices != nil {
 			parsedPricesLength = ccxt.GetArrayLength(parsedPrices)
 		}
-		if (!ccxt.IsEqual(parsedOutcomes, nil)) && (!ccxt.IsEqual(parsedOutcomesLength, nil)) {
+		if (parsedOutcomes != nil) && (!ccxt.IsEqual(parsedOutcomesLength, nil)) {
 			outcomeLabels = parsedOutcomes
 		}
-		if (!ccxt.IsEqual(parsedTokenIds, nil)) && (!ccxt.IsEqual(parsedTokenIdsLength, nil)) {
+		if (parsedTokenIds != nil) && (!ccxt.IsEqual(parsedTokenIdsLength, nil)) {
 			clobTokenIds = parsedTokenIds
 		}
-		if (!ccxt.IsEqual(parsedPrices, nil)) && (!ccxt.IsEqual(parsedPricesLength, nil)) {
+		if (parsedPrices != nil) && (!ccxt.IsEqual(parsedPricesLength, nil)) {
 			outcomePrices = parsedPrices
 		}
 		var outcomeLabelsLength int = ccxt.GetArrayLength(outcomeLabels)
@@ -1232,7 +1232,7 @@ func (this *Polymarket) fetchOutcomeBody(ch chan any, outcomeSymbol any) any {
 		}))
 		ccxt.PanicOnError(response)
 		var rawMarkets any = func() any {
-			if !ccxt.IsEqual(response, nil) {
+			if response != nil {
 				return response
 			}
 			return []any{}
@@ -1323,7 +1323,7 @@ func (this *Polymarket) fetchOutcomesBody(ch chan any, outcomeSymbols any) any {
 			}))
 			ccxt.PanicOnError(response)
 			var rawMarkets any = func() any {
-				if !ccxt.IsEqual(response, nil) {
+				if response != nil {
 					return response
 				}
 				return []any{}
@@ -3459,7 +3459,7 @@ func (this *Polymarket) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 				}))
 				ccxt.PanicOnError(detailedEvent)
 			}
-			if !ccxt.IsEqual(detailedEvent, nil) {
+			if detailedEvent != nil {
 				eventForParsing = this.SafeValue(detailedEvent, "event", detailedEvent)
 				ccxtMarkets = this.ParseEventToMarkets(eventForParsing)
 			}

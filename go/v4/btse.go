@@ -4648,7 +4648,7 @@ func (this *Btse) HandleErrors(code any, reason any, url any, method any, header
 		if status != nil {
 			var message *string = this.SafeString(row, "message")
 			var embedded any = this.ParseJson(message)
-			if !IsEqual(embedded, nil) {
+			if embedded != nil {
 				message = this.SafeString(embedded, "default_msg", message)
 			}
 			var feedback any = Add(this.Id+" ", body)
