@@ -79,14 +79,14 @@ export // rust-05: the five `safe_*_k` helpers below take `obj: Value` BY VALUE,
 // argument is only needed when that local is read again later.
 const RUST_BY_VALUE_OBJ_CALL = /\bself\.safe_(?:number|value|bool|list|dict)_k\(/;
 
-export export // The ast printer's numeric-comparison emission (`printNativeNumericComparison`
+export // The ast printer's numeric-comparison emission (`printNativeNumericComparison`
 // in ast-transpiler/src/rustTranspiler.ts) unwraps both operands with this
 // accessor chain. It disappears for an operand that is already a native `f64`:
 // a `Value::Int`/`Value::Float` box (payload type fixed by the constructor) or
 // a local narrowed to `f64` by `narrowFloatLocals` below.
 const RUST_FLOAT_NAN_UNWRAP = '.as_f64().unwrap_or(f64::NAN)';
 
-export export export export export export export class RustTranspilerBuilder {
+export class RustTranspilerBuilder {
 
     transpiler!: Transpiler;
 

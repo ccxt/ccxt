@@ -193,10 +193,11 @@ check ('Int64? local - int literal keeps subtract()',
     'function f () { const d = this.safeInteger (this.options, "a"); const y = d - 1; return y; }',
     'subtract(d, 1)');
 
-// add(object, object) returns the other operand for a null one, not null (the add family)
-check ('Int64? local + int literal keeps add()',
+// add(object, object) answers null for a null left (no `is` branch matches), which is the
+// lifted `Int64? + int`, so a nullable LEFT with a non-nullable right goes native
+check ('Int64? local + int literal is the lifted native +',
     'function f () { const d = this.safeInteger (this.options, "a"); const y = d + 1; return y; }',
-    'add(d, 1)');
+    '(d + 1)');
 
 // multiply() re-boxes an integral double product as Int64, so a double operand keeps it
 check ('double? local * int literal keeps multiply()',
