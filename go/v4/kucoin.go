@@ -11547,7 +11547,13 @@ func (this *Kucoin) ParseBorrowRate(info any, optionalArgs ...any) any {
 	var timestampId *string = this.SafeString2(info, "createdAt", "timestamp")
 	var timestamp int64 = this.Milliseconds()
 	if timestampId != nil {
-		timestamp = this.ParseToInt(Slice(timestampId, 0, 13))
+		timestamp = this.ParseToInt(func() string {
+			if timestampId == nil {
+				return ""
+			}
+			str := *timestampId
+			return str[0:min(13, len(str))]
+		}())
 	}
 	var currencyId *string = this.SafeString(info, "currency")
 	return map[string]any{

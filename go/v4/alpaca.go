@@ -659,7 +659,13 @@ func (this *Alpaca) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	if timestamp == nil {
 		panic(ExchangeError(this.Id + " fetchTime() missing timestamp"))
 	}
-	var localTime string = Slice(timestamp, 0, 23)
+	var localTime string = func() string {
+		if timestamp == nil {
+			return ""
+		}
+		str := *timestamp
+		return str[0:min(23, len(str))]
+	}()
 	if timestamp == nil {
 		panic(ExchangeError(this.Id + " fetchTime() missing timestamp"))
 	}

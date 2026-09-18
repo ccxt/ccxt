@@ -1240,7 +1240,13 @@ func (this *Hyperliquid) fetchPositionsBody(ch chan any, optionalArgs ...any) an
 			continue
 		}
 		// the trade/orderbook form ("#<encoding>") resolves the outcome and the mid price
-		var tradeCoin any = "#" + ccxt.Slice(coin, 1, nil)
+		var tradeCoin any = "#" + func() string {
+			if coin == nil {
+				return ""
+			}
+			str := *coin
+			return str[1:]
+		}()
 		var outcomeObj any = this.SafeOutcome(tradeCoin)
 		if !ccxt.IsEqual(outcomes, nil) {
 			var outcomeHandle *string = this.SafeString(outcomeObj, "outcome")
