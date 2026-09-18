@@ -658,7 +658,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, false);
-            Object first = Helpers.GetValue(symbols, 0);
+            Object first = (symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0));
             Map<String, Object> market = (Map<String, Object>) this.market(first);
             Object isSwap = ((Map<String, Object>)market).get("swap");
             Boolean settleIsUSDT = java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDT");

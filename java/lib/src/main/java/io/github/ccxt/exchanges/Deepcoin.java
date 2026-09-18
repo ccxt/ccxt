@@ -1512,7 +1512,7 @@ public class Deepcoin extends DeepcoinApi
             {
                 throw new NotSupported((this.id + " fetchDepositAddresses requires a list with one currency code")) ;
             }
-            Object code = Helpers.GetValue(codes, 0);
+            Object code = (codes == null || 0 >= ((List<?>)codes).size() ? null : ((List<?>)codes).get(0));
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency_id", ((Map<String, Object>)currency).get("id") );

@@ -248,7 +248,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 symbols = new ArrayList<Object>(Arrays.asList());
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
+            Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
             Object instType = null;
             Object uta = null;
             List<Object> utaparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTickers", "uta", false);
@@ -516,7 +516,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 symbols = new ArrayList<Object>(Arrays.asList());
             }
-            Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
+            Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
             Object instType = null;
             Object uta = null;
             List<Object> utaparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchBidsAsks", "uta", false);

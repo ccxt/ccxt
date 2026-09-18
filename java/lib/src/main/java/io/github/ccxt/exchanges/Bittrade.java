@@ -1677,7 +1677,7 @@ public class Bittrade extends BittradeApi
             (this.loadAccounts()).join();
             Object method = this.handleOption("fetchBalance", "method", "privateGetAccountAccountsIdBalance");
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "id", ((Map<String, Object>)Helpers.GetValue(Bittrade.this.accounts, 0)).get("id") );
+                put( "id", ((Map<String, Object>)(Bittrade.this.accounts == null || 0 >= ((List<?>)Bittrade.this.accounts).size() ? null : ((List<?>)Bittrade.this.accounts).get(0))).get("id") );
             }};
             Object response = null;
             if (java.util.Objects.equals(method, "privateGetAccountAccountsIdBalance"))
@@ -2108,7 +2108,7 @@ public class Bittrade extends BittradeApi
             final Object finalSide = side;
             final Object finalType = type;
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "account-id", ((Map<String, Object>)Helpers.GetValue(Bittrade.this.accounts, 0)).get("id") );
+                put( "account-id", ((Map<String, Object>)(Bittrade.this.accounts == null || 0 >= ((List<?>)Bittrade.this.accounts).size() ? null : ((List<?>)Bittrade.this.accounts).get(0))).get("id") );
                 put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "type", Helpers.add(Helpers.add(finalSide, "-"), finalType) );
             }};

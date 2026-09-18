@@ -135,7 +135,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
                 }
             } else if (Helpers.isEqual(symbolsLength, 1))
             {
-                market = this.market(Helpers.GetValue(symbols, 0));
+                market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                 messageHash = ((name + "::") + ((Map<String, Object>)market).get("symbol"));
                 productIds = new ArrayList<Object>(Arrays.asList(((String)((Map<String, Object>)market).get("id"))));
             }

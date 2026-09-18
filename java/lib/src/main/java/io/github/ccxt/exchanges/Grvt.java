@@ -987,7 +987,7 @@ public class Grvt extends GrvtApi
                 ((List<Object>)promises).add(this.signIn());
             }
             Object results = (Helpers.promiseAll(promises)).join();
-            Object response = Helpers.GetValue(results, 0);
+            Object response = (results == null || 0 >= ((List<?>)results).size() ? null : ((List<?>)results).get(0));
             Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(result);
         });
@@ -2456,12 +2456,12 @@ public class Grvt extends GrvtApi
             //     }
             //
             Object responses = (Helpers.promiseAll(promises)).join();
-            Object result1 = this.safeDict(Helpers.GetValue(responses, 0), "result", new HashMap<String, Object>() {{}});
+            Object result1 = this.safeDict((responses == null || 0 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(0)), "result", new HashMap<String, Object>() {{}});
             String mainAccountId = this.safeString(result1, "main_account_id");
             Helpers.addElementToObject(this.options, "userMainAccountId", mainAccountId);
             if (Helpers.isTrue(accountIsUndefined))
             {
-                Object subAccountIds = this.safeList(Helpers.GetValue(responses, 1), "sub_account_ids", new ArrayList<Object>(Arrays.asList()));
+                Object subAccountIds = this.safeList((responses == null || 1 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(1)), "sub_account_ids", new ArrayList<Object>(Arrays.asList()));
                 Object length = ((List<?>)subAccountIds).size();
                 if (Helpers.isLessThan(length, 1))
                 {

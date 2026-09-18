@@ -358,33 +358,33 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                 List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.parseToInt(Helpers.multiply((Helpers.divide(timestamp, duration)), duration)), this.safeFloat(ohlcv, 3), this.safeFloat(ohlcv, 1), this.safeFloat(ohlcv, 2), this.safeFloat(ohlcv, 4), this.safeFloat(ohlcv, 5)));
                 Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe, new ArrayList<Object>(Arrays.asList()));
                 Object length = Helpers.getArrayLength(stored);
-                if ((Helpers.isGreaterThan(length, 0)) && (Helpers.isEqual(Helpers.GetValue(parsed, 0), Helpers.GetValue(Helpers.GetValue(stored, Helpers.subtract(length, 1)), 0))))
+                if ((Helpers.isGreaterThan(length, 0)) && (Helpers.isEqual((parsed == null || 0 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(0)), Helpers.GetValue(Helpers.GetValue(stored, Helpers.subtract(length, 1)), 0))))
                 {
                     Object previous = Helpers.GetValue(stored, Helpers.subtract(length, 1));
-                    Object high = Helpers.GetValue(parsed, 1);
-                    if (java.util.Objects.equals(Helpers.GetValue(parsed, 1), null))
+                    Object high = (parsed == null || 1 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(1));
+                    if (java.util.Objects.equals((parsed == null || 1 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(1)), null))
                     {
                         high = Helpers.GetValue(previous, 1);
                     } else if (!java.util.Objects.equals(Helpers.GetValue(previous, 1), null))
                     {
-                        high = Helpers.mathMax(Helpers.GetValue(parsed, 1), Helpers.GetValue(previous, 1));
+                        high = Helpers.mathMax((parsed == null || 1 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(1)), Helpers.GetValue(previous, 1));
                     }
-                    Object low = Helpers.GetValue(parsed, 2);
-                    if (java.util.Objects.equals(Helpers.GetValue(parsed, 2), null))
+                    Object low = (parsed == null || 2 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(2));
+                    if (java.util.Objects.equals((parsed == null || 2 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(2)), null))
                     {
                         low = Helpers.GetValue(previous, 2);
                     } else if (!java.util.Objects.equals(Helpers.GetValue(previous, 2), null))
                     {
-                        low = Helpers.mathMin(Helpers.GetValue(parsed, 2), Helpers.GetValue(previous, 2));
+                        low = Helpers.mathMin((parsed == null || 2 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(2)), Helpers.GetValue(previous, 2));
                     }
-                    Helpers.addElementToObject(stored, Helpers.subtract(length, 1), new ArrayList<Object>(Arrays.asList(Helpers.GetValue(parsed, 0), Helpers.GetValue(previous, 1), high, low, Helpers.GetValue(parsed, 4), this.sum(Helpers.GetValue(parsed, 5), Helpers.GetValue(previous, 5)))));
+                    Helpers.addElementToObject(stored, Helpers.subtract(length, 1), new ArrayList<Object>(Arrays.asList((parsed == null || 0 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(0)), Helpers.GetValue(previous, 1), high, low, (parsed == null || 4 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(4)), this.sum((parsed == null || 5 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(5)), Helpers.GetValue(previous, 5)))));
                     if ((!java.util.Objects.equals(marketId, null)) && (!java.util.Objects.equals(timeframe, null)))
                     {
                         Helpers.addElementToObject(Helpers.GetValue(updates, marketId), timeframe, true);
                     }
                 } else
                 {
-                    if ((Helpers.isGreaterThan(length, 0)) && (Helpers.isLessThan(this.parseToInt(Helpers.GetValue(parsed, 0)), this.parseToInt(Helpers.GetValue(Helpers.GetValue(stored, Helpers.subtract(length, 1)), 0)))))
+                    if ((Helpers.isGreaterThan(length, 0)) && (Helpers.isLessThan(this.parseToInt((parsed == null || 0 >= ((List<?>)parsed).size() ? null : ((List<?>)parsed).get(0))), this.parseToInt(Helpers.GetValue(Helpers.GetValue(stored, Helpers.subtract(length, 1)), 0)))))
                     {
                         continue;
                     } else

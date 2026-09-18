@@ -1063,7 +1063,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
                 Object sidesLength = ((List<?>)cachedSides).size();
                 if (Helpers.isEqual(sidesLength, 1))
                 {
-                    side = Helpers.GetValue(cachedSides, 0);
+                    side = (cachedSides == null || 0 >= ((List<?>)cachedSides).size() ? null : ((List<?>)cachedSides).get(0));
                     Helpers.addElementToObject(position, "side", side);
                 }
             }
@@ -1953,7 +1953,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
             Object numArgs = ((List<?>)args).size();
             if (Helpers.isGreaterThan(numArgs, 0))
             {
-                Object messageHash = Helpers.GetValue(args, 0);
+                Object messageHash = (args == null || 0 >= ((List<?>)args).size() ? null : ((List<?>)args).get(0));
                 Object broad = Helpers.GetValue(((Map<String, Object>)this.exceptions).get("ws"), "broad");
                 Object broadKey = this.findBroadlyMatchedKey(broad, error);
                 Object exception = null;

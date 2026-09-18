@@ -429,7 +429,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
             Object symbolsLength = ((List<?>)symbolsAndTimeframes).size();
-            if (Helpers.isEqual(symbolsLength, 0) || !Helpers.isTrue(Helpers.isArray(Helpers.GetValue(symbolsAndTimeframes, 0))))
+            if (Helpers.isEqual(symbolsLength, 0) || !Helpers.isTrue(Helpers.isArray((symbolsAndTimeframes == null || 0 >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(0)))))
             {
                 throw new ArgumentsRequired((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]")) ;
             }
@@ -502,7 +502,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object symbolsLength = ((List<?>)symbolsAndTimeframes).size();
-            if (Helpers.isEqual(symbolsLength, 0) || !Helpers.isTrue(Helpers.isArray(Helpers.GetValue(symbolsAndTimeframes, 0))))
+            if (Helpers.isEqual(symbolsLength, 0) || !Helpers.isTrue(Helpers.isArray((symbolsAndTimeframes == null || 0 >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(0)))))
             {
                 throw new ArgumentsRequired((this.id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]")) ;
             }
@@ -597,7 +597,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 Object symbolsLength = ((List<?>)symbols).size();
                 if (Helpers.isEqual(symbolsLength, 1))
                 {
-                    market = this.market(Helpers.GetValue(symbols, 0));
+                    market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                     messageHash = ("ticker:" + ((Map<String, Object>)market).get("symbol"));
                     streamType = "best_bid_offer";
                 }
@@ -644,7 +644,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 Object symbolsLength = ((List<?>)symbols).size();
                 if (Helpers.isEqual(symbolsLength, 1))
                 {
-                    market = this.market(Helpers.GetValue(symbols, 0));
+                    market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                     messageHash = ("ticker:" + ((Map<String, Object>)market).get("symbol"));
                     streamType = "best_bid_offer";
                 }
@@ -680,7 +680,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 Object symbolsLength = ((List<?>)symbols).size();
                 if (Helpers.isEqual(symbolsLength, 1))
                 {
-                    market = this.market(Helpers.GetValue(symbols, 0));
+                    market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                     messageHash = ("bidask:" + ((Map<String, Object>)market).get("symbol"));
                     streamType = "best_bid_offer";
                 }
@@ -727,7 +727,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 Object symbolsLength = ((List<?>)symbols).size();
                 if (Helpers.isEqual(symbolsLength, 1))
                 {
-                    market = this.market(Helpers.GetValue(symbols, 0));
+                    market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                     messageHash = ("bidask:" + ((Map<String, Object>)market).get("symbol"));
                     streamType = "best_bid_offer";
                 }
@@ -974,7 +974,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 Object symbolsLength = ((List<?>)symbols).size();
                 if (Helpers.isEqual(symbolsLength, 1))
                 {
-                    Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
+                    Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                     messageHash = (messageHash + (":" + ((Map<String, Object>)market).get("symbol")));
                     productId = this.parseToInt(((Map<String, Object>)market).get("id"));
                 }
@@ -1028,7 +1028,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 Object symbolsLength = ((List<?>)symbols).size();
                 if (Helpers.isEqual(symbolsLength, 1))
                 {
-                    Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
+                    Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                     messageHash = (messageHash + (":" + ((Map<String, Object>)market).get("symbol")));
                     productId = this.parseToInt(((Map<String, Object>)market).get("id"));
                 }

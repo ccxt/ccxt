@@ -1372,8 +1372,8 @@ public class Coinex extends CoinexApi
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             List<Object> promisesUnresolved = new ArrayList<Object>(Arrays.asList(this.fetchSpotMarkets(parameters), this.fetchContractMarkets(parameters)));
             Object promises = (Helpers.promiseAll(promisesUnresolved)).join();
-            Object spotMarkets = Helpers.GetValue(promises, 0);
-            Object swapMarkets = Helpers.GetValue(promises, 1);
+            Object spotMarkets = (promises == null || 0 >= ((List<?>)promises).size() ? null : ((List<?>)promises).get(0));
+            Object swapMarkets = (promises == null || 1 >= ((List<?>)promises).size() ? null : ((List<?>)promises).get(1));
             return this.arrayConcat(spotMarkets, swapMarkets);
         });
 
@@ -3567,7 +3567,7 @@ public class Coinex extends CoinexApi
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 Object rows = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-                data = this.safeDict(Helpers.GetValue(rows, 0), "data", new HashMap<String, Object>() {{}});
+                data = this.safeDict((rows == null || 0 >= ((List<?>)rows).size() ? null : ((List<?>)rows).get(0)), "data", new HashMap<String, Object>() {{}});
             } else
             {
                 data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
@@ -4101,7 +4101,7 @@ public class Coinex extends CoinexApi
                     {
                         throw new BadRequest((this.id + " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
                     }
-                    symbol = Helpers.GetValue(symbols, 0);
+                    symbol = (symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0));
                 } else
                 {
                     symbol = symbols;
@@ -4240,7 +4240,7 @@ public class Coinex extends CoinexApi
             //     }
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parsePosition(Helpers.GetValue(data, 0), market);
+            return this.parsePosition((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0)), market);
         }).thenApply(Position::new);
 
     }

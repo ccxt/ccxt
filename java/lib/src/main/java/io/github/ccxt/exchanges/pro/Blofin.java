@@ -436,7 +436,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             }
             symbols = this.marketSymbols(symbols, null, false);
             Object symbolsList = (List<String>)(symbols);
-            Map<String, Object> firstMarket = (Map<String, Object>) this.market(Helpers.GetValue(symbolsList, 0));
+            Map<String, Object> firstMarket = (Map<String, Object>) this.market((symbolsList == null || 0 >= ((List<?>)symbolsList).size() ? null : ((List<?>)symbolsList).get(0)));
             String channel = "tickers";
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchBidsAsks", firstMarket, parameters);
@@ -546,7 +546,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
             Object symbolsLength = ((List<?>)symbolsAndTimeframes).size();
-            if (Helpers.isEqual(symbolsLength, 0) || !Helpers.isTrue(Helpers.isArray(Helpers.GetValue(symbolsAndTimeframes, 0))))
+            if (Helpers.isEqual(symbolsLength, 0) || !Helpers.isTrue(Helpers.isArray((symbolsAndTimeframes == null || 0 >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(0)))))
             {
                 throw new ArgumentsRequired((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
             }

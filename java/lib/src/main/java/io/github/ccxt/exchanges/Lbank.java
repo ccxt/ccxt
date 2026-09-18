@@ -692,7 +692,7 @@ public class Lbank extends LbankApi
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             List<Object> marketsPromises = new ArrayList<Object>(Arrays.asList(this.fetchSpotMarkets(parameters), this.fetchSwapMarkets(parameters)));
             Object resolvedMarkets = (Helpers.promiseAll(marketsPromises)).join();
-            return this.arrayConcat(Helpers.GetValue(resolvedMarkets, 0), Helpers.GetValue(resolvedMarkets, 1));
+            return this.arrayConcat((resolvedMarkets == null || 0 >= ((List<?>)resolvedMarkets).size() ? null : ((List<?>)resolvedMarkets).get(0)), (resolvedMarkets == null || 1 >= ((List<?>)resolvedMarkets).size() ? null : ((List<?>)resolvedMarkets).get(1)));
         });
 
     }
@@ -1048,7 +1048,7 @@ public class Lbank extends LbankApi
                 Object symbolsLength = ((List<?>)symbols).size();
                 if (Helpers.isGreaterThan(symbolsLength, 0))
                 {
-                    market = this.market(Helpers.GetValue(symbols, 0));
+                    market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                 }
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -2410,7 +2410,7 @@ public class Lbank extends LbankApi
             Object numOrders = ((List<?>)result).size();
             if (Helpers.isEqual(numOrders, 1))
             {
-                return this.parseOrder(Helpers.GetValue(result, 0));
+                return this.parseOrder((result == null || 0 >= ((List<?>)result).size() ? null : ((List<?>)result).get(0)));
             } else
             {
                 throw new BadRequest((this.id + " fetchOrder() can only fetch one order at a time")) ;

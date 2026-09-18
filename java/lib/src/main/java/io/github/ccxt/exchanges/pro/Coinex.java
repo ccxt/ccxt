@@ -379,7 +379,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         }
         Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Object balances = this.safeList(data, "balance_list", new ArrayList<Object>(Arrays.asList()));
-        Object firstEntry = Helpers.GetValue(balances, 0);
+        Object firstEntry = (balances == null || 0 >= ((List<?>)balances).size() ? null : ((List<?>)balances).get(0));
         Long updated = this.safeInteger(firstEntry, "updated_at");
         String unrealizedPnl = this.safeString(firstEntry, "unrealized_pnl");
         Boolean isSpot = (!java.util.Objects.equals(updated, null));

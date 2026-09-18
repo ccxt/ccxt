@@ -1392,7 +1392,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         //
         String messageHash = this.safeString(message, "subscription");
         Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        Object positionBalances = this.safeList(Helpers.GetValue(data, 0), "position_balances", new ArrayList<Object>(Arrays.asList()));
+        Object positionBalances = this.safeList((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0)), "position_balances", new ArrayList<Object>(Arrays.asList()));
         Helpers.addElementToObject(this.balance, "info", data);
         for (var i = 0; i < ((List<?>)positionBalances).size(); i++)
         {

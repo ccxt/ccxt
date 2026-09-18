@@ -880,7 +880,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, false, true, true);
-            Map<String, Object> firstMarket = (Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
+            Map<String, Object> firstMarket = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
             Object type = ((Map<String, Object>)firstMarket).get("type");
             if (java.util.Objects.equals(((Map<String, Object>)firstMarket).get("option"), true))
             {
@@ -980,7 +980,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, false, true, true);
-            Map<String, Object> firstMarket = (Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
+            Map<String, Object> firstMarket = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
             Object type = ((Map<String, Object>)firstMarket).get("type");
             if (java.util.Objects.equals(((Map<String, Object>)firstMarket).get("option"), true))
             {
@@ -1498,7 +1498,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             name = ((List<Object>) nameparametersVariable).get(0);
             parameters = ((List<Object>) nameparametersVariable).get(1);
             parameters = this.omit(parameters, "callerMethodName");
-            Map<String, Object> firstMarket = (Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
+            Map<String, Object> firstMarket = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
             Object type = ((Map<String, Object>)firstMarket).get("type");
             Object isOption = ((Map<String, Object>)firstMarket).get("option");
             if (java.util.Objects.equals(isOption, true))
@@ -1603,7 +1603,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             name = ((List<Object>) nameparametersVariable).get(0);
             parameters = ((List<Object>) nameparametersVariable).get(1);
             parameters = this.omit(parameters, "callerMethodName");
-            Map<String, Object> firstMarket = (Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
+            Map<String, Object> firstMarket = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
             Object type = ((Map<String, Object>)firstMarket).get("type");
             Object isOption = ((Map<String, Object>)firstMarket).get("option");
             if (java.util.Objects.equals(isOption, true))
@@ -2018,11 +2018,11 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
                 {
                     Object stockSymAndTf = Helpers.GetValue(symbolsAndTimeframes, i);
-                    String stockSymbolString = this.symbol(Helpers.GetValue(stockSymAndTf, 0));
+                    String stockSymbolString = this.symbol((stockSymAndTf == null || 0 >= ((List<?>)stockSymAndTf).size() ? null : ((List<?>)stockSymAndTf).get(0)));
                     Map<String, Object> stockMarket = (Map<String, Object>) this.market(stockSymbolString);
                     String stockTicker = this.safeString2(stockMarket, "base", "id");
                     Object stockTickerString = (((java.util.Objects.equals(stockTicker, null)))) ? "" : ((String)stockTicker).toLowerCase();
-                    Object stockTimeframeString = Helpers.GetValue(stockSymAndTf, 1);
+                    Object stockTimeframeString = (stockSymAndTf == null || 1 >= ((List<?>)stockSymAndTf).size() ? null : ((List<?>)stockSymAndTf).get(1));
                     String stockInterval = this.safeString(this.timeframes, stockTimeframeString, stockTimeframeString);
                     if ((!java.util.Objects.equals(stockInterval, "5m")) && (!java.util.Objects.equals(stockInterval, "1h")) && (!java.util.Objects.equals(stockInterval, "1d")) && (!java.util.Objects.equals(stockInterval, "1w")) && (!java.util.Objects.equals(stockInterval, "1M")))
                     {
@@ -2049,7 +2049,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             parameters = ((List<Object>) klineTypeparametersVariable).get(1);
             Object symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
             Object marketSymbols = this.marketSymbols(symbols, null, false, false, true);
-            Map<String, Object> firstMarket = (Map<String, Object>) this.market(Helpers.GetValue(marketSymbols, 0));
+            Map<String, Object> firstMarket = (Map<String, Object>) this.market((marketSymbols == null || 0 >= ((List<?>)marketSymbols).size() ? null : ((List<?>)marketSymbols).get(0)));
             Object type = ((Map<String, Object>)firstMarket).get("type");
             Object wsUrlType = type;
             if (java.util.Objects.equals(((Map<String, Object>)firstMarket).get("option"), true))
@@ -2072,8 +2072,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
                 Object symAndTf = Helpers.GetValue(symbolsAndTimeframes, i);
-                Object symbolString = Helpers.GetValue(symAndTf, 0);
-                Object timeframeString = Helpers.GetValue(symAndTf, 1);
+                Object symbolString = (symAndTf == null || 0 >= ((List<?>)symAndTf).size() ? null : ((List<?>)symAndTf).get(0));
+                Object timeframeString = (symAndTf == null || 1 >= ((List<?>)symAndTf).size() ? null : ((List<?>)symAndTf).get(1));
                 String interval = this.safeString(this.timeframes, timeframeString, timeframeString);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbolString);
                 Object marketId = ((Map<String, Object>)market).get("lowercaseId");
@@ -2146,7 +2146,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             parameters = ((List<Object>) klineTypeparametersVariable).get(1);
             Object symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
             Object marketSymbols = this.marketSymbols(symbols, null, false, false, true);
-            Map<String, Object> firstMarket = (Map<String, Object>) this.market(Helpers.GetValue(marketSymbols, 0));
+            Map<String, Object> firstMarket = (Map<String, Object>) this.market((marketSymbols == null || 0 >= ((List<?>)marketSymbols).size() ? null : ((List<?>)marketSymbols).get(0)));
             Object type = ((Map<String, Object>)firstMarket).get("type");
             Object wsUrlType = type;
             if (java.util.Objects.equals(((Map<String, Object>)firstMarket).get("option"), true))
@@ -2170,8 +2170,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
             {
                 Object symAndTf = Helpers.GetValue(symbolsAndTimeframes, i);
-                Object symbolString = Helpers.GetValue(symAndTf, 0);
-                Object timeframeString = Helpers.GetValue(symAndTf, 1);
+                Object symbolString = (symAndTf == null || 0 >= ((List<?>)symAndTf).size() ? null : ((List<?>)symAndTf).get(0));
+                Object timeframeString = (symAndTf == null || 1 >= ((List<?>)symAndTf).size() ? null : ((List<?>)symAndTf).get(1));
                 String interval = this.safeString(this.timeframes, timeframeString, timeframeString);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbolString);
                 Object marketId = ((Map<String, Object>)market).get("lowercaseId");
@@ -2858,7 +2858,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Boolean symbolsDefined = (!java.util.Objects.equals(symbols, null));
             if (!java.util.Objects.equals(symbols, null))
             {
-                firstMarket = this.market(Helpers.GetValue(symbols, 0));
+                firstMarket = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
             }
             String userDefaultType = this.safeString(this.options, "defaultType");
             String defaultMarket = (((Helpers.isTrue(isMarkPrice) && !java.util.Objects.equals(userDefaultType, "option")))) ? "swap" : null;
@@ -4185,7 +4185,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 Object symbolsLength = ((List<?>)symbols).size();
                 if (Helpers.isEqual(symbolsLength, 1))
                 {
-                    market = this.market(Helpers.GetValue(symbols, 0));
+                    market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                     ((Map<String, Object>)payload).put("symbol", ((Map<String, Object>)market).get("id"));
                 }
             }
@@ -7055,7 +7055,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Object eventVar = this.safeString(message, "e");
         if (Helpers.isTrue(Helpers.isArray(message)))
         {
-            Object arrayMessage = Helpers.GetValue(message, 0);
+            Object arrayMessage = (message == null || 0 >= ((List<?>)message).size() ? null : ((List<?>)message).get(0));
             eventVar = Helpers.add(this.safeString(arrayMessage, "e"), "@arr");
         }
         method = this.safeValue(methods, eventVar);

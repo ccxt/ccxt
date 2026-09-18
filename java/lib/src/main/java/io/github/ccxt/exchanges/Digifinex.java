@@ -833,8 +833,8 @@ public class Digifinex extends DigifinexApi
             }
             ((List<Object>)promisesRaw).add(this.publicSwapGetPublicInstruments(parameters));
             Object promises = (Helpers.promiseAll(promisesRaw)).join();
-            Object spotMarkets = Helpers.GetValue(promises, 0);
-            Object swapMarkets = Helpers.GetValue(promises, 1);
+            Object spotMarkets = (promises == null || 0 >= ((List<?>)promises).size() ? null : ((List<?>)promises).get(0));
+            Object swapMarkets = (promises == null || 1 >= ((List<?>)promises).size() ? null : ((List<?>)promises).get(1));
             //
             // spot and margin
             //
@@ -4485,7 +4485,7 @@ public class Digifinex extends DigifinexApi
                     {
                         throw new BadRequest((this.id + " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
                     }
-                    symbol = Helpers.GetValue(symbols, 0);
+                    symbol = (symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0));
                 } else
                 {
                     symbol = symbols;
@@ -4682,7 +4682,7 @@ public class Digifinex extends DigifinexApi
             //
             String dataRequest = (((java.util.Objects.equals(marketType, "swap")))) ? "data" : "positions";
             Object data = this.safeList(response, dataRequest, new ArrayList<Object>(Arrays.asList()));
-            Object position = this.parsePosition(Helpers.GetValue(data, 0), market);
+            Object position = this.parsePosition((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0)), market);
             if (java.util.Objects.equals(marketType, "swap"))
             {
                 return position;

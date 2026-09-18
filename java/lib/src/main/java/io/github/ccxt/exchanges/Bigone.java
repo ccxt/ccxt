@@ -711,8 +711,8 @@ public class Bigone extends BigoneApi
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             List<Object> promises = new ArrayList<Object>(Arrays.asList(this.publicGetAssetPairs(parameters), this.contractPublicGetSymbols(parameters)));
             Object promisesResult = (Helpers.promiseAll(promises)).join();
-            Object response = Helpers.GetValue(promisesResult, 0);
-            Object contractResponse = Helpers.GetValue(promisesResult, 1);
+            Object response = (promisesResult == null || 0 >= ((List<?>)promisesResult).size() ? null : ((List<?>)promisesResult).get(0));
+            Object contractResponse = (promisesResult == null || 1 >= ((List<?>)promisesResult).size() ? null : ((List<?>)promisesResult).get(1));
             //
             //     {
             //         "code":0,

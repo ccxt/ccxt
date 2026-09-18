@@ -3071,7 +3071,7 @@ public class Pacifica extends PacificaApi
         {
             if ((!java.util.Objects.equals(paginationCursor, null)) && (Helpers.isGreaterThan(dataLength, 0)))
             {
-                Object first = Helpers.GetValue(data, 0);
+                Object first = (data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0));
                 Helpers.addElementToObject(first, "next_cursor", paginationCursor);
                 Helpers.addElementToObject(first, "has_more", hasMore);
                 Helpers.addElementToObject(data, 0, first);
@@ -3162,7 +3162,7 @@ public class Pacifica extends PacificaApi
             Object lastInfo = new HashMap<String, Object>() {{}};
             if (Helpers.isGreaterThan(lastIdx, 0))
             {
-                lastInfo = Helpers.GetValue(sorted, 0);
+                lastInfo = (sorted == null || 0 >= ((List<?>)sorted).size() ? null : ((List<?>)sorted).get(0));
             }
             return this.parseOrder(lastInfo, market);
         }).thenApply(Order::new);

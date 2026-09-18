@@ -1128,9 +1128,9 @@ public class Bitopro extends BitoproApi
                 List<Object> copy = (List<Object>) this.arrayConcat(new ArrayList<Object>(Arrays.asList()), copyFrom);
                 Helpers.addElementToObject(copy, 0, timestamp);
                 // set open, high, low to close
-                Helpers.addElementToObject(copy, 1, Helpers.GetValue(copy, 4));
-                Helpers.addElementToObject(copy, 2, Helpers.GetValue(copy, 4));
-                Helpers.addElementToObject(copy, 3, Helpers.GetValue(copy, 4));
+                Helpers.addElementToObject(copy, 1, (copy == null || 4 >= ((List<?>)copy).size() ? null : ((List<?>)copy).get(4)));
+                Helpers.addElementToObject(copy, 2, (copy == null || 4 >= ((List<?>)copy).size() ? null : ((List<?>)copy).get(4)));
+                Helpers.addElementToObject(copy, 3, (copy == null || 4 >= ((List<?>)copy).size() ? null : ((List<?>)copy).get(4)));
                 Helpers.addElementToObject(copy, 5, this.parseNumber("0"));
                 ((List<Object>)result).add(copy);
             }

@@ -86,8 +86,8 @@ public class TestOrderBook extends BaseTest {
         {
             if ((Helpers.isGreaterThan(bidsLength, 0)) && (Helpers.isGreaterThan(asksLength, 0)))
             {
-                String firstBid = exchange.safeString(Helpers.GetValue(bids, 0), 0);
-                String firstAsk = exchange.safeString(Helpers.GetValue(asks, 0), 0);
+                String firstBid = exchange.safeString((bids == null || 0 >= ((List<?>)bids).size() ? null : ((List<?>)bids).get(0)), 0);
+                String firstAsk = exchange.safeString((asks == null || 0 >= ((List<?>)asks).size() ? null : ((List<?>)asks).get(0)), 0);
                 // check bid-ask spread
                 Assert(Precise.stringLt(firstBid, firstAsk), ((Helpers.add((Helpers.add("bids[0][0] (", firstBid) + ") should be < than asks[0][0] ("), firstAsk) + ")") + logText));
             }

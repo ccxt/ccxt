@@ -439,8 +439,8 @@ public class Cex extends CexApi
             //            ...
             //
             Object responses = (Helpers.promiseAll(promises)).join();
-            Object dataCurrencies = this.safeList(Helpers.GetValue(responses, 0), "data", new ArrayList<Object>(Arrays.asList()));
-            Object dataNetworks = this.safeDict(Helpers.GetValue(responses, 1), "data", new HashMap<String, Object>() {{}});
+            Object dataCurrencies = this.safeList((responses == null || 0 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(0)), "data", new ArrayList<Object>(Arrays.asList()));
+            Object dataNetworks = this.safeDict((responses == null || 1 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(1)), "data", new HashMap<String, Object>() {{}});
             Map<String, Object> currenciesIndexed = this.indexBy(dataCurrencies, "currency");
             Map<String, Object> data = this.deepExtend(currenciesIndexed, dataNetworks);
             return this.parseCurrencies(this.toArray(data));
@@ -1412,7 +1412,7 @@ public class Cex extends CexApi
                 put( "orderId", Helpers.parseInt(id) );
             }};
             Object result = (this.fetchOpenOrders((Object)(symbol), (Object)(null), (Object)(null), (Object)(this.extend(request, parameters)))).join();
-            return Helpers.GetValue(result, 0);
+            return (result == null || 0 >= ((List<?>)result).size() ? null : ((List<?>)result).get(0));
         });
 
     }
@@ -1442,7 +1442,7 @@ public class Cex extends CexApi
                 put( "orderId", Helpers.parseInt(id) );
             }};
             Object result = (this.fetchClosedOrders((Object)(symbol), (Object)(null), (Object)(null), (Object)(this.extend(request, parameters)))).join();
-            return Helpers.GetValue(result, 0);
+            return (result == null || 0 >= ((List<?>)result).size() ? null : ((List<?>)result).get(0));
         });
 
     }

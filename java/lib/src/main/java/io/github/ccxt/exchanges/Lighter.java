@@ -1259,7 +1259,7 @@ public class Lighter extends LighterApi
             Object order = null;
             if (Helpers.isGreaterThan(totalOrderRequests, 0))
             {
-                order = Helpers.GetValue(orderRequests, 0);
+                order = (orderRequests == null || 0 >= ((List<?>)orderRequests).size() ? null : ((List<?>)orderRequests).get(0));
                 apiKeyIndex = ((Map<String, Object>)order).get("api_key_index");
             }
             Object strAccountIndex = this.numberToString(accountIndex);

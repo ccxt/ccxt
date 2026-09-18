@@ -805,7 +805,7 @@ public class TestMain extends BaseTest
             Object valuesLength = ((List<?>)values).size();
             if (Helpers.isGreaterThan(valuesLength, 0))
             {
-                Object first = Helpers.GetValue(values, 0);
+                Object first = (values == null || 0 >= ((List<?>)values).size() ? null : ((List<?>)values).get(0));
                 if (!java.util.Objects.equals(first, null))
                 {
                     symbol = Helpers.GetValue(first, "symbol");
@@ -852,7 +852,7 @@ public class TestMain extends BaseTest
             // the statically chosen symbol, which keeps the volumes comparable (quote
             // volumes denominated in different quote currencies are not) and keeps a
             // per-exchange `preferredSpotSymbol`/`preferredSwapSymbol` meaningful.
-            Object defaultSymbol = Helpers.GetValue(defaultSymbols, 0);
+            Object defaultSymbol = (defaultSymbols == null || 0 >= ((List<?>)defaultSymbols).size() ? null : ((List<?>)defaultSymbols).get(0));
             Object defaultMarket = exchange.safeDict(exchange.markets, defaultSymbol);
             if (java.util.Objects.equals(defaultMarket, null))
             {

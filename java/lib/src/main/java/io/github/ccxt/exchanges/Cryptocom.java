@@ -1215,7 +1215,7 @@ public class Cryptocom extends CryptocomApi
                     {
                         throw new BadRequest((this.id + " fetchTickers() symbols argument cannot contain more than 1 symbol")) ;
                     }
-                    symbol = Helpers.GetValue(symbols, 0);
+                    symbol = (symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0));
                 } else
                 {
                     symbol = symbols;
@@ -1618,7 +1618,7 @@ public class Cryptocom extends CryptocomApi
     {
         Object responseResult = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
         Object data = this.safeList(responseResult, "data", new ArrayList<Object>(Arrays.asList()));
-        Object positionBalances = this.safeList(Helpers.GetValue(data, 0), "position_balances", new ArrayList<Object>(Arrays.asList()));
+        Object positionBalances = this.safeList((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0)), "position_balances", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
@@ -2823,7 +2823,7 @@ public class Cryptocom extends CryptocomApi
                 return Helpers.GetValue(depositAddresses, network);
             }
             Object keys = Helpers.objectKeys(depositAddresses);
-            return Helpers.GetValue(depositAddresses, Helpers.GetValue(keys, 0));
+            return Helpers.GetValue(depositAddresses, (keys == null || 0 >= ((List<?>)keys).size() ? null : ((List<?>)keys).get(0)));
         }).thenApply(DepositAddress::new);
 
     }
@@ -4162,7 +4162,7 @@ public class Cryptocom extends CryptocomApi
                     {
                         throw new BadRequest((this.id + " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
                     }
-                    symbol = Helpers.GetValue(symbols, 0);
+                    symbol = (symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0));
                 } else
                 {
                     symbol = symbols;

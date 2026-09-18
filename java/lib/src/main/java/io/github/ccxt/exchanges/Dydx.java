@@ -1880,8 +1880,8 @@ public class Dydx extends DydxApi
                 put( "latestBlockHeight", lastBlockHeight );
             }});
             Object orderRequestRes = this.createOrderRequest(symbol, type, side, amount, price, newParams);
-            Object orderId = Helpers.GetValue(orderRequestRes, 0);
-            Object orderRequest = Helpers.GetValue(orderRequestRes, 1);
+            Object orderId = (orderRequestRes == null || 0 >= ((List<?>)orderRequestRes).size() ? null : ((List<?>)orderRequestRes).get(0));
+            Object orderRequest = (orderRequestRes == null || 1 >= ((List<?>)orderRequestRes).size() ? null : ((List<?>)orderRequestRes).get(1));
             Object chainName = ((Map<String, Object>)this.options).get("chainName");
             Object signedTx = this.signDydxTx(Helpers.GetValue(credentials, "privateKey"), orderRequest, "", chainName, account, null);
             Map<String, Object> request = new HashMap<String, Object>() {{

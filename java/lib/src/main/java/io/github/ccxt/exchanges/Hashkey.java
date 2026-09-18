@@ -3326,7 +3326,7 @@ public class Hashkey extends HashkeyApi
                 }
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
-            Object firstOrder = Helpers.GetValue(ordersRequests, 0);
+            Object firstOrder = (ordersRequests == null || 0 >= ((List<?>)ordersRequests).size() ? null : ((List<?>)ordersRequests).get(0));
             String firstSymbol = this.safeString(firstOrder, "symbol");
             Map<String, Object> market = (Map<String, Object>) this.market(firstSymbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -4412,7 +4412,7 @@ public class Hashkey extends HashkeyApi
             {
                 (this.loadMarkets()).join();
             }
-            return (this.fetchPositionsForSymbol((Object)(Helpers.GetValue(symbols, 0)), (Object)(this.extend(new HashMap<String, Object>() {{
+            return (this.fetchPositionsForSymbol((Object)((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0))), (Object)(this.extend(new HashMap<String, Object>() {{
                 put( "methodName", "fetchPositions" );
             }}, parameters)))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));

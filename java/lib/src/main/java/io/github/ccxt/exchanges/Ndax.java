@@ -1668,7 +1668,7 @@ public class Ndax extends NdaxApi
             Long accountId = this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
             if (java.util.Objects.equals(accountId, null))
             {
-                accountId = this.parseToInt(((Map<String, Object>)Helpers.GetValue(this.accounts, 0)).get("id"));
+                accountId = this.parseToInt(((Map<String, Object>)(this.accounts == null || 0 >= ((List<?>)this.accounts).size() ? null : ((List<?>)this.accounts).get(0))).get("id"));
             }
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
             final Object finalAccountId = accountId;
@@ -1826,7 +1826,7 @@ public class Ndax extends NdaxApi
                 (this.loadMarkets()).join();
             }
             (this.loadAccounts()).join();
-            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(((Map<String, Object>)Helpers.GetValue(this.accounts, 0)).get("id")));
+            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(((Map<String, Object>)(this.accounts == null || 0 >= ((List<?>)this.accounts).size() ? null : ((List<?>)this.accounts).get(0))).get("id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2010,7 +2010,7 @@ public class Ndax extends NdaxApi
                 (this.loadMarkets()).join();
             }
             (this.loadAccounts()).join();
-            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(((Map<String, Object>)Helpers.GetValue(this.accounts, 0)).get("id")));
+            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(((Map<String, Object>)(this.accounts == null || 0 >= ((List<?>)this.accounts).size() ? null : ((List<?>)this.accounts).get(0))).get("id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
             Long clientOrderId = (Long) this.safeInteger2(parameters, "ClientOrderId", "clientOrderId");
             Object orderType = this.safeInteger(((Map<String, Object>)this.options).get("orderTypes"), this.capitalize(type));
@@ -2099,7 +2099,7 @@ public class Ndax extends NdaxApi
                 (this.loadMarkets()).join();
             }
             (this.loadAccounts()).join();
-            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(((Map<String, Object>)Helpers.GetValue(this.accounts, 0)).get("id")));
+            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(((Map<String, Object>)(this.accounts == null || 0 >= ((List<?>)this.accounts).size() ? null : ((List<?>)this.accounts).get(0))).get("id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
             Long clientOrderId = (Long) this.safeInteger2(parameters, "ClientOrderId", "clientOrderId");
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId", "clientOrderId", "ClientOrderId")));
@@ -2171,7 +2171,7 @@ public class Ndax extends NdaxApi
                 (this.loadMarkets()).join();
             }
             (this.loadAccounts()).join();
-            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(((Map<String, Object>)Helpers.GetValue(this.accounts, 0)).get("id")));
+            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(((Map<String, Object>)(this.accounts == null || 0 >= ((List<?>)this.accounts).size() ? null : ((List<?>)this.accounts).get(0))).get("id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2263,7 +2263,7 @@ public class Ndax extends NdaxApi
                 (this.loadMarkets()).join();
             }
             (this.loadAccounts()).join();
-            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(((Map<String, Object>)Helpers.GetValue(this.accounts, 0)).get("id")));
+            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(((Map<String, Object>)(this.accounts == null || 0 >= ((List<?>)this.accounts).size() ? null : ((List<?>)this.accounts).get(0))).get("id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2372,7 +2372,7 @@ public class Ndax extends NdaxApi
                 (this.loadMarkets()).join();
             }
             (this.loadAccounts()).join();
-            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(((Map<String, Object>)Helpers.GetValue(this.accounts, 0)).get("id")));
+            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(((Map<String, Object>)(this.accounts == null || 0 >= ((List<?>)this.accounts).size() ? null : ((List<?>)this.accounts).get(0))).get("id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
             Object market = null;
@@ -2466,7 +2466,7 @@ public class Ndax extends NdaxApi
                 (this.loadMarkets()).join();
             }
             (this.loadAccounts()).join();
-            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(((Map<String, Object>)Helpers.GetValue(this.accounts, 0)).get("id")));
+            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(((Map<String, Object>)(this.accounts == null || 0 >= ((List<?>)this.accounts).size() ? null : ((List<?>)this.accounts).get(0))).get("id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2566,7 +2566,7 @@ public class Ndax extends NdaxApi
                 (this.loadMarkets()).join();
             }
             (this.loadAccounts()).join();
-            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(((Map<String, Object>)Helpers.GetValue(this.accounts, 0)).get("id")));
+            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(((Map<String, Object>)(this.accounts == null || 0 >= ((List<?>)this.accounts).size() ? null : ((List<?>)this.accounts).get(0))).get("id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
             Object market = null;
@@ -2750,7 +2750,7 @@ public class Ndax extends NdaxApi
                 (this.loadMarkets()).join();
             }
             (this.loadAccounts()).join();
-            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(((Map<String, Object>)Helpers.GetValue(this.accounts, 0)).get("id")));
+            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(((Map<String, Object>)(this.accounts == null || 0 >= ((List<?>)this.accounts).size() ? null : ((List<?>)this.accounts).get(0))).get("id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
@@ -2866,7 +2866,7 @@ public class Ndax extends NdaxApi
                 (this.loadMarkets()).join();
             }
             (this.loadAccounts()).join();
-            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(((Map<String, Object>)Helpers.GetValue(this.accounts, 0)).get("id")));
+            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(((Map<String, Object>)(this.accounts == null || 0 >= ((List<?>)this.accounts).size() ? null : ((List<?>)this.accounts).get(0))).get("id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
             Object currency = null;
@@ -2942,7 +2942,7 @@ public class Ndax extends NdaxApi
                 (this.loadMarkets()).join();
             }
             (this.loadAccounts()).join();
-            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(((Map<String, Object>)Helpers.GetValue(this.accounts, 0)).get("id")));
+            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(((Map<String, Object>)(this.accounts == null || 0 >= ((List<?>)this.accounts).size() ? null : ((List<?>)this.accounts).get(0))).get("id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
             Object currency = null;
@@ -3192,7 +3192,7 @@ public class Ndax extends NdaxApi
                 (this.loadMarkets()).join();
             }
             (this.loadAccounts()).join();
-            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(((Map<String, Object>)Helpers.GetValue(this.accounts, 0)).get("id")));
+            Long defaultAccountId = (Long) this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(((Map<String, Object>)(this.accounts == null || 0 >= ((List<?>)this.accounts).size() ? null : ((List<?>)this.accounts).get(0))).get("id")));
             Long accountId = (Long) this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("accountId", "AccountId")));
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);

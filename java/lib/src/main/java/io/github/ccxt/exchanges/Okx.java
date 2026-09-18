@@ -9045,7 +9045,7 @@ public class Okx extends OkxApi
                 }
             } else
             {
-                selectedAccount = Helpers.GetValue(accounts, 0);
+                selectedAccount = (accounts == null || 0 >= ((List<?>)accounts).size() ? null : ((List<?>)accounts).get(0));
             }
             Object mainAccount = ((Map<String, Object>)selectedAccount).get("info");
             String posMode = this.safeString(mainAccount, "posMode"); // long_short_mode, net_mode
@@ -10018,7 +10018,7 @@ public class Okx extends OkxApi
             //     }
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return this.parseOpenInterest(Helpers.GetValue(data, 0), market);
+            return this.parseOpenInterest((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0)), market);
         }).thenApply(OpenInterest::new);
 
     }
@@ -10050,7 +10050,7 @@ public class Okx extends OkxApi
             Object market = null;
             if (!java.util.Objects.equals(symbols, null))
             {
-                market = this.market(Helpers.GetValue(symbols, 0));
+                market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
             }
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchOpenInterests", market, parameters, "swap");
@@ -10609,7 +10609,7 @@ public class Okx extends OkxApi
             //     }
             //
             Object underlyings = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            return Helpers.GetValue(underlyings, 0);
+            return (underlyings == null || 0 >= ((List<?>)underlyings).size() ? null : ((List<?>)underlyings).get(0));
         });
 
     }
@@ -10737,7 +10737,7 @@ public class Okx extends OkxApi
             {
                 if (Helpers.isEqual(symbolsLength, 1))
                 {
-                    market = this.market(Helpers.GetValue(symbols, 0));
+                    market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                     String marketId = this.safeString(market, "id", "");
                     Object optionParts = Helpers.split(marketId, "-");
                     ((Map<String, Object>)request).put("uly", Helpers.GetValue(((Map<String, Object>)market).get("info"), "uly"));
@@ -11716,7 +11716,7 @@ public class Okx extends OkxApi
                 Object symbolsLength = ((List<?>)symbols).size();
                 if (Helpers.isEqual(symbolsLength, 1))
                 {
-                    Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
+                    Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                     ((Map<String, Object>)request).put("instId", ((Map<String, Object>)market).get("id"));
                 }
             }
