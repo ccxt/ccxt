@@ -2318,14 +2318,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
             m
         });
-        let mut spotBalances: Value = self.safe_list_k(response.clone(), "spot_balances", &[Value::List(vec![])]);
+        let mut spotBalances: Vec<Value> = self.safe_list_k(response.clone(), "spot_balances", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut availableBalance: Value = self.safe_string_k(response.clone(), "available_balance", &[]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_719: bool = true;
             while { if !__for_first_719 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_719 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(spotBalances.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut balance: Value = get_value(&spotBalances, &i);
-            let mut balance: Value = get_value(&spotBalances, &i);
+            let mut balance: Value = match &i { Value::Int(__n) => spotBalances.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| spotBalances.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut balance: Value = match &i { Value::Int(__n) => spotBalances.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| spotBalances.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut account: Value = self.account();
@@ -3249,14 +3249,14 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
 
     pub fn eip_message_for_order(&self, mut order: Value, mut structureType: Value) -> Value {
         let mut priceMultiplier: Value = Value::Str("1000000000".to_string());
-        let mut orderLegs: Value = self.safe_list_k(order.clone(), "legs", &[Value::List(vec![])]);
+        let mut orderLegs: Vec<Value> = self.safe_list_k(order.clone(), "legs", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut legs: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_721: bool = true;
             while { if !__for_first_721 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_721 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(orderLegs.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut leg: Value = get_value(&orderLegs, &i);
-            let mut leg: Value = get_value(&orderLegs, &i);
+            let mut leg: Value = match &i { Value::Int(__n) => orderLegs.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| orderLegs.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut leg: Value = match &i { Value::Int(__n) => orderLegs.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| orderLegs.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(crate::value::get_value_k(&leg, "instrument"));
             let mut bigInt10: Value = self.convert_to_big_int_custom(Value::Str("10".to_string()));
             let mut precisionValue: Value = self.precision_from_string(self.safe_string(market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null), Value::Str("base".to_string()), &[]));

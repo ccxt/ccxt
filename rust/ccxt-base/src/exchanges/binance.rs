@@ -7114,7 +7114,7 @@ impl BinanceCore {
         let mut name: Value = self.safe_string_k(entry.clone(), "name", &[]);
         let mut code: Value = self.safe_currency_code(id.clone(), &[]);
         let mut isFiat: Value = self.safe_bool_k(entry.clone(), "isLegalMoney", &[]);
-        let mut networkList: Value = self.safe_list_k(entry.clone(), "networkList", &[Value::List(vec![])]);
+        let mut networkList: Vec<Value> = self.safe_list_k(entry.clone(), "networkList", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut fees: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -7129,8 +7129,8 @@ impl BinanceCore {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_249: bool = true;
             while { if !__for_first_249 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_249 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(networkList.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut networkItem: Value = get_value(&networkList, &j);
-            let mut networkItem: Value = get_value(&networkList, &j);
+            let mut networkItem: Value = match &j { Value::Int(__n) => networkList.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| networkList.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut networkItem: Value = match &j { Value::Int(__n) => networkList.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| networkList.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut network: Value = self.safe_string_k(networkItem.clone(), "network", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[network.clone(), code.clone()]);
             isETF = network.as_str() == Some("ETF"); // ETF currencies (e.g. BTCUP, ETHDOWN) have only 1 "network" entry and are deterministic to set
@@ -7642,12 +7642,12 @@ impl BinanceCore {
         }
         let mut active: Value = (Value::Bool(status.as_str() == Some("TRADING")));
         if is_true(&spot) {
-            let mut permissions: Value = self.safe_list_k(market.clone(), "permissions", &[Value::List(vec![])]);
+            let mut permissions: Vec<Value> = self.safe_list_k(market.clone(), "permissions", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_254: bool = true;
                 while { if !__for_first_254 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_254 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(permissions.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                if (get_value(&permissions, &j).as_str() == Some("TRD_GRP_003")) {
+                if (match &j { Value::Int(__n) => permissions.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| permissions.get(__n)), _ => None }.cloned().unwrap_or(Value::Null).as_str() == Some("TRD_GRP_003")) {
                     active = Value::Bool(false);
                     break;
                 }
@@ -7907,13 +7907,13 @@ impl BinanceCore {
             }
             }
         }  else if isolated {
-            let mut assets: Value = self.safe_list_k(response.clone(), "assets", &[Value::List(vec![])]);
+            let mut assets: Vec<Value> = self.safe_list_k(response.clone(), "assets", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_257: bool = true;
                 while { if !__for_first_257 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_257 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(assets.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                let mut asset: Value = get_value(&assets, &i);
-                let mut asset: Value = get_value(&assets, &i);
+                let mut asset: Value = match &i { Value::Int(__n) => assets.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| assets.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+                let mut asset: Value = match &i { Value::Int(__n) => assets.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| assets.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
                 let mut base: Value = self.safe_dict_k(asset.clone(), "baseAsset", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -7933,13 +7933,13 @@ impl BinanceCore {
             }
             }
         }  else if (type_var.as_str() == Some("savings")) {
-            let mut positionAmountVos: Value = self.safe_list_k(response.clone(), "positionAmountVos", &[Value::List(vec![])]);
+            let mut positionAmountVos: Vec<Value> = self.safe_list_k(response.clone(), "positionAmountVos", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_258: bool = true;
                 while { if !__for_first_258 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_258 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(positionAmountVos.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                let mut entry: Value = get_value(&positionAmountVos, &i);
-                let mut entry: Value = get_value(&positionAmountVos, &i);
+                let mut entry: Value = match &i { Value::Int(__n) => positionAmountVos.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| positionAmountVos.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+                let mut entry: Value = match &i { Value::Int(__n) => positionAmountVos.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| positionAmountVos.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
                 let mut currencyId: Value = self.safe_string_k(entry.clone(), "asset", &[]);
                 let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
                 let mut account: Value = self.account();
@@ -13263,14 +13263,14 @@ impl BinanceCore {
         //         },
         //       ]
         //     }
-        let mut results: Value = self.safe_list_k(response.clone(), "userAssetDribblets", &[Value::List(vec![])]);
+        let mut results: Vec<Value> = self.safe_list_k(response.clone(), "userAssetDribblets", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut rows: Value = self.safe_integer_k(response.clone(), "total", &[Value::Int(0)]);
         let mut data: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_267: bool = true;
             while { if !__for_first_267 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_267 = false; i.as_f64().unwrap_or(f64::NAN) < rows.as_f64().unwrap_or(f64::NAN) } {
-            let mut logs: Value = self.safe_list_k(get_value(&results, &i), "userAssetDribbletDetails", &[Value::List(vec![])]);
+            let mut logs: Value = self.safe_list_k(match &i { Value::Int(__n) => results.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| results.get(__n)), _ => None }.cloned().unwrap_or(Value::Null), "userAssetDribbletDetails", &[Value::List(vec![])]);
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_266: bool = true;
@@ -14301,7 +14301,7 @@ impl BinanceCore {
             let mut entry: Value = get_value(&coins, &i);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "coin", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-            let mut networkList: Value = self.safe_list_k(entry.clone(), "networkList", &[Value::List(vec![])]);
+            let mut networkList: Vec<Value> = self.safe_list_k(entry.clone(), "networkList", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
             if (code != Value::Null) {
                 add_element_to_object(&mut withdrawFees, &code, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -14312,8 +14312,8 @@ impl BinanceCore {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_270: bool = true;
                 while { if !__for_first_270 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_270 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(networkList.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                let mut networkEntry: Value = get_value(&networkList, &j);
-                let mut networkEntry: Value = get_value(&networkList, &j);
+                let mut networkEntry: Value = match &j { Value::Int(__n) => networkList.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| networkList.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+                let mut networkEntry: Value = match &j { Value::Int(__n) => networkList.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| networkList.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
                 let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "network", &[]);
                 let mut networkCode: Value = self.safe_currency_code(networkId.clone(), &[]);
                 let mut fee: Value = self.safe_number_k(networkEntry, "withdrawFee", &[]);
@@ -14405,14 +14405,14 @@ impl BinanceCore {
         //    }
         //
         let mut code: Value = self.safe_string_k(currency.clone(), "code", &[]);
-        let mut networkList: Value = self.safe_list_k(fee.clone(), "networkList", &[Value::List(vec![])]);
+        let mut networkList: Vec<Value> = self.safe_list_k(fee.clone(), "networkList", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Value = self.deposit_withdraw_fee(fee.clone());
         {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_272: bool = true;
             while { if !__for_first_272 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_272 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(networkList.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut networkEntry: Value = get_value(&networkList, &j);
-            let mut networkEntry: Value = get_value(&networkList, &j);
+            let mut networkEntry: Value = match &j { Value::Int(__n) => networkList.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| networkList.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut networkEntry: Value = match &j { Value::Int(__n) => networkList.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| networkList.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "network", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
             let mut withdrawFee: Value = self.safe_number_k(networkEntry.clone(), "withdrawFee", &[]);
@@ -15142,8 +15142,8 @@ impl BinanceCore {
 
     pub fn parse_account_positions(&self, mut account: Value, optional_args: &[Value]) -> Value {
         let mut filterClosed = get_arg(optional_args, 0, Value::Bool(false));
-        let mut positions: Value = self.safe_list_k(account.clone(), "positions", &[Value::List(vec![])]);
-        let mut assets: Value = self.safe_list_k(account.clone(), "assets", &[Value::List(vec![])]);
+        let mut positions: Vec<Value> = self.safe_list_k(account.clone(), "positions", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut assets: Vec<Value> = self.safe_list_k(account.clone(), "assets", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut balances: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -15152,8 +15152,8 @@ impl BinanceCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_276: bool = true;
             while { if !__for_first_276 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_276 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(assets.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut entry: Value = get_value(&assets, &i);
-            let mut entry: Value = get_value(&assets, &i);
+            let mut entry: Value = match &i { Value::Int(__n) => assets.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| assets.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut entry: Value = match &i { Value::Int(__n) => assets.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| assets.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "asset", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut crossWalletBalance: Value = self.safe_string_k(entry.clone(), "crossWalletBalance", &[]);
@@ -15173,8 +15173,8 @@ impl BinanceCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_277: bool = true;
             while { if !__for_first_277 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_277 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(positions.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut position: Value = get_value(&positions, &i);
-            let mut position: Value = get_value(&positions, &i);
+            let mut position: Value = match &i { Value::Int(__n) => positions.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| positions.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut position: Value = match &i { Value::Int(__n) => positions.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| positions.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(position.clone(), "symbol", &[]);
             let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, Value::Str("contract".to_string())]);
             let mut code: Value = (if is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)))) { market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null) } else { market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null) });
@@ -15330,14 +15330,14 @@ impl BinanceCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut leverageBracket: Value = self.safe_list(leverageBrackets.clone(), symbol.clone(), &[Value::List(vec![])]);
+        let mut leverageBracket: Vec<Value> = self.safe_list(leverageBrackets.clone(), symbol.clone(), &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut maintenanceMarginPercentageString: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_278: bool = true;
             while { if !__for_first_278 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_278 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(leverageBracket.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut bracket: Value = get_value(&leverageBracket, &i);
-            let mut bracket: Value = get_value(&leverageBracket, &i);
+            let mut bracket: Value = match &i { Value::Int(__n) => leverageBracket.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| leverageBracket.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut bracket: Value = match &i { Value::Int(__n) => leverageBracket.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| leverageBracket.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             if is_true(&crate::precise::Precise::stringLt(&notionalStringAbs, &get_value(&bracket, &Value::Int(0)))) {
                 break;
             }
@@ -15562,7 +15562,7 @@ impl BinanceCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut leverageBracket: Value = self.safe_list(leverageBrackets.clone(), symbol.clone(), &[Value::List(vec![])]);
+        let mut leverageBracket: Vec<Value> = self.safe_list(leverageBrackets.clone(), symbol.clone(), &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut notionalString: Value = self.safe_string2(position.clone(), Value::Str("notional".to_string()), Value::Str("notionalValue".to_string()), &[]);
         let mut notionalStringAbs: Value = crate::precise::Precise::stringAbs(&notionalString);
         let mut maintenanceMarginPercentageString: Value = Value::Null;
@@ -15570,8 +15570,8 @@ impl BinanceCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_279: bool = true;
             while { if !__for_first_279 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_279 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(leverageBracket.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut bracket: Value = get_value(&leverageBracket, &i);
-            let mut bracket: Value = get_value(&leverageBracket, &i);
+            let mut bracket: Value = match &i { Value::Int(__n) => leverageBracket.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| leverageBracket.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut bracket: Value = match &i { Value::Int(__n) => leverageBracket.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| leverageBracket.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             if is_true(&crate::precise::Precise::stringLt(&notionalStringAbs, &get_value(&bracket, &Value::Int(0)))) {
                 break;
             }
@@ -15771,14 +15771,14 @@ impl BinanceCore {
                 let mut entry: Value = get_value(&entries, &i);
                 let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
                 let mut symbol: Value = self.safe_symbol(marketId.clone(), &[Value::Null, Value::Null, Value::Str("contract".to_string())]);
-                let mut brackets: Value = self.safe_list_k(entry.clone(), "brackets", &[Value::List(vec![])]);
+                let mut brackets: Vec<Value> = self.safe_list_k(entry.clone(), "brackets", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
                 let mut result: Value = Value::List(vec![]);
                 {
                                         let mut j: Value = Value::Int(0);
                     let mut __for_first_280: bool = true;
                     while { if !__for_first_280 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_280 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(brackets.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                    let mut bracket: Value = get_value(&brackets, &j);
-                    let mut bracket: Value = get_value(&brackets, &j);
+                    let mut bracket: Value = match &j { Value::Int(__n) => brackets.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| brackets.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+                    let mut bracket: Value = match &j { Value::Int(__n) => brackets.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| brackets.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
                     let mut floorValue: Value = self.safe_string2(bracket.clone(), Value::Str("notionalFloor".to_string()), Value::Str("qtyFloor".to_string()), &[]);
                     let mut maintenanceMarginPercentage: Value = self.safe_string_k(bracket.clone(), "maintMarginRatio", &[]);
                     append_to_array(&mut result, Value::List(vec![floorValue.clone(), maintenanceMarginPercentage.clone()]));
@@ -15869,14 +15869,14 @@ impl BinanceCore {
         //
         let mut marketId: Value = self.safe_string_k(info.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Null, Value::Str("contract".to_string())]);
-        let mut brackets: Value = self.safe_list_k(info.clone(), "brackets", &[Value::List(vec![])]);
+        let mut brackets: Vec<Value> = self.safe_list_k(info.clone(), "brackets", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut tiers: Value = Value::List(vec![]);
         {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_282: bool = true;
             while { if !__for_first_282 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_282 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(brackets.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut bracket: Value = get_value(&brackets, &j);
-            let mut bracket: Value = get_value(&brackets, &j);
+            let mut bracket: Value = match &j { Value::Int(__n) => brackets.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| brackets.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut bracket: Value = match &j { Value::Int(__n) => brackets.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| brackets.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             append_to_array(&mut tiers, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("tier".to_string(), self.safe_number_k(bracket.clone(), "bracket", &[]));

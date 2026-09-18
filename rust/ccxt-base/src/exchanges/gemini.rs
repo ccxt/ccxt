@@ -1423,14 +1423,14 @@ impl GeminiCore {
         if is_true(&Value::Bool(matches!(&self.urls, Value::Dict(__d) if __d.contains_key("test")))) {
             return Value::List(vec![]);
         }
-        let mut fetchUsdtMarkets: Value = self.safe_list_k(self.options.clone(), "fetchUsdtMarkets", &[Value::List(vec![])]);
+        let mut fetchUsdtMarkets: Vec<Value> = self.safe_list_k(self.options.clone(), "fetchUsdtMarkets", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_709: bool = true;
             while { if !__for_first_709 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_709 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(fetchUsdtMarkets.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut marketId: Value = get_value(&fetchUsdtMarkets, &i);
-            let mut marketId: Value = get_value(&fetchUsdtMarkets, &i);
+            let mut marketId: Value = match &i { Value::Int(__n) => fetchUsdtMarkets.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| fetchUsdtMarkets.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut marketId: Value = match &i { Value::Int(__n) => fetchUsdtMarkets.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| fetchUsdtMarkets.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("symbol".to_string(), marketId.clone());

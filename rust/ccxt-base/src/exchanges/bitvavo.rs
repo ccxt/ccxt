@@ -996,7 +996,7 @@ impl BitvavoCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut networksArray: Value = self.safe_list_k(rawCurrency.clone(), "networks", &[Value::List(vec![])]);
+        let mut networksArray: Vec<Value> = self.safe_list_k(rawCurrency.clone(), "networks", &[Value::List(vec![])]).as_array().cloned().unwrap_or_default();
         let mut deposit: Value = Value::Bool(self.safe_string_k(rawCurrency.clone(), "depositStatus", &[]).as_str() == Some("OK"));
         let mut withdrawal: Value = Value::Bool(self.safe_string_k(rawCurrency.clone(), "withdrawalStatus", &[]).as_str() == Some("OK"));
         let mut active: Value = Value::Bool(is_true(&deposit) && is_true(&withdrawal));
@@ -1007,8 +1007,8 @@ impl BitvavoCore {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_436: bool = true;
             while { if !__for_first_436 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_436 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(networksArray.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut networkId: Value = get_value(&networksArray, &j);
-            let mut networkId: Value = get_value(&networksArray, &j);
+            let mut networkId: Value = match &j { Value::Int(__n) => networksArray.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| networksArray.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
+            let mut networkId: Value = match &j { Value::Int(__n) => networksArray.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| networksArray.get(__n)), _ => None }.cloned().unwrap_or(Value::Null);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
             if (networkCode != Value::Null) {
                 add_element_to_object(&mut networks, &networkCode, Value::Map({

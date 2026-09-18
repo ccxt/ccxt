@@ -86,7 +86,7 @@ export export // The ast printer's numeric-comparison emission (`printNativeNume
 // a local narrowed to `f64` by `narrowFloatLocals` below.
 const RUST_FLOAT_NAN_UNWRAP = '.as_f64().unwrap_or(f64::NAN)';
 
-export export export export export class RustTranspilerBuilder {
+export export export export export export class RustTranspilerBuilder {
 
     transpiler!: Transpiler;
 
@@ -4451,6 +4451,192 @@ export export export export export class RustTranspilerBuilder {
     }
 
     /**
+     * Native-typed `safe_list` locals: `let mut X: Value = self.safe_list_k(..)`
+     * becomes `let mut X: Vec<Value>`, and every index read of X becomes the
+     * `.get()` the runtime's array branch takes.
+     *
+     * `safe_list_k`/`safe_list` yield the stored `Value::Arr` or their default,
+     * so the local holds an array (or the default) on every path. The local is
+     * retyped only when the declaration is its only writer and every later use
+     * is either `.len()` / `.is_empty()` — identical on `Vec<Value>` — or an
+     * index read `get_value(&X, &K)`. Any other use keeps it boxed: a
+     * `.clone()` into a `Value` sink, `as_array()`, `&mut X`, a second
+     * binding of the name, an assignment (the D2 later-write scan).
+     *
+     * A rewritten read keeps the runtime's exact semantics for every key
+     * kind — Int by value (a negative or out-of-range index misses), a numeric
+     * string, anything else misses — and a miss is `Value::Null`.
+     */
+    typeSafeListLocals(content: string): string {
+        const declRe = /^([ \t]*)let mut ([a-zA-Z_][a-zA-Z0-9_]*): Value = (self\.safe_list(?:_k)?\()/gm;
+
+        // Blank strings and line comments; same length as the input, so every
+        // index found below also addresses the original text.
+        const maskText = (src: string): string => {
+            let out = ''; let i = 0;
+            while (i < src.length) {
+                const c = src[i];
+                if (c === '/' && src[i + 1] === '/') {
+                    while (i < src.length && src[i] !== '\n') { out += ' '; i++; }
+                    continue;
+                }
+                if (c === '"') {
+                    out += ' '; i++;
+                    while (i < src.length && src[i] !== '"') {
+                        if (src[i] === '\\') { out += '  '; i += 2; continue; }
+                        out += src[i] === '\n' ? '\n' : ' ';
+                        i++;
+                    }
+                    if (i < src.length) { out += ' '; i++; }
+                    continue;
+                }
+                out += c; i++;
+            }
+            return out;
+        };
+        // Index just past the `)` matching the `(` at `open`, or -1.
+        const closeParen = (src: string, open: number): number => {
+            let depth = 0;
+            for (let k = open; k < src.length; k++) {
+                const c = src[k];
+                if (c === '(') depth++;
+                else if (c === ')') { depth--; if (depth === 0) return k + 1; }
+            }
+            return -1;
+        };
+        // End of the enclosing fn body: the first `}` that takes the depth below 0.
+        const braceEnd = (src: string, from: number): number => {
+            let depth = 0;
+            for (let k = from; k < src.length; k++) {
+                const c = src[k];
+                if (c === '{') depth++;
+                else if (c === '}') { depth--; if (depth < 0) return k; }
+            }
+            return src.length;
+        };
+
+        const masked = maskText(content);
+        const jobs: Array<{
+            declStart: number, callClose: number, stmtEnd: number, indent: string, name: string,
+            reads: Array<{ start: number, end: number, text: string }>,
+        }> = [];
+        let m: RegExpExecArray | null;
+        while ((m = declRe.exec(masked)) !== null) {
+            const declStart = m.index;
+            const name = m[2];
+            const callStart = declStart + m[0].length - m[3].length; // `self.safe_list…(`
+            const callClose = closeParen(masked, callStart + m[3].length - 1);
+            if (callClose < 0) continue;
+            const tail = /^\)?;/.exec(masked.slice(callClose, callClose + 2));
+            if (tail === null) continue; // the call is not the whole initializer
+            const stmtEnd = callClose + tail[0].length;
+            const initText = content.slice(callStart, callClose);
+            // The reader's default must be the empty slice or a list literal:
+            // any other default (a dict, a scalar) would be lost by the
+            // `Vec` conversion, and `safe_list*` returns it verbatim when the
+            // stored value is not an array.
+            if (!/,\s*&\[\s*\]\s*\)$/.test(initText) && !/,\s*&\[\s*Value::List\(/.test(initText)) continue;
+            const body = masked.slice(stmtEnd, braceEnd(masked, stmtEnd));
+
+            let ok = true;
+            // 1. index reads `get_value(&name, &KEY)` — the only rewritable use.
+            const reads: Array<{ start: number, end: number, key: string }> = [];
+            const readRe = new RegExp(`get_value\\(&${name}(?![A-Za-z0-9_])`, 'g');
+            let r: RegExpExecArray | null;
+            while ((r = readRe.exec(body)) !== null) {
+                const gv = r.index;
+                if (body.slice(Math.max(0, gv - 2), gv) === '::') { ok = false; break; } // crate::value::get_value
+                if (/&mut\s*$/.test(body.slice(Math.max(0, gv - 6), gv))) { ok = false; break; } // `&mut get_value(..)`
+                const identEnd = gv + 'get_value(&'.length + name.length;
+                const rest = /^\s*,\s*&/.exec(body.slice(identEnd));
+                if (rest === null) { ok = false; break; }
+                const keyStart = identEnd + rest[0].length;
+                // The key is the call's last argument: walk to the `)` that
+                // closes `get_value(` at depth 0.
+                let depth = 0; let keyEnd = -1;
+                for (let k = keyStart; k < body.length; k++) {
+                    const c = body[k];
+                    if (c === '(' || c === '[' || c === '{') depth++;
+                    else if (c === ')') { if (depth === 0) { keyEnd = k; break; } depth--; }
+                    else if (c === ']' || c === '}') depth--;
+                    else if (depth === 0 && (c === ';' || c === '\n')) break;
+                }
+                if (keyEnd < 0) { ok = false; break; }
+                reads.push({ start: gv, end: keyEnd + 1, key: content.slice(stmtEnd + keyStart, stmtEnd + keyEnd) });
+            }
+            if (!ok) continue;
+
+            // 2. every other use of the name must be a length sink; anything
+            //    else (clone, as_array, &mut, re-binding, assignment) keeps the box.
+            const useRe = new RegExp(`(?<![A-Za-z0-9_.])${name}(?![A-Za-z0-9_])`, 'g');
+            let u: RegExpExecArray | null;
+            while ((u = useRe.exec(body)) !== null) {
+                const s = u.index; const e = s + name.length;
+                if (reads.some(rd => s >= rd.start && e <= rd.end)) continue;
+                if (/^\s*\.\s*(len|is_empty)\s*\(\s*\)/.test(body.slice(e))) continue;
+                ok = false; break;
+            }
+            if (!ok) continue;
+
+            const readText = (rd: { key: string }) =>
+                `match &${rd.key} { Value::Int(__n) => ${name}.get(*__n as usize), `
+                + `Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| ${name}.get(__n)), _ => None }`
+                + `.cloned().unwrap_or(Value::Null)`;
+            jobs.push({
+                declStart,
+                callClose,
+                stmtEnd,
+                indent: m[1],
+                name,
+                reads: reads.map(rd => ({
+                    start: stmtEnd + rd.start,
+                    end: stmtEnd + rd.end,
+                    text: readText(rd),
+                })),
+            });
+        }
+
+        // A read can sit inside another retyped local's initializer
+        // (`self.safe_list_k(get_value(&data, &i), "data", ..)`), so the
+        // declaration text is rebuilt with those reads already spliced in —
+        // otherwise the outer call would keep a `get_value` on a `Vec` local.
+        const rewrites: Array<{ start: number, end: number, text: string }> = [];
+        const allReads = jobs.flatMap(j => j.reads);
+        for (const job of jobs) {
+            let init = content.slice(job.declStart, job.callClose);
+            const inner = allReads
+                .filter(rd => rd.start >= job.declStart && rd.end <= job.callClose)
+                .sort((a, b) => b.start - a.start);
+            for (const rd of inner) {
+                init = init.slice(0, rd.start - job.declStart) + rd.text + init.slice(rd.end - job.declStart);
+            }
+            // `init` still carries the `= ` head; keep everything up to the call.
+            const callIdx = init.indexOf('self.safe_list');
+            rewrites.push({
+                start: job.declStart,
+                end: job.stmtEnd,
+                text: `${job.indent}let mut ${job.name}: Vec<Value> = `
+                    + `${init.slice(callIdx)}.as_array().cloned().unwrap_or_default();`,
+            });
+        }
+        for (const rd of allReads) {
+            // Covered by the retyped declaration that contains it.
+            if (jobs.some(j => rd.start >= j.declStart && rd.end <= j.callClose)) continue;
+            rewrites.push({ start: rd.start, end: rd.end, text: rd.text });
+        }
+        if (rewrites.length === 0) return content;
+        rewrites.sort((a, b) => a.start - b.start);
+        let out = ''; let last = 0;
+        for (const r of rewrites) {
+            if (r.start < last) continue; // overlapping — keep the first
+            out += content.slice(last, r.start) + r.text;
+            last = r.end;
+        }
+        out += content.slice(last);
+        return out;
+    }
+
+    /**
      * Drops `is_true(&X)` where `X` is already a native Rust `bool`:
      * a local narrowed to `let mut X: bool` by `narrowBoolLocals`, a
      * `!` / `&&` / `||` over such expressions, or a call to one of the
@@ -7937,6 +8123,11 @@ impl std::ops::DerefMut for ${coreName} {
                 // Last: payload accessors on a local whose declaration pins its
                 // variant (`Value::Map`/`List`/`Str`/`Bool`, never reassigned).
                 rustContent = this.nativePayloadAccessorDrops(rustContent);
+                // Last: retype `safe_list` locals whose every later use is a
+                // length sink or an index read. Must see the final text (the
+                // write-back pass appends `set_value(&mut X, ..)` lines those
+                // locals must keep the box for).
+                rustContent = this.typeSafeListLocals(rustContent);
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
                 throw new Error(
@@ -8640,6 +8831,7 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = this.dropRedundantIsTrue(finalFile);
         finalFile = this.nativeRequestDictInserts(finalFile);
         finalFile = this.nativePayloadAccessorDrops(finalFile);
+        finalFile = this.typeSafeListLocals(finalFile);
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
         //   `export class BaseExchange { ... }`  (holds the transpile marker)
