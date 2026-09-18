@@ -4245,7 +4245,7 @@ impl AsterCore {
         //         "type": 1
         //     }
         //
-        let mut rawType: Value = self.safe_integer_k(data.clone(), "type", &[]);
+        let mut rawType: Option<i64> = self.safe_integer_k(data.clone(), "type", &[]).as_i64();
         let mut errorCode: Value = self.safe_string_k(data.clone(), "code", &[]);
         let mut marketId: Value = self.safe_string_k(data.clone(), "symbol", &[]);
         let mut timestamp: Value = self.safe_integer_k(data.clone(), "time", &[]);
@@ -4256,7 +4256,7 @@ impl AsterCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), data.clone());
         m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
-        m.insert("type".to_string(), (if is_true(&(Value::Bool(rawType.as_f64() == Some(1.0)))) { Value::Str("add".to_string()) } else { Value::Str("reduce".to_string()) }));
+        m.insert("type".to_string(), (if is_true(&(Value::Bool(rawType == Some(1)))) { Value::Str("add".to_string()) } else { Value::Str("reduce".to_string()) }));
         m.insert("marginMode".to_string(), Value::Str("isolated".to_string()));
         m.insert("amount".to_string(), self.safe_number_k(data.clone(), "amount", &[]));
         m.insert("code".to_string(), self.safe_string_k(data.clone(), "asset", &[]));
@@ -5727,8 +5727,8 @@ impl AsterCore {
                 //
                 // {"code": 200,"msg": "success"}
                 //
-                let mut codeRes: Value = self.safe_integer_k(authResponse.clone(), "code", &[]);
-                if (codeRes.as_f64() != Some(200.0)) {
+                let mut codeRes: Option<i64> = self.safe_integer_k(authResponse.clone(), "code", &[]).as_i64();
+                if (codeRes != Some(200)) {
                     panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str("Builder authorization failed, ".to_string()), self.json(authResponse.clone())))));
                 }
              #[allow(unreachable_code)] { Value::Null }})).await;

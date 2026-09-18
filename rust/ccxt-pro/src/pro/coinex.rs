@@ -644,9 +644,9 @@ impl CoinexCore {
         })]);
         let mut balances: Value = self.safe_list_k(data.clone(), "balance_list", &[Value::List(vec![])]);
         let mut firstEntry: Value = balances.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut updated: Value = self.safe_integer_k(firstEntry.clone(), "updated_at", &[]);
+        let mut updated: Option<i64> = self.safe_integer_k(firstEntry.clone(), "updated_at", &[]).as_i64();
         let mut unrealizedPnl: Value = self.safe_string_k(firstEntry.clone(), "unrealized_pnl", &[]);
-        let mut isSpot: bool = updated != Value::Null;
+        let mut isSpot: bool = updated.is_some();
         let mut isSwap: bool = unrealizedPnl != Value::Null;
         let mut info: Value = Value::Null;
         let mut account: Value = Value::Null;

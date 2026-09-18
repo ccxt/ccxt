@@ -2621,11 +2621,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             add_element_to_object(&mut request, &Value::Str("time_in_force".to_string()), Value::Str("GOOD_TILL_CANCEL".to_string()));
         }
         let mut triggerPrice: Value = self.safe_string_n(params.clone(), Value::List(vec![Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("ref_price".to_string())]), &[]);
-        let mut stopLossPrice: Value = self.safe_number_k(params.clone(), "stopLossPrice", &[]);
-        let mut takeProfitPrice: Value = self.safe_number_k(params.clone(), "takeProfitPrice", &[]);
+        let mut stopLossPrice: Option<f64> = self.safe_number_k(params.clone(), "stopLossPrice", &[]).as_f64();
+        let mut takeProfitPrice: Option<f64> = self.safe_number_k(params.clone(), "takeProfitPrice", &[]).as_f64();
         let mut isTrigger: bool = triggerPrice != Value::Null;
-        let mut isStopLossTrigger: bool = stopLossPrice != Value::Null;
-        let mut isTakeProfitTrigger: bool = takeProfitPrice != Value::Null;
+        let mut isStopLossTrigger: bool = stopLossPrice.is_some();
+        let mut isTakeProfitTrigger: bool = takeProfitPrice.is_some();
         if isTrigger {
             let mut priceString: Value = self.number_to_string(price.clone());
             if is_true(&(Value::Bool(uppercaseType.as_str() == Some("LIMIT")))) || is_true(&(Value::Bool(uppercaseType.as_str() == Some("STOP_LIMIT")))) || is_true(&(Value::Bool(uppercaseType.as_str() == Some("TAKE_PROFIT_LIMIT")))) {
@@ -3701,8 +3701,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //             "order_id" : "6142909896519488207"
         //     }
         //
-        let mut code: Value = self.safe_integer_k(order.clone(), "code", &[]);
-        if is_true(&(Value::Bool(code != Value::Null))) && is_true(&(Value::Bool(code.as_f64() != Some(0.0)))) {
+        let mut code: Option<i64> = self.safe_integer_k(order.clone(), "code", &[]).as_i64();
+        if is_true(&(Value::Bool(code.is_some()))) && is_true(&(Value::Bool(code != Some(0)))) {
             return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(order.clone(), "order_id", &[]));

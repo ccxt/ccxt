@@ -2940,10 +2940,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut id: Value = self.safe_string2(trade.clone(), Value::Str("id".to_string()), Value::Str("tradeID".to_string()), &[]);
         let mut side: Value = self.safe_string2(trade.clone(), Value::Str("type".to_string()), Value::Str("side".to_string()), &[]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut role: Value = self.safe_integer_k(trade.clone(), "role", &[]);
+        let mut role: Option<i64> = self.safe_integer_k(trade.clone(), "role", &[]).as_i64();
         let mut takerOrMaker: Value = Value::Null;
-        if (role != Value::Null) {
-            takerOrMaker = (if is_true(&(Value::Bool(role.as_f64() == Some(1.0)))) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
+        if (role.is_some()) {
+            takerOrMaker = (if is_true(&(Value::Bool(role == Some(1)))) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
         }
         let mut fee: Value = Value::Null;
         let mut feeCost: Value = self.safe_string_k(trade.clone(), "fee", &[]);
@@ -5799,9 +5799,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut message: Value = self.safe_string_k(response.clone(), "message", &[]);
             // For these cases where we have a generic code variable error key
             // {"code":0,"message":"Validation failed","errors":{"amount":["Amount must be greater than 0"]}}
-            let mut codeNew: Value = self.safe_integer_k(response.clone(), "code", &[]);
+            let mut codeNew: Option<i64> = self.safe_integer_k(response.clone(), "code", &[]).as_i64();
             let mut hasErrorStatus: bool = (status != Value::Null) && (status.as_str() != Some("200")) && (errors != Value::Null);
-            if hasErrorStatus || (codeNew != Value::Null) {
+            if hasErrorStatus || (codeNew.is_some()) {
                 let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body));
                 let mut errorInfo: Value = message.clone();
                 if hasErrorStatus {

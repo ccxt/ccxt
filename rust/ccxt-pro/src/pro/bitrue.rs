@@ -463,10 +463,10 @@ impl BitrueCore {
             let mut account: Value = self.account();
             let mut free: Value = self.safe_string_k(balance.clone(), "F", &[]);
             let mut used: Value = self.safe_string_k(balance.clone(), "L", &[]);
-            let mut balanceUpdateTime: Value = self.safe_integer_k(balance.clone(), "T", &[Value::Int(0)]);
-            let mut lockBalanceUpdateTime: Value = self.safe_integer_k(balance.clone(), "t", &[Value::Int(0)]);
-            let mut updateFree: bool = balanceUpdateTime.as_f64() != Some(0.0);
-            let mut updateUsed: bool = lockBalanceUpdateTime.as_f64() != Some(0.0);
+            let mut balanceUpdateTime: Option<i64> = self.safe_integer_k(balance.clone(), "T", &[Value::Int(0)]).as_i64();
+            let mut lockBalanceUpdateTime: Option<i64> = self.safe_integer_k(balance.clone(), "t", &[Value::Int(0)]).as_i64();
+            let mut updateFree: bool = balanceUpdateTime != Some(0);
+            let mut updateUsed: bool = lockBalanceUpdateTime != Some(0);
             if updateFree || updateUsed {
                 if updateFree {
                     add_element_to_object(&mut account, &Value::Str("free".to_string()), free.clone());
@@ -594,10 +594,10 @@ impl BitrueCore {
         let mut timestamp: Value = self.safe_integer_k(order.clone(), "E", &[]);
         let mut marketId: Value = self.safe_string_upper(order.clone(), Value::Str("s".to_string()), &[]);
         let mut typeId: Value = self.safe_string_k(order.clone(), "o", &[]);
-        let mut sideId: Value = self.safe_integer_k(order.clone(), "S", &[]);
+        let mut sideId: Option<i64> = self.safe_integer_k(order.clone(), "S", &[]).as_i64();
         // 1: buy
         // 2: sell
-        let mut side: Value = (if is_true(&(Value::Bool(sideId.as_f64() == Some(1.0)))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
+        let mut side: Value = (if is_true(&(Value::Bool(sideId == Some(1)))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
         let mut statusId: Value = self.safe_string_k(order.clone(), "X", &[]);
         let mut feeCurrencyId: Value = self.safe_string_k(order.clone(), "N", &[]);
         return self.safe_order(Value::Map({

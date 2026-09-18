@@ -763,18 +763,18 @@ impl NdaxCore {
                 nonce = crate::runtime::Math::max(&currentNonceValue, &newNonceValue);
             }
             // 0 new, 1 update, 2 remove
-            let mut type_var: Value = self.safe_integer(bidask.clone(), Value::Int(3), &[]);
+            let mut type_var: Option<i64> = self.safe_integer(bidask.clone(), Value::Int(3), &[]).as_i64();
             let mut price: Value = self.safe_float(bidask.clone(), Value::Int(6), &[]);
             let mut amount: Value = self.safe_float(bidask.clone(), Value::Int(8), &[]);
-            let mut side: Value = self.safe_integer(bidask.clone(), Value::Int(9), &[]);
+            let mut side: Option<i64> = self.safe_integer(bidask.clone(), Value::Int(9), &[]).as_i64();
             // 0 buy, 1 sell, 2 short reserved for future use, 3 unknown
-            let mut orderbookSide: Value = (if is_true(&(Value::Bool(side.as_f64() == Some(0.0)))) { crate::value::get_value_k(&orderbook, "bids") } else { crate::value::get_value_k(&orderbook, "asks") });
+            let mut orderbookSide: Value = (if is_true(&(Value::Bool(side == Some(0)))) { crate::value::get_value_k(&orderbook, "bids") } else { crate::value::get_value_k(&orderbook, "asks") });
             // 0 new, 1 update, 2 remove
-            if (type_var.as_f64() == Some(0.0)) {
+            if (type_var == Some(0)) {
                 orderbookSide.store(price.clone(), amount.clone());
-            }  else if (type_var.as_f64() == Some(1.0)) {
+            }  else if (type_var == Some(1)) {
                 orderbookSide.store(price.clone(), amount.clone());
-            }  else if (type_var.as_f64() == Some(2.0)) {
+            }  else if (type_var == Some(2)) {
                 orderbookSide.store(price.clone(), Value::Int(0));
             }
         }

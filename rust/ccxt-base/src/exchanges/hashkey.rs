@@ -5256,16 +5256,16 @@ impl HashkeyCore {
         }
         let mut errorInArray: bool = false;
         let mut responseCodeString: Value = self.safe_string_k(response.clone(), "code", &[]);
-        let mut responseCodeInteger: Value = self.safe_integer_k(response.clone(), "code", &[]); // some codes in response are returned as '0000' others as 0
-        if (responseCodeInteger.as_f64() == Some(0.0)) {
+        let mut responseCodeInteger: Option<i64> = self.safe_integer_k(response.clone(), "code", &[]).as_i64(); // some codes in response are returned as '0000' others as 0
+        if (responseCodeInteger == Some(0)) {
             let mut result: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]); // for batch methods
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_730: bool = true;
                 while { if !__for_first_730 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_730 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(result.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 let mut entry: Value = self.safe_dict(result.clone(), i.clone(), &[]);
-                let mut entryCodeInteger: Value = self.safe_integer_k(entry.clone(), "code", &[]);
-                if (entryCodeInteger.as_f64() != Some(0.0)) {
+                let mut entryCodeInteger: Option<i64> = self.safe_integer_k(entry.clone(), "code", &[]).as_i64();
+                if (entryCodeInteger != Some(0)) {
                     errorInArray = true;
                     responseCodeString = self.safe_string_k(entry.clone(), "code", &[]);
                 }

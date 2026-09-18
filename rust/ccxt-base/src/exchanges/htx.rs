@@ -3543,8 +3543,8 @@ impl HtxCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut marketStatus: Value = self.safe_integer_k(data.clone(), "marketStatus", &[]);
-            status = (if is_true(&(Value::Bool(marketStatus.as_f64() == Some(1.0)))) { Value::Str("ok".to_string()) } else { Value::Str("maintenance".to_string()) });
+            let mut marketStatus: Option<i64> = self.safe_integer_k(data.clone(), "marketStatus", &[]).as_i64();
+            status = (if is_true(&(Value::Bool(marketStatus == Some(1)))) { Value::Str("ok".to_string()) } else { Value::Str("maintenance".to_string()) });
             eta = self.safe_integer_k(data.clone(), "haltEndTime", &[]);
         }  else {
             let mut subType: Value = Value::Null;
@@ -3579,8 +3579,8 @@ impl HtxCore {
                 heartbeatKey = Value::Str("swap_heartbeat".to_string());
                 etaKey = Value::Str("swap_estimated_recovery_time".to_string());
             }
-            let mut heartbeat: Value = self.safe_integer(data.clone(), heartbeatKey.clone(), &[]);
-            status = (if is_true(&(Value::Bool(heartbeat.as_f64() == Some(1.0)))) { Value::Str("ok".to_string()) } else { Value::Str("maintenance".to_string()) });
+            let mut heartbeat: Option<i64> = self.safe_integer(data.clone(), heartbeatKey.clone(), &[]).as_i64();
+            status = (if is_true(&(Value::Bool(heartbeat == Some(1)))) { Value::Str("ok".to_string()) } else { Value::Str("maintenance".to_string()) });
             eta = self.safe_integer(data.clone(), etaKey.clone(), &[]);
         }
         return Value::Map({
@@ -4107,8 +4107,8 @@ impl HtxCore {
                 amountPrecision = self.parse_number(Value::Str("1".to_string()), &[]); // other markets have step size of 1 contract
                 maker = self.parse_number(Value::Str("0.0002".to_string()), &[]);
                 taker = self.parse_number(Value::Str("0.0005".to_string()), &[]);
-                let mut contractStatus: Value = self.safe_integer_k(market.clone(), "contract_status", &[]);
-                active = (Value::Bool(contractStatus.as_f64() == Some(1.0)));
+                let mut contractStatus: Option<i64> = self.safe_integer_k(market.clone(), "contract_status", &[]).as_i64();
+                active = (Value::Bool(contractStatus == Some(1)));
             }
             let mut leverageRatio: Value = self.safe_string_k(market.clone(), "leverage-ratio", &[Value::Str("1".to_string())]);
             let mut superLeverageRatio: Value = self.safe_string_k(market.clone(), "super-margin-leverage-ratio", &[Value::Str("1".to_string())]);
@@ -7541,9 +7541,9 @@ impl HtxCore {
         if (isLinearOrder.as_bool() == Some(true)) {
             reduceOnly = self.safe_bool_k(order.clone(), "reduce_only", &[]);
         }  else {
-            let mut reduceOnlyInteger: Value = self.safe_integer_k(order.clone(), "reduce_only", &[]);
-            if (reduceOnlyInteger != Value::Null) {
-                reduceOnly = (if is_true(&(Value::Bool(reduceOnlyInteger.as_f64() == Some(0.0)))) { Value::Bool(false) } else { Value::Bool(true) });
+            let mut reduceOnlyInteger: Option<i64> = self.safe_integer_k(order.clone(), "reduce_only", &[]).as_i64();
+            if (reduceOnlyInteger.is_some()) {
+                reduceOnly = (if is_true(&(Value::Bool(reduceOnlyInteger == Some(0)))) { Value::Bool(false) } else { Value::Bool(true) });
             }
         }
         return self.safe_order(Value::Map({
@@ -8045,8 +8045,8 @@ impl HtxCore {
         let mut triggerPrice: Value = self.safe_number_n(params.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("trigger_price".to_string())]), &[]);
         let mut stopLossTriggerPrice: Value = self.safe_number2(params.clone(), Value::Str("stopLossPrice".to_string()), Value::Str("sl_trigger_price".to_string()), &[]);
         let mut takeProfitTriggerPrice: Value = self.safe_number2(params.clone(), Value::Str("takeProfitPrice".to_string()), Value::Str("tp_trigger_price".to_string()), &[]);
-        let mut trailingPercent: Value = self.safe_number_k(params.clone(), "trailingPercent", &[]);
-        let mut isTrailingPercentOrder: bool = trailingPercent != Value::Null;
+        let mut trailingPercent: Option<f64> = self.safe_number_k(params.clone(), "trailingPercent", &[]).as_f64();
+        let mut isTrailingPercentOrder: bool = trailingPercent.is_some();
         let mut isTrigger: bool = triggerPrice != Value::Null;
         let mut isStopLossTriggerOrder: bool = stopLossTriggerPrice != Value::Null;
         let mut isTakeProfitTriggerOrder: bool = takeProfitTriggerPrice != Value::Null;

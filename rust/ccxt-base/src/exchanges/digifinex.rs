@@ -2293,8 +2293,8 @@ impl DigifinexCore {
         //         "code": 0
         //     }
         //
-        let mut code: Value = self.safe_integer_k(response.clone(), "code", &[]);
-        let mut status: Value = (if is_true(&(Value::Bool(code.as_f64() == Some(0.0)))) { Value::Str("ok".to_string()) } else { Value::Str("maintenance".to_string()) });
+        let mut code: Option<i64> = self.safe_integer_k(response.clone(), "code", &[]).as_i64();
+        let mut status: Value = (if is_true(&(Value::Bool(code == Some(0)))) { Value::Str("ok".to_string()) } else { Value::Str("maintenance".to_string()) });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), status.clone());
@@ -4188,11 +4188,11 @@ impl DigifinexCore {
         let mut fromAccount: Value = Value::Null;
         let mut toAccount: Value = Value::Null;
         let mut data: Value = self.safe_dict_k(transfer.clone(), "data", &[transfer.clone()]);
-        let mut type_var: Value = self.safe_integer_k(data.clone(), "type", &[]);
-        if (type_var.as_f64() == Some(1.0)) {
+        let mut type_var: Option<i64> = self.safe_integer_k(data.clone(), "type", &[]).as_i64();
+        if (type_var == Some(1)) {
             fromAccount = Value::Str("spot".to_string());
             toAccount = Value::Str("swap".to_string());
-        }  else if (type_var.as_f64() == Some(2.0)) {
+        }  else if (type_var == Some(2)) {
             fromAccount = Value::Str("swap".to_string());
             toAccount = Value::Str("spot".to_string());
         }
@@ -5751,8 +5751,8 @@ impl DigifinexCore {
         //         }
         //     }
         //
-        let mut code: Value = self.safe_integer_k(response.clone(), "code", &[]);
-        let mut status: Value = (if is_true(&(Value::Bool(code.as_f64() == Some(0.0)))) { Value::Str("ok".to_string()) } else { Value::Str("failed".to_string()) });
+        let mut code: Option<i64> = self.safe_integer_k(response.clone(), "code", &[]).as_i64();
+        let mut status: Value = (if is_true(&(Value::Bool(code == Some(0)))) { Value::Str("ok".to_string()) } else { Value::Str("failed".to_string()) });
         let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -5778,12 +5778,12 @@ impl DigifinexCore {
         //     }
         //
         let mut marketId: Value = self.safe_string_k(data.clone(), "instrument_id", &[]);
-        let mut rawType: Value = self.safe_integer_k(data.clone(), "type", &[]);
+        let mut rawType: Option<i64> = self.safe_integer_k(data.clone(), "type", &[]).as_i64();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), data.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone(), Value::Null, Value::Str("swap".to_string())]));
-        m.insert("type".to_string(), (if is_true(&(Value::Bool(rawType.as_f64() == Some(1.0)))) { Value::Str("add".to_string()) } else { Value::Str("reduce".to_string()) }));
+        m.insert("type".to_string(), (if is_true(&(Value::Bool(rawType == Some(1)))) { Value::Str("add".to_string()) } else { Value::Str("reduce".to_string()) }));
         m.insert("marginMode".to_string(), Value::Str("isolated".to_string()));
         m.insert("amount".to_string(), self.safe_number_k(data.clone(), "amount", &[]));
         m.insert("total".to_string(), Value::Null);

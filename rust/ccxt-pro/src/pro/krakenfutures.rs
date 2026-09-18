@@ -1459,7 +1459,7 @@ impl KrakenfuturesCore {
         }
         let mut marketId: Value = self.safe_string_k(unparsedOrder.clone(), "instrument", &[]);
         let mut timestamp: Value = self.safe_string_k(unparsedOrder.clone(), "time", &[]);
-        let mut direction: Value = self.safe_integer_k(unparsedOrder.clone(), "direction", &[]);
+        let mut direction: Option<i64> = self.safe_integer_k(unparsedOrder.clone(), "direction", &[]).as_i64();
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
@@ -1472,7 +1472,7 @@ impl KrakenfuturesCore {
         m.insert("type".to_string(), self.safe_string_k(unparsedOrder.clone(), "type", &[]));
         m.insert("timeInForce".to_string(), Value::Null);
         m.insert("postOnly".to_string(), Value::Null);
-        m.insert("side".to_string(), (if is_true(&(Value::Bool(direction.as_f64() == Some(0.0)))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) }));
+        m.insert("side".to_string(), (if is_true(&(Value::Bool(direction == Some(0)))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) }));
         m.insert("price".to_string(), self.safe_string_k(unparsedOrder.clone(), "limit_price", &[]));
         m.insert("stopPrice".to_string(), self.safe_string_k(unparsedOrder.clone(), "stop_price", &[]));
         m.insert("triggerPrice".to_string(), self.safe_string_k(unparsedOrder.clone(), "stop_price", &[]));

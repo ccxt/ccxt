@@ -1991,8 +1991,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })]);
         let mut orderHash: Value = self.safe_string2(order.clone(), Value::Str("orderHash".to_string()), Value::Str("hash".to_string()), &[]);
-        let mut sideInt: Value = self.safe_integer_k(inner.clone(), "side", &[]);
-        let mut side: Value = (if is_true(&(Value::Bool(sideInt.as_f64() == Some(1.0)))) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
+        let mut sideInt: Option<i64> = self.safe_integer_k(inner.clone(), "side", &[]).as_i64();
+        let mut side: Value = (if is_true(&(Value::Bool(sideInt == Some(1)))) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
         let mut amountWei: Value = self.safe_string_k(inner.clone(), "amount", &[]);
         let mut priceWei: Value = self.safe_string_k(inner.clone(), "price", &[]);
         let mut filledWei: Value = self.safe_string_k(order.clone(), "filledAmount", &[]);
@@ -3799,10 +3799,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             while { if !__for_first_1324 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1324 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(points.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut point: Value = get_value(&points, &i);
             let mut point: Value = get_value(&points, &i);
-            let mut pointOpen: Value = self.safe_number_k(point.clone(), "open", &[]);
+            let mut pointOpen: Option<f64> = self.safe_number_k(point.clone(), "open", &[]).as_f64();
             let mut pointPrice: Value = self.safe_number_k(point.clone(), "price", &[self.safe_number(point.clone(), Value::Str("value".to_string()), &[])]);
-            let mut pointTs: Value = self.safe_integer_k(point.clone(), "timestamp", &[]);
-            if is_true(&(Value::Bool(is_true(&(Value::Bool(pointOpen != Value::Null))) || is_true(&(Value::Bool(pointPrice != Value::Null)))))) && is_true(&(Value::Bool(pointTs != Value::Null))) {
+            let mut pointTs: Option<i64> = self.safe_integer_k(point.clone(), "timestamp", &[]).as_i64();
+            if is_true(&(Value::Bool(is_true(&(Value::Bool(pointOpen.is_some()))) || is_true(&(Value::Bool(pointPrice != Value::Null)))))) && is_true(&(Value::Bool(pointTs.is_some()))) {
                 append_to_array(&mut usablePoints, point.clone());
             }
         }

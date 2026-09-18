@@ -2438,8 +2438,8 @@ impl BitstampCore {
             let mut id: Value = get_value(&ids, &i);
             let mut id: Value = get_value(&ids, &i);
             if get_index_of(&id, &Value::Str("_".to_string())).as_f64().unwrap_or(f64::NAN) < Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-                let mut value: Value = self.safe_integer(transaction.clone(), id.clone(), &[]);
-                if is_true(&(Value::Bool(value != Value::Null))) && is_true(&(Value::Bool(value.as_f64() != Some(0.0)))) {
+                let mut value: Option<i64> = self.safe_integer(transaction.clone(), id.clone(), &[]).as_i64();
+                if is_true(&(Value::Bool(value.is_some()))) && is_true(&(Value::Bool(value != Some(0)))) {
                     return id;
                 }
             }

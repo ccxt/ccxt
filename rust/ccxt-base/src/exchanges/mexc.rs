@@ -3851,8 +3851,8 @@ impl MexcCore {
             add_element_to_object(&mut request, &Value::Str("price".to_string()), crate::runtime::parse_float(&priceString));
         }
         if (openType.as_f64() == Some(1.0)) {
-            let mut leverage: Value = self.safe_integer_k(params.clone(), "leverage", &[]);
-            if (leverage == Value::Null) {
+            let mut leverage: Option<i64> = self.safe_integer_k(params.clone(), "leverage", &[]).as_i64();
+            if (leverage.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createSwapOrder() requires a leverage parameter for isolated margin orders".to_string())))));
             }
         }
@@ -4853,8 +4853,8 @@ impl MexcCore {
         //         "code": 30002
         //     }
         //
-        let mut code: Value = self.safe_integer_k(order.clone(), "code", &[]);
-        if (code != Value::Null) {
+        let mut code: Option<i64> = self.safe_integer_k(order.clone(), "code", &[]).as_i64();
+        if (code.is_some()) {
             return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
@@ -5386,8 +5386,8 @@ impl MexcCore {
         }  else {
             if (since != Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("start_time".to_string()), since.clone());
-                let mut end: Value = self.safe_integer_k(params.clone(), "end_time", &[]);
-                if (end == Value::Null) {
+                let mut end: Option<i64> = self.safe_integer_k(params.clone(), "end_time", &[]).as_i64();
+                if (end.is_none()) {
                     add_element_to_object(&mut request, &Value::Str("end_time".to_string()), self.sum(&[since.clone(), self.options.as_map().and_then(|__m| __m.get("maxTimeTillEnd")).cloned().unwrap_or(Value::Null)]));
                 }
             }
@@ -7237,11 +7237,11 @@ impl MexcCore {
         //         "data":2
         //     }
         //
-        let mut positionMode: Value = self.safe_integer_k(response.clone(), "data", &[]);
+        let mut positionMode: Option<i64> = self.safe_integer_k(response.clone(), "data", &[]).as_i64();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
-        m.insert("hedged".to_string(), (Value::Bool(positionMode.as_f64() == Some(1.0))));
+        m.insert("hedged".to_string(), (Value::Bool(positionMode == Some(1))));
     m
 });
 
@@ -7515,14 +7515,14 @@ impl MexcCore {
             while { if !__for_first_951 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_951 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(leverage.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut entry: Value = get_value(&leverage, &i);
             let mut entry: Value = get_value(&leverage, &i);
-            let mut openType: Value = self.safe_integer_k(entry.clone(), "openType", &[]);
-            let mut positionType: Value = self.safe_integer_k(entry.clone(), "positionType", &[]);
-            if (positionType.as_f64() == Some(1.0)) {
+            let mut openType: Option<i64> = self.safe_integer_k(entry.clone(), "openType", &[]).as_i64();
+            let mut positionType: Option<i64> = self.safe_integer_k(entry.clone(), "positionType", &[]).as_i64();
+            if (positionType == Some(1)) {
                 longLeverage = self.safe_integer_k(entry.clone(), "leverage", &[]);
-            }  else if (positionType.as_f64() == Some(2.0)) {
+            }  else if (positionType == Some(2)) {
                 shortLeverage = self.safe_integer_k(entry.clone(), "leverage", &[]);
             }
-            marginMode = (if is_true(&(Value::Bool(openType.as_f64() == Some(1.0)))) { Value::Str("isolated".to_string()) } else { Value::Str("cross".to_string()) });
+            marginMode = (if is_true(&(Value::Bool(openType == Some(1)))) { Value::Str("isolated".to_string()) } else { Value::Str("cross".to_string()) });
         }
         }
         return Value::Map({

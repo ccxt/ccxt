@@ -2198,8 +2198,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 m.insert("paginationDirection".to_string(), Value::Str("backward".to_string()));
             m
         })]);
-        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
-        if (until == Value::Null) {
+        let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
+        if (until.is_none()) {
             params = self.extend(params.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("until".to_string(), now.clone());
@@ -3416,8 +3416,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             currency = self.currency(code.clone());
             add_element_to_object(&mut request, &Value::Str("assetSymbol".to_string()), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
-        let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
-        if is_true(&(Value::Bool(since == Value::Null))) && is_true(&(Value::Bool(until == Value::Null))) {
+        let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
+        if is_true(&(Value::Bool(since == Value::Null))) && is_true(&(Value::Bool(until.is_none()))) {
             // since and until are mandatory for this endpoint, set until to now if both are undefined
             let mut now: Value = self.milliseconds();
             params = self.extend(params.clone(), &[Value::Map({

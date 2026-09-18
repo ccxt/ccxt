@@ -1313,9 +1313,9 @@ impl MexcCore {
             { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
         }
         let mut storedOrderBook: Value = get_value(&self.orderbooks, &symbol);
-        let mut nonce: Value = self.safe_integer_k(storedOrderBook.clone(), "nonce", &[]);
+        let mut nonce: Option<i64> = self.safe_integer_k(storedOrderBook.clone(), "nonce", &[]).as_i64();
         let mut shouldReturn: bool = false;
-        if (nonce == Value::Null) {
+        if (nonce.is_none()) {
             let mut cacheLength: Value = Value::Int(get_value(&storedOrderBook, &Value::Str("cache".to_string())).len() as i64);
             let mut snapshotDelay: Value = self.handle_option(Value::Str("watchOrderBook".to_string()), Value::Str("snapshotDelay".to_string()), &[Value::Int(25)]);
             if is_equal(&cacheLength, &snapshotDelay) {
@@ -1678,7 +1678,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut amountString: Value = self.safe_string2(trade.clone(), Value::Str("v".to_string()), Value::Str("quantity".to_string()), &[]);
         let mut rawSide: Value = self.safe_string2(trade.clone(), Value::Str("S".to_string()), Value::Str("tradeType".to_string()), &[]);
         let mut side: Value = (if is_true(&(Value::Bool(rawSide.as_str() == Some("1")))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
-        let mut isMaker: Value = self.safe_integer_k(trade.clone(), "m", &[]);
+        let mut isMaker: Option<i64> = self.safe_integer_k(trade.clone(), "m", &[]).as_i64();
         let mut feeAmount: Value = self.safe_string2(trade.clone(), Value::Str("n".to_string()), Value::Str("feeAmount".to_string()), &[]);
         let mut feeCurrencyId: Value = self.safe_string2(trade.clone(), Value::Str("N".to_string()), Value::Str("feeCurrency".to_string()), &[]);
         return self.safe_trade(Value::Map({
@@ -1691,7 +1691,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("symbol".to_string(), self.safe_symbol(Value::Null, &[market.clone()]));
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side.clone());
-        m.insert("takerOrMaker".to_string(), (if is_true(&(Value::Bool((isMaker != Value::Null) && (isMaker.as_f64() != Some(0.0))))) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) }));
+        m.insert("takerOrMaker".to_string(), (if is_true(&(Value::Bool((isMaker.is_some()) && (isMaker != Some(0))))) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) }));
         m.insert("price".to_string(), priceString.clone());
         m.insert("amount".to_string(), amountString.clone());
         m.insert("cost".to_string(), self.safe_string_k(trade.clone(), "amount", &[]));

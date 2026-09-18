@@ -4006,8 +4006,8 @@ impl ModetradeCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]) });
-        let mut coinNetworkId: Value = self.safe_number_k(coinNetwork.clone(), "id", &[]);
-        if (coinNetworkId == Value::Null) {
+        let mut coinNetworkId: Option<f64> = self.safe_number_k(coinNetwork.clone(), "id", &[]).as_f64();
+        if (coinNetworkId.is_none()) {
             panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() require chainId parameter".to_string())))));
         }
         let mut withdrawNonce: Value = self.get_withdraw_nonce(&[params.clone()]).await;

@@ -6401,13 +6401,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut amountTransfered: Value = self.from_ev(amountEv.clone(), &[]);
         let mut currencyId: Value = self.safe_string_k(transfer.clone(), "currency", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
-        let mut side: Value = self.safe_integer_k(transfer.clone(), "side", &[]);
+        let mut side: Option<i64> = self.safe_integer_k(transfer.clone(), "side", &[]).as_i64();
         let mut fromId: Value = Value::Null;
         let mut toId: Value = Value::Null;
-        if (side.as_f64() == Some(1.0)) {
+        if (side == Some(1)) {
             fromId = Value::Str("swap".to_string());
             toId = Value::Str("spot".to_string());
-        }  else if (side.as_f64() == Some(2.0)) {
+        }  else if (side == Some(2)) {
             fromId = Value::Str("spot".to_string());
             toId = Value::Str("swap".to_string());
         }

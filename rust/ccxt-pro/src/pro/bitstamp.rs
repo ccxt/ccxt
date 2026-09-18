@@ -626,8 +626,8 @@ impl BitstampCore {
             market = self.safe_market(&[Value::Null, market.clone()]);
         }
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut sideRaw: Value = self.safe_integer_k(trade.clone(), "type", &[]);
-        let mut side: Value = (if is_true(&(Value::Bool(sideRaw.as_f64() == Some(0.0)))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
+        let mut sideRaw: Option<i64> = self.safe_integer_k(trade.clone(), "type", &[]).as_i64();
+        let mut side: Value = (if is_true(&(Value::Bool(sideRaw == Some(0)))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());

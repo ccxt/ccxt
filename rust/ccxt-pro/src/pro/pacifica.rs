@@ -451,9 +451,9 @@ impl PacificaCore {
         //   "type": "create_order"
         // }
         //
-        let mut code: Value = self.safe_integer_k(response.clone(), "code", &[]);
+        let mut code: Option<i64> = self.safe_integer_k(response.clone(), "code", &[]).as_i64();
         let mut success: bool = false;
-        if (code.as_f64() == Some(200.0)) {
+        if (code == Some(200)) {
             success = true;
         }
         let mut status: Value = Value::Null;
@@ -530,9 +530,9 @@ impl PacificaCore {
         //   "t": 1749223026150,
         //   "type": "edit_order"
         // }
-        let mut code: Value = self.safe_integer_k(response.clone(), "code", &[]);
+        let mut code: Option<i64> = self.safe_integer_k(response.clone(), "code", &[]).as_i64();
         let mut success: bool = false;
-        if (code.as_f64() == Some(200.0)) {
+        if (code == Some(200)) {
             success = true;
         }
         let mut status: Value = Value::Null;
@@ -708,9 +708,9 @@ impl PacificaCore {
         //   "type": "cancel_order"
         // }
         //
-        let mut code: Value = self.safe_integer_k(response.clone(), "code", &[]);
+        let mut code: Option<i64> = self.safe_integer_k(response.clone(), "code", &[]).as_i64();
         let mut success: bool = false;
-        if (code.as_f64() == Some(200.0)) {
+        if (code == Some(200)) {
             success = true;
         }
         let mut status: Value = Value::Null;

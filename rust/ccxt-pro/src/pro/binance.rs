@@ -1694,9 +1694,9 @@ impl BinanceCore {
                     // spot
                     // 4. Drop any event where u is <= lastUpdateId in the snapshot
                     if u.as_f64().unwrap_or(f64::NAN) > nonce.as_f64().unwrap_or(f64::NAN) {
-                        let mut timestamp: Value = self.safe_integer_k(orderbook.clone(), "timestamp", &[]);
+                        let mut timestamp: Option<i64> = self.safe_integer_k(orderbook.clone(), "timestamp", &[]).as_i64();
                         let mut conditional: Value = Value::Null;
-                        if (timestamp == Value::Null) {
+                        if (timestamp.is_none()) {
                             // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
                             conditional = Value::Bool(is_true(&(((match (&(U), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).as_f64().unwrap_or(f64::NAN) <= nonce.as_f64().unwrap_or(f64::NAN))) && is_true(&(((match (&(u), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).as_f64().unwrap_or(f64::NAN) >= nonce.as_f64().unwrap_or(f64::NAN))));
                         }  else {
@@ -3772,8 +3772,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut subscriptionId: Value = self.safe_integer_k(result.clone(), "subscriptionId", &[]);
-        if (subscriptionId == Value::Null) {
+        let mut subscriptionId: Option<i64> = self.safe_integer_k(result.clone(), "subscriptionId", &[]).as_i64();
+        if (subscriptionId.is_none()) {
             remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &accountType);
             client.reject(&[message.clone(), accountType.clone()]);
             client.reject(&[message.clone(), messageHash.clone()]);
@@ -6619,8 +6619,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         if (limit != Value::Null) {
             add_element_to_object(&mut payload, &Value::Str("limit".to_string()), limit.clone());
         }
-        let mut fromId: Value = self.safe_integer_k(params.clone(), "fromId", &[]);
-        if (fromId != Value::Null) && (since != Value::Null) {
+        let mut fromId: Option<i64> = self.safe_integer_k(params.clone(), "fromId", &[]).as_i64();
+        if (fromId.is_some()) && (since != Value::Null) {
             panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTradesWs does not support fetching by both fromId and since parameters at the same time".to_string())))));
         }
         let mut message: Value = Value::Map({
@@ -6956,8 +6956,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                     add_element_to_object(&mut parsed, &Value::Str("fees".to_string()), fees.clone());
                 }
                 add_element_to_object(&mut parsed, &Value::Str("trades".to_string()), self.safe_value_k(order.clone(), "trades", &[]));
-                let mut timestamp: Value = self.safe_integer_k(parsed.clone(), "timestamp", &[]);
-                if (timestamp == Value::Null) {
+                let mut timestamp: Option<i64> = self.safe_integer_k(parsed.clone(), "timestamp", &[]).as_i64();
+                if (timestamp.is_none()) {
                     add_element_to_object(&mut parsed, &Value::Str("timestamp".to_string()), self.safe_integer_k(order.clone(), "timestamp", &[]));
                     add_element_to_object(&mut parsed, &Value::Str("datetime".to_string()), self.safe_string_k(order.clone(), "datetime", &[]));
                 }

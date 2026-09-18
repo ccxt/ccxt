@@ -5778,9 +5778,9 @@ impl BybitCore {
         let mut timestamp: Value = self.safe_integer_n(trade.clone(), Value::List(vec![Value::Str("time".to_string()), Value::Str("execTime".to_string()), Value::Str("tradeTime".to_string())]), &[]);
         let mut side: Value = self.safe_string_lower(trade.clone(), Value::Str("side".to_string()), &[]);
         if (side == Value::Null) {
-            let mut isBuyer: Value = self.safe_integer_k(trade.clone(), "isBuyer", &[]);
-            if (isBuyer != Value::Null) {
-                side = (if is_true(&(Value::Bool(isBuyer.as_f64() != Some(0.0)))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
+            let mut isBuyer: Option<i64> = self.safe_integer_k(trade.clone(), "isBuyer", &[]).as_i64();
+            if (isBuyer.is_some()) {
+                side = (if is_true(&(Value::Bool(isBuyer != Some(0)))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
             }
         }
         let mut isMaker: Value = self.safe_bool_k(trade.clone(), "isMaker", &[]);
@@ -7077,8 +7077,8 @@ impl BybitCore {
             while { if !__for_first_493 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_493 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(codes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut code: Value = get_value(&codes, &i);
             let mut code: Value = get_value(&codes, &i);
-            let mut retCode: Value = self.safe_integer_k(code.clone(), "code", &[]);
-            if (retCode.as_f64() != Some(0.0)) {
+            let mut retCode: Option<i64> = self.safe_integer_k(code.clone(), "code", &[]).as_i64();
+            if (retCode != Some(0)) {
                 { let __be_tmp = self.extend(get_value(&data, &i), &[code.clone()]); add_element_to_object(&mut data, &i, __be_tmp); };
             }
         }
@@ -7306,8 +7306,8 @@ impl BybitCore {
             while { if !__for_first_495 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_495 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(codes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut code: Value = get_value(&codes, &i);
             let mut code: Value = get_value(&codes, &i);
-            let mut retCode: Value = self.safe_integer_k(code.clone(), "code", &[]);
-            if (retCode.as_f64() != Some(0.0)) {
+            let mut retCode: Option<i64> = self.safe_integer_k(code.clone(), "code", &[]).as_i64();
+            if (retCode != Some(0)) {
                 { let __be_tmp = self.extend(get_value(&data, &i), &[code.clone()]); add_element_to_object(&mut data, &i, __be_tmp); };
             }
         }

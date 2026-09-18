@@ -1693,8 +1693,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }), limit.clone()]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
             }
             let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
-            let mut nonce: Value = self.safe_integer_k(orderbook.clone(), "nonce", &[]);
-            if (nonce == Value::Null) {
+            let mut nonce: Option<i64> = self.safe_integer_k(orderbook.clone(), "nonce", &[]).as_i64();
+            if (nonce.is_none()) {
                 let mut cacheLength: Value = Value::Int(get_value(&orderbook, &Value::Str("cache".to_string())).len() as i64);
                 let mut snapshotDelay: Value = self.handle_option(Value::Str("watchOrderBook".to_string()), Value::Str("snapshotDelay".to_string()), &[Value::Int(25)]);
                 if is_equal(&cacheLength, &snapshotDelay) {

@@ -1494,16 +1494,16 @@ impl BitrueCore {
     pub fn parse_market(&self, mut market: Value) -> Value {
         let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".to_string())]);
         let mut lowercaseId: Value = self.safe_string_lower(market.clone(), Value::Str("symbol".to_string()), &[]);
-        let mut side: Value = self.safe_integer_k(market.clone(), "side", &[]); // 1 linear, 0 inverse, undefined spot
+        let mut side: Option<i64> = self.safe_integer_k(market.clone(), "side", &[]).as_i64(); // 1 linear, 0 inverse, undefined spot
         let mut type_var: Value = Value::Str("spot".to_string());
         let mut isLinear: Value = Value::Null;
         let mut isInverse: Value = Value::Null;
-        if (side == Value::Null) {
+        if (side.is_none()) {
             type_var = Value::Str("spot".to_string());
         }  else {
             type_var = Value::Str("swap".to_string());
-            isLinear = (Value::Bool(side.as_f64() == Some(1.0)));
-            isInverse = (Value::Bool(side.as_f64() == Some(0.0)));
+            isLinear = (Value::Bool(side == Some(1)));
+            isInverse = (Value::Bool(side == Some(0)));
         }
         let mut isContract: Value = (Value::Bool(type_var.as_str() != Some("spot")));
         let mut baseId: Value = self.safe_string_k(market.clone(), "baseAsset", &[]);

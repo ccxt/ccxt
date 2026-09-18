@@ -1349,8 +1349,8 @@ impl NdaxCore {
                 }
             }
             let mut bidask: Value = self.parse_order_book_bid_ask(level.clone(), &[priceKey.clone(), amountKey.clone()]);
-            let mut levelSide: Value = self.safe_integer(level.clone(), Value::Int(9), &[]);
-            let mut side: Value = (if is_true(&(Value::Bool((levelSide != Value::Null) && (levelSide.as_f64() != Some(0.0))))) { asksKey.clone() } else { bidsKey.clone() });
+            let mut levelSide: Option<i64> = self.safe_integer(level.clone(), Value::Int(9), &[]).as_i64();
+            let mut side: Value = (if is_true(&(Value::Bool((levelSide.is_some()) && (levelSide != Some(0))))) { asksKey.clone() } else { bidsKey.clone() });
             crate::runtime::append_to_object_array(&mut result, &side, bidask.clone());
         }
         }
@@ -1764,10 +1764,10 @@ impl NdaxCore {
             timestamp = self.safe_integer(trade.clone(), Value::Int(6), &[]);
             id = self.safe_string(trade.clone(), Value::Int(0), &[]);
             marketId = self.safe_string(trade.clone(), Value::Int(1), &[]);
-            let mut takerSide: Value = self.safe_integer(trade.clone(), Value::Int(8), &[]);
-            if (takerSide.as_f64() == Some(0.0)) {
+            let mut takerSide: Option<i64> = self.safe_integer(trade.clone(), Value::Int(8), &[]).as_i64();
+            if (takerSide == Some(0)) {
                 side = Value::Str("buy".to_string());
-            }  else if (takerSide.as_f64() == Some(1.0)) {
+            }  else if (takerSide == Some(1)) {
                 side = Value::Str("sell".to_string());
             }
             orderId = self.safe_string(trade.clone(), Value::Int(4), &[]);

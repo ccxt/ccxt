@@ -1946,9 +1946,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut openPrice: Value = self.safe_number_k(priceObj.clone(), "open_dollars", &[]);
-            let mut previousPrice: Value = self.safe_number_k(priceObj.clone(), "previous_dollars", &[]);
-            if is_true(&(Value::Bool(openPrice != Value::Null))) || is_true(&(Value::Bool(previousPrice != Value::Null))) {
+            let mut openPrice: Option<f64> = self.safe_number_k(priceObj.clone(), "open_dollars", &[]).as_f64();
+            let mut previousPrice: Option<f64> = self.safe_number_k(priceObj.clone(), "previous_dollars", &[]).as_f64();
+            if is_true(&(Value::Bool(openPrice.is_some()))) || is_true(&(Value::Bool(previousPrice.is_some()))) {
                 append_to_array(&mut usableCandles, candle.clone());
             }
         }

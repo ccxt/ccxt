@@ -2400,10 +2400,10 @@ impl ExtendedCore {
 }
 
     pub fn parse_account(&self, mut account: Value) -> Value {
-        let mut accountIndex: Value = self.safe_integer_k(account.clone(), "accountIndex", &[]);
+        let mut accountIndex: Option<i64> = self.safe_integer_k(account.clone(), "accountIndex", &[]).as_i64();
         let mut type_var: Value = Value::Null;
-        if (accountIndex != Value::Null) {
-            type_var = (if is_true(&(Value::Bool(accountIndex.as_f64() == Some(0.0)))) { Value::Str("main".to_string()) } else { Value::Str("subaccount".to_string()) });
+        if (accountIndex.is_some()) {
+            type_var = (if is_true(&(Value::Bool(accountIndex == Some(0)))) { Value::Str("main".to_string()) } else { Value::Str("subaccount".to_string()) });
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
