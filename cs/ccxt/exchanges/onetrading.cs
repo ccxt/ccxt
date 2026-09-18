@@ -836,7 +836,7 @@ public partial class onetrading : Exchange
     {
         List<object> takerFees = new List<object>() {};
         List<object> makerFees = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(feeTiers)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(feeTiers); postFixIncrement(ref i))
         {
             object tier = getValue(feeTiers, i);
             double? volume = this.safeNumber(tier, "volume");

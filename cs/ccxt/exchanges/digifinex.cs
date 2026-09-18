@@ -1042,7 +1042,7 @@ public partial class digifinex : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
         {
             object balance = getValue(response, i);
             string? currencyId = this.safeString(balance, "currency");
@@ -3881,7 +3881,7 @@ public partial class digifinex : Exchange
         //     },
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(info)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(info); postFixIncrement(ref i))
         {
             object item = getValue(info, i);
             string? currency = this.safeString(item, codeKey);
@@ -4712,7 +4712,7 @@ public partial class digifinex : Exchange
         //
         List<object> tiers = new List<object>() {};
         object brackets = this.safeValue(info, "open_max_limits", new Dictionary<string, object>() {});
-        for (int i = 0; isLessThan(i, getArrayLength(brackets)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(brackets); postFixIncrement(ref i))
         {
             object tier = getValue(brackets, i);
             string? marketId = this.safeString(info, "instrument_id");
@@ -4843,7 +4843,7 @@ public partial class digifinex : Exchange
         //
         Dictionary<string, object> depositWithdrawFees = new Dictionary<string, object>() {};
         codes = this.marketCodes(codes);
-        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
         {
             object entry = getValue(response, i);
             string? currencyId = this.safeString(entry, "currency");

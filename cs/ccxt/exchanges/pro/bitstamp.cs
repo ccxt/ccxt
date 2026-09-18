@@ -216,7 +216,7 @@ public partial class bitstamp : ccxt.bitstamp
 
     public virtual void handleBidAsks(object bookSide, object bidAsks)
     {
-        for (int i = 0; isLessThan(i, getArrayLength(bidAsks)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(bidAsks); postFixIncrement(ref i))
         {
             List<object> bidAsk = this.parseOrderBookBidAsk(getValue(bidAsks, i));
             (bookSide as IOrderBookSide).storeArray(bidAsk);
@@ -237,7 +237,7 @@ public partial class bitstamp : ccxt.bitstamp
         {
             return -1;
         }
-        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(deltas); postFixIncrement(ref i))
         {
             object delta = getValue(deltas, i);
             Int64? deltaNonce = this.safeInteger(delta, "microtimestamp");

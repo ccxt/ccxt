@@ -270,7 +270,7 @@ public partial class hollaex : ccxt.hollaex
         }
         object stored = this.myTrades;
         Dictionary<string, object> marketIds = new Dictionary<string, object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(rawTrades)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(rawTrades); postFixIncrement(ref i))
         {
             object trade = getValue(rawTrades, i);
             Dictionary<string, object> parsed = this.parseTrade(trade);

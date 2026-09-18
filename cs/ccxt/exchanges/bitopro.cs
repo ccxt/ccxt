@@ -1067,7 +1067,7 @@ public partial class bitopro : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
         {
             object balance = getValue(response, i);
             string? currencyId = this.safeString(balance, "currency");
@@ -1350,7 +1350,7 @@ public partial class bitopro : Exchange
         {
             string? marketId = ((string)getValue(dataKeys, i));
             object orderIds = getValue(data, marketId);
-            for (int j = 0; isLessThan(j, getArrayLength(orderIds)); postFixIncrement(ref j))
+            for (int j = 0; j < getArrayLength(orderIds); postFixIncrement(ref j))
             {
                 ((IList<object>)orders).Add(this.safeOrder(new Dictionary<string, object>() {
                     { "info", getValue(orderIds, j) },

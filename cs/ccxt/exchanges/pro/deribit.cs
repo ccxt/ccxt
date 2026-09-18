@@ -767,7 +767,7 @@ public partial class deribit : ccxt.deribit
 
     public override void handleDeltas(object bookside, object deltas)
     {
-        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(deltas); postFixIncrement(ref i))
         {
             this.handleDelta(bookside, getValue(deltas, i));
         }
@@ -1020,7 +1020,7 @@ public partial class deribit : ccxt.deribit
         {
             throw new ArgumentsRequired ((string)(this.id + " watchMultipleWrapper() symbolsArray is required")) ;
         }
-        for (int i = 0; isLessThan(i, getArrayLength(symbolsArray)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbolsArray); postFixIncrement(ref i))
         {
             if (isEqual(symbolsArray, null))
             {

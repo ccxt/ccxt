@@ -1474,7 +1474,7 @@ public partial class phemex : Exchange
             object side = getValue(sides, i);
             List<object> orders = new List<object>() {};
             object bidasks = this.safeValue(orderbook, side);
-            for (int k = 0; isLessThan(k, getArrayLength(bidasks)); postFixIncrement(ref k))
+            for (int k = 0; k < getArrayLength(bidasks); postFixIncrement(ref k))
             {
                 ((IList<object>)orders).Add(this.customParseBidAsk(getValue(bidasks, k), priceKey, amountKey, market));
             }
@@ -5287,7 +5287,7 @@ public partial class phemex : Exchange
         object riskLimits = (getValue(getValue(market, "info"), "riskLimits"));
         List<object> tiers = new List<object>() {};
         object minNotional = 0;
-        for (int i = 0; isLessThan(i, getArrayLength(riskLimits)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(riskLimits); postFixIncrement(ref i))
         {
             object tier = getValue(riskLimits, i);
             Int64? maxNotional = this.safeInteger(tier, "limit");
@@ -5741,7 +5741,7 @@ public partial class phemex : Exchange
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object rates = this.safeValue(data, "rows");
         List<object> result = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(rates)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(rates); postFixIncrement(ref i))
         {
             object item = getValue(rates, i);
             Int64? timestamp = this.safeInteger(item, "fundingTime");

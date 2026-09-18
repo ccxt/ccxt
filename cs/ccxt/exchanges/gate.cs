@@ -2259,7 +2259,7 @@ public partial class gate : Exchange
         {
             swapSettlementCurrencies = new List<object>() {"usdt"}; // gate sandbox only has usdt-margined swaps
         }
-        for (int c = 0; isLessThan(c, getArrayLength(swapSettlementCurrencies)); postFixIncrement(ref c))
+        for (int c = 0; c < getArrayLength(swapSettlementCurrencies); postFixIncrement(ref c))
         {
             object settleId = getValue(swapSettlementCurrencies, c);
             Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -2285,7 +2285,7 @@ public partial class gate : Exchange
         }
         List<object> result = new List<object>() {};
         object futureSettlementCurrencies = this.getSettlementCurrencies("future", "fetchMarkets");
-        for (int c = 0; isLessThan(c, getArrayLength(futureSettlementCurrencies)); postFixIncrement(ref c))
+        for (int c = 0; c < getArrayLength(futureSettlementCurrencies); postFixIncrement(ref c))
         {
             object settleId = getValue(futureSettlementCurrencies, c);
             Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -3173,7 +3173,7 @@ public partial class gate : Exchange
         string? currencyId = this.safeString(response, "currency");
         codeVar = ((string)this.safeCurrencyCode(currencyId));
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(addresses)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(addresses); postFixIncrement(ref i))
         {
             object entry = getValue(addresses, i);
             //
@@ -3640,7 +3640,7 @@ public partial class gate : Exchange
     public virtual object parseFundingHistories(object response, object symbol, object since, object limit)
     {
         List<object> result = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
         {
             object entry = getValue(response, i);
             object funding = this.parseFundingHistory(entry);
@@ -7016,7 +7016,7 @@ public partial class gate : Exchange
         if (openSpotOrders)
         {
             List<object> spotResult = new List<object>() {};
-            for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
             {
                 IDictionary<string, object> responseEntry = this.safeDict(response, i, new Dictionary<string, object>() {});
                 object ordersInner = this.safeValue(responseEntry, "orders");
@@ -8555,7 +8555,7 @@ public partial class gate : Exchange
         object authentication = getValue(api, 0); // public, private
         object type = getValue(api, 1); // spot, margin, future, delivery
         object query = this.omit(parameters, this.extractParams(path));
-        bool containsSettle = isGreaterThan(getIndexOf(path, "settle"), -1);
+        bool containsSettle = getIndexOf(path, "settle") > -1;
         if (containsSettle && ((((string)path).EndsWith(((string)"batch_cancel_orders")) == true)))
         {
             // special case where we need to extract the settle from the path
@@ -9127,7 +9127,7 @@ public partial class gate : Exchange
         //     ]
         //
         List<object> result = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(settlements)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(settlements); postFixIncrement(ref i))
         {
             ((IList<object>)result).Add(this.parseSettlement(getValue(settlements, i), market));
         }

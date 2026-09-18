@@ -1122,7 +1122,7 @@ public partial class kraken : ccxt.kraken
     public virtual void customHandleDeltas(object bookside, object deltas)
     {
         // const sortOrder = (key === 'bids') ? true : false;
-        for (int j = 0; isLessThan(j, getArrayLength(deltas)); postFixIncrement(ref j))
+        for (int j = 0; j < getArrayLength(deltas); postFixIncrement(ref j))
         {
             object delta = getValue(deltas, j);
             double? price = this.safeNumber(delta, "price");

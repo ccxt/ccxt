@@ -4652,12 +4652,12 @@ public partial class htx : Exchange
         {
             if (isolated)
             {
-                for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+                for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
                 {
                     object entry = getValue(data, i);
                     object balances = this.safeValue(entry, "list");
                     Dictionary<string, object> subResult = new Dictionary<string, object>() {};
-                    for (int j = 0; isLessThan(j, getArrayLength(balances)); postFixIncrement(ref j))
+                    for (int j = 0; j < getArrayLength(balances); postFixIncrement(ref j))
                     {
                         object balance = getValue(balances, j);
                         string? currencyId = this.safeString(balance, "currency");
@@ -4692,7 +4692,7 @@ public partial class htx : Exchange
             }
         } else if (inverse)
         {
-            for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
             {
                 object balance = getValue(data, i);
                 string? currencyId = this.safeString(balance, "symbol");
@@ -8601,7 +8601,7 @@ public partial class htx : Exchange
         List<object> rates = new List<object>() {};
         if (isEqual(getValue(market, "linear"), true))
         {
-            for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
             {
                 object entry = getValue(data, i);
                 string? marketId = this.safeString(entry, "contract_code");
@@ -9704,7 +9704,7 @@ public partial class htx : Exchange
         object position = null;
         if ((isEqual(getValue(market, "future"), true)) && (isEqual(getValue(market, "inverse"), true)))
         {
-            for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(positions); postFixIncrement(ref i))
             {
                 object entry = getValue(positions, i);
                 if (isEqual(getValue(entry, "contract_code"), getValue(market, "id")))
@@ -10842,7 +10842,7 @@ public partial class htx : Exchange
         //     ]
         //
         List<object> result = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(settlements)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(settlements); postFixIncrement(ref i))
         {
             object settlement = getValue(settlements, i);
             object list = this.safeValue(settlement, "list");
@@ -10857,7 +10857,7 @@ public partial class htx : Exchange
                     { "timestamp", timestamp },
                     { "datetime", this.iso8601(timestamp) },
                 };
-                for (int j = 0; isLessThan(j, getArrayLength(list)); postFixIncrement(ref j))
+                for (int j = 0; j < getArrayLength(list); postFixIncrement(ref j))
                 {
                     object item = getValue(list, j);
                     Dictionary<string, object> parsedSettlement = this.parseSettlement(item, market);

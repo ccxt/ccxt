@@ -624,9 +624,9 @@ public partial class hyperliquid : Exchange
             // range(), so `<=` silently emits range(1, maxLimit) and loads one dex
             // too few (build/transpile.ts treats <, <=, > and >= identically)
             Int64 maxIteration = ((Int64)this.sum(maxLimit, 1));
-            for (int i = 1; isLessThan(i, maxIteration); postFixIncrement(ref i))
+            for (int i = 1; i < maxIteration; postFixIncrement(ref i))
             {
-                if (isGreaterThanOrEqual(i, fetchDexesLength))
+                if (i >= fetchDexesLength)
                 {
                     break;
                 }
@@ -2561,7 +2561,7 @@ public partial class hyperliquid : Exchange
         string? defaultSlippage = this.safeString(this.options, "defaultSlippage");
         defaultSlippage = this.safeString(parameters, "slippage", defaultSlippage);
         bool hasClientOrderId = false;
-        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(orders); postFixIncrement(ref i))
         {
             object rawOrder = getValue(orders, i);
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
@@ -2573,7 +2573,7 @@ public partial class hyperliquid : Exchange
         }
         if (hasClientOrderId)
         {
-            for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(orders); postFixIncrement(ref i))
             {
                 object rawOrder = getValue(orders, i);
                 IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
@@ -2588,7 +2588,7 @@ public partial class hyperliquid : Exchange
         Int64 nonce = this.milliseconds();
         List<object> orderReq = new List<object>() {};
         string? grouping = "na";
-        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(orders); postFixIncrement(ref i))
         {
             object rawOrder = getValue(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
@@ -2885,7 +2885,7 @@ public partial class hyperliquid : Exchange
                 clientOrderId = new List<object>() {clientOrderId};
             }
             ((IDictionary<string,object>)cancelAction)["type"] = "cancelByCloid";
-            for (int i = 0; isLessThan(i, getArrayLength(clientOrderId)); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(clientOrderId); postFixIncrement(ref i))
             {
                 ((IList<object>)cancelReq).Add(new Dictionary<string, object>() {
                     { "asset", baseId },
@@ -3066,7 +3066,7 @@ public partial class hyperliquid : Exchange
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         bool hasClientOrderId = false;
-        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(orders); postFixIncrement(ref i))
         {
             object rawOrder = getValue(orders, i);
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
@@ -3078,7 +3078,7 @@ public partial class hyperliquid : Exchange
         }
         if (hasClientOrderId)
         {
-            for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(orders); postFixIncrement(ref i))
             {
                 object rawOrder = getValue(orders, i);
                 IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
@@ -3091,7 +3091,7 @@ public partial class hyperliquid : Exchange
         }
         parameters = this.omit(parameters, new List<object>() {"slippage", "clientOrderId", "client_id", "slippage", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "timeInForce"});
         List<object> modifies = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(orders); postFixIncrement(ref i))
         {
             object rawOrder = getValue(orders, i);
             string? id = this.safeString(rawOrder, "id");

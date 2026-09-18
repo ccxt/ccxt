@@ -1567,7 +1567,7 @@ public partial class okx : ccxt.okx
 
     public override void handleDeltas(object bookside, object deltas)
     {
-        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(deltas); postFixIncrement(ref i))
         {
             this.handleDelta(bookside, getValue(deltas, i));
         }

@@ -2991,7 +2991,7 @@ public partial class derive : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
         {
             object subaccount = getValue(response, i);
             List<object> collaterals = this.safeList(subaccount, "collaterals", new List<object>() {});

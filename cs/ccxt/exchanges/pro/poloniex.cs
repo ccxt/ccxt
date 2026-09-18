@@ -981,7 +981,7 @@ public partial class poloniex : ccxt.poloniex
                     string? totalCost = "0";
                     string? totalAmount = "0";
                     object previousOrderTrades = getValue(previousOrder, "trades");
-                    for (int j = 0; isLessThan(j, getArrayLength(previousOrderTrades)); postFixIncrement(ref j))
+                    for (int j = 0; j < getArrayLength(previousOrderTrades); postFixIncrement(ref j))
                     {
                         object previousOrderTrade = getValue(previousOrderTrades, j);
                         string? cost = this.numberToString(getValue(previousOrderTrade, "cost"));
@@ -1250,7 +1250,7 @@ public partial class poloniex : ccxt.poloniex
                 ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
                 if ((bids != null))
                 {
-                    for (int j = 0; isLessThan(j, getArrayLength(bids)); postFixIncrement(ref j))
+                    for (int j = 0; j < getArrayLength(bids); postFixIncrement(ref j))
                     {
                         object bid = this.safeValue(bids, j);
                         double? price = this.safeNumber(bid, 0);
@@ -1261,7 +1261,7 @@ public partial class poloniex : ccxt.poloniex
                 }
                 if ((asks != null))
                 {
-                    for (int j = 0; isLessThan(j, getArrayLength(asks)); postFixIncrement(ref j))
+                    for (int j = 0; j < getArrayLength(asks); postFixIncrement(ref j))
                     {
                         object ask = this.safeValue(asks, j);
                         double? price = this.safeNumber(ask, 0);
@@ -1330,7 +1330,7 @@ public partial class poloniex : ccxt.poloniex
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
         };
-        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
         {
             object balance = this.safeValue(response, i);
             string? currencyId = this.safeString(balance, "currency");

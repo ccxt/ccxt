@@ -783,7 +783,7 @@ public partial class cryptomus : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", balance },
         };
-        for (int i = 0; isLessThan(i, getArrayLength(balance)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(balance); postFixIncrement(ref i))
         {
             object balanceEntry = getValue(balance, i);
             string? currencyId = this.safeString(balanceEntry, "ticker");
@@ -1279,7 +1279,7 @@ public partial class cryptomus : Exchange
     {
         List<object> takerFees = new List<object>() {};
         List<object> makerFees = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(feeTiers)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(feeTiers); postFixIncrement(ref i))
         {
             object tier = getValue(feeTiers, i);
             double? turnover = this.safeNumber(tier, "from_turnover");

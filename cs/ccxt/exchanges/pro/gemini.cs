@@ -246,7 +246,7 @@ public partial class gemini : ccxt.gemini
                 stored = new ArrayCache(tradesLimit);
                 ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
             }
-            for (int i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(trades); postFixIncrement(ref i))
             {
                 Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsTrade(getValue(trades, i), market));
                 callDynamically(stored, "append", new object[] {trade});
@@ -262,7 +262,7 @@ public partial class gemini : ccxt.gemini
         {
             Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
             Dictionary<string, object> storesForSymbols = new Dictionary<string, object>() {};
-            for (int i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(trades); postFixIncrement(ref i))
             {
                 object marketId = getValue(getValue(trades, i), "symbol");
                 Dictionary<string, object> market = this.safeMarket(((string)marketId).ToLower());
@@ -541,7 +541,7 @@ public partial class gemini : ccxt.gemini
         object currentBidAsk = getValue(this.bidsasks, symbol);
         string messageHash = ("bidsasks:" + symbol);
         // last update always overwrites the previous state and is the latest state
-        for (int i = 0; isLessThan(i, getArrayLength(rawBidAskChanges)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(rawBidAskChanges); postFixIncrement(ref i))
         {
             object entry = getValue(rawBidAskChanges, i);
             string? rawSide = this.safeString(entry, "side");
@@ -642,7 +642,7 @@ public partial class gemini : ccxt.gemini
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         object bids = getValue(orderbook, "bids");
         object asks = getValue(orderbook, "asks");
-        for (int i = 0; isLessThan(i, getArrayLength(rawOrderBookChanges)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(rawOrderBookChanges); postFixIncrement(ref i))
         {
             object entry = getValue(rawOrderBookChanges, i);
             double? price = this.safeNumber(entry, "price");
@@ -810,7 +810,7 @@ public partial class gemini : ccxt.gemini
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         object orders = this.orders;
-        for (int i = 0; isLessThan(i, getArrayLength(message)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(message); postFixIncrement(ref i))
         {
             Dictionary<string, object> order = ((Dictionary<string, object>)this.parseWsOrder(getValue(message, i)));
             callDynamically(orders, "append", new object[] {order});

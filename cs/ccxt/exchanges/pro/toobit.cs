@@ -148,7 +148,7 @@ public partial class toobit : ccxt.toobit
         } else
         {
             // check private streams
-            for (int i = 0; isLessThan(i, getArrayLength(message)); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(message); postFixIncrement(ref i))
             {
                 object item = getValue(message, i);
                 string? eventVar = this.safeString(item, "e");
@@ -1258,7 +1258,7 @@ public partial class toobit : ccxt.toobit
             rawPositions = new List<object>() {message};
         }
         List<object> newPositions = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(rawPositions)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(rawPositions); postFixIncrement(ref i))
         {
             object rawPosition = getValue(rawPositions, i);
             Dictionary<string, object> position = ((Dictionary<string, object>)this.parseWsPosition(rawPosition));

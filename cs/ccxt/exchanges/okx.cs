@@ -5055,7 +5055,7 @@ public partial class okx : Exchange
             ids = this.parseIds(ids);
             if ((algoIds != null))
             {
-                for (int i = 0; isLessThan(i, getArrayLength(algoIds)); postFixIncrement(ref i))
+                for (int i = 0; i < getArrayLength(algoIds); postFixIncrement(ref i))
                 {
                     ((IList<object>)request).Add(new Dictionary<string, object>() {
                         { "algoId", getValue(algoIds, i) },
@@ -5081,7 +5081,7 @@ public partial class okx : Exchange
             }
         } else
         {
-            for (int i = 0; isLessThan(i, getArrayLength(clientOrderIds)); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(clientOrderIds); postFixIncrement(ref i))
             {
                 if (((trailing == true)) || ((trigger != null)))
                 {
@@ -8803,7 +8803,7 @@ public partial class okx : Exchange
         //    ]
         //
         Dictionary<string, object> borrowRateHistories = new Dictionary<string, object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
         {
             object item = getValue(response, i);
             string? code = this.safeCurrencyCode(this.safeString(item, "ccy"));
@@ -9171,7 +9171,7 @@ public partial class okx : Exchange
         //    ]
         //
         List<object> tiers = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(info)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(info); postFixIncrement(ref i))
         {
             object tier = getValue(info, i);
             string? marketId = this.safeString(tier, "instId");
@@ -9783,7 +9783,7 @@ public partial class okx : Exchange
         //
         Dictionary<string, object> depositWithdrawFees = new Dictionary<string, object>() {};
         codes = this.marketCodes(codes);
-        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
         {
             object feeInfo = getValue(response, i);
             string? currencyId = this.safeString(feeInfo, "ccy");
@@ -9937,7 +9937,7 @@ public partial class okx : Exchange
         //     }
         //
         List<object> result = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(settlements)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(settlements); postFixIncrement(ref i))
         {
             object entry = getValue(settlements, i);
             Int64? timestamp = this.safeInteger(entry, "ts");

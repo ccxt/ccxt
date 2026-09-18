@@ -894,7 +894,7 @@ public partial class polymarket : PredictionExchange
             {
                 object page = ((bool) (!isEqual(getValue(restPages, ri), null))) ? getValue(restPages, ri) : new List<object>() {};
                 int pageLength = getArrayLength(page);
-                for (int pi = 0; isLessThan(pi, pageLength); postFixIncrement(ref pi))
+                for (int pi = 0; pi < pageLength; postFixIncrement(ref pi))
                 {
                     ((IList<object>)allRawEvents).Add(getValue(page, pi));
                 }
@@ -2566,7 +2566,7 @@ public partial class polymarket : PredictionExchange
         if ((builderRaw != null))
         {
             object builderHex = this.remove0xPrefix(builderRaw);
-            if (isLessThanOrEqual(getArrayLength(builderHex), 40))
+            if (getArrayLength(builderHex) <= 40)
             {
                 bool? builderFeeEnabled = this.safeBool(this.options, "builderFee", true);
                 object feeRate = 0;

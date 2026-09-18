@@ -786,24 +786,24 @@ public partial class gemini : Exchange
         string error = (this.id + " fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets.");
         List<object> tables = ((string)data).Split(new [] {((string)"tbody>")}, StringSplitOptions.None).ToList<object>();
         int numTables = getArrayLength(tables);
-        if (isLessThan(numTables, 2))
+        if (numTables < 2)
         {
             throw new NotSupported ((string)error) ;
         }
         List<object> rows = ((string)getValue(tables, 1)).Split(new [] {((string)"\n<tr>\n")}, StringSplitOptions.None).ToList<object>(); // eslint-disable-line quotes
         int numRows = getArrayLength(rows);
-        if (isLessThan(numRows, 2))
+        if (numRows < 2)
         {
             throw new NotSupported ((string)error) ;
         }
         List<object> result = new List<object>() {};
         // skip the first element (empty string)
-        for (int i = 1; isLessThan(i, numRows); postFixIncrement(ref i))
+        for (int i = 1; i < numRows; postFixIncrement(ref i))
         {
             string? row = ((string)getValue(rows, i));
             List<object> cells = ((string)row).Split(new [] {((string)"</td>\n")}, StringSplitOptions.None).ToList<object>(); // eslint-disable-line quotes
             int numCells = getArrayLength(cells);
-            if (isLessThan(numCells, 5))
+            if (numCells < 5)
             {
                 throw new NotSupported ((string)error) ;
             }
@@ -1084,7 +1084,7 @@ public partial class gemini : Exchange
             } else
             {
                 object quoteCurrencies = this.handleOption("fetchMarketsFromAPI", "quoteCurrencies", new List<object>() {});
-                for (int i = 0; isLessThan(i, getArrayLength(quoteCurrencies)); postFixIncrement(ref i))
+                for (int i = 0; i < getArrayLength(quoteCurrencies); postFixIncrement(ref i))
                 {
                     object quoteCurrency = getValue(quoteCurrencies, i);
                     if (((string)marketIdWithoutPerp).EndsWith(((string)quoteCurrency)))
@@ -1540,7 +1540,7 @@ public partial class gemini : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
         {
             object balance = getValue(response, i);
             string? currencyId = this.safeString(balance, "currency");

@@ -2059,7 +2059,7 @@ public partial class aster : ccxt.aster
                         if (!isTrue(this.isEmpty(fees)))
                         {
                             bool insertNewFeeCurrency = true;
-                            for (int i = 0; isLessThan(i, getArrayLength(fees)); postFixIncrement(ref i))
+                            for (int i = 0; i < getArrayLength(fees); postFixIncrement(ref i))
                             {
                                 object orderFee = getValue(fees, i);
                                 if (isEqual(getValue(orderFee, "currency"), getValue(tradeFee, "currency")))

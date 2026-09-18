@@ -661,7 +661,7 @@ public partial class upbit : Exchange
             { "timestamp", null },
             { "datetime", null },
         };
-        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
         {
             object balance = getValue(response, i);
             string? currencyId = this.safeString(balance, "currency");
@@ -910,7 +910,7 @@ public partial class upbit : Exchange
             }
             object sortedQuoteIds = this.sort(quoteIds); // market iteration order differs per language
             object quoteCurrencies = "";
-            for (int i = 0; isLessThan(i, getArrayLength(sortedQuoteIds)); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(sortedQuoteIds); postFixIncrement(ref i))
             {
                 if (!isEqual(quoteCurrencies, ""))
                 {

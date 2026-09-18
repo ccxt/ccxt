@@ -396,7 +396,7 @@ public partial class phemex : ccxt.phemex
         //    ]
         //
         ((IDictionary<string,object>)this.balance)["info"] = message;
-        for (int i = 0; isLessThan(i, getArrayLength(message)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(message); postFixIncrement(ref i))
         {
             object balance = getValue(message, i);
             string? currencyId = this.safeString(balance, "currency");
@@ -782,7 +782,7 @@ public partial class phemex : ccxt.phemex
 
     public virtual void customHandleDeltas(object bookside, object deltas, object market = null)
     {
-        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(deltas); postFixIncrement(ref i))
         {
             this.customHandleDelta(bookside, getValue(deltas, i), market);
         }
@@ -1027,7 +1027,7 @@ public partial class phemex : ccxt.phemex
         }
         Dictionary<string, object> marketIds = new Dictionary<string, object>() {};
         object type = null;
-        for (int i = 0; isLessThan(i, getArrayLength(message)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(message); postFixIncrement(ref i))
         {
             object rawTrade = getValue(message, i);
             string? marketId = this.safeString(rawTrade, "symbol");
@@ -1291,7 +1291,7 @@ public partial class phemex : ccxt.phemex
             {
                 return;
             }
-            for (int i = 0; isLessThan(i, getArrayLength(message)); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(message); postFixIncrement(ref i))
             {
                 object update = getValue(message, i);
                 string? action = this.safeString(update, "action");

@@ -5017,7 +5017,7 @@ public partial class weex : Exchange
         parameters ??= new Dictionary<string, object>();
         object endpoint = this.implodeParams(path, parameters);
         object query = this.omit(parameters, this.extractParams(path));
-        bool isBatch = (isGreaterThanOrEqual(getIndexOf(path, "batch"), 0));
+        bool isBatch = (getIndexOf(path, "batch") >= 0);
         if (!isBatch && ((isEqual(method, "GET")) || (isEqual(method, "DELETE"))))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)

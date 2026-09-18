@@ -2470,7 +2470,7 @@ public partial class cryptocom : Exchange
         object address = null;
         object tag = null;
         object rawTag = null;
-        if (isGreaterThan(getIndexOf(addressString, "?"), 0))
+        if (getIndexOf(addressString, "?") > 0)
         {
             var addressrawTagVariable = ((string)addressString).Split(new [] {((string)"?")}, StringSplitOptions.None).ToList<object>();
             address = ((IList<object>)addressrawTagVariable)[0];
@@ -3011,7 +3011,7 @@ public partial class cryptocom : Exchange
         if ((execInst != null))
         {
             postOnly = false;
-            for (int i = 0; isLessThan(i, getArrayLength(execInst)); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(execInst); postFixIncrement(ref i))
             {
                 object inst = getValue(execInst, i);
                 if (isEqual(inst, "POST_ONLY"))
@@ -3633,7 +3633,7 @@ public partial class cryptocom : Exchange
         //     ]
         //
         List<object> result = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(settlements)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(settlements); postFixIncrement(ref i))
         {
             ((IList<object>)result).Add(this.parseSettlement(getValue(settlements, i), market));
         }

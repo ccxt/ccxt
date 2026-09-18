@@ -101,7 +101,7 @@ public partial class bitvavo : ccxt.bitvavo
         symbols = this.marketSymbols(symbols);
         List<object> messageHashes = new List<object>() {methodName};
         List<object> args = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
         {
             Dictionary<string, object> market = this.market(getValue(symbols, i));
             ((IList<object>)args).Add(((string)getValue(market, "id")));
@@ -511,7 +511,7 @@ public partial class bitvavo : ccxt.bitvavo
             stored = new ArrayCacheByTimestamp(limit);
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)((string)timeframe)] = stored;
         }
-        for (int i = 0; isLessThan(i, getArrayLength(candles)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(candles); postFixIncrement(ref i))
         {
             object candle = getValue(candles, i);
             object parsed = this.parseOHLCV(candle, market);
@@ -807,7 +807,7 @@ public partial class bitvavo : ccxt.bitvavo
 
     public override void handleDeltas(object bookside, object deltas)
     {
-        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(deltas); postFixIncrement(ref i))
         {
             this.handleDelta(bookside, getValue(deltas, i));
         }
@@ -952,7 +952,7 @@ public partial class bitvavo : ccxt.bitvavo
         (orderbook as IOrderBook).reset(snapshot);
         // unroll the accumulated deltas
         object messages = (orderbook as ccxt.pro.OrderBook).cache;
-        for (int i = 0; isLessThan(i, getArrayLength(messages)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(messages); postFixIncrement(ref i))
         {
             object messageItem = getValue(messages, i);
             this.handleOrderBookMessage(client as WebSocketClient, messageItem, orderbook);
@@ -983,7 +983,7 @@ public partial class bitvavo : ccxt.bitvavo
     public virtual void handleOrderBookSubscriptions(WebSocketClient client, object message, object marketIds)
     {
         string name = "book";
-        for (int i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(marketIds); postFixIncrement(ref i))
         {
             string? marketId = this.safeString(marketIds, i);
             string? symbol = this.safeSymbol(marketId, null, "-");

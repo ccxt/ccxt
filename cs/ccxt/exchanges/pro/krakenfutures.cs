@@ -882,7 +882,7 @@ public partial class krakenfutures : ccxt.krakenfutures
                 string? totalCost = "0";
                 string? totalAmount = "0";
                 object trades = getValue(previousOrder, "trades");
-                for (int i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
+                for (int i = 0; i < getArrayLength(trades); postFixIncrement(ref i))
                 {
                     object currentTrade = getValue(trades, i);
                     totalCost = Precise.stringAdd(totalCost, this.numberToString(getValue(currentTrade, "cost")));
@@ -1749,7 +1749,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         symbols = this.marketSymbols(symbols, null, false, true, false);
         List<object> messageHashes = new List<object>() {};
         List<object> rawSubs = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
         {
             string? messageHash = ((string)this.getMessageHash(unifiedName, null, this.symbol(getValue(symbols, i))));
             ((IList<object>)messageHashes).Add(messageHash);

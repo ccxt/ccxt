@@ -1140,7 +1140,7 @@ public partial class mercado : Exchange
     public virtual List<object> ordersToTrades(object orders)
     {
         List<object> result = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(orders); postFixIncrement(ref i))
         {
             List<object> trades = this.safeList(getValue(orders, i), "trades", new List<object>() {});
             for (int y = 0; y < trades.Count; postFixIncrement(ref y))

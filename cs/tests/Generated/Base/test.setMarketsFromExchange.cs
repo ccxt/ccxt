@@ -77,7 +77,7 @@ public partial class BaseTest
             Int64 endTime = emptyExchange.milliseconds();
             // Should be very fast since no API call is made
             Int64 timeTaken = (endTime - startTime);
-            Assert(isLessThan(timeTaken, 10), "loadMarkets on shared markets should be fast");
+            Assert(timeTaken < 10, "loadMarkets on shared markets should be fast");
             // @SKIP_END_GO
             emptyExchange.describe(); // avoid unused var
         }

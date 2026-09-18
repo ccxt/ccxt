@@ -41,7 +41,7 @@ public partial class testMainClass : BaseTest
                 testOrderBook(exchange, skippedProperties, method, response, null);
                 testSharedMethods.assertInArray(exchange, skippedProperties, method, response, "symbol", symbols);
                 Int64 elapsed = (currentTime - startTime);
-                if (isGreaterThan(elapsed, maxIdleTime))
+                if (elapsed > maxIdleTime)
                 {
                     idle = true;
                 }

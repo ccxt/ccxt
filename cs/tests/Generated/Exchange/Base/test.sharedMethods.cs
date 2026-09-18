@@ -557,7 +557,7 @@ public partial class testMainClass : BaseTest
                     {
                         object orders = await ((Task<object>)callDynamically(exchange, pluralFetchName, new object[] { symbol, sinceTime }));
                         bool found = false;
-                        for (int j = 0; isLessThan(j, getArrayLength(orders)); postFixIncrement(ref j))
+                        for (int j = 0; j < getArrayLength(orders); postFixIncrement(ref j))
                         {
                             object currentOrder = getValue(orders, j);
                             if (isEqual(getValue(currentOrder, "id"), originalId))
@@ -805,7 +805,7 @@ public partial class testMainClass : BaseTest
                     if (!isEqual(ohlcv, null))
                     {
                         int ohlcvLength = getArrayLength(ohlcv);
-                        if (isLessThanOrEqual(ohlcvLength, 1))
+                        if (ohlcvLength <= 1)
                         {
                             // if only 1 day of listing, then allow it
                             return;

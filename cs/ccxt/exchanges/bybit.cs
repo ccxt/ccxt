@@ -10007,7 +10007,7 @@ public partial class bybit : Exchange
         //     ]
         //
         List<object> result = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(settlements)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(settlements); postFixIncrement(ref i))
         {
             ((IList<object>)result).Add(this.parseSettlement(getValue(settlements, i), market));
         }
@@ -10065,7 +10065,7 @@ public partial class bybit : Exchange
         //     }
         //
         List<object> result = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(volatility)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(volatility); postFixIncrement(ref i))
         {
             object entry = getValue(volatility, i);
             Int64? timestamp = this.safeInteger(entry, "time");
@@ -10535,7 +10535,7 @@ public partial class bybit : Exchange
         {
             string? marketId = ((string)getValue(keys, i));
             object entry = getValue(grouped, marketId);
-            for (int j = 0; isLessThan(j, getArrayLength(entry)); postFixIncrement(ref j))
+            for (int j = 0; j < getArrayLength(entry); postFixIncrement(ref j))
             {
                 Int64? id = this.safeInteger(getValue(entry, j), "id");
                 ((IDictionary<string,object>)getValue(entry, j))["id"] = id;

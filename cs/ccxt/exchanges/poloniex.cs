@@ -2093,7 +2093,7 @@ public partial class poloniex : Exchange
 
     public virtual object parseOpenOrders(object orders, object market, object result)
     {
-        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(orders); postFixIncrement(ref i))
         {
             object order = getValue(orders, i);
             Dictionary<string, object> extended = this.extend(order, new Dictionary<string, object>() {
@@ -2829,7 +2829,7 @@ public partial class poloniex : Exchange
         {
             object account = this.safeValue(response, i, new Dictionary<string, object>() {});
             object balances = this.safeValue(account, "balances");
-            for (int j = 0; isLessThan(j, getArrayLength(balances)); postFixIncrement(ref j))
+            for (int j = 0; j < getArrayLength(balances); postFixIncrement(ref j))
             {
                 object balance = this.safeValue(balances, j);
                 string? currencyId = this.safeString(balance, "currency");
@@ -3028,7 +3028,7 @@ public partial class poloniex : Exchange
         object bids = this.safeValue(response, "bids");
         List<object> asksResult = new List<object>() {};
         List<object> bidsResult = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(asks)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(asks); postFixIncrement(ref i))
         {
             if (isLessThan((mod(i, 2)), 1))
             {
@@ -3037,7 +3037,7 @@ public partial class poloniex : Exchange
                 ((IList<object>)asksResult).Add(new List<object>() {price, amount});
             }
         }
-        for (int i = 0; isLessThan(i, getArrayLength(bids)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(bids); postFixIncrement(ref i))
         {
             if (isLessThan((mod(i, 2)), 1))
             {
@@ -3507,9 +3507,9 @@ public partial class poloniex : Exchange
                 ((IDictionary<string,object>)depositWithdrawFees)[(string)code] = this.parseDepositWithdrawFee(feeInfo, currency);
                 object childChains = this.safeValue(feeInfo, "childChains");
                 int chainsLength = getArrayLength(childChains);
-                if (isGreaterThan(chainsLength, 0))
+                if (chainsLength > 0)
                 {
-                    for (int j = 0; isLessThan(j, getArrayLength(childChains)); postFixIncrement(ref j))
+                    for (int j = 0; j < getArrayLength(childChains); postFixIncrement(ref j))
                     {
                         object networkId = getValue(childChains, j);
                         networkId = ((string)networkId).Replace((string)code, (string)"");

@@ -2106,7 +2106,7 @@ public partial class grvt : Exchange
         onlyMainAccount ??= true;
         List<object> matchedResults = new List<object>() {};
         List<object> nonMatchedResults = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(transfers)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(transfers); postFixIncrement(ref i))
         {
             object transfer = getValue(transfers, i);
             if ((isTrue(onlyMainAccount) && isEqual(getValue(transfer, "fromAccount"), "0") && isEqual(getValue(transfer, "toAccount"), "0")) || (!isTrue(onlyMainAccount) && (!isEqual(getValue(transfer, "fromAccount"), "0") || !isEqual(getValue(transfer, "toAccount"), "0"))))

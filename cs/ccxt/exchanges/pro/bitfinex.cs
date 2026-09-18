@@ -557,7 +557,7 @@ public partial class bitfinex : ccxt.bitfinex
         //    ]
         //
         int numFields = getArrayLength(trade);
-        bool isPublic = isLessThanOrEqual(numFields, 8);
+        bool isPublic = numFields <= 8;
         object marketId = ((bool) (!isPublic)) ? this.safeString(trade, 1) : null;
         market = this.safeMarket(marketId, market);
         int createdKey = ((bool) isPublic) ? 1 : 2;
@@ -780,7 +780,7 @@ public partial class bitfinex : ccxt.bitfinex
             if (isRaw)
             {
                 object deltas = getValue(message, 1);
-                for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+                for (int i = 0; i < getArrayLength(deltas); postFixIncrement(ref i))
                 {
                     object delta = getValue(deltas, i);
                     object delta2 = getValue(delta, 2);
@@ -794,7 +794,7 @@ public partial class bitfinex : ccxt.bitfinex
             } else
             {
                 object deltas = getValue(message, 1);
-                for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+                for (int i = 0; i < getArrayLength(deltas); postFixIncrement(ref i))
                 {
                     object delta = getValue(deltas, i);
                     object amount = this.safeNumber(delta, 2);

@@ -898,7 +898,7 @@ public partial class ndax : Exchange
             { "datetime", null },
             { "nonce", null },
         };
-        for (int i = 0; isLessThan(i, getArrayLength(orderbook)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(orderbook); postFixIncrement(ref i))
         {
             object level = getValue(orderbook, i);
             if (isEqual(timestamp, null))
@@ -1512,7 +1512,7 @@ public partial class ndax : Exchange
             { "timestamp", null },
             { "datetime", null },
         };
-        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
         {
             object balance = getValue(response, i);
             string? currencyId = this.safeString(balance, "ProductId");

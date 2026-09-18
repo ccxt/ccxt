@@ -169,7 +169,7 @@ public partial class bitrue : ccxt.bitrue
         //     }]
         //
         ((IDictionary<string,object>)this.balance)["info"] = balances;
-        for (int i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(balances); postFixIncrement(ref i))
         {
             object balance = getValue(balances, i);
             string? currencyId = this.safeString(balance, "a");
@@ -480,7 +480,7 @@ public partial class bitrue : ccxt.bitrue
     public virtual List<object> parseContractBidsAsks(object bidsAsks, object symbol)
     {
         List<object> result = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(bidsAsks)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(bidsAsks); postFixIncrement(ref i))
         {
             object level = getValue(bidsAsks, i);
             double? price = this.safeNumber(level, 0);

@@ -380,7 +380,7 @@ public partial class bullish : ccxt.bullish
         // 300 = '54885.0000000'
         // 301 = '0.06141566'
         // 302 ='53714.0000000'
-        for (int i = 0; isLessThan(i, getArrayLength(entry)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(entry); postFixIncrement(ref i))
         {
             if (!isEqual(mod(i, 2), 0))
             {

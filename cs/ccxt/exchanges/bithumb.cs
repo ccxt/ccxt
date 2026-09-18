@@ -787,7 +787,7 @@ public partial class bithumb : Exchange
             }
         } else
         {
-            for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
             {
                 object entry = getValue(response, i);
                 Dictionary<string, object> account = this.account();
@@ -3630,7 +3630,7 @@ public partial class bithumb : Exchange
             return null;
         }
         object finalNumberStr = numberStr;
-        while (isGreaterThan(getIndexOf(finalNumberStr, ","), -1))
+        while (getIndexOf(finalNumberStr, ",") > -1)
         {
             finalNumberStr = ((string)finalNumberStr).Replace((string)",", (string)"");
         }

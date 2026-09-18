@@ -583,7 +583,7 @@ public partial class apex : Exchange
         string? name = this.safeString(currency, "displayName");
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         object chains = getValue(this.options, "_temp_currencies_chains");
-        for (int j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
+        for (int j = 0; j < getArrayLength(chains); postFixIncrement(ref j))
         {
             object chain = getValue(chains, j);
             List<object> tokens = this.safeList(chain, "tokens", new List<object>() {});
@@ -1419,7 +1419,7 @@ public partial class apex : Exchange
                 {
                     object markets = getValue(marketsById, newMarketId);
                     int numMarkets = getArrayLength(markets);
-                    if (isGreaterThan(numMarkets, 0))
+                    if (numMarkets > 0)
                     {
                         if (isEqual(getValue(getValue(getValue(marketsById, newMarketId), 0), "id2"), marketId))
                         {

@@ -1252,7 +1252,7 @@ public partial class kalshi : PredictionExchange
                     continue;
                 }
                 object grouped = getValue(outcomesByTicker, marketTicker);
-                for (int j = 0; isLessThan(j, getArrayLength(grouped)); postFixIncrement(ref j))
+                for (int j = 0; j < getArrayLength(grouped); postFixIncrement(ref j))
                 {
                     Dictionary<string, object> ticker = this.parsePredictionTicker(raw, getValue(grouped, j));
                     string? symbolKey = this.safeString(ticker, "outcome");
@@ -2611,7 +2611,7 @@ public partial class kalshi : PredictionExchange
             object parsedMarketsRaw = getValue(parsedEvent, "markets");
             object parsedMarkets = ((bool) ((parsedMarketsRaw != null))) ? parsedMarketsRaw : new List<object>() {};
             int parsedMarketsLength = getArrayLength(parsedMarkets);
-            for (int mi = 0; isLessThan(mi, parsedMarketsLength); postFixIncrement(ref mi))
+            for (int mi = 0; mi < parsedMarketsLength; postFixIncrement(ref mi))
             {
                 object m = getValue(parsedMarkets, mi);
                 ((IDictionary<string,object>)this.markets)[(string)getValue(m, "market")] = m;

@@ -43,7 +43,7 @@ public partial class testMainClass : BaseTest
             {
                 testOrderBook(exchange, skippedProperties, method, response, symbol);
                 Int64 elapsed = (now - startTime);
-                if (isGreaterThan(elapsed, maxIdleTime))
+                if (elapsed > maxIdleTime)
                 {
                     // this market updates slower than the remaining test window, so
                     // awaiting another delta would only end in a harness timeout

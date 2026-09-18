@@ -309,7 +309,7 @@ public partial class kucoin : ccxt.kucoin
         };
         Dictionary<string, object> message = this.extend(request, parameters);
         var client = this.client(url);
-        for (int i = 0; isLessThan(i, getArrayLength(subscriptionHashes)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(subscriptionHashes); postFixIncrement(ref i))
         {
             object subscriptionHash = getValue(subscriptionHashes, i);
             if (!(inOp(((WebSocketClient)client).subscriptions, subscriptionHash)))
@@ -336,7 +336,7 @@ public partial class kucoin : ccxt.kucoin
             ((IDictionary<string,object>)subscription)[(string)requestId] = requestId;
         }
         var client = this.client(url);
-        for (int i = 0; isLessThan(i, getArrayLength(subscriptionHashes)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(subscriptionHashes); postFixIncrement(ref i))
         {
             object subscriptionHash = getValue(subscriptionHashes, i);
             if (!(inOp(((WebSocketClient)client).subscriptions, subscriptionHash)))
@@ -1965,7 +1965,7 @@ public partial class kucoin : ccxt.kucoin
         {
             return -1;
         }
-        for (int i = 0; isLessThan(i, getArrayLength(cache)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(cache); postFixIncrement(ref i))
         {
             object delta = getValue(cache, i);
             Int64? deltaStart = this.safeIntegerN(delta, new List<object>() {"sequenceStart", "sequence", "O"});
@@ -2029,7 +2029,7 @@ public partial class kucoin : ccxt.kucoin
 
     public virtual void handleBidAsks(object bookSide, object bidAsks)
     {
-        for (int i = 0; isLessThan(i, getArrayLength(bidAsks)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(bidAsks); postFixIncrement(ref i))
         {
             List<object> bidAsk = this.parseOrderBookBidAsk(getValue(bidAsks, i));
             (bookSide as IOrderBookSide).storeArray(bidAsk);
@@ -2680,7 +2680,7 @@ public partial class kucoin : ccxt.kucoin
     public virtual string getMyTradesMessageHashSuffix(object topic)
     {
         string suffix = "-spot";
-        if (isGreaterThanOrEqual(getIndexOf(topic, "contractMarket"), 0))
+        if (getIndexOf(topic, "contractMarket") >= 0)
         {
             suffix = "-contract";
         }

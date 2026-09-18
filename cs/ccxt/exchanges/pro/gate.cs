@@ -472,7 +472,7 @@ public partial class gate : ccxt.gate
         symbolVar = getValue(market, "symbol");
         string? marketId = ((string)getValue(market, "id"));
         object url = this.getUrlByMarket(market);
-        bool isEuUrl = isGreaterThanOrEqual(getIndexOf(url, "gateeu"), 0);
+        bool isEuUrl = getIndexOf(url, "gateeu") >= 0;
         bool isNonEuSpot = (isEqual(getValue(market, "spot"), true)) && !isEuUrl;
         string intervalDefault = ((bool) isNonEuSpot) ? "50" : "100ms";
         IList<object> intervalqueryVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBook", "interval", intervalDefault);
@@ -537,7 +537,7 @@ public partial class gate : ccxt.gate
         object url = this.getUrlByMarket(market);
         symbol = getValue(market, "symbol");
         string? marketId = ((string)getValue(market, "id"));
-        bool isEuUrl = isGreaterThanOrEqual(getIndexOf(url, "gateeu"), 0);
+        bool isEuUrl = getIndexOf(url, "gateeu") >= 0;
         bool isNonEuSpot = (isEqual(getValue(market, "spot"), true)) && !isEuUrl;
         string intervalDefault = ((bool) isNonEuSpot) ? "50" : "100ms";
         object interval = intervalDefault;
@@ -772,7 +772,7 @@ public partial class gate : ccxt.gate
         {
             return -1;
         }
-        for (int i = 0; isLessThan(i, getArrayLength(cache)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(cache); postFixIncrement(ref i))
         {
             object delta = getValue(cache, i);
             Int64? deltaStart = this.safeInteger(delta, "U");
@@ -787,7 +787,7 @@ public partial class gate : ccxt.gate
 
     public virtual void handleBidAsks(object bookSide, object bidAsks)
     {
-        for (int i = 0; isLessThan(i, getArrayLength(bidAsks)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(bidAsks); postFixIncrement(ref i))
         {
             object bidAsk = getValue(bidAsks, i);
             if (((bidAsk is IList<object>) || (bidAsk.GetType().IsGenericType && bidAsk.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
@@ -1231,7 +1231,7 @@ public partial class gate : ccxt.gate
             result = new List<object>() {result};
         }
         Dictionary<string, object> marketIds = new Dictionary<string, object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(result); postFixIncrement(ref i))
         {
             object ohlcv = getValue(result, i);
             string? subscription = this.safeString(ohlcv, "n", "");

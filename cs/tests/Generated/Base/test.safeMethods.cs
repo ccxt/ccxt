@@ -436,7 +436,7 @@ public partial class BaseTest
             arrayCacheByTimestamp.append(new List<object>() {1000, 50000, 1, 2, 3});
             object arrayCacheByTimestampData = exchange.safeValue(arrayCacheByTimestamp, "Data");
             object cacheByTimestampData = ((bool) (arrayCacheByTimestampData != null)) ? arrayCacheByTimestampData : arrayCacheByTimestamp;
-            Assert(isGreaterThan(getArrayLength(cacheByTimestampData), 0));
+            Assert(getArrayLength(cacheByTimestampData) > 0);
             // Test cache types - ArrayCacheBySymbolById
             var arrayCacheBySymbolById = new ArrayCacheBySymbolById(100);
             arrayCacheBySymbolById.append(new Dictionary<string, object>() {
@@ -450,7 +450,7 @@ public partial class BaseTest
             Assert(!isEqual(getValue(getValue(arrayCacheBySymbolByIdHashmap, "ETH/USDT"), "order2"), null));
             object arrayCacheBySymbolByIdData = exchange.safeValue(arrayCacheBySymbolById, "Data");
             object cacheBySymbolByIdData = ((bool) (arrayCacheBySymbolByIdData != null)) ? arrayCacheBySymbolByIdData : arrayCacheBySymbolById;
-            Assert(isGreaterThan(getArrayLength(cacheBySymbolByIdData), 0));
+            Assert(getArrayLength(cacheBySymbolByIdData) > 0);
             // Test cache types - ArrayCacheBySymbolBySide
             var arrayCacheBySymbolBySide = new ArrayCacheBySymbolBySide();
             arrayCacheBySymbolBySide.append(new Dictionary<string, object>() {
@@ -463,7 +463,7 @@ public partial class BaseTest
             Assert(!isEqual(getValue(arrayCacheBySymbolBySideHashmap, "BNB/USDT"), null));
             object arrayCacheBySymbolBySideData = exchange.safeValue(arrayCacheBySymbolBySide, "Data");
             object cacheBySymbolBySideData = ((bool) (arrayCacheBySymbolBySideData != null)) ? arrayCacheBySymbolBySideData : arrayCacheBySymbolBySide;
-            Assert(isGreaterThan(getArrayLength(cacheBySymbolBySideData), 0));
+            Assert(getArrayLength(cacheBySymbolBySideData) > 0);
             // Test map[string]map[string]interface{} (ArrayCache.hashmap)
             // Use direct property access for object attributes
             object arrayCacheHashmapDirect = arrayCache.hashmap;

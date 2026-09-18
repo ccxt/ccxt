@@ -4049,7 +4049,7 @@ public partial class pacifica : Exchange
             Dictionary<string, object> result = new Dictionary<string, object>() {};
             List<object> keys = new List<object>(((IDictionary<string,object>)value).Keys);
             object sortedKeys = this.sort(keys);
-            for (int i = 0; isLessThan(i, getArrayLength(sortedKeys)); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(sortedKeys); postFixIncrement(ref i))
             {
                 object key = getValue(sortedKeys, i);
                 ((IDictionary<string,object>)result)[(string)key] = this.sortJsonKeys(getValue(value, key));

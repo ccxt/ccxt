@@ -131,12 +131,12 @@ public partial class testMainClass
         {
             List<object> testFileNames = new List<object>(((IDictionary<string,object>)this.testFiles).Keys);
             List<object> possibleMethodNames = ((string)methodArgv).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>(); // i.e. `test.ts binance fetchBalance,fetchDeposits`
-            if (isGreaterThanOrEqual(getArrayLength(possibleMethodNames), 1))
+            if (getArrayLength(possibleMethodNames) >= 1)
             {
                 for (int i = 0; i < testFileNames.Count; postFixIncrement(ref i))
                 {
                     string? testFileName = ((string)getValue(testFileNames, i));
-                    for (int j = 0; isLessThan(j, getArrayLength(possibleMethodNames)); postFixIncrement(ref j))
+                    for (int j = 0; j < getArrayLength(possibleMethodNames); postFixIncrement(ref j))
                     {
                         string? methodName = ((string)getValue(possibleMethodNames, j));
                         methodName = ((string)methodName).Replace((string)"()", (string)"");
@@ -528,7 +528,7 @@ public partial class testMainClass
     {
         object fetchCache = exchange.getFetchCache();
         object url = "";
-        if (isGreaterThan(getArrayLength(fetchCache), 0))
+        if (getArrayLength(fetchCache) > 0)
         {
             object lastEntry = getValue(fetchCache, (getArrayLength(fetchCache) - 1));
             object lastRequest = getValue(lastEntry, "request");
@@ -655,7 +655,7 @@ public partial class testMainClass
         {
             return preferredSwapSymbol;
         }
-        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
         {
             object s = getValue(symbols, i);
             object market = exchange.safeValue(exchange.markets, s);
@@ -679,7 +679,7 @@ public partial class testMainClass
             codes = new List<object>() {"BTC", "ETH", "XRP", "LTC", "BCH", "EOS", "BNB", "BSV", "USDT"};
         }
         object code = getValue(codes, 0);
-        for (int i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(codes); postFixIncrement(ref i))
         {
             if (inOp(exchange.currencies, getValue(codes, i)))
             {
@@ -741,7 +741,7 @@ public partial class testMainClass
         {
             object activeMarkets = exchange.filterBy(currentTypeMarkets, "active", true);
             List<object> activeSymbols = new List<object>() {};
-            for (int i = 0; isLessThan(i, getArrayLength(activeMarkets)); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(activeMarkets); postFixIncrement(ref i))
             {
                 ((IList<object>)activeSymbols).Add(getValue(getValue(activeMarkets, i), "symbol"));
             }
@@ -869,7 +869,7 @@ public partial class testMainClass
             return defaultSymbols;
         }
         List<object> result = new List<object> {exchange.safeString(getValue(ranked, 0), "symbol")};
-        if (isGreaterThan(rankedLength, 1))
+        if (rankedLength > 1)
         {
             ((IList<object>)result).Add(exchange.safeString(getValue(ranked, 1), "symbol"));
         }
@@ -1005,7 +1005,7 @@ public partial class testMainClass
             {
                 object pinnedMarket = getValue(exchange.markets, getValue(pinnedKeys, i));
                 object pinnedOutcomes = exchange.safeList(pinnedMarket, "outcomes", new List<object>() {});
-                for (int j = 0; isLessThan(j, getArrayLength(pinnedOutcomes)); postFixIncrement(ref j))
+                for (int j = 0; j < getArrayLength(pinnedOutcomes); postFixIncrement(ref j))
                 {
                     if (isEqual(exchange.safeString(getValue(pinnedOutcomes, j), "outcome"), outcomeSymbol))
                     {
@@ -1032,7 +1032,7 @@ public partial class testMainClass
                 object market = getValue(exchange.markets, getValue(marketKeys, i));
                 object outcomesList = exchange.safeList(market, "outcomes", new List<object>() {});
                 int outcomesListLength = getArrayLength(outcomesList);
-                if (isGreaterThan(outcomesListLength, 0))
+                if (outcomesListLength > 0)
                 {
                     outcomeSymbol = exchange.safeString(getValue(outcomesList, 0), "outcome");
                     if ((outcomeSymbol != null))
@@ -1098,7 +1098,7 @@ public partial class testMainClass
                 }, "events", new List<object>() {});
                 this.assertPredictionEvents(exchange, eventsList);
                 int eventsLength = getArrayLength(eventsList);
-                if (isGreaterThan(eventsLength, 0))
+                if (eventsLength > 0)
                 {
                     eventId = exchange.safeString(getValue(eventsList, 0), "id");
                 }
@@ -1126,7 +1126,7 @@ public partial class testMainClass
                 // category) declared in skip-tests.json preferredEventScopes as an array of param dicts
                 object extraScopes = exchange.safeList(this.skippedSettingsForExchange, "preferredEventScopes", new List<object>() {});
                 int extraScopesLength = getArrayLength(extraScopes);
-                for (int si = 0; isLessThan(si, extraScopesLength); postFixIncrement(ref si))
+                for (int si = 0; si < extraScopesLength; postFixIncrement(ref si))
                 {
                     ((IList<object>)scopesToTest).Add(getValue(extraScopes, si));
                 }
@@ -1140,7 +1140,7 @@ public partial class testMainClass
                         { "events", scopedEvents },
                     }, "events", new List<object>() {});
                     int scopedListLength = getArrayLength(scopedList);
-                    assert(isGreaterThan(scopedListLength, 0), add(add(add(exchange.id, " fetchEvents scoped by "), exchange.json(scope)), " returned no events - the parameter path may be broken"));
+                    assert(scopedListLength > 0, add(add(add(exchange.id, " fetchEvents scoped by "), exchange.json(scope)), " returned no events - the parameter path may be broken"));
                     this.assertPredictionEvents(exchange, scopedList);
                 }
                 if ((eventQuery != null))
@@ -1154,7 +1154,7 @@ public partial class testMainClass
                         { "events", limited },
                     }, "events", new List<object>() {});
                     int limitedListLength = getArrayLength(limitedList);
-                    assert(isLessThanOrEqual(limitedListLength, 1), add(exchange.id, " fetchEvents did not honour limit=1"));
+                    assert(limitedListLength <= 1, add(exchange.id, " fetchEvents did not honour limit=1"));
                 }
             } catch(Exception e)
             {
@@ -1227,7 +1227,7 @@ public partial class testMainClass
     {
         assert(((events is IList<object>) || (events.GetType().IsGenericType && events.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(exchange.id, " fetchEvents/fetchEvent should return a list"));
         int eventsLength = getArrayLength(events);
-        for (int i = 0; isLessThan(i, eventsLength); postFixIncrement(ref i))
+        for (int i = 0; i < eventsLength; postFixIncrement(ref i))
         {
             this.assertPredictionEvent(exchange, getValue(events, i));
         }
@@ -1246,7 +1246,7 @@ public partial class testMainClass
         assert((markets != null), add(add(exchange.id, " event missing markets"), logText));
         int marketsLength = getArrayLength(markets);
         assert(isEqual(exchange.safeString(eventVar, "symbol"), null), add(add(exchange.id, " event must not carry the deprecated symbol key"), logText));
-        for (int i = 0; isLessThan(i, marketsLength); postFixIncrement(ref i))
+        for (int i = 0; i < marketsLength; postFixIncrement(ref i))
         {
             object market = getValue(markets, i);
             assert(isEqual(exchange.isDictionary(market), true), add(add(exchange.id, " event market should be a dict"), logText));
@@ -1256,7 +1256,7 @@ public partial class testMainClass
             object outcomes = exchange.safeList(market, "outcomes");
             assert((outcomes != null), add(add(exchange.id, " event market missing outcomes"), logText));
             int outcomesLength = getArrayLength(outcomes);
-            for (int j = 0; isLessThan(j, outcomesLength); postFixIncrement(ref j))
+            for (int j = 0; j < outcomesLength; postFixIncrement(ref j))
             {
                 assert(isEqual(exchange.safeString(getValue(outcomes, j), "symbol"), null), add(add(exchange.id, " event outcome must not carry the deprecated symbol key"), logText));
             }
@@ -1664,7 +1664,7 @@ public partial class testMainClass
             return result;
         }
         object files = ioDirRead(folder);
-        for (int i = 0; isLessThan(i, getArrayLength(files)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(files); postFixIncrement(ref i))
         {
             object file = getValue(files, i);
             // the only non-json entry in the static dirs is the prediction/ subfolder (prediction
@@ -2121,7 +2121,7 @@ public partial class testMainClass
             return null;
         }
         List<object> newInput = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(input)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(input); postFixIncrement(ref i))
         {
             object current = getValue(input, i);
             if (isTrue(isNullValue(current)))
@@ -2242,7 +2242,7 @@ public partial class testMainClass
         // that resolve nothing (e.g. subscribe acks) fall through on the
         // timeout
         sequential ??= false;
-        for (int i = 0; isLessThan(i, getArrayLength(messages)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(messages); postFixIncrement(ref i))
         {
             object waited = 0;
             while (!isTrue(wsClientHasPendingFutures(exchange, url)) && (isLessThan(waited, 5000)))
@@ -2286,7 +2286,7 @@ public partial class testMainClass
     {
         try
         {
-            for (int i = 0; isLessThan(i, getArrayLength(expectedResults)); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(expectedResults); postFixIncrement(ref i))
             {
                 object result = await callExchangeMethodDynamically(exchange, method, input);
                 // ws structures can be live typed objects (e.g. orderbooks) in some
@@ -2323,7 +2323,7 @@ public partial class testMainClass
         int sentLength = getArrayLength(sentMessages);
         int expectedLength = getArrayLength(expectedSent);
         assert((sentLength == expectedLength), add((((("sent ws messages count mismatch: sent " + ((object)sentLength).ToString()) + ", expected ") + ((object)expectedLength).ToString()) + " "), jsonStringify(sentMessages)));
-        for (int i = 0; isLessThan(i, expectedLength); postFixIncrement(ref i))
+        for (int i = 0; i < expectedLength; postFixIncrement(ref i))
         {
             object unifiedSent = jsonParse(jsonStringify(getValue(sentMessages, i)));
             this.assertStaticResponseOutput(exchange, sentSkipKeys, unifiedSent, getValue(expectedSent, i));
@@ -2391,7 +2391,7 @@ public partial class testMainClass
         {
             string? method = ((string)getValue(methodsNames, i));
             object results = getValue(methods, method);
-            for (int j = 0; isLessThan(j, getArrayLength(results)); postFixIncrement(ref j))
+            for (int j = 0; j < getArrayLength(results); postFixIncrement(ref j))
             {
                 object result = getValue(results, j);
                 object description = getValue(result, "description");
@@ -2563,7 +2563,7 @@ public partial class testMainClass
             for (int i = 0; i < getArrayLength(predictionEvents); postFixIncrement(ref i))
             {
                 object evMarkets = exchange.safeList(getValue(predictionEvents, i), "markets", new List<object>() {});
-                for (int j = 0; isLessThan(j, getArrayLength(evMarkets)); postFixIncrement(ref j))
+                for (int j = 0; j < getArrayLength(evMarkets); postFixIncrement(ref j))
                 {
                     object evMarket = getValue(evMarkets, j);
                     // every market row must carry the unified market handle (PredictionMarket
@@ -2627,7 +2627,7 @@ public partial class testMainClass
         {
             string? method = ((string)getValue(methodsNames, i));
             object results = getValue(methods, method);
-            for (int j = 0; isLessThan(j, getArrayLength(results)); postFixIncrement(ref j))
+            for (int j = 0; j < getArrayLength(results); postFixIncrement(ref j))
             {
                 object result = getValue(results, j);
                 object oldExchangeOptions = exchange.options; // snapshot options;
@@ -2720,7 +2720,7 @@ public partial class testMainClass
         {
             string? method = ((string)getValue(methodsNames, i));
             object results = getValue(methods, method);
-            for (int j = 0; isLessThan(j, getArrayLength(results)); postFixIncrement(ref j))
+            for (int j = 0; j < getArrayLength(results); postFixIncrement(ref j))
             {
                 object result = getValue(results, j);
                 object description = exchange.safeValue(result, "description");
@@ -3044,7 +3044,7 @@ public partial class testMainClass
             createOrdersRequest = this.urlencodedToDict(exchange.last_request_body);
         }
         object batchOrders = getValue(createOrdersRequest, "batchOrders");
-        for (int i = 0; isLessThan(i, getArrayLength(batchOrders)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(batchOrders); postFixIncrement(ref i))
         {
             object current = getValue(batchOrders, i);
             object currentClientOrderId = getValue(current, "newClientOrderId");

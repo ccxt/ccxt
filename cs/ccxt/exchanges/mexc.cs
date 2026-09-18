@@ -6416,7 +6416,7 @@ public partial class mexc : Exchange
     public virtual Dictionary<string, object> parseTransactionFees(object response, object codes = null)
     {
         Dictionary<string, object> withdrawFees = new Dictionary<string, object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
         {
             object entry = getValue(response, i);
             string? currencyId = this.safeString(entry, "coin");

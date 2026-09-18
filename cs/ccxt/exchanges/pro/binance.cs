@@ -1074,7 +1074,7 @@ public partial class binance : ccxt.binance
             // unroll the accumulated deltas
             object messages = (orderbook as ccxt.pro.OrderBook).cache;
             (orderbook as ccxt.pro.OrderBook).cache = new List<object>() {};
-            for (int i = 0; isLessThan(i, getArrayLength(messages)); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(messages); postFixIncrement(ref i))
             {
                 object messageItem = getValue(messages, i);
                 Int64? U = this.safeInteger(messageItem, "U");
@@ -1131,7 +1131,7 @@ public partial class binance : ccxt.binance
 
     public override void handleDeltas(object bookside, object deltas)
     {
-        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(deltas); postFixIncrement(ref i))
         {
             this.handleDelta(bookside, getValue(deltas, i));
         }
@@ -1294,7 +1294,7 @@ public partial class binance : ccxt.binance
         object symbols = this.safeValue(subscription, "symbols", new List<object>() {symbolOfSubscription}); // watchOrderBookForSymbols
         Int64? limit = this.safeInteger(subscription, "limit", defaultLimit);
         // handle list of symbols
-        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             if (inOp(this.orderbooks, symbol))
@@ -6221,7 +6221,7 @@ public partial class binance : ccxt.binance
                         if (!isTrue(this.isEmpty(fees)))
                         {
                             bool insertNewFeeCurrency = true;
-                            for (int i = 0; isLessThan(i, getArrayLength(fees)); postFixIncrement(ref i))
+                            for (int i = 0; i < getArrayLength(fees); postFixIncrement(ref i))
                             {
                                 object orderFee = getValue(fees, i);
                                 if (isEqual(getValue(orderFee, "currency"), getValue(tradeFee, "currency")))

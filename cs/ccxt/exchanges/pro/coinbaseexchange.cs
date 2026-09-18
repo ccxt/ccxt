@@ -756,7 +756,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                         string? totalCost = "0";
                         string? totalAmount = "0";
                         object trades = getValue(previousOrder, "trades");
-                        for (int i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
+                        for (int i = 0; i < getArrayLength(trades); postFixIncrement(ref i))
                         {
                             object tradeEntry = getValue(trades, i);
                             totalCost = this.safeString(tradeEntry, "cost", "0");
@@ -977,7 +977,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
 
     public override void handleDeltas(object bookside, object deltas)
     {
-        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(deltas); postFixIncrement(ref i))
         {
             this.handleDelta(bookside, getValue(deltas, i));
         }

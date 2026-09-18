@@ -829,9 +829,9 @@ public partial class blofin : ccxt.blofin
             symbols = new List<object>() {};
         }
         int symbolsLength = getArrayLength(symbols);
-        if (isGreaterThan(symbolsLength, 0))
+        if (symbolsLength > 0)
         {
-            for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
             {
                 object current = getValue(symbols, i);
                 IDictionary<string, object> market = null;

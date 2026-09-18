@@ -1090,7 +1090,7 @@ public partial class bitfinex : Exchange
             { "marginables", this.safeList(response, 10, new List<object>() {}) },
         };
         Dictionary<string, object> indexedNetworks = new Dictionary<string, object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(((IDictionary<string,object>)indexed)["networks"])); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(((IDictionary<string,object>)indexed)["networks"]); postFixIncrement(ref i))
         {
             object networkObj = getValue(((IDictionary<string,object>)indexed)["networks"], i);
             string? networkId = this.safeString(networkObj, 0);
@@ -1108,7 +1108,7 @@ public partial class bitfinex : Exchange
     public virtual Dictionary<string, object> parseCurrenciesCustom(object ids, object indexed, object indexedNetworks)
     {
         List<object> allowedIds = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(ids); postFixIncrement(ref i))
         {
             object id = getValue(ids, i);
             if (((string)id).EndsWith(((string)"F0")))
@@ -2001,7 +2001,7 @@ public partial class bitfinex : Exchange
         bool postOnly = false;
         if ((flags != null))
         {
-            for (int i = 0; isLessThan(i, getArrayLength(flags)); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(flags); postFixIncrement(ref i))
             {
                 if (isEqual(getValue(flags, i), "postOnly"))
                 {

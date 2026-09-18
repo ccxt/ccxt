@@ -318,7 +318,7 @@ public partial class ndax : ccxt.ndax
                 List<object> parsed = new List<object> {this.parseToInt(multiply((divide(timestamp, duration)), duration)), this.safeFloat(ohlcv, 3), this.safeFloat(ohlcv, 1), this.safeFloat(ohlcv, 2), this.safeFloat(ohlcv, 4), this.safeFloat(ohlcv, 5)};
                 object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe, new List<object>() {});
                 int length = getArrayLength(stored);
-                if ((isGreaterThan(length, 0)) && (isEqual(((List<object>)parsed)[0], getValue(getValue(stored, (length - 1)), 0))))
+                if ((length > 0) && (isEqual(((List<object>)parsed)[0], getValue(getValue(stored, (length - 1)), 0))))
                 {
                     object previous = getValue(stored, (length - 1));
                     object high = ((List<object>)parsed)[1];
@@ -344,7 +344,7 @@ public partial class ndax : ccxt.ndax
                     }
                 } else
                 {
-                    if ((isGreaterThan(length, 0)) && (isLessThan(this.parseToInt(((List<object>)parsed)[0]), this.parseToInt(getValue(getValue(stored, (length - 1)), 0)))))
+                    if ((length > 0) && (isLessThan(this.parseToInt(((List<object>)parsed)[0]), this.parseToInt(getValue(getValue(stored, (length - 1)), 0)))))
                     {
                         continue;
                     } else

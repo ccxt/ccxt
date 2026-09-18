@@ -274,7 +274,7 @@ public partial class apex : ccxt.apex
         var client = this.client(url);
         List<object> newTopics = new List<object>() {};
         object newTopicsCount = 0;
-        for (int i = 0; isLessThan(i, getArrayLength(topics)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(topics); postFixIncrement(ref i))
         {
             if (!(inOp(((WebSocketClient)client).subscriptions, getValue(messageHashes, i))))
             {
@@ -395,7 +395,7 @@ public partial class apex : ccxt.apex
 
     public override void handleDeltas(object bookside, object deltas)
     {
-        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(deltas); postFixIncrement(ref i))
         {
             this.handleDelta(bookside, getValue(deltas, i));
         }
@@ -629,7 +629,7 @@ public partial class apex : ccxt.apex
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)((string)timeframe)] = new ArrayCacheByTimestamp(limit);
         }
         object stored = getValue(getValue(this.ohlcvs, symbol), ((string)timeframe));
-        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
         {
             object parsed = this.parseWsOHLCV(getValue(data, i));
             callDynamically(stored, "append", new object[] {parsed});
@@ -803,7 +803,7 @@ public partial class apex : ccxt.apex
         }
         object trades = this.myTrades;
         Dictionary<string, object> symbols = new Dictionary<string, object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(lists)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(lists); postFixIncrement(ref i))
         {
             object rawTrade = getValue(lists, i);
             Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsTrade(rawTrade));
@@ -860,7 +860,7 @@ public partial class apex : ccxt.apex
         }
         object orders = this.orders;
         Dictionary<string, object> symbols = new Dictionary<string, object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(lists)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(lists); postFixIncrement(ref i))
         {
             Dictionary<string, object> parsed = this.parseOrder(getValue(lists, i));
             object symbol = getValue(parsed, "symbol");
@@ -946,7 +946,7 @@ public partial class apex : ccxt.apex
         }
         object cache = this.positions;
         List<object> newPositions = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(lists)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(lists); postFixIncrement(ref i))
         {
             object rawPosition = getValue(lists, i);
             Dictionary<string, object> position = this.parsePosition(rawPosition);

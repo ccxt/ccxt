@@ -1781,7 +1781,7 @@ public partial class kraken : Exchange
         object trades = this.safeValue(result, id);
         // trades is a sorted array: last (most recent trade) goes last
         int length = getArrayLength(trades);
-        if (isLessThanOrEqual(length, 0))
+        if (length <= 0)
         {
             return ccxt.BaseExchange.ToTradeList(new List<object>() {});
         }
@@ -2755,7 +2755,7 @@ public partial class kraken : Exchange
             throw new ArgumentsRequired ((string)(this.id + " fetchOrderTrades() requires a unified order structure in the params argument or a 'trades' param (an array of trade id strings)")) ;
         } else
         {
-            for (int i = 0; isLessThan(i, getArrayLength(orderTrades)); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(orderTrades); postFixIncrement(ref i))
             {
                 object orderTrade = getValue(orderTrades, i);
                 if ((orderTrade is string))
@@ -3425,7 +3425,7 @@ public partial class kraken : Exchange
     public virtual object parseTransactionsByType(object type, object transactions, string code = null, object since = null, object limit = null)
     {
         List<object> result = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(transactions)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(transactions); postFixIncrement(ref i))
         {
             object transaction = this.parseTransaction(this.extend(new Dictionary<string, object>() {
                 { "type", type },
@@ -3622,7 +3622,7 @@ public partial class kraken : Exchange
         string? cursor = this.safeString(result, "next_cursor");
         object data = this.safeValue(result, "withdrawals");
         int dataLength = getArrayLength(data);
-        if ((cursor != null) && isGreaterThan(dataLength, 0))
+        if ((cursor != null) && dataLength > 0)
         {
             object last = getValue(data, (dataLength - 1));
             ((IDictionary<string,object>)last)["next_cursor"] = cursor;
@@ -4157,9 +4157,9 @@ public partial class kraken : Exchange
                 if (inOp(response, "error"))
                 {
                     int numErrors = getArrayLength(getValue(response, "error"));
-                    if (isGreaterThan(numErrors, 0))
+                    if (numErrors > 0)
                     {
-                        for (int i = 0; isLessThan(i, getArrayLength(getValue(response, "error"))); postFixIncrement(ref i))
+                        for (int i = 0; i < getArrayLength(getValue(response, "error")); postFixIncrement(ref i))
                         {
                             object error = getValue(getValue(response, "error"), i);
                             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), error, message);

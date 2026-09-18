@@ -1707,7 +1707,7 @@ public partial class toobit : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         List<object> results = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(tickers); postFixIncrement(ref i))
         {
             Dictionary<string, object> parsedTicker = this.parseBidAskCustom(getValue(tickers, i));
             Dictionary<string, object> ticker = this.extend(parsedTicker, parameters);

@@ -988,7 +988,7 @@ public partial class coinbase : ccxt.coinbase
 
     public virtual void handleOrderBookHelper(object orderbook, object updates)
     {
-        for (int i = 0; isLessThan(i, getArrayLength(updates)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(updates); postFixIncrement(ref i))
         {
             object trade = getValue(updates, i);
             string? sideId = this.safeString(trade, "side");

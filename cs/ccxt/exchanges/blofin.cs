@@ -2749,7 +2749,7 @@ public partial class blofin : Exchange
             ids = this.parseIds(ids);
             if ((tpslIds != null))
             {
-                for (int i = 0; isLessThan(i, getArrayLength(tpslIds)); postFixIncrement(ref i))
+                for (int i = 0; i < getArrayLength(tpslIds); postFixIncrement(ref i))
                 {
                     ((IList<object>)request).Add(new Dictionary<string, object>() {
                         { "tpslId", getValue(tpslIds, i) },
@@ -2775,7 +2775,7 @@ public partial class blofin : Exchange
             }
         } else
         {
-            for (int i = 0; isLessThan(i, getArrayLength(clientOrderIds)); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(clientOrderIds); postFixIncrement(ref i))
             {
                 ((IList<object>)request).Add(new Dictionary<string, object>() {
                     { "instId", getValue(market, "id") },

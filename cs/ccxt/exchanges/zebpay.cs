@@ -2189,7 +2189,7 @@ public partial class zebpay : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         parameters = this.omit(parameters, "defaultType");
-        bool isV1 = isGreaterThan(getIndexOf(path, "v1/"), -1);
+        bool isV1 = getIndexOf(path, "v1/") > -1;
         string marketType = ((bool) isV1) ? "swap" : "spot";
         object url = getValue(getValue(this.urls, "api"), marketType);
         string tail = ("/api/" + this.implodeParams(path, parameters));

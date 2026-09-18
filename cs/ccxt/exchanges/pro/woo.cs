@@ -319,7 +319,7 @@ public partial class woo : ccxt.woo
             ccxt.pro.IOrderBook orderbook = this.safeOrderBook(this.orderbooks, symbol);
             (orderbook as IOrderBook).reset(snapshot);
             object messages = (orderbook as ccxt.pro.OrderBook).cache;
-            for (int i = 0; isLessThan(i, getArrayLength(messages)); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(messages); postFixIncrement(ref i))
             {
                 object messageItem = getValue(messages, i);
                 Int64? ts = this.safeInteger(messageItem, "ts");
@@ -370,7 +370,7 @@ public partial class woo : ccxt.woo
 
     public override void handleDeltas(object bookside, object deltas)
     {
-        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(deltas); postFixIncrement(ref i))
         {
             this.handleDelta(bookside, getValue(deltas, i));
         }
@@ -586,7 +586,7 @@ public partial class woo : ccxt.woo
         object data = this.safeValue(message, "data");
         Int64? timestamp = this.safeInteger(message, "ts");
         List<object> result = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
         {
             string? marketId = this.safeString(getValue(data, i), "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);

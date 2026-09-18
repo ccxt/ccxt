@@ -158,7 +158,7 @@ public partial class xt : ccxt.xt
         {
             return -1;
         }
-        for (int i = 0; isLessThan(i, getArrayLength(cache)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(cache); postFixIncrement(ref i))
         {
             object delta = getValue(cache, i);
             Int64? deltaNonce = this.safeInteger2(delta, "i", "u");

@@ -1107,7 +1107,7 @@ public partial class bitget : ccxt.bitget
 
     public override void handleDeltas(object bookside, object deltas)
     {
-        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(deltas); postFixIncrement(ref i))
         {
             this.handleDelta(bookside, getValue(deltas, i));
         }
@@ -3090,11 +3090,11 @@ public partial class bitget : ccxt.bitget
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, message});
         }
-        if (isGreaterThanOrEqual(getIndexOf(topic, "candle"), 0))
+        if (getIndexOf(topic, "candle") >= 0)
         {
             this.handleOHLCV(client as WebSocketClient, message);
         }
-        if (isGreaterThanOrEqual(getIndexOf(topic, "books"), 0))
+        if (getIndexOf(topic, "books") >= 0)
         {
             this.handleOrderBook(client as WebSocketClient, message);
         }

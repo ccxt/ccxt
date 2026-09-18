@@ -644,7 +644,7 @@ public partial class krakenfutures : Exchange
         }
         object settlementCurrencies = getValue(getValue(this.options, "settlementCurrencies"), "flex");
         List<object> currencies = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(settlementCurrencies)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(settlementCurrencies); postFixIncrement(ref i))
         {
             object code = getValue(settlementCurrencies, i);
             ((IList<object>)currencies).Add(new Dictionary<string, object>() {
@@ -3509,7 +3509,7 @@ public partial class krakenfutures : Exchange
         //
         object rates = this.safeValue(response, "rates");
         List<object> result = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(rates)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(rates); postFixIncrement(ref i))
         {
             object item = getValue(rates, i);
             string? datetime = this.safeString(item, "timestamp");
@@ -3759,7 +3759,7 @@ public partial class krakenfutures : Exchange
         {
             return tiers;
         }
-        for (int i = 0; isLessThan(i, getArrayLength(marginLevels)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(marginLevels); postFixIncrement(ref i))
         {
             object tier = getValue(marginLevels, i);
             string? initialMargin = this.safeString(tier, "initialMargin");

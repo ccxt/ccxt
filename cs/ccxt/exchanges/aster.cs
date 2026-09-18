@@ -2467,7 +2467,7 @@ public partial class aster : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
         {
             object balance = getValue(response, i);
             string? currencyId = this.safeString(balance, "asset");
@@ -4986,7 +4986,7 @@ public partial class aster : Exchange
             }, parameters);
             object paramString = null;
             object paramsToEncode = null;
-            bool isApproveBuilder = (isGreaterThanOrEqual(getIndexOf(path, "/approveBuilder"), 0));
+            bool isApproveBuilder = (getIndexOf(path, "/approveBuilder") >= 0);
             if (isApproveBuilder)
             {
                 // domain['name'] = 'Aster';

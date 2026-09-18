@@ -791,7 +791,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
 
     public override void handleDeltas(object orderbook, object deltas)
     {
-        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(deltas); postFixIncrement(ref i))
         {
             this.handleDelta(orderbook, getValue(deltas, i));
         }

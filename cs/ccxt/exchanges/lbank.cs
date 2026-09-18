@@ -1517,7 +1517,7 @@ public partial class lbank : Exchange
         object balances = this.safeValue(data, "balances");
         if ((balances != null))
         {
-            for (int i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(balances); postFixIncrement(ref i))
             {
                 object item = getValue(balances, i);
                 string? currencyId = this.safeString(item, "asset");
@@ -3266,7 +3266,7 @@ public partial class lbank : Exchange
         //    ]
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
         {
             object fee = getValue(response, i);
             object canWithdraw = this.safeValue(fee, "canWithDraw");

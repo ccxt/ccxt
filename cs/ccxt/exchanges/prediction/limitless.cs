@@ -1384,7 +1384,7 @@ public partial class limitless : PredictionExchange
                 { "book", book },
             };
             object grouped = getValue(outcomesBySlug, slug);
-            for (int j = 0; isLessThan(j, getArrayLength(grouped)); postFixIncrement(ref j))
+            for (int j = 0; j < getArrayLength(grouped); postFixIncrement(ref j))
             {
                 Dictionary<string, object> ticker = this.parsePredictionTicker(tickerInput, getValue(grouped, j));
                 string? symbolKey = this.safeString(ticker, "outcome");
@@ -1835,12 +1835,12 @@ public partial class limitless : PredictionExchange
             await this.loadOutcome(outcome);
         }
         int length = getArrayLength(ids);
-        if (isGreaterThan(length, 50))
+        if (length > 50)
         {
             throw new BadRequest ((string)(this.id + " fetchOrdersByIds can only fetch up to 50 orders at a time")) ;
         }
         List<object> items = new List<object>() {};
-        for (int i = 0; isLessThan(i, length); postFixIncrement(ref i))
+        for (int i = 0; i < length; postFixIncrement(ref i))
         {
             string? id = this.safeString(ids, i);
             Dictionary<string, object> item = new Dictionary<string, object>() {

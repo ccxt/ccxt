@@ -1076,7 +1076,7 @@ public partial class coinbaseinternational : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(networks)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(networks); postFixIncrement(ref i))
         {
             Dictionary<string, object> network = this.extend(this.parseNetwork(getValue(networks, i)), parameters);
             ((IDictionary<string,object>)result)[(string)getValue(network, "network")] = network;
@@ -1975,7 +1975,7 @@ public partial class coinbaseinternational : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
         {
             object rawBalance = getValue(response, i);
             string? currencyId = this.safeString(rawBalance, "asset_name");

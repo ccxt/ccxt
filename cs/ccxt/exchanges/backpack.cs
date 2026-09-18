@@ -2725,7 +2725,7 @@ public partial class backpack : Exchange
     public virtual string generateBatchPayload(object parameters, object ts, object recvWindow, object instruction)
     {
         string payload = "";
-        for (int i = 0; isLessThan(i, getArrayLength(parameters)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(parameters); postFixIncrement(ref i))
         {
             IDictionary<string, object> order = this.safeDict(parameters, i, new Dictionary<string, object>() {});
             Dictionary<string, object> sortedOrder = this.keysort(order);

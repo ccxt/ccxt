@@ -4269,7 +4269,7 @@ public partial class whitebit : Exchange
     public virtual object parseFundingHistories(object contracts, object market = null, object since = null, object limit = null)
     {
         List<object> result = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(contracts)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(contracts); postFixIncrement(ref i))
         {
             object contract = getValue(contracts, i);
             ((IList<object>)result).Add(this.parseFundingHistory(contract, market));

@@ -908,7 +908,7 @@ public partial class bybit : ccxt.bybit
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)timeframe] = new ArrayCacheByTimestamp(limit);
         }
         object stored = getValue(getValue(this.ohlcvs, symbol), timeframe);
-        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
         {
             object parsed = this.parseWsOHLCV(getValue(data, i), market);
             callDynamically(stored, "append", new object[] {parsed});
@@ -1166,7 +1166,7 @@ public partial class bybit : ccxt.bybit
 
     public override void handleDeltas(object bookside, object deltas)
     {
-        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(deltas); postFixIncrement(ref i))
         {
             this.handleDelta(bookside, getValue(deltas, i));
         }
@@ -1323,7 +1323,7 @@ public partial class bybit : ccxt.bybit
             stored = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
-        for (int j = 0; isLessThan(j, getArrayLength(trades)); postFixIncrement(ref j))
+        for (int j = 0; j < getArrayLength(trades); postFixIncrement(ref j))
         {
             Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsTrade(getValue(trades, j), market));
             callDynamically(stored, "append", new object[] {parsed});
@@ -1409,10 +1409,10 @@ public partial class bybit : ccxt.bybit
 
     public virtual string getPrivateType(object url)
     {
-        if (isGreaterThanOrEqual(getIndexOf(url, "spot"), 0))
+        if (getIndexOf(url, "spot") >= 0)
         {
             return "spot";
-        } else if (isGreaterThanOrEqual(getIndexOf(url, "v5/private"), 0))
+        } else if (getIndexOf(url, "v5/private") >= 0)
         {
             return "unified";
         } else
@@ -1640,7 +1640,7 @@ public partial class bybit : ccxt.bybit
         {
             execTypes = execTypeOption;
         }
-        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
         {
             object rawTrade = getValue(data, i);
             object parsed = null;
@@ -2516,7 +2516,7 @@ public partial class bybit : ccxt.bybit
         if (isEqual(topic, "wallet"))
         {
             object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
-            for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
             {
                 object result = this.safeValue(data, 0, new Dictionary<string, object>() {});
                 account = this.safeStringLower(result, "accountType");
@@ -2629,7 +2629,7 @@ public partial class bybit : ccxt.bybit
         int messageHashesLength = getArrayLength(messageHashes);
         if ((topicsLength == messageHashesLength))
         {
-            for (int i = 0; isLessThan(i, topicsLength); postFixIncrement(ref i))
+            for (int i = 0; i < topicsLength; postFixIncrement(ref i))
             {
                 object messageHash = getValue(messageHashes, i);
                 if (!(inOp(((WebSocketClient)client).subscriptions, messageHash)))
@@ -2654,7 +2654,7 @@ public partial class bybit : ccxt.bybit
                     ((IDictionary<string,object>)subscribedTopics)[(string)getValue(recordedTopics, j)] = true;
                 }
             }
-            for (int i = 0; isLessThan(i, topicsLength); postFixIncrement(ref i))
+            for (int i = 0; i < topicsLength; postFixIncrement(ref i))
             {
                 object topic = getValue(topics, i);
                 if (!(inOp(subscribedTopics, topic)))
