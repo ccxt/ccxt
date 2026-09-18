@@ -334,7 +334,7 @@ public partial class myriad : PredictionExchange
                 { "limit", limit },
             }, rest));
             bool responseIsArray = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
-            object foundList = (responseIsArray) ? response : this.safeList(response, "data", new List<object>() {});
+            object foundList = responseIsArray ? response : this.safeList(response, "data", new List<object>() {});
             object found = ((foundList != null)) ? foundList : new List<object>() {};
             for (int j = 0; isLessThan(j, getArrayLength(found)); postFixIncrement(ref j))
             {
@@ -387,7 +387,7 @@ public partial class myriad : PredictionExchange
                 { "trading_model", tradingModel },
             }, rest));
             bool responseIsArray = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
-            object rawMarketsList = (responseIsArray) ? response : this.safeList(response, "data", new List<object>() {});
+            object rawMarketsList = responseIsArray ? response : this.safeList(response, "data", new List<object>() {});
             object rawMarkets = ((rawMarketsList != null)) ? rawMarketsList : new List<object>() {};
             int rawMarketsLength = getArrayLength(rawMarkets);
             if ((rawMarketsLength == 0))
@@ -538,7 +538,7 @@ public partial class myriad : PredictionExchange
                 { "limit", limit },
             }, rest));
             bool responseIsArray = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
-            object foundList = (responseIsArray) ? response : this.safeList(response, "data", new List<object>() {});
+            object foundList = responseIsArray ? response : this.safeList(response, "data", new List<object>() {});
             object found = ((foundList != null)) ? foundList : new List<object>() {};
             for (int j = 0; isLessThan(j, getArrayLength(found)); postFixIncrement(ref j))
             {
@@ -586,7 +586,7 @@ public partial class myriad : PredictionExchange
             }
             Dictionary<string, object> response = await this.myriadPublicGetQuestions(this.extend(request, rest));
             bool responseIsArray = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
-            object rawQuestionsList = (responseIsArray) ? response : this.safeList(response, "data", new List<object>() {});
+            object rawQuestionsList = responseIsArray ? response : this.safeList(response, "data", new List<object>() {});
             object rawQuestions = ((rawQuestionsList != null)) ? rawQuestionsList : new List<object>() {};
             int rawQuestionsLength = getArrayLength(rawQuestions);
             if ((rawQuestionsLength == 0))
@@ -2450,7 +2450,7 @@ public partial class myriad : PredictionExchange
             if (hasResolution)
             {
                 winnerRaw = ((outcomeId == resolvedOutcomeId));
-                settleFractionRaw = isTrue(winnerRaw) ? 1 : 0;
+                settleFractionRaw = winnerRaw == true ? 1 : 0;
                 if (winnerRaw == true)
                 {
                     resolvedOutcome = outcomeHandle;
@@ -3312,7 +3312,7 @@ public partial class myriad : PredictionExchange
         //     }
         //
         bool responseIsArray = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
-        object rowsList = (responseIsArray) ? response : this.safeList(response, "data", new List<object>() {});
+        object rowsList = responseIsArray ? response : this.safeList(response, "data", new List<object>() {});
         object rows = ((rowsList != null)) ? rowsList : new List<object>() {};
         List<object> trades = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))

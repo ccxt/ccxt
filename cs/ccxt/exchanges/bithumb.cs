@@ -2641,7 +2641,7 @@ public partial class bithumb : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         bool? twap = this.safeBool(parameters, "twap", false);
         parameters = this.omit(parameters, "twap");
-        if (!(twap == true))
+        if (twap != true)
         {
             List<object> clientOrderIds = this.safeList2(parameters, "client_order_ids", "clientOrderIds");
             if ((clientOrderIds != null))

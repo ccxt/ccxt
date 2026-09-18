@@ -865,7 +865,7 @@ public partial class paradex : Exchange
         bool isOptionPerpetual = (assetKind == "PERP_OPTION");
         bool isOptionDelivery = (assetKind == "OPTION");
         bool isOption = isOptionPerpetual || isOptionDelivery;
-        string type = (isOption) ? "option" : "swap";
+        string type = isOption ? "option" : "swap";
         bool isSwap = (type == "swap");
         string? marketId = this.safeString(market, "symbol");
         string? quoteId = this.safeString(market, "quote_currency");
@@ -1599,7 +1599,7 @@ public partial class paradex : Exchange
         string? side = this.safeStringLower(trade, "side");
         string? liability = this.safeStringLower(trade, "liquidity", "taker");
         bool isTaker = liability == "taker";
-        string takerOrMaker = (isTaker) ? "taker" : "maker";
+        string takerOrMaker = isTaker ? "taker" : "maker";
         string? currencyId = this.safeString(trade, "fee_currency");
         string? code = this.safeCurrencyCode(currencyId);
         return this.safeTrade(new Dictionary<string, object>() {
@@ -2160,7 +2160,7 @@ public partial class paradex : Exchange
             { "side", (isEqual(getValue(request, "side"), "BUY")) ? "1" : "2" },
             { "orderType", this.stringToBase16(getValue(request, "type")) },
             { "size", this.scaleNumber(getValue(request, "size")) },
-            { "price", (isMarket) ? "0" : this.scaleNumber(getValue(request, "price")) },
+            { "price", isMarket ? "0" : this.scaleNumber(getValue(request, "price")) },
         };
         List<object> orderFields = new List<object>() {new Dictionary<string, object>() {
     { "name", "timestamp" },

@@ -1014,7 +1014,7 @@ public partial class derive : Exchange
             linear = true;
             inverse = false;
         }
-        int? contractSize = (spot) ? null : 1;
+        int? contractSize = spot ? null : 1;
         bool isContract = (swap || option);
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", marketId },

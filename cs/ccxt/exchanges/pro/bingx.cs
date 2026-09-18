@@ -1840,7 +1840,7 @@ public partial class bingx : ccxt.bingx
         object symbol = GetValue(parsedOrder, "symbol");
         string spotHash = "spot:order";
         string swapHash = "swap:order";
-        string messageHash = (isSpot) ? spotHash : swapHash;
+        string messageHash = isSpot ? spotHash : swapHash;
         callDynamically(client, "resolve", new object[] {stored, messageHash});
         callDynamically(client, "resolve", new object[] {stored, add(add(messageHash, ":"), symbol)});
     }

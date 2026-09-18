@@ -2003,10 +2003,10 @@ public partial class weex : Exchange
         bool? isBuyerMaker = this.safeBool(trade, "isBuyerMaker");
         if (!isEqual(isBuyer, null))
         {
-            side = isTrue(isBuyer) ? "buy" : "sell";
+            side = isBuyer == true ? "buy" : "sell";
         } else if (!isEqual(isBuyerMaker, null))
         {
-            side = isTrue(isBuyerMaker) ? "sell" : "buy";
+            side = isBuyerMaker == true ? "sell" : "buy";
         }
         object isSpot = true;
         if (isEqual(market, null))
@@ -2045,7 +2045,7 @@ public partial class weex : Exchange
         string? takerOrMaker = null;
         if (!isEqual(isMaker, null))
         {
-            takerOrMaker = isTrue(isMaker) ? "maker" : "taker";
+            takerOrMaker = isMaker == true ? "maker" : "taker";
         } else if (!isEqual(isBuyerMaker, null))
         {
             takerOrMaker = "taker";

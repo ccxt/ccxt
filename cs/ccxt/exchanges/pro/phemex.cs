@@ -1095,7 +1095,7 @@ public partial class phemex : ccxt.phemex
         bool isUSDTSettled = (this.safeString(parameters, "settle") == "USDT");
         if (isEqual(symbolVar, null))
         {
-            messageHash = (isUSDTSettled) ? (add(messageHash, "perpetual")) : (add(messageHash, type));
+            messageHash = isUSDTSettled ? (add(messageHash, "perpetual")) : (add(messageHash, type));
         }
         object orders = await this.subscribePrivate(type, messageHash, parameters);
         if (isTrue(this.newUpdates))

@@ -2106,7 +2106,7 @@ public partial class woofipro : Exchange
         bool? success = this.safeBool(order, "success");
         if (!isEqual(success, null))
         {
-            status = isTrue((success)) ? "NEW" : "REJECTED";
+            status = success == true ? "NEW" : "REJECTED";
         }
         string? side = this.safeStringLower(order, "side");
         string? filled = this.safeStringN(order, new List<object>() {"total_executed_quantity", "totalExecutedQuantity", "executed_quantity", "executed"});

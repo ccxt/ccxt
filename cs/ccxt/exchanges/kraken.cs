@@ -1706,7 +1706,7 @@ public partial class kraken : Exchange
         string? takerOrMaker = null;
         if (!isEqual(maker, null))
         {
-            takerOrMaker = isTrue(maker) ? "maker" : "taker";
+            takerOrMaker = maker == true ? "maker" : "taker";
         }
         if ((datetime == null))
         {

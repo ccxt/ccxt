@@ -4303,7 +4303,7 @@ public partial class bybit : Exchange
         string? takerOrMaker = null;
         if (!isEqual(isMaker, null))
         {
-            takerOrMaker = isTrue(isMaker) ? "maker" : "taker";
+            takerOrMaker = isMaker == true ? "maker" : "taker";
         } else
         {
             string? lastLiquidityInd = this.safeString(trade, "lastLiquidityInd");
@@ -8404,7 +8404,7 @@ public partial class bybit : Exchange
             {
                 //  (Entry price - Liq price) * Contracts + Maintenance Margin + (unrealised pnl) = Collateral
                 bool? useMarkPrice = this.safeBool(this.options, "useMarkPriceForPositionCollateral", false);
-                string? price = isTrue(useMarkPrice) ? markPrice : entryPrice;
+                string? price = useMarkPrice == true ? markPrice : entryPrice;
                 string? difference = Precise.stringAbs(Precise.stringSub(price, liquidationPrice));
                 collateralString = Precise.stringAdd(Precise.stringAdd(Precise.stringMul(difference, size), maintenanceMarginString), unrealisedPnl);
             } else

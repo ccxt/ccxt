@@ -1599,20 +1599,20 @@ public partial class hashkey : Exchange
         bool? isBuyer = this.safeBool(trade, "isBuyer");
         if (!isEqual(isBuyer, null))
         {
-            side = isTrue(isBuyer) ? "buy" : "sell";
+            side = isBuyer == true ? "buy" : "sell";
         }
         string? takerOrMaker = null;
         bool? isMaker = this.safeBool2(trade, "isMaker", "isMarker");
         if (!isEqual(isMaker, null))
         {
-            takerOrMaker = isTrue(isMaker) ? "maker" : "taker";
+            takerOrMaker = isMaker == true ? "maker" : "taker";
         }
         bool? isBuyerMaker = this.safeBool(trade, "ibm");
         // if public trade
         if (!isEqual(isBuyerMaker, null))
         {
             takerOrMaker = "taker";
-            side = isTrue(isBuyerMaker) ? "sell" : "buy";
+            side = isBuyerMaker == true ? "sell" : "buy";
         }
         string? feeCost = this.safeString(trade, "commission");
         string? feeCurrncyId = this.safeString(trade, "commissionAsset");
@@ -4406,7 +4406,7 @@ public partial class hashkey : Exchange
             { "amount", null },
             { "total", this.safeNumber(data, "margin") },
             { "code", getValue(market, "settle") },
-            { "status", (success) ? "ok" : "failed" },
+            { "status", success ? "ok" : "failed" },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
         };

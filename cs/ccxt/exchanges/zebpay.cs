@@ -511,9 +511,9 @@ public partial class zebpay : Exchange
             string? networkId = this.safeString(chain, "chainId");
             string? networkCode = this.networkIdToCode(networkId, code);
             bool depositAllowed = (this.safeBool(chain, "isDepositEnabled") == true);
-            deposit = (depositAllowed) ? depositAllowed : deposit;
+            deposit = depositAllowed ? depositAllowed : deposit;
             bool withdrawAllowed = (this.safeBool(chain, "isWithdrawEnabled") == true);
-            withdraw = (withdrawAllowed) ? withdrawAllowed : withdraw;
+            withdraw = withdrawAllowed ? withdrawAllowed : withdraw;
             string? withdrawFeeString = this.safeString(chain, "withdrawalFee");
             if ((withdrawFeeString != null))
             {

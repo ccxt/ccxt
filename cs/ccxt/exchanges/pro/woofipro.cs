@@ -612,7 +612,7 @@ public partial class woofipro : ccxt.woofipro
         bool? maker = this.safeBool(trade, "maker");
         if (!isEqual(maker, null))
         {
-            takerOrMaker = isTrue(maker) ? "maker" : "taker";
+            takerOrMaker = maker == true ? "maker" : "taker";
         }
         Dictionary<string, object> fee = null;
         string? feeValue = this.safeString(trade, "fee");

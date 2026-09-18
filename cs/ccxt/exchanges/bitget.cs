@@ -3910,7 +3910,7 @@ public partial class bitget : Exchange
                 }
                 contract = true;
                 inverse = (isEqual(bs, settle));
-                linear = !(inverse == true);
+                linear = inverse != true;
                 Int64? priceDecimals = this.safeInteger(market, "pricePlace");
                 Int64? amountDecimals = this.safeInteger(market, "volumePlace");
                 string? priceStep = this.safeString(market, "priceEndStep");
@@ -4189,7 +4189,7 @@ public partial class bitget : Exchange
                 }
                 contract = true;
                 inverse = (isEqual(bs, settle));
-                linear = !(inverse == true);
+                linear = inverse != true;
                 marginModes = new Dictionary<string, object>() {
                     { "cross", true },
                     { "isolated", true },
@@ -7741,7 +7741,7 @@ public partial class bitget : Exchange
         parameters = oneWayModeparametersVariable[1];
         if (!isEqual(oneWayMode, null))
         {
-            hedged = !(oneWayMode == true);
+            hedged = oneWayMode != true;
         }
         bool isMarketOrder = isEqual(type, "market");
         object triggerPrice = this.safeValue2(parameters, "stopPrice", "triggerPrice");

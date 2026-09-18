@@ -4854,7 +4854,7 @@ public partial class okx : Exchange
         {
             request["newSz"] = this.amountToPrecision(symbol, amount);
         }
-        if (!(isAlgoOrder == true))
+        if (isAlgoOrder != true)
         {
             if (!isEqual(price, null))
             {

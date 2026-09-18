@@ -2810,7 +2810,7 @@ public partial class xt : Exchange
         bool? isBuyerMaker = this.safeBool(trade, "b");
         if (!isEqual(isBuyerMaker, null))
         {
-            side = isTrue(isBuyerMaker) ? "sell" : "buy";
+            side = isBuyerMaker == true ? "sell" : "buy";
             takerOrMaker = "taker"; // public trades always taker
         } else
         {
@@ -2823,7 +2823,7 @@ public partial class xt : Exchange
                 bool? isMaker = this.safeBool(trade, "isMaker");
                 if (!isEqual(isMaker, null))
                 {
-                    takerOrMaker = isTrue(isMaker) ? "maker" : "taker";
+                    takerOrMaker = isMaker == true ? "maker" : "taker";
                 }
             }
             string? orderSide = this.safeStringLower(trade, "orderSide");
@@ -5911,7 +5911,7 @@ public partial class xt : Exchange
         {
             string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
-            object matchesSubType = (isInverse) ? GetValue(market, "inverse") : GetValue(market, "linear");
+            object matchesSubType = isInverse ? GetValue(market, "inverse") : GetValue(market, "linear");
             if ((isEqual(GetValue(market, "contract"), true)) && (isEqual(matchesSubType, true)))
             {
                 result[(string)symbol] = this.parseTradingFee(fee, market);
@@ -6422,7 +6422,7 @@ public partial class xt : Exchange
         // "ISOLATED"/"CROSSED" on position/list, 1 = cross / 2 = isolated on position/list-history
         string? positionType = this.safeString(position, "positionType");
         bool isCross = (positionType == "CROSSED") || (positionType == "1");
-        string marginMode = (isCross) ? "cross" : "isolated";
+        string marginMode = isCross ? "cross" : "isolated";
         double? collateral = this.safeNumber(position, "isolatedMargin");
         // history entries carry the liquidation price in forceMarkPrice when force is true
         string? liquidationPriceString = this.omitZero(this.safeString2(position, "breakPrice", "forceMarkPrice"));

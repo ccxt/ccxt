@@ -7039,6 +7039,9 @@ export function installCsharpLocalTypes (transpiler) {
         }
         // the destructuring print (a later statement in the same function) casts back to this
         recordDestructuredWriteType (enclosingFunction (declaration), printedName, info.type);
+        // the emitted line carries info.type from here on: the condition-operand hook answers
+        // reads of this declaration from it (an awaited initializer has no printer-side name)
+        retypedDeclarationTypes.set (declaration, info.type);
         return iden + info.type + ' ' + printedName + ' = ' + value;
     };
     // `[a, b] = this.handleM (...)` — same holder, printed by the binary-expression path
@@ -7254,6 +7257,12 @@ function stringEqualityBindingIsProvable (scope, node) {
         && binding.getStart () < node.getStart ();
 }
 
+// declarations the local-types wrapper above retyped: declaration node -> the type its emitted
+// line carries. The wrapper is the only place that knows it (an awaited initializer prints as the
+// awaited call, which no printer-side table names), so the condition-operand hook answers reads of
+// these declarations from this record first -- the recorded type IS the emitted declaration.
+const retypedDeclarationTypes = new WeakMap ();
+
 // `isTrue (x)` in an if / while / && / || / ! condition: the ast printer's
 // csharpConditionOperandType hook prints a C# `bool` operand bare and a `bool?` one as
 // `x == true` (null -> false, exactly what isTrue computes). The printer only names the
@@ -7280,6 +7289,12 @@ export function installCsharpConditionOperands (transpiler) {
         const declaration = symbol?.valueDeclaration;
         if (declaration?.kind !== ts.SyntaxKind.VariableDeclaration || declaration.parent?.declarations?.length !== 1) {
             return printerType;
+        }
+        // a declaration the wrapper retyped: the record is the emitted line's own type, so a read
+        // of it prints natively whatever the initializer shape (`bool? uta = await this.isUTAEnabled ()`)
+        const recorded = retypedDeclarationTypes.get (declaration);
+        if (recorded !== undefined) {
+            return ((recorded === 'bool') || (recorded === 'bool?')) ? recorded : printerType;
         }
         // the declaration has to print as the exact `object <name> = ` prefix this module
         // rewrites: a `new` expression prints `var ` and an await has its own guard

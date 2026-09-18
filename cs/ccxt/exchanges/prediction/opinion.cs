@@ -313,7 +313,7 @@ public partial class opinion : PredictionExchange
             if (hasResult)
             {
                 winner = (isEqual(tokenId, resultTokenId));
-                settleFraction = isTrue(winner) ? 1 : 0;
+                settleFraction = winner == true ? 1 : 0;
                 if (winner == true)
                 {
                     resolvedOutcome = outcomeHandle;
@@ -1867,7 +1867,7 @@ public partial class opinion : PredictionExchange
     public virtual string? opinionWsUrl()
     {
         bool hasDirectApiKey = !isTrue(this.isEmptyString(this.apiKey));
-        object apiKey = (hasDirectApiKey) ? this.apiKey : this.safeString(this.options, "apiKey");
+        object apiKey = hasDirectApiKey ? this.apiKey : this.safeString(this.options, "apiKey");
         if ((apiKey == null))
         {
             throw new AuthenticationError (add(this.id, " websocket requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first")) ;
@@ -2469,7 +2469,7 @@ public partial class opinion : PredictionExchange
                 // an empty this.apiKey counts as absent - deleteApiKey clears it to '' (the
                 // strict base types the credential as string, undefined can not be assigned)
                 bool hasDirectApiKey = !isTrue(this.isEmptyString(this.apiKey));
-                object apiKey = (hasDirectApiKey) ? this.apiKey : this.safeString(this.options, "apiKey");
+                object apiKey = hasDirectApiKey ? this.apiKey : this.safeString(this.options, "apiKey");
                 if ((apiKey == null))
                 {
                     throw new AuthenticationError (add(add(add(this.id, " "), path), " requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first")) ;
