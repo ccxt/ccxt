@@ -1607,7 +1607,7 @@ impl BackpackCore {
         //
         let mut microseconds: Value = self.safe_integer_k(response.clone(), "timestamp", &[]);
         if (microseconds == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderBook() missing microseconds".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderBook() missing microseconds".to_string()))));
         }
         let mut timestamp: Value = self.parse_to_int((match ((microseconds).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
         let mut orderbook: Value = self.parse_order_book(response.clone(), symbol.clone(), &[timestamp.clone()]);
@@ -1704,7 +1704,7 @@ impl BackpackCore {
         }
         let mut market: Value = self.market(symbol.clone());
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-            panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRate() symbol does not support market ".to_string()))), symbol))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRate() symbol does not support market ".to_string()))), symbol)));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1782,7 +1782,7 @@ impl BackpackCore {
         }
         let mut market: Value = self.market(symbol.clone());
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-            panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenInterest() symbol does not support market ".to_string()))), symbol))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenInterest() symbol does not support market ".to_string()))), symbol)));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1847,7 +1847,7 @@ impl BackpackCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRateHistory() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRateHistory() requires a symbol argument".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -2108,7 +2108,7 @@ impl BackpackCore {
         //
         let mut status: Value = self.safe_string_k(response.clone(), "status", &[]);
         if (status == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchStatus() missing status".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchStatus() missing status".to_string()))));
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2340,7 +2340,7 @@ impl BackpackCore {
         let mut query: Value = networkCodequeryVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut networkId: Value = self.network_code_to_id(networkCode.clone(), &[currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)]);
         if (networkId == Value::Null) {
-            panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires a network parameter".to_string())))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires a network parameter".to_string()))));
         }
         add_element_to_object(&mut request, &Value::Str("blockchain".to_string()), networkId.clone());
         let __ws_arg_12 = self.extend(request.clone(), &[query.clone()]);
@@ -2514,7 +2514,7 @@ impl BackpackCore {
         let mut networkCode: Value = Value::Null;
         { let __destr_tmp = self.handle_network_code_and_params(params.clone()); networkCode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (networkCode == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() requires a network parameter, see https://docs.ccxt.com/?id=network-codes".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() requires a network parameter, see https://docs.ccxt.com/?id=network-codes".to_string()))));
         }
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
@@ -2650,10 +2650,10 @@ impl BackpackCore {
     m
 }));
         if (type_var == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" requires a type argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a type argument".to_string()))));
         }
         if (side == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" requires a side argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a side argument".to_string()))));
         }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
@@ -2804,7 +2804,7 @@ impl BackpackCore {
             self.load_markets(&[]).await;
         }
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrder() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrder() requires a symbol argument".to_string()))));
         }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
@@ -2840,7 +2840,7 @@ impl BackpackCore {
             self.load_markets(&[]).await;
         }
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".to_string()))));
         }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
@@ -2875,7 +2875,7 @@ impl BackpackCore {
             self.load_markets(&[]).await;
         }
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".to_string()))));
         }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({

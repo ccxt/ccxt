@@ -1238,7 +1238,7 @@ impl HashkeyCore {
             //
             listenKey = self.safe_string_k(response.clone(), "listenKey", &[]);
             if (listenKey == Value::Null) {
-                panic!("{}", crate::exchange_errors::authentication_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" authenticate() received an empty listenKey".to_string())))));
+                panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" authenticate() received an empty listenKey".to_string()))));
             }
             add_element_to_object(&mut self.options, &Value::Str("listenKey".to_string()), listenKey.clone());
             let mut listenKeyRefreshRate: Value = self.safe_integer_k(self.options.clone(), "listenKeyRefreshRate", &[Value::Int(3600000)]);

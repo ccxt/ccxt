@@ -992,7 +992,7 @@ impl Bit2cCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrders() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrders() requires a symbol argument".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -1402,7 +1402,7 @@ impl Bit2cCore {
         }
         let mut currency: Value = self.currency(code.clone());
         if is_true(&self.is_fiat(code.clone())) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() does not support fiat currencies".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() does not support fiat currencies".to_string()))));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();

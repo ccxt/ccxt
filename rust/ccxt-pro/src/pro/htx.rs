@@ -495,7 +495,7 @@ impl HtxCore {
         })]);
         let mut topic: Value = self.safe_string_k(options.clone(), "name", &[Value::Str("market.{marketId}.detail".to_string())]);
         if (topic.as_str() == Some("market.{marketId}.ticker")) && (market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str() != Some("spot")) {
-            panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchTicker() with name market.{marketId}.ticker is only allowed for spot markets, use market.{marketId}.detail instead".to_string())))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" watchTicker() with name market.{marketId}.ticker is only allowed for spot markets, use market.{marketId}.detail instead".to_string()))));
         }
         let mut messageHash: Value = self.implode_params(topic.clone(), Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -534,7 +534,7 @@ impl HtxCore {
         })]);
         let mut channel: Value = self.safe_string_k(options.clone(), "name", &[Value::Str("market.{marketId}.detail".to_string())]);
         if (channel.as_str() == Some("market.{marketId}.ticker")) && (market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str() != Some("spot")) {
-            panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchTicker() with name market.{marketId}.ticker is only allowed for spot markets, use market.{marketId}.detail instead".to_string())))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" watchTicker() with name market.{marketId}.ticker is only allowed for spot markets, use market.{marketId}.detail instead".to_string()))));
         }
         let mut subMessageHash: Value = self.implode_params(channel.clone(), Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -885,7 +885,7 @@ impl HtxCore {
             limit = self.safe_integer_k(options.clone(), "depth", &[Value::Int(150)]);
         }
         if !is_true(&self.in_array(limit.clone(), allowedLimits.clone())) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook market accepts limits of 5, 20, 150 or 400 only".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook market accepts limits of 5, 20, 150 or 400 only".to_string()))));
         }
         let mut messageHash: Value = Value::Null;
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
@@ -1014,7 +1014,7 @@ impl HtxCore {
                         self.delay(delayTime.clone(), &[Value::Str("watch_order_book_snapshot".to_string()).clone(), client.clone(), message.clone(), subscription.clone()]).await;
                     }
                 }  else {
-                    panic!("{}", crate::exchange_errors::invalid_nonce(Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" failed to synchronize WebSocket feed with the snapshot for symbol ".to_string()))), &symbol), Value::Str(" in ".to_string()))), &to_string_val(&maxAttempts)), Value::Str(" attempts".to_string())))));
+                    panic!("{}", crate::exchange_errors::invalid_nonce(format!("{}{}", add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" failed to synchronize WebSocket feed with the snapshot for symbol ".to_string()))), &symbol), Value::Str(" in ".to_string()))), &to_string_val(&maxAttempts)), Value::Str(" attempts".to_string()))));
                 }
             }  else {
                 orderbook.reset(snapshot.clone());
@@ -1194,7 +1194,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if is_true(&(Value::Bool(prevSeqNum != Value::Null))) && prevSeqNum.as_f64().unwrap_or(f64::NAN) > self.safe_integer_k(orderbook.clone(), "nonce", &[Value::Int(0)]).as_f64().unwrap_or(f64::NAN) {
             let mut checksum: Value = self.handle_option(Value::Str("watchOrderBook".to_string()), Value::Str("checksum".to_string()), &[Value::Bool(true)]);
             if is_equal(&checksum, &Value::Bool(true)) {
-                panic!("{}", crate::exchange_errors::checksum_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.orderbook_checksum_message(symbol.clone())))));
+                panic!("{}", crate::exchange_errors::checksum_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.orderbook_checksum_message(symbol.clone()))));
             }
         }
         let mut spotConditon: Value = Value::Bool(is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)))) && is_true(&(Value::Bool(prevSeqNum.as_f64() == get_value(&orderbook, &Value::Str("nonce".to_string())).as_f64()))));
@@ -1382,7 +1382,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         });
         trades = self.subscribe_private(channel.clone(), messageHash.clone(), type_var.clone(), subType.clone(), &[params.clone(), subscriptionParams.clone()]).await;
         if (trades == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchMyTrades() trades is required".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchMyTrades() trades is required".to_string()))));
         }
         if is_true(&self.newUpdates) {
             limit = trades.get_limit(symbol.clone(), limit.clone());
@@ -2973,7 +2973,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
          #[allow(unreachable_code)] { Value::Null }})).await;
 match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: Value = panic_to_value(_try_err); 
-            let mut error = Value::from(crate::exchange_errors::network_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" pong failed ".to_string()))), self.exception_message(e.clone(), &[])))));
+            let mut error = Value::from(crate::exchange_errors::network_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" pong failed ".to_string()))), self.exception_message(e.clone(), &[]))));
             client.reset(error.clone());
          } }
 
@@ -3537,7 +3537,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe::".to_string()), subMessageHash));
         let mut isFeed: Value = (Value::Bool(topic.as_str() == Some("orderbook")));
         if (market == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" unsubscribePublic() market is required".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" unsubscribePublic() market is required".to_string()))));
         }
         let mut url: Value = self.get_url_by_market_type(market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null), &[market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null), Value::Bool(false), isFeed.clone()]);
         let mut subscription: Value = Value::Map({
@@ -3623,7 +3623,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut hostname: Value = self.safe_string_k(params.clone(), "hostname", &[]);
         let mut type_var: Value = self.safe_string_k(params.clone(), "type", &[]);
         if (url == Value::Null) || (hostname == Value::Null) || (type_var == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" authenticate requires a url, hostname and type argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" authenticate requires a url, hostname and type argument".to_string()))));
         }
         self.check_required_credentials(&[]);
         let mut messageHash: Value = Value::Str("auth".to_string());

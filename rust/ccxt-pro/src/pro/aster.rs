@@ -501,7 +501,7 @@ impl AsterCore {
         { let __destr_tmp = self.handle_param_string(params.clone(), Value::Str("callerMethodName".to_string()), &[Value::Str("watchTickers".to_string())]); methodName = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         params = self.omit(params.clone(), Value::Str("callerMethodName".to_string()), &[]);
         if (symbolsLength.as_f64() == Some(0.0)) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), methodName)), Value::Str("() requires a non-empty array of symbols".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), methodName)), Value::Str("() requires a non-empty array of symbols".to_string()))));
         }
         let mut url: Value = get_value(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public"), &type_var);
         let mut subscriptionArgs: Value = Value::List(vec![]);
@@ -571,7 +571,7 @@ impl AsterCore {
         { let __destr_tmp = self.handle_param_string(params.clone(), Value::Str("callerMethodName".to_string()), &[Value::Str("unWatchTickers".to_string())]); methodName = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         params = self.omit(params.clone(), Value::Str("callerMethodName".to_string()), &[]);
         if (symbolsLength.as_f64() == Some(0.0)) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), methodName)), Value::Str("() requires a non-empty array of symbols".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), methodName)), Value::Str("() requires a non-empty array of symbols".to_string()))));
         }
         let mut url: Value = get_value(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public"), &type_var);
         let mut subscriptionArgs: Value = Value::List(vec![]);
@@ -680,7 +680,7 @@ impl AsterCore {
         { let __destr_tmp = self.handle_param_string(params.clone(), Value::Str("callerMethodName".to_string()), &[Value::Str("watchMarkPrices".to_string())]); methodName = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         params = self.omit(params.clone(), Value::Str("callerMethodName".to_string()), &[]);
         if (symbolsLength.as_f64() == Some(0.0)) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), methodName)), Value::Str("() requires a non-empty array of symbols".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), methodName)), Value::Str("() requires a non-empty array of symbols".to_string()))));
         }
         let mut url: Value = get_value(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public"), &type_var);
         let mut subscriptionArgs: Value = Value::List(vec![]);
@@ -751,7 +751,7 @@ impl AsterCore {
         { let __destr_tmp = self.handle_param_string(params.clone(), Value::Str("callerMethodName".to_string()), &[Value::Str("unWatchMarkPrices".to_string())]); methodName = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         params = self.omit(params.clone(), Value::Str("callerMethodName".to_string()), &[]);
         if (symbolsLength.as_f64() == Some(0.0)) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), methodName)), Value::Str("() requires a non-empty array of symbols".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), methodName)), Value::Str("() requires a non-empty array of symbols".to_string()))));
         }
         let mut url: Value = get_value(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public"), &type_var);
         let mut subscriptionArgs: Value = Value::List(vec![]);
@@ -901,7 +901,7 @@ impl AsterCore {
         let mut type_var: Value = self.safe_string_k(firstMarket.clone(), "type", &[Value::Str("swap".to_string())]);
         let mut symbolsLength: Value = Value::Int(symbols.len() as i64);
         if (symbolsLength.as_f64() == Some(0.0)) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchBidsAsks() requires a non-empty array of symbols".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchBidsAsks() requires a non-empty array of symbols".to_string()))));
         }
         let mut url: Value = get_value(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public"), &type_var);
         let mut subscriptionArgs: Value = Value::List(vec![]);
@@ -968,7 +968,7 @@ impl AsterCore {
         let mut type_var: Value = self.safe_string_k(firstMarket.clone(), "type", &[Value::Str("swap".to_string())]);
         let mut symbolsLength: Value = Value::Int(symbols.len() as i64);
         if (symbolsLength.as_f64() == Some(0.0)) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" unWatchBidsAsks() requires a non-empty array of symbols".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" unWatchBidsAsks() requires a non-empty array of symbols".to_string()))));
         }
         let mut url: Value = get_value(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public"), &type_var);
         let mut subscriptionArgs: Value = Value::List(vec![]);
@@ -1123,7 +1123,7 @@ impl AsterCore {
         { let __destr_tmp = self.handle_param_string(params.clone(), Value::Str("callerMethodName".to_string()), &[Value::Str("watchTradesForSymbols".to_string())]); methodName = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         params = self.omit(params.clone(), Value::Str("callerMethodName".to_string()), &[]);
         if (symbolsLength.as_f64() == Some(0.0)) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), methodName)), Value::Str("() requires a non-empty array of symbols".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), methodName)), Value::Str("() requires a non-empty array of symbols".to_string()))));
         }
         let mut url: Value = get_value(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public"), &type_var);
         let mut subscriptionArgs: Value = Value::List(vec![]);
@@ -1186,7 +1186,7 @@ impl AsterCore {
         { let __destr_tmp = self.handle_param_string(params.clone(), Value::Str("callerMethodName".to_string()), &[Value::Str("unWatchTradesForSymbols".to_string())]); methodName = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         params = self.omit(params.clone(), Value::Str("callerMethodName".to_string()), &[]);
         if (symbolsLength.as_f64() == Some(0.0)) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), methodName)), Value::Str("() requires a non-empty array of symbols".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), methodName)), Value::Str("() requires a non-empty array of symbols".to_string()))));
         }
         let mut url: Value = get_value(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public"), &type_var);
         let mut subscriptionArgs: Value = Value::List(vec![]);
@@ -1483,7 +1483,7 @@ impl AsterCore {
         { let __destr_tmp = self.handle_param_string(params.clone(), Value::Str("callerMethodName".to_string()), &[Value::Str("watchOrderBookForSymbols".to_string())]); methodName = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         params = self.omit(params.clone(), Value::Str("callerMethodName".to_string()), &[]);
         if (symbolsLength.as_f64() == Some(0.0)) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), methodName)), Value::Str("() requires a non-empty array of symbols".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), methodName)), Value::Str("() requires a non-empty array of symbols".to_string()))));
         }
         let mut url: Value = get_value(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public"), &type_var);
         let mut subscriptionArgs: Value = Value::List(vec![]);
@@ -1545,7 +1545,7 @@ impl AsterCore {
         { let __destr_tmp = self.handle_param_string(params.clone(), Value::Str("callerMethodName".to_string()), &[Value::Str("unWatchOrderBookForSymbols".to_string())]); methodName = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         params = self.omit(params.clone(), Value::Str("callerMethodName".to_string()), &[]);
         if (symbolsLength.as_f64() == Some(0.0)) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), methodName)), Value::Str("() requires a non-empty array of symbols".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), methodName)), Value::Str("() requires a non-empty array of symbols".to_string()))));
         }
         let mut url: Value = get_value(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public"), &type_var);
         let mut subscriptionArgs: Value = Value::List(vec![]);
@@ -1702,7 +1702,7 @@ impl AsterCore {
         { let __destr_tmp = self.handle_param_string(params.clone(), Value::Str("callerMethodName".to_string()), &[Value::Str("watchOHLCVForSymbols".to_string())]); methodName = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         params = self.omit(params.clone(), Value::Str("callerMethodName".to_string()), &[]);
         if (symbolsLength.as_f64() == Some(0.0)) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), methodName)), Value::Str("() requires a non-empty array of symbols".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), methodName)), Value::Str("() requires a non-empty array of symbols".to_string()))));
         }
         let mut symbols: Value = self.get_list_from_object_values(symbolsAndTimeframes.clone(), Value::Int(0));
         let mut marketSymbols: Value = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
@@ -1773,7 +1773,7 @@ impl AsterCore {
         { let __destr_tmp = self.handle_param_string(params.clone(), Value::Str("callerMethodName".to_string()), &[Value::Str("unWatchOHLCVForSymbols".to_string())]); methodName = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         params = self.omit(params.clone(), Value::Str("callerMethodName".to_string()), &[]);
         if (symbolsLength.as_f64() == Some(0.0)) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), methodName)), Value::Str("() requires a non-empty array of symbols".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), methodName)), Value::Str("() requires a non-empty array of symbols".to_string()))));
         }
         let mut symbols: Value = self.get_list_from_object_values(symbolsAndTimeframes.clone(), Value::Int(0));
         let mut marketSymbols: Value = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
@@ -1928,7 +1928,7 @@ impl AsterCore {
                 }
                 let mut listenKey: Value = self.safe_string_k(response.clone(), "listenKey", &[]);
                 if (listenKey == Value::Null) {
-                    panic!("{}", crate::exchange_errors::authentication_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" authenticate() received an empty listenKey".to_string())))));
+                    panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" authenticate() received an empty listenKey".to_string()))));
                 }
                 add_element_to_object(get_value_mut(&mut self.options, &Value::Str("listenKey".to_string())), &type_var, listenKey.clone());
                 add_element_to_object(get_value_mut(&mut self.options, &Value::Str("lastAuthenticatedTime".to_string())), &type_var, time.clone());

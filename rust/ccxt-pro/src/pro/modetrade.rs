@@ -763,7 +763,7 @@ impl ModetradeCore {
             self.load_markets(&[]).await;
         }
         if is_true(&(Value::Bool(timeframe.as_str() != Some("1m")))) && is_true(&(Value::Bool(timeframe.as_str() != Some("5m")))) && is_true(&(Value::Bool(timeframe.as_str() != Some("15m")))) && is_true(&(Value::Bool(timeframe.as_str() != Some("30m")))) && is_true(&(Value::Bool(timeframe.as_str() != Some("1h")))) && is_true(&(Value::Bool(timeframe.as_str() != Some("1d")))) && is_true(&(Value::Bool(timeframe.as_str() != Some("1w")))) && is_true(&(Value::Bool(timeframe.as_str() != Some("1M")))) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M".to_string()))));
         }
         let mut market: Value = self.market(symbol.clone());
         let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);

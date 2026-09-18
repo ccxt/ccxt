@@ -838,10 +838,10 @@ impl PaymiumCore {
         }
         let mut currency: Value = self.currency(code.clone());
         if get_index_of(&toAccount, &Value::Str("@".to_string())).as_f64().unwrap_or(f64::NAN) < Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" transfer() only allows transfers to an email address".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" transfer() only allows transfers to an email address".to_string()))));
         }
         if (code.as_str() != Some("BTC")) && (code.as_str() != Some("EUR")) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" transfer() only allows BTC or EUR".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" transfer() only allows BTC or EUR".to_string()))));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -986,7 +986,7 @@ impl PaymiumCore {
         }
         let mut errors: Value = self.safe_value_k(response.clone(), "errors", &[]);
         if (errors != Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(response.clone())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(response.clone()))));
         }
         return Value::Null;
 

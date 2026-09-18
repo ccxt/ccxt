@@ -1079,7 +1079,7 @@ impl NdaxCore {
 }));
         self.check_required_credentials(&[]);
         if (self.login.clone() == Value::Null) || (self.password.clone() == Value::Null) {
-            panic!("{}", crate::exchange_errors::authentication_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" signIn() requires exchange.login, exchange.password".to_string())))));
+            panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" signIn() requires exchange.login, exchange.password".to_string()))));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1105,7 +1105,7 @@ impl NdaxCore {
         let mut pending2faToken: Value = self.safe_string_k(response.clone(), "Pending2FaToken", &[]);
         if (pending2faToken != Value::Null) {
             if (self.twofa.clone() == Value::Null) {
-                panic!("{}", crate::exchange_errors::authentication_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" signIn() requires exchange.twofa credentials".to_string())))));
+                panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" signIn() requires exchange.twofa credentials".to_string()))));
             }
             add_element_to_object(&mut self.options, &Value::Str("pending2faToken".to_string()), pending2faToken.clone());
             request = Value::Map({
@@ -1868,7 +1868,7 @@ impl NdaxCore {
     m
 }));
         if is_true(&(Value::Bool(self.login.clone() == Value::Null))) || is_true(&(Value::Bool(self.login.as_str() == Some("")))) {
-            panic!("{}", crate::exchange_errors::authentication_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchAccounts() requires exchange.login email credential".to_string())))));
+            panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" fetchAccounts() requires exchange.login email credential".to_string()))));
         }
         let mut omsId: Value = self.safe_integer_k(self.options.clone(), "omsId", &[Value::Int(1)]);
         self.check_required_credentials(&[]);
@@ -3184,10 +3184,10 @@ impl NdaxCore {
         // this method required login, password and twofa key
         let mut sessionToken: Value = self.safe_string_k(self.options.clone(), "sessionToken", &[]);
         if (sessionToken == Value::Null) {
-            panic!("{}", crate::exchange_errors::authentication_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" call signIn() method to obtain a session token".to_string())))));
+            panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" call signIn() method to obtain a session token".to_string()))));
         }
         if (self.twofa.clone() == Value::Null) {
-            panic!("{}", crate::exchange_errors::authentication_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires exchange.twofa credentials".to_string())))));
+            panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires exchange.twofa credentials".to_string()))));
         }
         self.check_address(&[address.clone()]);
         let mut omsId: Value = self.safe_integer_k(self.options.clone(), "omsId", &[Value::Int(1)]);
@@ -3222,7 +3222,7 @@ impl NdaxCore {
         let mut templateTypes: Value = self.safe_value_k(withdrawTemplateTypesResponse.clone(), "TemplateTypes", &[Value::List(vec![])]);
         let mut firstTemplateType: Value = self.safe_value(templateTypes.clone(), Value::Int(0), &[]);
         if (firstTemplateType == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() could not find a withdraw template type for ".to_string()))), currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() could not find a withdraw template type for ".to_string()))), currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null))));
         }
         let mut templateName: Value = self.safe_string_k(firstTemplateType.clone(), "TemplateName", &[]);
         let mut withdrawTemplateRequest: Value = Value::Map({
@@ -3245,7 +3245,7 @@ impl NdaxCore {
         //
         let mut template: Value = self.safe_string_k(withdrawTemplateResponse.clone(), "Template", &[]);
         if (template == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() could not find a withdraw template for ".to_string()))), currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() could not find a withdraw template for ".to_string()))), currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null))));
         }
         let mut withdrawTemplate: Value = json_parse(&template);
         add_element_to_object(&mut withdrawTemplate, &Value::Str("ExternalAddress".to_string()), address.clone());
@@ -3361,7 +3361,7 @@ impl NdaxCore {
 
     pub fn handle_errors(&self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
         if (code.as_f64() == Some(404.0)) {
-            panic!("{}", crate::exchange_errors::authentication_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body))));
+            panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body)));
         }
         if (response == Value::Null) {
             return Value::Null;

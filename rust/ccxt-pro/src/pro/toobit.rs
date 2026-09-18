@@ -662,7 +662,7 @@ impl ToobitCore {
             let mut unfiedTimeframe: Value = self.safe_string(data.clone(), Value::Int(1), &[Value::Str("1m".to_string())]);
             let mut rawTimeframe: Value = self.safe_string(timeframes.clone(), unfiedTimeframe.clone(), &[unfiedTimeframe.clone()]);
             if (selectedTimeframe != Value::Null) && (selectedTimeframe.as_str() != rawTimeframe.as_str()) {
-                panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCVForSymbols() only supports a single timeframe for all symbols".to_string())))));
+                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCVForSymbols() only supports a single timeframe for all symbols".to_string()))));
             }  else {
                 selectedTimeframe = rawTimeframe.clone();
             }
@@ -1158,7 +1158,7 @@ impl ToobitCore {
         let mut messageHash: Value = (if isSpot { spotMessageHash.clone() } else { swapMessageHash.clone() });
         let mut subscriptionHash: Value = (if isSpot { spotSubHash.clone() } else { swapSubHash.clone() });
         if (subscriptionHash == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchBalance() requires a subscription hash".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchBalance() requires a subscription hash".to_string()))));
         }
         let mut url: Value = self.get_user_stream_url();
         let mut client: Value = self.client(&[url.clone()]);
@@ -1541,7 +1541,7 @@ impl ToobitCore {
         if !is_true(&self.is_empty(symbols.clone())) {
             symbols = self.market_symbols(&[symbols.clone()]);
             if (symbols == Value::Null) {
-                panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchPositions() symbols is required".to_string())))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchPositions() symbols is required".to_string()))));
             }
             messageHash = Value::Str(format!("{}{}", Value::Str("::".to_string()), join(&symbols, &Value::Str(",".to_string()))));
         }
@@ -1761,7 +1761,7 @@ impl ToobitCore {
                 let mut response: Value = self.parent.private_post_api_v1_user_data_stream(&[params.clone()]).await;
                 let mut listenKey: Value = self.safe_string_k(response.clone(), "listenKey", &[]);
                 if (listenKey == Value::Null) {
-                    panic!("{}", crate::exchange_errors::authentication_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" authenticate() received an empty listenKey".to_string())))));
+                    panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" authenticate() received an empty listenKey".to_string()))));
                 }
                 add_element_to_object(get_value_mut(&mut self.options, &Value::Str("ws".to_string())), &Value::Str("listenKey".to_string()), listenKey.clone());
                 add_element_to_object(get_value_mut(&mut self.options, &Value::Str("ws".to_string())), &Value::Str("lastAuthenticatedTime".to_string()), time.clone());
@@ -1774,7 +1774,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 // reject the flight - waiters throw and the next caller re-leads.
                 // no rethrow here, the trailing suspension point rethrows to this
                 // caller AND attaches the handler an alone leader needs
-                let mut err = Value::from(crate::exchange_errors::authentication_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.exception_message(e.clone(), &[])))));
+                let mut err = Value::from(crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.exception_message(e.clone(), &[]))));
                 client.reject(&[err.clone(), messageHash.clone()]);
             }
             crate::exchange_stubs::ws_await_flight(&future).await;

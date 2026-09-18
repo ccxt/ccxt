@@ -1024,7 +1024,7 @@ impl BitfinexCore {
 }));
         if (limit != Value::Null) {
             if is_true(&(Value::Bool(limit.as_f64() != Some(25.0)))) && is_true(&(Value::Bool(limit.as_f64() != Some(100.0)))) {
-                panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook limit argument must be undefined, 25 or 100".to_string())))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook limit argument must be undefined, 25 or 100".to_string()))));
             }
         }
         let mut options: Value = self.safe_value_k(self.options.clone(), "watchOrderBook", &[Value::Map({
@@ -1213,7 +1213,7 @@ impl BitfinexCore {
             remove(&mut self.orderbooks, &symbol);
             let mut checksum: Value = self.handle_option(Value::Str("watchOrderBook".to_string()), Value::Str("checksum".to_string()), &[Value::Bool(true)]);
             if is_equal(&checksum, &Value::Bool(true)) {
-                let mut error = Value::from(crate::exchange_errors::checksum_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.orderbook_checksum_message(symbol.clone())))));
+                let mut error = Value::from(crate::exchange_errors::checksum_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.orderbook_checksum_message(symbol.clone()))));
                 client.reject(&[Value::from(error.clone()), messageHash.clone()]);
             }
         }

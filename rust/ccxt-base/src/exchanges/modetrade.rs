@@ -2589,10 +2589,10 @@ impl ModetradeCore {
     m
 }));
         if (side == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" requires a side argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a side argument".to_string()))));
         }
         if (type_var == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" requires a type argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a type argument".to_string()))));
         }
         /*
          * @method
@@ -2611,7 +2611,7 @@ impl ModetradeCore {
         let mut orderType: Value = to_upper(&type_var);
         let mut market: Value = self.market(symbol.clone());
         if (side == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a side argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a side argument".to_string()))));
         }
         let mut orderSide: Value = to_upper(&side);
         let mut request: Value = Value::Map({
@@ -2791,7 +2791,7 @@ impl ModetradeCore {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
             if (marketId == Value::Null) {
-                panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrders() requires a symbol for each order".to_string())))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrders() requires a symbol for each order".to_string()))));
             }
             let mut type_var: Value = self.safe_string_k(rawOrder.clone(), "type", &[Value::Str("".to_string())]);
             let mut side: Value = self.safe_string_k(rawOrder.clone(), "side", &[]);
@@ -2806,7 +2806,7 @@ impl ModetradeCore {
             let mut takeProfit: Value = self.safe_value_k(orderParams.clone(), "takeProfit", &[]);
             let mut isConditional: bool = (triggerPrice != Value::Null) || (stopLoss != Value::Null) || (takeProfit != Value::Null) || is_true(&(Value::Bool(self.safe_value_k(orderParams.clone(), "childOrders", &[]) != Value::Null)));
             if isConditional {
-                panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrders() only support non-stop order".to_string())))));
+                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrders() only support non-stop order".to_string()))));
             }
             let mut orderRequest: Value = self.create_order_request(marketId.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), orderParams.clone()]);
             append_to_array(&mut ordersRequests, orderRequest.clone());
@@ -2969,7 +2969,7 @@ impl ModetradeCore {
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[Value::Bool(false)]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string())]), &[]);
         if is_true(&(Value::Bool(trigger.as_bool() != Some(true)))) && is_true(&(Value::Bool(symbol == Value::Null))) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -3989,7 +3989,7 @@ impl ModetradeCore {
         if (code != Value::Null) {
             code = to_upper(&code);
             if (code.as_str() != Some("USDC")) {
-                panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() only support USDC".to_string())))));
+                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" withdraw() only support USDC".to_string()))));
             }
         }
         let mut currency: Value = self.currency(code.clone());
@@ -4008,7 +4008,7 @@ impl ModetradeCore {
 })]) });
         let mut coinNetworkId: Value = self.safe_number_k(coinNetwork.clone(), "id", &[]);
         if (coinNetworkId == Value::Null) {
-            panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() require chainId parameter".to_string())))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" withdraw() require chainId parameter".to_string()))));
         }
         let mut withdrawNonce: Value = self.get_withdraw_nonce(&[params.clone()]).await;
         let mut nonce: Value = self.nonce();
@@ -4195,7 +4195,7 @@ impl ModetradeCore {
         let mut isMinLeverage: bool = leverage.as_f64().unwrap_or(f64::NAN) < Value::Int(1).as_f64().unwrap_or(f64::NAN);
         let mut isMaxLeverage: bool = leverage.as_f64().unwrap_or(f64::NAN) > Value::Int(50).as_f64().unwrap_or(f64::NAN);
         if isMinLeverage || isMaxLeverage {
-            panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" leverage should be between 1 and 50".to_string())))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" leverage should be between 1 and 50".to_string()))));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -4302,7 +4302,7 @@ impl ModetradeCore {
             self.load_markets(&[]).await;
         }
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchPosition() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchPosition() requires a symbol argument".to_string()))));
         }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({

@@ -460,7 +460,7 @@ impl CexCore {
 }));
         let mut currentSymbol: Value = self.safe_string(self.options.as_map().and_then(|__m| __m.get("watchTrades")).cloned().unwrap_or(Value::Null), Value::Str("symbol".to_string()), &[]);
         if (currentSymbol != Value::Null) && (currentSymbol.as_str() != symbol.as_str()) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" : this exchange only supports watching trades for one symbol per instance. You should either set .options[\"watchTrades\"][\"symbol\"] to new symbol, or create a new instance".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" : this exchange only supports watching trades for one symbol per instance. You should either set .options[\"watchTrades\"][\"symbol\"] to new symbol, or create a new instance".to_string()))));
         }
         add_element_to_object(get_value_mut(&mut self.options, &Value::Str("watchTrades".to_string())), &Value::Str("symbol".to_string()), symbol.clone());
         if (self.markets.clone() == Value::Null) {
@@ -485,7 +485,7 @@ impl CexCore {
                 }
                 subscriptionKey = slice(&subscriptionKey, &Value::Int(0), &Value::Int(3));
                 if (subscriptionKey.as_str() == Some("old")) {
-                    panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchTrades() only supports watching one symbol at a time.".to_string())))));
+                    panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchTrades() only supports watching one symbol at a time.".to_string()))));
                 }
             }
             }
@@ -873,7 +873,7 @@ impl CexCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrders() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchOrders() requires a symbol argument".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -924,7 +924,7 @@ impl CexCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchMyTrades() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchMyTrades() requires a symbol argument".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -1785,7 +1785,7 @@ impl CexCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrdersWs requires a symbol.".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrdersWs requires a symbol.".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -1833,7 +1833,7 @@ impl CexCore {
     m
 }));
         if (price == Value::Null) {
-            panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrderWs requires a price argument".to_string())))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrderWs requires a price argument".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -1885,10 +1885,10 @@ impl CexCore {
     m
 }));
         if (amount == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires a amount argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires a amount argument".to_string()))));
         }
         if (price == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires a price argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires a price argument".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -1980,7 +1980,7 @@ impl CexCore {
     m
 }));
         if (symbol != Value::Null) {
-            panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrderWs does not allow filtering by symbol".to_string())))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" cancelOrderWs does not allow filtering by symbol".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;

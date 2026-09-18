@@ -2213,7 +2213,7 @@ impl DeriveCore {
         }
         let mut market: Value = self.market(symbol.clone());
         if (price == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument".to_string()))));
         }
         let mut subaccountId: Value = Value::Null;
         { let __destr_tmp = self.handle_derive_subaccount_id(Value::Str("createOrder".to_string()), params.clone()); subaccountId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
@@ -2234,7 +2234,7 @@ impl DeriveCore {
         let mut maxFee: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".to_string()), Value::Str("max_fee".to_string()), &[]); maxFee = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (maxFee == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a max_fee argument in params".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a max_fee argument in params".to_string()))));
         }
         let mut maxFeeString: Value = self.number_to_string(maxFee.clone());
         let mut amountString: Value = self.number_to_string(amount.clone());
@@ -2260,7 +2260,7 @@ impl DeriveCore {
         if (reduceOnly != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("reduce_only".to_string()), reduceOnly.clone());
             if is_true(&reduceOnly) && is_true(&(Value::Bool(postOnly.as_bool() == Some(true)))) {
-                panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cannot use reduce only with post only time in force".to_string())))));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" cannot use reduce only with post only time in force".to_string()))));
             }
         }
         if (postOnly != Value::Null) {
@@ -2443,7 +2443,7 @@ impl DeriveCore {
         if (reduceOnly != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("reduce_only".to_string()), reduceOnly.clone());
             if is_true(&reduceOnly) && is_true(&(Value::Bool(postOnly.as_bool() == Some(true)))) {
-                panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cannot use reduce only with post only time in force".to_string())))));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" cannot use reduce only with post only time in force".to_string()))));
             }
         }
         if (postOnly != Value::Null) {
@@ -2563,7 +2563,7 @@ impl DeriveCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -3883,7 +3883,7 @@ impl DeriveCore {
         if (optionsWallet != Value::Null) {
             return Value::List(vec![optionsWallet.clone(), params.clone()]);
         }
-        panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), methodName)), Value::Str("() requires a subaccount_id parameter inside 'params' or exchange.options['subaccount_id']=ID.".to_string())))));
+        panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), methodName)), Value::Str("() requires a subaccount_id parameter inside 'params' or exchange.options['subaccount_id']=ID.".to_string()))));
 
     Value::Null
 }
@@ -3899,7 +3899,7 @@ impl DeriveCore {
         if (optionsWallet != Value::Null) {
             return Value::List(vec![optionsWallet.clone(), params.clone()]);
         }
-        panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), methodName)), Value::Str("() requires a deriveWalletAddress parameter inside 'params' or exchange.options['deriveWalletAddress'] = ADDRESS, the address can find in HOME => Developers tab.".to_string())))));
+        panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), methodName)), Value::Str("() requires a deriveWalletAddress parameter inside 'params' or exchange.options['deriveWalletAddress'] = ADDRESS, the address can find in HOME => Developers tab.".to_string()))));
 
     Value::Null
 }

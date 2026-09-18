@@ -493,7 +493,7 @@ impl UpbitCore {
     m
 }));
         if (timeframe.as_str() != Some("1s")) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV does not support".to_string()))), timeframe)), Value::Str(" candle.".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV does not support".to_string()))), timeframe)), Value::Str(" candle.".to_string()))));
         }
         let mut timeFrameOHLCV: Value = Value::Str(format!("{}{}", Value::Str("candle.".to_string()), timeframe));
         return self.watch_public_multiple(Value::List(vec![symbol.clone()]), timeFrameOHLCV.clone(), &[]).await;

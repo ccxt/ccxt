@@ -1764,7 +1764,7 @@ impl HitbtcCore {
         if (marketType.as_str() == Some("swap")) {
             return self.trade_request(Value::Str("futures_cancel_orders".to_string()), &[params.clone()]).await;
         }  else if is_true(&(Value::Bool(marketType.as_str() == Some("margin")))) || is_true(&(Value::Bool(marginMode != Value::Null))) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrdersWs is not supported for margin orders".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrdersWs is not supported for margin orders".to_string()))));
         }  else {
             return self.trade_request(Value::Str("spot_cancel_orders".to_string()), &[params.clone()]).await;
         }
@@ -1975,7 +1975,7 @@ impl HitbtcCore {
             let mut future: Value = self.safe_value(get_value(&client, &Value::Str("futures".to_string())), messageHash.clone(), &[]);
             future.resolve(&[Value::Bool(true)]);
         }  else {
-            let mut error = Value::from(crate::exchange_errors::authentication_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(message.clone())))));
+            let mut error = Value::from(crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(message.clone()))));
             client.reject(&[Value::from(error.clone()), messageHash.clone()]);
             if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash))) {
                 remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash);

@@ -559,7 +559,7 @@ impl ZaifCore {
         let mut id: Value = self.safe_string_k(market.clone(), "currency_pair", &[]);
         let mut name: Value = self.safe_string_k(market.clone(), "name", &[]);
         if (name == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" parseMarket() missing name".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseMarket() missing name".to_string()))));
         }
         let mut baseIdquoteIdVariable = split(&name, &Value::Str("/".to_string()));
         let mut baseId: Value = baseIdquoteIdVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
@@ -931,7 +931,7 @@ impl ZaifCore {
             self.load_markets(&[]).await;
         }
         if (type_var.as_str() != Some("limit")) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() allows limit orders only".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" createOrder() allows limit orders only".to_string()))));
         }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
@@ -1174,7 +1174,7 @@ impl ZaifCore {
         }
         let mut currency: Value = self.currency(code.clone());
         if (code.as_str() == Some("JPY")) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() does not allow ".to_string()))), code)), Value::Str(" withdrawals".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() does not allow ".to_string()))), code)), Value::Str(" withdrawals".to_string()))));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();

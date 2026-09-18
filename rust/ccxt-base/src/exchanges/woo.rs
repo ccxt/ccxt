@@ -2306,7 +2306,7 @@ impl WooCore {
         }
         let mut market: Value = self.market(symbol.clone());
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createMarketBuyOrderWithCost() supports spot orders only".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createMarketBuyOrderWithCost() supports spot orders only".to_string()))));
         }
         return self.create_order(symbol.clone(), Value::Str("market".to_string()), Value::Str("buy".to_string()), cost.clone(), &[Value::Int(1), params.clone()]).await;
 
@@ -2333,7 +2333,7 @@ impl WooCore {
         }
         let mut market: Value = self.market(symbol.clone());
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createMarketSellOrderWithCost() supports spot orders only".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createMarketSellOrderWithCost() supports spot orders only".to_string()))));
         }
         return self.create_order(symbol.clone(), Value::Str("market".to_string()), Value::Str("sell".to_string()), cost.clone(), &[Value::Int(1), params.clone()]).await;
 
@@ -2364,10 +2364,10 @@ impl WooCore {
     m
 }));
         if (trailingAmount == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createTrailingAmountOrder() requires a trailingAmount argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createTrailingAmountOrder() requires a trailingAmount argument".to_string()))));
         }
         if (trailingTriggerPrice == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createTrailingAmountOrder() requires a trailingTriggerPrice argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createTrailingAmountOrder() requires a trailingTriggerPrice argument".to_string()))));
         }
         add_element_to_object(&mut params, &Value::Str("trailingAmount".to_string()), trailingAmount.clone());
         add_element_to_object(&mut params, &Value::Str("trailingTriggerPrice".to_string()), trailingTriggerPrice.clone());
@@ -2400,10 +2400,10 @@ impl WooCore {
     m
 }));
         if (trailingPercent == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createTrailingPercentOrder() requires a trailingPercent argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createTrailingPercentOrder() requires a trailingPercent argument".to_string()))));
         }
         if (trailingTriggerPrice == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createTrailingPercentOrder() requires a trailingTriggerPrice argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createTrailingPercentOrder() requires a trailingTriggerPrice argument".to_string()))));
         }
         add_element_to_object(&mut params, &Value::Str("trailingPercent".to_string()), trailingPercent.clone());
         add_element_to_object(&mut params, &Value::Str("trailingTriggerPrice".to_string()), trailingTriggerPrice.clone());
@@ -2524,7 +2524,7 @@ impl WooCore {
         }
         if isTrailing {
             if (trailingTriggerPrice == Value::Null) {
-                panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a trailingTriggerPrice parameter for trailing orders".to_string())))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a trailingTriggerPrice parameter for trailing orders".to_string()))));
             }
             add_element_to_object(&mut request, &Value::Str("activatedPrice".to_string()), self.price_to_precision(symbol.clone(), trailingTriggerPrice.clone()));
             add_element_to_object(&mut request, &Value::Str("algoType".to_string()), Value::Str("TRAILING_STOP".to_string()));
@@ -2745,7 +2745,7 @@ impl WooCore {
         let mut isTrigger: Value = self.safe_bool2(params.clone(), Value::Str("trigger".to_string()), Value::Str("stop".to_string()), &[Value::Bool(false)]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("trigger".to_string()), Value::Str("stop".to_string())]), &[]);
         if is_true(&(Value::Bool(isTrigger.as_bool() != Some(true)))) && is_true(&(Value::Bool(symbol == Value::Null))) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -3432,7 +3432,7 @@ impl WooCore {
         }
         let mut market: Value = self.market(symbol.clone());
         if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTicker() supports swap markets only, there is no spot ticker endpoint".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchTicker() supports swap markets only, there is no spot ticker endpoint".to_string()))));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3473,7 +3473,7 @@ impl WooCore {
         let mut rows: Value = self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])]);
         let mut first: Value = self.safe_dict(rows.clone(), Value::Int(0), &[]);
         if (first == Value::Null) {
-            panic!("{}", crate::exchange_errors::bad_symbol(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTicker() could not find ticker data for ".to_string()))), symbol))));
+            panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTicker() could not find ticker data for ".to_string()))), symbol)));
         }
         let __ws_arg_16 = self.safe_integer_k(response.clone(), "timestamp", &[]);
         let mut ticker: Value = self.extend(Value::Map({
@@ -3514,7 +3514,7 @@ impl WooCore {
                 // rest of the list matches
                 let mut firstMarket: Value = self.market(symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
                 if (firstMarket.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
-                    panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers() supports swap markets only".to_string())))));
+                    panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers() supports swap markets only".to_string()))));
                 }
             }
         }
@@ -3523,7 +3523,7 @@ impl WooCore {
             let mut marketType: Value = Value::Null;
             { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchTickers".to_string()), &[Value::Null, params.clone(), Value::Str("swap".to_string())]); marketType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
             if (marketType.as_str() != Some("swap")) {
-                panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers() supports swap markets only".to_string())))));
+                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers() supports swap markets only".to_string()))));
             }
         }
         let mut response: Value = self.v3_public_get_futures(&[params.clone()]).await;
@@ -4019,7 +4019,7 @@ impl WooCore {
         let mut networkEntry: Value = (if is_true(&(Value::Bool(networkCode == Value::Null))) { Value::Null } else { self.safe_dict(crate::value::get_value_k(&currency, "networks"), networkCode.clone(), &[]) });
         if (networkEntry == Value::Null) {
             let mut supportedNetworks: Value = object_keys(&crate::value::get_value_k(&currency, "networks"));
-            panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str("  can not determine a network code, please provide unified \"network\" param, one from the following: ".to_string()))), self.json(supportedNetworks.clone())))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str("  can not determine a network code, please provide unified \"network\" param, one from the following: ".to_string()))), self.json(supportedNetworks.clone()))));
         }
         let mut currentyNetworkId: Value = self.safe_string_k(networkEntry.clone(), "currencyNetworkId", &[]);
         return Value::List(vec![currentyNetworkId.clone(), params.clone()]);
@@ -4666,7 +4666,7 @@ impl WooCore {
         }
         let mut network: Value = self.safe_string_k(params.clone(), "network", &[]);
         if (network == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires a network parameter for ".to_string()))), code))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires a network parameter for ".to_string()))), code)));
         }
         params = self.omit(params.clone(), Value::Str("network".to_string()), &[]);
         add_element_to_object(&mut request, &Value::Str("token".to_string()), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -5230,7 +5230,7 @@ impl WooCore {
             return self.fetch_paginated_call_incremental(Value::Str("fetchFundingRateHistory".to_string()), &[symbol.clone(), since.clone(), limit.clone(), params.clone(), Value::Str("page".to_string()), Value::Int(25)]).await;
         }
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRateHistory() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRateHistory() requires a symbol argument".to_string()))));
         }
         let mut market: Value = self.market(symbol.clone());
         symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -5368,7 +5368,7 @@ impl WooCore {
             let __ws_arg_36 = self.extend(request.clone(), &[params.clone()]);
             response = self.v3_private_get_futures_leverage(&[__ws_arg_36]).await;
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLeverage() is not supported for ".to_string()))), market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null))), Value::Str(" markets".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLeverage() is not supported for ".to_string()))), market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null))), Value::Str(" markets".to_string()))));
         }
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5466,7 +5466,7 @@ impl WooCore {
             let __ws_arg_38 = self.extend(request.clone(), &[params.clone()]);
             return self.v3_private_put_futures_leverage(&[__ws_arg_38]).await;
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLeverage() is not supported for ".to_string()))), &self.safe_string_k(market.clone(), "type", &[])), Value::Str(" markets".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLeverage() is not supported for ".to_string()))), &self.safe_string_k(market.clone(), "type", &[])), Value::Str(" markets".to_string()))));
         }
 
     Value::Null

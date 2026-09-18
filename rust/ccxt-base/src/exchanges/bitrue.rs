@@ -1408,7 +1408,7 @@ impl BitrueCore {
             }  else if (marketType.as_str() == Some("inverse")) {
                 append_to_array(&mut promisesRaw, self.dapi_v1_public_get_contracts(&[params.clone()]).await);
             }  else {
-                panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMarkets() this.options fetchMarkets \"".to_string()))), marketType)), Value::Str("\" is not a supported market type".to_string())))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMarkets() this.options fetchMarkets \"".to_string()))), marketType)), Value::Str("\" is not a supported market type".to_string()))));
             }
         }
         }
@@ -1806,7 +1806,7 @@ impl BitrueCore {
             let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
             response = self.spot_v1_public_get_depth(&[__ws_arg_2]).await;
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderBook only support spot & swap markets".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderBook only support spot & swap markets".to_string()))));
         }
         //
         // spot
@@ -1967,7 +1967,7 @@ impl BitrueCore {
     m
 })]);
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTicker only support spot & swap markets".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchTicker only support spot & swap markets".to_string()))));
         }
         return self.parse_ticker(data.clone(), &[market.clone()]);
 
@@ -2051,7 +2051,7 @@ impl BitrueCore {
             response = self.spot_v1_public_get_market_kline(&[__ws_arg_8]).await;
             data = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV only support spot & swap markets".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV only support spot & swap markets".to_string()))));
         }
         return self.parse_ohlc_vs(data.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
@@ -2139,7 +2139,7 @@ impl BitrueCore {
             let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
             response = self.spot_v1_public_get_ticker_book_ticker(&[__ws_arg_11]).await;
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchBidsAsks only support spot & swap markets".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchBidsAsks only support spot & swap markets".to_string()))));
         }
         //
         // spot
@@ -2207,18 +2207,18 @@ impl BitrueCore {
             let mut first: Value = self.safe_string(symbols.clone(), Value::Int(0), &[]);
             let mut market: Value = self.market(first.clone());
             if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-                panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers does not support swap markets, please use fetchTicker instead".to_string())))));
+                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers does not support swap markets, please use fetchTicker instead".to_string()))));
             }  else if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
                 let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
                 response = self.spot_v1_public_get_ticker24hr(&[__ws_arg_12]).await;
                 data = self.to_array(response.clone());
             }  else {
-                panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers only support spot & swap markets".to_string())))));
+                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers only support spot & swap markets".to_string()))));
             }
         }  else {
             { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchTickers".to_string()), &[Value::Null, params.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
             if (type_var.as_str() != Some("spot")) {
-                panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers only support spot when symbols are not proved".to_string())))));
+                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers only support spot when symbols are not proved".to_string()))));
             }
             let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
             response = self.spot_v1_public_get_ticker24hr(&[__ws_arg_13]).await;
@@ -2428,7 +2428,7 @@ impl BitrueCore {
             let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
             response = self.spot_v1_public_get_trades(&[__ws_arg_14]).await;
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTrades only support spot markets".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchTrades only support spot markets".to_string()))));
         }
         return self.parse_trades(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
@@ -2597,7 +2597,7 @@ impl BitrueCore {
         }
         let mut market: Value = self.market(symbol.clone());
         if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createMarketBuyOrderWithCost() supports swap orders only".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createMarketBuyOrderWithCost() supports swap orders only".to_string()))));
         }
         add_element_to_object(&mut params, &Value::Str("createMarketBuyOrderRequiresPrice".to_string()), Value::Bool(false));
         return self.create_order(symbol.clone(), Value::Str("market".to_string()), Value::Str("buy".to_string()), cost.clone(), &[Value::Null, params.clone()]).await;
@@ -2653,7 +2653,7 @@ impl BitrueCore {
         });
         if (uppercaseType.as_str() == Some("LIMIT")) {
             if (price == Value::Null) {
-                panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument".to_string())))));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument".to_string()))));
             }
             add_element_to_object(&mut request, &Value::Str("price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
         }
@@ -2675,7 +2675,7 @@ impl BitrueCore {
                 let mut cost: Value = self.safe_string_k(params.clone(), "cost", &[]);
                 params = self.omit(params.clone(), Value::Str("cost".to_string()), &[]);
                 if (price == Value::Null) && (cost == Value::Null) {
-                    panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price argument with swap market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options[\"createMarketBuyOrderRequiresPrice\"] = false to supply the cost in the amount argument (the exchange-specific behaviour)".to_string())))));
+                    panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price argument with swap market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options[\"createMarketBuyOrderRequiresPrice\"] = false to supply the cost in the amount argument (the exchange-specific behaviour)".to_string()))));
                 }  else {
                     let mut amountString: Value = self.number_to_string(amount.clone());
                     let mut priceString: Value = self.number_to_string(price.clone());
@@ -2710,7 +2710,7 @@ impl BitrueCore {
             add_element_to_object(&mut request, &Value::Str("quantity".to_string()), self.amount_to_precision(symbol.clone(), amount.clone()));
             let mut validOrderTypes: Value = self.safe_value(market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("orderTypes".to_string()), &[]);
             if !is_true(&self.in_array(uppercaseType.clone(), validOrderTypes.clone())) {
-                panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), type_var)), Value::Str(" is not a valid order type in market ".to_string()))), symbol))));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), type_var)), Value::Str(" is not a valid order type in market ".to_string()))), symbol)));
             }
             let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("newClientOrderId".to_string()), Value::Str("clientOrderId".to_string()), &[]);
             if (clientOrderId != Value::Null) {
@@ -2726,7 +2726,7 @@ impl BitrueCore {
             response = self.spot_v1_private_post_order(&[__ws_arg_17]).await;
             data = response.clone();
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder only support spot & swap markets".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder only support spot & swap markets".to_string()))));
         }
         return self.parse_order(data.clone(), &[market.clone()]);
 
@@ -2751,7 +2751,7 @@ impl BitrueCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() requires a symbol argument".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -2797,7 +2797,7 @@ impl BitrueCore {
             response = self.spot_v1_private_get_order(&[__ws_arg_20]).await;
             data = response.clone();
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder only support spot & swap markets".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder only support spot & swap markets".to_string()))));
         }
         return self.parse_order(data.clone(), &[market.clone()]);
 
@@ -2824,14 +2824,14 @@ impl BitrueCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchClosedOrders() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchClosedOrders() requires a symbol argument".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchClosedOrders only support spot markets".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchClosedOrders only support spot markets".to_string()))));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2872,7 +2872,7 @@ impl BitrueCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrders() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrders() requires a symbol argument".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -2900,7 +2900,7 @@ impl BitrueCore {
             response = self.spot_v1_private_get_open_orders(&[__ws_arg_24]).await;
             data = response.clone();
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrders only support spot & swap markets".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrders only support spot & swap markets".to_string()))));
         }
         return self.parse_orders(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
@@ -2926,7 +2926,7 @@ impl BitrueCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -2971,7 +2971,7 @@ impl BitrueCore {
             response = self.spot_v1_private_delete_order(&[__ws_arg_27]).await;
             data = response.clone();
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder only support spot & swap markets".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder only support spot & swap markets".to_string()))));
         }
         return self.parse_order(data.clone(), &[market.clone()]);
 
@@ -3016,7 +3016,7 @@ impl BitrueCore {
             }
             data = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders only support future markets".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders only support future markets".to_string()))));
         }
         return self.parse_orders(data.clone(), &[market.clone()]);
 
@@ -3047,7 +3047,7 @@ impl BitrueCore {
             self.load_markets(&[]).await;
         }
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() requires a symbol argument".to_string()))));
         }
         let mut market: Value = self.market(symbol.clone());
         let mut response: Value = Value::Null;
@@ -3081,7 +3081,7 @@ impl BitrueCore {
             response = self.spot_v2_private_get_my_trades(&[__ws_arg_32]).await;
             data = response.clone();
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades only support spot & swap markets".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades only support spot & swap markets".to_string()))));
         }
         return self.parse_trades(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
@@ -3108,7 +3108,7 @@ impl BitrueCore {
     m
 }));
         if (code == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDeposits() requires a code argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchDeposits() requires a code argument".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -3190,7 +3190,7 @@ impl BitrueCore {
     m
 }));
         if (code == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchWithdrawals() requires a code argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchWithdrawals() requires a code argument".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -3752,10 +3752,10 @@ impl BitrueCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() requires a symbol argument".to_string()))));
         }
         if is_true(&(leverage.as_f64().unwrap_or(f64::NAN) < Value::Int(1).as_f64().unwrap_or(f64::NAN))) || is_true(&(leverage.as_f64().unwrap_or(f64::NAN) > Value::Int(125).as_f64().unwrap_or(f64::NAN))) {
-            panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" leverage should be between 1 and 125".to_string())))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" leverage should be between 1 and 125".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -3772,7 +3772,7 @@ impl BitrueCore {
             m
         });
         if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" setLeverage only support swap markets".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" setLeverage only support swap markets".to_string()))));
         }
         if (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             let __ws_arg_38 = self.extend(request.clone(), &[params.clone()]);
@@ -3827,7 +3827,7 @@ impl BitrueCore {
         }
         let mut market: Value = self.market(symbol.clone());
         if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" setMargin only support swap markets".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" setMargin only support swap markets".to_string()))));
         }
         let mut response: Value = Value::Null;
         let mut request: Value = Value::Map({
@@ -3955,20 +3955,20 @@ impl BitrueCore {
 
     pub fn handle_errors(&self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
         if is_true(&(Value::Bool(code.as_f64() == Some(418.0)))) || is_true(&(Value::Bool(code.as_f64() == Some(429.0)))) {
-            panic!("{}", crate::exchange_errors::d_do_s_protection(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), to_string_val(&code))), Value::Str(" ".to_string()))), reason)), Value::Str(" ".to_string()))), body))));
+            panic!("{}", crate::exchange_errors::d_do_s_protection(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), to_string_val(&code))), Value::Str(" ".to_string()))), reason)), Value::Str(" ".to_string()))), body)));
         }
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block contains legacy checks against message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
         if code.as_f64().unwrap_or(f64::NAN) >= Value::Int(400).as_f64().unwrap_or(f64::NAN) {
             if get_index_of(&body, &Value::Str("Price * QTY is zero or less".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-                panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" order cost = amount * price is zero or less ".to_string()))), body))));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" order cost = amount * price is zero or less ".to_string()))), body)));
             }
             if get_index_of(&body, &Value::Str("LOT_SIZE".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-                panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" order amount should be evenly divisible by lot size ".to_string()))), body))));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" order amount should be evenly divisible by lot size ".to_string()))), body)));
             }
             if get_index_of(&body, &Value::Str("PRICE_FILTER".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-                panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use this.priceToPrecision (symbol, amount) ".to_string()))), body))));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use this.priceToPrecision (symbol, amount) ".to_string()))), body)));
             }
         }
         if (response == Value::Null) {
@@ -4010,14 +4010,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // despite that their message is very confusing, it is raised by Binance
             // on a temporary ban, the API key is valid, but disabled for a while
             if is_true(&(Value::Bool(error.as_str() == Some("-2015")))) && (is_equal(&self.options.as_map().and_then(|__m| __m.get("hasAlreadyAuthenticatedSuccessfully")).cloned().unwrap_or(Value::Null), &Value::Bool(true))) {
-                panic!("{}", crate::exchange_errors::d_do_s_protection(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" temporary banned: ".to_string()))), body))));
+                panic!("{}", crate::exchange_errors::d_do_s_protection(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" temporary banned: ".to_string()))), body)));
             }
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body));
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), error.clone(), feedback.clone());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         if (success.as_bool() != Some(true)) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body)));
         }
         return Value::Null;
 

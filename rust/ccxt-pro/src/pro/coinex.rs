@@ -1222,18 +1222,18 @@ impl CoinexCore {
             limit = self.safe_integer_k(options.clone(), "defaultLimit", &[Value::Int(50)]);
         }
         if !is_true(&self.in_array(limit.clone(), limits.clone())) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBookForSymbols() limit must be one of ".to_string()))), join(&limits, &Value::Str(", ".to_string()))))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBookForSymbols() limit must be one of ".to_string()))), join(&limits, &Value::Str(", ".to_string())))));
         }
         let mut defaultAggregation: Value = self.safe_string_k(options.clone(), "defaultAggregation", &[Value::Str("0".to_string())]);
         let mut aggregations: Value = self.safe_list_k(options.clone(), "aggregations", &[Value::List(vec![])]);
         let mut aggregation: Value = self.safe_string_k(params.clone(), "aggregation", &[defaultAggregation.clone()]);
         if !is_true(&self.in_array(aggregation.clone(), aggregations.clone())) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBookForSymbols() aggregation must be one of ".to_string()))), join(&aggregations, &Value::Str(", ".to_string()))))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBookForSymbols() aggregation must be one of ".to_string()))), join(&aggregations, &Value::Str(", ".to_string())))));
         }
         params = self.omit(params.clone(), Value::Str("aggregation".to_string()), &[]);
         let mut symbolsDefined: bool = symbols != Value::Null;
         if !symbolsDefined {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBookForSymbols() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBookForSymbols() requires a symbol argument".to_string()))));
         }
         {
                         let mut i: Value = Value::Int(0);

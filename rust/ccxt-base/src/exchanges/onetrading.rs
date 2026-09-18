@@ -949,7 +949,7 @@ impl OnetradingCore {
         }  else if (method.as_str() == Some("fetchPublicTradingFees")) {
             return self.fetch_public_trading_fees(&[params.clone()]).await;
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTradingFees() does not support ".to_string()))), method)), Value::Str(", fetchPrivateTradingFees and fetchPublicTradingFees are supported".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTradingFees() does not support ".to_string()))), method)), Value::Str(", fetchPrivateTradingFees and fetchPublicTradingFees are supported".to_string()))));
         }
 
     Value::Null
@@ -1447,14 +1447,14 @@ impl OnetradingCore {
         });
         let mut lowercaseUnit: Value = self.safe_string(units.clone(), unit.clone(), &[]);
         if is_true(&(Value::Bool(period == Value::Null))) || is_true(&(Value::Bool(lowercaseUnit == Value::Null))) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" parseOHLCV() missing period/unit".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseOHLCV() missing period/unit".to_string()))));
         }
         let mut timeframe: Value = Value::Str(format!("{}{}", period, lowercaseUnit));
         let mut durationInSeconds: Value = self.parse_timeframe(timeframe.clone());
         let mut duration: Value = (match (&(durationInSeconds), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
         let mut timestamp: Value = self.parse8601(self.safe_string_k(ohlcv.clone(), "time", &[]));
         if (timestamp == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" parseOHLCV() missing timestamp".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseOHLCV() missing timestamp".to_string()))));
         }
         let mut alignedTimestamp: Value = (match (&(duration), &(self.parse_to_int((match ((timestamp).as_f64(), (duration).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
         let mut options: Value = self.safe_value_k(self.options.clone(), "fetchOHLCV", &[Value::Map({
@@ -1493,7 +1493,7 @@ impl OnetradingCore {
         let mut market: Value = self.market(symbol.clone());
         let mut periodUnit: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[]);
         if (periodUnit == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() missing periodUnit".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() missing periodUnit".to_string()))));
         }
         let mut periodunitVariable = split(&periodUnit, &Value::Str("/".to_string()));
         let mut period: Value = periodunitVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
@@ -1848,7 +1848,7 @@ impl OnetradingCore {
         let mut market: Value = self.market(symbol.clone());
         let mut uppercaseType: Value = to_upper(&type_var);
         if (side == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a side argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a side argument".to_string()))));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1865,13 +1865,13 @@ impl OnetradingCore {
         let mut triggerPrice: Value = self.safe_number_n(params.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("trigger_price".to_string()), Value::Str("stopPrice".to_string())]), &[]);
         if (triggerPrice != Value::Null) {
             if (uppercaseType.as_str() == Some("MARKET")) {
-                panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() cannot place stop market orders, only stop limit".to_string())))));
+                panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrder() cannot place stop market orders, only stop limit".to_string()))));
             }
             add_element_to_object(&mut request, &Value::Str("trigger_price".to_string()), self.price_to_precision(symbol.clone(), triggerPrice.clone()));
             add_element_to_object(&mut request, &Value::Str("type".to_string()), Value::Str("STOP".to_string()));
             params = self.omit(params.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("trigger_price".to_string()), Value::Str("stopPrice".to_string())]), &[]);
         }  else if (uppercaseType.as_str() == Some("STOP")) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a triggerPrice param for ".to_string()))), type_var)), Value::Str(" orders".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a triggerPrice param for ".to_string()))), type_var)), Value::Str(" orders".to_string()))));
         }
         if priceIsRequired {
             add_element_to_object(&mut request, &Value::Str("price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));

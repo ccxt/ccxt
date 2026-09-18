@@ -373,7 +373,7 @@ impl CoinbaseinternationalCore {
         }
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         if (url == Value::Null) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" is not supported in sandbox environment".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" is not supported in sandbox environment".to_string()))));
         }
         let mut timestamp: Value = to_string_val(&self.nonce());
         let mut auth: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, self.apiKey.clone())), Value::Str("CBINTLMD".to_string()))), self.password.clone()));
@@ -440,7 +440,7 @@ impl CoinbaseinternationalCore {
         }
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         if (url == Value::Null) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" is not supported in sandbox environment".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" is not supported in sandbox environment".to_string()))));
         }
         let mut timestamp: Value = self.number_to_string(self.seconds());
         let mut auth: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, self.apiKey.clone())), Value::Str("CBINTLMD".to_string()))), self.password.clone()));
@@ -497,7 +497,7 @@ impl CoinbaseinternationalCore {
     m
 }));
         if (symbols == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchFundingRates() requires an array of symbols".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchFundingRates() requires an array of symbols".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;

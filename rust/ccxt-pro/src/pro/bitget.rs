@@ -1444,7 +1444,7 @@ impl BitgetCore {
 
     pub async fn handle_check_sum_error(&mut self, mut client: Value, mut symbol: Value, mut messageHash: Value) -> Value {
         self.un_watch_order_book(symbol.clone(), &[]).await;
-        let mut error = Value::from(crate::exchange_errors::checksum_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.orderbook_checksum_message(symbol.clone())))));
+        let mut error = Value::from(crate::exchange_errors::checksum_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.orderbook_checksum_message(symbol.clone()))));
         client.reject(&[Value::from(error.clone()), messageHash.clone()]);
 
     Value::Null
@@ -1517,7 +1517,7 @@ impl BitgetCore {
 }));
         let mut symbolsLength: Value = Value::Int(symbols.len() as i64);
         if (symbolsLength.as_f64() == Some(0.0)) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchTradesForSymbols() requires a non-empty array of symbols".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchTradesForSymbols() requires a non-empty array of symbols".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -3517,7 +3517,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash))) {
             remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash);
         }
-        let mut error = Value::from(crate::exchange_errors::unsubscribe_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" orderbook ".to_string()))), symbol))));
+        let mut error = Value::from(crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" orderbook ".to_string()))), symbol)));
         if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &subMessageHash))) {
             client.reject(&[Value::from(error.clone()), subMessageHash.clone()]);
         }
@@ -3548,7 +3548,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash))) {
             remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash);
         }
-        let mut error = Value::from(crate::exchange_errors::unsubscribe_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" trades ".to_string()))), symbol))));
+        let mut error = Value::from(crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" trades ".to_string()))), symbol)));
         if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &subMessageHash))) {
             client.reject(&[Value::from(error.clone()), subMessageHash.clone()]);
         }
@@ -3579,7 +3579,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash))) {
             remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash);
         }
-        let mut error = Value::from(crate::exchange_errors::unsubscribe_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ticker ".to_string()))), symbol))));
+        let mut error = Value::from(crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ticker ".to_string()))), symbol)));
         if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &subMessageHash))) {
             client.reject(&[Value::from(error.clone()), subMessageHash.clone()]);
         }

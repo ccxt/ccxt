@@ -1627,7 +1627,7 @@ impl BitsoCore {
         // warn the user with an exception if the user wants to filter
         // starting from since timestamp, but does not set the trade id with an extra 'marker' param
         if is_true(&(Value::Bool(since != Value::Null))) && !markerInParams {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() does not support fetching trades starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() does not support fetching trades starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id".to_string()))));
         }
         // convert it to an integer unconditionally
         if markerInParams {
@@ -1764,7 +1764,7 @@ impl BitsoCore {
     m
 }));
         if !is_true(&Value::Bool(is_array(&ids))) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() ids argument should be an array".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() ids argument should be an array".to_string()))));
         }
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
@@ -1816,7 +1816,7 @@ impl BitsoCore {
     m
 }));
         if (symbol != Value::Null) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders() deletes all orders for user, it does not support filtering by symbol.".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders() deletes all orders for user, it does not support filtering by symbol.".to_string()))));
         }
         let mut response: Value = self.private_delete_orders_all(&[params.clone()]).await;
         //
@@ -1936,7 +1936,7 @@ impl BitsoCore {
         // warn the user with an exception if the user wants to filter
         // starting from since timestamp, but does not set the trade id with an extra 'marker' param
         if is_true(&(Value::Bool(since != Value::Null))) && !markerInParams {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrders() does not support fetching orders starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrders() does not support fetching orders starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id".to_string()))));
         }
         // convert it to an integer unconditionally
         if markerInParams {
@@ -1993,7 +1993,7 @@ impl BitsoCore {
                 return self.parse_order(payload.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), &[]);
             }
         }
-        panic!("{}", crate::exchange_errors::order_not_found(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(": The order ".to_string()))), id)), Value::Str(" not found.".to_string())))));
+        panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(": The order ".to_string()))), id)), Value::Str(" not found.".to_string()))));
 
     Value::Null
 }
@@ -2544,7 +2544,7 @@ impl BitsoCore {
         let mut currency: Value = self.currency(code.clone());
         let mut method: Value = (if is_true(&(Value::Bool(in_op(&methods, &code)))) { get_value(&methods, &code) } else { Value::Null });
         if (method == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" not valid withdraw coin: ".to_string()))), code))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" not valid withdraw coin: ".to_string()))), code)));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();

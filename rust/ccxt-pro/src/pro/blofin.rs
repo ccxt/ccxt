@@ -508,7 +508,7 @@ impl BlofinCore {
         { let __destr_tmp = self.handle_option_and_params(params.clone(), callerMethodName.clone(), Value::Str("channel".to_string()), &[Value::Str("books".to_string())]); channelName = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         // due to some problem, temporarily disable other channels
         if (channelName.as_str() != Some("books")) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), callerMethodName)), Value::Str("() at this moment ".to_string()))), channelName)), Value::Str(" is not supported, coming soon".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), callerMethodName)), Value::Str("() at this moment ".to_string()))), channelName)), Value::Str(" is not supported, coming soon".to_string()))));
         }
         let mut orderbook: Value = self.watch_multiple_wrapper(Value::Bool(true), channelName.clone(), callerMethodName.clone(), &[symbols.clone(), params.clone()]).await;
         return orderbook.limit();
@@ -601,7 +601,7 @@ impl BlofinCore {
     m
 }));
         if (symbols == Value::Null) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchTickers() requires a list of symbols".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchTickers() requires a list of symbols".to_string()))));
         }
         let mut ticker: Value = self.watch_multiple_wrapper(Value::Bool(true), Value::Str("tickers".to_string()), Value::Str("watchTickers".to_string()), &[symbols.clone(), params.clone()]).await;
         if is_true(&self.newUpdates) {
@@ -795,7 +795,7 @@ impl BlofinCore {
 }));
         let mut symbolsLength: Value = Value::Int(symbolsAndTimeframes.len() as i64);
         if (symbolsLength.as_f64() == Some(0.0)) || !is_true(&Value::Bool(is_array(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)))) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -880,7 +880,7 @@ impl BlofinCore {
         let mut marketType: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("watchBalance".to_string()), &[Value::Null, params.clone()]); marketType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (marketType.as_str() == Some("spot")) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchBalance() is not supported for spot markets yet".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchBalance() is not supported for spot markets yet".to_string()))));
         }
         let mut messageHash: Value = Value::Str(format!("{}{}", marketType, Value::Str(":balance".to_string())));
         let mut sub: Value = Value::Map({
@@ -1183,7 +1183,7 @@ impl BlofinCore {
         let mut marketType: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(callerMethodName.clone(), &[firstMarket.clone(), params.clone()]); marketType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (marketType.as_str() != Some("swap")) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), callerMethodName)), Value::Str("() does not support ".to_string()))), marketType)), Value::Str(" markets yet".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), callerMethodName)), Value::Str("() does not support ".to_string()))), marketType)), Value::Str(" markets yet".to_string()))));
         }
         let mut rawSubscriptions: Value = Value::List(vec![]);
         let mut messageHashes: Value = Value::List(vec![]);
@@ -1296,7 +1296,7 @@ impl BlofinCore {
                 future.resolve(&[Value::Bool(true)]);
                 return;
             }  else if (event.as_str() == Some("error")) {
-                panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" error: ".to_string()))), self.json(message.clone())))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" error: ".to_string()))), self.json(message.clone()))));
             }
             let mut arg: Value = self.safe_dict_k(message.clone(), "arg", &[]);
             let mut channelName: Value = self.safe_string_k(arg.clone(), "channel", &[]);

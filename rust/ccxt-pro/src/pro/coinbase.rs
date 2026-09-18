@@ -384,7 +384,7 @@ impl CoinbaseCore {
             self.load_markets(&[]).await;
         }
         if is_true(&self.safe_bool_k(self.options.clone(), "unSubscriptionPending", &[Value::Bool(false)])) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" another unSubscription is pending, coinbase does not support concurrent unSubscriptions".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" another unSubscription is pending, coinbase does not support concurrent unSubscriptions".to_string()))));
         }
         add_element_to_object(&mut self.options, &Value::Str("unSubscriptionPending".to_string()), Value::Bool(true));
         let mut market: Value = Value::Null;
@@ -509,7 +509,7 @@ impl CoinbaseCore {
     m
 }));
         if is_true(&self.safe_bool_k(self.options.clone(), "unSubscriptionPending", &[Value::Bool(false)])) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" another unSubscription is pending, coinbase does not support concurrent unSubscriptions".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" another unSubscription is pending, coinbase does not support concurrent unSubscriptions".to_string()))));
         }
         add_element_to_object(&mut self.options, &Value::Str("unSubscriptionPending".to_string()), Value::Bool(true));
         if (self.markets.clone() == Value::Null) {
@@ -577,7 +577,7 @@ impl CoinbaseCore {
             add_element_to_object(&mut subscribe, &Value::Str("signature".to_string()), self.hmac(self.encode(auth.clone()), self.encode(self.secret.clone()), Value::Str("sha256".to_string()), &[]));
         }  else {
             if is_true(&Value::Bool(starts_with(&self.apiKey, &Value::Str("-----BEGIN".to_string())))) {
-                panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" apiKey should contain the name (eg: organizations/3b910e93....) and not the public key".to_string())))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" apiKey should contain the name (eg: organizations/3b910e93....) and not the public key".to_string()))));
             }
             let mut currentToken: Value = self.safe_string_k(self.options.clone(), "wsToken", &[]);
             let mut tokenTimestamp: Value = self.safe_integer_k(self.options.clone(), "wsTokenTimestamp", &[Value::Int(0)]);

@@ -900,7 +900,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchTickers".to_string()), Value::Str("uta".to_string()), &[uta.clone()]); uta = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut isFuturesMethod: Value = Value::Bool(is_true(&(Value::Bool(marketType.as_str() != Some("spot")))) && is_true(&(Value::Bool(marketType.as_str() != Some("margin")))));
         if (is_true(&isFuturesMethod) || is_true(&uta)) && (symbols == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchTickers() requires a list of symbols for ".to_string()))), marketType)), Value::Str(" markets and unified trading account (uta)".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchTickers() requires a list of symbols for ".to_string()))), marketType)), Value::Str(" markets and unified trading account (uta)".to_string()))));
         }
         let mut messageHash: Value = Value::Str("tickers".to_string());
         let mut method: Value = Value::Str("/market/ticker".to_string());
@@ -1297,7 +1297,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(false)]);
         let mut length: Value = Value::Int(symbols.len() as i64);
         if length.as_f64().unwrap_or(f64::NAN) > Value::Int(100).as_f64().unwrap_or(f64::NAN) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), &methodName), Value::Str("() accepts a maximum of 100 symbols".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), &methodName), Value::Str("() accepts a maximum of 100 symbols".to_string()))));
         }
         let mut messageHashes: Value = Value::List(vec![]);
         {
@@ -1729,7 +1729,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         let mut symbolsLength: Value = Value::Int(symbols.len() as i64);
         if (symbolsLength.as_f64() == Some(0.0)) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchTradesForSymbols() requires a non-empty array of symbols".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchTradesForSymbols() requires a non-empty array of symbols".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -2149,11 +2149,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         let mut symbolsLength: Value = Value::Int(symbols.len() as i64);
         if (symbolsLength.as_f64() == Some(0.0)) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBookForSymbols() requires a non-empty array of symbols".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBookForSymbols() requires a non-empty array of symbols".to_string()))));
         }
         if (limit != Value::Null) {
             if is_true(&(Value::Bool(limit.as_f64() != Some(20.0)))) && is_true(&(Value::Bool(limit.as_f64() != Some(100.0)))) && is_true(&(Value::Bool(limit.as_f64() != Some(50.0)))) && is_true(&(Value::Bool(limit.as_f64() != Some(5.0)))) {
-                panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook 'limit' argument must be undefined, 5, 20, 50 or 100".to_string())))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook 'limit' argument must be undefined, 5, 20, 50 or 100".to_string()))));
             }
         }
         if (self.markets.clone() == Value::Null) {
@@ -3658,7 +3658,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchPosition() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchPosition() requires a symbol argument".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;

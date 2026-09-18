@@ -1234,7 +1234,7 @@ impl CexCore {
         let mut dataType: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOHLCV".to_string()), Value::Str("dataType".to_string()), &[]); dataType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (dataType == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV requires a parameter \"dataType\" to be either \"bestBid\" or \"bestAsk\"".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV requires a parameter \"dataType\" to be either \"bestBid\" or \"bestAsk\"".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -1259,9 +1259,9 @@ impl CexCore {
             add_element_to_object(&mut request, &Value::Str("toISO".to_string()), self.iso8601(self.milliseconds()));
         }
         if (since != Value::Null) && (until != Value::Null) && (limit != Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV does not support fetching candles with both a limit and since/until".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV does not support fetching candles with both a limit and since/until".to_string()))));
         }  else if is_true(&(Value::Bool((since != Value::Null) || (until != Value::Null)))) && (limit == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV requires a limit parameter when fetching candles with since or until".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV requires a limit parameter when fetching candles with since or until".to_string()))));
         }
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
@@ -1896,14 +1896,14 @@ impl CexCore {
         let mut accountId: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".to_string()), Value::Str("accountId".to_string()), &[]); accountId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (accountId == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() : API trading is now allowed from main account, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() : API trading is now allowed from main account, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
         if (side == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a side argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a side argument".to_string()))));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2500,7 +2500,7 @@ impl CexCore {
         let mut accountId: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".to_string()), Value::Str("accountId".to_string()), &[]); accountId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (accountId == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -2613,12 +2613,12 @@ impl CexCore {
         // and because of `.parseJson` bug, we need extra fix
         if (response == Value::Null) {
             if (body == Value::Null) {
-                panic!("{}", crate::exchange_errors::null_response(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" returned empty response".to_string())))));
+                panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), Value::Str(" returned empty response".to_string()))));
             }  else if (get_value(&body, &Value::Int(0)).as_str() == Some("{")) {
                 let mut fixed: Value = self.fix_stringified_json_members(body.clone());
                 response = self.parse_json_value(fixed.clone());
             }  else {
-                panic!("{}", crate::exchange_errors::null_response(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" returned unparsed response: ".to_string()))), body))));
+                panic!("{}", crate::exchange_errors::null_response(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" returned unparsed response: ".to_string()))), body)));
             }
         }
         let mut error: Value = self.safe_string_k(response.clone(), "error", &[]);
@@ -2637,7 +2637,7 @@ impl CexCore {
             let mut rejectReason: Value = self.safe_string_k(data.clone(), "rejectReason", &[]);
             if (rejectReason != Value::Null) {
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), rejectReason.clone(), rejectReason.clone());
-                panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() ".to_string()))), rejectReason))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() ".to_string()))), rejectReason)));
             }
         }
         return Value::Null;

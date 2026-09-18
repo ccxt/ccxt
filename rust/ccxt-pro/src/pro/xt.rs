@@ -412,7 +412,7 @@ impl XtCore {
                     listenKey = self.safe_string_k(result.clone(), "accessToken", &[]);
                 }
                 if (listenKey == Value::Null) {
-                    panic!("{}", crate::exchange_errors::authentication_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" getListenKey() received an empty listen key".to_string())))));
+                    panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" getListenKey() received an empty listen key".to_string()))));
                 }
                 add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &Value::Str("token".to_string()), listenKey.clone());
                 client.resolve(&[listenKey.clone(), messageHash.clone()]);
@@ -750,7 +750,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut defaultMethod: Value = self.safe_string_k(options.clone(), "method", &[Value::Str("tickers".to_string())]);
         let mut name: Value = self.safe_string_k(params.clone(), "method", &[defaultMethod.clone()]);
         if (symbols != Value::Null) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only".to_string()))));
         }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe::".to_string()), name));
         let mut tickers: Value = self.un_subscribe(messageHash.clone(), name.clone(), Value::Str("public".to_string()), Value::Str("unWatchTickers".to_string()), Value::Str("ticker".to_string()), &[Value::Null, symbols.clone(), params.clone()]).await;
@@ -1117,7 +1117,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut market: Value = self.market(symbol.clone());
         if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchFundingRate() supports swap contracts only".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchFundingRate() supports swap contracts only".to_string()))));
         }
         let mut name: Value = add(&Value::Str("fund_rate@".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         return self.subscribe(name.clone(), Value::Str("public".to_string()), Value::Str("watchFundingRate".to_string()), &[market.clone(), Value::Null, params.clone()]).await;
@@ -1144,7 +1144,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut market: Value = self.market(symbol.clone());
         if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" unWatchFundingRate() supports swap contracts only".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" unWatchFundingRate() supports swap contracts only".to_string()))));
         }
         let mut name: Value = add(&Value::Str("fund_rate@".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe::".to_string()), name));

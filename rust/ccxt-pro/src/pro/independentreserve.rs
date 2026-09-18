@@ -510,7 +510,7 @@ impl IndependentreserveCore {
             let mut calculatedChecksum: Value = self.crc32(&[payload.clone(), Value::Bool(false)]);
             let mut responseChecksum: Value = self.safe_integer_k(orderBook.clone(), "Crc32", &[]);
             if (calculatedChecksum.as_f64() != responseChecksum.as_f64()) {
-                let mut error = Value::from(crate::exchange_errors::checksum_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.orderbook_checksum_message(symbol.clone())))));
+                let mut error = Value::from(crate::exchange_errors::checksum_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.orderbook_checksum_message(symbol.clone()))));
                 remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash);
                 remove(&mut self.orderbooks, &symbol);
                 client.reject(&[Value::from(error.clone()), messageHash.clone()]);
@@ -579,6 +579,6 @@ impl IndependentreserveCore {
             self.dispatch_ws_handler(&handler, &[client.clone(), message.clone()]);
             return;
         }
-        panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" received an unsupported message: ".to_string()))), self.json(message.clone())))));
+        panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" received an unsupported message: ".to_string()))), self.json(message.clone()))));
 }
 }

@@ -1802,7 +1802,7 @@ impl CoinbaseexchangeCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() requires a symbol argument".to_string()))));
         }
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchMyTrades".to_string()), Value::Str("paginate".to_string()), &[]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
@@ -2533,7 +2533,7 @@ impl CoinbaseexchangeCore {
             response = self.private_post_withdrawals_crypto(&[__ws_arg_24]).await;
         }
         if (response == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() error: ".to_string()))), self.json(response.clone())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() error: ".to_string()))), self.json(response.clone()))));
         }
         return self.parse_transaction(response.clone(), &[currency.clone()]);
 
@@ -2658,7 +2658,7 @@ impl CoinbaseexchangeCore {
 }));
         // https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccountledger
         if (code == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLedger() requires a code param".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchLedger() requires a code param".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -2668,7 +2668,7 @@ impl CoinbaseexchangeCore {
         let mut accountsByCurrencyCode: Value = self.index_by(self.accounts.clone(), Value::Str("code".to_string()));
         let mut account: Value = self.safe_value(accountsByCurrencyCode.clone(), code.clone(), &[]);
         if (account == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLedger() could not find account id for ".to_string()))), code))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLedger() could not find account id for ".to_string()))), code)));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2734,7 +2734,7 @@ impl CoinbaseexchangeCore {
                 let mut accountsByCurrencyCode: Value = self.index_by(self.accounts.clone(), Value::Str("code".to_string()));
                 let mut account: Value = self.safe_value(accountsByCurrencyCode.clone(), code.clone(), &[]);
                 if (account == Value::Null) {
-                    panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositsWithdrawals() could not find account id for ".to_string()))), code))));
+                    panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositsWithdrawals() could not find account id for ".to_string()))), code)));
                 }
                 id = crate::value::get_value_k(&account, "id");
             }
@@ -3031,7 +3031,7 @@ impl CoinbaseexchangeCore {
         let mut currencyId: Value = currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
         let mut account: Value = self.safe_value(self.options.as_map().and_then(|__m| __m.get("coinbaseAccountsByCurrencyId")).cloned().unwrap_or(Value::Null), currencyId.clone(), &[]);
         if (account == Value::Null) {
-            panic!("{}", crate::exchange_errors::invalid_address(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createDepositAddress() could not find currency code ".to_string()))), code)), Value::Str(" with id = ".to_string()))), currencyId)), Value::Str(" in this.options['coinbaseAccountsByCurrencyId']".to_string())))));
+            panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createDepositAddress() could not find currency code ".to_string()))), code)), Value::Str(" with id = ".to_string()))), currencyId)), Value::Str(" in this.options['coinbaseAccountsByCurrencyId']".to_string()))));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3088,7 +3088,7 @@ impl CoinbaseexchangeCore {
                 secret = self.base64_to_binary(self.secret.clone(), &[]);
              #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-                panic!("{}", crate::exchange_errors::authentication_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" sign() invalid base64 secret".to_string())))));
+                panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" sign() invalid base64 secret".to_string()))));
             }
             let mut signature: Value = self.hmac(self.encode(what.clone()), secret.clone(), Value::Str("sha256".to_string()), &[Value::Str("base64".to_string())]);
             headers = Value::Map({
@@ -3122,7 +3122,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.clone(), feedback.clone());
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body)));
         }
         return Value::Null;
 
@@ -3145,7 +3145,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut response: Value = self.fetch2(path.clone(), &[api.clone(), method.clone(), params.clone(), headers.clone(), body.clone(), config.clone()]).await;
         if !is_string(&response) {
             if is_true(&Value::Bool(in_op(&response, &Value::Str("message".to_string())))) {
-                panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(response.clone())))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(response.clone()))));
             }
         }
         return response;

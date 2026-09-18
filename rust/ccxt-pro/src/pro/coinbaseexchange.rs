@@ -435,11 +435,11 @@ impl CoinbaseexchangeCore {
             self.load_markets(&[]).await;
         }
         if (symbols == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchTickers() symbols is required".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchTickers() symbols is required".to_string()))));
         }
         let mut symbolsLength: Value = Value::Int(symbols.len() as i64);
         if (symbolsLength.as_f64() == Some(0.0)) {
-            panic!("{}", crate::exchange_errors::bad_symbol(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchTickers requires a non-empty symbols array".to_string())))));
+            panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" watchTickers requires a non-empty symbols array".to_string()))));
         }
         let mut channel: Value = Value::Str("ticker".to_string());
         let mut messageHash: Value = Value::Str("ticker".to_string());
@@ -507,7 +507,7 @@ impl CoinbaseexchangeCore {
 }));
         let mut symbolsLength: Value = Value::Int(symbols.len() as i64);
         if (symbolsLength.as_f64() == Some(0.0)) {
-            panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchTradesForSymbols() requires a non-empty array of symbols".to_string())))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" watchTradesForSymbols() requires a non-empty array of symbols".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -544,7 +544,7 @@ impl CoinbaseexchangeCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchMyTrades() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchMyTrades() requires a symbol argument".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -654,7 +654,7 @@ impl CoinbaseexchangeCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::bad_symbol(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchMyTrades requires a symbol".to_string())))));
+            panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" watchMyTrades requires a symbol".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -690,7 +690,7 @@ impl CoinbaseexchangeCore {
 }));
         let mut symbolsLength: Value = Value::Int(symbols.len() as i64);
         if (symbolsLength.as_f64() == Some(0.0)) {
-            panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBookForSymbols() requires a non-empty array of symbols".to_string())))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBookForSymbols() requires a non-empty array of symbols".to_string()))));
         }
         let mut name: Value = Value::Str("level2".to_string());
         if (self.markets.clone() == Value::Null) {

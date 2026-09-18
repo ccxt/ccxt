@@ -326,7 +326,7 @@ impl LbankCore {
         // the spot ws rejects futures ids and lbank's contract ws protocol is not published,
         // see https://github.com/ccxt/ccxt/issues/26864
         if is_true(&(Value::Bool(market != Value::Null))) && is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)))) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), methodName)), Value::Str("() does not support ".to_string()))), market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null))), Value::Str(" markets yet".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), methodName)), Value::Str("() does not support ".to_string()))), market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null))), Value::Str(" markets yet".to_string()))));
         }
 }
 
@@ -1324,7 +1324,7 @@ impl LbankCore {
         //    }
         //
         let mut errMsg: Value = self.safe_string_k(message.clone(), "message", &[Value::Str("".to_string())]);
-        let mut error = Value::from(crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), errMsg))));
+        let mut error = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), errMsg)));
         client.reject(&[Value::from(error.clone())]);
 }
 
@@ -1409,7 +1409,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 //
                 let mut result: Value = self.safe_value_k(response.clone(), "result", &[]);
                 if !is_equal(&result, &Value::Bool(true)) {
-                    panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" failed to get subscribe key".to_string())))));
+                    panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" failed to get subscribe key".to_string()))));
                 }
                 add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &Value::Str("authenticated".to_string()), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1432,7 +1432,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     //
                     let mut result: Value = self.safe_string_k(response.clone(), "result", &[]);
                     if (result.as_str() != Some("true")) {
-                        panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" failed to refresh the SubscribeKey".to_string())))));
+                        panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" failed to refresh the SubscribeKey".to_string()))));
                     }
                     add_element_to_object(get_value_mut(get_value_mut(&mut client, &Value::Str("subscriptions".to_string())), &Value::Str("authenticated".to_string())), &Value::Str("expires".to_string()), self.sum(&[now.clone(), Value::Int(3300000)])); // SubscribeKey lasts one hour, refresh it 5 minutes before it expires
                 }

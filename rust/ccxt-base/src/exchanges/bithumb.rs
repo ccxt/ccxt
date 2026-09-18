@@ -1978,7 +1978,7 @@ impl BithumbCore {
             }  else {
                 let mut timeframeInteger: Value = self.safe_integer(self.timeframes.clone(), timeframe.clone(), &[]);
                 if (timeframeInteger == Value::Null) {
-                    panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() unsupported timeframe ".to_string()))), timeframe))));
+                    panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() unsupported timeframe ".to_string()))), timeframe)));
                 }
                 add_element_to_object(&mut request, &Value::Str("unit".to_string()), timeframeInteger.clone());
                 let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
@@ -2289,11 +2289,11 @@ impl BithumbCore {
         let mut generation: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrders".to_string()), Value::Str("generation".to_string()), &[Value::Int(2)]); generation = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (generation.as_f64() != Some(2.0)) {
-            panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrders is only supported for the generation 2 API".to_string())))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrders is only supported for the generation 2 API".to_string()))));
         }
         let mut ordersCount: Value = Value::Int(orders.len() as i64);
         if (ordersCount.as_f64() == Some(0.0)) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrders() requires a non-empty orders array".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrders() requires a non-empty orders array".to_string()))));
         }
         let mut ordersRequests: Value = Value::List(vec![]);
         let mut orderSymbols: Value = Value::List(vec![]);
@@ -2305,16 +2305,16 @@ impl BithumbCore {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut symbol: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
             if (symbol == Value::Null) {
-                panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrders() requires each order to have a symbol".to_string())))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrders() requires each order to have a symbol".to_string()))));
             }
             append_to_array(&mut orderSymbols, symbol.clone());
             let mut type_var: Value = self.safe_string_k(rawOrder.clone(), "type", &[]);
             if (type_var == Value::Null) {
-                panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrders() requires each order to have a type".to_string())))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrders() requires each order to have a type".to_string()))));
             }
             let mut side: Value = self.safe_string_k(rawOrder.clone(), "side", &[]);
             if (side == Value::Null) {
-                panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrders() requires each order to have a side".to_string())))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrders() requires each order to have a side".to_string()))));
             }
             let mut amount: Value = self.safe_value_k(rawOrder.clone(), "amount", &[]);
             let mut price: Value = self.safe_value_k(rawOrder.clone(), "price", &[]);
@@ -2420,7 +2420,7 @@ impl BithumbCore {
                 { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".to_string()), Value::Str("createMarketBuyOrderRequiresPrice".to_string()), &[Value::Bool(true)]); createMarketBuyOrderRequiresPrice = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
                 if is_true(&createMarketBuyOrderRequiresPrice) {
                     if is_true(&(Value::Bool(price == Value::Null))) && is_true(&(Value::Bool(cost == Value::Null))) {
-                        panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument".to_string())))));
+                        panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument".to_string()))));
                     }  else {
                         let mut amountString: Value = self.number_to_string(amount.clone());
                         let mut priceString: Value = self.number_to_string(price.clone());
@@ -2513,7 +2513,7 @@ impl BithumbCore {
         }
         let mut id: Value = self.safe_string_k(response.clone(), "order_id", &[]);
         if (id == Value::Null) {
-            panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() did not return an order id".to_string())))));
+            panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() did not return an order id".to_string()))));
         }
         let __ws_arg_21 = self.parse_order(response.clone(), &[market.clone()]);
         return self.extend(__ws_arg_21, &[Value::Map({
@@ -2551,7 +2551,7 @@ impl BithumbCore {
         let mut generation: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createMarketBuyOrderWithCost".to_string()), Value::Str("generation".to_string()), &[Value::Int(2)]); generation = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (generation.as_f64() != Some(2.0)) {
-            panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createMarketBuyOrderWithCost() is only supported for the generation 2 API".to_string())))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createMarketBuyOrderWithCost() is only supported for the generation 2 API".to_string()))));
         }
         add_element_to_object(&mut params, &Value::Str("createMarketBuyOrderRequiresPrice".to_string()), Value::Bool(false));
         return self.create_order(symbol.clone(), Value::Str("market".to_string()), Value::Str("buy".to_string()), cost.clone(), &[Value::Null, params.clone()]).await;
@@ -2585,7 +2585,7 @@ impl BithumbCore {
         let mut generation: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createTwapOrder".to_string()), Value::Str("generation".to_string()), &[Value::Int(2)]); generation = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (generation.as_f64() != Some(2.0)) {
-            panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createTwapOrder() is only supported for the generation 2 API".to_string())))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createTwapOrder() is only supported for the generation 2 API".to_string()))));
         }
         let mut market: Value = self.market(symbol.clone());
         let mut durationString: Value = self.number_to_string(duration.clone());
@@ -2725,13 +2725,13 @@ impl BithumbCore {
             }
         }  else {
             if (symbol == Value::Null) {
-                panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() requires a symbol argument".to_string())))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() requires a symbol argument".to_string()))));
             }
             let mut marketDefined: Value = market.clone();
             let mut base: Value = self.safe_string_k(marketDefined.clone(), "base", &[]);
             let mut quote: Value = self.safe_string_k(marketDefined.clone(), "quote", &[]);
             if is_true(&(Value::Bool(base == Value::Null))) || is_true(&(Value::Bool(quote == Value::Null))) {
-                panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() requires a market with defined base and quote".to_string())))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() requires a market with defined base and quote".to_string()))));
             }
             add_element_to_object(&mut request, &Value::Str("order_id".to_string()), id.clone());
             add_element_to_object(&mut request, &Value::Str("order_currency".to_string()), base.clone());
@@ -3070,7 +3070,7 @@ impl BithumbCore {
             return self.filter_by_since_limit(orders.clone(), &[since.clone(), limit.clone()]);
         }  else {
             if (symbol == Value::Null) {
-                panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrders() requires a symbol argument".to_string())))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrders() requires a symbol argument".to_string()))));
             }
             market = self.market(symbol.clone());
             if (since != Value::Null) {
@@ -3121,7 +3121,7 @@ impl BithumbCore {
         let mut generation: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOrders".to_string()), Value::Str("generation".to_string()), &[Value::Int(2)]); generation = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (generation.as_f64() != Some(2.0)) {
-            panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrders is only supported for the generation 2 API".to_string())))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchOrders is only supported for the generation 2 API".to_string()))));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3325,17 +3325,17 @@ impl BithumbCore {
             }
         }  else {
             if (symbol == Value::Null) {
-                panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".to_string())))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".to_string()))));
             }
             let mut marketDefined: Value = market.clone();
             let mut base: Value = self.safe_string_k(marketDefined.clone(), "base", &[]);
             let mut quote: Value = self.safe_string_k(marketDefined.clone(), "quote", &[]);
             if is_true(&(Value::Bool(base == Value::Null))) || is_true(&(Value::Bool(quote == Value::Null))) {
-                panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a market with defined base and quote".to_string())))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a market with defined base and quote".to_string()))));
             }
             let mut side_in_params: bool = in_op(&params, &Value::Str("side".to_string()));
             if !side_in_params {
-                panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a `side` parameter (sell or buy)".to_string())))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a `side` parameter (sell or buy)".to_string()))));
             }
             let mut side: Value = Value::Null;
             if (params.as_map().and_then(|__m| __m.get("side")).cloned().unwrap_or(Value::Null).as_str() == Some("buy")) {
@@ -3385,7 +3385,7 @@ impl BithumbCore {
         let mut generation: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("cancelOrders".to_string()), Value::Str("generation".to_string()), &[Value::Int(2)]); generation = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (generation.as_f64() != Some(2.0)) {
-            panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders is only supported for the generation 2 API".to_string())))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders is only supported for the generation 2 API".to_string()))));
         }
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
@@ -3489,7 +3489,7 @@ impl BithumbCore {
             let mut destination: Value = self.safe_string2(params.clone(), Value::Str("destination".to_string()), Value::Str("secondary_address".to_string()), &[]);
             params = self.omit(params.clone(), Value::List(vec![Value::Str("destination".to_string()), Value::Str("secondary_address".to_string())]), &[]);
             if is_true(&(Value::Bool(tag == Value::Null))) && is_true(&(Value::Bool(destination == Value::Null))) {
-                panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), code)), Value::Str(" withdraw() requires a tag argument or an extra destination param".to_string())))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), code)), Value::Str(" withdraw() requires a tag argument or an extra destination param".to_string()))));
             }  else if (tag != Value::Null) {
                 destinationRequest = tag.clone();
             }  else {
@@ -3502,7 +3502,7 @@ impl BithumbCore {
             if (code.as_str() == Some("KRW")) {
                 let mut twoFactorType: Value = self.safe_string_k(params.clone(), "two_factor_type", &[]);
                 if (twoFactorType == Value::Null) {
-                    panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), code)), Value::Str(" withdraw() requires a two_factor_type parameter for withdrawing KRW".to_string())))));
+                    panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), code)), Value::Str(" withdraw() requires a two_factor_type parameter for withdrawing KRW".to_string()))));
                 }
                 let mut krwRequest: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -3513,7 +3513,7 @@ impl BithumbCore {
                 response = self.private_post_v1_withdraws_krw(&[__ws_arg_35]).await;
             }  else {
                 if (network == Value::Null) {
-                    panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), code)), Value::Str(" withdraw() requires a network parameter".to_string())))));
+                    panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), code)), Value::Str(" withdraw() requires a network parameter".to_string()))));
                 }
                 add_element_to_object(&mut request, &Value::Str("address".to_string()), address.clone());
                 add_element_to_object(&mut request, &Value::Str("currency".to_string()), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -3683,7 +3683,7 @@ impl BithumbCore {
         let mut generation: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchWithdrawalWhitelist".to_string()), Value::Str("generation".to_string()), &[Value::Int(2)]); generation = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (generation.as_f64() != Some(2.0)) {
-            panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchWithdrawalWhitelist() is only supported for the generation 2 API".to_string())))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchWithdrawalWhitelist() is only supported for the generation 2 API".to_string()))));
         }
         let mut response: Value = self.private_get_v1_withdraws_coin_addresses(&[params.clone()]).await;
         return response;
@@ -3715,10 +3715,10 @@ impl BithumbCore {
         let mut generation: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchWithdrawal".to_string()), Value::Str("generation".to_string()), &[Value::Int(2)]); generation = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (generation.as_f64() != Some(2.0)) {
-            panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchWithdrawal() is only supported for the generation 2 API".to_string())))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchWithdrawal() is only supported for the generation 2 API".to_string()))));
         }
         if (code == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchWithdrawal() requires a code argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchWithdrawal() requires a code argument".to_string()))));
         }
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
@@ -3768,7 +3768,7 @@ impl BithumbCore {
         let mut generation: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchWithdrawals".to_string()), Value::Str("generation".to_string()), &[Value::Int(2)]); generation = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (generation.as_f64() != Some(2.0)) {
-            panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchWithdrawals() is only supported for the generation 2 API".to_string())))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchWithdrawals() is only supported for the generation 2 API".to_string()))));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3820,10 +3820,10 @@ impl BithumbCore {
         let mut generation: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchDeposit".to_string()), Value::Str("generation".to_string()), &[Value::Int(2)]); generation = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (generation.as_f64() != Some(2.0)) {
-            panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDeposit() is only supported for the generation 2 API".to_string())))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchDeposit() is only supported for the generation 2 API".to_string()))));
         }
         if (code == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDeposit() requires a code argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchDeposit() requires a code argument".to_string()))));
         }
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
@@ -3873,7 +3873,7 @@ impl BithumbCore {
         let mut generation: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchDeposits".to_string()), Value::Str("generation".to_string()), &[Value::Int(2)]); generation = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (generation.as_f64() != Some(2.0)) {
-            panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDeposits() is only supported for the generation 2 API".to_string())))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchDeposits() is only supported for the generation 2 API".to_string()))));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3923,7 +3923,7 @@ impl BithumbCore {
         let mut generation: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createDepositAddress".to_string()), Value::Str("generation".to_string()), &[Value::Int(2)]); generation = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (generation.as_f64() != Some(2.0)) {
-            panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createDepositAddress() is only supported for the generation 2 API".to_string())))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createDepositAddress() is only supported for the generation 2 API".to_string()))));
         }
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
@@ -3934,7 +3934,7 @@ impl BithumbCore {
         let mut network: Value = self.safe_string2(params.clone(), Value::Str("network".to_string()), Value::Str("net_type".to_string()), &[]);
         params = self.omit(params.clone(), Value::Str("network".to_string()), &[]);
         if (network == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), code)), Value::Str(" createDepositAddress() requires a network parameter".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), code)), Value::Str(" createDepositAddress() requires a network parameter".to_string()))));
         }
         add_element_to_object(&mut request, &Value::Str("net_type".to_string()), network.clone());
         let __ws_arg_44 = self.extend(request.clone(), &[params.clone()]);
@@ -3966,7 +3966,7 @@ impl BithumbCore {
         let mut generation: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchDepositAddress".to_string()), Value::Str("generation".to_string()), &[Value::Int(2)]); generation = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (generation.as_f64() != Some(2.0)) {
-            panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() is only supported for the generation 2 API".to_string())))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() is only supported for the generation 2 API".to_string()))));
         }
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
@@ -3977,7 +3977,7 @@ impl BithumbCore {
         let mut network: Value = self.safe_string2(params.clone(), Value::Str("network".to_string()), Value::Str("net_type".to_string()), &[]);
         params = self.omit(params.clone(), Value::Str("network".to_string()), &[]);
         if (network == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), code)), Value::Str(" fetchDepositAddress() requires a network parameter".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), code)), Value::Str(" fetchDepositAddress() requires a network parameter".to_string()))));
         }
         add_element_to_object(&mut request, &Value::Str("net_type".to_string()), network.clone());
         let __ws_arg_45 = self.extend(request.clone(), &[params.clone()]);
@@ -4009,7 +4009,7 @@ impl BithumbCore {
         let mut generation: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchDepositAddresses".to_string()), Value::Str("generation".to_string()), &[Value::Int(2)]); generation = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (generation.as_f64() != Some(2.0)) {
-            panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddresses() is only supported for the generation 2 API".to_string())))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddresses() is only supported for the generation 2 API".to_string()))));
         }
         let mut response: Value = self.private_get_v1_deposits_coin_addresses(&[params.clone()]).await;
         return self.parse_deposit_addresses(response.clone(), &[codes.clone(), Value::Bool(false), Value::Map({
@@ -4036,7 +4036,7 @@ impl BithumbCore {
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
         let mut address: Value = self.safe_string_k(response.clone(), "deposit_address", &[]);
         if (address == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" parseDepositAddress() could not find deposit_address".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseDepositAddress() could not find deposit_address".to_string()))));
         }
         self.check_address(&[address.clone()]);
         return Value::Map({

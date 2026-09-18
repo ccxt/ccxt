@@ -446,7 +446,7 @@ impl GrvtCore {
     m
 }));
         if (symbols == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchTickers requires a symbols argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchTickers requires a symbols argument".to_string()))));
         }
         let mut channel: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchTickers".to_string()), Value::Str("channel".to_string()), &[Value::Str("v1.ticker.s".to_string())]); channel = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
@@ -913,7 +913,7 @@ impl GrvtCore {
         let mut isSnapshot: bool = channel.as_str() == Some("v1.book.s");
         let mut symbolsLength: Value = Value::Int(symbols.len() as i64);
         if (symbolsLength.as_f64() == Some(0.0)) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBookForSymbols() requires a non-empty array of symbols".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBookForSymbols() requires a non-empty array of symbols".to_string()))));
         }
         if (limit == Value::Null) {
             { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchOrderBook".to_string()), Value::Str("limit".to_string()), &[Value::Int(100)]); limit = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
@@ -1035,7 +1035,7 @@ impl GrvtCore {
             let mut accountId: Value = self.safe_string_k(self.options.clone(), "AuthAccountId", &[]);
             let mut cookieValue: Value = self.safe_string_k(self.options.clone(), "AuthCookieValue", &[]);
             if (cookieValue == Value::Null) || (accountId == Value::Null) {
-                panic!("{}", crate::exchange_errors::authentication_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" : at first, you need to authenticate with exchange using signIn() method.".to_string())))));
+                panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" : at first, you need to authenticate with exchange using signIn() method.".to_string()))));
             }
             let mut defaultOptions: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1433,7 +1433,7 @@ impl GrvtCore {
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.clone(), feedback.clone());
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone(), feedback.clone());
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.clone(), feedback.clone());
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body)));
         }
         return Value::Bool(false);
 

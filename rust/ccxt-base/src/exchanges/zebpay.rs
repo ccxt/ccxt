@@ -772,7 +772,7 @@ impl ZebpayCore {
             }  else if (type_var.as_str() == Some("swap")) {
                 append_to_array(&mut promisesUnresolved, self.fetch_swap_markets(&[params.clone()]).await);
             }  else {
-                panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMarkets() this.options fetchMarkets \"".to_string()))), &type_var), Value::Str("\" is not a supported market type".to_string())))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMarkets() this.options fetchMarkets \"".to_string()))), &type_var), Value::Str("\" is not a supported market type".to_string()))));
             }
         }
         }
@@ -1196,7 +1196,7 @@ impl ZebpayCore {
         let mut type_var: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchTickers".to_string()), &[Value::Null, params.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (type_var.as_str() != Some("spot")) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers() does not support ".to_string()))), type_var)), Value::Str(" markets".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers() does not support ".to_string()))), type_var)), Value::Str(" markets".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -1284,7 +1284,7 @@ impl ZebpayCore {
         let mut response: Value = Value::Null;
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             if (until == Value::Null) || (since == Value::Null) {
-                panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() requires a both a since and until/endtime parameter for spot markets".to_string())))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() requires a both a since and until/endtime parameter for spot markets".to_string()))));
             }
             let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
             response = self.public_spot_get_v2_market_klines(&[__ws_arg_6]).await;
@@ -1416,7 +1416,7 @@ impl ZebpayCore {
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchMyTrades".to_string()), &[market.clone(), params.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut response: Value = Value::Null;
         if (type_var.as_str() == Some("spot")) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() does not support spot markets".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() does not support spot markets".to_string()))));
         }  else {
             response = self.private_swap_get_v1_trade_history(&[params.clone()]).await;
         }
@@ -1453,7 +1453,7 @@ impl ZebpayCore {
         let mut type_var: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchOrderTrades".to_string()), &[Value::Null, params.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (type_var.as_str() != Some("spot")) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderTrades() does not support ".to_string()))), type_var)), Value::Str(" markets".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderTrades() does not support ".to_string()))), type_var)), Value::Str(" markets".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -1621,7 +1621,7 @@ impl ZebpayCore {
         let mut stopLossPrice: Value = self.safe_string_k(params.clone(), "stopLossPrice", &[]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("marginAsset".to_string()), Value::Str("takeProfitPrice".to_string()), Value::Str("takeProfitPrice".to_string())]), &[]);
         if (side == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a side argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a side argument".to_string()))));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1655,7 +1655,7 @@ impl ZebpayCore {
                 add_element_to_object(&mut request, &Value::Str("type".to_string()), upperCaseType.clone());
                 if (type_var.as_str() == Some("limit")) {
                     if (price == Value::Null) {
-                        panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument for limit orders".to_string())))));
+                        panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument for limit orders".to_string()))));
                     }
                     add_element_to_object(&mut request, &Value::Str("price".to_string()), self.parse_to_numeric(self.price_to_precision(symbol.clone(), price.clone())));
                 }
@@ -1696,7 +1696,7 @@ impl ZebpayCore {
         add_element_to_object(&mut request, &Value::Str("timeInForce".to_string()), timeInForce.clone());
         if (upperCaseType.as_str() == Some("MARKET")) {
             if (quoteOrderQty == Value::Null) {
-                panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" spot market orders require cost in params".to_string())))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" spot market orders require cost in params".to_string()))));
             }
             add_element_to_object(&mut request, &Value::Str("quoteOrderAmount".to_string()), self.cost_to_precision(symbol.clone(), quoteOrderQty.clone()));
         }  else {
@@ -1745,7 +1745,7 @@ impl ZebpayCore {
         }  else {
             let mut clientOrderId: Value = self.safe_string_k(params.clone(), "clientOrderId", &[]);
             if (clientOrderId == Value::Null) {
-                panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a clientOrderId parameter for swap orders".to_string())))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a clientOrderId parameter for swap orders".to_string()))));
             }
             add_element_to_object(&mut request, &Value::Str("clientOrderId".to_string()), clientOrderId.clone());
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -1779,7 +1779,7 @@ impl ZebpayCore {
         let mut type_var: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("cancelAllOrders".to_string()), &[Value::Null, params.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (type_var.as_str() != Some("spot")) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders() does not support ".to_string()))), type_var)), Value::Str(" markets".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders() does not support ".to_string()))), type_var)), Value::Str(" markets".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -2131,7 +2131,7 @@ impl ZebpayCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() requires a symbol argument".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;

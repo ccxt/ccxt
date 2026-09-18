@@ -419,9 +419,9 @@ impl PacificaCore {
         let mut wsRequest: Value = self.wrap_as_post_action(operationType.clone(), request.clone());
         let mut requestId: Value = self.safe_string_k(wsRequest.clone(), "id", &[]);
         if (operationType.as_str() == Some("create_stop_order")) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrderWs() do not support stop order type of order. Check provided arguments correctly!".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrderWs() do not support stop order type of order. Check provided arguments correctly!".to_string()))));
         }  else if (operationType.as_str() == Some("set_position_tpsl")) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrderWs() do not support set position tpsl type of order. Check provided arguments correctly!".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrderWs() do not support set position tpsl type of order. Check provided arguments correctly!".to_string()))));
         }
         let mut response: Value = self.watch(url.clone(), requestId.clone(), &[wsRequest.clone(), requestId.clone()]).await;
         //
@@ -586,7 +586,7 @@ impl PacificaCore {
             self.load_markets(&[]).await;
         }
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str("cancelOrders() requires a \"symbol\" argument!".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str("cancelOrders() requires a \"symbol\" argument!".to_string()))));
         }
         let mut request: Value = self.parent.cancel_orders_request(ids.clone(), &[symbol.clone(), params.clone()]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("originAddress".to_string()), Value::Str("agentAddress".to_string()), Value::Str("expiryWindow".to_string()), Value::Str("clientOrderIds".to_string())]), &[]);
@@ -685,7 +685,7 @@ impl PacificaCore {
             self.load_markets(&[]).await;
         }
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrderWs() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrderWs() requires a symbol argument".to_string()))));
         }
         let mut request: Value = self.parent.cancel_order_request(id.clone(), &[symbol.clone(), params.clone()]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("originAddress".to_string()), Value::Str("agentAddress".to_string()), Value::Str("expiryWindow".to_string()), Value::Str("trigger".to_string()), Value::Str("stop".to_string()), Value::Str("clientOrderId".to_string())]), &[]);
@@ -1111,7 +1111,7 @@ impl PacificaCore {
             self.load_markets(&[]).await;
         }
         if (symbol != Value::Null) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" unWatchMyTrades does not support a symbol argument, unWatch from all markets only".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" unWatchMyTrades does not support a symbol argument, unWatch from all markets only".to_string()))));
         }
         let mut userAddress: Value = Value::Null;
         { let __destr_tmp = self.parent.handle_origin_and_single_address(Value::Str("unWatchMyTrades".to_string()), params.clone()); userAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
@@ -1704,7 +1704,7 @@ impl PacificaCore {
             self.load_markets(&[]).await;
         }
         if (symbol != Value::Null) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" unWatchOrders() does not support a symbol argument, unWatch from all markets only".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" unWatchOrders() does not support a symbol argument, unWatch from all markets only".to_string()))));
         }
         let mut messageHash: Value = Value::Str("unsubscribe:order".to_string());
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
@@ -2050,7 +2050,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub fn wrap_as_post_action(&self, mut operationType: Value, mut request: Value) -> Value {
         if (operationType == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str("postAction() requires a \"operationType\" argument!".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str("postAction() requires a \"operationType\" argument!".to_string()))));
         }
         let mut requestId: Value = self.request_id();
         let mut payload: Value = Value::Map({

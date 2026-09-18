@@ -386,7 +386,7 @@ impl ExtendedCore {
         if is_true(&(Value::Bool(previousNonce != Value::Null))) && is_true(&(Value::Bool(nonce.as_f64() != (match (&(previousNonce), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }).as_f64()))) {
             remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash);
             remove(&mut self.orderbooks, &symbol);
-            let mut error = Value::from(crate::exchange_errors::invalid_nonce(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook received invalid nonce".to_string())))));
+            let mut error = Value::from(crate::exchange_errors::invalid_nonce(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook received invalid nonce".to_string()))));
             client.reject(&[Value::from(error.clone()), messageHash.clone()]);
             return;
         }

@@ -1738,7 +1738,7 @@ impl LimitlessCore {
     m
 }));
         if (outcomes == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())".to_string()))));
         }
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1759,7 +1759,7 @@ impl LimitlessCore {
             let mut outcomeObj: Value = self.outcome(get_value(&outcomes, &i));
             let mut slug: Value = self.safe_string_k(crate::value::get_value_k(&outcomeObj, "info"), "slug", &[]);
             if (slug == Value::Null) {
-                panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers() missing slug".to_string())))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers() missing slug".to_string()))));
             }
             if !is_true(&(Value::Bool(in_op(&outcomesBySlug, &slug)))) {
                 if (slug != Value::Null) {
@@ -2100,7 +2100,7 @@ impl LimitlessCore {
 })]);
                     let mut title: Value = self.safe_string_upper(series.clone(), Value::Str("title".to_string()), &[Value::Str("".to_string())]);
                     if (title == Value::Null) {
-                        panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() missing title".to_string())))));
+                        panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() missing title".to_string()))));
                     }
                     if is_true(&(Value::Bool(outcomeLabel != Value::Null))) && is_true(&(get_index_of(&title, &outcomeLabel).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN))) {
                         selectedSeries = series.clone();
@@ -2160,7 +2160,7 @@ impl LimitlessCore {
             let mut pTs: Value = self.safe_integer_k(point.clone(), "timestamp", &[]);
             let mut pPrice: Value = self.safe_number_k(point.clone(), "price", &[]);
             if (pTs == Value::Null) {
-                panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" method() missing pTs".to_string())))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" method() missing pTs".to_string()))));
             }
             let mut bucket: Value = (match (&(self.parse_to_int((match ((pTs).as_f64(), (ms).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))), &(ms)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
             let mut key: Value = to_string_val(&bucket);
@@ -2213,7 +2213,7 @@ impl LimitlessCore {
     m
 }));
         if (outcome == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrders requires an outcome argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrders requires an outcome argument".to_string()))));
         }
         self.load_outcome(outcome.clone(), &[]).await;
         let mut outcomeObj: Value = self.outcome(outcome.clone());
@@ -2254,7 +2254,7 @@ impl LimitlessCore {
     m
 }));
         if (outcome == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrders requires an outcome argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrders requires an outcome argument".to_string()))));
         }
         self.load_outcome(outcome.clone(), &[]).await;
         params = self.extend(params.clone(), &[Value::Map({
@@ -2287,7 +2287,7 @@ impl LimitlessCore {
     m
 }));
         if (outcome == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchClosedOrders requires an outcome argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchClosedOrders requires an outcome argument".to_string()))));
         }
         self.load_outcome(outcome.clone(), &[]).await;
         params = self.extend(params.clone(), &[Value::Map({
@@ -2321,7 +2321,7 @@ impl LimitlessCore {
         }
         let mut length: Value = get_array_length(&ids);
         if is_greater_than(&length, &Value::Int(50)) {
-            panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrdersByIds can only fetch up to 50 orders at a time".to_string())))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchOrdersByIds can only fetch up to 50 orders at a time".to_string()))));
         }
         let mut items: Value = Value::List(vec![]);
         {
@@ -2483,7 +2483,7 @@ impl LimitlessCore {
         let mut orders: Value = self.fetch_orders_by_ids(Value::List(vec![id.clone()]), &[outcome.clone(), params.clone()]).await;
         let mut order: Value = self.safe_dict(orders.clone(), Value::Int(0), &[]);
         if (order == Value::Null) {
-            panic!("{}", crate::exchange_errors::order_not_found(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() could not find order ".to_string()))), id))));
+            panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() could not find order ".to_string()))), id)));
         }
         return order;
 
@@ -2840,7 +2840,7 @@ impl LimitlessCore {
             self.check_address(&[maker.clone()]);
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            panic!("{}", crate::exchange_errors::invalid_address(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder requires a valid maker address. Set the \"maker\" parameter to a valid address or set the \"walletAddress\" property in the constructor options.".to_string())))));
+            panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", self.id.clone(), Value::Str(" createOrder requires a valid maker address. Set the \"maker\" parameter to a valid address or set the \"walletAddress\" property in the constructor options.".to_string()))));
         }
         // when the profile trades through a smart wallet the order must be signed by the
         // linked embedded (owner) wallet, not by the smart wallet itself
@@ -2856,7 +2856,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.check_address(&[signer.clone()]);
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            panic!("{}", crate::exchange_errors::invalid_address(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder requires a valid signer address. Set the \"signer\" parameter to a valid address or set the \"walletAddress\" property in the constructor options.".to_string())))));
+            panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", self.id.clone(), Value::Str(" createOrder requires a valid signer address. Set the \"signer\" parameter to a valid address or set the \"walletAddress\" property in the constructor options.".to_string()))));
         }
         let mut taker: Value = self.safe_string_k(self.options.clone(), "nullAddress", &[Value::Str("0x0000000000000000000000000000000000000000".to_string())]);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".to_string()), Value::Str("taker".to_string()), &[taker.clone()]); taker = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
@@ -2864,7 +2864,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.check_address(&[taker.clone()]);
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            panic!("{}", crate::exchange_errors::invalid_address(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder requires a valid taker address. Set the \"taker\" parameter to a valid address or set the \"nullAddress\" property in the constructor options.".to_string())))));
+            panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", self.id.clone(), Value::Str(" createOrder requires a valid taker address. Set the \"taker\" parameter to a valid address or set the \"nullAddress\" property in the constructor options.".to_string()))));
         }
         let mut nonce: Value = self.milliseconds();
         let mut sides: Value = Value::Map({
@@ -2874,7 +2874,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (side == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a side argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a side argument".to_string()))));
         }
         let mut sideValue: Value = self.safe_integer(sides.clone(), to_lower(&side), &[]);
         let mut rank: Value = self.safe_dict_k(accountInfo.clone(), "rank", &[]);
@@ -2922,7 +2922,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             params = self.omit(params.clone(), Value::Str("cost".to_string()), &[]);
             if is_true(&createMarketBuyOrderRequiresPrice) {
                 if is_true(&(Value::Bool(price == Value::Null))) && is_true(&(Value::Bool(cost == Value::Null))) {
-                    panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument".to_string())))));
+                    panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument".to_string()))));
                 }  else {
                     let mut quoteAmount: Value = self.parse_to_numeric(crate::precise::Precise::stringMul(&amountString, &priceString));
                     let mut costRequest: Value = (if is_true(&(Value::Bool(cost != Value::Null))) { cost.clone() } else { quoteAmount.clone() });
@@ -2979,7 +2979,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn sign_order_request(&self, mut signRequest: Value, mut marketSymbol: Value) -> Value {
         self.check_required_credentials(&[]);
         if (self.privateKey.clone() == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a privateKey (the embedded/trading wallet key) to sign orders".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a privateKey (the embedded/trading wallet key) to sign orders".to_string()))));
         }
         let mut market: Value = self.market(marketSymbol.clone());
         let mut info: Value = self.safe_dict_k(market.clone(), "info", &[]);
@@ -3137,7 +3137,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         self.check_required_credentials(&[]);
         if (self.privateKey.clone() == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" approve() requires a privateKey to sign the on-chain transaction".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" approve() requires a privateKey to sign the on-chain transaction".to_string()))));
         }
         let mut rpcUrl: Value = self.safe_string_k(params.clone(), "rpcUrl", &[self.safe_string(self.options.clone(), Value::Str("rpcUrl".to_string()), &[])]);
         let mut chainId: Value = self.safe_integer_k(self.options.clone(), "chainId", &[Value::Int(8453)]);
@@ -3225,7 +3225,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut conditionId: Value = self.safe_string2(params.clone(), Value::Str("conditionId".to_string()), Value::Str("condition_id".to_string()), &[]);
         if (conditionId == Value::Null) {
             if (outcome == Value::Null) {
-                panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" redeem() requires an outcome or a params.conditionId".to_string())))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" redeem() requires an outcome or a params.conditionId".to_string()))));
             }
             self.load_outcome(outcome.clone(), &[]).await;
             let mut outcomeObj: Value = self.outcome(outcome.clone());
@@ -3235,7 +3235,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 })]), Value::Str("conditionId".to_string()), &[]);
         }
         if (conditionId == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" redeem() could not resolve the market conditionId - pass params.conditionId (a bytes32 hex string)".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" redeem() could not resolve the market conditionId - pass params.conditionId (a bytes32 hex string)".to_string()))));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3315,7 +3315,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut warn: Value = Value::Bool(true);
             { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("cancelAllOrders".to_string()), Value::Str("warnOnCancelAllOrdersWithOutcome".to_string()), &[warn.clone()]); warn = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
             if is_true(&warn) {
-                panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders cancels all orders for entire slug (both YES and NO outcomes). Please provide params.slug to specify the slug, or set the warnOnCancelAllOrdersWithOutcome option to false to suppress this warning message.".to_string())))));
+                panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders cancels all orders for entire slug (both YES and NO outcomes). Please provide params.slug to specify the slug, or set the warnOnCancelAllOrdersWithOutcome option to false to suppress this warning message.".to_string()))));
             }
         }
         let mut request: Value = Value::Map({
@@ -3327,7 +3327,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut outcomeObj: Value = self.load_outcome(outcome.clone(), &[]).await;
             add_element_to_object(&mut request, &Value::Str("slug".to_string()), self.safe_string_k(crate::value::get_value_k(&outcomeObj, "info"), "slug", &[]));
         }  else if (slug == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders requires either an outcome argument or a slug parameter".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders requires either an outcome argument or a slug parameter".to_string()))));
         }
         let __ws_arg_28 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.limitless_private_delete_orders_all_slug(&[__ws_arg_28]).await;
@@ -3556,20 +3556,20 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut cost: Value = self.safe_string_k(trade.clone(), "collateralAmount", &[]);
         let mut rawSide: Value = self.safe_string_lower(trade.clone(), Value::Str("strategy".to_string()), &[]);
         if (rawSide == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" parsePredictionTrade() missing rawSide".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parsePredictionTrade() missing rawSide".to_string()))));
         }
         let mut sellIndex: Value = get_index_of(&rawSide, &Value::Str("sell".to_string()));
         let mut side: Value = (if is_true(&(sellIndex.as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN))) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
         let mut type_var: Value = Value::Null;
         let mut takerOrMaker: Value = Value::Null;
         if (rawSide == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" parsePredictionTrade() missing rawSide".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parsePredictionTrade() missing rawSide".to_string()))));
         }
         if get_index_of(&rawSide, &Value::Str("limit".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             type_var = Value::Str("limit".to_string());
             takerOrMaker = Value::Str("maker".to_string());
             if (rawSide == Value::Null) {
-                panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" method() missing rawSide".to_string())))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" method() missing rawSide".to_string()))));
             }
         }  else if get_index_of(&rawSide, &Value::Str("market".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             type_var = Value::Str("market".to_string());
@@ -3874,7 +3874,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         self.require_event_query(&[params.clone()]);
         let mut queries: Value = self.parse_search_queries(&[params.clone()]);
         if (queries == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchEvents() missing queries".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchEvents() missing queries".to_string()))));
         }
         let mut queriesLength: Value = Value::Int(queries.len() as i64);
         let mut rest: Value = self.omit(params.clone(), Value::List(vec![Value::Str("query".to_string()), Value::Str("queries".to_string()), Value::Str("limit".to_string()), Value::Str("sort".to_string()), Value::Str("searchIn".to_string()), Value::Str("eventId".to_string()), Value::Str("slug".to_string()), Value::Str("status".to_string())]), &[]);
@@ -3895,7 +3895,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut __for_first_1289: bool = true;
                 while { if !__for_first_1289 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1289 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(queries.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 if (queries == Value::Null) {
-                    panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchEvents() missing queries".to_string())))));
+                    panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchEvents() missing queries".to_string()))));
                 }
                 let mut q: Value = get_value(&queries, &i);
                 let mut q: Value = get_value(&queries, &i);
@@ -3971,7 +3971,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut eventKey: Value = (if is_true(&(Value::Bool((groupId != Value::Null) && (groupId.as_str() != Some(""))))) { self.shorten_slug(groupId.clone()) } else { Value::Null });
             let mut m: Value = self.parse_market(raw.clone());
             if (m == Value::Null) {
-                panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchEvents() missing m".to_string())))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchEvents() missing m".to_string()))));
             }
             add_element_to_object(&mut self.markets, &m.as_map().and_then(|__m| __m.get("market")).cloned().unwrap_or(Value::Null), m.clone());
             if is_true(&(Value::Bool(eventKey != Value::Null))) && is_true(&(Value::Bool(eventKey.as_str() != Some("")))) {
@@ -4135,7 +4135,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut __for_first_1295: bool = true;
                 while { if !__for_first_1295 { wi = (match (&(wi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1295 = false; wi.as_f64().unwrap_or(f64::NAN) < Value::Int(wanted.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 if (name == Value::Null) {
-                    panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchRawMarketsByTags() missing name".to_string())))));
+                    panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchRawMarketsByTags() missing name".to_string()))));
                 }
                 if get_index_of(&name, &get_value(&wanted, &wi)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                     matched = true;
@@ -4150,7 +4150,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut categoryIdsLength: Value = Value::Int(categoryIds.len() as i64);
         if (categoryIdsLength.as_f64() == Some(0.0)) {
-            panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchEvents() could not match the requested tags to any limitless category — GET /categories lists the valid names".to_string())))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchEvents() could not match the requested tags to any limitless category — GET /categories lists the valid names".to_string()))));
         }
         let mut seen: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();

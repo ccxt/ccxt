@@ -833,7 +833,7 @@ impl BitrueCore {
         let mut market: Value = self.market(symbol.clone());
         symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchTrades is only supported for swap markets".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchTrades is only supported for swap markets".to_string()))));
         }
         let mut baseIdLower: Value = self.safe_string_lower(market.clone(), Value::Str("baseId".to_string()), &[]);
         let mut quoteIdLower: Value = self.safe_string_lower(market.clone(), Value::Str("quoteId".to_string()), &[]);
@@ -973,7 +973,7 @@ impl BitrueCore {
         let mut market: Value = self.market(symbol.clone());
         symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV is only supported for swap markets".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV is only supported for swap markets".to_string()))));
         }
         let mut futuresTimeframes: Value = self.safe_dict_k(self.options.clone(), "futuresTimeframes", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -981,7 +981,7 @@ impl BitrueCore {
         })]);
         let mut interval: Value = self.safe_string(futuresTimeframes.clone(), timeframe.clone(), &[]);
         if (interval == Value::Null) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV does not support timeframe ".to_string()))), timeframe))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV does not support timeframe ".to_string()))), timeframe)));
         }
         let mut baseIdLower: Value = self.safe_string_lower(market.clone(), Value::Str("baseId".to_string()), &[]);
         let mut quoteIdLower: Value = self.safe_string_lower(market.clone(), Value::Str("quoteId".to_string()), &[]);
@@ -1100,7 +1100,7 @@ impl BitrueCore {
         let mut market: Value = self.market(symbol.clone());
         symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchTicker is only supported for swap markets".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchTicker is only supported for swap markets".to_string()))));
         }
         let mut baseIdLower: Value = self.safe_string_lower(market.clone(), Value::Str("baseId".to_string()), &[]);
         let mut quoteIdLower: Value = self.safe_string_lower(market.clone(), Value::Str("quoteId".to_string()), &[]);
@@ -1321,7 +1321,7 @@ impl BitrueCore {
                 })]);
                 let mut key: Value = self.safe_string_k(data.clone(), "listenKey", &[]);
                 if (key == Value::Null) {
-                    panic!("{}", crate::exchange_errors::authentication_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" authenticate() received an empty listenKey".to_string())))));
+                    panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" authenticate() received an empty listenKey".to_string()))));
                 }
                 add_element_to_object(&mut self.options, &Value::Str("listenKey".to_string()), key.clone());
                 { let __be_tmp = Value::Str(format!("{}{}", add(&crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private"), &Value::Str("/stream?listenKey=".to_string())), key)); add_element_to_object(&mut self.options, &Value::Str("listenKeyUrl".to_string()), __be_tmp); };

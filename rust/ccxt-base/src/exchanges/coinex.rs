@@ -3656,7 +3656,7 @@ impl CoinexCore {
         }
         let mut market: Value = self.market(symbol.clone());
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createMarketBuyOrderWithCost() supports spot orders only".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createMarketBuyOrderWithCost() supports spot orders only".to_string()))));
         }
         add_element_to_object(&mut params, &Value::Str("createMarketBuyOrderRequiresPrice".to_string()), Value::Bool(false));
         return self.create_order(symbol.clone(), Value::Str("market".to_string()), Value::Str("buy".to_string()), cost.clone(), &[Value::Null, params.clone()]).await;
@@ -3671,10 +3671,10 @@ impl CoinexCore {
     m
 }));
         if (type_var == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" requires a type argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a type argument".to_string()))));
         }
         if (side == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" requires a side argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a side argument".to_string()))));
         }
         let mut market: Value = self.market(symbol.clone());
         let mut swap: Value = market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null);
@@ -3689,7 +3689,7 @@ impl CoinexCore {
         let mut reduceOnly: Value = self.safe_bool_k(params.clone(), "reduceOnly", &[]);
         if (reduceOnly.as_bool() == Some(true)) {
             if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
-                panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support reduceOnly for ".to_string()))), market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null))), Value::Str(" orders, reduceOnly orders are supported for swap markets only".to_string())))));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support reduceOnly for ".to_string()))), market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null))), Value::Str(" orders, reduceOnly orders are supported for swap markets only".to_string()))));
             }
         }
         let mut request: Value = Value::Map({
@@ -3755,7 +3755,7 @@ impl CoinexCore {
                 params = self.omit(params.clone(), Value::Str("cost".to_string()), &[]);
                 if is_true(&createMarketBuyOrderRequiresPrice) {
                     if is_true(&(Value::Bool(price == Value::Null))) && is_true(&(Value::Bool(cost == Value::Null))) {
-                        panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument".to_string())))));
+                        panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument".to_string()))));
                     }  else {
                         let mut amountString: Value = self.number_to_string(amount.clone());
                         let mut priceString: Value = self.number_to_string(price.clone());
@@ -3892,7 +3892,7 @@ impl CoinexCore {
                 symbol = marketId.clone();
             }  else {
                 if (symbol.as_str() != marketId.as_str()) {
-                    panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrders() requires all orders to have the same symbol".to_string())))));
+                    panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrders() requires all orders to have the same symbol".to_string()))));
                 }
             }
             let mut type_var: Value = self.safe_string_k(rawOrder.clone(), "type", &[]);
@@ -3904,7 +3904,7 @@ impl CoinexCore {
                 m
             })]);
             if (type_var.as_str() != Some("limit")) {
-                panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrders() does not support ".to_string()))), &type_var), Value::Str(" orders, only limit orders are accepted".to_string())))));
+                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrders() does not support ".to_string()))), &type_var), Value::Str(" orders, only limit orders are accepted".to_string()))));
             }
             reduceOnly = self.safe_value_k(orderParams.clone(), "reduceOnly", &[]);
             let mut triggerPrice: Value = self.safe_number2(orderParams.clone(), Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string()), &[]);
@@ -3936,10 +3936,10 @@ impl CoinexCore {
             if isTriggerOrder {
                 response = self.v2_private_post_futures_batch_stop_order(&[request.clone()]).await;
             }  else if isStopLossOrTakeProfitTrigger {
-                panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrders() does not support stopLossPrice or takeProfitPrice orders".to_string())))));
+                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrders() does not support stopLossPrice or takeProfitPrice orders".to_string()))));
             }  else {
                 if is_true(&reduceOnly) {
-                    panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrders() does not support reduceOnly orders".to_string())))));
+                    panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrders() does not support reduceOnly orders".to_string()))));
                 }  else {
                     response = self.v2_private_post_futures_batch_order(&[request.clone()]).await;
                 }
@@ -4003,7 +4003,7 @@ impl CoinexCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() requires a symbol argument".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -4095,7 +4095,7 @@ impl CoinexCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires a symbol argument".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -4289,7 +4289,7 @@ impl CoinexCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -4392,7 +4392,7 @@ impl CoinexCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders() requires a symbol argument".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -4446,7 +4446,7 @@ impl CoinexCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() requires a symbol argument".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -4660,7 +4660,7 @@ impl CoinexCore {
         let mut currency: Value = self.currency(code.clone());
         let mut network: Value = self.safe_string2(params.clone(), Value::Str("chain".to_string()), Value::Str("network".to_string()), &[]);
         if (network == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createDepositAddress() requires a network parameter".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createDepositAddress() requires a network parameter".to_string()))));
         }
         params = self.omit(params.clone(), Value::Str("network".to_string()), &[]);
         let mut request: Value = Value::Map({
@@ -4717,7 +4717,7 @@ impl CoinexCore {
         let mut networkCode: Value = Value::Null;
         { let __destr_tmp = self.handle_network_code_and_params(params.clone()); networkCode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (networkCode == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() requires a \"network\" parameter".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() requires a \"network\" parameter".to_string()))));
         }
         add_element_to_object(&mut request, &Value::Str("chain".to_string()), self.network_code_to_id(networkCode.clone(), &[currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)])); // required for on-chain, not required for inter-user transfer
         let __ws_arg_41 = self.extend(request.clone(), &[params.clone()]);
@@ -4796,7 +4796,7 @@ impl CoinexCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() requires a symbol argument".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -4870,7 +4870,7 @@ impl CoinexCore {
             if is_true(&Value::Bool(is_array(&symbols))) {
                 let mut symbolsLength: Value = Value::Int(symbols.len() as i64);
                 if symbolsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(1).as_f64().unwrap_or(f64::NAN) {
-                    panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchPositions() symbols argument cannot contain more than 1 symbol".to_string())))));
+                    panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchPositions() symbols argument cannot contain more than 1 symbol".to_string()))));
                 }
                 symbol = symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
             }  else {
@@ -5112,26 +5112,26 @@ impl CoinexCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() requires a symbol argument".to_string()))));
         }
         marginMode = to_lower(&marginMode);
         if (marginMode.as_str() != Some("isolated")) && (marginMode.as_str() != Some("cross")) {
-            panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() marginMode argument should be isolated or cross".to_string())))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() marginMode argument should be isolated or cross".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
         if (market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str() != Some("swap")) {
-            panic!("{}", crate::exchange_errors::bad_symbol(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() supports swap contracts only".to_string())))));
+            panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() supports swap contracts only".to_string()))));
         }
         let mut leverage: Value = self.safe_integer_k(params.clone(), "leverage", &[]);
         let mut maxLeverage: Value = self.safe_integer(market.as_map().and_then(|__m| __m.get("limits")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("leverage")).cloned().unwrap_or(Value::Null), Value::Str("max".to_string()), &[Value::Int(100)]);
         if (leverage == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() requires a leverage parameter".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() requires a leverage parameter".to_string()))));
         }
         if is_true(&(leverage.as_f64().unwrap_or(f64::NAN) < Value::Int(1).as_f64().unwrap_or(f64::NAN))) || is_true(&(leverage.as_f64().unwrap_or(f64::NAN) > maxLeverage.as_f64().unwrap_or(f64::NAN))) {
-            panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() leverage should be between 1 and ".to_string()))), to_string_val(&maxLeverage))), Value::Str(" for ".to_string()))), symbol))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() leverage should be between 1 and ".to_string()))), to_string_val(&maxLeverage))), Value::Str(" for ".to_string()))), symbol)));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -5165,21 +5165,21 @@ impl CoinexCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() requires a symbol argument".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
         if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
-            panic!("{}", crate::exchange_errors::bad_symbol(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() supports swap contracts only".to_string())))));
+            panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() supports swap contracts only".to_string()))));
         }
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("setLeverage".to_string()), &[params.clone(), Value::Str("cross".to_string())]); marginMode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut minLeverage: Value = self.safe_integer(market.as_map().and_then(|__m| __m.get("limits")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("leverage")).cloned().unwrap_or(Value::Null), Value::Str("min".to_string()), &[Value::Int(1)]);
         let mut maxLeverage: Value = self.safe_integer(market.as_map().and_then(|__m| __m.get("limits")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("leverage")).cloned().unwrap_or(Value::Null), Value::Str("max".to_string()), &[Value::Int(100)]);
         if is_true(&(leverage.as_f64().unwrap_or(f64::NAN) < minLeverage.as_f64().unwrap_or(f64::NAN))) || is_true(&(leverage.as_f64().unwrap_or(f64::NAN) > maxLeverage.as_f64().unwrap_or(f64::NAN))) {
-            panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() leverage should be between ".to_string()))), to_string_val(&minLeverage))), Value::Str(" and ".to_string()))), to_string_val(&maxLeverage))), Value::Str(" for ".to_string()))), symbol))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() leverage should be between ".to_string()))), to_string_val(&minLeverage))), Value::Str(" and ".to_string()))), to_string_val(&maxLeverage))), Value::Str(" for ".to_string()))), symbol)));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -5506,7 +5506,7 @@ impl CoinexCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingHistory() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingHistory() requires a symbol argument".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -5596,7 +5596,7 @@ impl CoinexCore {
         }
         let mut market: Value = self.market(symbol.clone());
         if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
-            panic!("{}", crate::exchange_errors::bad_symbol(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRate() supports swap contracts only".to_string())))));
+            panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRate() supports swap contracts only".to_string()))));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -5743,7 +5743,7 @@ impl CoinexCore {
             let mut symbol: Value = self.safe_value(symbols.clone(), Value::Int(0), &[]);
             market = self.market(symbol.clone());
             if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
-                panic!("{}", crate::exchange_errors::bad_symbol(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRates() supports swap contracts only".to_string())))));
+                panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRates() supports swap contracts only".to_string()))));
             }
             let mut marketIds: Value = self.market_ids(&[symbols.clone()]);
             add_element_to_object(&mut request, &Value::Str("market".to_string()), join(&marketIds, &Value::Str(",".to_string())));
@@ -5893,7 +5893,7 @@ impl CoinexCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRateHistory() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRateHistory() requires a symbol argument".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -6118,13 +6118,13 @@ impl CoinexCore {
         if is_true(&(Value::Bool(fromAccount.as_str() == Some("margin")))) || is_true(&(Value::Bool(toAccount.as_str() == Some("margin")))) {
             let mut symbol: Value = self.safe_string_k(params.clone(), "symbol", &[]);
             if (symbol == Value::Null) {
-                panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" transfer() the symbol parameter must be defined for a margin account".to_string())))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" transfer() the symbol parameter must be defined for a margin account".to_string()))));
             }
             params = self.omit(params.clone(), Value::Str("symbol".to_string()), &[]);
             add_element_to_object(&mut request, &Value::Str("market".to_string()), self.market_id(symbol.clone()));
         }
         if is_true(&(Value::Bool(fromAccount.as_str() != Some("spot")))) && is_true(&(Value::Bool(toAccount.as_str() != Some("spot")))) {
-            panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" transfer() can only be between spot and swap, or spot and margin, either the fromAccount or toAccount must be spot".to_string())))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" transfer() can only be between spot and swap, or spot and margin, either the fromAccount or toAccount must be spot".to_string()))));
         }
         let __ws_arg_58 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.v2_private_post_assets_transfer(&[__ws_arg_58]).await;
@@ -6206,7 +6206,7 @@ impl CoinexCore {
             self.load_markets(&[]).await;
         }
         if (code == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTransfers() requires a code argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchTransfers() requires a code argument".to_string()))));
         }
         let mut currency: Value = self.currency(code.clone());
         let mut request: Value = Value::Map({
@@ -6461,7 +6461,7 @@ impl CoinexCore {
         }
         let mut code: Value = self.safe_string_k(params.clone(), "code", &[]);
         if (code == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchIsolatedBorrowRate() requires a code parameter".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchIsolatedBorrowRate() requires a code parameter".to_string()))));
         }
         params = self.omit(params.clone(), Value::Str("code".to_string()), &[]);
         let mut currency: Value = self.currency(code.clone());
@@ -7024,7 +7024,7 @@ impl CoinexCore {
         }
         let mut code: Value = self.safe_string_k(params.clone(), "code", &[]);
         if (code == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLeverage() requires a code parameter".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchLeverage() requires a code parameter".to_string()))));
         }
         params = self.omit(params.clone(), Value::Str("code".to_string()), &[]);
         let mut currency: Value = self.currency(code.clone());
@@ -7461,12 +7461,12 @@ impl CoinexCore {
             self.load_markets(&[]).await;
         }
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMarginAdjustmentHistory() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchMarginAdjustmentHistory() requires a symbol argument".to_string()))));
         }
         let mut positionId: Value = self.safe_integer2(params.clone(), Value::Str("positionId".to_string()), Value::Str("position_id".to_string()), &[]);
         params = self.omit(params.clone(), Value::Str("positionId".to_string()), &[]);
         if (positionId == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMarginAdjustmentHistory() requires a positionId parameter".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchMarginAdjustmentHistory() requires a positionId parameter".to_string()))));
         }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({

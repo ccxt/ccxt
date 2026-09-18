@@ -1479,7 +1479,7 @@ impl WoofiproCore {
         //
         let mut marketId: Value = self.safe_string_k(market.clone(), "symbol", &[]);
         if (marketId == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" parseMarket() missing marketId".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseMarket() missing marketId".to_string()))));
         }
         let mut parts: Value = split(&marketId, &Value::Str("_".to_string()));
         let mut marketType: Value = Value::Str("swap".to_string());
@@ -1685,7 +1685,7 @@ impl WoofiproCore {
                 m
             }));
             if (parsed == Value::Null) {
-                panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchCurrencies() could not resolve parsed".to_string())))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchCurrencies() could not resolve parsed".to_string()))));
             }
             add_element_to_object(&mut result, &parsed.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null), parsed.clone());
         }
@@ -3049,10 +3049,10 @@ impl WoofiproCore {
     m
 }));
         if (type_var == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" requires a type argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a type argument".to_string()))));
         }
         if (side == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" requires a side argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a side argument".to_string()))));
         }
         /*
          * @method
@@ -3070,7 +3070,7 @@ impl WoofiproCore {
         let mut reduceOnly: Value = self.safe_bool2(params.clone(), Value::Str("reduceOnly".to_string()), Value::Str("reduce_only".to_string()), &[]);
         let mut orderType: Value = to_upper(&type_var);
         if (side == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrderRequest() requires a side argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrderRequest() requires a side argument".to_string()))));
         }
         let mut market: Value = self.market(symbol.clone());
         let mut orderSide: Value = to_upper(&side);
@@ -3260,7 +3260,7 @@ impl WoofiproCore {
             let mut takeProfit: Value = self.safe_value_k(orderParams.clone(), "takeProfit", &[]);
             let mut isConditional: bool = (triggerPrice != Value::Null) || (stopLoss != Value::Null) || (takeProfit != Value::Null) || is_true(&(Value::Bool(self.safe_value_k(orderParams.clone(), "childOrders", &[]) != Value::Null)));
             if isConditional {
-                panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrders() only support non-stop order".to_string())))));
+                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrders() only support non-stop order".to_string()))));
             }
             let mut orderRequest: Value = self.create_order_request(marketId.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), orderParams.clone()]);
             append_to_array(&mut ordersRequests, orderRequest.clone());
@@ -3350,7 +3350,7 @@ impl WoofiproCore {
         params = self.omit(params.clone(), Value::List(vec![Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("takeProfitPrice".to_string()), Value::Str("stopLossPrice".to_string()), Value::Str("trailingTriggerPrice".to_string()), Value::Str("trailingAmount".to_string()), Value::Str("trailingPercent".to_string())]), &[]);
         let mut response: Value = Value::Null;
         if (side == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires a side argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires a side argument".to_string()))));
         }
         if isConditional {
             let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
@@ -3424,7 +3424,7 @@ impl WoofiproCore {
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[Value::Bool(false)]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string())]), &[]);
         if is_true(&(Value::Bool(trigger.as_bool() != Some(true)))) && is_true(&(Value::Bool(symbol == Value::Null))) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -4464,7 +4464,7 @@ impl WoofiproCore {
         if (code != Value::Null) {
             code = to_upper(&code);
             if (code.as_str() != Some("USDC")) {
-                panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() only support USDC".to_string())))));
+                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" withdraw() only support USDC".to_string()))));
             }
         }
         let mut currency: Value = self.currency(code.clone());
@@ -4480,7 +4480,7 @@ impl WoofiproCore {
 })]);
         let mut coinNetworkId: Value = self.safe_number_k(coinNetwork.clone(), "id", &[]);
         if (coinNetworkId == Value::Null) {
-            panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() require chainId parameter".to_string())))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" withdraw() require chainId parameter".to_string()))));
         }
         let mut withdrawNonce: Value = self.get_withdraw_nonce(&[params.clone()]).await;
         let mut nonce: Value = self.nonce();
@@ -4658,7 +4658,7 @@ impl WoofiproCore {
         let mut marginModes: Value = self.fetch_margin_modes(&[Value::List(vec![market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)]), params.clone()]).await;
         let mut marginMode: Value = self.safe_dict(marginModes.clone(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[]);
         if (marginMode == Value::Null) {
-            panic!("{}", crate::exchange_errors::bad_symbol(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMarginMode() did not return a margin mode for ".to_string()))), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)))));
+            panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMarginMode() did not return a margin mode for ".to_string()))), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))));
         }
         return marginMode;
 
@@ -4682,14 +4682,14 @@ impl WoofiproCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() requires a symbol argument".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         marginMode = to_lower(&marginMode);
         if (marginMode.as_str() != Some("cross")) && (marginMode.as_str() != Some("isolated")) {
-            panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() marginMode must be either cross or isolated".to_string())))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() marginMode must be either cross or isolated".to_string()))));
         }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
@@ -4907,7 +4907,7 @@ impl WoofiproCore {
             self.load_markets(&[]).await;
         }
         if is_true(&(leverage.as_f64().unwrap_or(f64::NAN) < Value::Int(1).as_f64().unwrap_or(f64::NAN))) || is_true(&(leverage.as_f64().unwrap_or(f64::NAN) > Value::Int(50).as_f64().unwrap_or(f64::NAN))) {
-            panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" leverage should be between 1 and 50".to_string())))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" leverage should be between 1 and 50".to_string()))));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();

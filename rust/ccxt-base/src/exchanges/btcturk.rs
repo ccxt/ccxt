@@ -1056,7 +1056,7 @@ impl BtcturkCore {
         if (limit != Value::Null) {
             limit = crate::runtime::Math::min(&limit, &Value::Int(11000)); // max 11000 candles diapason can be covered
             if (timeframe.as_str() == Some("1y")) {
-                panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV () does not accept a limit parameter when timeframe == \"1y\"".to_string())))));
+                panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV () does not accept a limit parameter when timeframe == \"1y\"".to_string()))));
             }
             let mut seconds: Value = self.parse_timeframe(timeframe.clone());
             let mut limitSeconds: Value = (match (&(seconds), &(((match (&(limit), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
@@ -1459,7 +1459,7 @@ impl BtcturkCore {
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
         if (self.id.as_str() == Some("btctrader")) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" is an abstract base API for BTCExchange, BTCTurk".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" is an abstract base API for BTCExchange, BTCTurk".to_string()))));
         }
         let mut url: Value = add(&add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api), &Value::Str("/".to_string())), &path);
         if is_true(&(Value::Bool(method.as_str() == Some("GET")))) || is_true(&(Value::Bool(method.as_str() == Some("DELETE")))) {
@@ -1501,7 +1501,7 @@ impl BtcturkCore {
         let mut output: Value = (if is_true(&(Value::Bool(message == Value::Null))) { body.clone() } else { message.clone() });
         self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), output)));
         if is_true(&(Value::Bool(errorCode.as_str() != Some("0")))) && is_true(&(Value::Bool(errorCode.as_str() != Some("SUCCESS")))) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), output))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), output)));
         }
         return Value::Null;
 

@@ -1780,7 +1780,7 @@ impl BitmexCore {
         }  else if (limit.as_f64() == Some(10.0)) {
             table = Value::Str("orderBookL10".to_string());
         }  else {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBookForSymbols limit argument must be undefined (L2), 25 (L2) or 10 (L3)".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBookForSymbols limit argument must be undefined (L2), 25 (L2) or 10 (L3)".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -2238,7 +2238,7 @@ impl BitmexCore {
                 let mut broadKey: Value = self.find_broadly_matched_key(broad.clone(), error.clone());
                 let mut exception: Value = Value::Null;
                 if (broadKey == Value::Null) {
-                    exception = Value::from(crate::exchange_errors::exchange_error(                    error)); // c# requirement for now
+                    exception = Value::from(crate::exchange_errors::exchange_error(error)); // c# requirement for now
                 }  else {
                     exception = Value::from(crate::exchange_errors::create_error(&crate::runtime::stringify_param(&(get_value(&broad, &broadKey))), &crate::runtime::stringify_param(&(error))));
                 }

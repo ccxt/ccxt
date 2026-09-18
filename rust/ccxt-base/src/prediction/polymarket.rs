@@ -1712,7 +1712,7 @@ impl PolymarketCore {
                     let mut mkt: Value = get_value(&ccxtMarkets, &i);
                     let mut mkt: Value = get_value(&ccxtMarkets, &i);
                     if (mkt == Value::Null) {
-                        panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOutcome() could not resolve mkt".to_string())))));
+                        panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchOutcome() could not resolve mkt".to_string()))));
                     }
                     add_element_to_object(&mut self.markets, &mkt.as_map().and_then(|__m| __m.get("market")).cloned().unwrap_or(Value::Null), mkt.clone());
                 }
@@ -1797,7 +1797,7 @@ impl PolymarketCore {
                     let mut mkt: Value = get_value(&ccxtMarkets, &i);
                     let mut mkt: Value = get_value(&ccxtMarkets, &i);
                     if (mkt == Value::Null) {
-                        panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOutcomes() could not resolve mkt".to_string())))));
+                        panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchOutcomes() could not resolve mkt".to_string()))));
                     }
                     add_element_to_object(&mut self.markets, &mkt.as_map().and_then(|__m| __m.get("market")).cloned().unwrap_or(Value::Null), mkt.clone());
                 }
@@ -1885,7 +1885,7 @@ impl PolymarketCore {
     m
 }));
         if (outcomes == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles or token ids to fetch (discover them via fetchEvents ())".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles or token ids to fetch (discover them via fetchEvents ())".to_string()))));
         }
         // batch-resolve the uncached outcomes (one gamma request per 50 token ids)
         self.load_outcomes(&[outcomes.clone()]).await;
@@ -2188,7 +2188,7 @@ impl PolymarketCore {
         if !is_true(&(Value::Bool(in_op(&self.timeframes, &timeframe)))) {
             // hoisted keys list: chaining join onto Object.keys breaks the python transpiler
             let mut supportedKeys: Value = object_keys(&self.timeframes);
-            panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() unsupported timeframe ".to_string()))), timeframe)), Value::Str(", supported timeframes are ".to_string()))), join(&supportedKeys, &Value::Str(", ".to_string()))))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() unsupported timeframe ".to_string()))), timeframe)), Value::Str(", supported timeframes are ".to_string()))), join(&supportedKeys, &Value::Str(", ".to_string())))));
         }
         let mut outcomeObj: Value = self.load_outcome(outcome.clone(), &[]).await;
         let mut tokenId: Value = crate::value::get_value_k(&outcomeObj, "outcomeId");
@@ -2384,7 +2384,7 @@ impl PolymarketCore {
 })]);
         let mut conditionId: Value = self.safe_string_k(outcomeInfo.clone(), "conditionId", &[]);
         if (conditionId == Value::Null) {
-            panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenInterest() requires outcome.info.conditionId for ".to_string()))), outcome))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenInterest() requires outcome.info.conditionId for ".to_string()))), outcome)));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2775,7 +2775,7 @@ impl PolymarketCore {
         // no bulk warm-up on the unfiltered path: the positions request is self-contained and
         // labels resolve cache-only via safeOutcome (raw token ids when the cache is cold)
         if (self.walletAddress.clone() == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" walletAddress is required to fetchPositions".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" walletAddress is required to fetchPositions".to_string()))));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2796,7 +2796,7 @@ impl PolymarketCore {
             m
         });
         if (outcomes == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchPositions() missing outcomes".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchPositions() missing outcomes".to_string()))));
         }
         {
                         let mut i: Value = Value::Int(0);
@@ -3244,12 +3244,12 @@ impl PolymarketCore {
         }
         if (price == Value::Null) {
             if !isMarket {
-                panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price for limit orders".to_string())))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price for limit orders".to_string()))));
             }
             // market order without an explicit price: use the outcome's current price as the marketable reference
             price = self.safe_number_k(outcomeObj.clone(), "price", &[]);
             if (price == Value::Null) {
-                panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() could not determine a price from the outcome, pass an explicit price".to_string())))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() could not determine a price from the outcome, pass an explicit price".to_string()))));
             }
         }
         // tick size + neg-risk flag drive the rounding and the verifying contract; both are read from the
@@ -3809,7 +3809,7 @@ impl PolymarketCore {
         let mut queries: Value = self.parse_search_queries(&[params.clone()]);
         let mut rest: Value = self.omit(params.clone(), Value::List(vec![Value::Str("query".to_string()), Value::Str("queries".to_string()), Value::Str("eventId".to_string()), Value::Str("slug".to_string())]), &[]);
         if (queries == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchEvents() missing queries".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchEvents() missing queries".to_string()))));
         }
         let mut queriesLength: Value = Value::Int(queries.len() as i64);
         let mut rawEvents: Value = Value::List(vec![]);
@@ -3882,7 +3882,7 @@ impl PolymarketCore {
                 let mut m: Value = get_value(&ccxtMarkets, &mi);
                 let mut m: Value = get_value(&ccxtMarkets, &mi);
                 if (m == Value::Null) {
-                    panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchEvents() missing m".to_string())))));
+                    panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchEvents() missing m".to_string()))));
                 }
                 add_element_to_object(&mut self.markets, &m.as_map().and_then(|__m| __m.get("market")).cloned().unwrap_or(Value::Null), m.clone());
             }
@@ -4219,7 +4219,7 @@ impl PolymarketCore {
             if isL1Auth {
                 // L1 (private-key / EIP-712) auth used to create or derive the L2 api credentials
                 if (self.privateKey.clone() == Value::Null) {
-                    panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), &path), Value::Str(" requires a privateKey".to_string())))));
+                    panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), &path), Value::Str(" requires a privateKey".to_string()))));
                 }
                 // the L1 signer/owner is the EOA behind the privateKey (walletAddress is the proxy/deposit wallet, not the signer)
                 let mut address: Value = self.eth_checksum_address(self.eth_get_address_from_private_key(self.privateKey.clone(), &[]));
@@ -4453,7 +4453,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             creds = self.create_api_key(&[params.clone()]).await;
         }
         if (creds == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrDeriveApiKey() returned no credentials".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" createOrDeriveApiKey() returned no credentials".to_string()))));
         }
         return creds;
 
@@ -4505,7 +4505,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if hasL2 {
             return Value::Null;
         }
-        panic!("{}", crate::exchange_errors::authentication_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" requires L2 api credentials (apiKey, secret, password) or a privateKey to derive them".to_string())))));
+        panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" requires L2 api credentials (apiKey, secret, password) or a privateKey to derive them".to_string()))));
 
     Value::Null
 }
@@ -4787,7 +4787,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (outcome == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchTicker() missing outcome".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchTicker() missing outcome".to_string()))));
         }
         if !is_true(&(Value::Bool(in_op(&self.orderbooks, &outcome)))) {
             let mut seededBook: Value = self.order_book(&[Value::Map({

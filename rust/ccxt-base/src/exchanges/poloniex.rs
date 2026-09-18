@@ -2773,7 +2773,7 @@ impl PoloniexCore {
         let mut marketType: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchClosedOrders".to_string()), &[market.clone(), params.clone(), Value::Str("swap".to_string())]); marketType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (marketType.as_str() == Some("spot")) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchClosedOrders() is not supported for spot markets yet".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchClosedOrders() is not supported for spot markets yet".to_string()))));
         }
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), crate::runtime::Math::min(&Value::Int(200), &limit));
@@ -2908,10 +2908,10 @@ impl PoloniexCore {
             { let __destr_tmp = self.handle_param_string(params.clone(), Value::Str("hedged".to_string()), &[]); hedged = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
             if is_true(&(Value::Bool(hedged != Value::Null))) && is_true(&(Value::Bool(hedged.as_str() != Some("")))) {
                 if (marginMode == Value::Null) {
-                    panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a marginMode parameter \"cross\" or \"isolated\" for hedged orders".to_string())))));
+                    panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a marginMode parameter \"cross\" or \"isolated\" for hedged orders".to_string()))));
                 }
                 if !is_true(&(Value::Bool(matches!(&params, Value::Dict(__d) if __d.contains_key("posSide"))))) {
-                    panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a posSide parameter \"LONG\" or \"SHORT\" for hedged orders".to_string())))));
+                    panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a posSide parameter \"LONG\" or \"SHORT\" for hedged orders".to_string()))));
                 }
             }
         }
@@ -2921,7 +2921,7 @@ impl PoloniexCore {
         params = self.omit(params.clone(), Value::List(vec![Value::Str("postOnly".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string())]), &[]);
         if (triggerPrice != Value::Null) {
             if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
-                panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support trigger orders for ".to_string()))), market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null))), Value::Str(" markets".to_string())))));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support trigger orders for ".to_string()))), market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null))), Value::Str(" markets".to_string()))));
             }
             upperCaseType = (if is_true(&(Value::Bool(price == Value::Null))) { Value::Str("STOP".to_string()) } else { Value::Str("STOP_LIMIT".to_string()) });
             add_element_to_object(&mut request, &Value::Str("stopPrice".to_string()), triggerPrice.clone());
@@ -2940,7 +2940,7 @@ impl PoloniexCore {
                     quoteAmount = self.cost_to_precision(symbol.clone(), cost.clone());
                 }  else if is_true(&createMarketBuyOrderRequiresPrice) && is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)))) {
                     if (price == Value::Null) {
-                        panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument".to_string())))));
+                        panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument".to_string()))));
                     }  else {
                         let mut amountString: Value = self.number_to_string(amount.clone());
                         let mut priceString: Value = self.number_to_string(price.clone());
@@ -3001,7 +3001,7 @@ impl PoloniexCore {
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" editOrder() does not support ".to_string()))), market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null))), Value::Str(" orders, only spot orders are accepted".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" editOrder() does not support ".to_string()))), market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null))), Value::Str(" orders, only spot orders are accepted".to_string()))));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3058,7 +3058,7 @@ impl PoloniexCore {
         //
         self.load_markets(&[]).await;
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".to_string()))));
         }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
@@ -3197,7 +3197,7 @@ impl PoloniexCore {
         let mut marketType: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchOrder".to_string()), &[market.clone(), params.clone()]); marketType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (marketType.as_str() != Some("spot")) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() is not supported for ".to_string()))), marketType)), Value::Str(" markets yet".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() is not supported for ".to_string()))), marketType)), Value::Str(" markets yet".to_string()))));
         }
         let mut isTrigger: Value = self.safe_value2(params.clone(), Value::Str("trigger".to_string()), Value::Str("stop".to_string()), &[]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("trigger".to_string()), Value::Str("stop".to_string())]), &[]);
@@ -3639,7 +3639,7 @@ impl PoloniexCore {
         let mut keys: Value = object_keys(&response);
         let mut length: Value = Value::Int(keys.len() as i64);
         if length.as_f64().unwrap_or(f64::NAN) < Value::Int(1).as_f64().unwrap_or(f64::NAN) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() returned an empty response, you might need to try \"createDepositAddress\" at first and then use \"fetchDepositAddress\"".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() returned an empty response, you might need to try \"createDepositAddress\" at first and then use \"fetchDepositAddress\"".to_string()))));
         }
         return self.parse_deposit_address_special(response.clone(), currency.clone(), networkEntry.clone());
 
@@ -3652,13 +3652,13 @@ impl PoloniexCore {
     m
 }));
         if !is_true(&(Value::Bool(in_op(&self.currencies, &code)))) {
-            panic!("{}", crate::exchange_errors::bad_symbol(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress(): can not recognize ".to_string()))), code)), Value::Str(" currency, you might try using unified currency-code and add provide specific \"network\" parameter, like: fetchDepositAddress(\"USDT\", { \"network\": \"TRC20\" })".to_string())))));
+            panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress(): can not recognize ".to_string()))), code)), Value::Str(" currency, you might try using unified currency-code and add provide specific \"network\" parameter, like: fetchDepositAddress(\"USDT\", { \"network\": \"TRC20\" })".to_string()))));
         }
         let mut currency: Value = self.currency(code.clone());
         let mut networkCode: Value = Value::Null;
         { let __destr_tmp = self.handle_network_code_and_params(params.clone()); networkCode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (networkCode == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress requires a network parameter for ".to_string()))), code)), Value::Str(".".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress requires a network parameter for ".to_string()))), code)), Value::Str(".".to_string()))));
         }
         let mut exchangeNetworkId: Value = Value::Null;
         networkCode = self.network_id_to_code(&[networkCode.clone(), code.clone()]);
@@ -3795,7 +3795,7 @@ impl PoloniexCore {
         let mut networkCode: Value = Value::Null;
         { let __destr_tmp = self.handle_network_code_and_params(params.clone()); networkCode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (networkCode == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw requires a network parameter for ".to_string()))), code)), Value::Str(".".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw requires a network parameter for ".to_string()))), code)), Value::Str(".".to_string()))));
         }
         add_element_to_object(&mut request, &Value::Str("network".to_string()), self.network_code_to_id(networkCode.clone(), &[code.clone()]));
         if (tag != Value::Null) {
@@ -4252,20 +4252,20 @@ impl PoloniexCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() requires a symbol argument".to_string()))));
         }
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("setLeverage".to_string()), &[params.clone()]); marginMode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (marginMode == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() requires a marginMode parameter \"cross\" or \"isolated\"".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() requires a marginMode parameter \"cross\" or \"isolated\"".to_string()))));
         }
         let mut hedged: Value = Value::Null;
         { let __destr_tmp = self.handle_param_bool(params.clone(), Value::Str("hedged".to_string()), &[Value::Bool(false)]); hedged = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (hedged.as_bool() == Some(true)) {
             if !is_true(&(Value::Bool(matches!(&params, Value::Dict(__d) if __d.contains_key("posSide"))))) {
-                panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() requires a posSide parameter for hedged mode: \"LONG\" or \"SHORT\"".to_string())))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() requires a posSide parameter for hedged mode: \"LONG\" or \"SHORT\"".to_string()))));
             }
         }
         let mut request: Value = Value::Map({
@@ -4306,7 +4306,7 @@ impl PoloniexCore {
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("fetchLeverage".to_string()), &[params.clone()]); marginMode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (marginMode == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLeverage() requires a marginMode parameter \"cross\" or \"isolated\"".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchLeverage() requires a marginMode parameter \"cross\" or \"isolated\"".to_string()))));
         }
         add_element_to_object(&mut request, &Value::Str("mgnMode".to_string()), to_upper(&marginMode));
         let __ws_arg_36 = self.extend(request.clone(), &[params.clone()]);

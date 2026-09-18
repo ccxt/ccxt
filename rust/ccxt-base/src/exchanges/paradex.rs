@@ -1574,7 +1574,7 @@ impl ParadexCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTradingFee() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchTradingFee() requires a symbol argument".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -1984,7 +1984,7 @@ impl ParadexCore {
         let mut rates: Value = self.fetch_funding_rates(&[Value::List(vec![market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)]), params.clone()]).await;
         let mut rate: Value = self.safe_dict(rates.clone(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[]);
         if (rate == Value::Null) {
-            panic!("{}", crate::exchange_errors::bad_symbol(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRate() could not find a funding rate for ".to_string()))), symbol))));
+            panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRate() could not find a funding rate for ".to_string()))), symbol)));
         }
         return rate;
 
@@ -2277,7 +2277,7 @@ impl ParadexCore {
         }
         let mut market: Value = self.market(symbol.clone());
         if (market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
-            panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenInterest() supports contract markets only".to_string())))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenInterest() supports contract markets only".to_string()))));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2519,7 +2519,7 @@ impl ParadexCore {
         if (cachedToken != Value::Null) {
             let mut cachedExpires: Value = self.safe_integer_k(self.options.clone(), "expires", &[]);
             if (cachedExpires == Value::Null) {
-                panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" authenticateRest() missing cachedExpires".to_string())))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" authenticateRest() missing cachedExpires".to_string()))));
             }
             if now.as_f64().unwrap_or(f64::NAN) < cachedExpires.as_f64().unwrap_or(f64::NAN) {
                 return cachedToken;
@@ -2741,10 +2741,10 @@ impl ParadexCore {
     m
 }));
         if (type_var == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" requires a type argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a type argument".to_string()))));
         }
         if (side == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" requires a side argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a side argument".to_string()))));
         }
         let mut market: Value = self.market(symbol.clone());
         let mut reduceOnly: Value = self.safe_bool2(params.clone(), Value::Str("reduceOnly".to_string()), Value::Str("reduce_only".to_string()), &[]);
@@ -2836,7 +2836,7 @@ impl ParadexCore {
         let mut now: Value = self.nonce();
         let mut orderType: Value = self.safe_string_k(request.clone(), "type", &[]);
         if (orderType == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" signOrderRequest() missing orderType".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" signOrderRequest() missing orderType".to_string()))));
         }
         let mut isMarket: bool = get_index_of(&orderType, &Value::Str("MARKET".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN);
         let mut orderReq: Value = Value::Map({
@@ -3007,10 +3007,10 @@ impl ParadexCore {
     m
 }));
         if (amount == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires an amount argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires an amount argument".to_string()))));
         }
         if (price == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires a price argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires a price argument".to_string()))));
         }
         self.authenticate_rest(&[]).await;
         if (self.markets.clone() == Value::Null) {
@@ -3180,7 +3180,7 @@ impl ParadexCore {
         let mut hasOrderIds: bool = is_true(&(Value::Bool(ids != Value::Null))) && is_true(&(Value::Bool(is_array(&ids))));
         let mut hasClientOrderIds: bool = is_true(&(Value::Bool(clientOrderIds != Value::Null))) && is_true(&(Value::Bool(is_array(&clientOrderIds))));
         if !hasOrderIds && !hasClientOrderIds {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() requires a non-empty ids argument or a non-empty clientOrderIds parameter".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() requires a non-empty ids argument or a non-empty clientOrderIds parameter".to_string()))));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3269,7 +3269,7 @@ impl ParadexCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders() requires a symbol argument".to_string()))));
         }
         self.authenticate_rest(&[]).await;
         if (self.markets.clone() == Value::Null) {
@@ -4671,7 +4671,7 @@ impl ParadexCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingHistory() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingHistory() requires a symbol argument".to_string()))));
         }
         self.authenticate_rest(&[]).await;
         if (self.markets.clone() == Value::Null) {
@@ -4774,7 +4774,7 @@ impl ParadexCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRateHistory() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRateHistory() requires a symbol argument".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;

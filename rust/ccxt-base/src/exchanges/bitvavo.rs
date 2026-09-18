@@ -1708,7 +1708,7 @@ impl BitvavoCore {
         params = self.omit(params.clone(), Value::Str("subaccountId".to_string()), &[]);
         let mut direction: Value = Value::Null;
         if is_true(&(Value::Bool(fromAccount.as_str() == Some("master")))) && is_true(&(Value::Bool(toAccount.as_str() == Some("master")))) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" transfer() requires fromAccount and toAccount to be different (one master and one subaccount id)".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" transfer() requires fromAccount and toAccount to be different (one master and one subaccount id)".to_string()))));
         }  else if (fromAccount.as_str() == Some("master")) {
             direction = Value::Str("masterToSub".to_string());
             if (subaccountId == Value::Null) {
@@ -1720,10 +1720,10 @@ impl BitvavoCore {
                 subaccountId = fromAccount.clone();
             }
         }  else {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" transfer() requires either fromAccount or toAccount to be master".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" transfer() requires either fromAccount or toAccount to be master".to_string()))));
         }
         if (subaccountId == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" transfer() requires a subaccount id (provide it as fromAccount/toAccount or params.subaccountId)".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" transfer() requires a subaccount id (provide it as fromAccount/toAccount or params.subaccountId)".to_string()))));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1775,7 +1775,7 @@ impl BitvavoCore {
         }
         let mut subaccountId: Value = self.safe_string_k(params.clone(), "subaccountId", &[]);
         if (subaccountId == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTransfers() requires a subaccountId parameter".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchTransfers() requires a subaccountId parameter".to_string()))));
         }
         if (since != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("start".to_string()), since.clone());
@@ -1949,10 +1949,10 @@ impl BitvavoCore {
     m
 }));
         if (type_var == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" requires a type argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a type argument".to_string()))));
         }
         if (side == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" requires a side argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a side argument".to_string()))));
         }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
@@ -2020,7 +2020,7 @@ impl BitvavoCore {
         if (operatorId != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("operatorId".to_string()), self.parse_to_int(operatorId.clone()));
         }  else {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890".to_string()))));
         }
         let mut selfTradePrevention: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".to_string()), Value::Str("selfTradePrevention".to_string()), &[]); selfTradePrevention = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
@@ -2106,7 +2106,7 @@ impl BitvavoCore {
         }
         request = self.extend(request.clone(), &[params.clone()]);
         if is_true(&self.is_empty(request.clone())) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires an amount argument, or a price argument, or non-empty params".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires an amount argument, or a price argument, or non-empty params".to_string()))));
         }
         let mut clientOrderId: Value = self.safe_string_k(params.clone(), "clientOrderId", &[]);
         if (clientOrderId == Value::Null) {
@@ -2117,7 +2117,7 @@ impl BitvavoCore {
         if (operatorId != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("operatorId".to_string()), self.parse_to_int(operatorId.clone()));
         }  else {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890".to_string()))));
         }
         add_element_to_object(&mut request, &Value::Str("market".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         return request;
@@ -2164,7 +2164,7 @@ impl BitvavoCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".to_string()))));
         }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
@@ -2181,7 +2181,7 @@ impl BitvavoCore {
         if (operatorId != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("operatorId".to_string()), self.parse_to_int(operatorId.clone()));
         }  else {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890".to_string()))));
         }
         return self.extend(request.clone(), &[params.clone()]);
 
@@ -2247,7 +2247,7 @@ impl BitvavoCore {
         if (operatorId != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("operatorId".to_string()), self.parse_to_int(operatorId.clone()));
         }  else {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" canceAllOrders() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" canceAllOrders() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890".to_string()))));
         }
         let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_delete_orders(&[__ws_arg_8]).await;
@@ -2272,10 +2272,10 @@ impl BitvavoCore {
     m
 }));
         if timeout.as_f64().unwrap_or(f64::NAN) > Value::Int(300000).as_f64().unwrap_or(f64::NAN) {
-            panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrdersAfter() timeout should be less than or equal to 300000 milliseconds".to_string())))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrdersAfter() timeout should be less than or equal to 300000 milliseconds".to_string()))));
         }
         if is_true(&(timeout.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN))) && is_true(&(timeout.as_f64().unwrap_or(f64::NAN) < Value::Int(10000).as_f64().unwrap_or(f64::NAN))) {
-            panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrdersAfter() timeout should be 0 or greater than or equal to 10000 milliseconds".to_string())))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrdersAfter() timeout should be 0 or greater than or equal to 10000 milliseconds".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -2312,7 +2312,7 @@ impl BitvavoCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() requires a symbol argument".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -2382,7 +2382,7 @@ impl BitvavoCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrders() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrders() requires a symbol argument".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -2618,7 +2618,7 @@ impl BitvavoCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() requires a symbol argument".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;

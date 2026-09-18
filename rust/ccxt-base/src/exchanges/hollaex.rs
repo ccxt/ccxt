@@ -1471,7 +1471,7 @@ impl HollaexCore {
         });
         let mut currenciesById: Value = self.currencies_by_id.clone();
         if (currenciesById == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" currencies not loaded".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" currencies not loaded".to_string()))));
         }
         let mut currencyIds: Value = object_keys(&currenciesById);
         {
@@ -1657,7 +1657,7 @@ impl HollaexCore {
         //             }
         let mut order: Value = response.clone();
         if (order == Value::Null) {
-            panic!("{}", crate::exchange_errors::order_not_found(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() could not find order id ".to_string()))), id))));
+            panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() could not find order id ".to_string()))), id)));
         }
         return self.parse_order(order.clone(), &[]);
 
@@ -1935,7 +1935,7 @@ impl HollaexCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders() requires a symbol argument".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -2458,7 +2458,7 @@ impl HollaexCore {
         }
         let mut network: Value = self.safe_string_k(params.clone(), "network", &[]);
         if (network == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires a network parameter".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires a network parameter".to_string()))));
         }
         params = self.omit(params.clone(), Value::Str("network".to_string()), &[]);
         let mut request: Value = Value::Map({
@@ -2554,7 +2554,7 @@ impl HollaexCore {
                 let mut currencyCode: Value = self.safe_currency_code(currencyId.clone(), &[]);
                 let mut networkCode: Value = self.network_id_to_code(&[key.clone(), currencyCode.clone()]);
                 if (networkCode == Value::Null) {
-                    panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" requires a networkCode argument".to_string())))));
+                    panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a networkCode argument".to_string()))));
                 }
                 let mut networkCodeUpper: Value = to_upper(&networkCode); // default to the upper case network code
                 let mut withdrawalFee: Value = self.safe_number_k(value.clone(), "value", &[]);

@@ -1226,7 +1226,7 @@ impl IndodaxCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() requires a symbol argument".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -1343,7 +1343,7 @@ impl IndodaxCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchClosedOrders() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchClosedOrders() requires a symbol argument".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -1408,7 +1408,7 @@ impl IndodaxCore {
                     quoteAmount = self.cost_to_precision(symbol.clone(), cost.clone());
                 }  else {
                     if (price == Value::Null) {
-                        panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price).".to_string())))));
+                        panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price).".to_string()))));
                     }
                     let mut amountString: Value = self.number_to_string(amount.clone());
                     let mut priceString: Value = self.number_to_string(price.clone());
@@ -1428,7 +1428,7 @@ impl IndodaxCore {
         }
         if priceIsRequired {
             if (price == Value::Null) {
-                panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument for a ".to_string()))), type_var)), Value::Str(" order".to_string())))));
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument for a ".to_string()))), type_var)), Value::Str(" order".to_string()))));
             }
             add_element_to_object(&mut request, &Value::Str("price".to_string()), price.clone());
         }
@@ -1469,11 +1469,11 @@ impl IndodaxCore {
     m
 }));
         if (symbol == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".to_string()))));
         }
         let mut side: Value = self.safe_value_k(params.clone(), "side", &[]);
         if (side == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires an extra \"side\" param".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires an extra \"side\" param".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -1975,12 +1975,12 @@ impl IndodaxCore {
                 if is_true(&Value::Bool(in_op(&networks, &marketId))) {
                     let mut networkId: Value = self.safe_string(networks.clone(), marketId.clone(), &[]);
                     if (networkId == Value::Null) {
-                        panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddresses() missing networkId".to_string())))));
+                        panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddresses() missing networkId".to_string()))));
                     }
                     if get_index_of(&networkId, &Value::Str(",".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                         network = Value::List(vec![]);
                         if (networkId == Value::Null) {
-                            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddresses() missing networkId".to_string())))));
+                            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddresses() missing networkId".to_string()))));
                         }
                         let mut networkIds: Value = split(&networkId, &Value::Str(",".to_string()));
                         {
@@ -2092,7 +2092,7 @@ impl IndodaxCore {
         if (self.safe_integer_k(response.clone(), "success", &[Value::Int(0)]).as_f64() == Some(1.0)) {
             // { success: 1, return: { orders: [] }}
             if !is_true(&(Value::Bool(in_op(&response, &Value::Str("return".to_string()))))) {
-                panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(": malformed response: ".to_string()))), self.json(response.clone())))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(": malformed response: ".to_string()))), self.json(response.clone()))));
             }  else {
                 return Value::Null;
             }

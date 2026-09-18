@@ -1172,14 +1172,14 @@ impl KrakenCore {
             let mut spot: Value = Value::Bool(true);
             // fix https://github.com/freqtrade/freqtrade/issues/11765#issuecomment-2894224103
             if (base == Value::Null) {
-                panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" method() missing base".to_string())))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" method() missing base".to_string()))));
             }
             if is_true(&spot) && is_true(&(Value::Bool(in_op(&cachedCurrencies, &base)))) {
                 let mut currency: Value = self.safe_value(cachedCurrencies.clone(), base.clone(), &[]);
                 let mut currencyPrecision: Value = self.safe_number_k(currency.clone(), "precision", &[]);
                 // if currency precision is greater (e.g. 0.01) than market precision (e.g. 0.001)
                 if (currencyPrecision == Value::Null) {
-                    panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" method() missing currencyPrecision".to_string())))));
+                    panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" method() missing currencyPrecision".to_string()))));
                 }
                 if currencyPrecision.as_f64().unwrap_or(f64::NAN) > precisionAmount.as_f64().unwrap_or(f64::NAN) {
                     precisionAmount = currencyPrecision.clone();
@@ -1390,7 +1390,7 @@ impl KrakenCore {
         let mut code: Value = self.safe_currency_code(id.clone(), &[]);
         // the below cannot be reliably done in `safeCurrencyCode`, so we have to do it here
         if (id == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" parseCurrency() missing id".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseCurrency() missing id".to_string()))));
         }
         if get_index_of(&id, &Value::Str(".".to_string())).as_f64().unwrap_or(f64::NAN) < Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             let mut altName: Value = self.safe_string_k(rawCurrency.clone(), "altname", &[]);
@@ -1401,7 +1401,7 @@ impl KrakenCore {
             // XXBT  |  XBT
             // ZUSD  |  USD
             if (id == Value::Null) {
-                panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" parseCurrency() missing id".to_string())))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseCurrency() missing id".to_string()))));
             }
             if (id.as_str() != altName.as_str()) && (is_true(&Value::Bool(starts_with(&id, &Value::Str("X".to_string())))) || is_true(&Value::Bool(starts_with(&id, &Value::Str("Z".to_string()))))) {
                 code = self.safe_currency_code(altName.clone(), &[]);
@@ -1414,7 +1414,7 @@ impl KrakenCore {
             }
         }
         if (code == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" parseCurrency() missing code".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" parseCurrency() missing code".to_string()))));
         }
         let mut isFiat: bool = get_index_of(&code, &Value::Str(".HOLD".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN);
         rawCurrency = self.omit(rawCurrency.clone(), Value::Str("_coin_id".to_string()), &[]);
@@ -1858,7 +1858,7 @@ impl KrakenCore {
         if (since != Value::Null) {
             let mut scaledSince: Value = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
             if (parsedTimeframe == Value::Null) {
-                panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() missing parsedTimeframe".to_string())))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() missing parsedTimeframe".to_string()))));
             }
             let mut timeFrameInSeconds: Value = (match (&(parsedTimeframe), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
             add_element_to_object(&mut request, &Value::Str("since".to_string()), self.number_to_string((match (&(scaledSince), &(timeFrameInSeconds)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }))); // expected to be in seconds
@@ -2543,7 +2543,7 @@ impl KrakenCore {
                 symbol = marketId.clone();
             }  else {
                 if (symbol.as_str() != marketId.as_str()) {
-                    panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrders() requires all orders to have the same symbol".to_string())))));
+                    panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrders() requires all orders to have the same symbol".to_string()))));
                 }
             }
             market = self.market(marketId.clone());
@@ -3152,7 +3152,7 @@ impl KrakenCore {
         }
         let mut market: Value = self.market(symbol.clone());
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" editOrder() does not support ".to_string()))), market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null))), Value::Str(" orders, only spot orders are accepted".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" editOrder() does not support ".to_string()))), market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null))), Value::Str(" orders, only spot orders are accepted".to_string()))));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3279,7 +3279,7 @@ impl KrakenCore {
         //
         let mut result: Value = self.safe_value_k(response.clone(), "result", &[Value::List(vec![])]);
         if !is_true(&(Value::Bool(in_op(&result, &id)))) {
-            panic!("{}", crate::exchange_errors::order_not_found(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() could not find order id ".to_string()))), id))));
+            panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() could not find order id ".to_string()))), id)));
         }
         let __ws_arg_11 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3314,7 +3314,7 @@ impl KrakenCore {
         let mut orderTrades: Value = self.safe_value_k(params.clone(), "trades", &[]);
         let mut tradeIds: Value = Value::List(vec![]);
         if (orderTrades == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderTrades() requires a unified order structure in the params argument or a 'trades' param (an array of trade id strings)".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderTrades() requires a unified order structure in the params argument or a 'trades' param (an array of trade id strings)".to_string()))));
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
@@ -3595,7 +3595,7 @@ impl KrakenCore {
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if is_true(&(Value::Bool(self.last_http_response.clone() != Value::Null))) && is_true(&(Value::Bool(self.last_http_response.as_str() != Some("")))) {
                 if get_index_of(&self.last_http_response, &Value::Str("EOrder:Unknown order".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-                    panic!("{}", crate::exchange_errors::order_not_found(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() error ".to_string()))), self.last_http_response.clone()))));
+                    panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() error ".to_string()))), self.last_http_response.clone())));
                 }
             }
             panic!("{}", e);
@@ -3684,16 +3684,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         if (timeout == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrdersAfter() missing timeout".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrdersAfter() missing timeout".to_string()))));
         }
         if timeout.as_f64().unwrap_or(f64::NAN) > Value::Int(86400000).as_f64().unwrap_or(f64::NAN) {
-            panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrdersAfter timeout should be less than 86400000 milliseconds".to_string())))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrdersAfter timeout should be less than 86400000 milliseconds".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         if (timeout == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrdersAfter() missing timeout".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrdersAfter() missing timeout".to_string()))));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -4418,7 +4418,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     while { if !__for_first_857 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_857 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(depositMethods.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                     let mut entry: Value = self.safe_string_k(get_value(&depositMethods, &i), "method", &[]);
                     if (entry == Value::Null) {
-                        panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() missing entry".to_string())))));
+                        panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() missing entry".to_string()))));
                     }
                     if get_index_of(&entry, &network).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                         depositMethod = entry.clone();
@@ -4458,7 +4458,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         })]);
         if (firstResult == Value::Null) {
-            panic!("{}", crate::exchange_errors::invalid_address(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" privatePostDepositAddresses() returned no addresses for ".to_string()))), code))));
+            panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" privatePostDepositAddresses() returned no addresses for ".to_string()))), code)));
         }
         return self.parse_deposit_address(firstResult.clone(), &[currency.clone()]);
 
@@ -4539,7 +4539,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 })]);
             return self.parse_transaction(result.clone(), &[currency.clone()]);
         }
-        panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires a 'key' parameter (withdrawal key name, as set up on your account)".to_string())))));
+        panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires a 'key' parameter (withdrawal key name, as set up on your account)".to_string()))));
 
     Value::Null
 }
@@ -4742,7 +4742,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (fromAccountParsed.as_str() != Some("Spot Wallet")) {
-            panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" transfer cannot transfer from ".to_string()))), fromAccountParsed)), Value::Str(" to ".to_string()))), toAccountParsed)), Value::Str(". Use krakenfutures instead to transfer from the futures account.".to_string())))));
+            panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" transfer cannot transfer from ".to_string()))), fromAccountParsed)), Value::Str(" to ".to_string()))), toAccountParsed)), Value::Str(". Use krakenfutures instead to transfer from the futures account.".to_string()))));
         }
         let __ws_arg_28 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_post_wallet_transfer(&[__ws_arg_28]).await;
@@ -4884,7 +4884,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub fn handle_errors(&self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
         if (code.as_f64() == Some(520.0)) {
-            panic!("{}", crate::exchange_errors::exchange_not_available(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), to_string_val(&code))), Value::Str(" ".to_string()))), reason))));
+            panic!("{}", crate::exchange_errors::exchange_not_available(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), to_string_val(&code))), Value::Str(" ".to_string()))), reason)));
         }
         if (response == Value::Null) {
             return Value::Null;

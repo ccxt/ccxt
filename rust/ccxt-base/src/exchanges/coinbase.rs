@@ -1523,7 +1523,7 @@ impl CoinbaseCore {
             }
         }
         if (accountId == Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createDepositAddress() could not find the account with matching currency code ".to_string()))), code)), Value::Str(", specify an `account_id` extra param to target specific wallet".to_string())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createDepositAddress() could not find the account with matching currency code ".to_string()))), code)), Value::Str(", specify an `account_id` extra param to target specific wallet".to_string()))));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -4194,7 +4194,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         let mut accountId: Value = self.safe_string2(params.clone(), Value::Str("account_id".to_string()), Value::Str("accountId".to_string()), &[]);
         if (accountId == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" prepareAccountRequest() method requires an account_id (or accountId) parameter".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" prepareAccountRequest() method requires an account_id (or accountId) parameter".to_string()))));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -4220,11 +4220,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("account_id".to_string()), Value::Str("accountId".to_string())]), &[]);
         if (accountId == Value::Null) {
             if (code == Value::Null) {
-                panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" prepareAccountRequestWithCurrencyCode() method requires an account_id (or accountId) parameter OR a currency code argument".to_string())))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" prepareAccountRequestWithCurrencyCode() method requires an account_id (or accountId) parameter OR a currency code argument".to_string()))));
             }
             accountId = self.find_account_id(code.clone(), &[params.clone()]).await;
             if (accountId == Value::Null) {
-                panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" prepareAccountRequestWithCurrencyCode() could not find account id for ".to_string()))), code)), Value::Str(". You might try to generate the deposit address in the website for that coin first.".to_string())))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" prepareAccountRequestWithCurrencyCode() could not find account id for ".to_string()))), code)), Value::Str(". You might try to generate the deposit address in the website for that coin first.".to_string()))));
             }
         }
         let mut request: Value = Value::Map({
@@ -4260,7 +4260,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut market: Value = self.market(symbol.clone());
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
-            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createMarketBuyOrderWithCost() supports spot orders only".to_string())))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createMarketBuyOrderWithCost() supports spot orders only".to_string()))));
         }
         add_element_to_object(&mut params, &Value::Str("createMarketBuyOrderRequiresPrice".to_string()), Value::Bool(false));
         return self.create_order(symbol.clone(), Value::Str("market".to_string()), Value::Str("buy".to_string()), cost.clone(), &[Value::Null, params.clone()]).await;
@@ -4338,7 +4338,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 }
                 if is_true(&(Value::Bool(timeInForce.as_str() == Some("GTD")))) || is_true(&(Value::Bool(endTime != Value::Null))) {
                     if (endTime == Value::Null) {
-                        panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires an end_time parameter for a GTD order".to_string())))));
+                        panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires an end_time parameter for a GTD order".to_string()))));
                     }
                     add_element_to_object(&mut request, &Value::Str("order_configuration".to_string()), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4395,7 +4395,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }  else {
                 if is_true(&(Value::Bool(timeInForce.as_str() == Some("GTD")))) || is_true(&(Value::Bool(endTime != Value::Null))) {
                     if (endTime == Value::Null) {
-                        panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires an end_time parameter for a GTD order".to_string())))));
+                        panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires an end_time parameter for a GTD order".to_string()))));
                     }
                     add_element_to_object(&mut request, &Value::Str("order_configuration".to_string()), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4447,7 +4447,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }  else {
             if isStop || isStopLoss || isTakeProfit {
-                panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() only stop limit orders are supported".to_string())))));
+                panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder() only stop limit orders are supported".to_string()))));
             }
             if is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)))) && is_true(&(Value::Bool(side.as_str() == Some("buy")))) {
                 let mut total: Value = Value::Null;
@@ -4459,7 +4459,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     total = self.cost_to_precision(symbol.clone(), cost.clone());
                 }  else if is_true(&createMarketBuyOrderRequiresPrice) {
                     if (price == Value::Null) {
-                        panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument".to_string())))));
+                        panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument".to_string()))));
                     }  else {
                         let mut amountString: Value = self.number_to_string(amount.clone());
                         let mut priceString: Value = self.number_to_string(price.clone());
@@ -4837,7 +4837,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             while { if !__for_first_531 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_531 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(orders.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut success: Value = self.safe_bool_k(get_value(&orders, &i), "success", &[]);
             if (success.as_bool() != Some(true)) {
-                panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() has failed, check your arguments and parameters".to_string())))));
+                panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() has failed, check your arguments and parameters".to_string()))));
             }
         }
         }
@@ -5408,7 +5408,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (until != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("end".to_string()), self.number_to_string(self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
         }  else if (since != Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTrades() requires a `until` parameter when you use `since` argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchTrades() requires a `until` parameter when you use `since` argument".to_string()))));
         }
         let mut response: Value = Value::Null;
         let mut usePrivate: Value = Value::Bool(false);
@@ -5698,11 +5698,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("account_id".to_string()), Value::Str("accountId".to_string())]), &[]);
         if (accountId == Value::Null) {
             if (code == Value::Null) {
-                panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires an account_id (or accountId) parameter OR a currency code argument".to_string())))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires an account_id (or accountId) parameter OR a currency code argument".to_string()))));
             }
             accountId = self.find_account_id(code.clone(), &[params.clone()]).await;
             if (accountId == Value::Null) {
-                panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() could not find account id for ".to_string()))), code))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() could not find account id for ".to_string()))), code)));
             }
             add_element_to_object(&mut request, &Value::Str("account_id".to_string()), accountId.clone());
         }  else {
@@ -5966,11 +5966,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("account_id".to_string()), Value::Str("accountId".to_string())]), &[]);
         if (accountId == Value::Null) {
             if (code == Value::Null) {
-                panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" deposit() requires an account_id (or accountId) parameter OR a currency code argument".to_string())))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" deposit() requires an account_id (or accountId) parameter OR a currency code argument".to_string()))));
             }
             accountId = self.find_account_id(code.clone(), &[params.clone()]).await;
             if (accountId == Value::Null) {
-                panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" deposit() could not find account id for ".to_string()))), code))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" deposit() could not find account id for ".to_string()))), code)));
             }
         }
         let mut request: Value = Value::Map({
@@ -6054,11 +6054,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("account_id".to_string()), Value::Str("accountId".to_string())]), &[]);
         if (accountId == Value::Null) {
             if (code == Value::Null) {
-                panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDeposit() requires an account_id (or accountId) parameter OR a currency code argument".to_string())))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchDeposit() requires an account_id (or accountId) parameter OR a currency code argument".to_string()))));
             }
             accountId = self.find_account_id(code.clone(), &[params.clone()]).await;
             if (accountId == Value::Null) {
-                panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDeposit() could not find account id for ".to_string()))), code))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDeposit() could not find account id for ".to_string()))), code)));
             }
         }
         let mut request: Value = Value::Map({
@@ -6342,11 +6342,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.load_markets(&[]).await;
         }
         if (code == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchConvertTrade() requires a code argument".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchConvertTrade() requires a code argument".to_string()))));
         }
         let mut toCode: Value = self.safe_string_k(params.clone(), "toCode", &[]);
         if (toCode == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchConvertTrade() requires a toCode parameter".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchConvertTrade() requires a toCode parameter".to_string()))));
         }
         params = self.omit(params.clone(), Value::Str("toCode".to_string()), &[]);
         let mut request: Value = Value::Map({
@@ -6498,7 +6498,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (clientOrderId == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" closePosition() requires a clientOrderId parameter".to_string())))));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" closePosition() requires a clientOrderId parameter".to_string()))));
         }
         add_element_to_object(&mut request, &Value::Str("client_order_id".to_string()), clientOrderId.clone());
         let __ws_arg_47 = self.extend(request.clone(), &[params.clone()]);
@@ -6546,7 +6546,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut portfolio: Value = Value::Null;
             { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchPositions".to_string()), Value::Str("portfolio".to_string()), &[]); portfolio = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
             if (portfolio == Value::Null) {
-                panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchPositions() requires a \"portfolio\" value in params (eg: dbcb91e7-2bc9-515), or set as exchange.options[\"portfolio\"]. You can get a list of portfolios with fetchPortfolios()".to_string())))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchPositions() requires a \"portfolio\" value in params (eg: dbcb91e7-2bc9-515), or set as exchange.options[\"portfolio\"]. You can get a list of portfolios with fetchPortfolios()".to_string()))));
             }
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -6587,7 +6587,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (market.as_map().and_then(|__m| __m.get("future")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             let mut productId: Value = self.safe_string_k(market.clone(), "product_id", &[]);
             if (productId == Value::Null) {
-                panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchPosition() requires a \"product_id\" in params".to_string())))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchPosition() requires a \"product_id\" in params".to_string()))));
             }
             let mut futureRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -6600,7 +6600,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut portfolio: Value = Value::Null;
             { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchPositions".to_string()), Value::Str("portfolio".to_string()), &[]); portfolio = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
             if (portfolio == Value::Null) {
-                panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchPosition() requires a \"portfolio\" value in params (eg: dbcb91e7-2bc9-515), or set as exchange.options[\"portfolio\"]. You can get a list of portfolios with fetchPortfolios()".to_string())))));
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchPosition() requires a \"portfolio\" value in params (eg: dbcb91e7-2bc9-515), or set as exchange.options[\"portfolio\"]. You can get a list of portfolios with fetchPortfolios()".to_string()))));
             }
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -7078,7 +7078,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut isV2CloudAPiKey: Value = Value::Bool((Value::Int(self.secret.len() as i64).as_f64() == Some(88.0)) || is_true(&self.safe_bool_k(self.options.clone(), "v2CloudAPiKey", &[Value::Bool(false)])) || is_true(&Value::Bool(ends_with(&self.secret, &Value::Str("=".to_string())))));
                 if isCloudAPiKey || is_true(&isV2CloudAPiKey) {
                     if isCloudAPiKey && is_true(&Value::Bool(starts_with(&self.apiKey, &Value::Str("-----BEGIN".to_string())))) {
-                        panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" apiKey should contain the name (eg: organizations/3b910e93....) and not the public key".to_string())))));
+                        panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" apiKey should contain the name (eg: organizations/3b910e93....) and not the public key".to_string()))));
                     }
                     // // it may not work for v2
                     // let uri = method + ' ' + url.replace ('https://', '');
@@ -7212,7 +7212,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut advancedTrade: Value = self.options.as_map().and_then(|__m| __m.get("advanced")).cloned().unwrap_or(Value::Null);
         if !is_true(&(Value::Bool(in_op(&response, &Value::Str("data".to_string()))))) && (!is_equal(&advancedTrade, &Value::Bool(true))) {
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" failed due to a malformed response ".to_string()))), self.json(response.clone())))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" failed due to a malformed response ".to_string()))), self.json(response.clone()))));
         }
         return Value::Null;
 
