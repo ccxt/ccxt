@@ -3408,8 +3408,9 @@ public partial class pacifica : Exchange
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        object swapMarkets = ccxt.BaseExchange.FromMarketInterfaceList(await this.FetchSwapMarkets());
-        return ccxt.BaseExchange.ToOpenInterests(this.parseOpenInterests(swapMarkets, symbols));
+        Dictionary<string, object> response = await this.publicGetInfoPrices(parameters);
+        List<object> data = this.safeList(response, "data", new List<object>() {});
+        return ccxt.BaseExchange.ToOpenInterests(this.parseOpenInterests(data, symbols));
     }
 
     /**
@@ -3423,15 +3424,20 @@ public partial class pacifica : Exchange
      */
     public async override Task<ccxt.OpenInterest> FetchOpenInterest(string symbol, object parameters = null)
     {
-        string symbolVar = symbol;
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        symbolVar = this.symbol(symbolVar);
         if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
+        symbolVar = this.symbol(symbolVar);
         object ois = ccxt.BaseExchange.FromOpenInterests(await this.FetchOpenInterests(new List<object>() {symbolVar}, parameters));
-        return ccxt.BaseExchange.ToOpenInterest(getValue(ois, symbolVar));
+        IDictionary<string, object> oi = this.safeDict(ois, symbolVar);
+        if ((oi == null))
+        {
+            throw new BadSymbol ((string)add((this.id + " fetchOpenInterest() could not find open interest for "), symbolVar)) ;
+        }
+        return ccxt.BaseExchange.ToOpenInterest(oi);
     }
 
     public override object parseOpenInterest(object interest, object market = null)

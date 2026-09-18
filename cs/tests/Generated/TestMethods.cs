@@ -2199,7 +2199,7 @@ public partial class testMainClass
         // so one shared 'httpResponse' cannot cover two differently-shaped endpoints
         object responsesByUrl = exchange.safeDict(data, "httpResponseByUrl");
         var mockedExchange = exchange;
-        if (isTrue(!isEqual(responsesByUrl, null)))
+        if ((responsesByUrl != null))
         {
             mockedExchange = setFetchResponseByUrl(exchange, responsesByUrl);
         } else

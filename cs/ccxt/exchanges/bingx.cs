@@ -2024,11 +2024,11 @@ public partial class bingx : Exchange
             amount = this.safeString(trade, "volume");
         }
         string? price = this.safeStringN(trade, new List<object>() {"price", "p", "tradePrice"});
-        if (isTrue(isTrue(isTrue((!isEqual(market, null))) && isTrue((isEqual(getValue(market, "linear"), true)))) && isTrue((isEqual(this.safeString(trade, "x"), "TRADE")))))
+        if ((!isEqual(market, null)) && (isEqual(getValue(market, "linear"), true)) && ((this.safeString(trade, "x") == "TRADE")))
         {
             string? lastAmount = this.safeString(trade, "l");
             string? lastPrice = this.safeString(trade, "L");
-            if (isTrue(isTrue((!isEqual(lastAmount, null))) && isTrue((!isEqual(lastPrice, null)))))
+            if (((lastAmount != null)) && ((lastPrice != null)))
             {
                 // Linear WS l/L describe the last fill, not the original order's q/p.
                 amount = lastAmount;
