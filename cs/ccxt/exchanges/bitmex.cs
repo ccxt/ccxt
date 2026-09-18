@@ -889,7 +889,7 @@ public partial class bitmex : Exchange
         return this.parseNumber(rawQuantity);
     }
 
-    public virtual object convertFromRawCost(object symbol, object rawQuantity)
+    public virtual object convertFromRawCost(string? symbol, object rawQuantity)
     {
         return this.convertFromRawQuantity(symbol, rawQuantity, "quote");
     }
@@ -4137,7 +4137,7 @@ public partial class bitmex : Exchange
      * @param {boolean} [params.reverse] if true, will sort results newest first, default value = false
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
      */
-    public async virtual Task<List<Dictionary<string, object>>> FetchSettlementHistory(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchSettlementHistory(string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))

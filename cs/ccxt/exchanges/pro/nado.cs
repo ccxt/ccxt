@@ -114,7 +114,7 @@ public partial class nado : ccxt.nado
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the exchange response
      */
-    public async override Task<object> unWatchTrades(object symbol, object parameters = null)
+    public async override Task<object> unWatchTrades(string? symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -672,8 +672,9 @@ public partial class nado : ccxt.nado
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the exchange response
      */
-    public async override Task<object> unWatchOrders(object symbol = null, object parameters = null)
+    public async override Task<object> unWatchOrders(string? symbol = null, object parameters = null)
     {
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         await this.loadMarkets();
@@ -681,11 +682,11 @@ public partial class nado : ccxt.nado
         IDictionary<string, object> market = null;
         string messageHash = "orders";
         Int64? productId = null;
-        if (!isEqual(symbol, null))
+        if (!isEqual(symbolVar, null))
         {
-            market = this.market(symbol);
-            symbol = GetValue(market, "symbol");
-            messageHash = add(messageHash, add(":", symbol));
+            market = this.market(symbolVar);
+            symbolVar = GetValue(market, "symbol");
+            messageHash = add(messageHash, add(":", symbolVar));
             productId = this.parseToInt(GetValue(market, "id"));
         }
         object subaccount = null;
@@ -760,8 +761,9 @@ public partial class nado : ccxt.nado
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the exchange response
      */
-    public async override Task<object> unWatchMyTrades(object symbol = null, object parameters = null)
+    public async override Task<object> unWatchMyTrades(string? symbol = null, object parameters = null)
     {
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         await this.loadMarkets();
@@ -769,11 +771,11 @@ public partial class nado : ccxt.nado
         IDictionary<string, object> market = null;
         string messageHash = "myTrades";
         Int64? productId = null;
-        if (!isEqual(symbol, null))
+        if (!isEqual(symbolVar, null))
         {
-            market = this.market(symbol);
-            symbol = GetValue(market, "symbol");
-            messageHash = add(messageHash, add(":", symbol));
+            market = this.market(symbolVar);
+            symbolVar = GetValue(market, "symbol");
+            messageHash = add(messageHash, add(":", symbolVar));
             productId = this.parseToInt(GetValue(market, "id"));
         }
         object subaccount = null;
@@ -1176,7 +1178,7 @@ public partial class nado : ccxt.nado
         return await this.watch(url, messageHash);
     }
 
-    public async virtual Task<object> watchPrivate(object streamType, object stream, object messageHash, object parameters = null)
+    public async virtual Task<object> watchPrivate(string? streamType, object stream, object messageHash, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "subscriptions"));

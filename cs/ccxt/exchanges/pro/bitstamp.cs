@@ -297,18 +297,19 @@ public partial class bitstamp : ccxt.bitstamp
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    public async override Task<object> unWatchTrades(object symbol, object parameters = null)
+    public async override Task<object> unWatchTrades(string? symbol, object parameters = null)
     {
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> market = this.market(symbol);
-        symbol = GetValue(market, "symbol");
+        Dictionary<string, object> market = this.market(symbolVar);
+        symbolVar = GetValue(market, "symbol");
         string channel = add("live_trades_", GetValue(market, "id"));
-        string subHash = add("trades:", symbol);
-        return await this.unWatchChannel(channel, subHash, "trades", new List<object>() {symbol}, parameters);
+        string subHash = add("trades:", symbolVar);
+        return await this.unWatchChannel(channel, subHash, "trades", new List<object>() {symbolVar}, parameters);
     }
 
     public override Dictionary<string, object> parseWsTrade(object trade, object market = null)
@@ -514,10 +515,11 @@ public partial class bitstamp : ccxt.bitstamp
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    public async override Task<object> unWatchOrders(object symbol = null, object parameters = null)
+    public async override Task<object> unWatchOrders(string? symbol = null, object parameters = null)
     {
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if (isEqual(symbolVar, null))
         {
             throw new ArgumentsRequired (add(this.id, " unWatchOrders() requires a symbol argument")) ;
         }
@@ -525,11 +527,11 @@ public partial class bitstamp : ccxt.bitstamp
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> market = this.market(symbol);
-        symbol = GetValue(market, "symbol");
+        Dictionary<string, object> market = this.market(symbolVar);
+        symbolVar = GetValue(market, "symbol");
         await this.authenticate();
         string channel = add(add(add("private-my_orders_", GetValue(market, "id")), "-"), getValue(this.options, "userId"));
-        return await this.unWatchChannel(channel, channel, "orders", new List<object>() {symbol}, parameters);
+        return await this.unWatchChannel(channel, channel, "orders", new List<object>() {symbolVar}, parameters);
     }
 
     /**
@@ -583,10 +585,11 @@ public partial class bitstamp : ccxt.bitstamp
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    public async override Task<object> unWatchMyTrades(object symbol = null, object parameters = null)
+    public async override Task<object> unWatchMyTrades(string? symbol = null, object parameters = null)
     {
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if (isEqual(symbolVar, null))
         {
             throw new ArgumentsRequired (add(this.id, " unWatchMyTrades() requires a symbol argument")) ;
         }
@@ -594,11 +597,11 @@ public partial class bitstamp : ccxt.bitstamp
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> market = this.market(symbol);
-        symbol = GetValue(market, "symbol");
+        Dictionary<string, object> market = this.market(symbolVar);
+        symbolVar = GetValue(market, "symbol");
         await this.authenticate();
         string channel = add(add(add("private-my_trades_", GetValue(market, "id")), "-"), getValue(this.options, "userId"));
-        return await this.unWatchChannel(channel, channel, "myTrades", new List<object>() {symbol}, parameters);
+        return await this.unWatchChannel(channel, channel, "myTrades", new List<object>() {symbolVar}, parameters);
     }
 
     public virtual void handleMyTrades(WebSocketClient client, Dictionary<string, object> message)

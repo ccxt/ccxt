@@ -1136,7 +1136,7 @@ public partial class lighter : Exchange
         return ccxt.BaseExchange.ToInt64Value(this.safeInteger(response, "nonce"));
     }
 
-    public async virtual Task<object> signAndCreateOrder(object method, object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async virtual Task<object> signAndCreateOrder(object method, string? symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -3692,7 +3692,7 @@ public partial class lighter : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
-    public async virtual Task<object> signAndCancelAllOrders(object method, object symbol = null, object parameters = null)
+    public async virtual Task<object> signAndCancelAllOrders(object method, string? symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))

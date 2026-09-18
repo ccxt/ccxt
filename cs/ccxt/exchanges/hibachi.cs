@@ -2407,19 +2407,20 @@ public partial class hibachi : Exchange
      * @param {int} [params.until] timestamp in ms of the latest settlement
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/#/?id=settlement-history-structure}
      */
-    public async virtual Task<List<Dictionary<string, object>>> FetchMySettlementHistory(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchMySettlementHistory(string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         IDictionary<string, object> market = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "accountId", this.getAccountId() },
         };
-        if (!isEqual(symbol, null))
+        if (!isEqual(symbolVar, null))
         {
-            market = this.market(symbol);
+            market = this.market(symbolVar);
             request["contractId"] = GetValue(market, "numericId");
-            symbol = GetValue(market, "symbol");
+            symbolVar = GetValue(market, "symbol");
         }
         if (!isEqual(since, null))
         {
@@ -2456,7 +2457,7 @@ public partial class hibachi : Exchange
         List<object> data = this.safeList(response, "settlements", new List<object>() {});
         object settlements = this.parseSettlements(data, market);
         List<object> sorted = this.sortBy(settlements, "timestamp");
-        return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, symbol, since, limit));
+        return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, symbolVar, since, limit));
     }
 
     /**

@@ -45,7 +45,7 @@ public partial class bitopro : ccxt.bitopro
         });
     }
 
-    public async virtual Task<object> watchPublic(object path, object messageHash, object marketId)
+    public async virtual Task<object> watchPublic(object path, string? messageHash, object marketId)
     {
         object url = add(add(add(add(getValue(getValue(this.urls, "ws"), "public"), "/"), path), "/"), marketId);
         return await this.watch(url, messageHash, null, messageHash);

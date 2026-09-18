@@ -2413,7 +2413,7 @@ public partial class kraken : Exchange
         }, market);
     }
 
-    public virtual List<object> orderRequest(object method, object symbol, object type, object request, object amount, object price = null, object parameters = null)
+    public virtual List<object> orderRequest(string? method, object symbol, object type, object request, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? clientOrderId = this.safeString(parameters, "clientOrderId");

@@ -4241,7 +4241,7 @@ public partial class okx : Exchange
         return await this.CreateOrder(symbol, "market", "sell",ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(null), this.extend(req, parameters));
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isEqual(type, null))
@@ -8376,8 +8376,9 @@ public partial class okx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
-    public async override Task<List<ccxt.FundingHistory>> FetchFundingHistory(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.FundingHistory>> FetchFundingHistory(string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -8391,10 +8392,10 @@ public partial class okx : Exchange
             request["limit"] = ((object)limit).ToString(); // default 100, max 100
         }
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if (!isEqual(symbolVar, null))
         {
-            market = this.market(symbol);
-            symbol = GetValue(market, "symbol");
+            market = this.market(symbolVar);
+            symbolVar = GetValue(market, "symbol");
             if (isEqual(GetValue(market, "contract"), true))
             {
                 if (isEqual(GetValue(market, "linear"), true))
@@ -8472,7 +8473,7 @@ public partial class okx : Exchange
             });
         }
         List<object> sorted = this.sortBy(result, "timestamp");
-        return ccxt.BaseExchange.ToFundingHistoryList(this.filterBySymbolSinceLimit(sorted, symbol, since, limit));
+        return ccxt.BaseExchange.ToFundingHistoryList(this.filterBySymbolSinceLimit(sorted, symbolVar, since, limit));
     }
 
     /**
@@ -8925,7 +8926,7 @@ public partial class okx : Exchange
         return ccxt.BaseExchange.ToDictList(this.parseBorrowRateHistory(data,code, since, limit));
     }
 
-    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(object symbol, object amount, string? type, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, object amount, string? type, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -9847,7 +9848,7 @@ public partial class okx : Exchange
      * @param {object} [params] exchange specific params
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
      */
-    public async virtual Task<List<Dictionary<string, object>>> FetchSettlementHistory(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchSettlementHistory(string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))

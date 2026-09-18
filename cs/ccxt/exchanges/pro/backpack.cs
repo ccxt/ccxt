@@ -710,7 +710,7 @@ public partial class backpack : ccxt.backpack
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> unWatchTrades(object symbol, object parameters = null)
+    public async override Task<object> unWatchTrades(string? symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.unWatchTradesForSymbols(new List<object>() {symbol}, parameters);
@@ -1152,25 +1152,26 @@ public partial class backpack : ccxt.backpack
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> unWatchOrders(object symbol = null, object parameters = null)
+    public async override Task<object> unWatchOrders(string? symbol = null, object parameters = null)
     {
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if (!isEqual(symbolVar, null))
         {
-            market = this.market(symbol);
-            symbol = GetValue(market, "symbol");
+            market = this.market(symbolVar);
+            symbolVar = GetValue(market, "symbol");
         }
         string topic = "account.orderUpdate";
         string messageHash = "unsubscribe:orders";
         if ((market != null))
         {
             topic = add("account.orderUpdate.", GetValue(market, "id"));
-            messageHash = add("unsubscribe:orders:", symbol);
+            messageHash = add("unsubscribe:orders:", symbolVar);
         }
         return await this.watchPrivate(new List<object>() {topic}, new List<object>() {messageHash}, parameters, true);
     }

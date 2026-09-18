@@ -118,8 +118,9 @@ public partial class krakenfutures : ccxt.krakenfutures
      * @param {object} [params] extra parameters specific to the krakenfutures api
      * @returns {object} data from the websocket stream
      */
-    public async virtual Task<object> subscribePublic(object name, object symbols, object parameters = null)
+    public async virtual Task<object> subscribePublic(object name, string? symbols, object parameters = null)
     {
+        object symbolsVar = symbols;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -132,16 +133,16 @@ public partial class krakenfutures : ccxt.krakenfutures
         };
         List<object> marketIds = new List<object>() {};
         object messageHash = name;
-        if (isEqual(symbols, null))
+        if (isEqual(symbolsVar, null))
         {
-            symbols = new List<object>() {};
+            symbolsVar = new List<object>() {};
         }
-        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbolsVar)); postFixIncrement(ref i))
         {
-            object symbol = getValue(symbols, i);
+            object symbol = getValue(symbolsVar, i);
             ((IList<object>)marketIds).Add(this.marketId(symbol));
         }
-        int length = getArrayLength(symbols);
+        int length = getArrayLength(symbolsVar);
         if ((length == 1))
         {
             Dictionary<string, object> market = this.market(getValue(marketIds, 0));

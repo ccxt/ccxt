@@ -3794,18 +3794,19 @@ public partial class woo : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    public async override Task<Dictionary<string, object>> repayMargin(string code, double amount, object symbol = null, object parameters = null)
+    public async override Task<Dictionary<string, object>> repayMargin(string code, double amount, string? symbol = null, object parameters = null)
     {
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if (!isEqual(symbolVar, null))
         {
-            market = this.market(symbol);
-            symbol = GetValue(market, "symbol");
+            market = this.market(symbolVar);
+            symbolVar = GetValue(market, "symbol");
         }
         Dictionary<string, object> currency = this.currency(code);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -3821,7 +3822,7 @@ public partial class woo : Exchange
         Dictionary<string, object> transaction = this.parseMarginLoan(response, currency);
         return ((Dictionary<string, object>)((object)(this.extend(transaction, new Dictionary<string, object>() {
             { "amount", amount },
-            { "symbol", symbol },
+            { "symbol", symbolVar },
         }))));
     }
 
@@ -4015,7 +4016,7 @@ public partial class woo : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
-    public async override Task<List<ccxt.FundingHistory>> FetchFundingHistory(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.FundingHistory>> FetchFundingHistory(string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -4528,7 +4529,7 @@ public partial class woo : Exchange
         return ((Dictionary<string, object>)((object)(await this.modifyMarginHelper(symbol, amount, "REDUCE", parameters))));
     }
 
-    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(object symbol, object amount, string? type, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> modifyMarginHelper(string? symbol, object amount, string? type, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))

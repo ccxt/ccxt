@@ -812,19 +812,20 @@ public partial class btcbox : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
-    public async virtual Task<List<ccxt.Order>> FetchOrdersByType(string? type, object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> FetchOrdersByType(string? type, string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
-        // a special case for btcbox – default symbol is BTC/JPY
-        if (isEqual(symbol, null))
+        // a special case for btcbox – default symbolVar is BTC/JPY
+        if (isEqual(symbolVar, null))
         {
-            symbol = "BTC/JPY";
+            symbolVar = "BTC/JPY";
         }
-        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> market = this.market(symbolVar);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", type },
             { "coin", GetValue(market, "baseId") },

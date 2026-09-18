@@ -1794,7 +1794,7 @@ public partial class mexc : ccxt.mexc
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public async override Task<object> unWatchFundingRate(object symbol, object parameters = null)
+    public async override Task<object> unWatchFundingRate(string? symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -2075,16 +2075,17 @@ public partial class mexc : ccxt.mexc
      * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> unWatchTrades(object symbol, object parameters = null)
+    public async override Task<object> unWatchTrades(string? symbol, object parameters = null)
     {
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> market = this.market(symbol);
-        symbol = GetValue(market, "symbol");
-        string messageHash = add("unsubscribe:trades:", symbol);
+        Dictionary<string, object> market = this.market(symbolVar);
+        symbolVar = GetValue(market, "symbol");
+        string messageHash = add("unsubscribe:trades:", symbolVar);
         object url = null;
         if (isEqual(GetValue(market, "spot"), true))
         {

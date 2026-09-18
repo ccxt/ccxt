@@ -985,7 +985,7 @@ public partial class apex : ccxt.apex
         callDynamically(client, "resolve", new object[] {newPositions, "positions"});
     }
 
-    public async virtual Task<object> authenticate(object url, object parameters = null)
+    public async virtual Task<object> authenticate(string? url, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
