@@ -1135,6 +1135,80 @@ const VENUE_STRING_ARGS: Record<string, Record<string, number[]>> = {
     'xt': { 'FetchOrdersByStatus': [ 0 ], 'modifyMarginHelper': [ 2 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ] },
 };
 
+// U53: `object since/limit/until/amount/price` parameters on generated NON-core helpers (venue
+// request builders, parse*/filter* helper families, the prediction precision helpers) narrowed to
+// the box every caller already passes.  Keyed by method name -> position: C# overrides are
+// invariant on parameter types, so every declaration of the name at that position in the whole
+// generated tree is rewritten by the same pass, and the parameter NAME at that position must be
+// one of VENUE_NUMERIC_ARG_NAMES (a same-name helper that spells the position differently -- e.g.
+// prediction hyperliquid's `calculatePricePrecision(object midPx)` -- is a different method and is
+// left alone).  Produced by campaigns/cs90/tools/U53/{census-num-params,census2,final_table}.py,
+// which admit a position only when
+//   * every call site of the name at that position in cs/ + examples/cs passes an argument whose
+//     STATIC type is exactly Int64/Int64? (for an Int64? target) or double/double? (double?) or
+//     `null` -- no literal, no int, no object: any conversion at the call site would change the
+//     boxed type the parameter holds (an int literal boxes Int32 where Int64? boxes Int64);
+//   * every declaration of the name at that position is `object <numeric-name>` and generated;
+//   * every use of the parameter inside the body is an identity under the narrowed type: an
+//     argument at a callee position whose every declaration is `object`, a cast to the target
+//     type or to `object`, an initializer element, a `Dictionary<string, object>` indexer write,
+//     an indexer key, or a `return` of an object-returning method -- and `arg_ok` requires NO
+//     numeric overload at that callee position (multiply/divide/mod/sum have Int64? twins whose
+//     binding would move);
+//   * no `this.<name>` method-group reference (`spawn(...)`, DynamicInvoker) anywhere.
+// A body that assigns to the parameter keeps the `object <name>Var = <name>;` shadow
+// `typeCoreArgs` inserts and its uses are renamed, so nothing inside such a body moves; positions
+// whose body needs that shadow are excluded here (they would ADD an object local).
+const VENUE_NUMERIC_ARG_NAMES = [ 'since', 'limit', 'until', 'amount', 'price' ];
+
+const VENUE_NUMERIC_ARGS: Record<string, Record<number, string>> = {
+    'amountToPredictionPrecision': { 1: 'double?' },
+    'borrowMargin': { 1: 'double?' },
+    'buildClobOrderBody': { 3: 'double?' },
+    'buildOrderbookOrder': { 3: 'double?', 4: 'double?' },
+    'calcOrderPrice': { 1: 'double?', 2: 'double?' },
+    'calculateFee': { 3: 'double?', 4: 'double?' },
+    'convertCurrencyNetwork': { 1: 'double?' },
+    'createEditOrderRequest': { 4: 'double?', 5: 'double?' },
+    'createTpslOrderRequest': { 3: 'double?', 4: 'double?' },
+    'editSpotOrderRequest': { 4: 'double?', 5: 'double?' },
+    'encodeWithdrawMessage': { 0: 'double?' },
+    'fetchPaginatedCallIncremental': { 2: 'Int64?', 3: 'Int64?' },
+    'filterByOutcomesSinceLimit': { 2: 'Int64?', 3: 'Int64?' },
+    'filterBySymbolsSinceLimit': { 2: 'Int64?', 3: 'Int64?' },
+    'getAssetHistoryRows': { 1: 'Int64?', 2: 'Int64?' },
+    'getClosestLimit': { 0: 'Int64?' },
+    'handlePaginationParams': { 1: 'Int64?' },
+    'internalFetchTransfers': { 2: 'Int64?', 3: 'Int64?' },
+    'opinionOrderRawAmounts': { 2: 'double?', 3: 'double?' },
+    'orderRequestWs': { 4: 'double?', 5: 'double?' },
+    'parseBorrowRateHistories': { 2: 'Int64?', 3: 'Int64?' },
+    'parseContractOrderBook': { 2: 'Int64?' },
+    'parseConversions': { 4: 'Int64?', 5: 'Int64?' },
+    'parseCreateEditOrderArgs': { 4: 'double?', 5: 'double?' },
+    'parseFundingHistories': { 2: 'Int64?', 3: 'Int64?' },
+    'parseFundingRateHistories': { 2: 'Int64?', 3: 'Int64?' },
+    'parseIncomes': { 2: 'Int64?', 3: 'Int64?' },
+    'parseLedger': { 2: 'Int64?', 3: 'Int64?' },
+    'parseLiquidations': { 2: 'Int64?', 3: 'Int64?' },
+    'parseLongShortRatioHistory': { 2: 'Int64?', 3: 'Int64?' },
+    'parsePredictionOrders': { 2: 'Int64?', 3: 'Int64?' },
+    'parsePredictionTrades': { 2: 'Int64?', 3: 'Int64?' },
+    'parseSettlements': { 2: 'Int64?', 3: 'Int64?' },
+    'parseTradingViewOHLCV': { 3: 'Int64?' },
+    'parseTransactionsByType': { 3: 'Int64?', 4: 'Int64?' },
+    'parseWsOHLCVs': { 3: 'Int64?', 4: 'Int64?' },
+    'parseWsTrades': { 2: 'Int64?', 3: 'Int64?' },
+    'prepareAccountRequest': { 0: 'Int64?' },
+    'prepareAccountRequestWithCurrencyCode': { 1: 'Int64?' },
+    'priceToPredictionPrecision': { 1: 'double?' },
+    'queryTransactionsByEventType': { 4: 'Int64?', 5: 'Int64?' },
+    'requestWalletHistoryRows': { 4: 'Int64?' },
+    'seedOrderBook': { 2: 'Int64?' },
+    'signAndCreateOrder': { 5: 'double?' },
+    'tokenizedConvertHistory': { 0: 'Int64?', 1: 'Int64?' },
+};
+
 // Uses of a `typeCoreArgs` shadow local (`object nameVar = name;`, inserted when the body assigns
 // to the narrowed parameter `name`) that cannot change the resolved C# code when the shadow is
 // declared with the parameter's own type: the copy is the same box (Nullable<T> boxes as T) and
@@ -3357,6 +3431,87 @@ class NewTranspiler {
                 // no shadow -- and no renamed body -- is needed for the list itself.
                 const listTarget = CORE_LIST_TARGET_TYPES.indexOf (targetType) !== -1;
                 if (reassigned && (!listTarget || !this.bodyWritesAreListTyped (body, paramName))) {
+                    const alias = paramName + 'Var';
+                    shadows.push (`${indent}    object ${alias} = ${paramName};`);
+                    renames.push ([ paramName, alias ]);
+                }
+                changed = true;
+            }
+            if (!changed) {
+                continue;
+            }
+            if (renames.length) {
+                for (let k = bodyStart + 1; k < bodyEnd; k++) {
+                    for (const [ name, alias ] of renames) {
+                        lines[k] = this.renameLocalInBody (lines[k], name, alias);
+                    }
+                }
+            }
+            lines[i] = `${indent}public ${asyncKw || ''}${modifier} ${returnType} ${methodName}(${params.join (',')})`;
+            if (shadows.length) {
+                lines[bodyStart] = lines[bodyStart] + '\n' + shadows.join ('\n');
+            }
+            i = bodyEnd;
+        }
+        return lines.join ('\n');
+    }
+
+    // U53: narrows the `object` parameters listed in VENUE_NUMERIC_ARGS to Int64?/double?.
+    // Keyed by method name + position (not by venue): C# overrides are invariant on parameter
+    // types, so a narrowed base declaration forces every override -- the pass therefore rewrites
+    // every declaration of the name at that position in the file it is handed.  Only a parameter
+    // whose NAME is one of VENUE_NUMERIC_ARG_NAMES is touched, so a same-name helper that spells
+    // the position differently keeps its `object` slot.  A body that assigns to (or refs) the
+    // parameter gets the same `object <name>Var = <name>;` shadow `typeCoreArgs` inserts, with the
+    // body renamed to it, so the body keeps the object-typed slot it has today.
+    typeVenueNumericArgs (content: string): string {
+        const names = Object.keys (VENUE_NUMERIC_ARGS);
+        if (!names.some (name => content.includes (' ' + name + '('))) {
+            return content;
+        }
+        const sigRe = /^(\s*)public (async )?(virtual|override) ([\w<>., ?]+) (\w+)\((.*)\)\s*$/;
+        const lines = content.split ('\n');
+        for (let i = 0; i < lines.length; i++) {
+            const sig = sigRe.exec (lines[i]);
+            if (!sig) {
+                continue;
+            }
+            const [ , indent, asyncKw, modifier, returnType, methodName, plist ] = sig;
+            const positions = VENUE_NUMERIC_ARGS[methodName];
+            if (positions === undefined) {
+                continue;
+            }
+            let bodyStart = i + 1;
+            while (bodyStart < lines.length && lines[bodyStart].trim () !== '{') {
+                bodyStart++;
+            }
+            if (bodyStart >= lines.length) {
+                continue;
+            }
+            let bodyEnd = lines.length - 1;
+            for (let j = bodyStart + 1; j < lines.length; j++) {
+                if (lines[j] === indent + '}') { bodyEnd = j; break; }
+            }
+            const body = lines.slice (bodyStart + 1, bodyEnd).join ('\n');
+            const params = this.splitCsharpParams (plist);
+            const shadows: string[] = [];
+            const renames: string[][] = [];
+            let changed = false;
+            for (const posKey of Object.keys (positions)) {
+                const pos = Number (posKey);
+                const targetType = positions[pos];
+                const param = params[pos];
+                if (param === undefined || !param.trimStart ().startsWith ('object ')) {
+                    continue;
+                }
+                const paramName = param.split ('=')[0].trim ().split (/\s+/).pop () as string;
+                if (VENUE_NUMERIC_ARG_NAMES.indexOf (paramName) === -1) {
+                    continue;
+                }
+                const reassigned = new RegExp ('(?<![\\w.])' + paramName + '\\s*(?:\\?\\?)?=(?!=)').test (body)
+                    || new RegExp ('(?<![\\w.])(?:ref|out)\\s+' + paramName + '(?![\\w])').test (body);
+                params[pos] = param.replace ('object ' + paramName, targetType + ' ' + paramName);
+                if (reassigned) {
                     const alias = paramName + 'Var';
                     shadows.push (`${indent}    object ${alias} = ${paramName};`);
                     renames.push ([ paramName, alias ]);
@@ -5733,7 +5888,7 @@ class NewTranspiler {
                 this.createGeneratedHeader().join('\n'),
                 "public partial class BaseExchange\n{\n\n"
             ]).join("\n");
-            const file = fileHeader + this.stripRedundantStringCasts (this.retypeStringReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.retypeParameterArgs (this.typeVenueStringArgs (this.retypeSafeCollectionHelpers (this.pascalizeTypedCores (this.dropStringTimeframeCasts (this.retypeSignatureArgs (this.finalizeCoreArgTypes (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), false))))))), false)), 'BaseExchange'))))))) + "\n";
+            const file = fileHeader + this.stripRedundantStringCasts (this.retypeStringReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.retypeParameterArgs (this.typeVenueNumericArgs (this.typeVenueStringArgs (this.retypeSafeCollectionHelpers (this.pascalizeTypedCores (this.dropStringTimeframeCasts (this.retypeSignatureArgs (this.finalizeCoreArgTypes (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), false))))))), false)), 'BaseExchange')))))))) + "\n";
             fs.writeFileSync (csharpExchangeBase, file);
             log.green ('Transpiled base methods to', (csharpExchangeBase as any).yellow)
             if (exchangeClassMatch) {
@@ -5741,7 +5896,7 @@ class NewTranspiler {
                     this.createGeneratedHeader().join('\n'),
                     "public partial class Exchange\n{\n\n"
                 ]).join("\n");
-                const tradingFile = tradingHeader + this.stripRedundantStringCasts (this.retypeStringReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.retypeParameterArgs (this.typeVenueStringArgs (this.pascalizeTypedCores (this.dropStringTimeframeCasts (this.retypeSignatureArgs (this.finalizeCoreArgTypes (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (exchangeBody), false))))))), false), 'Exchange'))))))) + "\n}\n";
+                const tradingFile = tradingHeader + this.stripRedundantStringCasts (this.retypeStringReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.retypeParameterArgs (this.typeVenueNumericArgs (this.typeVenueStringArgs (this.pascalizeTypedCores (this.dropStringTimeframeCasts (this.retypeSignatureArgs (this.finalizeCoreArgTypes (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (exchangeBody), false))))))), false), 'Exchange')))))))) + "\n}\n";
                 fs.writeFileSync (BASE_TRADING_METHODS_FILE, tradingFile);
                 log.green ('Transpiled trading methods to', (BASE_TRADING_METHODS_FILE as any).yellow)
             }
@@ -5789,7 +5944,7 @@ class NewTranspiler {
                 "public partial class PredictionExchange : BaseExchange\n{\n\n"
             ]).join("\n");
             // method wrappers retired: PascalCase cores on PredictionExchange are the public API
-            const file = fileHeader + fields + this.retypeStringReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.typeVenueStringArgs (this.pascalizeTypedCores (this.dropStringTimeframeCasts (this.retypeSignatureArgs (this.finalizeCoreArgTypes (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), true))))))), true), 'PredictionExchange'))))) + "\n";
+            const file = fileHeader + fields + this.retypeStringReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.typeVenueNumericArgs (this.typeVenueStringArgs (this.pascalizeTypedCores (this.dropStringTimeframeCasts (this.retypeSignatureArgs (this.finalizeCoreArgTypes (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), true))))))), true), 'PredictionExchange')))))) + "\n";
             fs.writeFileSync (predictionBase, file);
             this._predictionBaseWritten = true;
             log.green ('Transpiled prediction base methods to', (predictionBase as any).yellow)
@@ -6135,7 +6290,7 @@ class NewTranspiler {
         // tier flag has to come from `this.isPrediction` (set by every prediction pass) --
         // otherwise a prediction file would look up the REST venue's table and skip its own
         const venueKey = (this.isPrediction ? 'prediction:' : ws ? 'pro:' : '') + this.currentVenue;
-        content = this.typeVenueStringArgs (this.stripRedundantStringCasts (this.retypeStringReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.retypeWsHandlerMessages (this.retypeParameterArgs (this.pascalizeTypedCores (this.dropStringTimeframeCasts (this.retypeSignatureArgs (this.finalizeCoreArgTypes (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (content)))))))))))))))), venueKey);
+        content = this.typeVenueNumericArgs (this.typeVenueStringArgs (this.stripRedundantStringCasts (this.retypeStringReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.retypeWsHandlerMessages (this.retypeParameterArgs (this.pascalizeTypedCores (this.dropStringTimeframeCasts (this.retypeSignatureArgs (this.finalizeCoreArgTypes (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (content)))))))))))))))), venueKey));
         content = this.dropRedundantObjectBoxCasts (content);
         content = this.retypeCacheElementWriteCasts (content);
         this.currentVenue = '';

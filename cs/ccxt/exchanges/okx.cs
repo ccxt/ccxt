@@ -8790,7 +8790,7 @@ public partial class okx : Exchange
         };
     }
 
-    public virtual Dictionary<string, object> parseBorrowRateHistories(object response, object codes, object since, object limit)
+    public virtual Dictionary<string, object> parseBorrowRateHistories(object response, object codes, Int64? since, Int64? limit)
     {
         //
         //    [

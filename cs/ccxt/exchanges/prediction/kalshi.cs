@@ -665,7 +665,7 @@ public partial class kalshi : PredictionExchange
         return null;
     }
 
-    public override object calculateFee(object symbol, string? type, string? side, object amount, object price, object takerOrMaker = null, object parameters = null)
+    public override object calculateFee(object symbol, string? type, string? side, double? amount, double? price, object takerOrMaker = null, object parameters = null)
     {
         // kalshi's trading fee is NOT a flat 7% — it is 0.07 * contracts * price * (1 - price), which
         // peaks at price 0.5 and vanishes near 0 or 1. the describe() `taker: 0.07` is only the

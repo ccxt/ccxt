@@ -3422,7 +3422,7 @@ public partial class kraken : Exchange
         };
     }
 
-    public virtual object parseTransactionsByType(string? type, object transactions, string code = null, object since = null, object limit = null)
+    public virtual object parseTransactionsByType(string? type, object transactions, string code = null, Int64? since = null, Int64? limit = null)
     {
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(transactions)); postFixIncrement(ref i))

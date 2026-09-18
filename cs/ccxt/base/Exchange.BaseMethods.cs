@@ -2799,7 +2799,7 @@ public partial class BaseExchange
         };
     }
 
-    public virtual object calculateFee(object symbol, string? type, string? side, object amount, object price, object takerOrMaker = null, object parameters = null)
+    public virtual object calculateFee(object symbol, string? type, string? side, double? amount, double? price, object takerOrMaker = null, object parameters = null)
     {
         /**
         * @method
@@ -3259,7 +3259,7 @@ public partial class BaseExchange
         throw new NotSupported (add(this.id, " borrowIsolatedMargin is not support yet")) ;
     }
 
-    public async virtual Task<Dictionary<string, object>> borrowMargin(string code, object amount, object symbol = null, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> borrowMargin(string code, double? amount, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported (add(this.id, " borrowMargin is deprecated, please use borrowCrossMargin or borrowIsolatedMargin instead")) ;
@@ -4140,7 +4140,7 @@ public partial class BaseExchange
         return this.parseTradesHelper(false, trades, market, since, limit, parameters);
     }
 
-    public virtual IList<object> parseWsTrades(object trades, IDictionary<string, object> market = null, object since = null, object limit = null, object parameters = null)
+    public virtual IList<object> parseWsTrades(object trades, IDictionary<string, object> market = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return this.parseTradesHelper(true, trades, market, since, limit, parameters);
@@ -4176,7 +4176,7 @@ public partial class BaseExchange
         return this.filterByCurrencySinceLimit(result,((string)code), since, limit);
     }
 
-    public virtual IList<object> parseLedger(object data, object currency = null, object since = null, object limit = null, object parameters = null)
+    public virtual IList<object> parseLedger(object data, object currency = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> result = new List<object>() {};
@@ -4635,7 +4635,7 @@ public partial class BaseExchange
         return ((List<object>)((object)(ohlcvs)));
     }
 
-    public virtual object parseTradingViewOHLCV(Dictionary<string, object> ohlcvs, IDictionary<string, object> market = null, string timeframe = null, object since = null, object limit = null)
+    public virtual object parseTradingViewOHLCV(Dictionary<string, object> ohlcvs, IDictionary<string, object> market = null, string timeframe = null, Int64? since = null, object limit = null)
     {
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
@@ -5931,7 +5931,7 @@ public partial class BaseExchange
         return this.filterByValueSinceLimit(array, "currency", code, since, limit, "timestamp", tail);
     }
 
-    public virtual IList<object> filterBySymbolsSinceLimit(object array, object symbols = null, object since = null, object limit = null, object tail = null)
+    public virtual IList<object> filterBySymbolsSinceLimit(object array, object symbols = null, Int64? since = null, Int64? limit = null, object tail = null)
     {
         tail ??= false;
         object result = this.filterByArray(array, "symbol", symbols, false);
@@ -6096,7 +6096,7 @@ public partial class BaseExchange
         return ((object)result);
     }
 
-    public virtual object parseFundingRateHistories(object response, IDictionary<string, object> market = null, object since = null, object limit = null)
+    public virtual object parseFundingRateHistories(object response, IDictionary<string, object> market = null, Int64? since = null, Int64? limit = null)
     {
         List<object> rates = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
@@ -6140,7 +6140,7 @@ public partial class BaseExchange
         throw new NotSupported (add(this.id, " parseLongShortRatio() is not supported yet")) ;
     }
 
-    public virtual object parseLongShortRatioHistory(object response, IDictionary<string, object> market = null, object since = null, object limit = null)
+    public virtual object parseLongShortRatioHistory(object response, IDictionary<string, object> market = null, Int64? since = null, Int64? limit = null)
     {
         List<object> rates = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
@@ -6710,7 +6710,7 @@ public partial class BaseExchange
         throw new NotSupported (add(this.id, " parseIncome () is not supported yet")) ;
     }
 
-    public virtual object parseIncomes(object incomes, IDictionary<string, object> market = null, object since = null, object limit = null)
+    public virtual object parseIncomes(object incomes, IDictionary<string, object> market = null, Int64? since = null, Int64? limit = null)
     {
         /**
          * @ignore
@@ -6756,7 +6756,7 @@ public partial class BaseExchange
         return ((Dictionary<string, object>)((object)(market)));
     }
 
-    public virtual List<object> parseWsOHLCVs(object ohlcvs, IDictionary<string, object> market = null, string timeframe = null, object since = null, object limit = null)
+    public virtual List<object> parseWsOHLCVs(object ohlcvs, IDictionary<string, object> market = null, string timeframe = null, Int64? since = null, Int64? limit = null)
     {
         object timeframeVar = timeframe;
         timeframeVar ??= "1m";
@@ -7207,7 +7207,7 @@ public partial class BaseExchange
         return this.filterBySinceLimit(sorted, since, limit, key);
     }
 
-    public async virtual Task<object> fetchPaginatedCallIncremental(object method, object symbol = null, object since = null, object limit = null, object parameters = null, object pageKey = null, object maxEntriesPerRequest = null)
+    public async virtual Task<object> fetchPaginatedCallIncremental(object method, object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null, object pageKey = null, object maxEntriesPerRequest = null)
     {
         parameters ??= new Dictionary<string, object>();
         object maxCalls = 10;
@@ -7378,7 +7378,7 @@ public partial class BaseExchange
         throw new NotSupported (add(this.id, " parseLiquidation () is not supported yet")) ;
     }
 
-    public virtual IList<object> parseLiquidations(object liquidations, IDictionary<string, object> market = null, object since = null, object limit = null)
+    public virtual IList<object> parseLiquidations(object liquidations, IDictionary<string, object> market = null, Int64? since = null, Int64? limit = null)
     {
         /**
          * @ignore
@@ -7508,7 +7508,7 @@ public partial class BaseExchange
         throw new NotSupported (add(this.id, " parseLeverage () is not supported yet")) ;
     }
 
-    public virtual object parseConversions(object conversions, string code = null, object fromCurrencyKey = null, object toCurrencyKey = null, object since = null, object limit = null, object parameters = null)
+    public virtual object parseConversions(object conversions, string code = null, object fromCurrencyKey = null, object toCurrencyKey = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object codeVar = code;
         parameters ??= new Dictionary<string, object>();

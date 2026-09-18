@@ -3079,7 +3079,7 @@ public partial class hitbtc : Exchange
         };
     }
 
-    public async virtual Task<Dictionary<string, object>> convertCurrencyNetwork(string code, object amount, object fromNetwork, object toNetwork, object parameters)
+    public async virtual Task<Dictionary<string, object>> convertCurrencyNetwork(string code, double? amount, object fromNetwork, object toNetwork, object parameters)
     {
         if (isEqual(this.markets, null))
         {

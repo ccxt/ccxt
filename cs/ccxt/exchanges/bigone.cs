@@ -1181,7 +1181,7 @@ public partial class bigone : Exchange
         return ((List<object>)((object)(result)));
     }
 
-    public virtual object parseContractOrderBook(object orderbook, object symbol, object limit = null)
+    public virtual object parseContractOrderBook(object orderbook, object symbol, Int64? limit = null)
     {
         object responseBids = this.safeValue(orderbook, "bids");
         object responseAsks = this.safeValue(orderbook, "asks");

@@ -1231,7 +1231,7 @@ public partial class btcmarkets : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
     }
 
-    public override object calculateFee(object symbol, string? type, string? side, object amount, object price, object takerOrMaker = null, object parameters = null)
+    public override object calculateFee(object symbol, string? type, string? side, double? amount, double? price, object takerOrMaker = null, object parameters = null)
     {
         /**
         * @method

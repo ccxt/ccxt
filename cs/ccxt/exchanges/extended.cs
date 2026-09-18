@@ -1338,7 +1338,7 @@ public partial class extended : Exchange
         };
     }
 
-    public virtual object parseFundingHistories(object histories, object market = null, object since = null, object limit = null)
+    public virtual object parseFundingHistories(object histories, object market = null, Int64? since = null, Int64? limit = null)
     {
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(histories)); postFixIncrement(ref i))

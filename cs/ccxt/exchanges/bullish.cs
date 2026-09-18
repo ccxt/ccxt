@@ -1796,7 +1796,7 @@ public partial class bullish : Exchange
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
     }
 
-    public virtual object handlePaginationParams(object method, object since = null, object parameters = null)
+    public virtual object handlePaginationParams(object method, Int64? since = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64 ninetyDays = multiply(multiply(multiply(multiply(90, 24), 60), 60), 1000);
@@ -1850,7 +1850,7 @@ public partial class bullish : Exchange
         return parameters;
     }
 
-    public virtual object getClosestLimit(object limit)
+    public virtual object getClosestLimit(Int64? limit)
     {
         int pageSize = 5;
         if ((isGreaterThan(limit, 5)) && (isLessThan(limit, 26)))
