@@ -4712,7 +4712,7 @@ public partial class binance : Exchange
             {
                 throw new ExchangeError (add(this.id, " parseCurrenciesCustom() could not resolve parsed")) ;
             }
-            object code = GetValue(parsed, "code");
+            string? code = ((string)GetValue(parsed, "code"));
             if ((parsed == null))
             {
                 throw new ExchangeError (add(this.id, " parseCurrenciesCustom() could not resolve parsed")) ;
@@ -12883,7 +12883,7 @@ public partial class binance : Exchange
             for (int i = 0; isLessThan(i, fees?.Count ?? 0); postFixIncrement(ref i))
             {
                 Dictionary<string, object> fee = this.parseTradingFee(getValue(fees, i));
-                object symbol = GetValue(fee, "symbol");
+                string? symbol = ((string)GetValue(fee, "symbol"));
                 if ((symbol != null))
                 {
                     result[(string)symbol] = fee;

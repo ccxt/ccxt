@@ -4240,7 +4240,7 @@ public partial class kucoin : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(code);
-        object currencyId = GetValue(currency, "id");
+        string? currencyId = ((string)GetValue(currency, "id"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", currencyId },
         };
@@ -4256,7 +4256,7 @@ public partial class kucoin : Exchange
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         string? address = this.safeString(data, "address");
-        if (!isEqual(currencyId, "NIM"))
+        if (currencyId != "NIM")
         {
             // contains spaces
             this.checkAddress(address);

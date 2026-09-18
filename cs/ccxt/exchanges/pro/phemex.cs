@@ -112,7 +112,7 @@ public partial class phemex : ccxt.phemex
         string? marketId = this.safeString(ticker, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         market = marketResolved;
-        object symbol = GetValue(marketResolved, "symbol");
+        string? symbol = ((string)GetValue(marketResolved, "symbol"));
         Int64? timestamp = this.safeIntegerProduct(ticker, "timestamp", 0.000001);
         object lastString = this.fromEp(this.safeString(ticker, "close"), market);
         double? last = this.parseNumber(lastString);
@@ -176,7 +176,7 @@ public partial class phemex : ccxt.phemex
         string? marketId = this.safeString(ticker, 0);
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         market = marketResolved;
-        object symbol = GetValue(marketResolved, "symbol");
+        string? symbol = ((string)GetValue(marketResolved, "symbol"));
         object lastString = this.fromEp(this.safeString(ticker, 4), market);
         double? last = this.parseNumber(lastString);
         double? quoteVolume = this.parseNumber(this.fromEv(this.safeString(ticker, 6), market));
@@ -1034,7 +1034,7 @@ public partial class phemex : ccxt.phemex
             Dictionary<string, object> market = this.safeMarket(marketId);
             Dictionary<string, object> parsed = this.parseTrade(rawTrade);
             callDynamically(cachedTrades, "append", new object[] {parsed});
-            object symbol = GetValue(parsed, "symbol");
+            string? symbol = ((string)GetValue(parsed, "symbol"));
             if ((type == null))
             {
                 type = (isEqual(getValue(market, "settle"), "USDT")) ? "perpetual" : getValue(market, "type");
@@ -1470,7 +1470,7 @@ public partial class phemex : ccxt.phemex
         string? marketId = this.safeString(order, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         market = marketResolved;
-        object symbol = GetValue(marketResolved, "symbol");
+        string? symbol = ((string)GetValue(marketResolved, "symbol"));
         string? status = this.parseOrderStatus(this.safeString(order, "ordStatus"));
         string? side = this.safeStringLower(order, "side");
         string? type = this.parseOrderType(this.safeString(order, "ordType"));

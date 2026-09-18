@@ -1803,7 +1803,7 @@ public partial class lbank : Exchange
         for (int i = 0; isLessThan(i, fees.Count); postFixIncrement(ref i))
         {
             Dictionary<string, object> fee = this.parseTradingFee(getValue(fees, i));
-            object symbol = GetValue(fee, "symbol");
+            string? symbol = ((string)GetValue(fee, "symbol"));
             result[(string)((string)symbol)] = fee;
         }
         return ccxt.BaseExchange.ToTradingFees(result);

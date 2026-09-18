@@ -1837,7 +1837,7 @@ public partial class bingx : ccxt.bingx
         ccxt.pro.ArrayCache stored = this.orders;
         Dictionary<string, object> parsedOrder = this.parseOrder(data);
         callDynamically(stored, "append", new object[] {parsedOrder});
-        object symbol = GetValue(parsedOrder, "symbol");
+        string? symbol = ((string)GetValue(parsedOrder, "symbol"));
         string spotHash = "spot:order";
         string swapHash = "swap:order";
         string messageHash = (isSpot) ? spotHash : swapHash;
@@ -1916,7 +1916,7 @@ public partial class bingx : ccxt.bingx
         string? marketId = this.safeString(result, "s");
         Dictionary<string, object> market = this.safeMarket(marketId, null, "-", type);
         Dictionary<string, object> parsed = this.parseTrade(result, market);
-        object symbol = GetValue(parsed, "symbol");
+        string? symbol = ((string)GetValue(parsed, "symbol"));
         string spotHash = "spot:mytrades";
         string swapHash = "swap:mytrades";
         string messageHash = isSpot ? spotHash : swapHash;

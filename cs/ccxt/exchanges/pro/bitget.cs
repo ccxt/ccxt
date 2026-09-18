@@ -301,7 +301,7 @@ public partial class bitget : ccxt.bitget
         //
         this.handleBidAsk(client, message);
         Dictionary<string, object> ticker = this.parseWsTicker(message);
-        object symbol = GetValue(ticker, "symbol");
+        string? symbol = ((string)GetValue(ticker, "symbol"));
         if ((symbol != null))
         {
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
@@ -504,7 +504,7 @@ public partial class bitget : ccxt.bitget
     public virtual void handleBidAsk(WebSocketClient client, object message)
     {
         Dictionary<string, object> ticker = this.parseWsBidAsk(message);
-        object symbol = GetValue(ticker, "symbol");
+        string? symbol = ((string)GetValue(ticker, "symbol"));
         if ((symbol != null))
         {
             ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = ticker;
@@ -1989,7 +1989,7 @@ public partial class bitget : ccxt.bitget
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
             Dictionary<string, object> parsed = this.parseWsOrder(order, market);
             callDynamically(stored, "append", new object[] {parsed});
-            object symbol = GetValue(parsed, "symbol");
+            string? symbol = ((string)GetValue(parsed, "symbol"));
             if ((symbol != null))
             {
                 marketSymbols[(string)symbol] = true;
@@ -2527,7 +2527,7 @@ public partial class bitget : ccxt.bitget
             }
             Dictionary<string, object> parsed = this.parseWsTrade(trade, market);
             callDynamically(stored, "append", new object[] {parsed});
-            object symbol = GetValue(parsed, "symbol");
+            string? symbol = ((string)GetValue(parsed, "symbol"));
             string symbolSpecificMessageHash = add("myTrades:", symbol);
             callDynamically(client, "resolve", new object[] {stored, symbolSpecificMessageHash});
         }

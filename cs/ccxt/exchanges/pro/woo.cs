@@ -686,7 +686,7 @@ public partial class woo : ccxt.woo
             }
             ticker["ts"] = timestamp;
             Dictionary<string, object> parsedTicker = this.parseWsBidAsk(ticker);
-            object symbol = GetValue(parsedTicker, "symbol");
+            string? symbol = ((string)GetValue(parsedTicker, "symbol"));
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = parsedTicker;
@@ -1711,7 +1711,7 @@ public partial class woo : ccxt.woo
         //
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> fundingRate = this.parseFundingRate(data);
-        object symbol = GetValue(fundingRate, "symbol");
+        string? symbol = ((string)GetValue(fundingRate, "symbol"));
         if ((symbol != null))
         {
             ((IDictionary<string,object>)this.fundingRates)[(string)symbol] = fundingRate;

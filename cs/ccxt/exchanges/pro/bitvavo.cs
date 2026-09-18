@@ -189,7 +189,7 @@ public partial class bitvavo : ccxt.bitvavo
             Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
             object messageHash = add(add(eventVar, "@"), marketId);
             Dictionary<string, object> ticker = this.parseTicker(data, market);
-            object symbol = GetValue(ticker, "symbol");
+            string? symbol = ((string)GetValue(ticker, "symbol"));
             ((IDictionary<string,object>)this.tickers)[(string)((string)symbol)] = ticker;
             ((IList<object>)result).Add(ticker);
             callDynamically(client, "resolve", new object[] {ticker, messageHash});
@@ -228,7 +228,7 @@ public partial class bitvavo : ccxt.bitvavo
         {
             object data = getValue(tickers, i);
             Dictionary<string, object> ticker = this.parseWsBidAsk(data);
-            object symbol = GetValue(ticker, "symbol");
+            string? symbol = ((string)GetValue(ticker, "symbol"));
             ((IDictionary<string,object>)this.bidsasks)[(string)((string)symbol)] = ticker;
             ((IList<object>)result).Add(ticker);
             string messageHash = add(add(eventVar, ":"), symbol);

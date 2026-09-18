@@ -451,7 +451,7 @@ public partial class aster : ccxt.aster
         string marketType = this.getAccountTypeFromUrl(client.url);
         object ticker = message;
         Dictionary<string, object> parsed = this.parseWsTicker(ticker, marketType);
-        object symbol = GetValue(parsed, "symbol");
+        string? symbol = ((string)GetValue(parsed, "symbol"));
         string messageHash = add("ticker:", symbol);
         if ((symbol != null))
         {
@@ -625,7 +625,7 @@ public partial class aster : ccxt.aster
         string? marketId = this.safeString(data, "s");
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         Dictionary<string, object> ticker = this.parseWsBidAsk(data, market);
-        object symbol = GetValue(ticker, "symbol");
+        string? symbol = ((string)GetValue(ticker, "symbol"));
         if ((symbol != null))
         {
             ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = ticker;
@@ -816,7 +816,7 @@ public partial class aster : ccxt.aster
         string? marketId = this.safeString(trade, "s");
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         Dictionary<string, object> parsed = this.parseWsTrade(trade, market);
-        object symbol = GetValue(parsed, "symbol");
+        string? symbol = ((string)GetValue(parsed, "symbol"));
         if ((symbol == null))
         {
             return;

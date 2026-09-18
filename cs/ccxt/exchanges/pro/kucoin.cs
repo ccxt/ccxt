@@ -920,7 +920,7 @@ public partial class kucoin : ccxt.kucoin
         // }
         //
         Dictionary<string, object> parsedTicker = this.parseWsBidAsk(message);
-        object symbol = GetValue(parsedTicker, "symbol");
+        string? symbol = ((string)GetValue(parsedTicker, "symbol"));
         ((IDictionary<string,object>)this.bidsasks)[(string)((string)symbol)] = parsedTicker;
         string messageHash = add("bidask@", symbol);
         callDynamically(client, "resolve", new object[] {parsedTicker, messageHash});
@@ -1421,7 +1421,7 @@ public partial class kucoin : ccxt.kucoin
         string? marketId = this.safeString(data, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
         Dictionary<string, object> trade = this.parseTrade(data, market);
-        object symbol = GetValue(trade, "symbol");
+        string? symbol = ((string)GetValue(trade, "symbol"));
         string messageHash = add("trades:", symbol);
         if (!(((IDictionary<string, object>)this.trades).ContainsKey(((string)symbol))))
         {
@@ -1455,7 +1455,7 @@ public partial class kucoin : ccxt.kucoin
         string? marketId = this.safeString(data, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
         Dictionary<string, object> trade = this.parseWsUtaTrade(data, market);
-        object symbol = GetValue(trade, "symbol");
+        string? symbol = ((string)GetValue(trade, "symbol"));
         string messageHash = add("uta:trades:", symbol);
         if (!(((IDictionary<string, object>)this.trades).ContainsKey(((string)symbol))))
         {
@@ -2758,7 +2758,7 @@ public partial class kucoin : ccxt.kucoin
         string? marketId = this.safeString(data, "s");
         Dictionary<string, object> market = this.safeMarket(marketId);
         Dictionary<string, object> trade = this.parseWsUtaTrade(data, market);
-        object symbol = GetValue(trade, "symbol");
+        string? symbol = ((string)GetValue(trade, "symbol"));
         if (isEqual(this.myTrades, null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -3619,7 +3619,7 @@ public partial class kucoin : ccxt.kucoin
         //
         IDictionary<string, object> data = this.safeDict(message, "d", new Dictionary<string, object>() {});
         Dictionary<string, object> fundingRate = this.parseWsFundingRate(data);
-        object symbol = GetValue(fundingRate, "symbol");
+        string? symbol = ((string)GetValue(fundingRate, "symbol"));
         if ((symbol != null))
         {
             ((IDictionary<string,object>)this.fundingRates)[(string)symbol] = fundingRate;

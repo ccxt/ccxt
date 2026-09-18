@@ -240,7 +240,7 @@ public partial class hashkey : ccxt.hashkey
         //
         List<object> data = this.safeList(message, "data", new List<object>() {});
         Dictionary<string, object> ticker = this.parseTicker(this.safeDict(data, 0));
-        object symbol = GetValue(ticker, "symbol");
+        string? symbol = ((string)GetValue(ticker, "symbol"));
         string messageHash = add("ticker:", symbol);
         ((IDictionary<string,object>)this.tickers)[(string)((string)symbol)] = ticker;
         callDynamically(client, "resolve", new object[] {getValue(this.tickers, ((string)symbol)), messageHash});
@@ -485,7 +485,7 @@ public partial class hashkey : ccxt.hashkey
         callDynamically(orders, "append", new object[] {parsed});
         string messageHash = "orders";
         callDynamically(client, "resolve", new object[] {orders, messageHash});
-        object symbol = GetValue(parsed, "symbol");
+        string? symbol = ((string)GetValue(parsed, "symbol"));
         string symbolSpecificMessageHash = add(add(messageHash, ":"), symbol);
         callDynamically(client, "resolve", new object[] {orders, symbolSpecificMessageHash});
     }
@@ -608,7 +608,7 @@ public partial class hashkey : ccxt.hashkey
         this.myTrades = tradesArray;
         string messageHash = "myTrades";
         callDynamically(client, "resolve", new object[] {tradesArray, messageHash});
-        object symbol = GetValue(parsed, "symbol");
+        string? symbol = ((string)GetValue(parsed, "symbol"));
         string symbolSpecificMessageHash = add(add(messageHash, ":"), symbol);
         callDynamically(client, "resolve", new object[] {tradesArray, symbolSpecificMessageHash});
     }
@@ -751,7 +751,7 @@ public partial class hashkey : ccxt.hashkey
         callDynamically(positions, "append", new object[] {parsed});
         string messageHash = "positions";
         callDynamically(client, "resolve", new object[] {parsed, messageHash});
-        object symbol = GetValue(parsed, "symbol");
+        string? symbol = ((string)GetValue(parsed, "symbol"));
         callDynamically(client, "resolve", new object[] {parsed, add(add(messageHash, ":"), symbol)});
     }
 

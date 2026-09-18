@@ -486,7 +486,7 @@ public partial class okx : ccxt.okx
         {
             object rawfr = getValue(data, i);
             Dictionary<string, object> fundingRate = this.parseFundingRate(rawfr);
-            object symbol = GetValue(fundingRate, "symbol");
+            string? symbol = ((string)GetValue(fundingRate, "symbol"));
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)this.fundingRates)[(string)symbol] = fundingRate;
@@ -807,7 +807,7 @@ public partial class okx : ccxt.okx
         List<object> data = this.safeList(message, "data", new List<object>() {});
         IDictionary<string, object> ticker = this.safeDict(data, 0, new Dictionary<string, object>() {});
         Dictionary<string, object> parsedTicker = this.parseWsBidAsk(ticker, market);
-        object symbol = GetValue(parsedTicker, "symbol");
+        string? symbol = ((string)GetValue(parsedTicker, "symbol"));
         if ((symbol != null))
         {
             ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = parsedTicker;
@@ -2457,7 +2457,7 @@ public partial class okx : ccxt.okx
             Dictionary<string, object> rawTrade = ((Dictionary<string, object>)getValue(filteredOrders, i));
             Dictionary<string, object> trade = this.orderToTrade(rawTrade);
             callDynamically(myTrades, "append", new object[] {trade});
-            object symbol = GetValue(trade, "symbol");
+            string? symbol = ((string)GetValue(trade, "symbol"));
             if ((symbol != null))
             {
                 symbols[(string)symbol] = true;

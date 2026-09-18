@@ -204,7 +204,7 @@ public partial class coinone : ccxt.coinone
         //
         object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> ticker = this.parseWsTicker(data);
-        object symbol = GetValue(ticker, "symbol");
+        string? symbol = ((string)GetValue(ticker, "symbol"));
         ((IDictionary<string,object>)this.tickers)[(string)((string)symbol)] = ticker;
         string messageHash = add("ticker:", symbol);
         callDynamically(client, "resolve", new object[] {getValue(this.tickers, ((string)symbol)), messageHash});
@@ -326,7 +326,7 @@ public partial class coinone : ccxt.coinone
         //
         object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> trade = this.parseWsTrade(data);
-        object symbol = GetValue(trade, "symbol");
+        string? symbol = ((string)GetValue(trade, "symbol"));
         object stored = this.safeValue(this.trades, symbol);
         if ((stored == null))
         {

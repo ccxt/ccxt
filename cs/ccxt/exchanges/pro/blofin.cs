@@ -148,7 +148,7 @@ public partial class blofin : ccxt.blofin
         {
             object rawTrade = getValue(data, i);
             Dictionary<string, object> trade = this.parseWsTrade(rawTrade);
-            object symbol = GetValue(trade, "symbol");
+            string? symbol = ((string)GetValue(trade, "symbol"));
             object stored = this.safeValue(this.trades, symbol);
             if ((stored == null))
             {
@@ -337,7 +337,7 @@ public partial class blofin : ccxt.blofin
         for (int i = 0; isLessThan(i, data?.Count ?? 0); postFixIncrement(ref i))
         {
             Dictionary<string, object> ticker = this.parseWsTicker(getValue(data, i));
-            object symbol = GetValue(ticker, "symbol");
+            string? symbol = ((string)GetValue(ticker, "symbol"));
             object messageHash = add(add(channelName, ":"), symbol);
             ((IDictionary<string,object>)this.tickers)[(string)((string)symbol)] = ticker;
             callDynamically(client, "resolve", new object[] {getValue(this.tickers, ((string)symbol)), messageHash});
@@ -402,7 +402,7 @@ public partial class blofin : ccxt.blofin
         for (int i = 0; isLessThan(i, data?.Count ?? 0); postFixIncrement(ref i))
         {
             Dictionary<string, object> ticker = this.parseWsBidAsk(getValue(data, i));
-            object symbol = GetValue(ticker, "symbol");
+            string? symbol = ((string)GetValue(ticker, "symbol"));
             string messageHash = add("bidask:", symbol);
             ((IDictionary<string,object>)this.bidsasks)[(string)((string)symbol)] = ticker;
             callDynamically(client, "resolve", new object[] {ticker, messageHash});
@@ -662,7 +662,7 @@ public partial class blofin : ccxt.blofin
         for (int i = 0; isLessThan(i, data?.Count ?? 0); postFixIncrement(ref i))
         {
             Dictionary<string, object> order = this.parseWsOrder(getValue(data, i));
-            object symbol = GetValue(order, "symbol");
+            string? symbol = ((string)GetValue(order, "symbol"));
             object messageHash = add(add(channelName, ":"), symbol);
             callDynamically(orders, "append", new object[] {order});
             callDynamically(client, "resolve", new object[] {orders, messageHash});
@@ -787,7 +787,7 @@ public partial class blofin : ccxt.blofin
         List<object> data = this.safeList(message, "data", new List<object>() {});
         IDictionary<string, object> first = this.safeDict(data, 0, new Dictionary<string, object>() {});
         Dictionary<string, object> fundingRate = this.parseFundingRate(first);
-        object symbol = GetValue(fundingRate, "symbol");
+        string? symbol = ((string)GetValue(fundingRate, "symbol"));
         ((IDictionary<string,object>)this.fundingRates)[(string)((string)symbol)] = fundingRate;
         string messageHash = add("fundingRate:", symbol);
         callDynamically(client, "resolve", new object[] {fundingRate, messageHash});

@@ -1467,7 +1467,7 @@ public partial class backpack : ccxt.backpack
         string? marketId = this.safeString(position, "s");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         market = marketResolved;
-        object symbol = GetValue(marketResolved, "symbol");
+        string? symbol = ((string)GetValue(marketResolved, "symbol"));
         string? notional = this.safeString(position, "n");
         string? liquidationPrice = this.safeString(position, "l");
         string? entryPrice = this.safeString(position, "b");

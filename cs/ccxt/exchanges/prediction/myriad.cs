@@ -1323,8 +1323,8 @@ public partial class myriad : PredictionExchange
         byte[] encoded = this.ethEncodeStructuredData(domain, types, message);
         object digest = this.hash(encoded, keccak, "hex");
         Dictionary<string, object> signature = ecdsa(digest, this.remove0xPrefix(this.privateKey), secp256k1, null);
-        object rRaw = GetValue(signature, "r");
-        object sRaw = GetValue(signature, "s");
+        string? rRaw = ((string)GetValue(signature, "r"));
+        string? sRaw = ((string)GetValue(signature, "s"));
         object r = (rRaw as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         object s = (sRaw as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         object v = this.sum(27, GetValue(signature, "v"));

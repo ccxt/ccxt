@@ -1450,8 +1450,8 @@ public partial class hibachi : Exchange
             // For Trustless account, the key length is 66 including '0x' and we use ECDSA to sign the message
             object hash = this.hash(message, sha256, "hex");
             Dictionary<string, object> signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
-            object r = GetValue(signature, "r");
-            object s = GetValue(signature, "s");
+            string? r = ((string)GetValue(signature, "r"));
+            string? s = ((string)GetValue(signature, "s"));
             string v = this.intToBase16(GetValue(signature, "v"));
             return add(add((r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")), (s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), (v as String).PadLeft(Convert.ToInt32(2), Convert.ToChar("0")));
         }

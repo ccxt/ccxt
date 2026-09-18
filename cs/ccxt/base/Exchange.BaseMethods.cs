@@ -1196,7 +1196,7 @@ public partial class BaseExchange
             {
                 continue;
             }
-            object code = GetValue(parsed, "code");
+            string? code = ((string)GetValue(parsed, "code"));
             result[(string)code] = parsed;
         }
         return result;

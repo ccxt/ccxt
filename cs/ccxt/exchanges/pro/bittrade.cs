@@ -121,7 +121,7 @@ public partial class bittrade : ccxt.bittrade
         object timestamp = this.safeValue(message, "ts");
         ticker["timestamp"] = timestamp;
         ticker["datetime"] = this.iso8601(timestamp);
-        object symbol = GetValue(ticker, "symbol");
+        string? symbol = ((string)GetValue(ticker, "symbol"));
         ((IDictionary<string,object>)this.tickers)[(string)((string)symbol)] = ticker;
         callDynamically(client, "resolve", new object[] {ticker, ch});
         return message;

@@ -693,7 +693,7 @@ public partial class cryptocom : ccxt.cryptocom
         {
             object ticker = getValue(data, i);
             Dictionary<string, object> parsed = this.parseWsTicker(ticker, market);
-            object symbol = GetValue(parsed, "symbol");
+            string? symbol = ((string)GetValue(parsed, "symbol"));
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)this.tickers)[(string)symbol] = parsed;
@@ -800,7 +800,7 @@ public partial class cryptocom : ccxt.cryptocom
         List<object> data = this.safeList(message, "data", new List<object>() {});
         IDictionary<string, object> ticker = this.safeDict(data, 0, new Dictionary<string, object>() {});
         Dictionary<string, object> parsedTicker = this.parseWsBidAsk(ticker);
-        object symbol = GetValue(parsedTicker, "symbol");
+        string? symbol = ((string)GetValue(parsedTicker, "symbol"));
         if ((symbol != null))
         {
             ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = parsedTicker;

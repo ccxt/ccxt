@@ -1986,7 +1986,7 @@ public partial class hitbtc : Exchange
         for (int i = 0; isLessThan(i, response?.Count ?? 0); postFixIncrement(ref i))
         {
             Dictionary<string, object> fee = this.parseTradingFee(getValue(response, i));
-            object symbol = GetValue(fee, "symbol");
+            string? symbol = ((string)GetValue(fee, "symbol"));
             if ((symbol != null))
             {
                 result[(string)symbol] = fee;

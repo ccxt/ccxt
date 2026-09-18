@@ -2148,7 +2148,7 @@ public partial class coinsph : Exchange
         for (int i = 0; isLessThan(i, fees?.Count ?? 0); postFixIncrement(ref i))
         {
             Dictionary<string, object> fee = this.parseTradingFee(getValue(fees, i));
-            object symbol = GetValue(fee, "symbol");
+            string? symbol = ((string)GetValue(fee, "symbol"));
             if ((symbol != null))
             {
                 result[(string)symbol] = fee;

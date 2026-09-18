@@ -1168,7 +1168,7 @@ public partial class weex : ccxt.weex
             return;
         }
         Dictionary<string, object> ticker = this.parseWsBidAsk(message, market);
-        object symbol = GetValue(ticker, "symbol");
+        string? symbol = ((string)GetValue(ticker, "symbol"));
         if ((symbol != null))
         {
             ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = ticker;
@@ -1337,7 +1337,7 @@ public partial class weex : ccxt.weex
         {
             IDictionary<string, object> trade = this.safeDict(data, i, new Dictionary<string, object>() {});
             Dictionary<string, object> parsed = this.parseWsMyTrade(trade);
-            object symbol = GetValue(parsed, "symbol");
+            string? symbol = ((string)GetValue(parsed, "symbol"));
             if ((symbol != null))
             {
                 symbols[(string)symbol] = true;
@@ -1573,7 +1573,7 @@ public partial class weex : ccxt.weex
             IDictionary<string, object> rawOrder = this.safeDict(data, i, new Dictionary<string, object>() {});
             Dictionary<string, object> parsed = this.parseWsOrder(rawOrder);
             callDynamically(orders, "append", new object[] {parsed});
-            object symbol = GetValue(parsed, "symbol");
+            string? symbol = ((string)GetValue(parsed, "symbol"));
             if ((symbol != null))
             {
                 symbols[(string)symbol] = true;

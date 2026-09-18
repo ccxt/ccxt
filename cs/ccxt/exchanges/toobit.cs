@@ -917,7 +917,7 @@ public partial class toobit : Exchange
             Dictionary<string, object> parsed = this.parseCurrency(coin);
             if ((parsed != null))
             {
-                object code = GetValue(parsed, "code");
+                string? code = ((string)GetValue(parsed, "code"));
                 result[(string)code] = parsed;
             }
         }

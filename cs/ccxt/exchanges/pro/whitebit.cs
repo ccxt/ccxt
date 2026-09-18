@@ -530,7 +530,7 @@ public partial class whitebit : ccxt.whitebit
         ccxt.pro.ArrayCache stored = this.myTrades;
         Dictionary<string, object> parsed = this.parseWsTrade(trade);
         callDynamically(stored, "append", new object[] {parsed});
-        object symbol = GetValue(parsed, "symbol");
+        string? symbol = ((string)GetValue(parsed, "symbol"));
         string messageHash = add("myTrades:", symbol);
         callDynamically(client, "resolve", new object[] {stored, messageHash});
     }
@@ -683,7 +683,7 @@ public partial class whitebit : ccxt.whitebit
             { "status", status },
         }));
         callDynamically(stored, "append", new object[] {parsed});
-        object symbol = GetValue(parsed, "symbol");
+        string? symbol = ((string)GetValue(parsed, "symbol"));
         string messageHash = add("orders:", symbol);
         callDynamically(client, "resolve", new object[] {this.orders, messageHash});
     }

@@ -248,7 +248,7 @@ public partial class upbit : ccxt.upbit
         //   "acc_trade_volume_24h": 118.38798416,
         //   "stream_type": "SNAPSHOT" }
         Dictionary<string, object> ticker = this.parseTicker(message);
-        object symbol = GetValue(ticker, "symbol");
+        string? symbol = ((string)GetValue(ticker, "symbol"));
         if ((symbol != null))
         {
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
@@ -332,7 +332,7 @@ public partial class upbit : ccxt.upbit
         //   "sequential_id": 1584508285000002,
         //   "stream_type": "REALTIME" }
         Dictionary<string, object> trade = this.parseTrade(message);
-        object symbol = GetValue(trade, "symbol");
+        string? symbol = ((string)GetValue(trade, "symbol"));
         if ((symbol == null))
         {
             return;

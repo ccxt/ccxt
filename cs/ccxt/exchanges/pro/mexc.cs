@@ -337,7 +337,7 @@ public partial class mexc : ccxt.mexc
             {
                 ticker = this.parseTicker(entry);
             }
-            object symbol = GetValue(ticker, "symbol");
+            string? symbol = ((string)GetValue(ticker, "symbol"));
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
@@ -1831,7 +1831,7 @@ public partial class mexc : ccxt.mexc
         //
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> fundingRate = this.parseFundingRate(data);
-        object symbol = GetValue(fundingRate, "symbol");
+        string? symbol = ((string)GetValue(fundingRate, "symbol"));
         if ((symbol != null))
         {
             ((IDictionary<string,object>)this.fundingRates)[(string)symbol] = fundingRate;

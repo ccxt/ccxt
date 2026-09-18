@@ -3368,8 +3368,8 @@ public partial class nado : Exchange
             throw new ArgumentsRequired (add(this.id, " signHash() requires privateKey")) ;
         }
         Dictionary<string, object> signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
-        object r = GetValue(signature, "r");
-        object s = GetValue(signature, "s");
+        string? r = ((string)GetValue(signature, "r"));
+        string? s = ((string)GetValue(signature, "s"));
         string v = this.intToBase16(this.sum(27, GetValue(signature, "v"))).ToLower();
         return add(add(add("0x", this.padHex(r, 64)), this.padHex(s, 64)), v);
     }

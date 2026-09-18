@@ -421,7 +421,7 @@ public partial class bitfinex : ccxt.bitfinex
         string name = "myTrade";
         object data = this.safeValue(message, 2);
         Dictionary<string, object> trade = this.parseWsTrade(data);
-        object symbol = GetValue(trade, "symbol");
+        string? symbol = ((string)GetValue(trade, "symbol"));
         Dictionary<string, object> market = this.market(symbol);
         string messageHash = add(add(name, ":"), GetValue(market, "id"));
         if (isEqual(this.myTrades, null))

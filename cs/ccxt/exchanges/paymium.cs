@@ -215,7 +215,7 @@ public partial class paymium : Exchange
         {
             string? code = ((string)getValue(currencies, i));
             Dictionary<string, object> currency = this.currency(((string)code));
-            object currencyId = GetValue(currency, "id");
+            string? currencyId = ((string)GetValue(currency, "id"));
             string free = add("balance_", currencyId);
             if (inOp(response, free))
             {
