@@ -870,9 +870,18 @@ export default class paribu extends paribuRest {
         if (!('balance:seeded' in client.subscriptions)) {
             // the wallet channel publishes one asset per frame and never the whole
             // account, so the opening state is read once over rest and the frames
-            // amend it from there
+            // amend it from there. the flag is claimed before the fetch so that a
+            // second caller arriving during the await does not seed in parallel, and
+            // released again if the fetch throws — the client outlives a rest failure
+            // the way it does not outlive a socket one, and a flag left behind would
+            // make every later call skip the snapshot for good
             client.subscriptions['balance:seeded'] = true;
-            this.balance = await this.fetchBalance ();
+            try {
+                this.balance = await this.fetchBalance ();
+            } catch (e) {
+                delete client.subscriptions['balance:seeded'];
+                throw e;
+            }
         }
         return await this.subscribe (url, [ 'ledger' ], [ 'balance' ], params);
     }
