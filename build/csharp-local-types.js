@@ -1851,6 +1851,11 @@ export const CSHARP_LOCAL_AWAIT_RETURN_TYPES = {
     'getSystemConfig': 'IDictionary<string, object>',
     'getWithdrawNonce': 'double?',
     'authenticateUta': 'string?',
+    // U29: paradex's authenticateRest — retyped to Task<string?> by
+    // installCsharpAsyncCoreReturns (CSHARP_AWAITED_CORE_RETURNS: both return paths hand back a
+    // `string?` local), so the pro tree's `object token = await this.authenticateRest ()` takes
+    // the string? box; the name is declared in the REST file only, hence this table
+    'authenticateRest': 'string?',
     // cs/ccxt/base/PredictionExchange.cs, retyped from Task<object> by
     // installCsharpAsyncCoreReturns() (CSHARP_ASYNC_CORE_RETURNS above); the awaited value is
     // the outcome row the accessor returned — the same IDictionary box the call site used to
@@ -4972,7 +4977,8 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
             // `[x, y] = f()` prints element reads into untyped slots; accepted when the
             // assignment is an audited request builder whose element is cast back (see below)
             if (parent.parent?.kind === ts.SyntaxKind.BinaryExpression && parent.parent.left === parent && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
-                if (!destructuredWriteIsCastable (csharp, index, declaration, n, parent.parent, csharpType, context)) {
+                if (!destructuredWriteIsCastable (csharp, index, declaration, n, parent.parent, csharpType, context)
+                        && !destructuredIsUTAEnabledBoolProof (csharp, scope, declaration, n, parent.parent, csharpType)) {
                     return false;
                 }
             }
@@ -8193,8 +8199,11 @@ function literalInitElement0Type (csharp, declaration, idNode, assignment, name,
 // scope (enclosing function node) -> Map<printed local name, proven C# type>, filled while the
 // declaration is printed and read while a destructuring assignment in the same scope is printed
 const destructuredWriteTypes = new WeakMap ();
+// scope -> Set<printed local name>: the targets whose element-0 read is named with the isTrue ()
+// coercion instead of a cast (see destructuredIsUTAEnabledBoolProof)
+const destructuredBoolCoercions = new WeakMap ();
 
-export function recordDestructuredWriteType (scope, printedName, csharpType) {
+export function recordDestructuredWriteType (scope, printedName, csharpType, isUTAEnabledBool = false) {
     if (scope === undefined) {
         return;
     }
@@ -8204,6 +8213,14 @@ export function recordDestructuredWriteType (scope, printedName, csharpType) {
         destructuredWriteTypes.set (scope, types);
     }
     types.set (printedName, csharpType);
+    if (isUTAEnabledBool && csharpType === 'bool') {
+        let coercions = destructuredBoolCoercions.get (scope);
+        if (coercions === undefined) {
+            coercions = new Set ();
+            destructuredBoolCoercions.set (scope, coercions);
+        }
+        coercions.add (printedName);
+    }
 }
 
 // is `[ ..., x, ... ] = this.helper (...)` a write the cast makes type-correct?
@@ -8267,6 +8284,91 @@ function destructuredWriteIsCastable (csharp, index, declaration, idNode, assign
     return true;
 }
 
+// `object uta = await this.isUTAEnabled ()`: the local's box is the awaited bool
+// (CSHARP_LOCAL_AWAIT_RETURN_TYPES), and its single later write is element 0 of
+// `this.handleOptionAndParams (params, method, 'uta', uta)` — the USER's params value, i.e. the
+// header's deliberately-untyped path, whose box only the truthiness coercion can name: isTrue
+// is idempotent (isTrue (isTrue (v)) === isTrue (v)) and every other read is a truthiness test.
+function isUTAEnabledAwaitedInit (declaration) {
+    const init = declaration?.initializer;
+    const callee = (init?.kind === ts.SyntaxKind.AwaitExpression && init.expression?.kind === ts.SyntaxKind.CallExpression) ? init.expression.expression : undefined;
+    return callee?.kind === ts.SyntaxKind.PropertyAccessExpression
+        && callee.expression?.kind === ts.SyntaxKind.ThisKeyword
+        && callee.name?.escapedText === 'isUTAEnabled';
+}
+
+// `if (x)` / `x ? :` / `!x` — the printer wraps each condition in isTrue (x), the read shape the
+// coercion keeps exact; any other read (an argument, `x === true`) fails the proof
+function isTruthinessRead (node) {
+    const parent = node?.parent;
+    if (parent === undefined) {
+        return false;
+    }
+    switch (parent.kind) {
+    case ts.SyntaxKind.IfStatement:
+    case ts.SyntaxKind.WhileStatement:
+    case ts.SyntaxKind.DoStatement:
+        return parent.expression === node;
+    case ts.SyntaxKind.ConditionalExpression:
+        return parent.condition === node;
+    case ts.SyntaxKind.PrefixUnaryExpression:
+        return parent.operator === ts.SyntaxKind.ExclamationToken && parent.operand === node && isTruthinessRead (parent);
+    case ts.SyntaxKind.ParenthesizedExpression:
+        return parent.expression === node && isTruthinessRead (parent);
+    case ts.SyntaxKind.BinaryExpression:
+        // `x || y` / `x && y` inside a condition: the printer wraps the operand in isTrue (x)
+        // too, so the coercion's bool reads the same; every other operator (`x === true`,
+        // `x + 'a'`, a compound write) fails the proof
+        return (parent.operatorToken?.kind === ts.SyntaxKind.BarBarToken || parent.operatorToken?.kind === ts.SyntaxKind.AmpersandAmpersandToken)
+            && isTruthinessRead (parent);
+    }
+    return false;
+}
+
+// the destructured write is element 0 of the local's own isUTAEnabled options tuple and every
+// other use is a truthiness test or that tuple call's defaultValue argument: `bool x` plus
+// `x = isTrue (tmp[0])` reads exactly what the object local read, for every box
+function destructuredIsUTAEnabledBoolProof (csharp, scope, declaration, idNode, assignment, csharpType) {
+    if (csharpType !== 'bool' || !isUTAEnabledAwaitedInit (declaration) || idNode.parent?.elements?.[0] !== idNode) {
+        return false;
+    }
+    const right = assignment?.right;
+    const callee = right?.expression;
+    if (right?.kind !== ts.SyntaxKind.CallExpression
+            || callee?.kind !== ts.SyntaxKind.PropertyAccessExpression
+            || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword
+            || callee.name?.escapedText !== 'handleOptionAndParams') {
+        return false;
+    }
+    const name = declaration.name?.escapedText;
+    const selfArgument = right.arguments?.[3];
+    if (selfArgument?.kind !== ts.SyntaxKind.Identifier || selfArgument.escapedText !== name) {
+        return false; // the tuple's defaultValue is the local itself at every accepted site
+    }
+    const identifiers = indexScope (csharp, scope)?.identifiers?.get (name) ?? [];
+    for (const n of identifiers) {
+        if (n === declaration.name || isNotAUse (n) || useRefersToDeclaration (csharp, scope, declaration, n) === false) {
+            continue;
+        }
+        const arrayParent = n.parent;
+        const isDestructuringWrite = (arrayParent?.kind === ts.SyntaxKind.ArrayLiteralExpression)
+            && ((arrayParent.parent?.kind === ts.SyntaxKind.BinaryExpression && arrayParent.parent.left === arrayParent && arrayParent.parent.operatorToken?.kind === ts.SyntaxKind.EqualsToken)
+                || arrayParent.parent?.kind === ts.SyntaxKind.VariableDeclaration);
+        if (isDestructuringWrite) {
+            continue; // the audited write; the element-0 position is checked by the caller
+        }
+        const isWrite = n.parent?.kind === ts.SyntaxKind.BinaryExpression && n.parent.left === n && n.parent.operatorToken?.kind === ts.SyntaxKind.EqualsToken;
+        if (isWrite) {
+            continue; // a plain write's own value is type-checked by the caller's scan
+        }
+        if (n === selfArgument || isTruthinessRead (n)) {
+            continue;
+        }
+        return false;
+    }
+    return true;
+}
+
 // one element read of a destructuring block: `<target> = <tmp>[<i>]` where <tmp> is the
 // block's holder — indexed directly when the holder is declared `IList<object>`, through the
 // `((IList<object>)<tmp>)` cast when it stayed a `var` box
@@ -8303,6 +8405,7 @@ function installDestructuredCasts (csharp) {
         if (types === undefined) {
             return printed;
         }
+        const coercions = destructuredBoolCoercions.get (enclosingFunction (node));
         // the holder name scopes the rewrite to this statement's own reads, in both shapes:
         // `IList<object> tmp = ...; x = tmp[0];` (typed holder, direct index) and
         // `var tmp = ...; x = ((IList<object>)tmp)[0];` (untyped holder, casted read).
@@ -8317,6 +8420,12 @@ function installDestructuredCasts (csharp) {
             const targetType = ((match === null) || ((match[4] ?? match[5]) !== temp)) ? undefined : types.get (match[2]);
             if (targetType === undefined) {
                 return line;
+            }
+            // the isUTAEnabled shard: the target's only later write is the tuple's element 0,
+            // whose runtime box is the user's params value — the bool is named by the isTrue ()
+            // coercion every read of the local already applies, never by a cast
+            if (coercions !== undefined && coercions.has (match[2])) {
+                return match[1] + match[2] + ' = isTrue(' + match[3] + ')' + match[7];
             }
             // the string family proves element 0 of the audited helpers (and every slot
             // DESTRUCTURED_STRING_ELEMENT_INDEXES lists) and casts with the non-nullable
@@ -9385,7 +9494,7 @@ export function installCsharpLocalTypes (transpiler) {
                 : '((' + info.cast + ')' + value + ')';
         }
         // the destructuring print (a later statement in the same function) casts back to this
-        recordDestructuredWriteType (enclosingFunction (declaration), printedName, info.type);
+        recordDestructuredWriteType (enclosingFunction (declaration), printedName, info.type, isUTAEnabledAwaitedInit (declaration));
         // U17: a later `x = market['symbol']` write of this local needs the same cast back
         recordU17RowReadWriteTarget (enclosingFunction (declaration), printedName, info.type, declaration);
         return iden + info.type + ' ' + printedName + ' = ' + value;
@@ -9816,6 +9925,11 @@ export const CSHARP_AWAITED_CORE_RETURNS = {
     // nado: the loop fills `List<object> results`, the single path returns it (cryptocom's
     // same-named 7-parameter overload is a different declaration and keeps Task<object>)
     'unWatchPublicMultiple': 'List<object>',
+    // U29: paradex's REST authenticateRest has two paths and both hand back a `string?` local
+    // (`cachedToken` = safeString(this.options, 'authToken'), `token` = safeString(response,
+    // 'jwt_token')), so the one `object token = await this.authenticateRest ()` local (pro tree)
+    // takes the string? box; the six other call sites ignore the result
+    'authenticateRest': 'string?',
 };
 
 const awaitedCoreProofs = new WeakMap ();

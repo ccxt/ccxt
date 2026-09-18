@@ -2874,9 +2874,9 @@ public partial class kucoin : Exchange
     public async override Task<List<ccxt.Account>> FetchAccounts(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object uta = await this.isUTAEnabled();
+        bool uta = await this.isUTAEnabled();
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchAccounts", "uta", uta);
-        uta = utaparametersVariable[0];
+        uta = isTrue(utaparametersVariable[0]);
         parameters = utaparametersVariable[1];
         Dictionary<string, object> response = null;
         List<object> data = new List<object>() {};
@@ -4182,9 +4182,9 @@ public partial class kucoin : Exchange
         parameters = accountTypeparametersVariable[1];
         IDictionary<string, object> accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         accountType = this.safeString(accountsByType, accountType, accountType);
-        object uta = await this.isUTAEnabled();
+        bool uta = await this.isUTAEnabled();
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchDepositAddress", "uta", uta);
-        uta = utaparametersVariable[0];
+        uta = isTrue(utaparametersVariable[0]);
         parameters = utaparametersVariable[1];
         if (isEqual(accountType, "contract"))
         {
@@ -4314,9 +4314,9 @@ public partial class kucoin : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", GetValue(currency, "id") },
         };
-        object uta = await this.isUTAEnabled();
+        bool uta = await this.isUTAEnabled();
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchDepositAddressesByNetwork", "uta", uta);
-        uta = utaparametersVariable[0];
+        uta = isTrue(utaparametersVariable[0]);
         parameters = utaparametersVariable[1];
         Dictionary<string, object> response = null;
         if (isTrue(uta))
@@ -4592,9 +4592,9 @@ public partial class kucoin : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object uta = await this.isUTAEnabled();
+        bool uta = await this.isUTAEnabled();
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "uta", uta);
-        uta = utaparametersVariable[0];
+        uta = isTrue(utaparametersVariable[0]);
         parameters = utaparametersVariable[1];
         if (isTrue(uta))
         {
@@ -5717,9 +5717,9 @@ public partial class kucoin : Exchange
         {
             await this.loadMarkets();
         }
-        object uta = await this.isUTAEnabled();
+        bool uta = await this.isUTAEnabled();
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "cancelOrder", "uta", uta);
-        uta = utaparametersVariable[0];
+        uta = isTrue(utaparametersVariable[0]);
         parameters = utaparametersVariable[1];
         if (isTrue(uta))
         {
@@ -6043,9 +6043,9 @@ public partial class kucoin : Exchange
         {
             await this.loadMarkets();
         }
-        object uta = await this.isUTAEnabled();
+        bool uta = await this.isUTAEnabled();
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "cancelAllOrders", "uta", uta);
-        uta = utaparametersVariable[0];
+        uta = isTrue(utaparametersVariable[0]);
         parameters = utaparametersVariable[1];
         if (isTrue(uta))
         {
@@ -6281,9 +6281,9 @@ public partial class kucoin : Exchange
         {
             await this.loadMarkets();
         }
-        object uta = await this.isUTAEnabled();
+        bool uta = await this.isUTAEnabled();
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrdersByStatus", "uta", uta);
-        uta = utaparametersVariable[0];
+        uta = isTrue(utaparametersVariable[0]);
         parameters = utaparametersVariable[1];
         object marketType = null;
         if (isEqual(symbol, null))
@@ -6845,9 +6845,9 @@ public partial class kucoin : Exchange
         {
             throw new ArgumentsRequired (add(this.id, " fetchOrder() requires an id argument")) ;
         }
-        object uta = await this.isUTAEnabled();
+        bool uta = await this.isUTAEnabled();
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrder", "uta", uta);
-        uta = utaparametersVariable[0];
+        uta = isTrue(utaparametersVariable[0]);
         parameters = utaparametersVariable[1];
         if (isTrue(uta))
         {
@@ -7757,9 +7757,9 @@ public partial class kucoin : Exchange
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
         marketType = (string)marketTypeparametersVariable[0];
         parameters = marketTypeparametersVariable[1];
-        object uta = await this.isUTAEnabled();
+        bool uta = await this.isUTAEnabled();
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMyTrades", "uta", uta);
-        uta = utaparametersVariable[0];
+        uta = isTrue(utaparametersVariable[0]);
         parameters = utaparametersVariable[1];
         if (isTrue(uta))
         {
@@ -8632,9 +8632,9 @@ public partial class kucoin : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object uta = await this.isUTAEnabled();
+        bool uta = await this.isUTAEnabled();
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchTradingFee", "uta", uta);
-        uta = utaparametersVariable[0];
+        uta = isTrue(utaparametersVariable[0]);
         parameters = utaparametersVariable[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> response = null;
@@ -9311,9 +9311,9 @@ public partial class kucoin : Exchange
         {
             await this.loadMarkets();
         }
-        object uta = await this.isUTAEnabled();
+        bool uta = await this.isUTAEnabled();
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchBalance", "uta", uta);
-        uta = utaparametersVariable[0];
+        uta = isTrue(utaparametersVariable[0]);
         parameters = utaparametersVariable[1];
         if (isTrue(uta))
         {
@@ -9749,9 +9749,9 @@ public partial class kucoin : Exchange
         {
             await this.loadMarkets();
         }
-        object uta = await this.isUTAEnabled();
+        bool uta = await this.isUTAEnabled();
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "transfer", "uta", uta);
-        uta = utaparametersVariable[0];
+        uta = isTrue(utaparametersVariable[0]);
         parameters = utaparametersVariable[1];
         if (isTrue(uta))
         {
@@ -10323,9 +10323,9 @@ public partial class kucoin : Exchange
             await this.loadMarkets();
         }
         await this.loadAccounts();
-        object uta = await this.isUTAEnabled();
+        bool uta = await this.isUTAEnabled();
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchLedger", "uta", uta);
-        uta = utaparametersVariable[0];
+        uta = isTrue(utaparametersVariable[0]);
         parameters = utaparametersVariable[1];
         bool? hf = null;
         IList<object> hfparametersVariable = (IList<object>)this.handleHfAndParams(parameters);
@@ -11293,9 +11293,9 @@ public partial class kucoin : Exchange
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("setLeverage", parameters);
         marginMode = marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
-        object uta = await this.isUTAEnabled();
+        bool uta = await this.isUTAEnabled();
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "setLeverage", "uta", uta);
-        uta = utaparametersVariable[0];
+        uta = isTrue(utaparametersVariable[0]);
         parameters = utaparametersVariable[1];
         Dictionary<string, object> response = new Dictionary<string, object>() {};
         if (isTrue(uta))
@@ -11371,9 +11371,9 @@ public partial class kucoin : Exchange
             { "symbol", GetValue(market, "id") },
             { "leverage", leverage.ToString() },
         };
-        object uta = await this.isUTAEnabled();
+        bool uta = await this.isUTAEnabled();
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "setLeverage", "uta", uta);
-        uta = utaparametersVariable[0];
+        uta = isTrue(utaparametersVariable[0]);
         parameters = utaparametersVariable[1];
         Dictionary<string, object> response = null;
         if (isTrue(uta))
@@ -11741,9 +11741,9 @@ public partial class kucoin : Exchange
         {
             await this.loadMarkets();
         }
-        object uta = await this.isUTAEnabled();
+        bool uta = await this.isUTAEnabled();
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingHistory", "uta", uta);
-        uta = utaparametersVariable[0];
+        uta = isTrue(utaparametersVariable[0]);
         parameters = utaparametersVariable[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
@@ -11872,9 +11872,9 @@ public partial class kucoin : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },
         };
-        object uta = await this.isUTAEnabled();
+        bool uta = await this.isUTAEnabled();
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchPosition", "uta", uta);
-        uta = utaparametersVariable[0];
+        uta = isTrue(utaparametersVariable[0]);
         parameters = utaparametersVariable[1];
         Dictionary<string, object> response = null;
         IDictionary<string, object> position = null;
@@ -11980,9 +11980,9 @@ public partial class kucoin : Exchange
         {
             await this.loadMarkets();
         }
-        object uta = await this.isUTAEnabled();
+        bool uta = await this.isUTAEnabled();
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchPositions", "uta", uta);
-        uta = utaparametersVariable[0];
+        uta = isTrue(utaparametersVariable[0]);
         parameters = utaparametersVariable[1];
         Dictionary<string, object> response = null;
         if (isTrue(uta))
@@ -12022,9 +12022,9 @@ public partial class kucoin : Exchange
         {
             await this.loadMarkets();
         }
-        object uta = await this.isUTAEnabled();
+        bool uta = await this.isUTAEnabled();
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchPositionsHistory", "uta", uta);
-        uta = utaparametersVariable[0];
+        uta = isTrue(utaparametersVariable[0]);
         parameters = utaparametersVariable[1];
         Dictionary<string, object> response = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
@@ -12358,9 +12358,9 @@ public partial class kucoin : Exchange
         {
             await this.loadMarkets();
         }
-        object uta = await this.isUTAEnabled();
+        bool uta = await this.isUTAEnabled();
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "cancelOrders", "uta", uta);
-        uta = utaparametersVariable[0];
+        uta = isTrue(utaparametersVariable[0]);
         parameters = utaparametersVariable[1];
         IDictionary<string, object> market = null;
         object isContractMarket = true; // default to contract market orders if symbol is not provided, uta endpoint requires a symbol to be provided
