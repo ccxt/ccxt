@@ -1244,7 +1244,13 @@ func (this *Hyperliquid) fetchPositionsBody(ch chan any, optionalArgs ...any) an
 		var outcomeObj any = this.SafeOutcome(tradeCoin)
 		if !ccxt.IsEqual(outcomes, nil) {
 			var outcomeHandle *string = this.SafeString(outcomeObj, "outcome")
-			if (outcomeHandle == nil) || !(ccxt.InOp(requestedOutcomeSymbols, outcomeHandle)) {
+			if (outcomeHandle == nil) || !(func() bool {
+				if outcomeHandle == nil {
+					return false
+				}
+				_, ok := requestedOutcomeSymbols[*outcomeHandle]
+				return ok
+			}()) {
 				continue
 			}
 		}
@@ -1893,7 +1899,13 @@ func (this *Hyperliquid) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		}
 		var oid *string = this.SafeString(entry, "oid")
 		if oid != nil {
-			if !(ccxt.InOp(deduped, oid)) {
+			if !(func() bool {
+				if oid == nil {
+					return false
+				}
+				_, ok := deduped[*oid]
+				return ok
+			}()) {
 				ccxt.AddElementToObject(deduped, oid, raw)
 			} else {
 				var existingTs *int64 = this.SafeInteger(ccxt.GetValue(deduped, oid), "statusTimestamp")
@@ -2433,7 +2445,13 @@ func (this *Hyperliquid) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 		if parentSymbol == nil {
 			panic(ccxt.ExchangeError(this.Id + " fetchEvents() missing parentSymbol"))
 		}
-		if !(ccxt.InOp(groupMap, parentSymbol)) {
+		if !(func() bool {
+			if parentSymbol == nil {
+				return false
+			}
+			_, ok := groupMap[*parentSymbol]
+			return ok
+		}()) {
 			if parentSymbol != nil {
 				ccxt.AddElementToObject(groupMap, parentSymbol, []any{})
 			}

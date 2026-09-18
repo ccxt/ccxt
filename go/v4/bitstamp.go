@@ -1450,11 +1450,23 @@ func (this *Bitstamp) ParseCurrencies(rawCurrencies any) any {
 		}
 		var parts []string = Split(minimumOrder, " ")
 		var cost any = GetValue(parts, 0)
-		if (base != nil) && !(InOp(result, base)) {
+		if (base != nil) && !(func() bool {
+			if base == nil {
+				return false
+			}
+			_, ok := result[*base]
+			return ok
+		}()) {
 			var baseDecimals *int64 = this.SafeInteger(market, "base_decimals")
 			AddElementToObject(result, base, this.ConstructCurrencyObject(baseId, base, baseDescription, baseDecimals, nil, market))
 		}
-		if (quote != nil) && !(InOp(result, quote)) {
+		if (quote != nil) && !(func() bool {
+			if quote == nil {
+				return false
+			}
+			_, ok := result[*quote]
+			return ok
+		}()) {
 			var counterDecimals *int64 = this.SafeInteger(market, "counter_decimals")
 			AddElementToObject(result, quote, this.ConstructCurrencyObject(quoteId, quote, quoteDescription, counterDecimals, this.ParseNumber(cost), market))
 		}

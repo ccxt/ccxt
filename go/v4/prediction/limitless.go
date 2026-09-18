@@ -347,7 +347,13 @@ func (this *Limitless) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			for j := 0; j < ccxt.GetArrayLength(found); j++ {
 				var raw any = ccxt.GetValue(found, j)
 				var slug *string = this.SafeString(raw, "slug")
-				if ((slug != nil) && (slug == nil || *slug != "")) && !(ccxt.InOp(seen, slug)) {
+				if ((slug != nil) && (slug == nil || *slug != "")) && !(func() bool {
+					if slug == nil {
+						return false
+					}
+					_, ok := seen[*slug]
+					return ok
+				}()) {
 					ccxt.AddElementToObject(seen, slug, true)
 					ccxt.AppendToArray(&allRaw, raw)
 				}
@@ -1414,7 +1420,13 @@ func (this *Limitless) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		if slug == nil {
 			panic(ccxt.ExchangeError(this.Id + " fetchTickers() missing slug"))
 		}
-		if !(ccxt.InOp(outcomesBySlug, slug)) {
+		if !(func() bool {
+			if slug == nil {
+				return false
+			}
+			_, ok := outcomesBySlug[*slug]
+			return ok
+		}()) {
 			if slug != nil {
 				ccxt.AddElementToObject(outcomesBySlug, slug, []any{})
 			}
@@ -3676,7 +3688,13 @@ func (this *Limitless) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 			for j := 0; j < ccxt.GetArrayLength(found); j++ {
 				var raw any = ccxt.GetValue(found, j)
 				var rawSlug *string = this.SafeString(raw, "slug")
-				if ((rawSlug != nil) && (rawSlug == nil || *rawSlug != "")) && !(ccxt.InOp(seen, rawSlug)) {
+				if ((rawSlug != nil) && (rawSlug == nil || *rawSlug != "")) && !(func() bool {
+					if rawSlug == nil {
+						return false
+					}
+					_, ok := seen[*rawSlug]
+					return ok
+				}()) {
 					ccxt.AddElementToObject(seen, rawSlug, true)
 					ccxt.AppendToArray(&rawMarkets, raw)
 				}
@@ -3900,7 +3918,13 @@ func (this *Limitless) fetchRawMarketsByTagsBody(ch chan any, tags any, optional
 		for mi := 0; mi < categoryMarketsLength; mi++ {
 			var raw any = ccxt.GetValue(categoryMarkets, mi)
 			var slug *string = this.SafeString(raw, "slug")
-			if (slug != nil) && !(ccxt.InOp(seen, slug)) {
+			if (slug != nil) && !(func() bool {
+				if slug == nil {
+					return false
+				}
+				_, ok := seen[*slug]
+				return ok
+			}()) {
 				ccxt.AddElementToObject(seen, slug, true)
 				ccxt.AppendToArray(&allRaw, raw)
 			}

@@ -1352,7 +1352,13 @@ func (this *Kalshi) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		if ticker == nil {
 			continue
 		}
-		if !(ccxt.InOp(outcomesByTicker, ticker)) {
+		if !(func() bool {
+			if ticker == nil {
+				return false
+			}
+			_, ok := outcomesByTicker[*ticker]
+			return ok
+		}()) {
 			ccxt.AddElementToObject(outcomesByTicker, ticker, []any{})
 			ccxt.AppendToArray(&tickers, ticker)
 		}
@@ -1385,7 +1391,13 @@ func (this *Kalshi) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		for i := 0; i < ccxt.GetArrayLength(rawMarkets); i++ {
 			var raw any = ccxt.GetValue(rawMarkets, i)
 			var marketTicker *string = this.SafeString(raw, "ticker")
-			if (marketTicker == nil) || !(ccxt.InOp(outcomesByTicker, marketTicker)) {
+			if (marketTicker == nil) || !(func() bool {
+				if marketTicker == nil {
+					return false
+				}
+				_, ok := outcomesByTicker[*marketTicker]
+				return ok
+			}()) {
 				continue
 			}
 			var grouped any = ccxt.GetValue(outcomesByTicker, marketTicker)
@@ -2107,7 +2119,13 @@ func (this *Kalshi) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		var position any = ccxt.GetValue(parsed, i)
 		var positionInfo any = this.SafeDict(position, "info", map[string]any{})
 		var positionTicker *string = this.SafeString(positionInfo, "ticker")
-		if (positionTicker != nil) && (ccxt.InOp(wantedTickers, positionTicker)) {
+		if (positionTicker != nil) && (func() bool {
+			if positionTicker == nil {
+				return false
+			}
+			_, ok := wantedTickers[*positionTicker]
+			return ok
+		}()) {
 			ccxt.AppendToArray(&result, position)
 		}
 	}

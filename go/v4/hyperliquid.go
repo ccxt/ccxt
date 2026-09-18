@@ -4206,7 +4206,13 @@ func (this *Hyperliquid) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		}
 		var oid *string = this.SafeString(entry, "oid")
 		if oid != nil {
-			if !(InOp(deduplicatedByOid, oid)) {
+			if !(func() bool {
+				if oid == nil {
+					return false
+				}
+				_, ok := deduplicatedByOid[*oid]
+				return ok
+			}()) {
 				AddElementToObject(deduplicatedByOid, oid, rawOrder)
 			} else {
 				var existingTimestamp *int64 = this.SafeInteger(GetValue(deduplicatedByOid, oid), "statusTimestamp")

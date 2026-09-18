@@ -1653,7 +1653,13 @@ func (this *Bittrade) ParseBalance(response any) any {
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = nil
-		if (code != nil) && (InOp(result, code)) {
+		if (code != nil) && (func() bool {
+			if code == nil {
+				return false
+			}
+			_, ok := result[*code]
+			return ok
+		}()) {
 			account = GetValue(result, code)
 		} else {
 			account = this.Account()

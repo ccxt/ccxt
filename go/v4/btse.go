@@ -3553,7 +3553,13 @@ func (this *Btse) requestWalletHistoryRowsBody(ch chan any, methodName any, hist
 	for i := 0; i < GetArrayLength(rawRows); i++ {
 		var entry any = GetValue(rawRows, i)
 		var typeVar *string = this.SafeString(entry, "type", "")
-		if InOp(allowed, typeVar) {
+		if func() bool {
+			if typeVar == nil {
+				return false
+			}
+			_, ok := allowed[*typeVar]
+			return ok
+		}() {
 			AppendToArray(&rows, entry)
 		}
 	}

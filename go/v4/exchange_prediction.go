@@ -380,7 +380,13 @@ func (this *PredictionExchange) EventsList() any {
 	for i := 0; i < len(keys); i++ {
 		var event any = GetValue(this.Events, GetValue(keys, i))
 		var identity *string = this.SafeString2(event, "id", "event", GetValue(keys, i))
-		if !(InOp(seen, identity)) {
+		if !(func() bool {
+			if identity == nil {
+				return false
+			}
+			_, ok := seen[*identity]
+			return ok
+		}()) {
 			AddElementToObject(seen, identity, true)
 			AppendToArray(&result, event)
 		}

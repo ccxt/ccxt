@@ -2326,8 +2326,20 @@ func (this *Kucoin) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var takerFeeRate *string = this.SafeString(ticker, "takerFeeRate")
 		var makerCoefficient *string = this.SafeString(ticker, "makerCoefficient")
 		var takerCoefficient *string = this.SafeString(ticker, "takerCoefficient")
-		var hasCrossMargin bool = (InOp(crossById, id))
-		var hasIsolatedMargin bool = (InOp(isolatedById, id))
+		var hasCrossMargin bool = (func() bool {
+			if id == nil {
+				return false
+			}
+			_, ok := crossById[*id]
+			return ok
+		}())
+		var hasIsolatedMargin bool = (func() bool {
+			if id == nil {
+				return false
+			}
+			_, ok := isolatedById[*id]
+			return ok
+		}())
 		var isMarginable bool = EvalTruthy(this.SafeBool(market, "isMarginEnabled", false)) || hasCrossMargin || hasIsolatedMargin
 		AppendToArray(&result, map[string]any{
 			"id":       id,
@@ -11961,7 +11973,13 @@ func (this *Kucoin) ParseBorrowRateHistories(response any, codes any, since any,
 		var item any = GetValue(response, i)
 		var code *string = this.SafeCurrencyCode(this.SafeString(item, "currency"))
 		if (code != nil) && (IsEqual(codes, nil) || this.InArray(code, codes)) {
-			if !(InOp(borrowRateHistories, code)) {
+			if !(func() bool {
+				if code == nil {
+					return false
+				}
+				_, ok := borrowRateHistories[*code]
+				return ok
+			}()) {
 				AddElementToObject(borrowRateHistories, code, []any{})
 			}
 			var borrowRateStructure any = this.ParseBorrowRate(item)
@@ -14418,7 +14436,13 @@ func (this *Kucoin) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any
 		var tier any = this.SafeDict(tiers, i)
 		var symbol *string = this.SafeString(tier, "symbol")
 		if symbol != nil {
-			if !(InOp(result, symbol)) {
+			if !(func() bool {
+				if symbol == nil {
+					return false
+				}
+				_, ok := result[*symbol]
+				return ok
+			}()) {
 				AddElementToObject(result, symbol, []any{})
 			}
 			retRes1155016 := GetValue(result, symbol)
