@@ -999,7 +999,7 @@ public class Phemex extends PhemexApi
         {
             // "1 USD"
             // "0.005 ETH"
-            Object parts = Helpers.split(contractSizeString, " ");
+            List<Object> parts = (List<Object>) Helpers.split(contractSizeString, " ");
             contractSize = this.parseNumber(Helpers.GetValue(parts, 0));
         } else
         {

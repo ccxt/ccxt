@@ -2642,7 +2642,7 @@ public class Cryptocom extends CryptocomApi
             var addressrawTagVariable = Helpers.split(addressString, "?");
             address = ((List<Object>) addressrawTagVariable).get(0);
             rawTag = ((List<Object>) addressrawTagVariable).get(1);
-            Object splitted = Helpers.split(((String)rawTag), "=");
+            List<Object> splitted = (List<Object>) Helpers.split(((String)rawTag), "=");
             tag = Helpers.GetValue(splitted, 1);
         } else
         {
@@ -2822,7 +2822,7 @@ public class Cryptocom extends CryptocomApi
             {
                 return Helpers.GetValue(depositAddresses, network);
             }
-            Object keys = Helpers.objectKeys(depositAddresses);
+            List<Object> keys = Helpers.objectKeys(depositAddresses);
             return Helpers.GetValue(depositAddresses, Helpers.GetValue(keys, 0));
         }).thenApply(DepositAddress::new);
 
@@ -4282,7 +4282,7 @@ public class Cryptocom extends CryptocomApi
             paramsKeys = obj;
         } else
         {
-            Object objectKeys = Helpers.objectKeys(obj);
+            List<Object> objectKeys = Helpers.objectKeys(obj);
             paramsKeys = this.sort(objectKeys);
         }
         for (var i = 0; i < ((List<?>)(List<String>)(paramsKeys)).size(); i++)
@@ -4528,7 +4528,7 @@ public class Cryptocom extends CryptocomApi
             this.checkRequiredCredentials();
             Object nonce = String.valueOf(this.nonce());
             Map<String, Object> requestParams = this.extend(new HashMap<String, Object>() {{}}, parameters);
-            Object paramsKeys = Helpers.objectKeys(requestParams);
+            List<Object> paramsKeys = Helpers.objectKeys(requestParams);
             Object strSortKey = this.paramsToString(requestParams, 0);
             Object payload = Helpers.add(Helpers.add(Helpers.add(Helpers.add(path, nonce), this.apiKey), strSortKey), nonce);
             Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256());

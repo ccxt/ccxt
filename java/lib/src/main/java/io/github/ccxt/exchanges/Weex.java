@@ -1121,7 +1121,7 @@ public class Weex extends WeexApi
 }});
             }
         }
-        Object networkKeys = Helpers.objectKeys(networks);
+        List<Object> networkKeys = Helpers.objectKeys(networks);
         Object networksLength = ((List<?>)networkKeys).size();
         Boolean emptyChains = Helpers.isEqual(networksLength, 0); // non-functional coins
         Object valueForEmpty = ((Helpers.isTrue(emptyChains))) ? false : null;

@@ -326,7 +326,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         }
         // non-symbol specific
         client.resolve(this.myTrades, channel);
-        Object keys = Helpers.objectKeys(marketIds);
+        List<Object> keys = Helpers.objectKeys(marketIds);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object marketId = Helpers.GetValue(keys, i);
@@ -475,7 +475,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         }
         // non-symbol specific
         client.resolve(this.orders, channel);
-        Object keys = Helpers.objectKeys(marketIds);
+        List<Object> keys = Helpers.objectKeys(marketIds);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object marketId = Helpers.GetValue(keys, i);
@@ -524,7 +524,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         //
         String messageHash = this.safeString(message, "topic");
         Object data = this.safeValue(message, "data");
-        Object keys = Helpers.objectKeys(data);
+        List<Object> keys = Helpers.objectKeys(data);
         Object timestamp = this.safeTimestamp(message, "time");
         Helpers.addElementToObject(this.balance, "info", data);
         Helpers.addElementToObject(this.balance, "timestamp", timestamp);
@@ -532,7 +532,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);
-            Object parts = Helpers.split(key, "_");
+            List<Object> parts = (List<Object>) Helpers.split(key, "_");
             String currencyId = this.safeString(parts, 0);
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();

@@ -2799,7 +2799,7 @@ public class Ndax extends NdaxApi
         Object depositInfo = Helpers.parseJson(depositInfoString);
         Object depositInfoLength = Helpers.getArrayLength(depositInfo);
         String lastString = this.safeString(depositInfo, Helpers.subtract(depositInfoLength, 1), "");
-        Object parts = Helpers.split(lastString, "?memo=");
+        List<Object> parts = (List<Object>) Helpers.split(lastString, "?memo=");
         String address = this.safeString(parts, 0);
         String tag = this.safeString(parts, 1);
         Object code = null;

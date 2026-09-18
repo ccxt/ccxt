@@ -143,7 +143,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         {
             return message;
         }
-        Object parts = Helpers.split(ch, ".");
+        List<Object> parts = (List<Object>) Helpers.split(ch, ".");
         String marketId = this.safeString(parts, 1);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object ticker = this.parseTicker(tick, market);
@@ -238,7 +238,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         {
             return message;
         }
-        Object parts = Helpers.split(ch, ".");
+        List<Object> parts = (List<Object>) Helpers.split(ch, ".");
         String marketId = this.safeString(parts, 1);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -337,7 +337,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         {
             return;
         }
-        Object parts = Helpers.split(ch, ".");
+        List<Object> parts = (List<Object>) Helpers.split(ch, ".");
         String marketId = this.safeString(parts, 1);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -582,7 +582,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         //
         String messageHash = this.safeString(message, "ch");
         Object ch = this.safeValue(message, "ch");
-        Object parts = Helpers.split(ch, ".");
+        List<Object> parts = (List<Object>) Helpers.split(ch, ".");
         String marketId = this.safeString(parts, 1);
         String symbol = this.safeSymbol(marketId);
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
@@ -684,7 +684,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         //     }
         //
         Object ch = this.safeValue(message, "ch");
-        Object parts = Helpers.split(ch, ".");
+        List<Object> parts = (List<Object>) Helpers.split(ch, ".");
         String type = this.safeString(parts, 0);
         if (java.util.Objects.equals(type, "market"))
         {

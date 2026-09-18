@@ -3312,7 +3312,7 @@ public class Poloniex extends PoloniexApi
             //         "USDTTRON" : "Txxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxp"
             //     }
             //
-            Object keys = Helpers.objectKeys(response);
+            List<Object> keys = Helpers.objectKeys(response);
             Object length = ((List<?>)keys).size();
             if (Helpers.isLessThan(length, 1))
             {
@@ -3719,7 +3719,7 @@ public class Poloniex extends PoloniexApi
             for (var i = 0; i < ((List<?>)entries).size(); i++)
             {
                 Object entry = Helpers.GetValue(entries, i);
-                Object currencies = Helpers.objectKeys(entry);
+                List<Object> currencies = Helpers.objectKeys(entry);
                 String currencyId = this.safeString(currencies, 0);
                 Helpers.addElementToObject(data, currencyId, Helpers.GetValue(entry, currencyId));
             }
@@ -3755,7 +3755,7 @@ public class Poloniex extends PoloniexApi
         Object currencyIdKey = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
         Map<String, Object> depositWithdrawFees = new HashMap<String, Object>() {{}};
         codes = this.marketCodes(codes);
-        Object responseKeys = Helpers.objectKeys(response);
+        List<Object> responseKeys = Helpers.objectKeys(response);
         for (var i = 0; i < ((List<?>)responseKeys).size(); i++)
         {
             Object currencyId = Helpers.GetValue(responseKeys, i);

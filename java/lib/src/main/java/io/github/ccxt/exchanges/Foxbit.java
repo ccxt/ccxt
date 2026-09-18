@@ -2527,7 +2527,7 @@ public class Foxbit extends FoxbitApi
         Object signatureQuery = "";
         if (java.util.Objects.equals(method, "GET"))
         {
-            Object paramKeys = Helpers.objectKeys(parameters);
+            List<Object> paramKeys = Helpers.objectKeys(parameters);
             Object paramKeysLength = ((List<?>)paramKeys).size();
             if (Helpers.isGreaterThan(paramKeysLength, 0))
             {

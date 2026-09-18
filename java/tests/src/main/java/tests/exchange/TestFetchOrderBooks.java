@@ -26,7 +26,7 @@ public class TestFetchOrderBooks extends BaseTest {
         Object symbol = Helpers.GetValue(symbols, 0);
         Object orderBooks = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchOrderBooks", new Object[]{new ArrayList<Object>(Arrays.asList(symbol))})).join();
         TestSharedMethods.AssertDictionaryResponse(exchange, method, orderBooks);
-        Object orderBookKeys = Helpers.objectKeys(orderBooks);
+        List<Object> orderBookKeys = Helpers.objectKeys(orderBooks);
         Assert(((List<?>)orderBookKeys).size() > 0, (((exchange.id + " ") + method) + " returned 0 length data"));
         for (var i = 0; i < ((List<?>)orderBookKeys).size(); i++)
         {

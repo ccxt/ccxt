@@ -3970,7 +3970,7 @@ public class Bitget extends BitgetApi
                     {
                         expiry = this.safeInteger(market, "deliveryTime");
                         expiryDatetime = this.iso8601(expiry);
-                        Object expiryParts = Helpers.split(expiryDatetime, "-");
+                        List<Object> expiryParts = (List<Object>) Helpers.split(expiryDatetime, "-");
                         String yearPart = this.safeString(expiryParts, 0, "");
                         String dayPart = this.safeString(expiryParts, 2, "");
                         Object year = Helpers.slice(yearPart, 2, 4);
@@ -4274,7 +4274,7 @@ public class Bitget extends BitgetApi
                     {
                         expiry = this.safeInteger(market, "deliveryTime");
                         expiryDatetime = this.iso8601(expiry);
-                        Object expiryParts = Helpers.split(expiryDatetime, "-");
+                        List<Object> expiryParts = (List<Object>) Helpers.split(expiryDatetime, "-");
                         String yearPart = this.safeString(expiryParts, 0, "");
                         String dayPart = this.safeString(expiryParts, 2, "");
                         Object year = Helpers.slice(yearPart, 2, 4);
@@ -14733,7 +14733,7 @@ final Object finalMinNotional = minNotional;
         Object query = this.omit(parameters, this.extractParams(path));
         if (!Helpers.isTrue(signed) && (java.util.Objects.equals(method, "GET")))
         {
-            Object keys = Helpers.objectKeys(query);
+            List<Object> keys = Helpers.objectKeys(query);
             Object keysLength = ((List<?>)keys).size();
             if (Helpers.isGreaterThan(keysLength, 0))
             {

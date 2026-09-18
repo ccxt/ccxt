@@ -377,7 +377,7 @@ public class Coincheck extends CoincheckApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        Object codes = Helpers.objectKeys(this.currencies);
+        List<Object> codes = Helpers.objectKeys(this.currencies);
         for (var i = 0; i < ((List<?>)codes).size(); i++)
         {
             Object code = Helpers.GetValue(codes, i);

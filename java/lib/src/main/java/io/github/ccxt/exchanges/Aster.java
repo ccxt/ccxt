@@ -5435,7 +5435,7 @@ public class Aster extends AsterApi
     public String encodeValuesWithJson(Object values)
     {
         Object encodedString = "";
-        Object keys = Helpers.objectKeys(values);
+        List<Object> keys = Helpers.objectKeys(values);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -5451,7 +5451,7 @@ public class Aster extends AsterApi
     public Object capitalizeKeys(Object dict)
     {
         Map<String, Object> capitalized = new HashMap<String, Object>() {{}};
-        Object keys = Helpers.objectKeys(dict);
+        List<Object> keys = Helpers.objectKeys(dict);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);

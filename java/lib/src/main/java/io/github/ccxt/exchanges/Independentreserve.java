@@ -1473,7 +1473,7 @@ public class Independentreserve extends IndependentreserveApi
             this.checkRequiredCredentials();
             Object nonce = this.nonce();
             Object auth = new ArrayList<Object>(Arrays.asList(url, ("apiKey=" + this.apiKey), ("nonce=" + String.valueOf(nonce))));
-            Object keys = Helpers.objectKeys(parameters);
+            List<Object> keys = Helpers.objectKeys(parameters);
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object key = Helpers.GetValue(keys, i);

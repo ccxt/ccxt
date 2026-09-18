@@ -1245,10 +1245,10 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
                 Helpers.addElementToObject(Helpers.GetValue(subscription, marketId), timeframe, true);
             }
             List<Object> properties = new ArrayList<Object>(Arrays.asList());
-            Object marketIds = Helpers.objectKeys(subscription);
+            List<Object> marketIds = Helpers.objectKeys(subscription);
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
-                Object marketIdtimeframes = Helpers.objectKeys(Helpers.GetValue(subscription, Helpers.GetValue(marketIds, i)));
+                List<Object> marketIdtimeframes = Helpers.objectKeys(Helpers.GetValue(subscription, Helpers.GetValue(marketIds, i)));
                 for (var ii = 0; ii < ((List<?>)marketIdtimeframes).size(); ii++)
                 {
                     Object marketTimeframeId = this.safeValue(timeframes, timeframe);
@@ -1348,7 +1348,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         {
             throw new ArgumentsRequired((this.id + " findTimeframe() timeframes is required")) ;
         }
-        Object keys = Helpers.objectKeys(timeframes);
+        List<Object> keys = Helpers.objectKeys(timeframes);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);

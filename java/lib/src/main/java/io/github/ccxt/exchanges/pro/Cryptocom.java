@@ -1311,9 +1311,9 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
-            Object parts = Helpers.split(messageHash, "::");
+            List<Object> parts = (List<Object>) Helpers.split(messageHash, "::");
             String symbolsString = (String) Helpers.GetValue(parts, 1);
-            Object symbols = Helpers.split(symbolsString, ",");
+            List<Object> symbols = (List<Object>) Helpers.split(symbolsString, ",");
             Object positions = this.filterByArray(newPositions, "symbol", symbols, false);
             if (!Helpers.isTrue(this.isEmpty(positions)))
             {
@@ -1892,7 +1892,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
     public void handleUnsubscribe(Client client, Object message)
     {
         String id = this.safeString(message, "id");
-        Object keys = Helpers.objectKeys(client.subscriptions);
+        List<Object> keys = Helpers.objectKeys(client.subscriptions);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object messageHash = Helpers.GetValue(keys, i);

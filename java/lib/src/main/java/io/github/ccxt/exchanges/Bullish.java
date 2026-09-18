@@ -1032,7 +1032,7 @@ public class Bullish extends BullishApi
             } else
             {
                 expiryDatetime = this.safeString(market, "expiryDatetime");
-                Object idParts = Helpers.split(id, "-");
+                List<Object> idParts = (List<Object>) Helpers.split(id, "-");
                 Object datePart = this.safeString(idParts, 2);
                 Object dateYmd = Helpers.slice(datePart, 2, null);
                 symbol = (symbol + ("-" + dateYmd));

@@ -19,7 +19,7 @@ public class TestFetchOHLCV extends BaseTest {
         return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchOHLCV";
-        Object timeframeKeys = Helpers.objectKeys(exchange.timeframes);
+        List<Object> timeframeKeys = Helpers.objectKeys(exchange.timeframes);
         Assert(((List<?>)timeframeKeys).size() > 0, (((exchange.id + " ") + method) + " - no timeframes found"));
         // prefer 1m timeframe if available, otherwise return the first one
         Object chosenTimeframeKey = "1m";

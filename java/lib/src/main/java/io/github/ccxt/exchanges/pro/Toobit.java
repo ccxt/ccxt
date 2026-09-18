@@ -1408,9 +1408,9 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
-            Object parts = Helpers.split(messageHash, "::");
+            List<Object> parts = (List<Object>) Helpers.split(messageHash, "::");
             String symbolsString = (String) Helpers.GetValue(parts, 1);
-            Object symbols = Helpers.split(symbolsString, ",");
+            List<Object> symbols = (List<Object>) Helpers.split(symbolsString, ",");
             Object filtered = this.filterByArray(newPositions, "symbol", symbols, false);
             if (!Helpers.isTrue(this.isEmpty(filtered)))
             {
@@ -1534,7 +1534,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             {
                 Object url = this.getUserStreamUrl();
                 Client client = this.client(url);
-                Object messageHashes = Helpers.objectKeys(client.futures);
+                List<Object> messageHashes = Helpers.objectKeys(client.futures);
                 for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
                 {
                     Object messageHash = Helpers.GetValue(messageHashes, i);

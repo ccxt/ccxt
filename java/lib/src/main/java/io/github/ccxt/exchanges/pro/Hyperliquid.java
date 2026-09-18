@@ -717,7 +717,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         Map<String, Object> mids = (Map<String, Object>) this.safeDict(data, "mids", new HashMap<String, Object>() {{}});
         if (!java.util.Objects.equals(mids, null))
         {
-            Object keys = Helpers.objectKeys(mids);
+            List<Object> keys = Helpers.objectKeys(mids);
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object name = Helpers.GetValue(keys, i);
@@ -836,7 +836,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             Helpers.addElementToObject(symbols, ((String)symbol), true);
             Helpers.callDynamically(trades, "append", new Object[]{parsed});
         }
-        Object keys = Helpers.objectKeys(symbols);
+        List<Object> keys = Helpers.objectKeys(symbols);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             String currentMessageHash = ("myTrades:" + Helpers.GetValue(keys, i));
@@ -1569,13 +1569,13 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
-            Object parts = Helpers.split(messageHash, "::");
+            List<Object> parts = (List<Object>) Helpers.split(messageHash, "::");
             String symbolsString = this.safeString(parts, 2);
             if (java.util.Objects.equals(symbolsString, null))
             {
                 continue;
             }
-            Object symbols = Helpers.split(symbolsString, ",");
+            List<Object> symbols = (List<Object>) Helpers.split(symbolsString, ",");
             Object positions = this.filterByArray(newPositions, "symbol", symbols, false);
             if (!Helpers.isTrue(this.isEmpty(positions)))
             {
@@ -1786,7 +1786,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             String symbol = this.safeString(order, "symbol");
             Helpers.addElementToObject(marketSymbols, symbol, true);
         }
-        Object keys = Helpers.objectKeys(marketSymbols);
+        List<Object> keys = Helpers.objectKeys(marketSymbols);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object symbol = Helpers.GetValue(keys, i);
@@ -1918,7 +1918,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         String subMessageHash = "tickers";
         String messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
-        Object symbols = Helpers.objectKeys(this.tickers);
+        List<Object> symbols = Helpers.objectKeys(this.tickers);
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
             ((Map<String,Object>)this.tickers).remove((String)Helpers.GetValue(symbols, i));
@@ -2135,7 +2135,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             Helpers.callDynamically(this, exacMethod, new Object[] {client, message});
             return;
         }
-        Object keys = Helpers.objectKeys(methods);
+        List<Object> keys = Helpers.objectKeys(methods);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);

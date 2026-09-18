@@ -449,14 +449,14 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             Helpers.addElementToObject(symbols, symbol, true);
             Helpers.callDynamically(stored, "append", new Object[]{trade});
         }
-        Object keys = Helpers.objectKeys(symbols);
+        List<Object> keys = Helpers.objectKeys(symbols);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             String messageHash = ("myTrades:" + Helpers.GetValue(keys, i));
             client.resolve(stored, messageHash);
         }
         client.resolve(stored, "myTrades");
-        Object subscriptions = Helpers.objectKeys(client.subscriptions);
+        List<Object> subscriptions = Helpers.objectKeys(client.subscriptions);
         for (var i = 0; i < ((List<?>)subscriptions).size(); i++)
         {
             Object messageHash = Helpers.GetValue(subscriptions, i);
@@ -565,9 +565,9 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
-            Object parts = Helpers.split(messageHash, "::");
+            List<Object> parts = (List<Object>) Helpers.split(messageHash, "::");
             String symbolsString = (String) Helpers.GetValue(parts, 1);
-            Object symbols = Helpers.split(symbolsString, ",");
+            List<Object> symbols = (List<Object>) Helpers.split(symbolsString, ",");
             Object filtered = this.filterByArray(newPositions, "symbol", symbols, false);
             if (!Helpers.isTrue(this.isEmpty(filtered)))
             {
@@ -630,14 +630,14 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             Helpers.addElementToObject(symbols, symbol, true);
             Helpers.callDynamically(orders, "append", new Object[]{order});
         }
-        Object keys = Helpers.objectKeys(symbols);
+        List<Object> keys = Helpers.objectKeys(symbols);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             String messageHash = ("orders:" + Helpers.GetValue(keys, i));
             client.resolve(orders, messageHash);
         }
         client.resolve(orders, "orders");
-        Object subscriptions = Helpers.objectKeys(client.subscriptions);
+        List<Object> subscriptions = Helpers.objectKeys(client.subscriptions);
         for (var i = 0; i < ((List<?>)subscriptions).size(); i++)
         {
             Object messageHash = Helpers.GetValue(subscriptions, i);
@@ -1037,7 +1037,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
 
     public Object findSubscription(Client client, Object name)
     {
-        Object keys = Helpers.objectKeys(client.subscriptions);
+        List<Object> keys = Helpers.objectKeys(client.subscriptions);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);

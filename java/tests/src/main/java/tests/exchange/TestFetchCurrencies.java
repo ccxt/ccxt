@@ -78,7 +78,7 @@ public class TestFetchCurrencies extends BaseTest {
     {
         // detect if there are currencies with different ids for the same code
         Map<String, Object> ids = new HashMap<String, Object>() {{}};
-        Object keys = Helpers.objectKeys(currencyValues);
+        List<Object> keys = Helpers.objectKeys(currencyValues);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);

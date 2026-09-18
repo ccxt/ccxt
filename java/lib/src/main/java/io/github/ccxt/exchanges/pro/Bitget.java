@@ -1731,9 +1731,9 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
-            Object parts = Helpers.split(messageHash, "::");
+            List<Object> parts = (List<Object>) Helpers.split(messageHash, "::");
             String symbolsString = (String) Helpers.GetValue(parts, 1);
-            Object symbols = Helpers.split(symbolsString, ",");
+            List<Object> symbols = (List<Object>) Helpers.split(symbolsString, ",");
             Object positions = this.filterByArray(newPositions, "symbol", symbols, false);
             if (!Helpers.isTrue(this.isEmpty(positions)))
             {
@@ -2133,7 +2133,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 Helpers.addElementToObject(marketSymbols, symbol, true);
             }
         }
-        Object keys = Helpers.objectKeys(marketSymbols);
+        List<Object> keys = Helpers.objectKeys(marketSymbols);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object symbol = Helpers.GetValue(keys, i);

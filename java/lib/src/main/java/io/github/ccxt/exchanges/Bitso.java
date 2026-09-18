@@ -1908,7 +1908,7 @@ public class Bitso extends BitsoApi
             String tag = null;
             if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(address, "?dt="), 0))
             {
-                Object parts = Helpers.split(address, "?dt=");
+                List<Object> parts = (List<Object>) Helpers.split(address, "?dt=");
                 address = this.safeString(parts, 0);
                 tag = this.safeString(parts, 1);
             }
@@ -2017,7 +2017,7 @@ public class Bitso extends BitsoApi
                 }
             }
             Object withdrawalFees = this.safeValue(payload, "withdrawal_fees", new ArrayList<Object>(Arrays.asList()));
-            Object currencyIds = Helpers.objectKeys(withdrawalFees);
+            List<Object> currencyIds = Helpers.objectKeys(withdrawalFees);
             for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
             {
                 Object currencyId = Helpers.GetValue(currencyIds, i);
@@ -2185,7 +2185,7 @@ public class Bitso extends BitsoApi
                 }
             }
         }
-        Object withdrawalKeys = Helpers.objectKeys(withdrawalResponse);
+        List<Object> withdrawalKeys = Helpers.objectKeys(withdrawalResponse);
         for (var i = 0; i < ((List<?>)withdrawalKeys).size(); i++)
         {
             Object currencyId = Helpers.GetValue(withdrawalKeys, i);

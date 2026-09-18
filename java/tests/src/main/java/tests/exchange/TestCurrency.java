@@ -70,7 +70,7 @@ public class TestCurrency extends BaseTest {
         TestSharedMethods.AssertCurrencyCode(exchange, skippedProperties, method, entry, ((Map<String, Object>)entry).get("code"));
         // check if empty networks should be skipped
         Object networks = exchange.safeDict(entry, "networks", new HashMap<String, Object>() {{}});
-        Object networkKeys = Helpers.objectKeys(networks);
+        List<Object> networkKeys = Helpers.objectKeys(networks);
         Object networkKeysLength = ((List<?>)networkKeys).size();
         if (Helpers.isEqual(networkKeysLength, 0) && (Helpers.inOp(skippedProperties, "skipCurrenciesWithoutNetworks")))
         {

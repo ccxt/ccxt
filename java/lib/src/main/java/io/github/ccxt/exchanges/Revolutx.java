@@ -239,7 +239,7 @@ public class Revolutx extends RevolutxApi
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
         Object implodedPath = this.implodeParams(path, parameters);
         Object query = this.omit(parameters, this.extractParams(path));
-        Object queryKeys = Helpers.objectKeys(query);
+        List<Object> queryKeys = Helpers.objectKeys(query);
         Object queryLength = ((List<?>)queryKeys).size();
         Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), "/"), implodedPath);
         Object queryString = "";
@@ -426,7 +426,7 @@ public class Revolutx extends RevolutxApi
             //     }
             //
             Object markets = this.safeDict(response, "data", response);
-            Object keys = Helpers.objectKeys(markets);
+            List<Object> keys = Helpers.objectKeys(markets);
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
@@ -522,7 +522,7 @@ public class Revolutx extends RevolutxApi
             //     }
             //
             Object currencies = this.safeDict(response, "data", response);
-            Object keys = Helpers.objectKeys(currencies);
+            List<Object> keys = Helpers.objectKeys(currencies);
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {

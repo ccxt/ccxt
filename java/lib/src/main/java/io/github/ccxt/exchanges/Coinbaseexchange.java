@@ -1236,7 +1236,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             //     }
             //
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            Object marketIds = Helpers.objectKeys(response);
+            List<Object> marketIds = Helpers.objectKeys(response);
             String delimiter = "-";
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {

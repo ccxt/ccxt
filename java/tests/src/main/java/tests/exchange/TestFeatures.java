@@ -25,7 +25,7 @@ public class TestFeatures extends BaseTest {
         List<Object> marketTypes = new ArrayList<Object>(Arrays.asList("spot", "swap", "future", "option"));
         List<Object> subTypes = new ArrayList<Object>(Arrays.asList("linear", "inverse"));
         Object features = exchange.features;
-        Object keys = Helpers.objectKeys(features);
+        List<Object> keys = Helpers.objectKeys(features);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             TestSharedMethods.AssertInArray(exchange, skippedProperties, "features", keys, i, marketTypes);
@@ -41,7 +41,7 @@ public class TestFeatures extends BaseTest {
                 testFeaturesInner(exchange, skippedProperties, value);
             } else
             {
-                Object subKeys = Helpers.objectKeys(value);
+                List<Object> subKeys = Helpers.objectKeys(value);
                 for (var j = 0; j < ((List<?>)subKeys).size(); j++)
                 {
                     Object subKey = Helpers.GetValue(subKeys, j);
@@ -137,8 +137,8 @@ public class TestFeatures extends BaseTest {
                 put( "limit", 0 );
             }} );
         }};
-        Object featureKeys = Helpers.objectKeys(featureObj);
-        Object allMethods = Helpers.objectKeys(exchange.has);
+        List<Object> featureKeys = Helpers.objectKeys(featureObj);
+        List<Object> allMethods = Helpers.objectKeys(exchange.has);
         for (var i = 0; i < ((List<?>)featureKeys).size(); i++)
         {
             TestSharedMethods.AssertInArray(exchange, skippedProperties, "features", featureKeys, i, allMethods);

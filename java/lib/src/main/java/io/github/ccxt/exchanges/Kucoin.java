@@ -9391,7 +9391,7 @@ public class Kucoin extends KucoinApi
         String txid = this.safeString(transaction, "walletTxId");
         if (!java.util.Objects.equals(txid, null))
         {
-            Object txidParts = Helpers.split(txid, "@");
+            List<Object> txidParts = (List<Object>) Helpers.split(txid, "@");
             Object numTxidParts = ((List<?>)txidParts).size();
             if (Helpers.isGreaterThan(numTxidParts, 1))
             {
@@ -11596,7 +11596,7 @@ public class Kucoin extends KucoinApi
                 ((List<Object>)borrowRateHistoriesCode).add(borrowRateStructure);
             }
         }
-        Object keys = Helpers.objectKeys(borrowRateHistories);
+        List<Object> keys = Helpers.objectKeys(borrowRateHistories);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object code = Helpers.GetValue(keys, i);

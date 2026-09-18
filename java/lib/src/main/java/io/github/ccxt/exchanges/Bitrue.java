@@ -789,7 +789,7 @@ public class Bitrue extends BitrueApi
             //
             //     {}
             //
-            Object keys = Helpers.objectKeys(response);
+            List<Object> keys = Helpers.objectKeys(response);
             Object keysLength = ((List<?>)keys).size();
             String formattedStatus = (((Helpers.isGreaterThan(keysLength, 0)))) ? "maintenance" : "ok";
             return new HashMap<String, Object>() {{
@@ -1098,7 +1098,7 @@ public class Bitrue extends BitrueApi
         Object settle = null;
         if (Helpers.isTrue(isContract))
         {
-            Object symbolSplit = Helpers.split(id, "-");
+            List<Object> symbolSplit = (List<Object>) Helpers.split(id, "-");
             baseId = this.safeString(symbolSplit, 1);
             quoteId = this.safeString(symbolSplit, 2);
             if (java.util.Objects.equals(isLinear, true))
@@ -3224,13 +3224,13 @@ public class Bitrue extends BitrueApi
         {
             if (!java.util.Objects.equals(addressTo, null))
             {
-                Object parts = Helpers.split(addressTo, "_");
+                List<Object> parts = (List<Object>) Helpers.split(addressTo, "_");
                 addressTo = this.safeString(parts, 0);
                 tagTo = this.safeString(parts, 1);
             }
             if (!java.util.Objects.equals(addressFrom, null))
             {
-                Object parts = Helpers.split(addressFrom, "_");
+                List<Object> parts = (List<Object>) Helpers.split(addressFrom, "_");
                 addressFrom = this.safeString(parts, 0);
                 tagFrom = this.safeString(parts, 1);
             }
@@ -3247,7 +3247,7 @@ public class Bitrue extends BitrueApi
         String currencyId = this.safeString2(transaction, "symbol", "coin");
         if (!java.util.Objects.equals(currencyId, null))
         {
-            Object parts = Helpers.split(currencyId, "_");
+            List<Object> parts = (List<Object>) Helpers.split(currencyId, "_");
             currencyId = this.safeString(parts, 0);
             String networkId = this.safeString(parts, 1);
             if (!java.util.Objects.equals(networkId, null))
@@ -3469,7 +3469,7 @@ public class Bitrue extends BitrueApi
         String toAccount = null;
         if (!java.util.Objects.equals(transferType, null))
         {
-            Object accountSplit = Helpers.split(transferType, "_to_");
+            List<Object> accountSplit = (List<Object>) Helpers.split(transferType, "_to_");
             fromAccount = this.safeString(accountSplit, 0);
             toAccount = this.safeString(accountSplit, 1);
         }
@@ -3798,7 +3798,7 @@ public class Bitrue extends BitrueApi
                 Object signMessage = Helpers.add(Helpers.add(timestamp, method), signPath);
                 if (java.util.Objects.equals(method, "GET"))
                 {
-                    Object keys = Helpers.objectKeys(parameters);
+                    List<Object> keys = Helpers.objectKeys(parameters);
                     Object keysLength = ((List<?>)keys).size();
                     if (Helpers.isGreaterThan(keysLength, 0))
                     {

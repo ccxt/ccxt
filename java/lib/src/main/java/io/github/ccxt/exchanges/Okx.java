@@ -2453,8 +2453,8 @@ public class Okx extends OkxApi
     {
         // support expired option contracts
         String quote = "USD";
-        Object optionParts = Helpers.split(symbol, "-");
-        Object symbolBase = Helpers.split(symbol, "/");
+        List<Object> optionParts = (List<Object>) Helpers.split(symbol, "-");
+        List<Object> symbolBase = (List<Object>) Helpers.split(symbol, "/");
         String base = null;
         if (Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), Helpers.opNeg(1)))
         {
@@ -2527,7 +2527,7 @@ public class Okx extends OkxApi
         Boolean isOption = false;
         if (!java.util.Objects.equals(marketId, null))
         {
-            Object parts = Helpers.split(marketId, "-");
+            List<Object> parts = (List<Object>) Helpers.split(marketId, "-");
             Object partsLength = ((List<?>)parts).size();
             // a valid OKX option ends with the call/put flag and carries expiry+strike segments,
             // e.g. the market id BTC-USD-220325-194000-P (5 parts) or the unified symbol
@@ -2843,14 +2843,14 @@ public class Okx extends OkxApi
         String underlying = this.safeString(market, "uly");
         if ((!java.util.Objects.equals(underlying, null)) && !Helpers.isTrue(spot))
         {
-            Object parts = Helpers.split(underlying, "-");
+            List<Object> parts = (List<Object>) Helpers.split(underlying, "-");
             baseId = this.safeString(parts, 0, "");
             quoteId = this.safeString(parts, 1, "");
         }
         if (((java.util.Objects.equals(baseId, "")) || (java.util.Objects.equals(quoteId, ""))) && Helpers.isTrue(spot))
         {
             String instId = this.safeString(market, "instId", "");
-            Object parts = Helpers.split(instId, "-");
+            List<Object> parts = (List<Object>) Helpers.split(instId, "-");
             baseId = this.safeString(parts, 0, "");
             quoteId = this.safeString(parts, 1, "");
         }
@@ -3157,7 +3157,7 @@ public class Okx extends OkxApi
                 // only happens for fiat 'TRY' currency
                 type = "fiat";
             }
-            Object idParts = Helpers.split(networkId, "-");
+            List<Object> idParts = (List<Object>) Helpers.split(networkId, "-");
             Object parts = this.arraySlice(idParts, 1);
             Object chainPart = String.join("-", (List<String>)parts);
             Object networkCode = this.networkIdToCode(chainPart, code);
@@ -4731,7 +4731,7 @@ public class Okx extends OkxApi
                 }
                 attachAlgoOrd = this.extend(attachAlgoOrd, tpOrder);
             }
-            Object attachOrdKeys = Helpers.objectKeys(attachAlgoOrd);
+            List<Object> attachOrdKeys = Helpers.objectKeys(attachAlgoOrd);
             Object attachOrdLen = ((List<?>)attachOrdKeys).size();
             if (Helpers.isGreaterThan(attachOrdLen, 0))
             {
@@ -7159,7 +7159,7 @@ public class Okx extends OkxApi
                 return Helpers.GetValue(response, codeNetwork);
             }
             // if the network is not specified, return the first address
-            Object keys = Helpers.objectKeys(response);
+            List<Object> keys = Helpers.objectKeys(response);
             String first = this.safeString(keys, 0, "");
             return this.safeDict(response, first);
         }).thenApply(DepositAddress::new);
@@ -7649,7 +7649,7 @@ public class Okx extends OkxApi
         String chain = this.safeString(transaction, "chain");
         if (!java.util.Objects.equals(chain, null))
         {
-            Object chainParts = Helpers.split(chain, "-");
+            List<Object> chainParts = (List<Object>) Helpers.split(chain, "-");
             Object networkParts = this.arraySlice(chainParts, 1);
             Object networkId = String.join("-", (List<String>)networkParts);
             if (!java.util.Objects.equals(networkId, null))
@@ -9317,7 +9317,7 @@ public class Okx extends OkxApi
                 ((List<Object>)borrrowRateCode).add(borrowRateStructure);
             }
         }
-        Object keys = Helpers.objectKeys(borrowRateHistories);
+        List<Object> keys = Helpers.objectKeys(borrowRateHistories);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object code = Helpers.GetValue(keys, i);
@@ -10400,7 +10400,7 @@ public class Okx extends OkxApi
                 {
                     continue;
                 }
-                Object chainSplit = Helpers.split(chain, "-");
+                List<Object> chainSplit = (List<Object>) Helpers.split(chain, "-");
                 String networkId = this.safeString(chainSplit, 1);
                 Double withdrawFee = this.safeNumber(feeInfo, "fee");
                 final Object finalWithdrawFee = withdrawFee;
@@ -10422,7 +10422,7 @@ public class Okx extends OkxApi
                 }
             }
         }
-        Object depositWithdrawCodes = Helpers.objectKeys(depositWithdrawFees);
+        List<Object> depositWithdrawCodes = Helpers.objectKeys(depositWithdrawFees);
         for (var i = 0; i < ((List<?>)depositWithdrawCodes).size(); i++)
         {
             Object code = Helpers.GetValue(depositWithdrawCodes, i);
@@ -10635,7 +10635,7 @@ public class Okx extends OkxApi
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String marketId = this.safeString(market, "id", "");
-            Object optionParts = Helpers.split(marketId, "-");
+            List<Object> optionParts = (List<Object>) Helpers.split(marketId, "-");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "uly", Helpers.GetValue(((Map<String, Object>)market).get("info"), "uly") );
                 put( "instFamily", Helpers.GetValue(((Map<String, Object>)market).get("info"), "instFamily") );
@@ -10739,7 +10739,7 @@ public class Okx extends OkxApi
                 {
                     market = this.market(Helpers.GetValue(symbols, 0));
                     String marketId = this.safeString(market, "id", "");
-                    Object optionParts = Helpers.split(marketId, "-");
+                    List<Object> optionParts = (List<Object>) Helpers.split(marketId, "-");
                     ((Map<String, Object>)request).put("uly", Helpers.GetValue(((Map<String, Object>)market).get("info"), "uly"));
                     ((Map<String, Object>)request).put("instFamily", Helpers.GetValue(((Map<String, Object>)market).get("info"), "instFamily"));
                     ((Map<String, Object>)request).put("expTime", this.safeString(optionParts, 2));

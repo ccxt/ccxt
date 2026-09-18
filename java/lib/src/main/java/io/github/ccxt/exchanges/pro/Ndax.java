@@ -238,7 +238,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                 Helpers.addElementToObject(updates, symbol, true);
             }
         }
-        Object symbols = Helpers.objectKeys(updates);
+        List<Object> symbols = Helpers.objectKeys(updates);
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
             Object symbol = Helpers.GetValue(symbols, i);
@@ -344,7 +344,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
                 Helpers.addElementToObject(updates, marketId, new HashMap<String, Object>() {{}});
             }
             Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
-            Object keys = Helpers.objectKeys(this.timeframes);
+            List<Object> keys = Helpers.objectKeys(this.timeframes);
             for (var j = 0; j < ((List<?>)keys).size(); j++)
             {
                 Object timeframe = Helpers.GetValue(keys, j);
@@ -405,11 +405,11 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             }
         }
         String name = "SubscribeTicker";
-        Object marketIds = Helpers.objectKeys(updates);
+        List<Object> marketIds = Helpers.objectKeys(updates);
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)
         {
             Object marketId = Helpers.GetValue(marketIds, i);
-            Object timeframes = Helpers.objectKeys(Helpers.GetValue(updates, marketId));
+            List<Object> timeframes = Helpers.objectKeys(Helpers.GetValue(updates, marketId));
             for (var j = 0; j < ((List<?>)timeframes).size(); j++)
             {
                 Object timeframe = Helpers.GetValue(timeframes, j);

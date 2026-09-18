@@ -23,7 +23,7 @@ public class TestFetchMarginModes extends BaseTest {
         String method = "fetchMarginModes";
         Object marginModes = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchMarginModes", new Object[]{new ArrayList<Object>(Arrays.asList(symbol))})).join();
         TestSharedMethods.AssertDictionaryResponse(exchange, method, marginModes, symbol);
-        Object marginModeKeys = Helpers.objectKeys(marginModes);
+        List<Object> marginModeKeys = Helpers.objectKeys(marginModes);
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, marginModes, symbol);
         for (var i = 0; i < ((List<?>)marginModeKeys).size(); i++)
         {

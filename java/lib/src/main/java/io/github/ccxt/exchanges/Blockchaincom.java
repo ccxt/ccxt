@@ -370,7 +370,7 @@ public class Blockchaincom extends BlockchaincomApi
             //
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> markets = (this.publicGetSymbols(parameters)).join();
-            Object marketIds = Helpers.objectKeys(markets);
+            List<Object> marketIds = Helpers.objectKeys(markets);
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
@@ -1155,7 +1155,7 @@ public class Blockchaincom extends BlockchaincomApi
             String address = null;
             if (!java.util.Objects.equals(rawAddress, null))
             {
-                Object addressParts = Helpers.split(rawAddress, ";");
+                List<Object> addressParts = (List<Object>) Helpers.split(rawAddress, ";");
                 // if a tag or memo is used it is separated by a colon in the 'address' value
                 tag = this.safeString(addressParts, 0);
                 address = this.safeString(addressParts, 1);

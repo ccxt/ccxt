@@ -25,7 +25,7 @@ public class TestWatchOHLCVForSymbols extends BaseTest {
         String method = "watchOHLCVForSymbols";
         Object now = exchange.milliseconds();
         Object ends = Helpers.add(now, 15000);
-        Object timeframeKeys = Helpers.objectKeys(exchange.timeframes);
+        List<Object> timeframeKeys = Helpers.objectKeys(exchange.timeframes);
         Assert(((List<?>)timeframeKeys).size() > 0, (((exchange.id + " ") + method) + " - no timeframes found"));
         // prefer 1m timeframe if available, otherwise return the first one
         Object chosenTimeframeKey = "1m";

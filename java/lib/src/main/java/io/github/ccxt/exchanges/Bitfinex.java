@@ -953,7 +953,7 @@ public class Bitfinex extends BitfinexApi
                 Object quoteId = null;
                 if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(id, ":"), 0))
                 {
-                    Object parts = Helpers.split(id, ":");
+                    List<Object> parts = (List<Object>) Helpers.split(id, ":");
                     baseId = Helpers.GetValue(parts, 0);
                     quoteId = Helpers.GetValue(parts, 1);
                 } else
@@ -963,8 +963,8 @@ public class Bitfinex extends BitfinexApi
                 }
                 Object base = this.safeCurrencyCode(baseId);
                 Object quote = this.safeCurrencyCode(quoteId);
-                Object splitBase = Helpers.split(((String)base), "F0");
-                Object splitQuote = Helpers.split(((String)quote), "F0");
+                List<Object> splitBase = (List<Object>) Helpers.split(((String)base), "F0");
+                List<Object> splitQuote = (List<Object>) Helpers.split(((String)quote), "F0");
                 base = this.safeString(splitBase, 0);
                 quote = this.safeString(splitQuote, 0);
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
@@ -2081,7 +2081,7 @@ public class Bitfinex extends BitfinexApi
         {
             return null;
         }
-        Object parts = Helpers.split(status, " ");
+        List<Object> parts = (List<Object>) Helpers.split(status, " ");
         String state = this.safeString(parts, 0);
         Map<String, Object> statuses = new HashMap<String, Object>() {{
             put( "ACTIVE", "open" );
@@ -2165,7 +2165,7 @@ public class Bitfinex extends BitfinexApi
         String statusString = this.safeString(orderList, 13);
         if (!java.util.Objects.equals(statusString, null))
         {
-            Object parts = Helpers.split(statusString, " @ ");
+            List<Object> parts = (List<Object>) Helpers.split(statusString, " @ ");
             status = this.parseOrderStatus(this.safeString(parts, 0));
         }
         String average = this.safeString(orderList, 17);
@@ -3953,7 +3953,7 @@ public class Bitfinex extends BitfinexApi
         String description = this.safeString(itemList, 8);
         if (!java.util.Objects.equals(description, null))
         {
-            Object parts = Helpers.split(description, " @ ");
+            List<Object> parts = (List<Object>) Helpers.split(description, " @ ");
             String first = this.safeStringLower(parts, 0);
             type = this.parseLedgerEntryType(first);
         }

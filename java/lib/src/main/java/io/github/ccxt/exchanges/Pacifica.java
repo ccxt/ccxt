@@ -930,7 +930,7 @@ public class Pacifica extends PacificaApi
         }
         if (Helpers.isTrue(isSpot))
         {
-            Object idParts = Helpers.split(id, "-");
+            List<Object> idParts = (List<Object>) Helpers.split(id, "-");
             quoteId = this.safeString(idParts, 1, quoteId);
         }
         Boolean isolatedOnly = (Boolean) this.safeBool(market, "isolated_only", false);
@@ -4461,7 +4461,7 @@ public class Pacifica extends PacificaApi
         if (Helpers.isTrue(this.isDictionary(value)))
         {
             Object result = new HashMap<String, Object>() {{}};
-            Object keys = Helpers.objectKeys(value);
+            List<Object> keys = Helpers.objectKeys(value);
             Object sortedKeys = this.sort(keys);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(sortedKeys)); i++)
             {

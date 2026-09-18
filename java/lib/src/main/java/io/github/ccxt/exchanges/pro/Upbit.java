@@ -110,7 +110,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             List<Object> finalMessage = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
         put( "ticket", Upbit.this.uuid() );
     }}));
-            Object channelKeys = Helpers.objectKeys(subscriptions);
+            List<Object> channelKeys = Helpers.objectKeys(subscriptions);
             for (var i = 0; i < ((List<?>)channelKeys).size(); i++)
             {
                 Object key = Helpers.GetValue(channelKeys, i);
@@ -523,7 +523,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             // Build subscription message with all requested private channels
             // Format: [{'ticket': uuid}, {'type': 'myOrder'}, {'type': 'myAsset'}, ...]
             List<Object> requests = new ArrayList<Object>(Arrays.asList());
-            Object channelKeys = Helpers.objectKeys(subscriptions);
+            List<Object> channelKeys = Helpers.objectKeys(subscriptions);
             for (var i = 0; i < ((List<?>)channelKeys).size(); i++)
             {
                 ((List<Object>)requests).add(Helpers.GetValue(subscriptions, Helpers.GetValue(channelKeys, i)));

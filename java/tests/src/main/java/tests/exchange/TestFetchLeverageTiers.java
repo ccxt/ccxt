@@ -28,7 +28,7 @@ public class TestFetchLeverageTiers extends BaseTest {
         //     ],
         // };
         TestSharedMethods.AssertDictionaryResponse(exchange, method, tiers, symbol);
-        Object tierKeys = Helpers.objectKeys(tiers);
+        List<Object> tierKeys = Helpers.objectKeys(tiers);
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, tierKeys, symbol);
         for (var i = 0; i < ((List<?>)tierKeys).size(); i++)
         {

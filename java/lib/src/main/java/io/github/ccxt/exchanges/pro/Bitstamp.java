@@ -206,7 +206,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         {
             return;
         }
-        Object parts = Helpers.split(channel, "_");
+        List<Object> parts = (List<Object>) Helpers.split(channel, "_");
         String marketId = this.safeString(parts, 3);
         String symbol = this.safeSymbol(marketId);
         io.github.ccxt.ws.WsOrderBook storedOrderBook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
@@ -432,7 +432,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         {
             return;
         }
-        Object parts = Helpers.split(channel, "_");
+        List<Object> parts = (List<Object>) Helpers.split(channel, "_");
         String marketId = this.safeString(parts, 2);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -507,7 +507,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         {
             return;
         }
-        Object parts = Helpers.split(channel, "_");
+        List<Object> parts = (List<Object>) Helpers.split(channel, "_");
         String marketId = this.safeString(parts, 2);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -944,7 +944,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         {
             return;
         }
-        Object parts = Helpers.split(channel, "_");
+        List<Object> parts = (List<Object>) Helpers.split(channel, "_");
         String marketId = this.safeString(parts, 3);
         String symbol = this.safeSymbol(marketId);
         Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
@@ -1094,7 +1094,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             put( "private-my_orders", "handleOrders");
             put( "private-my_trades", "handleMyTrades");
         }};
-        Object keys = Helpers.objectKeys(methods);
+        List<Object> keys = Helpers.objectKeys(methods);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);

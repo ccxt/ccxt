@@ -1218,7 +1218,7 @@ public class Toobit extends ToobitApi
         String id = this.safeString(market, "symbol");
         String baseId = this.safeString(market, "baseAsset", "");
         String quoteId = this.safeString(market, "quoteAsset");
-        Object baseParts = Helpers.split(baseId, "-");
+        List<Object> baseParts = (List<Object>) Helpers.split(baseId, "-");
         String baseIdClean = (String) Helpers.GetValue(baseParts, 0);
         String base = this.safeCurrencyCode(baseIdClean);
         String quote = this.safeCurrencyCode(quoteId);
@@ -2359,7 +2359,7 @@ public class Toobit extends ToobitApi
             // contract orders arrive as BUY_OPEN, SELL_CLOSE and the like -
             // the suffix is the only signal that carries reduceOnly, so read
             // it before discarding it (spot sides have no suffix: undefined)
-            Object sideParts = Helpers.split(rawSideLower, "_");
+            List<Object> sideParts = (List<Object>) Helpers.split(rawSideLower, "_");
             String sideSuffix = this.safeString(sideParts, 1);
             if (!java.util.Objects.equals(sideSuffix, null))
             {

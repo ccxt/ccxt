@@ -1238,7 +1238,7 @@ public class Bigone extends BigoneApi
 
     public Object parseContractBidsAsks(Object bidsAsks)
     {
-        Object bidsAsksKeys = Helpers.objectKeys(bidsAsks);
+        List<Object> bidsAsksKeys = Helpers.objectKeys(bidsAsks);
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)bidsAsksKeys).size(); i++)
         {

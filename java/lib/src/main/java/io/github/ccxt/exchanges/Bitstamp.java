@@ -1465,7 +1465,7 @@ public class Bitstamp extends BitstampApi
             {
                 throw new ExchangeError((this.id + " parseCurrencies() missing minimumOrder")) ;
             }
-            Object parts = Helpers.split(minimumOrder, " ");
+            List<Object> parts = (List<Object>) Helpers.split(minimumOrder, " ");
             String cost = (String) Helpers.GetValue(parts, 0);
             if ((!java.util.Objects.equals(base, null)) && !(((Map<?, ?>)result).containsKey(base)))
             {
@@ -1693,7 +1693,7 @@ public class Bitstamp extends BitstampApi
             return currencyId;
         }
         transaction = this.omit(transaction, new ArrayList<Object>(Arrays.asList("fee", "price", "datetime", "type", "status", "id")));
-        Object ids = Helpers.objectKeys(transaction);
+        List<Object> ids = Helpers.objectKeys(transaction);
         for (var i = 0; i < ((List<?>)ids).size(); i++)
         {
             Object id = Helpers.GetValue(ids, i);
@@ -1712,7 +1712,7 @@ public class Bitstamp extends BitstampApi
     public Object getMarketFromTrade(Object trade)
     {
         trade = this.omit(trade, new ArrayList<Object>(Arrays.asList("fee", "price", "datetime", "tid", "type", "order_id", "side")));
-        Object currencyIds = Helpers.objectKeys(trade);
+        List<Object> currencyIds = Helpers.objectKeys(trade);
         Object numCurrencyIds = ((List<?>)currencyIds).size();
         if (Helpers.isGreaterThan(numCurrencyIds, 2))
         {
@@ -1787,7 +1787,7 @@ public class Bitstamp extends BitstampApi
         Object rawMarketId = null;
         if (java.util.Objects.equals(market, null))
         {
-            Object keys = Helpers.objectKeys(trade);
+            List<Object> keys = Helpers.objectKeys(trade);
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object currentKey = Helpers.GetValue(keys, i);
@@ -2276,7 +2276,7 @@ public class Bitstamp extends BitstampApi
         Object codes = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         Map<String, Object> currencies = this.indexBy(response, "currency");
-        Object ids = Helpers.objectKeys(currencies);
+        List<Object> ids = Helpers.objectKeys(currencies);
         for (var i = 0; i < ((List<?>)ids).size(); i++)
         {
             Object id = Helpers.GetValue(ids, i);
@@ -3050,7 +3050,7 @@ public class Bitstamp extends BitstampApi
         if (!java.util.Objects.equals(address, null))
         {
             // dt (destination tag) is embedded into the address field
-            Object addressParts = Helpers.split(address, "?dt=");
+            List<Object> addressParts = (List<Object>) Helpers.split(address, "?dt=");
             Object numParts = ((List<?>)addressParts).size();
             if (Helpers.isGreaterThan(numParts, 1))
             {
@@ -3272,7 +3272,7 @@ public class Bitstamp extends BitstampApi
         {
             Object parsedTrade = this.parseTrade(item);
             Object market = null;
-            Object keys = Helpers.objectKeys(item);
+            List<Object> keys = Helpers.objectKeys(item);
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(Helpers.GetValue(keys, i), "_"), 0))
@@ -3816,7 +3816,7 @@ public class Bitstamp extends BitstampApi
                 ((List<Object>)errors).add(error);
             } else if (!java.util.Objects.equals(error, null))
             {
-                Object keys = Helpers.objectKeys(error);
+                List<Object> keys = Helpers.objectKeys(error);
                 for (var i = 0; i < ((List<?>)keys).size(); i++)
                 {
                     Object key = Helpers.GetValue(keys, i);

@@ -850,7 +850,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String dataType = this.safeString(message, "dataType", "");
-        Object parts = Helpers.split(dataType, "@");
+        List<Object> parts = (List<Object>) Helpers.split(dataType, "@");
         String firstPart = (String) Helpers.GetValue(parts, 0);
         Boolean isAllEndpoint = (java.util.Objects.equals(firstPart, "all"));
         String marketId = this.safeString(data, "symbol", firstPart);
@@ -987,7 +987,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         //
         Boolean isSwap = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(client.url, "swap"), 0);
         String dataType = this.safeString(message, "dataType", "");
-        Object parts = Helpers.split(dataType, "@");
+        List<Object> parts = (List<Object>) Helpers.split(dataType, "@");
         String firstPart = (String) Helpers.GetValue(parts, 0);
         Boolean isAllEndpoint = (java.util.Objects.equals(firstPart, "all"));
         String marketId = this.safeString(message, "s", firstPart);
@@ -1717,9 +1717,9 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
-            Object parts = Helpers.split(messageHash, "::");
+            List<Object> parts = (List<Object>) Helpers.split(messageHash, "::");
             String symbolsString = (String) Helpers.GetValue(parts, 1);
-            Object filteredSymbols = Helpers.split(symbolsString, ",");
+            List<Object> filteredSymbols = (List<Object>) Helpers.split(symbolsString, ",");
             Object positions = this.filterByArray(newPositions, "symbol", filteredSymbols, false);
             if (!Helpers.isTrue(this.isEmpty(positions)))
             {
@@ -1785,7 +1785,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                     }
                     Object url = ((baseUrl + "?listenKey=") + listenKey);
                     Client client = this.client(url);
-                    Object messageHashes = Helpers.objectKeys(client.futures);
+                    List<Object> messageHashes = Helpers.objectKeys(client.futures);
                     for (var j = 0; j < ((List<?>)messageHashes).size(); j++)
                     {
                         Object messageHash = Helpers.GetValue(messageHashes, j);

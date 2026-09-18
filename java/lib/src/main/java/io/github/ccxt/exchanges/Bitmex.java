@@ -3622,7 +3622,7 @@ public class Bitmex extends BitmexApi
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)code).get("id"));
             } else if (!java.util.Objects.equals(symbol, null))
             {
-                Object splitSymbol = Helpers.split(symbol, ":");
+                List<Object> splitSymbol = (List<Object>) Helpers.split(symbol, ":");
                 Object splitSymbolLength = ((List<?>)splitSymbol).size();
                 List<Object> timeframes = new ArrayList<Object>(Arrays.asList("nearest", "daily", "weekly", "monthly", "quarterly", "biquarterly", "perpetual"));
                 if ((Helpers.isGreaterThan(splitSymbolLength, 1)) && Helpers.isTrue(this.inArray(Helpers.GetValue(splitSymbol, 1), timeframes)))
