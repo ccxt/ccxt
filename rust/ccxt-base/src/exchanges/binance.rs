@@ -17596,11 +17596,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         if is_true(&(Value::Bool(matches!(&config, Value::Dict(__d) if __d.contains_key("noCoin"))))) && !is_true(&(Value::Bool(in_op(&params, &Value::Str("coin".to_string()))))) {
-            return crate::value::get_value_k(&config, "noCoin");
+            return config.as_map().and_then(|__m| __m.get("noCoin")).cloned().unwrap_or(Value::Null);
         }  else if is_true(&(Value::Bool(matches!(&config, Value::Dict(__d) if __d.contains_key("noSymbol"))))) && !is_true(&(Value::Bool(in_op(&params, &Value::Str("symbol".to_string()))))) {
-            return crate::value::get_value_k(&config, "noSymbol");
+            return config.as_map().and_then(|__m| __m.get("noSymbol")).cloned().unwrap_or(Value::Null);
         }  else if is_true(&(Value::Bool(matches!(&config, Value::Dict(__d) if __d.contains_key("noPoolId"))))) && !is_true(&(Value::Bool(in_op(&params, &Value::Str("poolId".to_string()))))) {
-            return crate::value::get_value_k(&config, "noPoolId");
+            return config.as_map().and_then(|__m| __m.get("noPoolId")).cloned().unwrap_or(Value::Null);
         }  else if is_true(&(Value::Bool(matches!(&config, Value::Dict(__d) if __d.contains_key("byLimit"))))) && is_true(&(Value::Bool(in_op(&params, &Value::Str("limit".to_string()))))) {
             let mut limit: Value = crate::value::get_value_k(&params, "limit");
             // safeValue keeps runtime identical to the prior bare index (no empty-array default)

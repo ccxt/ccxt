@@ -12088,11 +12088,11 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         let mut defaultVersion: Value = self.safe_string(methodVersions.clone(), path.clone(), &[self.options.as_map().and_then(|__m| __m.get("version")).cloned().unwrap_or(Value::Null)]);
         let mut version: Value = self.safe_string_k(params.clone(), "version", &[defaultVersion.clone()]);
         if (version.as_str() == Some("v3")) && is_true(&(Value::Bool(matches!(&config, Value::Dict(__d) if __d.contains_key("v3"))))) {
-            return crate::value::get_value_k(&config, "v3");
+            return config.as_map().and_then(|__m| __m.get("v3")).cloned().unwrap_or(Value::Null);
         }  else if (version.as_str() == Some("v2")) && is_true(&(Value::Bool(matches!(&config, Value::Dict(__d) if __d.contains_key("v2"))))) {
-            return crate::value::get_value_k(&config, "v2");
+            return config.as_map().and_then(|__m| __m.get("v2")).cloned().unwrap_or(Value::Null);
         }  else if (version.as_str() == Some("v1")) && is_true(&(Value::Bool(matches!(&config, Value::Dict(__d) if __d.contains_key("v1"))))) {
-            return crate::value::get_value_k(&config, "v1");
+            return config.as_map().and_then(|__m| __m.get("v1")).cloned().unwrap_or(Value::Null);
         }
         return self.safe_value_k(config, "cost", &[Value::Int(1)]);
 
