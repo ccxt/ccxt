@@ -566,7 +566,7 @@ func (this *PredictionExchange) ShortenSlug(slug any) any {
 	var parts any = []any{}
 	for i := 0; i < len(rawParts); i++ {
 		var w string = GetValue(rawParts, i).(string)
-		if (GetLength(w) > 0) && !this.InArray(w, stopWords) {
+		if (len(w) > 0) && !this.InArray(w, stopWords) {
 			AppendToArray(&parts, w)
 		}
 	}
@@ -913,7 +913,7 @@ func (this *PredictionExchange) OutcomeSearchQuery(outcomeSymbol any) any {
 		var word string = GetValue(rawWords, i).(string)
 		// inline .length so the php transpiler emits strlen() — the standalone
 		// `const n = str.length;` statement form wrongly becomes count() (array)
-		if GetLength(word) == 0 {
+		if len(word) == 0 {
 			continue
 		}
 		var wordHasLetters bool = false
