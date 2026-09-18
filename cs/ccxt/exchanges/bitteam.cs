@@ -2309,7 +2309,7 @@ public partial class bitteam : Exchange
             { "datetime", this.iso8601(timestamp) },
         };
         IDictionary<string, object> result = ((IDictionary<string, object>)this.safeValue(response, "result", new Dictionary<string, object>() {}));
-        object balanceByCurrencies = this.omit(result, new List<object>() {"free", "used", "total"});
+        Dictionary<string, object> balanceByCurrencies = this.omit(result, new List<object>() {"free", "used", "total"});
         List<object> rawCurrencyIds = new List<object>(((IDictionary<string,object>)balanceByCurrencies).Keys);
         for (int i = 0; isLessThan(i, rawCurrencyIds.Count); postFixIncrement(ref i))
         {

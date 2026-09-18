@@ -116,6 +116,21 @@ public partial class BaseExchange
         return (dict)omit((object)a, k);
     }
 
+    // Same for an interface-typed receiver: no type in the tree implements both
+    // IDictionary<string, object> and IList<object>, so the pass-through branch is
+    // unreachable and the object path hands back the fresh outDict (cast back below).
+    public Dictionary<string, object> omit(IDictionary<string, object> a, string key)
+    {
+        var keys = new List<object>();
+        keys.Add(key);
+        return (dict)omit((object)a, keys);
+    }
+
+    public Dictionary<string, object> omit(IDictionary<string, object> a, object k)
+    {
+        return (dict)omit((object)a, k);
+    }
+
     public IList<object> toArray(object a)
     {
         if (a == null)
