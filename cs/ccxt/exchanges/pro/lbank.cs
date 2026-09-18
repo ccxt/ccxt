@@ -378,7 +378,7 @@ public partial class lbank : ccxt.lbank
         string? marketId = this.safeString(ticker, "pair");
         string? symbol = this.safeSymbol(marketId, market);
         string? datetime = this.safeString(ticker, "TS");
-        object tickerData = this.safeValue(ticker, "tick");
+        IDictionary<string, object> tickerData = this.safeDict(ticker, "tick");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", this.parse8601(datetime) },

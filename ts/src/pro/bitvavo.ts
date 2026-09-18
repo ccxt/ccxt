@@ -331,7 +331,7 @@ export default class bitvavo extends bitvavoRest {
         const message = this.extend (request, params);
         const trades = await this.watchMultiple (url, messageHashes, message, messageHashes);
         if (this.newUpdates) {
-            const first = this.safeValue (trades, 0);
+            const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
             limit = trades.getLimit (tradeSymbol, limit);
         }
@@ -1361,7 +1361,7 @@ export default class bitvavo extends bitvavoRest {
         // const action = this.safeString (message, 'action');
         // const messageHash = this.buildMessageHash (action, message);
         const messageHash = this.safeString (message, 'requestId');
-        const response = this.safeValue (message, 'response');
+        const response = this.safeDict (message, 'response') as Dict;
         const withdraw = this.parseTransaction (response);
         client.resolve (withdraw, messageHash);
     }

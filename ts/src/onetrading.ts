@@ -1034,7 +1034,7 @@ export default class onetrading extends Exchange {
         //         "last_sequence":461123
         //     }
         //
-        const granularity = this.safeValue (ohlcv, 'granularity');
+        const granularity = this.safeDict (ohlcv, 'granularity');
         const unit = this.safeString (granularity, 'unit');
         const period = this.safeString (granularity, 'period');
         const units: Dict = {

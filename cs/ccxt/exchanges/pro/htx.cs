@@ -618,7 +618,7 @@ public partial class htx : ccxt.htx
             object messages = (orderbook as ccxt.pro.OrderBook).cache;
             object firstMessage = this.safeValue(messages, 0, new Dictionary<string, object>() {});
             Dictionary<string, object> snapshot = this.parseOrderBook(data, symbol);
-            object tick = this.safeValue(firstMessage, "tick");
+            IDictionary<string, object> tick = this.safeDict(firstMessage, "tick");
             Int64? sequence = this.safeInteger(tick, "prevSeqNum");
             Int64? nonce = this.safeInteger(data, "seqNum");
             if (isEqual(nonce, null))
@@ -2615,7 +2615,7 @@ public partial class htx : ccxt.htx
             string? action = this.safeString(message, "action");
             if (action == "ping")
             {
-                object data = this.safeValue(message, "data");
+                IDictionary<string, object> data = this.safeDict(message, "data");
                 Int64? pingTs = this.safeInteger(data, "ts");
                 await client.send(new Dictionary<string, object>() {
                     { "action", "pong" },

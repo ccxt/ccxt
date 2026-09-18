@@ -4195,7 +4195,7 @@ public partial class htx : Exchange
         for (int i = 0; isLessThan(i, getArrayLength(accounts)); postFixIncrement(ref i))
         {
             object account = getValue(accounts, i);
-            object info = this.safeValue(account, "info");
+            IDictionary<string, object> info = this.safeDict(account, "info");
             string? subtype = this.safeString(info, "subtype");
             string? typeFromAccount = this.safeString(account, "type");
             if (isEqual(type, "margin"))
@@ -8513,8 +8513,8 @@ public partial class htx : Exchange
         string? marketId = this.safeString(info, "symbol");
         string? symbol = this.safeSymbol(marketId, market);
         object currencies = this.safeValue(info, "currencies", new List<object>() {});
-        object baseData = this.safeValue(currencies, 0);
-        object quoteData = this.safeValue(currencies, 1);
+        IDictionary<string, object> baseData = this.safeDict(currencies, 0);
+        IDictionary<string, object> quoteData = this.safeDict(currencies, 1);
         string? baseId = this.safeString(baseData, "currency");
         string? quoteId = this.safeString(quoteData, "currency");
         return new Dictionary<string, object>() {
@@ -10077,7 +10077,7 @@ public partial class htx : Exchange
         //        "ts": 1648227062944
         //    }
         //
-        object data = this.safeValue(response, "data");
+        IDictionary<string, object> data = this.safeDict(response, "data");
         List<object> tick = this.safeList(data, "tick");
         return ccxt.BaseExchange.ToOpenInterestList(this.parseOpenInterestsHistory(tick, market, since, limit));
     }
@@ -10655,7 +10655,7 @@ public partial class htx : Exchange
             object settlementsLinear = this.parseSettlements(dataLinear, market);
             return ccxt.BaseExchange.ToDictList(this.sortBy(settlementsLinear, "timestamp"));
         }
-        object data = this.safeValue(response, "data");
+        IDictionary<string, object> data = this.safeDict(response, "data");
         object settlementRecord = this.safeValue(data, "settlement_record");
         object settlements = this.parseSettlements(settlementRecord, market);
         return ccxt.BaseExchange.ToDictList(this.sortBy(settlements, "timestamp"));

@@ -1157,7 +1157,7 @@ public partial class hitbtc : Exchange
         //
         //  [{"currency":"ETH","address":"0xd0d9aea60c41988c3e68417e2616065617b7afd3"}]
         //
-        object firstAddress = this.safeValue(response, 0);
+        IDictionary<string, object> firstAddress = this.safeDict(response, 0);
         string? address = this.safeString(firstAddress, "address");
         string? currencyId = this.safeString(firstAddress, "currency");
         string? tag = this.safeString(firstAddress, "payment_id");
@@ -3907,7 +3907,7 @@ public partial class hitbtc : Exchange
         //     }
         //
         object currencies = this.safeValue(data, "currencies", new List<object>() {});
-        object currencyInfo = this.safeValue(currencies, 0);
+        IDictionary<string, object> currencyInfo = this.safeDict(currencies, 0);
         string? datetime = this.safeString(data, "updated_at");
         return new Dictionary<string, object>() {
             { "info", data },
@@ -4297,7 +4297,7 @@ public partial class hitbtc : Exchange
         //       }
         //     }
         //
-        object error = this.safeValue(response, "error");
+        IDictionary<string, object> error = this.safeDict(response, "error");
         string? errorCode = this.safeString(error, "code");
         if ((errorCode != null))
         {

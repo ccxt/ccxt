@@ -244,7 +244,7 @@ export default class okx extends okxRest {
         const url = this.getUrl (channel, access);
         const trades = await this.watchMultiple (url, messageHashes, request, messageHashes);
         if (this.newUpdates) {
-            const first = this.safeValue (trades, 0);
+            const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
             limit = trades.getLimit (tradeSymbol, limit);
         }

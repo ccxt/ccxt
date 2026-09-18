@@ -2204,7 +2204,7 @@ public partial class derive : Exchange
         //     "id": "e5a88d4f-7ac7-40cd-aec9-e0e8152b8b92"
         // }
         //
-        object data = this.safeValue(response, "result");
+        IDictionary<string, object> data = this.safeDict(response, "result");
         Int64? page = this.safeInteger(parameters, "page");
         if (!isEqual(page, null))
         {

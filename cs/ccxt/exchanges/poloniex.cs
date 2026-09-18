@@ -1065,7 +1065,7 @@ public partial class poloniex : Exchange
         string? quote = this.safeCurrencyCode(quoteId);
         string? state = this.safeString(market, "state");
         bool active = state == "NORMAL";
-        object symbolTradeLimit = this.safeValue(market, "symbolTradeLimit");
+        IDictionary<string, object> symbolTradeLimit = this.safeDict(market, "symbolTradeLimit");
         // these are known defaults
         return ((Dictionary<string, object>)((object)(this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },

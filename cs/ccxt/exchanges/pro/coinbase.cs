@@ -825,7 +825,7 @@ public partial class coinbase : ccxt.coinbase
         {
             return;
         }
-        object eventVar = this.safeValue(events, 0);
+        IDictionary<string, object> eventVar = this.safeDict(events, 0);
         List<object> trades = this.safeList(eventVar, "trades");
         IDictionary<string, object> trade = this.safeDict(trades, 0);
         string? marketId = this.safeString(trade, "product_id");

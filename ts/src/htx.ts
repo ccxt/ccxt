@@ -3199,7 +3199,7 @@ export default class htx extends Exchange {
         }
         for (let i = 0; i < accounts.length; i++) {
             const account = accounts[i];
-            const info = this.safeValue (account, 'info');
+            const info = this.safeDict (account, 'info');
             const subtype = this.safeString (info, 'subtype');
             const typeFromAccount = this.safeString (account, 'type');
             if (type === 'margin') {
@@ -7113,8 +7113,8 @@ export default class htx extends Exchange {
         const marketId = this.safeString (info, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const currencies = this.safeValue (info, 'currencies', []);
-        const baseData = this.safeValue (currencies, 0);
-        const quoteData = this.safeValue (currencies, 1);
+        const baseData = this.safeDict (currencies, 0);
+        const quoteData = this.safeDict (currencies, 1);
         const baseId = this.safeString (baseData, 'currency');
         const quoteId = this.safeString (quoteData, 'currency');
         return {
@@ -8775,7 +8775,7 @@ export default class htx extends Exchange {
         //        "ts": 1648227062944
         //    }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data');
         const tick = this.safeList (data, 'tick');
         return this.parseOpenInterestsHistory (tick, market, since, limit);
     }
@@ -9340,7 +9340,7 @@ export default class htx extends Exchange {
             const settlementsLinear = this.parseSettlements (dataLinear, market);
             return this.sortBy (settlementsLinear, 'timestamp');
         }
-        const data = this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data');
         const settlementRecord = this.safeValue (data, 'settlement_record');
         const settlements = this.parseSettlements (settlementRecord, market);
         return this.sortBy (settlements, 'timestamp');

@@ -1095,7 +1095,7 @@ export default class hitbtc extends Exchange {
         //
         //  [{"currency":"ETH","address":"0xd0d9aea60c41988c3e68417e2616065617b7afd3"}]
         //
-        const firstAddress = this.safeValue (response, 0);
+        const firstAddress = this.safeDict (response, 0);
         const address = this.safeString (firstAddress, 'address');
         const currencyId = this.safeString (firstAddress, 'currency');
         const tag = this.safeString (firstAddress, 'payment_id');
@@ -3542,7 +3542,7 @@ export default class hitbtc extends Exchange {
         //     }
         //
         const currencies = this.safeValue (data, 'currencies', []);
-        const currencyInfo = this.safeValue (currencies, 0);
+        const currencyInfo = this.safeDict (currencies, 0);
         const datetime = this.safeString (data, 'updated_at');
         return {
             'info': data,
@@ -3890,7 +3890,7 @@ export default class hitbtc extends Exchange {
         //       }
         //     }
         //
-        const error = this.safeValue (response, 'error');
+        const error = this.safeDict (response, 'error');
         const errorCode = this.safeString (error, 'code');
         if (errorCode !== undefined) {
             const feedback = this.id + ' ' + body;

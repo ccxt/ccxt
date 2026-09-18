@@ -1552,7 +1552,7 @@ export default class phemex extends phemexRest {
         //     }
         // }
         //
-        const result = this.safeValue (message, 'result');
+        const result = this.safeDict (message, 'result');
         const status = this.safeString (result, 'status');
         const messageHash = 'authenticated';
         if (status === 'success') {

@@ -1077,7 +1077,7 @@ public partial class bitvavo : Exchange
         //         }
         //     }
         //
-        object feesValue = this.safeValue(fees, "fees");
+        IDictionary<string, object> feesValue = this.safeDict(fees, "fees");
         double? maker = this.safeNumber(feesValue, "maker");
         double? taker = this.safeNumber(feesValue, "taker");
         Dictionary<string, object> result = new Dictionary<string, object>() {};

@@ -990,7 +990,7 @@ export default class bitvavo extends Exchange {
         //         }
         //     }
         //
-        const feesValue = this.safeValue (fees, 'fees');
+        const feesValue = this.safeDict (fees, 'fees');
         const maker = this.safeNumber (feesValue, 'maker');
         const taker = this.safeNumber (feesValue, 'taker');
         const result: Dict = {};

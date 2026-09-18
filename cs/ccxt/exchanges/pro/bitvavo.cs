@@ -354,7 +354,7 @@ public partial class bitvavo : ccxt.bitvavo
         object trades = await this.watchMultiple(url, messageHashes, message, messageHashes);
         if (isTrue(this.newUpdates))
         {
-            object first = this.safeValue(trades, 0);
+            IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
             limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
         }
@@ -1508,7 +1508,7 @@ public partial class bitvavo : ccxt.bitvavo
         // const action = this.safeString (message, 'action');
         // const messageHash = this.buildMessageHash (action, message);
         string? messageHash = this.safeString(message, "requestId");
-        object response = this.safeValue(message, "response");
+        IDictionary<string, object> response = this.safeDict(message, "response");
         Dictionary<string, object> withdraw = this.parseTransaction(response);
         callDynamically(client, "resolve", new object[] {withdraw, messageHash});
     }

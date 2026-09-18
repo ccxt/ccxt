@@ -1242,7 +1242,7 @@ public partial class kucoin : ccxt.kucoin
             object trades = await this.subscribePublicUta(messageHash, channel, symbolVar, parameters);
             if (isTrue(this.newUpdates))
             {
-                object first = this.safeValue(trades, 0);
+                IDictionary<string, object> first = this.safeDict(trades, 0);
                 string? tradeSymbol = this.safeString(first, "symbol");
                 limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
             }
@@ -1299,7 +1299,7 @@ public partial class kucoin : ccxt.kucoin
         object trades = await this.subscribeMultiple(url, messageHashes, topic, subscriptionHashes, parameters);
         if (isTrue(this.newUpdates))
         {
-            object first = this.safeValue(trades, 0);
+            IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
             limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
         }
@@ -1954,7 +1954,7 @@ public partial class kucoin : ccxt.kucoin
 
     public override object getCacheIndex(object orderbook, object cache)
     {
-        object firstDelta = this.safeValue(cache, 0);
+        IDictionary<string, object> firstDelta = this.safeDict(cache, 0);
         Int64? nonce = this.safeInteger(orderbook, "nonce");
         Int64? firstDeltaStart = this.safeIntegerN(firstDelta, new List<object>() {"sequenceStart", "sequence", "O"});
         if ((isEqual(nonce, null)) || (isEqual(firstDeltaStart, null)))

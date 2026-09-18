@@ -357,7 +357,7 @@ public partial class bitbank : Exchange
         //       }
         //     }
         //
-        IDictionary<string, object> data = ((IDictionary<string, object>)this.safeValue(response, "data"));
+        IDictionary<string, object> data = this.safeDict(response, "data");
         List<object> pairs = ((List<object>)this.safeValue(data, "pairs", new List<object>() {}));
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(pairs));
     }
@@ -934,7 +934,7 @@ public partial class bitbank : Exchange
         //        }
         //    }
         //
-        IDictionary<string, object> data = ((IDictionary<string, object>)this.safeValue(response, "data"));
+        IDictionary<string, object> data = this.safeDict(response, "data");
         return ccxt.BaseExchange.ToOrder(this.parseOrder(data));
     }
 

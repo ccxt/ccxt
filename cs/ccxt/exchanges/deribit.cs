@@ -1020,7 +1020,7 @@ public partial class deribit : Exchange
         //         "testnet": false
         //     }
         //
-        object result = this.safeValue(response, "result");
+        IDictionary<string, object> result = this.safeDict(response, "result");
         string? locked = this.safeString(result, "locked");
         Int64? updateTime = this.safeIntegerProduct(response, "usIn", 0.001, this.milliseconds());
         return ccxt.BaseExchange.ToStatus(new Dictionary<string, object>() {             { "status", (locked == "false") ? "ok" : "maintenance" },             { "updated", updateTime },             { "eta", null },             { "url", null },             { "info", response },         });

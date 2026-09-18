@@ -1296,7 +1296,7 @@ export default class binance extends binanceRest {
         };
         const trades = await this.watchMultiple (url, messageHashes, this.extend (request, query), messageHashes, subscribe);
         if (this.newUpdates) {
-            const first = this.safeValue (trades, 0);
+            const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
             limit = trades.getLimit (tradeSymbol, limit);
         }
@@ -1890,7 +1890,7 @@ export default class binance extends binanceRest {
             'markPrice_kline': 'markPriceKline',
         };
         event = this.safeString (eventMap, event, event);
-        const kline = this.safeValue (message, 'k');
+        const kline = this.safeDict (message, 'k');
         let marketId = this.safeString2 (kline, 's', 'ps');
         if (event === 'indexPriceKline') {
             // indexPriceKline doesn't have the _PERP suffix

@@ -146,7 +146,7 @@ export default class xt extends xtRest {
     override getCacheIndex (orderbook: any, cache: any) {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         const nonce = this.safeInteger (orderbook, 'nonce');
-        const firstDelta = this.safeValue (cache, 0);
+        const firstDelta = this.safeDict (cache, 0);
         const firstDeltaNonce = this.safeInteger2 (firstDelta, 'i', 'u');
         if ((nonce !== undefined) && (firstDeltaNonce !== undefined) && (nonce < firstDeltaNonce - 1)) {
             return -1;

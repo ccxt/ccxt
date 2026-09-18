@@ -207,7 +207,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         const name = 'matches';
         const trades = await this.subscribeMultiple (name, symbols, name, params);
         if (this.newUpdates) {
-            const first = this.safeValue (trades, 0);
+            const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
             limit = trades.getLimit (tradeSymbol, limit);
         }
@@ -262,7 +262,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         const authentication = this.authenticate ();
         const trades = await this.subscribeMultiple (name, symbols, messageHash, this.extend (params, authentication));
         if (this.newUpdates) {
-            const first = this.safeValue (trades, 0);
+            const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
             limit = trades.getLimit (tradeSymbol, limit);
         }
@@ -289,7 +289,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         const authentication = this.authenticate ();
         const orders = await this.subscribeMultiple (name, symbols, messageHash, this.extend (params, authentication));
         if (this.newUpdates) {
-            const first = this.safeValue (orders, 0);
+            const first = this.safeDict (orders, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
             limit = orders.getLimit (tradeSymbol, limit);
         }

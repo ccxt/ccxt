@@ -1000,7 +1000,7 @@ public partial class bitget : ccxt.bitget
         //     "ts": 1755937421337
         // }
         //
-        IDictionary<string, object> arg = ((IDictionary<string, object>)this.safeValue(message, "arg"));
+        IDictionary<string, object> arg = this.safeDict(message, "arg");
         string? channel = this.safeString2(arg, "channel", "topic", "");
         string? instType = this.safeStringLower(arg, "instType");
         string marketType = (instType == "spot") ? "spot" : "contract";
@@ -1194,7 +1194,7 @@ public partial class bitget : ccxt.bitget
         object trades = await this.watchPublicMultiple(uta, messageHashes, topics, parameters);
         if (isTrue(this.newUpdates))
         {
-            object first = this.safeValue(trades, 0);
+            IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
             limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
         }
@@ -2197,7 +2197,7 @@ public partial class bitget : ccxt.bitget
         object symbol = getValue(market, "symbol");
         string? rawStatus = this.safeString2(order, "status", "orderStatus");
         object orderFee = this.safeValue(order, "feeDetail", new List<object>() {});
-        object fee = this.safeValue(orderFee, 0);
+        IDictionary<string, object> fee = this.safeDict(orderFee, 0);
         string? feeAmount = this.safeString(fee, "fee");
         Dictionary<string, object> feeObject = null;
         if ((feeAmount != null))

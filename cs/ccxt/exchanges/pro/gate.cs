@@ -1063,7 +1063,7 @@ public partial class gate : ccxt.gate
         object trades = await this.subscribePublicMultiple(url, messageHashes, marketIds, channel, parameters);
         if (isTrue(this.newUpdates))
         {
-            object first = this.safeValue(trades, 0);
+            IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
             limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
         }
@@ -1888,7 +1888,7 @@ public partial class gate : ccxt.gate
         {
             object parsed = getValue(parsedOrders, i);
             // inject order status
-            object info = this.safeValue(parsed, "info");
+            IDictionary<string, object> info = this.safeDict(parsed, "info");
             string? eventVar = this.safeString(info, "event");
             if (eventVar == "put" || eventVar == "update")
             {

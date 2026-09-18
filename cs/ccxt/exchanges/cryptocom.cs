@@ -3284,7 +3284,7 @@ public partial class cryptocom : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> response = await this.v1PrivatePostPrivateGetCurrencyNetworks(parameters);
-        object data = this.safeValue(response, "result");
+        IDictionary<string, object> data = this.safeDict(response, "result");
         List<object> currencyMap = this.safeList(data, "currency_map");
         return ccxt.BaseExchange.ToDepositWithdrawFees(this.parseDepositWithdrawFees(currencyMap, codes, "full_name"));
     }

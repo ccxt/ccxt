@@ -740,7 +740,7 @@ export default class coinbase extends coinbaseRest {
         if (events === undefined) {
             return;
         }
-        const event = this.safeValue (events, 0);
+        const event = this.safeDict (events, 0);
         const trades = this.safeList (event, 'trades');
         const trade = this.safeDict (trades, 0);
         const marketId = this.safeString (trade, 'product_id');

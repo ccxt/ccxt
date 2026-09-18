@@ -6471,7 +6471,7 @@ public partial class bingx : Exchange
         }
         parameters = this.omit(parameters, new List<object>() {"walletType", "network"});
         Dictionary<string, object> response = await this.walletsV1PrivatePostCapitalWithdrawApply(this.extend(request, parameters));
-        object data = this.safeValue(response, "data");
+        IDictionary<string, object> data = this.safeDict(response, "data");
         //    {
         //        "code":0,
         //        "timestamp":1689258953651,

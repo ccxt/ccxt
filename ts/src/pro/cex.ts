@@ -552,7 +552,7 @@ export default class cex extends cexRest {
     }
 
     handleTransaction (client: Client, message: any) {
-        const data = this.safeValue (message, 'data');
+        const data = this.safeDict (message, 'data');
         const symbol2 = this.safeString (data, 'symbol2');
         if (symbol2 === undefined) {
             return;

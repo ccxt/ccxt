@@ -901,7 +901,7 @@ export default class bitget extends bitgetRest {
         //     "ts": 1755937421337
         // }
         //
-        const arg = this.safeValue (message, 'arg');
+        const arg = this.safeDict (message, 'arg');
         const channel = this.safeString2 (arg, 'channel', 'topic', '');
         const instType = this.safeStringLower (arg, 'instType');
         const marketType = (instType === 'spot') ? 'spot' : 'contract';
@@ -1063,7 +1063,7 @@ export default class bitget extends bitgetRest {
         }
         const trades = await this.watchPublicMultiple (uta, messageHashes, topics, params);
         if (this.newUpdates) {
-            const first = this.safeValue (trades, 0);
+            const first = this.safeDict (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
             limit = trades.getLimit (tradeSymbol, limit);
         }
@@ -1978,7 +1978,7 @@ export default class bitget extends bitgetRest {
         const symbol = market['symbol'];
         const rawStatus = this.safeString2 (order, 'status', 'orderStatus');
         const orderFee = this.safeValue (order, 'feeDetail', []);
-        const fee = this.safeValue (orderFee, 0);
+        const fee = this.safeDict (orderFee, 0);
         const feeAmount = this.safeString (fee, 'fee');
         let feeObject: Fee = undefined;
         if (feeAmount !== undefined) {

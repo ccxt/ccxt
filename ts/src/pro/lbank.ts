@@ -364,7 +364,7 @@ export default class lbank extends lbankRest {
         const marketId = this.safeString (ticker, 'pair');
         const symbol = this.safeSymbol (marketId, market);
         const datetime = this.safeString (ticker, 'TS');
-        const tickerData = this.safeValue (ticker, 'tick');
+        const tickerData = this.safeDict (ticker, 'tick');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': this.parse8601 (datetime),

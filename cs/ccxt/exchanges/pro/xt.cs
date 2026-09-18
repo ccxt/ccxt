@@ -152,7 +152,7 @@ public partial class xt : ccxt.xt
     {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         Int64? nonce = this.safeInteger(orderbook, "nonce");
-        object firstDelta = this.safeValue(cache, 0);
+        IDictionary<string, object> firstDelta = this.safeDict(cache, 0);
         Int64? firstDeltaNonce = this.safeInteger2(firstDelta, "i", "u");
         if ((!isEqual(nonce, null)) && (!isEqual(firstDeltaNonce, null)) && (isLessThan(nonce, subtract(firstDeltaNonce, 1))))
         {
