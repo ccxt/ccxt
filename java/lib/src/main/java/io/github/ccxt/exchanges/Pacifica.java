@@ -1108,7 +1108,7 @@ public class Pacifica extends PacificaApi
                 ((Map<String, Object>)account).put("total", this.safeString(balance, "amount"));
                 ((Map<String, Object>)account).put("free", this.safeString(balance, "available_to_withdraw"));
                 // skip a spot USDC entry so it can't clobber the perp-collateral account above
-                if ((!java.util.Objects.equals(code, null)) && !(((Map<?, ?>)result).containsKey(code)))
+                if ((!java.util.Objects.equals(code, null)) && !(result.containsKey(code)))
                 {
                     ((Map<String, Object>)result).put((String)code, account);
                 }

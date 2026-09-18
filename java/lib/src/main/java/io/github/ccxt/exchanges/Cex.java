@@ -1072,7 +1072,7 @@ public class Cex extends CexApi
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
             Object symbol = Helpers.GetValue(symbols, i);
-            if (!(((Map<?, ?>)result).containsKey(symbol)))
+            if (!(result.containsKey(symbol)))
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 ((Map<String, Object>)result).put((String)symbol, this.parseTradingFee(response, market));

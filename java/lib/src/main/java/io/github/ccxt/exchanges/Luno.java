@@ -798,7 +798,7 @@ public class Luno extends LunoApi
             String balance = this.safeString(wallet, "balance");
             String reservedUnconfirmed = Precise.stringAdd(reserved, unconfirmed);
             String balanceUnconfirmed = Precise.stringAdd(balance, unconfirmed);
-            if ((!java.util.Objects.equals(code, null)) && (((Map<?, ?>)result).containsKey(code)))
+            if ((!java.util.Objects.equals(code, null)) && (result.containsKey(code)))
             {
                 Helpers.addElementToObject(Helpers.GetValue(result, code), "used", Precise.stringAdd(Helpers.GetValue(Helpers.GetValue(result, code), "used"), reservedUnconfirmed));
                 Helpers.addElementToObject(Helpers.GetValue(result, code), "total", Precise.stringAdd(Helpers.GetValue(Helpers.GetValue(result, code), "total"), balanceUnconfirmed));

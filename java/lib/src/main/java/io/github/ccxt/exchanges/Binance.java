@@ -5585,7 +5585,7 @@ public class Binance extends BinanceApi
         {
             Helpers.addElementToObject(Helpers.GetValue(entry, "precision"), "amount", stepSize);
         }
-        if (((Map<?, ?>)filtersByType).containsKey("PRICE_FILTER"))
+        if (filtersByType.containsKey("PRICE_FILTER"))
         {
             Map<String, Object> filter = (Map<String, Object>) this.safeDict(filtersByType, "PRICE_FILTER", new HashMap<String, Object>() {{}});
             // PRICE_FILTER reports zero values for maxPrice
@@ -5598,7 +5598,7 @@ public class Binance extends BinanceApi
 }});
             Helpers.addElementToObject(Helpers.GetValue(entry, "precision"), "price", this.safeNumber(filter, "tickSize"));
         }
-        if (((Map<?, ?>)filtersByType).containsKey("LOT_SIZE"))
+        if (filtersByType.containsKey("LOT_SIZE"))
         {
             Map<String, Object> filter = (Map<String, Object>) this.safeDict(filtersByType, "LOT_SIZE", new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(Helpers.GetValue(entry, "precision"), "amount", this.safeNumber(filter, "stepSize"));
@@ -5607,7 +5607,7 @@ public class Binance extends BinanceApi
     put( "max", Binance.this.safeNumber(filter, "maxQty") );
 }});
         }
-        if (((Map<?, ?>)filtersByType).containsKey("MARKET_LOT_SIZE"))
+        if (filtersByType.containsKey("MARKET_LOT_SIZE"))
         {
             Map<String, Object> filter = (Map<String, Object>) this.safeDict(filtersByType, "MARKET_LOT_SIZE", new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(Helpers.GetValue(entry, "limits"), "market", new HashMap<String, Object>() {{
@@ -5615,7 +5615,7 @@ public class Binance extends BinanceApi
     put( "max", Binance.this.safeNumber(filter, "maxQty") );
 }});
         }
-        if ((((Map<?, ?>)filtersByType).containsKey("MIN_NOTIONAL")) || (((Map<?, ?>)filtersByType).containsKey("NOTIONAL")))
+        if ((filtersByType.containsKey("MIN_NOTIONAL")) || (filtersByType.containsKey("NOTIONAL")))
         {
             Object filter = this.safeDict2(filtersByType, "MIN_NOTIONAL", "NOTIONAL", new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(entry, "limits"), "cost"), "min", this.safeNumber2(filter, "minNotional", "notional"));
@@ -13789,7 +13789,7 @@ public class Binance extends BinanceApi
             if (!Helpers.isTrue(filterClosed) || Helpers.isTrue(isPositionOpen))
             {
                 // sometimes not all the codes are correctly returned...
-                if (((Map<?, ?>)balances).containsKey(code))
+                if (balances.containsKey(code))
                 {
                     final Object finalCode = code;
                     Object parsed = this.parseAccountPosition(this.extend(position, new HashMap<String, Object>() {{

@@ -1123,7 +1123,7 @@ public class Bitflyer extends BitflyerApi
             }
             Object orders = (this.fetchOrders((Object)(symbol))).join();
             Map<String, Object> ordersById = this.indexBy(orders, "id");
-            if (((Map<?, ?>)ordersById).containsKey(id))
+            if (ordersById.containsKey(id))
             {
                 return Helpers.GetValue(ordersById, id);
             }

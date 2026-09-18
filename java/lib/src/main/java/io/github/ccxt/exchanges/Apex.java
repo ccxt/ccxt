@@ -1520,13 +1520,13 @@ public class Apex extends ApexApi
             if ((!java.util.Objects.equals(marketsMap, null)) && (((Map<?, ?>)marketsMap).containsKey(marketId)))
             {
                 market = Helpers.GetValue(marketsMap, marketId);
-            } else if ((!java.util.Objects.equals(marketsById, null)) && (((Map<?, ?>)marketsById).containsKey(marketId)))
+            } else if ((!java.util.Objects.equals(marketsById, null)) && (marketsById.containsKey(marketId)))
             {
                 market = Helpers.GetValue(marketsById, marketId);
             } else
             {
                 Object newMarketId = this.addHyphenBeforeUsdt(marketId);
-                if ((!java.util.Objects.equals(marketsById, null)) && (((Map<?, ?>)marketsById).containsKey(newMarketId)))
+                if ((!java.util.Objects.equals(marketsById, null)) && (marketsById.containsKey(newMarketId)))
                 {
                     Object markets = Helpers.GetValue(marketsById, newMarketId);
                     Object numMarkets = Helpers.getArrayLength(markets);

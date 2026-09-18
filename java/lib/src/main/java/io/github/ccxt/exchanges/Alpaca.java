@@ -2771,7 +2771,7 @@ public class Alpaca extends AlpacaApi
                 continue;
             }
             String positionCode = this.safeCurrencyCode(baseId);
-            if ((!java.util.Objects.equals(positionCode, null)) && !(((Map<?, ?>)result).containsKey(positionCode)))
+            if ((!java.util.Objects.equals(positionCode, null)) && !(result.containsKey(positionCode)))
             {
                 Object positionAccount = this.account();
                 ((Map<String, Object>)positionAccount).put("free", this.safeString(position, "qty_available"));

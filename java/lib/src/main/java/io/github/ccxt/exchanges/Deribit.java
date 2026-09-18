@@ -2175,7 +2175,7 @@ public class Deribit extends DeribitApi
                 ((Map<String, Object>)request).put("end_timestamp", until);
             }
             Object response = null;
-            if ((java.util.Objects.equals(since, null)) && !(((Map<?, ?>)request).containsKey("end_timestamp")))
+            if ((java.util.Objects.equals(since, null)) && !(request.containsKey("end_timestamp")))
             {
                 response = (this.publicGetGetLastTradesByInstrument(this.extend(request, parameters))).join();
             } else

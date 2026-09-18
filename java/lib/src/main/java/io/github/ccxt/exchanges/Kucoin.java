@@ -2335,8 +2335,8 @@ public class Kucoin extends KucoinApi
                 String takerFeeRate = this.safeString(ticker, "takerFeeRate");
                 String makerCoefficient = this.safeString(ticker, "makerCoefficient");
                 String takerCoefficient = this.safeString(ticker, "takerCoefficient");
-                Boolean hasCrossMargin = (((Map<?, ?>)crossById).containsKey(id));
-                Boolean hasIsolatedMargin = (((Map<?, ?>)isolatedById).containsKey(id));
+                Boolean hasCrossMargin = (crossById.containsKey(id));
+                Boolean hasIsolatedMargin = (isolatedById.containsKey(id));
                 Boolean isMarginable = Helpers.isTrue(this.safeBool(market, "isMarginEnabled", false)) || Helpers.isTrue(hasCrossMargin) || Helpers.isTrue(hasIsolatedMargin);
     final Object finalId = id;
                 final Object finalBase = base;
@@ -11587,7 +11587,7 @@ public class Kucoin extends KucoinApi
             String code = this.safeCurrencyCode(this.safeString(item, "currency"));
             if ((!java.util.Objects.equals(code, null)) && (java.util.Objects.equals(codes, null) || Helpers.isTrue(this.inArray(code, codes))))
             {
-                if (!(((Map<?, ?>)borrowRateHistories).containsKey(code)))
+                if (!(borrowRateHistories.containsKey(code)))
                 {
                     ((Map<String, Object>)borrowRateHistories).put((String)code, new ArrayList<Object>(Arrays.asList()));
                 }
@@ -13875,7 +13875,7 @@ final Object finalMarket = market;
                 String symbol = this.safeString(tier, "symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    if (!(((Map<?, ?>)result).containsKey(symbol)))
+                    if (!(result.containsKey(symbol)))
                     {
                         ((Map<String, Object>)result).put((String)symbol, new ArrayList<Object>(Arrays.asList()));
                     }

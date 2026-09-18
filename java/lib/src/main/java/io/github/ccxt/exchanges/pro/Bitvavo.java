@@ -639,7 +639,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 Map<String, Object> market = (Map<String, Object>) this.market((symbolAndTimeframe == null || 0 >= ((List<?>)symbolAndTimeframe).size() ? null : ((List<?>)symbolAndTimeframe).get(0)));
                 Object timeframeString = (symbolAndTimeframe == null || 1 >= ((List<?>)symbolAndTimeframe).size() ? null : ((List<?>)symbolAndTimeframe).get(1));
                 String interval = this.safeString(this.timeframes, timeframeString, timeframeString);
-                if (!(((Map<?, ?>)marketIdsByInterval).containsKey(interval)))
+                if (!(marketIdsByInterval.containsKey(interval)))
                 {
                     ((Map<String, Object>)marketIdsByInterval).put((String)interval, new ArrayList<Object>(Arrays.asList()));
                 }
@@ -729,7 +729,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 Map<String, Object> market = (Map<String, Object>) this.market((symbolAndTimeframe == null || 0 >= ((List<?>)symbolAndTimeframe).size() ? null : ((List<?>)symbolAndTimeframe).get(0)));
                 Object timeframeString = (symbolAndTimeframe == null || 1 >= ((List<?>)symbolAndTimeframe).size() ? null : ((List<?>)symbolAndTimeframe).get(1));
                 String interval = this.safeString(this.timeframes, timeframeString, timeframeString);
-                if (!(((Map<?, ?>)marketIdsByInterval).containsKey(interval)))
+                if (!(marketIdsByInterval.containsKey(interval)))
                 {
                     ((Map<String, Object>)marketIdsByInterval).put((String)interval, new ArrayList<Object>(Arrays.asList()));
                 }

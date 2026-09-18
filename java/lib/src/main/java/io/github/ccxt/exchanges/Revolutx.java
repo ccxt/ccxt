@@ -676,7 +676,7 @@ public class Revolutx extends RevolutxApi
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
                     Object s = Helpers.GetValue(symbols, i);
-                    if (((Map<?, ?>)result).containsKey(s))
+                    if (result.containsKey(s))
                     {
                         ((Map<String, Object>)filtered).put((String)s, Helpers.GetValue(result, s));
                     }

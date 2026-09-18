@@ -8122,7 +8122,7 @@ final Object finalMinNotional = minNotional;
                 if (!java.util.Objects.equals(price, null))
                 {
                     ((Map<String, Object>)request).put("executePrice", this.priceToPrecision(symbol, price));
-                    if (((Map<?, ?>)request).containsKey("price"))
+                    if (request.containsKey("price"))
                     {
                         ((Map<String,Object>)request).remove("price");
                     }

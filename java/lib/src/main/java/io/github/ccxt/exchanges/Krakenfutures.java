@@ -1764,7 +1764,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 Object price = this.safeValue(rawOrder, "price");
                 Object orderParams = this.safeValue(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Map<String, Object> extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
-                if (!(Helpers.inOp(extendedParams, "order_tag")))
+                if (!(extendedParams.containsKey("order_tag")))
                 {
                     // order tag is mandatory so we will generate one if not provided
                     Helpers.addElementToObject(extendedParams, "order_tag", String.valueOf(this.sum(i, 1))); // sequential counter
@@ -1874,7 +1874,7 @@ public class Krakenfutures extends KrakenfuturesApi
             String status = this.safeString(this.safeValue(response, "cancelStatus", new HashMap<String, Object>() {{}}), "status");
             this.verifyOrderActionSuccess(status, "cancelOrder");
             Object order = new HashMap<String, Object>() {{}};
-            if (((Map<?, ?>)response).containsKey("cancelStatus"))
+            if (response.containsKey("cancelStatus"))
             {
                 order = this.parseOrder(((Map<String, Object>)response).get("cancelStatus"));
             }

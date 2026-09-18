@@ -3506,6 +3506,7 @@ export function patchJavaCollectionLocalTypes (transpiler) {
         narrowed.set (declaration, info.type);
         return printed.slice (0, at) + `${iden}${info.type} ${printedName} = ${castPrefix}` + head;
     };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => narrowed.get (declaration));
     // `x = this.arrayConcat(...)` / `x = this.extend(a, b, c)` on an already-narrowed
     // local: the Java declaration is still `Object`, so the reassignment needs the same
     // checkcast the declaration got. Writes whose value already carries the type
@@ -3758,6 +3759,33 @@ export function patchJavaBooleanLocalTypes (transpiler) {
 
 // ===== install =====
 
+// ===== declared-type registry =====
+// The generator's read families (`Helpers.GetValue(x, "k")` -> `x.get("k")`, `k in x` ->
+// `x.containsKey(k)`) ask for the DECLARED Java type of a name through the printer hook
+// `javaDeclaredLocalTypeResolver`. Every slicing pass that retypes a declaration publishes
+// its own declaration->type table here; a name no slice retyped answers with its printed
+// signature type (a parameter) or nothing (a field, a call result). With no table published
+// the hook stays unset and both families keep the helper.
+const JAVA_DECLARED_LOCAL_TABLES = new WeakMap ();
+
+export function publishJavaDeclaredLocalTypes (printer, resolve) {
+    let tables = JAVA_DECLARED_LOCAL_TABLES.get (printer);
+    if (tables === undefined) {
+        tables = [];
+        JAVA_DECLARED_LOCAL_TABLES.set (printer, tables);
+        printer.javaDeclaredLocalTypeResolver = function (declaration) {
+            for (const table of tables) {
+                const type = table (declaration);
+                if (type !== undefined) {
+                    return type;
+                }
+            }
+            return javaDeclaredParameterType (declaration);
+        };
+    }
+    tables.push (resolve);
+}
+
 export function installJavaLocalTypes (transpiler) {
     const printer = transpiler?.javaTranspiler;
     if (!printer || typeof printer.printFunctionType !== 'function' || printer._javaLocalTypesPatched) {
@@ -3802,6 +3830,7 @@ export function installJavaLocalTypes (transpiler) {
     // call — the isTrue consumer hook (section 7) turns their truthiness positions into
     // `Boolean.TRUE.equals (x)`. Print-order local, filled by the hook below.
     const safeBoolLocals = new WeakSet ();
+    publishJavaDeclaredLocalTypes (printer, (declaration) => narrowed.get (declaration));
     const original = printer.printVariableDeclarationList.bind (printer);
     printer.printVariableDeclarationList = function (node, identation) {
         const printed = original (node, identation);
@@ -5477,6 +5506,21 @@ export function patchJavaLiteralLocalTypes (transpiler) {
         literalBumpCensus (literalFamilyOf (declaration));
         return printed.slice (0, at) + `${iden}${value.type} ` + printed.slice (at + marker.length - (printedName.length + 3));
     };
+    // the generator's read families consume the proof this slice already ran: the whole-function
+    // scan above is what makes the retyped declaration safe, so it answers the same declaration.
+    // Only a single-declarator variable declaration this slice would have retyped (the same
+    // guards as the patcher) — a parameter with a literal default is NOT retyped, it is unpacked
+    // into an `Object` local.
+    publishJavaDeclaredLocalTypes (printer, (declaration) => {
+        if (!ts.isVariableDeclaration (declaration) || declaration.parent?.declarations?.length !== 1) {
+            return undefined;
+        }
+        if (declaration.parent?.parent?.kind === ts.SyntaxKind.ForStatement) {
+            return undefined;
+        }
+        const value = literalLocalTypeCore (printer, declaration);
+        return value === undefined ? undefined : value.type;
+    });
     printer._localTypesLiteralPatched = true;
 }
 
@@ -7396,6 +7440,31 @@ export const JAVA_STRING_PARAM_POSITIONS = {
     'withdrawRequest': [0],
     'withdrawWs': [0],
 };
+
+// the printed signature type of a parameter: the SS-05 positions are `String`, every other
+// printed parameter is the printer's DEFAULT_PARAMETER_TYPE (`Object`). A parameter with a
+// default / question token is NOT printed in the signature at all — the method takes
+// `Object... optionalArgs` and unpacks it into an `Object` local — so it never answers
+// `String` (the unpacked local is `Object` on every path).
+function javaDeclaredParameterType (declaration) {
+    if (declaration?.kind !== ts.SyntaxKind.Parameter) {
+        return undefined;
+    }
+    const method = declaration.parent;
+    if (method?.kind !== ts.SyntaxKind.MethodDeclaration && method?.kind !== ts.SyntaxKind.FunctionDeclaration) {
+        return undefined;
+    }
+    if (declaration.initializer !== undefined || declaration.questionToken !== undefined) {
+        return 'Object';
+    }
+    const name = method.name?.escapedText;
+    const positions = name === undefined ? undefined : JAVA_STRING_PARAM_POSITIONS[name];
+    if (positions !== undefined && Array.isArray (method.parameters)
+        && positions.indexOf (method.parameters.indexOf (declaration)) !== -1) {
+        return 'String';
+    }
+    return 'Object';
+}
 
 export function patchJavaParamTypes (transpiler) {
     const printer = transpiler?.javaTranspiler;
