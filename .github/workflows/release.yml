@@ -56,14 +56,9 @@ jobs:
         with:
           python-version: '3.12'
           cache: 'pip'
-      - name: create usr/share/dotnet folder
-        run: |
-          sudo mkdir -p /usr/share/dotnet
       - uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: '10.0.x'
-          run: |
-            sudo mkdir -p /usr/share/dotnet
+          dotnet-version: '10.0.302'
       - name: Set up JDK
         uses: actions/setup-java@v5
         with:
