@@ -1087,7 +1087,7 @@ public class Btcbox extends BtcboxApi
             {
                 // sometimes the exchange returns whitespace prepended to json
                 response = this.strip(response);
-                if (!Helpers.isTrue(this.isJsonEncodedObject(response)))
+                if (!this.isJsonEncodedObject(response))
                 {
                     throw new ExchangeError(Helpers.add((this.id + " "), response)) ;
                 }

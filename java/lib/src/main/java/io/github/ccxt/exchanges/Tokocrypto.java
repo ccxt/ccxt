@@ -2085,7 +2085,7 @@ public class Tokocrypto extends TokocryptoApi
                 }
             }
             Object validOrderTypes = this.safeValue(((Map<String, Object>)market).get("info"), "orderTypes");
-            if (!Helpers.isTrue(this.inArray(uppercaseType, validOrderTypes)))
+            if (!this.inArray(uppercaseType, validOrderTypes))
             {
                 if (!java.util.Objects.equals(initialUppercaseType, uppercaseType))
                 {

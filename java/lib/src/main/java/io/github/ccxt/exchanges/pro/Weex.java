@@ -2317,7 +2317,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             String symbolsString = (String) Helpers.GetValue(parts, 1);
             List<Object> symbols = (List<Object>) Helpers.split(symbolsString, ",");
             Object positions = this.filterByArray(newPositions, "symbol", symbols, false);
-            if (!Helpers.isTrue(this.isEmpty(positions)))
+            if (!this.isEmpty(positions))
             {
                 client.resolve(positions, messageHash);
             }

@@ -1602,7 +1602,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             }
             Object messageHashes = new ArrayList<Object>(Arrays.asList());
             symbols = this.marketSymbols(symbols);
-            if (!Helpers.isTrue(this.isEmpty(symbols)))
+            if (!this.isEmpty(symbols))
             {
                 if (java.util.Objects.equals(symbols, null))
                 {

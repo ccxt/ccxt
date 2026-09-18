@@ -2546,7 +2546,7 @@ final Object finalId = id;
         // unlike from endpoints which provide eg: "take-profit-limit"
         // for "space-delimited" orders we dont have market/limit suffixes, their format is
         // eg: `stop loss > limit 123`, so we need to parse them manually
-        if (Helpers.isTrue(this.inArray(typeParsed, new ArrayList<Object>(Arrays.asList("stop loss", "take profit")))))
+        if (this.inArray(typeParsed, new ArrayList<Object>(Arrays.asList("stop loss", "take profit"))))
         {
             typeParsed = (((java.util.Objects.equals(price, null)))) ? "market" : "limit";
         }

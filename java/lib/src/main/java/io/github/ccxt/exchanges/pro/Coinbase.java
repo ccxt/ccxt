@@ -159,7 +159,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             {
                 (this.loadMarkets()).join();
             }
-            if (Helpers.isTrue(this.safeBool(this.options, "unSubscriptionPending", false)))
+            if (Boolean.TRUE.equals(this.safeBool(this.options, "unSubscriptionPending", false)))
             {
                 throw new ExchangeError((this.id + " another unSubscription is pending, coinbase does not support concurrent unSubscriptions")) ;
             }
@@ -288,7 +288,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             Object name = name3;
             Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            if (Helpers.isTrue(this.safeBool(this.options, "unSubscriptionPending", false)))
+            if (Boolean.TRUE.equals(this.safeBool(this.options, "unSubscriptionPending", false)))
             {
                 throw new ExchangeError((this.id + " another unSubscription is pending, coinbase does not support concurrent unSubscriptions")) ;
             }

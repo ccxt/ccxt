@@ -666,9 +666,9 @@ public class Luno extends LunoApi
                 List<Object> stablecoins = new ArrayList<Object>(Arrays.asList("USDT", "USDC"));
                 Object taker = null;
                 Object maker = null;
-                if (Helpers.isTrue(this.inArray(quote, fiats)))
+                if (this.inArray(quote, fiats))
                 {
-                    if (Helpers.isTrue(this.inArray(base, stablecoins)))
+                    if (this.inArray(base, stablecoins))
                     {
                         taker = this.parseNumber("0.002");
                         maker = this.parseNumber("-0.0001"); // a rebate, not a charge
@@ -677,7 +677,7 @@ public class Luno extends LunoApi
                         taker = this.parseNumber("0.006");
                         maker = this.parseNumber("0.004");
                     }
-                } else if (!Helpers.isTrue(this.inArray(quote, unverifiedQuotes)))
+                } else if (!this.inArray(quote, unverifiedQuotes))
                 {
                     // stablecoin-quoted (BTC/USDT) and crypto-quoted (ETH/BTC, SOL/ADA) books
                     // are both in Luno's crypto/crypto column

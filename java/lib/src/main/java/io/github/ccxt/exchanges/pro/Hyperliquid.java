@@ -1501,7 +1501,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             parameters = this.safeDict(userAddressResult, 1, parameters);
             String topic = "clearinghouseState";
             Object messageHash = (topic + "::positions");
-            if ((!java.util.Objects.equals(symbols, null)) && !Helpers.isTrue(this.isEmpty(symbols)))
+            if ((!java.util.Objects.equals(symbols, null)) && !this.isEmpty(symbols))
             {
                 symbols = this.marketSymbols(symbols);
                 messageHash = (messageHash + ("::" + String.join(",", (List<String>)symbols)));
@@ -1577,7 +1577,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             }
             List<Object> symbols = (List<Object>) Helpers.split(symbolsString, ",");
             Object positions = this.filterByArray(newPositions, "symbol", symbols, false);
-            if (!Helpers.isTrue(this.isEmpty(positions)))
+            if (!this.isEmpty(positions))
             {
                 client.resolve(positions, messageHash);
             }
@@ -1605,7 +1605,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             {
                 (this.loadMarkets()).join();
             }
-            if ((!java.util.Objects.equals(symbols, null)) && !Helpers.isTrue(this.isEmpty(symbols)))
+            if ((!java.util.Objects.equals(symbols, null)) && !this.isEmpty(symbols))
             {
                 throw new NotSupported((this.id + " unWatchPositions() does not support a symbol parameter, you must unwatch all orders")) ;
             }

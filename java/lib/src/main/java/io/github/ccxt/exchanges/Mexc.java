@@ -2234,7 +2234,7 @@ public class Mexc extends MexcApi
                 }
             }
         }
-        if (java.util.Objects.equals(id, null) && Helpers.isTrue(this.safeBool(this.options, "useCcxtTradeId", true)))
+        if (java.util.Objects.equals(id, null) && Boolean.TRUE.equals(this.safeBool(this.options, "useCcxtTradeId", true)))
         {
             id = this.createCcxtTradeId(timestamp, side, amountString, priceString, takerOrMaker);
         }

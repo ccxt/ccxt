@@ -948,14 +948,14 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             {
                 limit = this.safeInteger(options, "defaultLimit", 50);
             }
-            if (!Helpers.isTrue(this.inArray(limit, limits)))
+            if (!this.inArray(limit, limits))
             {
                 throw new NotSupported(((this.id + " watchOrderBookForSymbols() limit must be one of ") + String.join(", ", (List<String>)limits))) ;
             }
             String defaultAggregation = this.safeString(options, "defaultAggregation", "0");
             Object aggregations = this.safeList(options, "aggregations", new ArrayList<Object>(Arrays.asList()));
             String aggregation = this.safeString(parameters, "aggregation", defaultAggregation);
-            if (!Helpers.isTrue(this.inArray(aggregation, aggregations)))
+            if (!this.inArray(aggregation, aggregations))
             {
                 throw new NotSupported(((this.id + " watchOrderBookForSymbols() aggregation must be one of ") + String.join(", ", (List<String>)aggregations))) ;
             }

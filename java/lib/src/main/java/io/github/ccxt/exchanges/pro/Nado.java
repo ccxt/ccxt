@@ -2008,7 +2008,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
     {
         String marketId = this.safeString(message, "product_id");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-        if (!Helpers.isTrue(this.safeBool(market, "contract", false)))
+        if (!Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
         {
             return;
         }

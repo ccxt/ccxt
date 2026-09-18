@@ -1777,7 +1777,7 @@ public class Extended extends ExtendedApi
             (this.loadMarkets()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String interval = this.safeString(this.timeframes, timeframe);
-            if (!Helpers.isTrue(this.inArray(interval, new ArrayList<Object>(Arrays.asList("PT1H", "P1D")))))
+            if (!this.inArray(interval, new ArrayList<Object>(Arrays.asList("PT1H", "P1D"))))
             {
                 throw new BadRequest((this.id + " fetchOpenInterestHistory() supports 1h and 1d timeframes only")) ;
             }
@@ -3294,7 +3294,7 @@ public class Extended extends ExtendedApi
             {
                 throw new BadRequest((this.id + " createOrder() supports limit orders for spot markets only")) ;
             }
-            if (!Helpers.isTrue(this.inArray(uppercaseType, new ArrayList<Object>(Arrays.asList("LIMIT", "MARKET", "CONDITIONAL", "TPSL")))))
+            if (!this.inArray(uppercaseType, new ArrayList<Object>(Arrays.asList("LIMIT", "MARKET", "CONDITIONAL", "TPSL"))))
             {
                 throw new BadRequest((this.id + " createOrder() supports limit, market, conditional and tpsl orders only")) ;
             }

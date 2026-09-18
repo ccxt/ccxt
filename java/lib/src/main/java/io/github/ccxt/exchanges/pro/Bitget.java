@@ -1588,7 +1588,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             uta = ((List<Object>) utaparametersVariable).get(0);
             parameters = ((List<Object>) utaparametersVariable).get(1);
             symbols = this.marketSymbols(symbols);
-            if ((!java.util.Objects.equals(symbols, null)) && !Helpers.isTrue(this.isEmpty(symbols)))
+            if ((!java.util.Objects.equals(symbols, null)) && !this.isEmpty(symbols))
             {
                 market = this.getMarketFromSymbols(symbols);
                 var instTypeparametersVariable = this.getInstType("watchPositions", market, uta, parameters);
@@ -1735,7 +1735,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             String symbolsString = (String) Helpers.GetValue(parts, 1);
             List<Object> symbols = (List<Object>) Helpers.split(symbolsString, ",");
             Object positions = this.filterByArray(newPositions, "symbol", symbols, false);
-            if (!Helpers.isTrue(this.isEmpty(positions)))
+            if (!this.isEmpty(positions))
             {
                 client.resolve(positions, messageHash);
             }

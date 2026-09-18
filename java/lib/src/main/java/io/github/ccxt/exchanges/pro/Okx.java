@@ -2789,7 +2789,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         // filter out partial errors
         args = this.filterBy(args, "sCode", "0");
         // if empty means request failed and handle error
-        if (Helpers.isTrue(this.isEmpty(args)))
+        if (this.isEmpty(args))
         {
             String method = this.safeString(message, "op");
             Object stringMsg = this.json(message);

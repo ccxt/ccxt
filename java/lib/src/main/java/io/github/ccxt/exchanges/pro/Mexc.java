@@ -2504,7 +2504,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 return;
             }
         }
-        if (Helpers.isTrue(this.isBinaryMessage(message)))
+        if (this.isBinaryMessage(message))
         {
             message = this.decodeProtoMsg(message);
             this.handleProtobufMessage(client, message);

@@ -990,7 +990,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
                 ((List<Object>)messageHashes).add(channelName);
             }
             // private channel are difference, they only need plural channel name for multiple symbols
-            if (Helpers.isTrue(this.inArray(channelName, new ArrayList<Object>(Arrays.asList("orders", "orders-algo", "positions")))))
+            if (this.inArray(channelName, new ArrayList<Object>(Arrays.asList("orders", "orders-algo", "positions"))))
             {
                 rawSubscriptions = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
         put( "channel", channelName );

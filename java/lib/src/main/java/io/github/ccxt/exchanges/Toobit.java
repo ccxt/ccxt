@@ -2025,7 +2025,7 @@ public class Toobit extends ToobitApi
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((List<Object>) marketTypeparametersVariable).get(1);
-            if (Helpers.isTrue(this.inArray(marketType, new ArrayList<Object>(Arrays.asList("swap", "future")))))
+            if (this.inArray(marketType, new ArrayList<Object>(Arrays.asList("swap", "future"))))
             {
                 response = (this.privateGetApiV1FuturesBalance()).join();
             } else
@@ -2216,7 +2216,7 @@ public class Toobit extends ToobitApi
         {
             ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
         }
-        if (Helpers.isTrue(this.inArray(type, new ArrayList<Object>(Arrays.asList("limit", "LIMIT")))))
+        if (this.inArray(type, new ArrayList<Object>(Arrays.asList("limit", "LIMIT"))))
         {
             ((Map<String, Object>)request).put("type", ((String)type).toUpperCase());
             ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
@@ -3130,7 +3130,7 @@ public class Toobit extends ToobitApi
             if (java.util.Objects.equals(marketType, "spot"))
             {
                 throw new NotSupported((((this.id + " fetchTradingFees(): does not support ") + marketType) + " markets")) ;
-            } else if (Helpers.isTrue(this.inArray(marketType, new ArrayList<Object>(Arrays.asList("swap", "future")))))
+            } else if (this.inArray(marketType, new ArrayList<Object>(Arrays.asList("swap", "future"))))
             {
                 String symbol = null;
                 List<Object> symbolparametersVariable = (List<Object>) this.handleParamString(parameters, "symbol");

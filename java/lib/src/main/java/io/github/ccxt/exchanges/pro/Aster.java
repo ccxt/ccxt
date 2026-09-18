@@ -2042,7 +2042,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             Helpers.callDynamically(cache, "append", new Object[]{position});
         }
         Object messageHashes = this.findMessageHashes(client, messageHash);
-        if (!Helpers.isTrue(this.isEmpty(messageHashes)))
+        if (!this.isEmpty(messageHashes))
         {
             for (var i = 0; i < ((List<?>)newPositions).size(); i++)
             {
@@ -2268,7 +2268,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                         // accumulate order fees
                         Object fees = this.safeValue(order, "fees");
                         Object fee = this.safeValue(order, "fee");
-                        if (!Helpers.isTrue(this.isEmpty(fees)))
+                        if (!this.isEmpty(fees))
                         {
                             Boolean insertNewFeeCurrency = true;
                             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(fees)); i++)
@@ -2414,7 +2414,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         Object symbol = ((Map<String, Object>)market).get("symbol");
         Helpers.callDynamically(cache, "append", new Object[]{parsed});
         Object messageHashes = this.findMessageHashes(client, messageHash);
-        if (!Helpers.isTrue(this.isEmpty(messageHashes)))
+        if (!this.isEmpty(messageHashes))
         {
             Object symbolMessageHash = ((messageHash + "::") + symbol);
             client.resolve(cache, symbolMessageHash);

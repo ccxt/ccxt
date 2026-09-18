@@ -1142,7 +1142,7 @@ public class Lighter extends LighterApi
         ((Map<String, Object>)request).put("base_amount", this.parseToInt(Precise.stringMul(amountStr, amountScale)));
         ((Map<String, Object>)request).put("avg_execution_price", this.parseToInt(Precise.stringMul(priceStr, priceScale)));
         ((Map<String, Object>)request).put("trigger_price", this.parseToInt(Precise.stringMul(triggerPriceStr, priceScale)));
-        if (Helpers.isTrue(this.safeBool(this.options, "builderFee", true)))
+        if (Boolean.TRUE.equals(this.safeBool(this.options, "builderFee", true)))
         {
             ((Map<String, Object>)request).put("integrator_account_index", ((Map<String, Object>)this.options).get("integratorAccountIndex"));
             ((Map<String, Object>)request).put("integrator_taker_fee", ((Map<String, Object>)this.options).get("integratorTakerFee"));
@@ -1290,7 +1290,7 @@ public class Lighter extends LighterApi
                     put( "api_key_index", finalApiKeyIndex );
                     put( "account_index", finalAccountIndex );
                 }};
-                if (Helpers.isTrue(this.safeBool(this.options, "builderFee", true)))
+                if (Boolean.TRUE.equals(this.safeBool(this.options, "builderFee", true)))
                 {
                     ((Map<String, Object>)signingPayload).put("integrator_account_index", ((Map<String, Object>)order).get("integrator_account_index"));
                     ((Map<String, Object>)signingPayload).put("integrator_taker_fee", ((Map<String, Object>)order).get("integrator_taker_fee"));
@@ -1425,7 +1425,7 @@ public class Lighter extends LighterApi
                 put( "api_key_index", finalApiKeyIndex );
                 put( "account_index", finalAccountIndex );
             }};
-            if (Helpers.isTrue(this.safeBool(this.options, "builderFee", true)))
+            if (Boolean.TRUE.equals(this.safeBool(this.options, "builderFee", true)))
             {
                 ((Map<String, Object>)signRaw).put("integrator_account_index", ((Map<String, Object>)this.options).get("integratorAccountIndex"));
                 ((Map<String, Object>)signRaw).put("integrator_taker_fee", ((Map<String, Object>)this.options).get("integratorTakerFee"));
@@ -4245,7 +4245,7 @@ public class Lighter extends LighterApi
             {
                 throw new ArgumentsRequired((this.id + " setMargin() requires a direction parameter either 1 (increase margin) or 0 (decrease margin)")) ;
             }
-            if (!Helpers.isTrue(this.inArray(direction, new ArrayList<Object>(Arrays.asList(0, 1)))))
+            if (!this.inArray(direction, new ArrayList<Object>(Arrays.asList(0, 1))))
             {
                 throw new ArgumentsRequired((this.id + " setMargin() requires a direction parameter either 1 (increase margin) or 0 (decrease margin)")) ;
             }

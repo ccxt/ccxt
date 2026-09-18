@@ -1260,7 +1260,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             (this.authenticate()).join();
             String type = "swap"; // the only account type that carries positions here
             Object messageHash = "";
-            if (!Helpers.isTrue(this.isEmpty(symbols)))
+            if (!this.isEmpty(symbols))
             {
                 symbols = this.marketSymbols(symbols);
                 if (java.util.Objects.equals(symbols, null))
@@ -1412,7 +1412,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             String symbolsString = (String) Helpers.GetValue(parts, 1);
             List<Object> symbols = (List<Object>) Helpers.split(symbolsString, ",");
             Object filtered = this.filterByArray(newPositions, "symbol", symbols, false);
-            if (!Helpers.isTrue(this.isEmpty(filtered)))
+            if (!this.isEmpty(filtered))
             {
                 client.resolve(filtered, messageHash);
             }

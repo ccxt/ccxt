@@ -534,7 +534,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 if (java.util.Objects.equals(network, null))
                 {
                     // find default network
-                    if (Helpers.isTrue(this.isEmpty(networks)))
+                    if (this.isEmpty(networks))
                     {
                         throw new BadRequest((((this.id + " createDepositAddress network not found for currency ") + currencyCode) + " please specify networkId in params")) ;
                     }
@@ -1525,7 +1525,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //    ]
             //
             Object positions = this.parsePositions(response);
-            if (Helpers.isTrue(this.isEmpty(symbols)))
+            if (this.isEmpty(symbols))
             {
                 return positions;
             }

@@ -1008,12 +1008,12 @@ public class Gemini extends GeminiApi
             }
             for (var i = 0; i < ((List<?>)allMarketIds).size(); i++)
             {
-                if (!Helpers.isTrue(this.inArray(Helpers.GetValue(allMarketIds, i), brokenPairs)))
+                if (!this.inArray(Helpers.GetValue(allMarketIds, i), brokenPairs))
                 {
                     ((List<Object>)marketIds).add(Helpers.GetValue(allMarketIds, i));
                 }
             }
-            if (Helpers.isTrue(this.safeBool(options, "fetchDetailsForAllSymbols", false)))
+            if (Boolean.TRUE.equals(this.safeBool(options, "fetchDetailsForAllSymbols", false)))
             {
                 List<Object> promises = new ArrayList<Object>(Arrays.asList());
                 for (var i = 0; i < ((List<?>)marketIds).size(); i++)
@@ -1040,7 +1040,7 @@ public class Gemini extends GeminiApi
                     {
                         Object marketId = Helpers.GetValue(marketIds, i);
                         Object pairInfo = this.safeList(indexedTradingPairs, ((String)marketId).toUpperCase());
-                        if (!java.util.Objects.equals(pairInfo, null) && !Helpers.isTrue(this.inArray(marketId, brokenPairs)))
+                        if (!java.util.Objects.equals(pairInfo, null) && !this.inArray(marketId, brokenPairs))
                         {
                             ((List<Object>)result).add(this.parseMarket(pairInfo));
                         }
@@ -1049,7 +1049,7 @@ public class Gemini extends GeminiApi
                 {
                     for (var i = 0; i < ((List<?>)marketIds).size(); i++)
                     {
-                        if (!Helpers.isTrue(this.inArray(Helpers.GetValue(marketIds, i), brokenPairs)))
+                        if (!this.inArray(Helpers.GetValue(marketIds, i), brokenPairs))
                         {
                             ((List<Object>)result).add(this.parseMarket(Helpers.GetValue(marketIds, i)));
                         }

@@ -192,7 +192,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
                 (this.loadMarkets()).join();
             }
             this.checkRequiredCredentials();
-            if (Helpers.isTrue(this.isEmpty(symbols)))
+            if (this.isEmpty(symbols))
             {
                 symbols = this.symbols;
             } else

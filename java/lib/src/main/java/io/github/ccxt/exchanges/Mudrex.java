@@ -297,7 +297,7 @@ public class Mudrex extends MudrexApi
     put( "is_symbol", isSymbol );
 }})));
                 }
-                if ((java.util.Objects.equals(methodUpper, "DELETE")) && Helpers.isTrue(this.isEmpty(query)))
+                if ((java.util.Objects.equals(methodUpper, "DELETE")) && this.isEmpty(query))
                 {
                     final Object finalUrl = url;
                     final Object finalMethodUpper = methodUpper;
@@ -573,7 +573,7 @@ public class Mudrex extends MudrexApi
                 }
                 Map<String, Object> m = (Map<String, Object>) this.safeMarket(sym);
                 Object symbol = ((Map<String, Object>)m).get("symbol");
-                if (!java.util.Objects.equals(symbols, null) && !Helpers.isTrue(this.inArray(symbol, symbols)))
+                if (!java.util.Objects.equals(symbols, null) && !this.inArray(symbol, symbols))
                 {
                     continue;
                 }

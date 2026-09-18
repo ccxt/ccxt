@@ -2010,7 +2010,7 @@ final Object finalBase = base;
             ((Map<String, Object>)request).put("triggerAmount", this.priceToPrecision(symbol, triggerPrice));
         }
         request = this.extend(request, parameters);
-        if (Helpers.isTrue(this.isEmpty(request)))
+        if (this.isEmpty(request))
         {
             throw new ArgumentsRequired((this.id + " editOrder() requires an amount argument, or a price argument, or non-empty params")) ;
         }

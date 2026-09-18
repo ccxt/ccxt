@@ -1054,7 +1054,7 @@ public class Upbit extends UpbitApi
                 {
                     Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(marketSymbols, i));
                     Object quoteId = ((Map<String, Object>)market).get("quoteId");
-                    if (!Helpers.isTrue(this.inArray(quoteId, quoteIds)))
+                    if (!this.inArray(quoteId, quoteIds))
                     {
                         ((List<Object>)quoteIds).add(quoteId);
                     }

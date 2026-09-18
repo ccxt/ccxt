@@ -1189,7 +1189,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             }};
             String messageHash = "positions";
             symbols = this.marketSymbols(symbols);
-            if (!Helpers.isTrue(this.isEmpty(symbols)))
+            if (!this.isEmpty(symbols))
             {
                 if (java.util.Objects.equals(symbols, null))
                 {
@@ -1315,7 +1315,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             String symbolsString = (String) Helpers.GetValue(parts, 1);
             List<Object> symbols = (List<Object>) Helpers.split(symbolsString, ",");
             Object positions = this.filterByArray(newPositions, "symbol", symbols, false);
-            if (!Helpers.isTrue(this.isEmpty(positions)))
+            if (!this.isEmpty(positions))
             {
                 client.resolve(positions, messageHash);
             }

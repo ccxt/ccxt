@@ -1026,7 +1026,7 @@ public class Hashkey extends HashkeyApi
             List<Object> spotMarkets = (List<Object>) this.safeList(response, "symbols", new ArrayList<Object>(Arrays.asList()));
             List<Object> swapMarkets = (List<Object>) this.safeList(response, "contracts", new ArrayList<Object>(Arrays.asList()));
             List<Object> markets = (List<Object>) this.arrayConcat(spotMarkets, swapMarkets);
-            if (Helpers.isTrue(this.isEmpty(markets)))
+            if (this.isEmpty(markets))
             {
                 markets = new ArrayList<Object>(Arrays.asList(response)); // if user provides params.symbol the exchange returns a single object instead of list of objects
             }

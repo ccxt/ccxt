@@ -463,7 +463,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
             symbols = this.marketSymbols(symbols, null, true, true);
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             List<Object> subscriptionHashes = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(this.isEmpty(symbols)))
+            if (this.isEmpty(symbols))
             {
                 ((List<Object>)subscriptionHashes).add("liquidation");
                 ((List<Object>)messageHashes).add("liquidations");
@@ -869,7 +869,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
             (this.authenticate()).join();
             String subscriptionHash = "position";
             String messageHash = "positions";
-            if (!Helpers.isTrue(this.isEmpty(symbols)))
+            if (!this.isEmpty(symbols))
             {
                 symbols = this.marketSymbols(symbols);
                 messageHash = ("positions::" + String.join(",", (List<String>)(List<String>)(symbols)));
@@ -1082,7 +1082,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
             String symbolsString = (String) Helpers.GetValue(parts, 1);
             Object symbols = Helpers.split(symbolsString, ",");
             Object positions = this.filterByArray(newPositions, "symbol", symbols, false);
-            if (!Helpers.isTrue(this.isEmpty(positions)))
+            if (!this.isEmpty(positions))
             {
                 client.resolve(positions, messageHash);
             }

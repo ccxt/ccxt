@@ -6086,7 +6086,7 @@ public class Bingx extends BingxApi
         {
             Boolean isPrefixed = Helpers.isTrue(address.startsWith(((String)"0x"))) || Helpers.isTrue(address.startsWith(((String)"0X")));
             List<Object> evmNetworks = new ArrayList<Object>(Arrays.asList("BEP20", "BSC", "ERC20", "ETH", "HECO", "MATIC", "POLYGON", "ARBITRUM", "ARB", "OPTIMISM", "AVAXC", "BASE", "FTM", "LINEA", "ZKSYNC", "OPBNB"));
-            if (!Helpers.isTrue(isPrefixed) && Helpers.isTrue(this.inArray(networkCode, evmNetworks)))
+            if (!Helpers.isTrue(isPrefixed) && this.inArray(networkCode, evmNetworks))
             {
                 address = ("0x" + address);
             }
@@ -6472,7 +6472,7 @@ public class Bingx extends BingxApi
             {
                 throw new ArgumentsRequired((this.id + " setMargin() requires a type parameter either 1 (increase margin) or 2 (decrease margin)")) ;
             }
-            if (!Helpers.isTrue(this.inArray(type, new ArrayList<Object>(Arrays.asList(1, 2)))))
+            if (!this.inArray(type, new ArrayList<Object>(Arrays.asList(1, 2))))
             {
                 throw new ArgumentsRequired((this.id + " setMargin() requires a type parameter either 1 (increase margin) or 2 (decrease margin)")) ;
             }
@@ -7725,7 +7725,7 @@ final Object finalMarket = market;
             access = Helpers.GetValue(section, 3);
         }
         List<Object> flatAccountPaths = new ArrayList<Object>(Arrays.asList("account/apiPermissions", "account/apiRestrictions"));
-        if (!Helpers.isTrue(this.inArray(path, flatAccountPaths)))
+        if (!this.inArray(path, flatAccountPaths))
         {
             if (java.util.Objects.equals(type, "spot") && java.util.Objects.equals(version, "v3"))
             {

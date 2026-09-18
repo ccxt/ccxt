@@ -3625,7 +3625,7 @@ public class Bitmex extends BitmexApi
                 List<Object> splitSymbol = (List<Object>) Helpers.split(symbol, ":");
                 Object splitSymbolLength = ((List<?>)splitSymbol).size();
                 List<Object> timeframes = new ArrayList<Object>(Arrays.asList("nearest", "daily", "weekly", "monthly", "quarterly", "biquarterly", "perpetual"));
-                if ((Helpers.isGreaterThan(splitSymbolLength, 1)) && Helpers.isTrue(this.inArray(Helpers.GetValue(splitSymbol, 1), timeframes)))
+                if ((Helpers.isGreaterThan(splitSymbolLength, 1)) && this.inArray(Helpers.GetValue(splitSymbol, 1), timeframes))
                 {
                     Map<String, Object> code = (Map<String, Object>) this.currency(Helpers.GetValue(splitSymbol, 0));
                     symbol = ((((Map<String, Object>)code).get("id") + ":") + Helpers.GetValue(splitSymbol, 1));

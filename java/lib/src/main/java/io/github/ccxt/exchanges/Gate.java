@@ -3610,7 +3610,7 @@ public class Gate extends GateApi
                 Map<String, Object> entry = (Map<String, Object>) this.safeDict(response, i, new HashMap<String, Object>() {{}});
                 String currencyId = this.safeString(entry, "currency");
                 Object code = this.safeCurrencyCode(currencyId);
-                if ((!java.util.Objects.equals(codes, null)) && !Helpers.isTrue(this.inArray(code, codes)))
+                if ((!java.util.Objects.equals(codes, null)) && !this.inArray(code, codes))
                 {
                     continue;
                 }

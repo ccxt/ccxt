@@ -6093,7 +6093,7 @@ final Object finalI = i;
                     continue;
                 }
                 String code = this.safeCurrencyCode(currencyId);
-                if (java.util.Objects.equals(codes, null) || Helpers.isTrue(this.inArray(code, codes)))
+                if (java.util.Objects.equals(codes, null) || this.inArray(code, codes))
                 {
                     if (!java.util.Objects.equals(code, null))
                     {
