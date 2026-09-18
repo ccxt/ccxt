@@ -191,7 +191,8 @@ type BaseExchange struct {
 	MaxEntriesPerRequest    int
 
 	// tests only
-	FetchResponse any
+	FetchResponse      any
+	FetchResponseByUrl any
 
 	IsSandboxModeEnabled  bool
 	FetchHistoryCacheSize int

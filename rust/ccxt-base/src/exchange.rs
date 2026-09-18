@@ -315,6 +315,10 @@ pub struct Exchange {
     /// `MockResponse` field. Reused for all requests in a fixture; the test
     /// dispatcher replaces or clears it before the next REST dispatch.
     pub mock_response:           Value,
+    /// Response-test mock keyed by url fragment, for methods that call several
+    /// endpoints: one shared body cannot cover two endpoints of different
+    /// declared shapes. Consulted before `mock_response`.
+    pub mock_response_by_url:    Value,
     pub last_json_response:      Value,
     pub lastRestRequestTimestamp: Value,
     /// Rolling cache of recent fetch results, capped at
@@ -598,6 +602,7 @@ impl Exchange {
             last_http_response:         Value::Null,
             last_response_headers:      Value::Null,
             mock_response:              Value::Null,
+            mock_response_by_url:       Value::Null,
             last_json_response:         Value::Null,
             lastRestRequestTimestamp:   Value::Int(0),
             fetchHistoryCache:          Value::List(vec![]),
@@ -1414,6 +1419,19 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             Some(b) => Value::Str(b.clone()),
             None    => Value::Null,
         };
+        // map iteration is unordered, so sort the fragments for a deterministic pick
+        if let Value::Dict(byUrl) = &self.mock_response_by_url {
+            let mut fragments: Vec<&String> = byUrl.keys().collect();
+            fragments.sort();
+            for fragment in &fragments {
+                if url.contains(fragment.as_str()) {
+                    return Ok(byUrl.get(*fragment).cloned().unwrap_or(Value::Null));
+                }
+            }
+            if let Some(first) = fragments.first() {
+                return Ok(byUrl.get(*first).cloned().unwrap_or(Value::Null));
+            }
+        }
         if !matches!(self.mock_response, Value::Null) {
             return Ok(self.mock_response.clone());
         }
@@ -1498,7 +1516,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
 
     fn request_typed(&mut self, path: &str, scope_segments: &[String], verb: &str, params: Value, cost: Value) -> impl ::std::future::Future<Output = Result<Value>> + Send { async move {
         // Mock transport responses only; preserve the signed request metadata.
-        if matches!(self.mock_response, Value::Null) {
+        if matches!(self.mock_response, Value::Null) && matches!(self.mock_response_by_url, Value::Null) {
             self.throttle(&[cost]).await;
         }
         let api_arg = if scope_segments.len() == 1 {
