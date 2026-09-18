@@ -1157,7 +1157,7 @@ public partial class woofipro : Exchange
         //         "is_maker": "1"
         //     }
         //
-        bool isFromFetchOrder = (inOp(trade, "id"));
+        bool isFromFetchOrder = ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("id")));
         Int64? timestamp = this.safeInteger(trade, "executed_timestamp");
         string? marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market);

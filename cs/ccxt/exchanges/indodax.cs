@@ -875,7 +875,7 @@ public partial class indodax : Exchange
         //    }
         //
         object side = null;
-        if (inOp(order, "type"))
+        if ((order != null && ((IDictionary<string, object>)order).ContainsKey("type")))
         {
             side = ((IDictionary<string,object>)order)["type"];
         }
@@ -893,11 +893,11 @@ public partial class indodax : Exchange
             symbol = getValue(market, "symbol");
             object quoteId = getValue(market, "quoteId");
             object baseId = getValue(market, "baseId");
-            if ((isEqual(getValue(market, "quoteId"), "idr")) && (inOp(order, "order_rp")))
+            if ((isEqual(getValue(market, "quoteId"), "idr")) && ((order != null && ((IDictionary<string, object>)order).ContainsKey("order_rp"))))
             {
                 quoteId = "rp";
             }
-            if ((isEqual(getValue(market, "baseId"), "idr")) && (inOp(order, "remain_rp")))
+            if ((isEqual(getValue(market, "baseId"), "idr")) && ((order != null && ((IDictionary<string, object>)order).ContainsKey("remain_rp"))))
             {
                 baseId = "rp";
             }

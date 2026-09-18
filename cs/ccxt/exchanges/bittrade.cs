@@ -902,7 +902,7 @@ public partial class bittrade : Exchange
         string? bidVolume = null;
         string? ask = null;
         string? askVolume = null;
-        if (inOp(ticker, "bid"))
+        if ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("bid")))
         {
             if (((((IDictionary<string,object>)ticker)["bid"] is IList<object>) || (((IDictionary<string,object>)ticker)["bid"].GetType().IsGenericType && ((IDictionary<string,object>)ticker)["bid"].GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
@@ -914,7 +914,7 @@ public partial class bittrade : Exchange
                 bidVolume = this.safeString(ticker, "bidSize");
             }
         }
-        if (inOp(ticker, "ask"))
+        if ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("ask")))
         {
             if (((((IDictionary<string,object>)ticker)["ask"] is IList<object>) || (((IDictionary<string,object>)ticker)["ask"].GetType().IsGenericType && ((IDictionary<string,object>)ticker)["ask"].GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
@@ -997,7 +997,7 @@ public partial class bittrade : Exchange
         //         }
         //     }
         //
-        if (inOp(response, "tick"))
+        if (response.ContainsKey("tick"))
         {
             if ((isEqual(((IDictionary<string,object>)response)["tick"], null)) || (isEqual(((IDictionary<string,object>)response)["tick"], null)))
             {
@@ -1505,7 +1505,7 @@ public partial class bittrade : Exchange
             string? currencyId = this.safeString(balance, "currency");
             string? code = this.safeCurrencyCode(currencyId);
             object account = null;
-            if (((code != null)) && (inOp(result, code)))
+            if (((code != null)) && (result.ContainsKey(code)))
             {
                 account = getValue(result, code);
             } else
@@ -1811,7 +1811,7 @@ public partial class bittrade : Exchange
         object side = null;
         object type = null;
         string? status = null;
-        if (inOp(order, "type"))
+        if ((order != null && ((IDictionary<string, object>)order).ContainsKey("type")))
         {
             List<object> orderType = ((string)((IDictionary<string,object>)order)["type"]).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
             side = getValue(orderType, 0);

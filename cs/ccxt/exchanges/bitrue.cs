@@ -1887,7 +1887,7 @@ public partial class bitrue : Exchange
             side = ((bool) isTrue(isBuyer)) ? "buy" : "sell"; // this is a true side
         }
         Dictionary<string, object> fee = null;
-        if (inOp(trade, "commission"))
+        if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("commission")))
         {
             fee = new Dictionary<string, object>() {
                 { "cost", this.safeString2(trade, "commission", "fee") },
@@ -2046,13 +2046,13 @@ public partial class bitrue : Exchange
         string? filled = this.safeString(order, "executedQty");
         Int64? timestamp = null;
         Int64? lastTradeTimestamp = null;
-        if (inOp(order, "time"))
+        if ((order != null && ((IDictionary<string, object>)order).ContainsKey("time")))
         {
             timestamp = this.safeInteger(order, "time");
-        } else if (inOp(order, "transactTime"))
+        } else if ((order != null && ((IDictionary<string, object>)order).ContainsKey("transactTime")))
         {
             timestamp = this.safeInteger(order, "transactTime");
-        } else if (inOp(order, "updateTime"))
+        } else if ((order != null && ((IDictionary<string, object>)order).ContainsKey("updateTime")))
         {
             if (isEqual(status, "open"))
             {
@@ -3042,8 +3042,8 @@ public partial class bitrue : Exchange
         string? txid = this.safeString(transaction, "txid");
         Int64? timestamp = this.safeInteger(transaction, "createdAt");
         Int64? updated = this.safeInteger(transaction, "updatedAt");
-        bool payAmount = (inOp(transaction, "payAmount"));
-        bool ctime = (inOp(transaction, "ctime"));
+        bool payAmount = ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("payAmount")));
+        bool ctime = ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("ctime")));
         string type = ((bool) (payAmount || ctime)) ? "withdrawal" : "deposit";
         object status = this.parseTransactionStatusByType(this.safeString(transaction, "status"), type);
         double? amount = this.safeNumber(transaction, "amount");

@@ -954,7 +954,7 @@ public partial class whitebit : Exchange
         // const name = this.safeString (currency, 'name'); // breaks down in Python due to utf8 encoding issues on the exchange side
         string? id = this.safeString(rawCurrency, "_coin_id");
         string? code = this.safeCurrencyCode(id);
-        bool hasProvider = (inOp(rawCurrency, "providers"));
+        bool hasProvider = ((rawCurrency != null && ((IDictionary<string, object>)rawCurrency).ContainsKey("providers")));
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         IDictionary<string, object> rawNetworks = this.safeDict(rawCurrency, "networks", new Dictionary<string, object>() {});
         List<object> depositsNetworks = this.safeList(rawNetworks, "deposits", new List<object>() {});

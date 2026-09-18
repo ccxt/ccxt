@@ -2030,7 +2030,7 @@ public partial class deribit : Exchange
             ((IDictionary<string,object>)request)["end_timestamp"] = until;
         }
         Dictionary<string, object> response = null;
-        if ((isEqual(since, null)) && !(inOp(request, "end_timestamp")))
+        if ((isEqual(since, null)) && !(request.ContainsKey("end_timestamp")))
         {
             response = await this.publicGetGetLastTradesByInstrument(this.extend(request, parameters));
         } else

@@ -1168,7 +1168,7 @@ public partial class toobit : Exchange
         IDictionary<string, object> lotSizeFilter = this.safeDict(filtersByType, "LOT_SIZE", new Dictionary<string, object>() {});
         IDictionary<string, object> minNotionalFilter = this.safeDict(filtersByType, "MIN_NOTIONAL", new Dictionary<string, object>() {});
         object symbol = add(add(bs, "/"), quote);
-        bool isContract = (inOp(market, "contractMultiplier"));
+        bool isContract = ((market != null && ((IDictionary<string, object>)market).ContainsKey("contractMultiplier")));
         bool? inverse = this.safeBool2(market, "isInverse", "inverse");
         if (isContract)
         {
@@ -3072,7 +3072,7 @@ public partial class toobit : Exchange
         string? tagFrom = this.safeString(transaction, "fromAddressTag");
         string? addressTo = this.safeString(transaction, "address");
         string? addressFrom = this.safeString(transaction, "fromAddress");
-        bool isWithdraw = (inOp(transaction, "arriveQuantity"));
+        bool isWithdraw = ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("arriveQuantity")));
         string type = ((bool) isWithdraw) ? "withdrawal" : "deposit";
         return new Dictionary<string, object>() {
             { "info", transaction },

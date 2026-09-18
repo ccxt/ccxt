@@ -1290,7 +1290,7 @@ public partial class bitflyer : Exchange
         string? type = null;
         string? status = null;
         Dictionary<string, object> fee = null;
-        if (inOp(transaction, "fee"))
+        if ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("fee")))
         {
             type = "withdrawal";
             status = this.parseWithdrawalStatus(rawStatus);

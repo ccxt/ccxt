@@ -2859,11 +2859,11 @@ public partial class ndax : Exchange
         string? currencyId = this.safeString(transaction, "ProductId");
         string? code = this.safeCurrencyCode(currencyId, currency);
         string? type = null;
-        if (inOp(transaction, "DepositId"))
+        if ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("DepositId")))
         {
             id = this.safeString(transaction, "DepositId");
             type = "deposit";
-        } else if (inOp(transaction, "WithdrawId"))
+        } else if ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("WithdrawId")))
         {
             id = this.safeString(transaction, "WithdrawId");
             type = "withdrawal";

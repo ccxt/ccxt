@@ -937,7 +937,7 @@ public partial class phemex : Exchange
         {
             inverse = true;
             // some unhandled cases
-            if (!(inOp(market, "baseCurrency")) && isEqual(bs, quote))
+            if (!((market != null && ((IDictionary<string, object>)market).ContainsKey("baseCurrency"))) && isEqual(bs, quote))
             {
                 bs = settle;
             }
@@ -3027,7 +3027,7 @@ public partial class phemex : Exchange
     public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         bool? isSwap = this.safeBool(market, "swap", false);
-        bool hasPnl = (inOp(order, "closedPnl")) || (inOp(order, "closedPnlRv")) || (inOp(order, "totalPnlRv"));
+        bool hasPnl = ((order != null && ((IDictionary<string, object>)order).ContainsKey("closedPnl"))) || ((order != null && ((IDictionary<string, object>)order).ContainsKey("closedPnlRv"))) || ((order != null && ((IDictionary<string, object>)order).ContainsKey("totalPnlRv")));
         if (((isSwap == true)) || hasPnl)
         {
             return ((Dictionary<string, object>)((object)(this.parseSwapOrder(order, market))));

@@ -1377,7 +1377,7 @@ public partial class krakenfutures : Exchange
                 takerOrMaker = "maker";
             }
         }
-        bool isHistoricalExecution = (inOp(trade, "takerOrder"));
+        bool isHistoricalExecution = ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("takerOrder")));
         if (isHistoricalExecution)
         {
             timestamp = this.safeInteger(trade, "timestamp");
@@ -1643,7 +1643,7 @@ public partial class krakenfutures : Exchange
             object price = this.safeValue(rawOrder, "price");
             object orderParams = this.safeValue(rawOrder, "params", new Dictionary<string, object>() {});
             Dictionary<string, object> extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
-            if (!(inOp(extendedParams, "order_tag")))
+            if (!(extendedParams.ContainsKey("order_tag")))
             {
                 // order tag is mandatory so we will generate one if not provided
                 ((IDictionary<string,object>)extendedParams)["order_tag"] = ((object)this.sum(i, 1)).ToString(); // sequential counter
@@ -1740,7 +1740,7 @@ public partial class krakenfutures : Exchange
         string? status = this.safeString(this.safeValue(response, "cancelStatus", new Dictionary<string, object>() {}), "status");
         this.verifyOrderActionSuccess(status, "cancelOrder");
         Dictionary<string, object> order = new Dictionary<string, object>() {};
-        if (inOp(response, "cancelStatus"))
+        if (response.ContainsKey("cancelStatus"))
         {
             order = this.parseOrder(((IDictionary<string,object>)response)["cancelStatus"]);
         }
@@ -2580,7 +2580,7 @@ public partial class krakenfutures : Exchange
         List<object> orderEvents = this.safeList(order, "orderEvents", new List<object>() {});
         string? errorStatus = this.safeString(order, "status");
         int orderEventsLength = orderEvents.Count;
-        if ((inOp(order, "orderEvents")) && ((errorStatus != null)) && ((orderEventsLength == 0)))
+        if (((order != null && ((IDictionary<string, object>)order).ContainsKey("orderEvents"))) && ((errorStatus != null)) && ((orderEventsLength == 0)))
         {
             // creteOrders error response
             return this.safeOrder(new Dictionary<string, object>() {

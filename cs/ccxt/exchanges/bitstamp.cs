@@ -1409,12 +1409,12 @@ public partial class bitstamp : Exchange
             }
             List<object> parts = ((string)minimumOrder).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
             string? cost = ((string)getValue(parts, 0));
-            if (((bs != null)) && !(inOp(result, bs)))
+            if (((bs != null)) && !(result.ContainsKey(bs)))
             {
                 Int64? baseDecimals = this.safeInteger(market, "base_decimals");
                 ((IDictionary<string,object>)result)[(string)bs] = this.constructCurrencyObject(baseId, bs, baseDescription, baseDecimals, null, market);
             }
-            if (((quote != null)) && !(inOp(result, quote)))
+            if (((quote != null)) && !(result.ContainsKey(quote)))
             {
                 Int64? counterDecimals = this.safeInteger(market, "counter_decimals");
                 ((IDictionary<string,object>)result)[(string)quote] = this.constructCurrencyObject(quoteId, quote, quoteDescription, counterDecimals, this.parseNumber(cost), market);
@@ -1766,7 +1766,7 @@ public partial class bitstamp : Exchange
             }
         }
         // if it is a private trade
-        if (inOp(trade, "id"))
+        if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("id")))
         {
             if ((amountString != null))
             {
@@ -2806,7 +2806,7 @@ public partial class bitstamp : Exchange
         string? feeCost = this.safeString(transaction, "fee");
         object feeCurrency = null;
         string? amount = null;
-        if (inOp(transaction, "amount"))
+        if ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("amount")))
         {
             amount = this.safeString(transaction, "amount");
         } else if (!isEqual(currency, null))
@@ -2824,12 +2824,12 @@ public partial class bitstamp : Exchange
             amount = Precise.stringAbs(amount);
         }
         string? status = "ok";
-        if (inOp(transaction, "status"))
+        if ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("status")))
         {
             status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         }
         string? type = null;
-        if (inOp(transaction, "type"))
+        if ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("type")))
         {
             // from fetchDepositsWithdrawals
             string? rawType = this.safeString(transaction, "type");
@@ -3097,7 +3097,7 @@ public partial class bitstamp : Exchange
         {
             object parsedTransaction = this.parseTransaction(item, currency);
             string? direction = null;
-            if (inOp(item, "amount"))
+            if ((item != null && ((IDictionary<string, object>)item).ContainsKey("amount")))
             {
                 string? amount = this.safeString(item, "amount");
                 direction = ((bool) isTrue(Precise.stringGt(amount, "0"))) ? "in" : "out";

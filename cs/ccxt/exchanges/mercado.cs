@@ -792,7 +792,7 @@ public partial class mercado : Exchange
         string? id = this.safeString(order, "order_id");
         string? order_type = this.safeString(order, "order_type");
         string? side = null;
-        if (inOp(order, "order_type"))
+        if ((order != null && ((IDictionary<string, object>)order).ContainsKey("order_type")))
         {
             side = ((bool) ((order_type == "1"))) ? "buy" : "sell";
         }

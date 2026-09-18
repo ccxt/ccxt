@@ -1047,7 +1047,7 @@ public partial class poloniex : Exchange
 
     public override Dictionary<string, object> parseMarket(object market)
     {
-        if (inOp(market, "ctType"))
+        if ((market != null && ((IDictionary<string, object>)market).ContainsKey("ctType")))
         {
             return ccxt.BaseExchange.ToDict(this.parseSwapMarket(market));
         } else
@@ -3644,7 +3644,7 @@ public partial class poloniex : Exchange
         //     }
         //
         // if it's being parsed from "withdraw()" method, get the original response
-        if (inOp(transaction, "withdrawNetworkEntry"))
+        if ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("withdrawNetworkEntry")))
         {
             transaction = getValue(transaction, "response");
         }

@@ -2010,7 +2010,7 @@ public partial class mexc : Exchange
         string? amountString = null;
         string? costString = null;
         // if swap
-        if (inOp(trade, "v"))
+        if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("v")))
         {
             //
             // swap: fetchTrades
@@ -2090,7 +2090,7 @@ public partial class mexc : Exchange
             priceString = this.safeString2(trade, "price", "p");
             orderId = this.safeString(trade, "orderId");
             // if swap
-            if (inOp(trade, "positionMode"))
+            if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("positionMode")))
             {
                 timestamp = this.safeInteger(trade, "timestamp");
                 amountString = this.safeString(trade, "vol");
@@ -2458,7 +2458,7 @@ public partial class mexc : Exchange
         string? prevClose = null;
         object isSwap = this.safeValue(market, "swap");
         // if swap
-        if ((isEqual(isSwap, true)) || (inOp(ticker, "timestamp")))
+        if ((isEqual(isSwap, true)) || ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("timestamp"))))
         {
             //
             //     {

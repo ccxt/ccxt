@@ -3122,7 +3122,7 @@ public partial class cryptocom : Exchange
         string? type = null;
         string? rawStatus = this.safeString(transaction, "status");
         string? status = null;
-        if (inOp(transaction, "client_wid"))
+        if ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("client_wid")))
         {
             type = "withdrawal";
             status = this.parseWithdrawalStatus(rawStatus);

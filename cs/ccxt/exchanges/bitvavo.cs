@@ -2845,7 +2845,7 @@ public partial class bitvavo : Exchange
             };
         }
         string? type = null;
-        if ((inOp(transaction, "success")) || (inOp(transaction, "address")))
+        if (((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("success"))) || ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("address"))))
         {
             type = "withdrawal";
         } else

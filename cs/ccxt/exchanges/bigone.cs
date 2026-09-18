@@ -899,7 +899,7 @@ public partial class bigone : Exchange
         //        "openInterest": 1141372.0
         //    }
         //
-        string marketType = ((bool) (inOp(ticker, "asset_pair_name"))) ? "spot" : "swap";
+        string marketType = ((bool) ((ticker != null && ((IDictionary<string, object>)ticker).ContainsKey("asset_pair_name")))) ? "spot" : "swap";
         string? marketId = this.safeString2(ticker, "asset_pair_name", "symbol");
         string? symbol = this.safeSymbol(marketId, market, "-", marketType);
         string? close = this.safeString2(ticker, "close", "latestPrice");
@@ -2309,7 +2309,7 @@ public partial class bigone : Exchange
         string? txid = this.safeString(transaction, "txid");
         string? address = this.safeString(transaction, "target_address");
         string? tag = this.safeString(transaction, "memo");
-        string type = ((bool) (inOp(transaction, "customer_id"))) ? "withdrawal" : "deposit";
+        string type = ((bool) ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("customer_id")))) ? "withdrawal" : "deposit";
         bool? intern = this.safeBool(transaction, "is_internal");
         return new Dictionary<string, object>() {
             { "info", transaction },

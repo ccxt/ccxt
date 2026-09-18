@@ -728,7 +728,7 @@ public partial class polymarket : PredictionExchange
             {
                 object rawEvent = getValue(allEvents, ei);
                 string? eventId = this.safeString(rawEvent, "id");
-                if (((eventId != null) && (eventId != "")) && !(inOp(seen, eventId)))
+                if (((eventId != null) && (eventId != "")) && !(seen.ContainsKey(eventId)))
                 {
                     ((IDictionary<string,object>)seen)[(string)eventId] = true;
                     ((IList<object>)rawEvents).Add(rawEvent);
@@ -834,7 +834,7 @@ public partial class polymarket : PredictionExchange
                 {
                     object rawEvent = getValue(tagEvents, ei);
                     string? eventId = this.safeString(rawEvent, "id");
-                    if (((eventId != null)) && !(inOp(seen, eventId)))
+                    if (((eventId != null)) && !(seen.ContainsKey(eventId)))
                     {
                         ((IDictionary<string,object>)seen)[(string)eventId] = true;
                         ((IList<object>)unioned).Add(rawEvent);
@@ -1414,7 +1414,7 @@ public partial class polymarket : PredictionExchange
         {
             IDictionary<string, object> outcomeObj = this.outcome(getValue(targets, i));
             string? tokenId = this.safeString(outcomeObj, "outcomeId");
-            if (((tokenId != null)) && !(inOp(outcomesByTokenId, tokenId)))
+            if (((tokenId != null)) && !(outcomesByTokenId.ContainsKey(tokenId)))
             {
                 ((IDictionary<string,object>)outcomesByTokenId)[(string)tokenId] = outcomeObj;
                 ((IList<object>)tokenIds).Add(tokenId);
@@ -1463,7 +1463,7 @@ public partial class polymarket : PredictionExchange
             {
                 object book = getValue(books, i);
                 string? tokenId = this.safeString(book, "asset_id");
-                if (((tokenId == null)) || !(inOp(outcomesByTokenId, tokenId)))
+                if (((tokenId == null)) || !(outcomesByTokenId.ContainsKey(tokenId)))
                 {
                     continue;
                 }
@@ -1723,7 +1723,7 @@ public partial class polymarket : PredictionExchange
                 vol = this.safeNumber(item, "v");
             }
             string bucketKey = ((object)snappedMs).ToString();
-            if (!(inOp(buckets, bucketKey)))
+            if (!(buckets.ContainsKey(bucketKey)))
             {
                 ((IDictionary<string,object>)buckets)[(string)bucketKey] = new List<object>() {snappedMs, price, price, price, price, vol};
             } else
@@ -2160,7 +2160,7 @@ public partial class polymarket : PredictionExchange
             object position = getValue(parsed, i);
             IDictionary<string, object> info = this.safeDict(position, "info", new Dictionary<string, object>() {});
             string? assetId = this.safeString(info, "asset");
-            if (((assetId != null)) && (inOp(wantedIds, assetId)))
+            if (((assetId != null)) && (wantedIds.ContainsKey(assetId)))
             {
                 ((IList<object>)result).Add(position);
             }

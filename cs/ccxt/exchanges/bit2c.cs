@@ -824,7 +824,7 @@ public partial class bit2c : Exchange
         //
         object orderUnified = null;
         bool isNewOrder = false;
-        if (inOp(order, "NewOrder"))
+        if ((order != null && ((IDictionary<string, object>)order).ContainsKey("NewOrder")))
         {
             orderUnified = ((IDictionary<string,object>)order)["NewOrder"];
             isNewOrder = true;

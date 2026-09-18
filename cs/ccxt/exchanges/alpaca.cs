@@ -2548,7 +2548,7 @@ public partial class alpaca : Exchange
                 continue;
             }
             string? positionCode = this.safeCurrencyCode(baseId);
-            if (((positionCode != null)) && !(inOp(result, positionCode)))
+            if (((positionCode != null)) && !(result.ContainsKey(positionCode)))
             {
                 Dictionary<string, object> positionAccount = this.account();
                 ((IDictionary<string,object>)positionAccount)["free"] = this.safeString(position, "qty_available");

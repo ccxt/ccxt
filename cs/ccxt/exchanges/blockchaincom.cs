@@ -1064,11 +1064,11 @@ public partial class blockchaincom : Exchange
         string? currencyId = this.safeString(transaction, "currency");
         string? code = this.safeCurrencyCode(currencyId, currency);
         string? state = this.safeString(transaction, "state");
-        if (inOp(transaction, "depositId"))
+        if ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("depositId")))
         {
             type = "deposit";
             id = this.safeString(transaction, "depositId");
-        } else if (inOp(transaction, "withdrawalId"))
+        } else if ((transaction != null && ((IDictionary<string, object>)transaction).ContainsKey("withdrawalId")))
         {
             type = "withdrawal";
             id = this.safeString(transaction, "withdrawalId");
