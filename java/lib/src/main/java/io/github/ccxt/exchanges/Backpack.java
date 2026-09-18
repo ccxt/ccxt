@@ -2256,7 +2256,7 @@ public class Backpack extends BackpackApi
         }};
         String triggerPrice = this.safeString(parameters, "triggerPrice");
         Boolean isTriggerOrder = !java.util.Objects.equals(triggerPrice, null);
-        String quantityKey = ((Helpers.isTrue(isTriggerOrder))) ? "triggerQuantity" : "quantity";
+        String quantityKey = ((Boolean.TRUE.equals(isTriggerOrder))) ? "triggerQuantity" : "quantity";
         // handle basic limit/market order types
         if (java.util.Objects.equals(type, "limit"))
         {
@@ -2275,7 +2275,7 @@ public class Backpack extends BackpackApi
             }
         }
         // trigger orders
-        if (Helpers.isTrue(isTriggerOrder))
+        if (Boolean.TRUE.equals(isTriggerOrder))
         {
             ((Map<String, Object>)request).put("triggerPrice", this.priceToPrecision(symbol, triggerPrice));
             parameters = this.omit(parameters, "triggerPrice");
@@ -2290,7 +2290,7 @@ public class Backpack extends BackpackApi
         List<Object> postOnlyparametersVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), false, parameters);
         postOnly = (Boolean) ((List<Object>) postOnlyparametersVariable).get(0);
         parameters = ((List<Object>) postOnlyparametersVariable).get(1);
-        if (Helpers.isTrue(postOnly))
+        if (Boolean.TRUE.equals(postOnly))
         {
             ((Map<String, Object>)parameters).put("postOnly", true);
         }
@@ -2918,7 +2918,7 @@ public class Backpack extends BackpackApi
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
         Object endpoint = Helpers.add("/", path);
         Object url = Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api);
-        Object sortedParams = ((Helpers.isTrue(Helpers.isArray(parameters)))) ? parameters : this.keysort(parameters);
+        Object sortedParams = (((parameters instanceof List))) ? parameters : this.keysort(parameters);
         if (java.util.Objects.equals(api, "private"))
         {
             this.checkRequiredCredentials();

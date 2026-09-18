@@ -1423,7 +1423,7 @@ public class Mexc extends MexcApi
                 //     {"success":true,"code":"0","data":"1648124374985"}
                 //
                 Boolean success = (java.util.Objects.equals(this.safeBool(response, "success"), true));
-                status = ((Helpers.isTrue(success))) ? "ok" : this.json(response);
+                status = ((Boolean.TRUE.equals(success))) ? "ok" : this.json(response);
                 updated = this.safeInteger(response, "data");
             }
             final Object finalStatus = status;
@@ -1864,7 +1864,7 @@ public class Mexc extends MexcApi
                     put( "active", (java.util.Objects.equals(finalState, "0")) );
                     put( "contract", true );
                     put( "linear", isLinear );
-                    put( "inverse", !Helpers.isTrue(isLinear) );
+                    put( "inverse", !Boolean.TRUE.equals(isLinear) );
                     put( "taker", Mexc.this.safeNumber(market, "takerFeeRate") );
                     put( "maker", Mexc.this.safeNumber(market, "makerFeeRate") );
                     put( "contractSize", Mexc.this.safeNumber(market, "contractSize") );
@@ -2201,7 +2201,7 @@ public class Mexc extends MexcApi
                     put( "currency", Mexc.this.safeCurrencyCode(Mexc.this.safeString(trade, "feeCurrency")) );
                 }};
                 Boolean isTaker = (java.util.Objects.equals(this.safeBool(trade, "taker"), true));
-                takerOrMaker = ((Helpers.isTrue(isTaker))) ? "taker" : "maker";
+                takerOrMaker = ((Boolean.TRUE.equals(isTaker))) ? "taker" : "maker";
             } else
             {
                 timestamp = this.safeInteger2(trade, "time", "T");
@@ -2301,7 +2301,7 @@ public class Mexc extends MexcApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, maxLimit)).join();
             }
@@ -2453,7 +2453,7 @@ public class Mexc extends MexcApi
             var marketType = ((List<Object>) marketTypequeryVariable).get(0);
             var query = ((List<Object>) marketTypequeryVariable).get(1);
             Object tickers = null;
-            if (Helpers.isTrue(isSingularMarket))
+            if (Boolean.TRUE.equals(isSingularMarket))
             {
                 ((Map<String, Object>)request).put("symbol", this.safeString(market, "id"));
             }
@@ -2493,7 +2493,7 @@ public class Mexc extends MexcApi
                 tickers = this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList()));
             }
             // when it's single symbol request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
-            if (Helpers.isTrue(isSingularMarket))
+            if (Boolean.TRUE.equals(isSingularMarket))
             {
                 tickers = new ArrayList<Object>(Arrays.asList(tickers));
             }
@@ -2746,7 +2746,7 @@ public class Mexc extends MexcApi
                 throw new NotSupported((((this.id + " fetchBidsAsks() is not available for ") + marketType) + " markets")) ;
             }
             // when it's single symbol request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
-            if (Helpers.isTrue(isSingularMarket))
+            if (Boolean.TRUE.equals(isSingularMarket))
             {
                 tickers = new ArrayList<Object>(Arrays.asList(tickers));
             }

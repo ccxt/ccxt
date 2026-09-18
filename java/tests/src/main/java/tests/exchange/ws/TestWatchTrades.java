@@ -26,7 +26,7 @@ public class TestWatchTrades extends BaseTest {
         Object ends = Helpers.add(now, 15000);
         Integer maxIdleTime = 5000;
         Boolean idle = false;
-        while ((Helpers.isLessThan(now, ends)) && !Helpers.isTrue(idle))
+        while ((Helpers.isLessThan(now, ends)) && !Boolean.TRUE.equals(idle))
         {
             Object response = new ArrayList<Object>(Arrays.asList());
             Boolean success = true;

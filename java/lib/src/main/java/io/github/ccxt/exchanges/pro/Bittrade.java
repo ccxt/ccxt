@@ -200,7 +200,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
                 put( "params", parameters );
             }};
             Object trades = (this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
@@ -305,7 +305,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
                 put( "params", parameters );
             }};
             Object ohlcv = (this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }

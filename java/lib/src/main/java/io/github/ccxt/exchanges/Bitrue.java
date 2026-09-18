@@ -1096,7 +1096,7 @@ public class Bitrue extends BitrueApi
         String quoteId = this.safeString(market, "quoteAsset");
         String settleId = null;
         Object settle = null;
-        if (Helpers.isTrue(isContract))
+        if (Boolean.TRUE.equals(isContract))
         {
             List<Object> symbolSplit = (List<Object>) Helpers.split(id, "-");
             baseId = this.safeString(symbolSplit, 1);
@@ -2338,7 +2338,7 @@ public class Bitrue extends BitrueApi
                 List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 createMarketBuyOrderRequiresPrice = ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
                 parameters = ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
-                if (Helpers.isTrue(isMarket) && (java.util.Objects.equals(side, "buy")) && Helpers.isTrue(createMarketBuyOrderRequiresPrice))
+                if (Boolean.TRUE.equals(isMarket) && (java.util.Objects.equals(side, "buy")) && Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
                 {
                     String cost = this.safeString(parameters, "cost");
                     parameters = this.omit(parameters, "cost");
@@ -3240,7 +3240,7 @@ public class Bitrue extends BitrueApi
         Long updated = this.safeInteger(transaction, "updatedAt");
         Boolean payAmount = (((Map<?, ?>)transaction).containsKey("payAmount"));
         Boolean ctime = (((Map<?, ?>)transaction).containsKey("ctime"));
-        String type = (((Helpers.isTrue(payAmount) || Helpers.isTrue(ctime)))) ? "withdrawal" : "deposit";
+        String type = (((Boolean.TRUE.equals(payAmount) || Boolean.TRUE.equals(ctime)))) ? "withdrawal" : "deposit";
         Object status = this.parseTransactionStatusByType(this.safeString(transaction, "status"), type);
         Double amount = this.safeNumber(transaction, "amount");
         Object network = null;

@@ -152,7 +152,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
                 (this.loadMarkets()).join();
             }
             Object trades = (this.watchMultipleWrapper(true, "trades", "watchTradesForSymbols", symbols, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Map<String, Object> firstMarket = (Map<String, Object>) this.safeDict(trades, 0);
                 String firstSymbol = this.safeString(firstMarket, "symbol");
@@ -368,7 +368,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
                 throw new NotSupported((this.id + " watchTickers() requires a list of symbols")) ;
             }
             Object ticker = (this.watchMultipleWrapper(true, "tickers", "watchTickers", symbols, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Map<String, Object> tickers = new HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(tickers, Helpers.GetValue(ticker, "symbol"), ticker);
@@ -456,7 +456,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             }
             Object request = this.getSubscriptionRequest(args);
             Object ticker = (this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Map<String, Object> tickers = new HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(tickers, Helpers.GetValue(ticker, "symbol"), ticker);
@@ -546,7 +546,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
             Object symbolsLength = ((List<?>)symbolsAndTimeframes).size();
-            if (Helpers.isEqual(symbolsLength, 0) || !Helpers.isTrue(Helpers.isArray(Helpers.GetValue(symbolsAndTimeframes, 0))))
+            if (Helpers.isEqual(symbolsLength, 0) || !(Helpers.GetValue(symbolsAndTimeframes, 0) instanceof List))
             {
                 throw new ArgumentsRequired((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
             }
@@ -558,7 +558,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             var symbol = ((List<Object>) symboltimeframecandlesVariable).get(0);
             var timeframe = ((List<Object>) symboltimeframecandlesVariable).get(1);
             var candles = ((List<Object>) symboltimeframecandlesVariable).get(2);
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(candles, "getLimit", new Object[]{symbol, limit});
             }
@@ -732,7 +732,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             Object channel = (((java.util.Objects.equals(trigger, true)))) ? "orders-algo" : "orders";
             Object orders = (this.watchMultipleWrapper(false, channel, "watchOrdersForSymbols", symbols, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Object first = this.safeValue(orders, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
@@ -806,7 +806,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
                 (this.loadMarkets()).join();
             }
             Object newPositions = (this.watchMultipleWrapper(false, "positions", "watchPositions", symbols, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 return newPositions;
             }
@@ -931,7 +931,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             parameters = ((List<Object>) callerMethodNameparametersVariable).get(1);
             // if OHLCV method are being called, then symbols would be symbolsAndTimeframes (multi-dimensional) array
             Boolean isOHLCV = (java.util.Objects.equals(channelName, "candle"));
-            Object symbols = ((Helpers.isTrue(isOHLCV))) ? this.getListFromObjectValues(symbolsArray, 0) : symbolsArray;
+            Object symbols = ((Boolean.TRUE.equals(isOHLCV))) ? this.getListFromObjectValues(symbolsArray, 0) : symbolsArray;
             symbols = this.marketSymbols(symbols, null, true, true);
             Object firstMarket = null;
             String firstSymbol = this.safeString(symbols, 0);
@@ -961,7 +961,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
                     Object current = Helpers.GetValue(symbols, i);
                     Object market = null;
                     Object channel = channelName;
-                    if (Helpers.isTrue(isOHLCV))
+                    if (Boolean.TRUE.equals(isOHLCV))
                     {
                         market = this.market(current);
                         Object tfArray = Helpers.GetValue(symbolsArray, i);

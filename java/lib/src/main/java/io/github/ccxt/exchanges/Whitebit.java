@@ -838,12 +838,12 @@ public class Whitebit extends WhitebitApi
         Object settleId = null;
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         Boolean swap = (java.util.Objects.equals(typeId, "futures")) || (java.util.Objects.equals(typeId, "tradfiFutures"));
-        Boolean margin = (java.util.Objects.equals(isCollateral, true)) && !Helpers.isTrue(swap);
+        Boolean margin = (java.util.Objects.equals(isCollateral, true)) && !Boolean.TRUE.equals(swap);
         Boolean contract = false;
         Object amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "stockPrec")));
         Object linear = null;
         Object inverse = null;
-        if (Helpers.isTrue(swap))
+        if (Boolean.TRUE.equals(swap))
         {
             settleId = quoteId;
             settle = this.safeCurrencyCode(settleId);
@@ -860,7 +860,7 @@ public class Whitebit extends WhitebitApi
         String taker = Precise.stringDiv(takerFeeRate, "100");
         String makerFeeRate = this.safeString(market, "makerFee");
         String maker = Precise.stringDiv(makerFeeRate, "100");
-        Boolean isSpot = !Helpers.isTrue(swap);
+        Boolean isSpot = !Boolean.TRUE.equals(swap);
         final Object finalSymbol = symbol;
         final Object finalBase = base;
         final Object finalSettle = settle;
@@ -891,7 +891,7 @@ public class Whitebit extends WhitebitApi
             put( "inverse", finalInverse );
             put( "taker", Whitebit.this.parseNumber(taker) );
             put( "maker", Whitebit.this.parseNumber(maker) );
-            put( "contractSize", ((Helpers.isTrue(isSpot))) ? null : Whitebit.this.parseNumber("1") );
+            put( "contractSize", ((Boolean.TRUE.equals(isSpot))) ? null : Whitebit.this.parseNumber("1") );
             put( "expiry", null );
             put( "expiryDatetime", null );
             put( "strike", null );
@@ -1063,7 +1063,7 @@ public class Whitebit extends WhitebitApi
             put( "withdraw", Whitebit.this.safeBool(rawCurrency, "can_withdraw") );
             put( "fee", null );
             put( "networks", networks );
-            put( "type", ((Helpers.isTrue(hasProvider))) ? "fiat" : "crypto" );
+            put( "type", ((Boolean.TRUE.equals(hasProvider))) ? "fiat" : "crypto" );
             put( "precision", Whitebit.this.parseNumber(Whitebit.this.parsePrecision(Whitebit.this.safeString(rawCurrency, "currency_precision"))) );
             put( "limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
@@ -1491,7 +1491,7 @@ public class Whitebit extends WhitebitApi
                             break;
                         }
                     }
-                    if (!Helpers.isTrue(symbolFound))
+                    if (!Boolean.TRUE.equals(symbolFound))
                     {
                         continue;
                     }
@@ -2026,7 +2026,7 @@ public class Whitebit extends WhitebitApi
             if (java.util.Objects.equals(method, null))
             {
                 // if the user did not specify a method, choose it based on market type and symbols
-                if (Helpers.isTrue(onlyContractSymbols) || (java.util.Objects.equals(marketType, "swap")))
+                if (Boolean.TRUE.equals(onlyContractSymbols) || (java.util.Objects.equals(marketType, "swap")))
                 {
                     method = "v4PublicGetFutures";
                 } else
@@ -2284,7 +2284,7 @@ public class Whitebit extends WhitebitApi
             //         },
             //     ]
             //
-            if (Helpers.isTrue(Helpers.isArray(response)))
+            if ((response instanceof List))
             {
                 return this.parseTrades(response, market, since, limit);
             } else
@@ -2661,11 +2661,11 @@ public class Whitebit extends WhitebitApi
             }
             Object postOnly = this.isPostOnly(isMarketOrder, false, parameters);
             Boolean ioc = (java.util.Objects.equals(timeInForce, "IOC"));
-            if (Helpers.isTrue(isStopOrder) && (Helpers.isTrue(postOnly) || Helpers.isTrue(ioc)))
+            if (Boolean.TRUE.equals(isStopOrder) && (Helpers.isTrue(postOnly) || Boolean.TRUE.equals(ioc)))
             {
                 throw new NotSupported((this.id + " createOrder() does not support postOnly or timeInForce IOC for stop orders")) ;
             }
-            if (Helpers.isTrue(ioc) && !Helpers.isTrue(isLimitOrder))
+            if (Boolean.TRUE.equals(ioc) && !Boolean.TRUE.equals(isLimitOrder))
             {
                 throw new NotSupported((this.id + " createOrder() timeInForce IOC is only supported for limit orders")) ;
             }
@@ -2676,7 +2676,7 @@ public class Whitebit extends WhitebitApi
             {
                 ((Map<String, Object>)request).put("postOnly", true);
             }
-            if (Helpers.isTrue(ioc))
+            if (Boolean.TRUE.equals(ioc))
             {
                 ((Map<String, Object>)request).put("ioc", true);
             }
@@ -2687,10 +2687,10 @@ public class Whitebit extends WhitebitApi
             parameters = this.omit(query, new ArrayList<Object>(Arrays.asList("postOnly", "triggerPrice", "stopPrice", "timeInForce")));
             Boolean useCollateralEndpoint = !java.util.Objects.equals(marginMode, null) || java.util.Objects.equals(marketType, "swap");
             Object response = null;
-            if (Helpers.isTrue(isStopOrder))
+            if (Boolean.TRUE.equals(isStopOrder))
             {
                 ((Map<String, Object>)request).put("activation_price", this.priceToPrecision(symbol, triggerPrice));
-                if (Helpers.isTrue(isLimitOrder))
+                if (Boolean.TRUE.equals(isLimitOrder))
                 {
                     // stop limit order
                     ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
@@ -2698,7 +2698,7 @@ public class Whitebit extends WhitebitApi
                 } else
                 {
                     // stop market order
-                    if (Helpers.isTrue(useCollateralEndpoint))
+                    if (Boolean.TRUE.equals(useCollateralEndpoint))
                     {
                         response = (this.v4PrivatePostOrderCollateralTriggerMarket(this.extend(request, parameters))).join();
                     } else
@@ -2708,11 +2708,11 @@ public class Whitebit extends WhitebitApi
                 }
             } else
             {
-                if (Helpers.isTrue(isLimitOrder))
+                if (Boolean.TRUE.equals(isLimitOrder))
                 {
                     // limit order
                     ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
-                    if (Helpers.isTrue(useCollateralEndpoint))
+                    if (Boolean.TRUE.equals(useCollateralEndpoint))
                     {
                         response = (this.v4PrivatePostOrderCollateralLimit(this.extend(request, parameters))).join();
                     } else
@@ -2722,7 +2722,7 @@ public class Whitebit extends WhitebitApi
                 } else
                 {
                     // market order
-                    if (Helpers.isTrue(useCollateralEndpoint))
+                    if (Boolean.TRUE.equals(useCollateralEndpoint))
                     {
                         response = (this.v4PrivatePostOrderCollateralMarket(this.extend(request, parameters))).join();
                     } else
@@ -2787,7 +2787,7 @@ public class Whitebit extends WhitebitApi
             Double triggerPrice = this.safeNumberN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "activationPrice")));
             Boolean isStopOrder = (!java.util.Objects.equals(triggerPrice, null));
             // Handle activation price for stop orders
-            if (Helpers.isTrue(isStopOrder))
+            if (Boolean.TRUE.equals(isStopOrder))
             {
                 ((Map<String, Object>)request).put("activation_price", this.priceToPrecision(symbol, triggerPrice));
             }
@@ -2798,7 +2798,7 @@ public class Whitebit extends WhitebitApi
                 ((Map<String, Object>)request).put("total", this.amountToPrecision(symbol, total));
             } else if (!java.util.Objects.equals(amount, null))
             {
-                if (Helpers.isTrue(isLimitOrder))
+                if (Boolean.TRUE.equals(isLimitOrder))
                 {
                     // Limit orders always use amount parameter
                     ((Map<String, Object>)request).put("amount", this.amountToPrecision(symbol, amount));
@@ -2819,7 +2819,7 @@ public class Whitebit extends WhitebitApi
             }
             // Ensure at least one modifiable parameter is provided
             Boolean hasModifiableParam = (!java.util.Objects.equals(amount, null)) || (!java.util.Objects.equals(price, null)) || (!java.util.Objects.equals(triggerPrice, null)) || (!java.util.Objects.equals(total, null));
-            if (!Helpers.isTrue(hasModifiableParam))
+            if (!Boolean.TRUE.equals(hasModifiableParam))
             {
                 throw new ArgumentsRequired((this.id + " editOrder() requires at least one of: amount, price, activationPrice, or total parameters")) ;
             }
@@ -3027,7 +3027,7 @@ public class Whitebit extends WhitebitApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", ((Map<String, Object>)market).get("id") );
             }};
-            if (Helpers.isTrue(isBiggerThanZero))
+            if (Boolean.TRUE.equals(isBiggerThanZero))
             {
                 ((Map<String, Object>)request).put("timeout", this.numberToString(Helpers.divide(timeout, 1000)));
             } else
@@ -5261,7 +5261,7 @@ public class Whitebit extends WhitebitApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters, maxLimit)).join();
             }
@@ -5402,11 +5402,11 @@ public class Whitebit extends WhitebitApi
             // {"code":0,"message":"Validation failed","errors":{"amount":["Amount must be greater than 0"]}}
             Long codeNew = this.safeInteger(response, "code");
             Boolean hasErrorStatus = !java.util.Objects.equals(status, null) && !java.util.Objects.equals(status, "200") && !java.util.Objects.equals(errors, null);
-            if (Helpers.isTrue(hasErrorStatus) || !java.util.Objects.equals(codeNew, null))
+            if (Boolean.TRUE.equals(hasErrorStatus) || !java.util.Objects.equals(codeNew, null))
             {
                 Object feedback = ((this.id + " ") + body);
                 Object errorInfo = message;
-                if (Helpers.isTrue(hasErrorStatus))
+                if (Boolean.TRUE.equals(hasErrorStatus))
                 {
                     errorInfo = status;
                 } else

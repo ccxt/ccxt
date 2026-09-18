@@ -1121,7 +1121,7 @@ public class Alpaca extends AlpacaApi
                 //
                 Object bars = this.safeDict(response, "bars", new HashMap<String, Object>() {{}});
                 ohlcvs = this.safeList(bars, marketId, new ArrayList<Object>(Arrays.asList()));
-                if (Helpers.isTrue(paginate))
+                if (Boolean.TRUE.equals(paginate))
                 {
                     // the endpoint answers with a server-sized page plus a next_page_token regardless of the requested limit
                     String pageToken = this.safeString(response, "next_page_token");
@@ -1620,7 +1620,7 @@ public class Alpaca extends AlpacaApi
                 (this.loadMarkets()).join();
             }
             List<Object> response = (this.traderPrivateDeleteV2Orders(parameters)).join();
-            if (Helpers.isTrue(Helpers.isArray(response)))
+            if ((response instanceof List))
             {
                 return this.parseOrders(response);
             } else
@@ -2310,7 +2310,7 @@ public class Alpaca extends AlpacaApi
             {
                 currency = this.currency(code);
             }
-            Boolean sandboxMode = Helpers.isTrue(this.isSandboxModeEnabled) || Helpers.isTrue(this.safeBool(this.options, "sandboxMode", false));
+            Boolean sandboxMode = this.isSandboxModeEnabled || Helpers.isTrue(this.safeBool(this.options, "sandboxMode", false));
             if (java.util.Objects.equals(sandboxMode, true))
             {
                 // paper-trading hosts do not serve the crypto wallets api at all, so route
@@ -2333,7 +2333,7 @@ public class Alpaca extends AlpacaApi
                 //
                 List<Object> filtered = new ArrayList<Object>(Arrays.asList());
                 List<Object> ledger = new ArrayList<Object>(Arrays.asList());
-                if (Helpers.isTrue(Helpers.isArray(activities)))
+                if ((activities instanceof List))
                 {
                     ledger = activities;
                 }
@@ -2343,7 +2343,7 @@ public class Alpaca extends AlpacaApi
                     String activityType = this.safeString(entry, "activity_type");
                     String amount = this.safeString(entry, "net_amount");
                     Boolean isIncoming = (java.util.Objects.equals(activityType, "CSD")) || ((java.util.Objects.equals(activityType, "TRANS")) && !Helpers.isTrue(Precise.stringLt(amount, "0")));
-                    String entryDirection = ((Helpers.isTrue(isIncoming))) ? "INCOMING" : "OUTGOING";
+                    String entryDirection = ((Boolean.TRUE.equals(isIncoming))) ? "INCOMING" : "OUTGOING";
                     if ((java.util.Objects.equals(type, "BOTH")) || (java.util.Objects.equals(entryDirection, type)))
                     {
                         ((List<Object>)filtered).add(entry);
@@ -2371,7 +2371,7 @@ public class Alpaca extends AlpacaApi
             //
             List<Object> results = new ArrayList<Object>(Arrays.asList());
             List<Object> transfers = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(Helpers.isArray(response)))
+            if ((response instanceof List))
             {
                 transfers = response;
             }
@@ -2520,7 +2520,7 @@ public class Alpaca extends AlpacaApi
             Boolean isIncoming = (java.util.Objects.equals(activityType, "CSD")) || ((java.util.Objects.equals(activityType, "TRANS")) && !Helpers.isTrue(Precise.stringLt(netAmount, "0")));
             timestamp = this.parse8601(Helpers.add(this.safeString(transaction, "date"), "T00:00:00Z"));
             datetime = this.iso8601(timestamp);
-            type = ((Helpers.isTrue(isIncoming))) ? "deposit" : "withdrawal";
+            type = ((Boolean.TRUE.equals(isIncoming))) ? "deposit" : "withdrawal";
             amount = this.parseNumber(Precise.stringAbs(netAmount));
             // cash ledger rows carry no per-entry asset field and are USD, while crypto
             // TRANS entries may carry symbol/asset - never blindly adopt the caller's

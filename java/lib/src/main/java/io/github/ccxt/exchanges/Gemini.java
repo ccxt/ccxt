@@ -740,7 +740,7 @@ public class Gemini extends GeminiApi
         String code = this.safeCurrencyCode(id);
         String fiatFlag = this.safeString(rawCurrency, 7);
         Boolean isFiat = (!java.util.Objects.equals(fiatFlag, null)) && (!java.util.Objects.equals(fiatFlag, ""));
-        String type = ((Helpers.isTrue(isFiat))) ? "fiat" : "crypto";
+        String type = ((Boolean.TRUE.equals(isFiat))) ? "fiat" : "crypto";
         Object precision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 5)));
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         String networkId = this.safeString(rawCurrency, 9);
@@ -1002,7 +1002,7 @@ public class Gemini extends GeminiApi
             Object brokenPairs = this.safeList(this.options, "brokenPairs", new ArrayList<Object>(Arrays.asList()));
             List<Object> marketIds = new ArrayList<Object>(Arrays.asList());
             List<Object> allMarketIds = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(Helpers.isArray(marketIdsRaw)))
+            if ((marketIdsRaw instanceof List))
             {
                 allMarketIds = marketIdsRaw;
             }
@@ -1109,7 +1109,7 @@ public class Gemini extends GeminiApi
         Object inverse = null;
         Boolean isString = ((response instanceof String));
         Object isArray = (Helpers.isArray(response));
-        if (!Helpers.isTrue(isString) && !Helpers.isTrue(isArray))
+        if (!Boolean.TRUE.equals(isString) && !Boolean.TRUE.equals(isArray))
         {
             marketId = this.safeStringLower(response, "symbol");
             amountPrecision = this.safeNumber(response, "tick_size"); // right, exchange has an imperfect naming and this turns out to be an amount-precision
@@ -1122,7 +1122,7 @@ public class Gemini extends GeminiApi
         } else
         {
             // if no detailed API was called, then parse either string or array
-            if (Helpers.isTrue(isString))
+            if (Boolean.TRUE.equals(isString))
             {
                 marketId = response;
             } else
@@ -1142,7 +1142,7 @@ public class Gemini extends GeminiApi
                 Object conflictingMarket = Helpers.GetValue(conflictingMarkets, lowerCaseId);
                 baseId = Helpers.GetValue(conflictingMarket, "base");
                 quoteId = Helpers.GetValue(conflictingMarket, "quote");
-                if (Helpers.isTrue(isPerp))
+                if (Boolean.TRUE.equals(isPerp))
                 {
                     settleId = Helpers.GetValue(conflictingMarket, "quote");
                 }
@@ -1157,7 +1157,7 @@ public class Gemini extends GeminiApi
                         Long quoteLength = this.parseToInt(Helpers.multiply(Helpers.opNeg(1), Helpers.getArrayLength(quoteCurrency)));
                         baseId = Helpers.slice(marketIdWithoutPerp, 0, quoteLength);
                         quoteId = quoteCurrency;
-                        if (Helpers.isTrue(isPerp))
+                        if (Boolean.TRUE.equals(isPerp))
                         {
                             settleId = quoteCurrency; // always same
                         }
@@ -1178,8 +1178,8 @@ public class Gemini extends GeminiApi
             linear = true; // always linear
             inverse = false;
         }
-        String type = ((Helpers.isTrue(swap))) ? "swap" : "spot";
-        Boolean isSpot = !Helpers.isTrue(swap);
+        String type = ((Boolean.TRUE.equals(swap))) ? "swap" : "spot";
+        Boolean isSpot = !Boolean.TRUE.equals(swap);
         final Object finalMarketId = marketId;
         final Object finalSymbol = symbol;
         final Object finalBase = base;
@@ -2745,7 +2745,7 @@ public class Gemini extends GeminiApi
             //     ]
             //
             List<Object> candles = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(Helpers.isArray(response)))
+            if ((response instanceof List))
             {
                 candles = response;
             }

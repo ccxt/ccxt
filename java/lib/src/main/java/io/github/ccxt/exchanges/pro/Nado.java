@@ -128,7 +128,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Object market = this.market(symbol);
             String messageHash = ("trade:" + ((Map<String, Object>)market).get("symbol"));
             Object trades = (this.watchPublic("trade", market, messageHash, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{((Map<String, Object>)market).get("symbol"), limit});
             }
@@ -193,7 +193,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 ((List<Object>)messageHashes).add(("trade:" + ((Map<String, Object>)market).get("symbol")));
             }
             Object trades = (this.watchPublicMultiple("trade", markets, messageHashes, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
@@ -400,7 +400,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             }};
             Object result = (this.watchPublic("latest_candlestick", market, messageHash, this.extend(request, parameters))).join();
             Object stored = Helpers.GetValue(result, 2);
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(stored, "getLimit", new Object[]{((Map<String, Object>)market).get("symbol"), limit});
             }
@@ -429,7 +429,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
             Object symbolsLength = ((List<?>)symbolsAndTimeframes).size();
-            if (Helpers.isEqual(symbolsLength, 0) || !Helpers.isTrue(Helpers.isArray(Helpers.GetValue(symbolsAndTimeframes, 0))))
+            if (Helpers.isEqual(symbolsLength, 0) || !(Helpers.GetValue(symbolsAndTimeframes, 0) instanceof List))
             {
                 throw new ArgumentsRequired((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]")) ;
             }
@@ -453,7 +453,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             var resultSymbol = ((List<Object>) resultSymbolresultTimeframestoredVariable).get(0);
             var resultTimeframe = ((List<Object>) resultSymbolresultTimeframestoredVariable).get(1);
             var stored = ((List<Object>) resultSymbolresultTimeframestoredVariable).get(2);
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(stored, "getLimit", new Object[]{resultSymbol, limit});
             }
@@ -502,7 +502,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object symbolsLength = ((List<?>)symbolsAndTimeframes).size();
-            if (Helpers.isEqual(symbolsLength, 0) || !Helpers.isTrue(Helpers.isArray(Helpers.GetValue(symbolsAndTimeframes, 0))))
+            if (Helpers.isEqual(symbolsLength, 0) || !(Helpers.GetValue(symbolsAndTimeframes, 0) instanceof List))
             {
                 throw new ArgumentsRequired((this.id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]")) ;
             }
@@ -603,7 +603,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 }
             }
             Object ticker = (this.watchPublic(streamType, market, messageHash, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 if (java.util.Objects.equals(messageHash, "ticker"))
                 {
@@ -686,7 +686,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 }
             }
             Object ticker = (this.watchPublic(streamType, market, messageHash, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 if (java.util.Objects.equals(messageHash, "bidask"))
                 {
@@ -784,7 +784,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 put( "product_id", finalProductId );
             }};
             Object orders = (this.watchPrivate("order_update", stream, messageHash, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
@@ -886,7 +886,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 put( "product_id", finalProductId );
             }};
             Object trades = (this.watchPrivate("fill", stream, messageHash, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
@@ -991,7 +991,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 put( "product_id", finalProductId );
             }};
             Object positions = (this.watchPrivate("position_change", stream, messageHash, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 return positions;
             }
@@ -2456,7 +2456,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             this.handleExecuteResponse(client, message);
             return;
         }
-        if ((!java.util.Objects.equals(id, null)) && Helpers.isTrue(hasResult))
+        if ((!java.util.Objects.equals(id, null)) && Boolean.TRUE.equals(hasResult))
         {
             Object authentication = this.safeValue(client.subscriptions, ("authentication:" + id));
             if (!java.util.Objects.equals(authentication, null))

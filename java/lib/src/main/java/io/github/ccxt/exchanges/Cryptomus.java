@@ -918,13 +918,13 @@ public class Cryptomus extends CryptomusApi
             Object response = null;
             if (java.util.Objects.equals(type, "market"))
             {
-                if (Helpers.isTrue(sideBuy))
+                if (Boolean.TRUE.equals(sideBuy))
                 {
                     Object createMarketBuyOrderRequiresPrice = true;
                     List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                     createMarketBuyOrderRequiresPrice = ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
                     parameters = ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
-                    if (Helpers.isTrue(createMarketBuyOrderRequiresPrice))
+                    if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
                     {
                         if ((java.util.Objects.equals(price, null)) && (java.util.Objects.equals(cost, null)))
                         {

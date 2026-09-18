@@ -23,7 +23,7 @@ public class TestCreateOrder extends BaseTest {
     {
         // just for debugging purposes
         Boolean debugCreateOrder = true;
-        if (Helpers.isTrue(debugCreateOrder))
+        if (Boolean.TRUE.equals(debugCreateOrder))
         {
             // for c# fix, extra step to convert them to string
             Object msg = Helpers.add((Helpers.add((Helpers.add(" >>>>> testCreateOrder [", String.valueOf((Helpers.GetValue(exchange, "id")))) + " : "), symbol) + "] "), message);
@@ -41,7 +41,7 @@ public class TestCreateOrder extends BaseTest {
         Boolean hasCancelOrder = (!java.util.Objects.equals(Helpers.GetValue(exchange.has, "cancelOrder"), null)) && (!java.util.Objects.equals(Helpers.GetValue(exchange.has, "cancelOrder"), false));
         Boolean hasCancelOrders = (!java.util.Objects.equals(Helpers.GetValue(exchange.has, "cancelOrders"), null)) && (!java.util.Objects.equals(Helpers.GetValue(exchange.has, "cancelOrders"), false));
         Boolean hasCancelAllOrders = (!java.util.Objects.equals(Helpers.GetValue(exchange.has, "cancelAllOrders"), null)) && (!java.util.Objects.equals(Helpers.GetValue(exchange.has, "cancelAllOrders"), false));
-        Assert(Helpers.isTrue(hasCancelOrder) || Helpers.isTrue(hasCancelOrders) || Helpers.isTrue(hasCancelAllOrders), (logPrefix + " does not have cancelOrder|cancelOrders|canelAllOrders method, which is needed to make tests for `createOrder` method. Skipping the test..."));
+        Assert(Boolean.TRUE.equals(hasCancelOrder) || Boolean.TRUE.equals(hasCancelOrders) || Boolean.TRUE.equals(hasCancelAllOrders), (logPrefix + " does not have cancelOrder|cancelOrders|canelAllOrders method, which is needed to make tests for `createOrder` method. Skipping the test..."));
         // pre-define some coefficients, which will be used down below
         Double limitPriceSafetyMultiplierFromMedian = 1.045; // todo: when this https://github.com/ccxt/ccxt/issues/22442 is implemented, we'll remove hardcoded value. atm 5% is enough
         Object market = exchange.market(symbol);
@@ -60,7 +60,7 @@ public class TestCreateOrder extends BaseTest {
         tcoDebug(exchange, symbol, "### SCENARIO 1 ###");
         // create a "limit order" which IS GUARANTEED not to have a fill (i.e. being far from the real price)
         (tcoCreateUnfillableOrder(exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, "buy")).join();
-        if (Helpers.isTrue(isSwapFuture))
+        if (Boolean.TRUE.equals(isSwapFuture))
         {
             // for swap markets, we test sell orders too
             (tcoCreateUnfillableOrder(exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, "sell")).join();
@@ -70,7 +70,7 @@ public class TestCreateOrder extends BaseTest {
         tcoDebug(exchange, symbol, "### SCENARIO 2 ###");
         // create an order which IS GUARANTEED to have a fill (full or partial)
         (tcoCreateFillableOrder(exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, "buy")).join();
-        if (Helpers.isTrue(isSwapFuture))
+        if (Boolean.TRUE.equals(isSwapFuture))
         {
             // for swap markets, we test sell orders too
             (tcoCreateFillableOrder(exchange, market, logPrefix, skippedProperties, bestBid, bestAsk, limitPriceSafetyMultiplierFromMedian, "sell")).join();
@@ -165,10 +165,10 @@ public class TestCreateOrder extends BaseTest {
         {
             Boolean isSwapFuture = (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) || (java.util.Objects.equals(((Map<String, Object>)market).get("future"), true));
             Boolean isBuy = (java.util.Objects.equals(buyOrSellString, "buy"));
-            String entrySide = ((Helpers.isTrue(isBuy))) ? "buy" : "sell";
-            String exitSide = ((Helpers.isTrue(isBuy))) ? "sell" : "buy";
-            Object entryorderPrice = ((Helpers.isTrue(isBuy))) ? Helpers.multiply(bestAsk, limitPriceSafetyMultiplierFromMedian) : Helpers.divide(bestBid, limitPriceSafetyMultiplierFromMedian);
-            Object exitorderPrice = ((Helpers.isTrue(isBuy))) ? Helpers.divide(bestBid, limitPriceSafetyMultiplierFromMedian) : Helpers.multiply(bestAsk, limitPriceSafetyMultiplierFromMedian); // todo revise: (tcoMininumCost (exchange, market) / amountToClose) / limitPriceSafetyMultiplierFromMedian;
+            String entrySide = ((Boolean.TRUE.equals(isBuy))) ? "buy" : "sell";
+            String exitSide = ((Boolean.TRUE.equals(isBuy))) ? "sell" : "buy";
+            Object entryorderPrice = ((Boolean.TRUE.equals(isBuy))) ? Helpers.multiply(bestAsk, limitPriceSafetyMultiplierFromMedian) : Helpers.divide(bestBid, limitPriceSafetyMultiplierFromMedian);
+            Object exitorderPrice = ((Boolean.TRUE.equals(isBuy))) ? Helpers.divide(bestBid, limitPriceSafetyMultiplierFromMedian) : Helpers.multiply(bestAsk, limitPriceSafetyMultiplierFromMedian); // todo revise: (tcoMininumCost (exchange, market) / amountToClose) / limitPriceSafetyMultiplierFromMedian;
             Object symbol = ((Map<String, Object>)market).get("symbol");
             Object entryAmount = tcoGetMinimumAmountForLimitPrice(exchange, market, entryorderPrice);
             Object entryorderFilled = (tcoCreateOrderSafe(exchange, symbol, "limit", entrySide, entryAmount, entryorderPrice, new HashMap<String, Object>() {{}}, skippedProperties)).join();
@@ -177,7 +177,7 @@ public class TestCreateOrder extends BaseTest {
             tcoAssertFilledOrder(exchange, market, logPrefix, skippedProperties, entryorderFilled, entryorderFetched, entrySide, entryAmount);
             Object amountToClose = exchange.parseToNumeric(exchange.safeString(entryorderFetched, "filled"));
             Map<String, Object> parameters = new HashMap<String, Object>() {{}};
-            if (Helpers.isTrue(isSwapFuture))
+            if (Boolean.TRUE.equals(isSwapFuture))
             {
                 ((Map<String, Object>)parameters).put("reduceOnly", true);
             }
@@ -316,7 +316,7 @@ public class TestCreateOrder extends BaseTest {
         } else
         {
             // todo: remove after TICK_SIZE unification
-            if (!Helpers.isTrue(isTickSizePrecision))
+            if (!Boolean.TRUE.equals(isTickSizePrecision))
             {
                 amountPrecision = Helpers.divide(1, Helpers.mathPow(Double.parseDouble(Helpers.toString(10)), Double.parseDouble(Helpers.toString(amountPrecision)))); // this converts DECIMAL_PRECISION into TICK_SIZE
             }

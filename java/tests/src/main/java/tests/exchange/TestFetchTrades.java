@@ -93,7 +93,7 @@ public class TestFetchTrades extends BaseTest {
             Object isSamePrice = Precise.stringEq(price, lastPrice);
             Boolean isSameSide = Helpers.isEqual(side, lastSide);
             // we are only interested in trades that have: same timestamp, same side, but different(!) price
-            if (Helpers.isTrue(isSameTs) && Helpers.isTrue(isSameSide) && !Helpers.isTrue(isSamePrice))
+            if (Boolean.TRUE.equals(isSameTs) && Boolean.TRUE.equals(isSameSide) && !Helpers.isTrue(isSamePrice))
             {
                 final Object finalLastTrade = lastTrade;
                 Map<String, Object> pair = new HashMap<String, Object>() {{

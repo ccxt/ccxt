@@ -326,7 +326,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             String messageHash = (Helpers.add("market.", ((Map<String, Object>)market).get("id")) + ".trade.detail");
             Object url = this.getUrlByMarketType(((Map<String, Object>)market).get("type"), ((Map<String, Object>)market).get("linear"));
             Object trades = (this.subscribePublic(url, symbol, messageHash, null, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
@@ -450,7 +450,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             String messageHash = ((Helpers.add("market.", ((Map<String, Object>)market).get("id")) + ".kline.") + interval);
             Object url = this.getUrlByMarketType(((Map<String, Object>)market).get("type"), ((Map<String, Object>)market).get("linear"));
             Object ohlcv = (this.subscribePublic(url, symbol, messageHash, null, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
@@ -1064,7 +1064,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             Boolean linear = (java.util.Objects.equals(subType, "linear"));
             Boolean swap = (java.util.Objects.equals(type, "swap"));
             Boolean future = (java.util.Objects.equals(type, "future"));
-            Boolean isV5Linear = (Helpers.isTrue(linear) && (Helpers.isTrue(swap) || Helpers.isTrue(future)));
+            Boolean isV5Linear = (Boolean.TRUE.equals(linear) && (Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(future)));
             if (java.util.Objects.equals(type, "spot"))
             {
                 String mode = null;
@@ -1076,7 +1076,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 }
                 messageHash = ((Helpers.add(("trade.clearing" + "#"), marketId) + "#") + mode);
                 channel = messageHash;
-            } else if (Helpers.isTrue(isV5Linear))
+            } else if (Boolean.TRUE.equals(isV5Linear))
             {
                 Object channelAndMessageHashAndParams = this.getV5LinearChannelAndMessageHash("trade", market, parameters);
                 channel = this.safeString(channelAndMessageHashAndParams, 0);
@@ -1099,7 +1099,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 throw new ArgumentsRequired((this.id + " watchMyTrades() trades is required")) ;
             }
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
@@ -1231,14 +1231,14 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             Boolean linear = (java.util.Objects.equals(subType, "linear"));
             Boolean swap = (java.util.Objects.equals(type, "swap"));
             Boolean future = (java.util.Objects.equals(type, "future"));
-            Boolean isV5Linear = (Helpers.isTrue(linear) && (Helpers.isTrue(swap) || Helpers.isTrue(future)));
+            Boolean isV5Linear = (Boolean.TRUE.equals(linear) && (Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(future)));
             String messageHash = null;
             Object channel = null;
             if (java.util.Objects.equals(type, "spot"))
             {
                 messageHash = Helpers.add(("orders" + "#"), suffix);
                 channel = messageHash;
-            } else if (Helpers.isTrue(isV5Linear))
+            } else if (Boolean.TRUE.equals(isV5Linear))
             {
                 Object channelAndMessageHashAndParams = this.getV5LinearChannelAndMessageHash("orders", market, parameters);
                 channel = this.safeString(channelAndMessageHashAndParams, 0);
@@ -1254,7 +1254,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 put( "isV5", isV5Linear );
             }};
             Object orders = (this.subscribePrivate(channel, messageHash, type, subType, parameters, subscriptionParams)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
@@ -1892,12 +1892,12 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             Boolean linear = (java.util.Objects.equals(subType, "linear"));
             Boolean swap = (java.util.Objects.equals(type, "swap"));
             Boolean future = (java.util.Objects.equals(type, "future"));
-            Boolean isV5Linear = (Helpers.isTrue(linear) && (Helpers.isTrue(swap) || Helpers.isTrue(future)));
+            Boolean isV5Linear = (Boolean.TRUE.equals(linear) && (Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(future)));
             Boolean isLinear = (java.util.Objects.equals(subType, "linear"));
             Object url = this.getUrlByMarketType(type, isLinear, true, false, isV5Linear);
             messageHash = Helpers.add(Helpers.add(marginMode, ":positions"), messageHash);
             Object channel = (((java.util.Objects.equals(marginMode, "cross")))) ? "positions_cross.*" : "positions.*";
-            if (Helpers.isTrue(isV5Linear))
+            if (Boolean.TRUE.equals(isV5Linear))
             {
                 Object v5Market = null;
                 if ((!java.util.Objects.equals(symbols, null)) && (Helpers.isEqual(((List<?>)symbols).size(), 1)))
@@ -1914,7 +1914,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 put( "margin", finalMarginMode );
             }};
             Object newPositions = (this.subscribePrivate(channel, messageHash, type, subType, parameters, subscriptionParams)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 return newPositions;
             }
@@ -2113,14 +2113,14 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             Boolean linear = (java.util.Objects.equals(subType, "linear"));
             Boolean swap = (java.util.Objects.equals(type, "swap"));
             Boolean future = (java.util.Objects.equals(type, "future"));
-            Boolean isV5Linear = (Helpers.isTrue(linear) && (Helpers.isTrue(swap) || Helpers.isTrue(future)));
+            Boolean isV5Linear = (Boolean.TRUE.equals(linear) && (Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(future)));
             if (java.util.Objects.equals(type, "spot"))
             {
                 String mode = this.safeString2(this.options, "watchBalance", "mode", "2");
                 mode = this.safeString(parameters, "mode", mode);
                 messageHash = (("accounts.update" + "#") + mode);
                 channel = messageHash;
-            } else if (Helpers.isTrue(isV5Linear))
+            } else if (Boolean.TRUE.equals(isV5Linear))
             {
                 marginMode = this.safeString(parameters, "margin", "cross");
                 parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("currency", "symbol", "margin")));
@@ -3101,7 +3101,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 String contractCode = this.safeString(message, "contract_code");
                 Object market = (((!java.util.Objects.equals(contractCode, null)))) ? this.safeMarket(contractCode) : null;
-                if (Helpers.isTrue(Helpers.isArray(data)))
+                if ((data instanceof List))
                 {
                     for (var i = 0; i < ((List<?>)data).size(); i++)
                     {

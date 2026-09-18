@@ -158,7 +158,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             Object newTickers = (this.watchPublicMultiple(symbols, "ticker")).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Map<String, Object> tickers = new HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(tickers, Helpers.GetValue(newTickers, "symbol"), newTickers);
@@ -213,7 +213,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
             Object trades = (this.watchPublicMultiple(symbols, "trade")).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Object first = this.safeValue(trades, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
@@ -516,7 +516,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             }
             Object subscriptions = Helpers.GetValue(client.subscriptions, subscriptionsKey);
             Boolean isNewChannel = !(Helpers.inOp(subscriptions, channelKey));
-            if (Helpers.isTrue(isNewChannel))
+            if (Boolean.TRUE.equals(isNewChannel))
             {
                 Helpers.addElementToObject(subscriptions, channelKey, request);
             }
@@ -567,7 +567,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             Object channel = "myOrder";
             String messageHash = "myOrder";
             Object orders = (this.watchPrivate(symbol, channel, messageHash)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
@@ -603,7 +603,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             Object channel = "myOrder";
             String messageHash = "myTrades";
             Object trades = (this.watchPrivate(symbol, channel, messageHash)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }

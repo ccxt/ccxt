@@ -447,7 +447,7 @@ public class Bitopro extends BitoproApi
             put( "id", currencyId );
             put( "code", code );
             put( "info", rawCurrency );
-            put( "type", ((Helpers.isTrue(isFiat))) ? "fiat" : "crypto" );
+            put( "type", ((Boolean.TRUE.equals(isFiat))) ? "fiat" : "crypto" );
             put( "name", null );
             put( "active", ((java.util.Objects.equals(finalDeposit, true)) && (java.util.Objects.equals(finalWithdraw, true))) );
             put( "deposit", finalDeposit );

@@ -778,7 +778,7 @@ public class Coinbase extends CoinbaseApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchAccounts", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchAccounts", null, null, null, parameters, "next_starting_after", "starting_after", null, 100)).join();
             }
@@ -861,7 +861,7 @@ public class Coinbase extends CoinbaseApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchAccounts", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchAccounts", null, null, null, parameters, "cursor", "cursor", null, 250)).join();
             }
@@ -1831,7 +1831,7 @@ public class Coinbase extends CoinbaseApi
             usePrivate = ((List<Object>) usePrivateparametersVariable).get(0);
             parameters = ((List<Object>) usePrivateparametersVariable).get(1);
             List<Object> spotUnresolvedPromises = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(usePrivate))
+            if (Boolean.TRUE.equals(usePrivate))
             {
                 ((List<Object>)spotUnresolvedPromises).add(this.v3PrivateGetBrokerageProducts(parameters));
             } else
@@ -2232,7 +2232,7 @@ public class Coinbase extends CoinbaseApi
         Boolean tradingDisabled = (Boolean) this.safeBool(market, "is_disabled");
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         String type = null;
-        if (Helpers.isTrue(isSwap))
+        if (Boolean.TRUE.equals(isSwap))
         {
             type = "swap";
             symbol = Helpers.add((symbol + ":"), quote);
@@ -2262,7 +2262,7 @@ public class Coinbase extends CoinbaseApi
             put( "spot", false );
             put( "margin", false );
             put( "swap", isSwap );
-            put( "future", !Helpers.isTrue(isSwap) );
+            put( "future", !Boolean.TRUE.equals(isSwap) );
             put( "option", false );
             put( "active", !java.util.Objects.equals(finalTradingDisabled, true) );
             put( "contract", true );
@@ -2593,7 +2593,7 @@ public class Coinbase extends CoinbaseApi
             List<Object> usePrivateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTickers", "usePrivate", false);
             usePrivate = ((List<Object>) usePrivateparametersVariable).get(0);
             parameters = ((List<Object>) usePrivateparametersVariable).get(1);
-            if (Helpers.isTrue(usePrivate))
+            if (Boolean.TRUE.equals(usePrivate))
             {
                 response = (this.v3PrivateGetBrokerageProducts(this.extend(request, parameters))).join();
             } else
@@ -2739,7 +2739,7 @@ public class Coinbase extends CoinbaseApi
             usePrivate = ((List<Object>) usePrivateparametersVariable).get(0);
             parameters = ((List<Object>) usePrivateparametersVariable).get(1);
             Object response = null;
-            if (Helpers.isTrue(usePrivate))
+            if (Boolean.TRUE.equals(usePrivate))
             {
                 response = (this.v3PrivateGetBrokerageProductsProductIdTicker(this.extend(request, parameters))).join();
             } else
@@ -3137,7 +3137,7 @@ public class Coinbase extends CoinbaseApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchLedger", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchLedger", code, since, limit, parameters, "next_starting_after", "starting_after", null, 100)).join();
             }
@@ -3700,7 +3700,7 @@ public class Coinbase extends CoinbaseApi
             String stopDirection = this.safeString(parameters, "stop_direction");
             if (java.util.Objects.equals(type, "limit"))
             {
-                if (Helpers.isTrue(isStop))
+                if (Boolean.TRUE.equals(isStop))
                 {
                     if (java.util.Objects.equals(stopDirection, null))
                     {
@@ -3739,10 +3739,10 @@ public class Coinbase extends CoinbaseApi
         }} );
     }});
                     }
-                } else if (Helpers.isTrue(isStopLoss) || Helpers.isTrue(isTakeProfit))
+                } else if (Boolean.TRUE.equals(isStopLoss) || Boolean.TRUE.equals(isTakeProfit))
                 {
                     Object tpslPrice = null;
-                    if (Helpers.isTrue(isStopLoss))
+                    if (Boolean.TRUE.equals(isStopLoss))
                     {
                         if (java.util.Objects.equals(stopDirection, null))
                         {
@@ -3818,7 +3818,7 @@ public class Coinbase extends CoinbaseApi
                 }
             } else
             {
-                if (Helpers.isTrue(isStop) || Helpers.isTrue(isStopLoss) || Helpers.isTrue(isTakeProfit))
+                if (Boolean.TRUE.equals(isStop) || Boolean.TRUE.equals(isStopLoss) || Boolean.TRUE.equals(isTakeProfit))
                 {
                     throw new NotSupported((this.id + " createOrder() only stop limit orders are supported")) ;
                 }
@@ -3834,7 +3834,7 @@ public class Coinbase extends CoinbaseApi
                     if (!java.util.Objects.equals(cost, null))
                     {
                         total = this.costToPrecision(symbol, cost);
-                    } else if (Helpers.isTrue(createMarketBuyOrderRequiresPrice))
+                    } else if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
                     {
                         if (java.util.Objects.equals(price, null))
                         {
@@ -4028,7 +4028,7 @@ public class Coinbase extends CoinbaseApi
         String amount = null;
         Object postOnly = null;
         String triggerPrice = null;
-        if (Helpers.isTrue(isLimit))
+        if (Boolean.TRUE.equals(isLimit))
         {
             Map<String, Object> target = null;
             if (!java.util.Objects.equals(limitGTC, null))
@@ -4044,7 +4044,7 @@ public class Coinbase extends CoinbaseApi
             price = this.safeString(target, "limit_price");
             amount = this.safeString(target, "base_size");
             postOnly = this.safeBool(target, "post_only");
-        } else if (Helpers.isTrue(isStop))
+        } else if (Boolean.TRUE.equals(isStop))
         {
             Map<String, Object> stopTarget = (((!java.util.Objects.equals(stopLimitGTC, null)))) ? stopLimitGTC : stopLimitGTD;
             price = this.safeString(stopTarget, "limit_price");
@@ -4386,7 +4386,7 @@ public class Coinbase extends CoinbaseApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchOrders", symbol, since, limit, parameters, "cursor", "cursor", null, 1000)).join();
             }
@@ -4596,7 +4596,7 @@ public class Coinbase extends CoinbaseApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchOpenOrders", symbol, since, limit, parameters, "cursor", "cursor", null, 100)).join();
             }
@@ -4635,7 +4635,7 @@ public class Coinbase extends CoinbaseApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchClosedOrders", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchClosedOrders", symbol, since, limit, parameters, "cursor", "cursor", null, 1000)).join();
             }
@@ -4704,7 +4704,7 @@ public class Coinbase extends CoinbaseApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, Helpers.subtract(maxLimit, 1))).join();
             }
@@ -4740,7 +4740,7 @@ public class Coinbase extends CoinbaseApi
             List<Object> usePrivateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "usePrivate", false);
             usePrivate = ((List<Object>) usePrivateparametersVariable).get(0);
             parameters = ((List<Object>) usePrivateparametersVariable).get(1);
-            if (Helpers.isTrue(usePrivate))
+            if (Boolean.TRUE.equals(usePrivate))
             {
                 response = (this.v3PrivateGetBrokerageProductsProductIdCandles(this.extend(request, parameters))).join();
             } else
@@ -4838,7 +4838,7 @@ public class Coinbase extends CoinbaseApi
             List<Object> usePrivateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "usePrivate", false);
             usePrivate = ((List<Object>) usePrivateparametersVariable).get(0);
             parameters = ((List<Object>) usePrivateparametersVariable).get(1);
-            if (Helpers.isTrue(usePrivate))
+            if (Boolean.TRUE.equals(usePrivate))
             {
                 response = (this.v3PrivateGetBrokerageProductsProductIdTicker(this.extend(request, parameters))).join();
             } else
@@ -4897,7 +4897,7 @@ public class Coinbase extends CoinbaseApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, parameters, "cursor", "cursor", null, 250)).join();
             }
@@ -4998,7 +4998,7 @@ public class Coinbase extends CoinbaseApi
             List<Object> usePrivateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrderBook", "usePrivate", false);
             usePrivate = ((List<Object>) usePrivateparametersVariable).get(0);
             parameters = ((List<Object>) usePrivateparametersVariable).get(1);
-            if (Helpers.isTrue(usePrivate))
+            if (Boolean.TRUE.equals(usePrivate))
             {
                 response = (this.v3PrivateGetBrokerageProductBook(this.extend(request, parameters))).join();
             } else
@@ -6196,7 +6196,7 @@ public class Coinbase extends CoinbaseApi
             type = ((List<Object>) typeparametersVariable).get(0);
             parameters = ((List<Object>) typeparametersVariable).get(1);
             Boolean isSpot = (java.util.Objects.equals(type, "spot"));
-            String productType = ((Helpers.isTrue(isSpot))) ? "SPOT" : "FUTURE";
+            String productType = ((Boolean.TRUE.equals(isSpot))) ? "SPOT" : "FUTURE";
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "product_type", productType );
             }};
@@ -6232,7 +6232,7 @@ public class Coinbase extends CoinbaseApi
             {
                 Object symbol = Helpers.GetValue(this.symbols, i);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                if ((Helpers.isTrue(isSpot) && (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))) || (!Helpers.isTrue(isSpot) && (!java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))))
+                if ((Boolean.TRUE.equals(isSpot) && (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))) || (!Boolean.TRUE.equals(isSpot) && (!java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))))
                 {
                     Helpers.addElementToObject(result, symbol, new HashMap<String, Object>() {{
         put( "info", response );
@@ -6405,7 +6405,7 @@ public class Coinbase extends CoinbaseApi
         Object version = Helpers.GetValue(api, 0);
         Boolean signed = java.util.Objects.equals(Helpers.GetValue(api, 1), "private");
         Boolean isV3 = java.util.Objects.equals(version, "v3");
-        String pathPart = ((Helpers.isTrue((isV3)))) ? "api/v3" : "v2";
+        String pathPart = ((Boolean.TRUE.equals(isV3))) ? "api/v3" : "v2";
         Object fullPath = ((Helpers.add("/", pathPart) + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         Object savedPath = fullPath;
@@ -6417,7 +6417,7 @@ public class Coinbase extends CoinbaseApi
             }
         }
         Object url = Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"), fullPath);
-        if (Helpers.isTrue(signed))
+        if (Boolean.TRUE.equals(signed))
         {
             String authorization = this.safeString(this.headers, "Authorization");
             String authorizationString = null;
@@ -6441,7 +6441,7 @@ public class Coinbase extends CoinbaseApi
                     }
                 } else
                 {
-                    if (!Helpers.isTrue(isV3))
+                    if (!Boolean.TRUE.equals(isV3))
                     {
                         if (((List<?>)Helpers.objectKeys(query)).size() > 0)
                         {
@@ -6456,9 +6456,9 @@ public class Coinbase extends CoinbaseApi
                 Boolean isCloudAPiKey = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(this.apiKey, "organizations/"), 0)) || Helpers.isTrue((this.secret.startsWith("-----BEGIN")));
                 // using the size might be fragile, so we add an option to force v2 cloud api key if needed
                 Boolean isV2CloudAPiKey = Helpers.isEqual(this.secret.length(), 88) || Helpers.isTrue(this.safeBool(this.options, "v2CloudAPiKey", false)) || Helpers.isTrue(this.secret.endsWith("="));
-                if (Helpers.isTrue(isCloudAPiKey) || Helpers.isTrue(isV2CloudAPiKey))
+                if (Boolean.TRUE.equals(isCloudAPiKey) || Boolean.TRUE.equals(isV2CloudAPiKey))
                 {
-                    if (Helpers.isTrue(isCloudAPiKey) && Helpers.isTrue(this.apiKey.startsWith("-----BEGIN")))
+                    if (Boolean.TRUE.equals(isCloudAPiKey) && Helpers.isTrue(this.apiKey.startsWith("-----BEGIN")))
                     {
                         throw new ArgumentsRequired((this.id + " apiKey should contain the name (eg: organizations/3b910e93....) and not the public key")) ;
                     }
@@ -6585,7 +6585,7 @@ public class Coinbase extends CoinbaseApi
         Object errors = this.safeList(response, "errors");
         if (!java.util.Objects.equals(errors, null))
         {
-            if (Helpers.isTrue(Helpers.isArray(errors)))
+            if ((errors instanceof List))
             {
                 Object numErrors = ((List<?>)errors).size();
                 if (Helpers.isGreaterThan(numErrors, 0))

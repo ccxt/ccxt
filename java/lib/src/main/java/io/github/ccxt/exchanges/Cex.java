@@ -453,7 +453,7 @@ public class Cex extends CexApi
         String id = this.safeString(rawCurrency, "currency");
         String code = this.safeCurrencyCode(id);
         Boolean isFiat = (java.util.Objects.equals(this.safeBool(rawCurrency, "fiat"), true));
-        String type = ((Helpers.isTrue(isFiat))) ? "fiat" : "crypto";
+        String type = ((Boolean.TRUE.equals(isFiat))) ? "fiat" : "crypto";
         Object currencyPrecision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "precision")));
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         Map<String, Object> rawNetworks = (Map<String, Object>) this.safeDict(rawCurrency, "blockchains", new HashMap<String, Object>() {{}});
@@ -1260,7 +1260,7 @@ public class Cex extends CexApi
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Boolean isClosedOrders = (java.util.Objects.equals(status, "closed"));
-            if (Helpers.isTrue(isClosedOrders))
+            if (Boolean.TRUE.equals(isClosedOrders))
             {
                 ((Map<String, Object>)request).put("archived", true);
             }
@@ -1277,7 +1277,7 @@ public class Cex extends CexApi
             if (!java.util.Objects.equals(since, null))
             {
                 ((Map<String, Object>)request).put("serverCreateTimestampFrom", since);
-            } else if (Helpers.isTrue(isClosedOrders))
+            } else if (Boolean.TRUE.equals(isClosedOrders))
             {
                 // exchange requires a `since` parameter for closed orders, so set default to allowed 365
                 ((Map<String, Object>)request).put("serverCreateTimestampFrom", Helpers.subtract(this.milliseconds(), ((((364L * 24L) * 60L) * 60L) * 1000L)));
@@ -2044,7 +2044,7 @@ public class Cex extends CexApi
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Boolean fromMain = (java.util.Objects.equals(fromAccount, ""));
-            Object targetAccount = ((Helpers.isTrue(fromMain))) ? toAccount : fromAccount;
+            Object targetAccount = ((Boolean.TRUE.equals(fromMain))) ? toAccount : fromAccount;
             String guid = this.safeString(parameters, "guid", this.uuid());
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
@@ -2053,7 +2053,7 @@ public class Cex extends CexApi
                 put( "clientTxId", guid );
             }};
             Object response = null;
-            if (Helpers.isTrue(fromMain))
+            if (Boolean.TRUE.equals(fromMain))
             {
                 response = (this.privatePostDoDepositFundsFromWallet(this.extend(request, parameters))).join();
             } else

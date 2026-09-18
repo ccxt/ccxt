@@ -2411,7 +2411,7 @@ public class Upbit extends UpbitApi
             {
                 Object trade = Helpers.GetValue(trades, i);
                 cost = Precise.stringAdd(cost, this.safeString(trade, "cost"));
-                if (Helpers.isTrue(getFeesFromTrades))
+                if (Boolean.TRUE.equals(getFeesFromTrades))
                 {
                     Object tradeFee = this.safeValue(Helpers.GetValue(trades, i), "fee", new HashMap<String, Object>() {{}});
                     String tradeFeeCost = this.safeString(tradeFee, "cost");

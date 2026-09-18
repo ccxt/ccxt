@@ -2014,7 +2014,7 @@ public class Lbank extends LbankApi
             Boolean ioc = (java.util.Objects.equals(timeInForce, "IOC"));
             Boolean fok = (java.util.Objects.equals(timeInForce, "FOK"));
             Boolean maker = ((java.util.Objects.equals(postOnly, true)) || (java.util.Objects.equals(timeInForce, "PO")));
-            if ((java.util.Objects.equals(type, "market")) && (Helpers.isTrue(ioc) || Helpers.isTrue(fok) || Helpers.isTrue(maker)))
+            if ((java.util.Objects.equals(type, "market")) && (Boolean.TRUE.equals(ioc) || Boolean.TRUE.equals(fok) || Boolean.TRUE.equals(maker)))
             {
                 throw new InvalidOrder((this.id + " createOrder () does not allow market FOK, IOC, or postOnly orders. Only limit IOC, FOK, and postOnly orders are allowed")) ;
             }
@@ -2023,13 +2023,13 @@ public class Lbank extends LbankApi
                 ((Map<String, Object>)request).put("type", side);
                 ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
                 ((Map<String, Object>)request).put("amount", this.amountToPrecision(symbol, amount));
-                if (Helpers.isTrue(ioc))
+                if (Boolean.TRUE.equals(ioc))
                 {
                     ((Map<String, Object>)request).put("type", (Helpers.add(side, "_") + "ioc"));
-                } else if (Helpers.isTrue(fok))
+                } else if (Boolean.TRUE.equals(fok))
                 {
                     ((Map<String, Object>)request).put("type", (Helpers.add(side, "_") + "fok"));
-                } else if (Helpers.isTrue(maker))
+                } else if (Boolean.TRUE.equals(maker))
                 {
                     ((Map<String, Object>)request).put("type", (Helpers.add(side, "_") + "maker"));
                 }
@@ -2052,7 +2052,7 @@ public class Lbank extends LbankApi
                     if (!java.util.Objects.equals(cost, null))
                     {
                         quoteAmount = this.costToPrecision(symbol, cost);
-                    } else if (Helpers.isTrue(createMarketBuyOrderRequiresPrice))
+                    } else if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
                     {
                         if (java.util.Objects.equals(price, null))
                         {

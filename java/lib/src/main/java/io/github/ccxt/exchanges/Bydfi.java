@@ -1071,7 +1071,7 @@ public class Bydfi extends BydfiApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, maxLimit);
             }
@@ -1565,12 +1565,12 @@ public class Bydfi extends BydfiApi
         String trailingPercent = this.safeString(parameters, "trailingPercent");
         Boolean isTailingStopOrder = (!java.util.Objects.equals(trailingPercent, null));
         String stopPrice = null;
-        if (Helpers.isTrue(isStopLossOrder) || Helpers.isTrue(isTakeProfitOrder))
+        if (Boolean.TRUE.equals(isStopLossOrder) || Boolean.TRUE.equals(isTakeProfitOrder))
         {
-            stopPrice = ((Helpers.isTrue(isStopLossOrder))) ? stopLossPrice : takeProfitPrice;
+            stopPrice = ((Boolean.TRUE.equals(isStopLossOrder))) ? stopLossPrice : takeProfitPrice;
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLossPrice", "takeProfitPrice")));
             ((Map<String, Object>)request).put("stopPrice", this.priceToPrecision(symbol, stopPrice));
-        } else if (Helpers.isTrue(isTailingStopOrder))
+        } else if (Boolean.TRUE.equals(isTailingStopOrder))
         {
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trailingPercent")));
             ((Map<String, Object>)request).put("callbackRate", trailingPercent);
@@ -1586,17 +1586,17 @@ public class Bydfi extends BydfiApi
         }
         type = ((String)type).toUpperCase();
         Boolean isMarketOrder = ((java.util.Objects.equals(type, "MARKET")) || (java.util.Objects.equals(type, "STOP_MARKET")) || (java.util.Objects.equals(type, "TAKE_PROFIT_MARKET")) || (java.util.Objects.equals(type, "TRAILING_STOP_MARKET")));
-        if (Helpers.isTrue(isMarketOrder))
+        if (Boolean.TRUE.equals(isMarketOrder))
         {
             if (java.util.Objects.equals(type, "MARKET"))
             {
-                if (Helpers.isTrue(isStopLossOrder))
+                if (Boolean.TRUE.equals(isStopLossOrder))
                 {
                     type = "STOP_MARKET";
-                } else if (Helpers.isTrue(isTakeProfitOrder))
+                } else if (Boolean.TRUE.equals(isTakeProfitOrder))
                 {
                     type = "TAKE_PROFIT_MARKET";
-                } else if (Helpers.isTrue(isTailingStopOrder))
+                } else if (Boolean.TRUE.equals(isTailingStopOrder))
                 {
                     type = "TRAILING_STOP_MARKET";
                 }
@@ -1608,10 +1608,10 @@ public class Bydfi extends BydfiApi
                 throw new ArgumentsRequired((((this.id + " createOrder() requires a price argument for a ") + type) + " order")) ;
             }
             ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
-            if (Helpers.isTrue(isStopLossOrder))
+            if (Boolean.TRUE.equals(isStopLossOrder))
             {
                 type = "STOP";
-            } else if (Helpers.isTrue(isTakeProfitOrder))
+            } else if (Boolean.TRUE.equals(isTakeProfitOrder))
             {
                 type = "TAKE_PROFIT";
             }
@@ -1622,7 +1622,7 @@ public class Bydfi extends BydfiApi
         hedged = ((List<Object>) hedgedparametersVariable).get(0);
         parameters = ((List<Object>) hedgedparametersVariable).get(1);
         Object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
-        if (Helpers.isTrue(hedged))
+        if (Boolean.TRUE.equals(hedged))
         {
             parameters = this.omit(parameters, "reduceOnly");
             if (java.util.Objects.equals(side, "buy"))
@@ -1647,7 +1647,7 @@ public class Bydfi extends BydfiApi
         List<Object> postOnlyparametersVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(timeInForce, "POST_ONLY"), parameters);
         postOnly = (Boolean) ((List<Object>) postOnlyparametersVariable).get(0);
         parameters = ((List<Object>) postOnlyparametersVariable).get(1);
-        if (Helpers.isTrue(postOnly))
+        if (Boolean.TRUE.equals(postOnly))
         {
             timeInForce = "POST_ONLY";
         }
@@ -1656,7 +1656,7 @@ public class Bydfi extends BydfiApi
             ((Map<String, Object>)request).put("timeInForce", timeInForce);
             parameters = this.omit(parameters, "timeInForce");
         }
-        if (Helpers.isTrue(isStopLossOrder) || Helpers.isTrue(isTakeProfitOrder) || Helpers.isTrue(isTailingStopOrder))
+        if (Boolean.TRUE.equals(isStopLossOrder) || Boolean.TRUE.equals(isTakeProfitOrder) || Boolean.TRUE.equals(isTailingStopOrder))
         {
             Object workingType = "CONTRACT_PRICE";
             List<Object> workingTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "triggerPriceType", workingType);
@@ -1979,7 +1979,7 @@ public class Bydfi extends BydfiApi
             List<Object> triggerparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "trigger", trigger);
             trigger = ((List<Object>) triggerparametersVariable).get(0);
             parameters = ((List<Object>) triggerparametersVariable).get(1);
-            if (!Helpers.isTrue(trigger))
+            if (!Boolean.TRUE.equals(trigger))
             {
                 //
                 //     {
@@ -2075,7 +2075,7 @@ public class Bydfi extends BydfiApi
             List<Object> triggerparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrder", "trigger", trigger);
             trigger = ((List<Object>) triggerparametersVariable).get(0);
             parameters = ((List<Object>) triggerparametersVariable).get(1);
-            if (!Helpers.isTrue(trigger))
+            if (!Boolean.TRUE.equals(trigger))
             {
                 response = (this.privateGetV1FapiTradeOpenOrder(this.extend(request, parameters))).join();
             } else
@@ -2353,8 +2353,8 @@ public class Bydfi extends BydfiApi
             put( "side", Bydfi.this.safeStringLower(order, "side") );
             put( "price", Bydfi.this.safeString(order, "price") );
             put( "triggerPrice", stopPrice );
-            put( "stopLossPrice", ((Helpers.isTrue(isStopLossOrder))) ? stopPrice : null );
-            put( "takeProfitPrice", ((Helpers.isTrue(isTakeProfitOrder))) ? stopPrice : null );
+            put( "stopLossPrice", ((Boolean.TRUE.equals(isStopLossOrder))) ? stopPrice : null );
+            put( "takeProfitPrice", ((Boolean.TRUE.equals(isTakeProfitOrder))) ? stopPrice : null );
             put( "amount", Bydfi.this.safeString(order, "origQty") );
             put( "filled", Bydfi.this.safeString(order, "executedQty") );
             put( "remaining", null );
@@ -2688,7 +2688,7 @@ public class Bydfi extends BydfiApi
         }
         String contractSize = this.safeString(market, "contractSize");
         String contracts = this.safeString2(position, "volume", "openPositionVolume");
-        if (!Helpers.isTrue(isFetchPositionsHistory))
+        if (!Boolean.TRUE.equals(isFetchPositionsHistory))
         {
             // in fetchPositions, the 'volume' is in base currency units, need to convert to contracts
             contracts = Precise.stringDiv(contracts, contractSize);

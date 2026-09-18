@@ -637,7 +637,7 @@ public class Onetrading extends OnetradingApi
         String type = this.safeString(market, "type");
         Boolean isPerp = java.util.Objects.equals(type, "PERP");
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
-        if (Helpers.isTrue(isPerp))
+        if (Boolean.TRUE.equals(isPerp))
         {
             symbol = Helpers.add((symbol + ":"), quote);
         }
@@ -649,21 +649,21 @@ public class Onetrading extends OnetradingApi
             put( "symbol", finalSymbol );
             put( "base", finalBase );
             put( "quote", quote );
-            put( "settle", ((Helpers.isTrue(isPerp))) ? quote : null );
+            put( "settle", ((Boolean.TRUE.equals(isPerp))) ? quote : null );
             put( "baseId", baseId );
             put( "quoteId", quoteId );
-            put( "settleId", ((Helpers.isTrue(isPerp))) ? quoteId : null );
-            put( "type", ((Helpers.isTrue(isPerp))) ? "swap" : "spot" );
-            put( "spot", !Helpers.isTrue(isPerp) );
+            put( "settleId", ((Boolean.TRUE.equals(isPerp))) ? quoteId : null );
+            put( "type", ((Boolean.TRUE.equals(isPerp))) ? "swap" : "spot" );
+            put( "spot", !Boolean.TRUE.equals(isPerp) );
             put( "margin", false );
             put( "swap", isPerp );
             put( "future", false );
             put( "option", false );
             put( "active", (java.util.Objects.equals(finalState, "ACTIVE")) );
             put( "contract", isPerp );
-            put( "linear", ((Helpers.isTrue(isPerp))) ? true : null );
-            put( "inverse", ((Helpers.isTrue(isPerp))) ? false : null );
-            put( "contractSize", ((Helpers.isTrue(isPerp))) ? Onetrading.this.parseNumber("1") : null );
+            put( "linear", ((Boolean.TRUE.equals(isPerp))) ? true : null );
+            put( "inverse", ((Boolean.TRUE.equals(isPerp))) ? false : null );
+            put( "contractSize", ((Boolean.TRUE.equals(isPerp))) ? Onetrading.this.parseNumber("1") : null );
             put( "expiry", null );
             put( "expiryDatetime", null );
             put( "strike", null );
@@ -1630,7 +1630,7 @@ public class Onetrading extends OnetradingApi
             {
                 throw new ArgumentsRequired((((this.id + " createOrder() requires a triggerPrice param for ") + type) + " orders")) ;
             }
-            if (Helpers.isTrue(priceIsRequired))
+            if (Boolean.TRUE.equals(priceIsRequired))
             {
                 ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
             }

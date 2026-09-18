@@ -579,7 +579,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 Object linear = null;
                 Object inverse = null;
                 Object expiry = null;
-                if (!Helpers.isTrue(index))
+                if (!Boolean.TRUE.equals(index))
                 {
                     linear = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(marketType, "_vanilla"), 0));
                     inverse = !Helpers.isTrue(linear);
@@ -605,9 +605,9 @@ public class Krakenfutures extends KrakenfuturesApi
                 String cvtp = this.safeString(market, "contractValueTradePrecision");
                 Object amountPrecision = this.parseNumber(this.integerPrecisionToAmount(cvtp));
                 Double pricePrecision = this.safeNumber(market, "tickSize");
-                Boolean contract = (Helpers.isTrue(swap) || Helpers.isTrue(future) || Helpers.isTrue(index));
-                Boolean swapOrFutures = (Helpers.isTrue(swap) || Helpers.isTrue(future));
-                if (Helpers.isTrue(swapOrFutures))
+                Boolean contract = (Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(future) || Boolean.TRUE.equals(index));
+                Boolean swapOrFutures = (Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(future));
+                if (Boolean.TRUE.equals(swapOrFutures))
                 {
                     String exchangeType = this.safeString(market, "type");
                     if (java.util.Objects.equals(exchangeType, "futures_inverse"))
@@ -623,7 +623,7 @@ public class Krakenfutures extends KrakenfuturesApi
                     }
                     linear = !Helpers.isTrue(inverse);
                     symbol = Helpers.add((Helpers.add(Helpers.add(base, "/"), quote) + ":"), settle);
-                    if (Helpers.isTrue(future))
+                    if (Boolean.TRUE.equals(future))
                     {
                         symbol = ((symbol + "-") + this.yymmdd(expiry));
                     }
@@ -1117,7 +1117,7 @@ public class Krakenfutures extends KrakenfuturesApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 2000)).join();
             }
@@ -1224,7 +1224,7 @@ public class Krakenfutures extends KrakenfuturesApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, parameters)).join();
             }
@@ -1238,7 +1238,7 @@ public class Krakenfutures extends KrakenfuturesApi
             parameters = ((List<Object>) methodparametersVariable).get(1);
             Object rawTrades = new ArrayList<Object>(Arrays.asList());
             Boolean isFullHistoryEndpoint = (java.util.Objects.equals(method, "historyGetMarketSymbolExecutions"));
-            if (Helpers.isTrue(isFullHistoryEndpoint))
+            if (Boolean.TRUE.equals(isFullHistoryEndpoint))
             {
                 List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("before", request, parameters);
                 request = ((List<Object>) requestparametersVariable).get(0);
@@ -1473,7 +1473,7 @@ public class Krakenfutures extends KrakenfuturesApi
             }
         }
         Boolean isHistoricalExecution = (((Map<?, ?>)trade).containsKey("takerOrder"));
-        if (Helpers.isTrue(isHistoricalExecution))
+        if (Boolean.TRUE.equals(isHistoricalExecution))
         {
             timestamp = (Long) this.safeInteger(trade, "timestamp");
             Map<String, Object> taker = (Map<String, Object>) this.safeDict(trade, "takerOrder", new HashMap<String, Object>() {{}});
@@ -1551,7 +1551,7 @@ public class Krakenfutures extends KrakenfuturesApi
         List<Object> postOnlyparametersVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), java.util.Objects.equals(type, "post"), parameters);
         postOnly = (Boolean) ((List<Object>) postOnlyparametersVariable).get(0);
         parameters = ((List<Object>) postOnlyparametersVariable).get(1);
-        if (Helpers.isTrue(postOnly))
+        if (Boolean.TRUE.equals(postOnly))
         {
             type = "post";
         } else if (java.util.Objects.equals(timeInForce, "ioc"))
@@ -1582,25 +1582,25 @@ public class Krakenfutures extends KrakenfuturesApi
         String takeProfitTriggerPrice = this.safeString(parameters, "takeProfitPrice");
         Boolean isStopLossTriggerOrder = !java.util.Objects.equals(stopLossTriggerPrice, null);
         Boolean isTakeProfitTriggerOrder = !java.util.Objects.equals(takeProfitTriggerPrice, null);
-        Boolean isStopLossOrTakeProfitTrigger = Helpers.isTrue(isStopLossTriggerOrder) || Helpers.isTrue(isTakeProfitTriggerOrder);
+        Boolean isStopLossOrTakeProfitTrigger = Boolean.TRUE.equals(isStopLossTriggerOrder) || Boolean.TRUE.equals(isTakeProfitTriggerOrder);
         String triggerSignal = this.safeString(parameters, "triggerSignal", "last");
         Object reduceOnly = this.safeValue(parameters, "reduceOnly");
-        if (Helpers.isTrue(isStopLossOrTakeProfitTrigger) || Helpers.isTrue(isTriggerOrder))
+        if (Boolean.TRUE.equals(isStopLossOrTakeProfitTrigger) || Boolean.TRUE.equals(isTriggerOrder))
         {
             ((Map<String, Object>)request).put("triggerSignal", triggerSignal);
         }
-        if (Helpers.isTrue(isTriggerOrder))
+        if (Boolean.TRUE.equals(isTriggerOrder))
         {
             type = "stp";
             ((Map<String, Object>)request).put("stopPrice", this.priceToPrecision(symbol, triggerPrice));
-        } else if (Helpers.isTrue(isStopLossOrTakeProfitTrigger))
+        } else if (Boolean.TRUE.equals(isStopLossOrTakeProfitTrigger))
         {
             reduceOnly = true;
-            if (Helpers.isTrue(isStopLossTriggerOrder))
+            if (Boolean.TRUE.equals(isStopLossTriggerOrder))
             {
                 type = "stp";
                 ((Map<String, Object>)request).put("stopPrice", this.priceToPrecision(symbol, stopLossTriggerPrice));
-            } else if (Helpers.isTrue(isTakeProfitTriggerOrder))
+            } else if (Boolean.TRUE.equals(isTakeProfitTriggerOrder))
             {
                 type = "take_profit";
                 ((Map<String, Object>)request).put("stopPrice", this.priceToPrecision(symbol, takeProfitTriggerPrice));
@@ -1614,12 +1614,12 @@ public class Krakenfutures extends KrakenfuturesApi
         price = this.parseNumber(price); // some callers pass null instead of undefined, normalize it
         Boolean isLimitOrder = (java.util.Objects.equals(type, "lmt")) || (java.util.Objects.equals(type, "post")) || (java.util.Objects.equals(type, "ioc"));
         String limitPriceParam = this.safeString(parameters, "limitPrice"); // the venue's own field name, forwarded as-is by this.extend below
-        if (Helpers.isTrue(isLimitOrder) && (java.util.Objects.equals(price, null)) && (java.util.Objects.equals(limitPriceParam, null)))
+        if (Boolean.TRUE.equals(isLimitOrder) && (java.util.Objects.equals(price, null)) && (java.util.Objects.equals(limitPriceParam, null)))
         {
             throw new ArgumentsRequired((((this.id + " createOrder () requires a price argument for ") + type) + " orders")) ;
         }
         Boolean isMarketOrder = (java.util.Objects.equals(type, "mkt"));
-        if ((!java.util.Objects.equals(price, null)) && !Helpers.isTrue(isMarketOrder))
+        if ((!java.util.Objects.equals(price, null)) && !Boolean.TRUE.equals(isMarketOrder))
         {
             ((Map<String, Object>)request).put("limitPrice", this.priceToPrecision(symbol, price));
         }
@@ -2328,7 +2328,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 {
                     Map<String, Object> innerOrder = (Map<String, Object>) this.safeDict(orderPlaced, "order", new HashMap<String, Object>() {{}});
                     String filled = this.safeString(innerOrder, "filled");
-                    if (java.util.Objects.equals(filled, "0") || Helpers.isTrue(isCancelledTriggerOrder))
+                    if (java.util.Objects.equals(filled, "0") || Boolean.TRUE.equals(isCancelledTriggerOrder))
                     {
                         ((Map<String, Object>)innerOrder).put("status", "canceled"); // status not available in the response
                         ((List<Object>)canceledAndRejected).add(innerOrder);
@@ -2810,7 +2810,7 @@ public class Krakenfutures extends KrakenfuturesApi
                     {
                         isPrior = false;
                         fixedVar = true;
-                    } else if (!Helpers.isTrue(fixedVar))
+                    } else if (!Boolean.TRUE.equals(fixedVar))
                     {
                         String executedPrice = this.safeString(item, "price");
                         Object orderPriorExecution = this.safeValue(item, "orderPriorExecution");
@@ -2867,12 +2867,12 @@ public class Krakenfutures extends KrakenfuturesApi
                 vwapSum = ((String)Precise.stringAdd(vwapSum, Precise.stringMul(tradeAmount, tradePrice)));
             }
             average = Precise.stringDiv(vwapSum, filled2);
-            if ((!java.util.Objects.equals(amount, null)) && Helpers.isTrue((!Helpers.isTrue(isClosed))) && Helpers.isTrue(isPrior) && Helpers.isTrue(Precise.stringGe(filled2, amount)))
+            if ((!java.util.Objects.equals(amount, null)) && Helpers.isTrue((!Boolean.TRUE.equals(isClosed))) && Boolean.TRUE.equals(isPrior) && Helpers.isTrue(Precise.stringGe(filled2, amount)))
             {
                 status = "closed";
                 isClosed = true;
             }
-            if (Helpers.isTrue(isPrior))
+            if (Boolean.TRUE.equals(isPrior))
             {
                 filled = ((String)Precise.stringAdd(filled, filled2));
             } else
@@ -2882,7 +2882,7 @@ public class Krakenfutures extends KrakenfuturesApi
         }
         if (java.util.Objects.equals(remaining, null))
         {
-            if (Helpers.isTrue(isPrior))
+            if (Boolean.TRUE.equals(isPrior))
             {
                 if (!java.util.Objects.equals(amount, null))
                 {
@@ -2895,7 +2895,7 @@ public class Krakenfutures extends KrakenfuturesApi
             }
         }
         // if fetchOpenOrders are parsed
-        if ((java.util.Objects.equals(amount, null)) && Helpers.isTrue((!Helpers.isTrue(isPrior))) && (!java.util.Objects.equals(remaining, null)))
+        if ((java.util.Objects.equals(amount, null)) && Helpers.isTrue((!Boolean.TRUE.equals(isPrior))) && (!java.util.Objects.equals(remaining, null)))
         {
             amount = Precise.stringAdd(filled, remaining);
         }
@@ -3577,11 +3577,11 @@ public class Krakenfutures extends KrakenfuturesApi
                 continue;
             }
             Object account = this.account();
-            if (Helpers.isTrue(isFlex))
+            if (Boolean.TRUE.equals(isFlex))
             {
                 Helpers.addElementToObject(account, "total", this.safeString(balance, "quantity"));
                 Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
-            } else if (Helpers.isTrue(isCash))
+            } else if (Boolean.TRUE.equals(isCash))
             {
                 Helpers.addElementToObject(account, "used", "0.0");
                 Helpers.addElementToObject(account, "total", balance);

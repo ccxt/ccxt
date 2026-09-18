@@ -241,7 +241,7 @@ public class TestMain extends BaseTest
                 Object key = Helpers.GetValue(settingKeys, i);
                 Object settingValue = Helpers.GetValue(exchangeSettings, key);
                 Boolean settingIsEmpty = (java.util.Objects.equals(settingValue, null)) || (java.util.Objects.equals(settingValue, null)) || (java.util.Objects.equals(settingValue, "")) || (java.util.Objects.equals(settingValue, false)) || (Helpers.isEqual(settingValue, 0));
-                if (!Helpers.isTrue(settingIsEmpty))
+                if (!Boolean.TRUE.equals(settingIsEmpty))
                 {
                     Object finalValue = null;
                     if (Helpers.isTrue(exchange.isDictionary(Helpers.GetValue(exchangeSettings, key))))
@@ -321,16 +321,16 @@ public class TestMain extends BaseTest
             Boolean isConstructorTest = (java.util.Objects.equals(methodName, "afterConstruct"));
             Boolean isFeatureTest = (java.util.Objects.equals(methodName, "features"));
             // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in base exchange)
-            if (!Helpers.isTrue(isPublic) && (Helpers.inOp(this.checkedPublicTests, methodName)) && !Helpers.isTrue(isFetchCurrencies))
+            if (!Helpers.isTrue(isPublic) && (Helpers.inOp(this.checkedPublicTests, methodName)) && !Boolean.TRUE.equals(isFetchCurrencies))
             {
                 return true;
             }
             String skipMessage = null;
             Boolean supportedByExchange = (Helpers.inOp(exchange.has, methodName)) && (!java.util.Objects.equals(Helpers.GetValue(exchange.has, methodName), null)) && (!java.util.Objects.equals(Helpers.GetValue(exchange.has, methodName), false));
-            if (!Helpers.isTrue(isLoadMarkets) && ((((List<?>)this.onlySpecificTests).size() > 0) && (!java.util.Objects.equals(exchange.inArray(methodName, this.onlySpecificTests), true))))
+            if (!Boolean.TRUE.equals(isLoadMarkets) && ((((List<?>)this.onlySpecificTests).size() > 0) && (!java.util.Objects.equals(exchange.inArray(methodName, this.onlySpecificTests), true))))
             {
                 skipMessage = "[INFO] IGNORED_TEST";
-            } else if (!Helpers.isTrue(isLoadMarkets) && !Helpers.isTrue(supportedByExchange) && !Helpers.isTrue(isProxyTest) && !Helpers.isTrue(isFeatureTest) && !Helpers.isTrue(isConstructorTest))
+            } else if (!Boolean.TRUE.equals(isLoadMarkets) && !Boolean.TRUE.equals(supportedByExchange) && !Boolean.TRUE.equals(isProxyTest) && !Boolean.TRUE.equals(isFeatureTest) && !Boolean.TRUE.equals(isConstructorTest))
             {
                 skipMessage = "[INFO] UNSUPPORTED_TEST"; // keep it aligned with the longest message
             } else if ((skippedPropertiesForMethod instanceof String))
@@ -345,7 +345,7 @@ public class TestMain extends BaseTest
             // (not gated on `--info`) because run-tests.js diffs them on RUNTEST_TIMED_OUT to
             // report which method(s) were still running when the per-exchange timeout fired
             // exceptionally for `loadMarkets` call, we call it before it's even checked for "skip" as we need it to be called anyway (but can skip "test.loadMarket" for it)
-            if (Helpers.isTrue(isLoadMarkets))
+            if (Boolean.TRUE.equals(isLoadMarkets))
             {
                 dump(this.addPadding("[INFO] TESTING", 25), name, methodName);
                 ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "loadMarkets", new Object[]{true})).join();
@@ -474,7 +474,7 @@ public class TestMain extends BaseTest
                     Boolean isNotSupported = (Helpers.isInstance(e, NotSupported.class));
                     Boolean isOperationFailed = (Helpers.isInstance(e, OperationFailed.class)); // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "OperationFailed", "InvalidNonce", ...
                     Object lastUrlMsg = ((Helpers.isTrue(this.wsTests))) ? "" : ((" (Last url: " + this.getLastRequestUrl(exchange)) + " )");
-                    if (Helpers.isTrue(isOperationFailed))
+                    if (Boolean.TRUE.equals(isOperationFailed))
                     {
                         // if last retry was gone with same `tempFailure` error, then let's eventually return false
                         if (Helpers.isEqual(i, Helpers.subtract(maxRetries, 1)))
@@ -483,12 +483,12 @@ public class TestMain extends BaseTest
                             Boolean isExchangeNotAvailable = (Helpers.isInstance(e, ExchangeNotAvailable.class));
                             Object shouldFail = null;
                             Object retSuccess = null;
-                            if (Helpers.isTrue(isLoadMarkets))
+                            if (Boolean.TRUE.equals(isLoadMarkets))
                             {
                                 // if "loadMarkets" does not succeed, we must return "false" to caller method, to stop tests continual
                                 retSuccess = false;
                                 // we might not break exchange tests, if exchange is on maintenance at this moment
-                                if (Helpers.isTrue(isOnMaintenance))
+                                if (Boolean.TRUE.equals(isOnMaintenance))
                                 {
                                     shouldFail = false;
                                 } else
@@ -498,7 +498,7 @@ public class TestMain extends BaseTest
                             } else
                             {
                                 // for any other method tests:
-                                if (Helpers.isTrue(isExchangeNotAvailable) && !Helpers.isTrue(isOnMaintenance))
+                                if (Boolean.TRUE.equals(isExchangeNotAvailable) && !Boolean.TRUE.equals(isOnMaintenance))
                                 {
                                     // break exchange tests if "ExchangeNotAvailable" exception is thrown, but it's not maintenance
                                     shouldFail = true;
@@ -523,14 +523,14 @@ public class TestMain extends BaseTest
                     } else
                     {
                         // if it's loadMarkets, then fail test, because it's mandatory for tests
-                        if (Helpers.isTrue(isLoadMarkets))
+                        if (Boolean.TRUE.equals(isLoadMarkets))
                         {
                             dump("[TEST_FAILURE]", exchange.id, methodName, argsStringified, lastUrlMsg, "Exchange can not load markets", exceptionMessage(e));
                             return false;
                         }
                         // if the specific arguments to the test method throws "NotSupported" exception
                         // then let's don't fail the test
-                        if (Helpers.isTrue(isNotSupported))
+                        if (Boolean.TRUE.equals(isNotSupported))
                         {
                             if (Helpers.isTrue(this.info))
                             {
@@ -539,7 +539,7 @@ public class TestMain extends BaseTest
                             return true;
                         }
                         // If public test faces authentication error, we don't break (see comments under `testSafe` method)
-                        if (Helpers.isTrue(isPublic) && Helpers.isTrue(isAuthError))
+                        if (Helpers.isTrue(isPublic) && Boolean.TRUE.equals(isAuthError))
                         {
                             if (Helpers.isTrue(this.info))
                             {
@@ -903,7 +903,7 @@ public class TestMain extends BaseTest
                     Boolean sameType = Helpers.isEqual(exchange.safeString(market, "type"), marketType);
                     Boolean sameQuote = Helpers.isEqual(exchange.safeString(market, "quote"), quote);
                     Boolean sameSettle = Helpers.isEqual(exchange.safeString(market, "settle"), settle);
-                    if ((java.util.Objects.equals(isActive, true)) && Helpers.isTrue(sameType) && Helpers.isTrue(sameQuote) && Helpers.isTrue(sameSettle))
+                    if ((java.util.Objects.equals(isActive, true)) && Boolean.TRUE.equals(sameType) && Boolean.TRUE.equals(sameQuote) && Boolean.TRUE.equals(sameSettle))
                     {
                         Object ticker = exchange.safeDict(tickers, tickerSymbol, new HashMap<String, Object>() {{}});
                         Object volume = this.getTickerVolume(exchange, ticker);
@@ -963,7 +963,7 @@ public class TestMain extends BaseTest
                 }
             } else
             {
-                if (Helpers.isTrue(hasSpot))
+                if (Boolean.TRUE.equals(hasSpot))
                 {
                     Object primarySymbol = this.getValidSymbol(exchange, true);
                     if (!java.util.Objects.equals(primarySymbol, null))
@@ -972,7 +972,7 @@ public class TestMain extends BaseTest
                         spotSymbols = new ArrayList<Object>(Arrays.asList(primarySymbol, secondarySymbol));
                     }
                 }
-                if (Helpers.isTrue(hasSwap))
+                if (Boolean.TRUE.equals(hasSwap))
                 {
                     Object primarySymbol = this.getValidSymbol(exchange, false);
                     // some exchanges advertise has['swap']=true via describe() but
@@ -1012,7 +1012,7 @@ public class TestMain extends BaseTest
             if (!Helpers.isTrue(this.privateTestOnly))
             {
                 // note, spot & swap tests should run sequentially, because of conflicting `exchange.options['defaultType']` setting
-                if (Helpers.isTrue(hasSpot) && (!java.util.Objects.equals(spotSymbols, null)))
+                if (Boolean.TRUE.equals(hasSpot) && (!java.util.Objects.equals(spotSymbols, null)))
                 {
                     if (Helpers.isTrue(this.info))
                     {
@@ -1021,7 +1021,7 @@ public class TestMain extends BaseTest
                     Helpers.addElementToObject(exchange.options, "defaultType", "spot");
                     (this.runPublicTests(exchange, spotSymbols)).join();
                 }
-                if (Helpers.isTrue(hasSwap) && (!java.util.Objects.equals(swapSymbols, null)))
+                if (Boolean.TRUE.equals(hasSwap) && (!java.util.Objects.equals(swapSymbols, null)))
                 {
                     if (Helpers.isTrue(this.info))
                     {
@@ -1033,12 +1033,12 @@ public class TestMain extends BaseTest
             }
             if (Helpers.isTrue(this.privateTest) || Helpers.isTrue(this.privateTestOnly))
             {
-                if (Helpers.isTrue(hasSpot) && (!java.util.Objects.equals(spotSymbols, null)))
+                if (Boolean.TRUE.equals(hasSpot) && (!java.util.Objects.equals(spotSymbols, null)))
                 {
                     Helpers.addElementToObject(exchange.options, "defaultType", "spot");
                     (this.runPrivateTests(exchange, spotSymbols)).join();
                 }
-                if (Helpers.isTrue(hasSwap) && (!java.util.Objects.equals(swapSymbols, null)))
+                if (Boolean.TRUE.equals(hasSwap) && (!java.util.Objects.equals(swapSymbols, null)))
                 {
                     Helpers.addElementToObject(exchange.options, "defaultType", "swap");
                     (this.runPrivateTests(exchange, swapSymbols)).join();
@@ -1079,12 +1079,12 @@ public class TestMain extends BaseTest
                             break;
                         }
                     }
-                    if (Helpers.isTrue(pinFound))
+                    if (Boolean.TRUE.equals(pinFound))
                     {
                         break;
                     }
                 }
-                if (!Helpers.isTrue(pinFound))
+                if (!Boolean.TRUE.equals(pinFound))
                 {
                     dump("[INFO:MAIN] preferredPredictionOutcome", outcomeSymbol, "not in the live listing (stale pin?) - falling back to market scan");
                     outcomeSymbol = null;
@@ -1374,7 +1374,7 @@ public class TestMain extends BaseTest
                 return true;
             }
             Boolean canCancel = (java.util.Objects.equals(exchange.safeBool(exchange.has, "cancelOrder", false), true)) || (java.util.Objects.equals(exchange.safeBool(exchange.has, "cancelAllOrders", false), true));
-            if (!Helpers.isTrue(canCancel))
+            if (!Boolean.TRUE.equals(canCancel))
             {
                 dump("[INFO] skipping prediction createOrder test", exchange.id, "no cancelOrder/cancelAllOrders");
                 return true;
@@ -1848,7 +1848,7 @@ public class TestMain extends BaseTest
         {
             return true;
         }
-        if (Helpers.isTrue(Helpers.isTrue(exchange.isDictionary(value)) || Helpers.isTrue(Helpers.isArray(value))))
+        if (Helpers.isTrue(Helpers.isTrue(exchange.isDictionary(value)) || (value instanceof List)))
         {
             return false;  // a non-empty container, `!value` is false for containers in js
         }
@@ -1876,7 +1876,7 @@ public class TestMain extends BaseTest
         {
             return true;
         }
-        if (Helpers.isTrue(Helpers.isArray(value)))
+        if ((value instanceof List))
         {
             for (var i = 0; i < ((List<?>)value).size(); i++)
             {
@@ -1993,7 +1993,7 @@ public class TestMain extends BaseTest
                 // top-level wrapper.
                 this.AssertNewAndStoredOutputInner(exchange, skipKeys, newValue, storedValue, strictTypeCheck, key);
             }
-        } else if ((!java.util.Objects.equals(storedOutput, null)) && (!java.util.Objects.equals(newOutput, null)) && Helpers.isTrue(Helpers.isArray(storedOutput)) && Helpers.isTrue((Helpers.isArray(newOutput))))
+        } else if ((!java.util.Objects.equals(storedOutput, null)) && (!java.util.Objects.equals(newOutput, null)) && (storedOutput instanceof List) && (newOutput instanceof List))
         {
             Object storedArrayLength = ((List<?>)storedOutput).size();
             Object newArrayLength = ((List<?>)newOutput).size();
@@ -2029,7 +2029,7 @@ public class TestMain extends BaseTest
                 Boolean isComputedUndefined = (java.util.Objects.equals(sanitizedNewOutput, null));
                 Boolean isStoredUndefined = (java.util.Objects.equals(sanitizedStoredOutput, null));
                 Boolean shouldBeSame = (java.util.Objects.equals(isComputedBool, isStoredBool)) && (java.util.Objects.equals(isComputedString, isStoredString)) && (java.util.Objects.equals(isComputedUndefined, isStoredUndefined));
-                if (!Helpers.isTrue(shouldBeSame) && ((java.util.Objects.equals(this.lang, "PY")) || (java.util.Objects.equals(this.lang, "C#"))) && !Helpers.isTrue(isComputedBool) && !Helpers.isTrue(isStoredBool) && !Helpers.isTrue(isComputedUndefined) && !Helpers.isTrue(isStoredUndefined))
+                if (!Boolean.TRUE.equals(shouldBeSame) && ((java.util.Objects.equals(this.lang, "PY")) || (java.util.Objects.equals(this.lang, "C#"))) && !Boolean.TRUE.equals(isComputedBool) && !Boolean.TRUE.equals(isStoredBool) && !Boolean.TRUE.equals(isComputedUndefined) && !Boolean.TRUE.equals(isStoredUndefined))
                 {
                     // python parses json numbers natively (arbitrary-precision ints), while fixtures
                     // captured under number-quoting store them as strings - compare numerically like C#/GO
@@ -2046,11 +2046,11 @@ public class TestMain extends BaseTest
                     Object storedNumeric = sanitizedStoredOutput;
                     try
                     {
-                        if (Helpers.isTrue(isComputedString))
+                        if (Boolean.TRUE.equals(isComputedString))
                         {
                             computedNumeric = exchange.parseToNumeric(sanitizedNewOutput);
                         }
-                        if (Helpers.isTrue(isStoredString))
+                        if (Boolean.TRUE.equals(isStoredString))
                         {
                             storedNumeric = exchange.parseToNumeric(sanitizedStoredOutput);
                         }
@@ -2059,17 +2059,17 @@ public class TestMain extends BaseTest
                     {
                         isNumber = false;
                     }
-                    if (Helpers.isTrue(isNumber))
+                    if (Boolean.TRUE.equals(isNumber))
                     {
                         this.AssertStaticError(Helpers.isEqual(computedNumeric, storedNumeric), messageError, storedOutput, newOutput, AssertingKey);
                         return true;
                     }
                 }
                 this.AssertStaticError(shouldBeSame, "output type mismatch", storedOutput, newOutput, AssertingKey);
-                Boolean isBoolean = Helpers.isTrue(isComputedBool) || Helpers.isTrue(isStoredBool);
-                Boolean isString = Helpers.isTrue(isComputedString) || Helpers.isTrue(isStoredString);
-                Boolean isUndefined = Helpers.isTrue(isComputedUndefined) || Helpers.isTrue(isStoredUndefined); // undefined is a perfetly valid value
-                if (Helpers.isTrue(isBoolean) || Helpers.isTrue(isString) || Helpers.isTrue(isUndefined))
+                Boolean isBoolean = Boolean.TRUE.equals(isComputedBool) || Boolean.TRUE.equals(isStoredBool);
+                Boolean isString = Boolean.TRUE.equals(isComputedString) || Boolean.TRUE.equals(isStoredString);
+                Boolean isUndefined = Boolean.TRUE.equals(isComputedUndefined) || Boolean.TRUE.equals(isStoredUndefined); // undefined is a perfetly valid value
+                if (Boolean.TRUE.equals(isBoolean) || Boolean.TRUE.equals(isString) || Boolean.TRUE.equals(isUndefined))
                 {
                     if ((java.util.Objects.equals(this.lang, "C#")) || (java.util.Objects.equals(this.lang, "GO")))
                     {
@@ -2084,7 +2084,7 @@ public class TestMain extends BaseTest
                             // if we can't parse it to number, then it's not a number
                             isNumber = false;
                         }
-                        if (Helpers.isTrue(isNumber))
+                        if (Boolean.TRUE.equals(isNumber))
                         {
                             this.AssertStaticError(Helpers.isEqual(exchange.parseToNumeric(sanitizedNewOutput), exchange.parseToNumeric(sanitizedStoredOutput)), messageError, storedOutput, newOutput, AssertingKey);
                             return true;

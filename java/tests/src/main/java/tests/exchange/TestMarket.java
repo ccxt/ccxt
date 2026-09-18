@@ -113,7 +113,7 @@ public class TestMarket extends BaseTest {
             ((List<Object>)emptyAllowedFor).add("optionType");
             ((List<Object>)emptyAllowedFor).add("strike");
         }
-        if (Helpers.isTrue(isInactiveMarket))
+        if (Boolean.TRUE.equals(isInactiveMarket))
         {
             ((List<Object>)emptyAllowedFor).add("contractSize");
             ((List<Object>)emptyAllowedFor).add("settle");
@@ -183,7 +183,7 @@ public class TestMarket extends BaseTest {
         }
         // check mutually exclusive fields
         Boolean isPrediction = (java.util.Objects.equals(((Map<String, Object>)market).get("type"), "prediction"));
-        if (Helpers.isTrue(isPrediction))
+        if (Boolean.TRUE.equals(isPrediction))
         {
             // prediction markets trade outcome shares — neither spot nor a derivative contract
             Assert((!java.util.Objects.equals(spot, true)) && (!java.util.Objects.equals(contract, true)) && (!java.util.Objects.equals(future, true)) && (!java.util.Objects.equals(swap, true)) && (!java.util.Objects.equals(option, true)), ("for prediction market, none of spot/contract/future/swap/option should be set" + logText));
@@ -197,9 +197,9 @@ public class TestMarket extends BaseTest {
         }
         String contractSize = exchange.safeString(market, "contractSize");
         // contract fields
-        if ((java.util.Objects.equals(contract, true)) && !Helpers.isTrue(isInactiveMarket))
+        if ((java.util.Objects.equals(contract, true)) && !Boolean.TRUE.equals(isInactiveMarket))
         {
-            if (Helpers.isTrue(isQuanto))
+            if (Boolean.TRUE.equals(isQuanto))
             {
                 Assert(java.util.Objects.equals(linear, false), ("linear must be false when \"quanto\" is true" + logText));
                 Assert(java.util.Objects.equals(inverse, false), ("inverse must be false when \"quanto\" is true" + logText));
@@ -277,7 +277,7 @@ public class TestMarket extends BaseTest {
             Boolean isNonSpot = !java.util.Objects.equals(spot, true); // such high precision is only allowed in contract markets
             Boolean isPrice = java.util.Objects.equals(priceOrAmountKey, "price");
             Object isTickSize5 = Precise.stringEq("5", exchange.safeString(((Map<String, Object>)market).get("precision"), priceOrAmountKey));
-            if (Helpers.isTrue(isNonSpot) && Helpers.isTrue(isPrice) && Helpers.isTrue(isExclusivePair) && Helpers.isTrue(isTickSize5))
+            if (Boolean.TRUE.equals(isNonSpot) && Boolean.TRUE.equals(isPrice) && Boolean.TRUE.equals(isExclusivePair) && Helpers.isTrue(isTickSize5))
             {
                 continue;
             }
@@ -294,7 +294,7 @@ public class TestMarket extends BaseTest {
         {
             Object key = Helpers.GetValue(limitsKeys, i);
             Object limitEntry = Helpers.GetValue(((Map<String, Object>)market).get("limits"), key);
-            if (Helpers.isTrue(isInactiveMarket))
+            if (Boolean.TRUE.equals(isInactiveMarket))
             {
                 continue;
             } // check limits
@@ -314,7 +314,7 @@ public class TestMarket extends BaseTest {
         }
         // check currencies (skip for prediction markets: the "base" is a tradeable outcome,
         // not a currency, so baseId is the market/outcome id and won't map to a currency code)
-        if (!Helpers.isTrue(isInactiveMarket) && !Helpers.isTrue(isPrediction))
+        if (!Boolean.TRUE.equals(isInactiveMarket) && !Boolean.TRUE.equals(isPrediction))
         {
             TestSharedMethods.AssertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, ((Map<String, Object>)market).get("baseId"), ((Map<String, Object>)market).get("base"));
             TestSharedMethods.AssertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, ((Map<String, Object>)market).get("quoteId"), ((Map<String, Object>)market).get("quote"));

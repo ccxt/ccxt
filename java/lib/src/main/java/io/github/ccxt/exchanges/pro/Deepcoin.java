@@ -257,11 +257,11 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
                 if (java.util.Objects.equals(listenKey, null))
                 {
                     response = (this.privateGetDeepcoinListenkeyAcquire(parameters)).join();
-                } else if (Helpers.isTrue(expired))
+                } else if (Boolean.TRUE.equals(expired))
                 {
                     String method = this.safeString(this.options, "method", "privateGetDeepcoinListenkeyExtend");
                     Boolean getNewKey = (java.util.Objects.equals(method, "privateGetDeepcoinListenkeyAcquire"));
-                    if (Helpers.isTrue(getNewKey))
+                    if (Boolean.TRUE.equals(getNewKey))
                     {
                         response = (this.privateGetDeepcoinListenkeyAcquire(parameters)).join();
                     } else
@@ -494,7 +494,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             Object market = this.market(symbol);
             String messageHash = (("trades" + "::") + ((Map<String, Object>)market).get("symbol"));
             Object trades = (this.watchPublic(market, messageHash, "2", parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
@@ -692,7 +692,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             String messageHash = (((("ohlcv" + "::") + symbol) + "::") + timeframe);
             Object suffix = ("_" + interval);
             Object ohlcv = (this.watchPublic(market, messageHash, "11", parameters, suffix)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
@@ -1079,7 +1079,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
                 messageHash = (messageHash + ("::" + symbol));
             }
             Object trades = (this.watchPrivate(messageHash, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
@@ -1174,7 +1174,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
                 messageHash = (messageHash + ("::" + symbol));
             }
             Object orders = (this.watchPrivate(messageHash, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
@@ -1346,7 +1346,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             }
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private"), "?listenKey="), listenKey);
             Object positions = (this.watchMultiple(url, messageHashes, parameters, new ArrayList<Object>(Arrays.asList("private")), null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 return positions;
             }

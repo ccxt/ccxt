@@ -322,7 +322,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             }};
             Map<String, Object> message = this.extend(request, parameters);
             Object trades = (this.watch(url, messageHash, message, messageHash, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
@@ -558,7 +558,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
                 put( "params", parameters );
             }};
             Object orders = (this.subscribePrivate(subscription, messageHash, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
@@ -642,7 +642,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
                 put( "params", parameters );
             }};
             Object trades = (this.subscribePrivate(subscription, messageHash, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }

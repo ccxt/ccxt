@@ -100,7 +100,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             String subscribeHash = ("l2:" + ((Map<String, Object>)market).get("symbol"));
             Object url = Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "/v2/marketdata");
             Object trades = (this.watch(url, messageHash, request, subscribeHash, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{((Map<String, Object>)market).get("symbol"), limit});
             }
@@ -129,7 +129,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
             Object trades = (this.helperForWatchMultipleConstruct("trades", symbols, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 List<Object> first = (List<Object>) this.safeList(trades, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
@@ -366,7 +366,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             String messageHash = ((("ohlcv:" + ((Map<String, Object>)market).get("symbol")) + ":") + timeframeId);
             Object url = Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "/v2/marketdata");
             Object ohlcv = (this.watch(url, messageHash, request, messageHash, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
@@ -495,7 +495,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
-        } else if (Helpers.isTrue(isInitial))
+        } else if (Boolean.TRUE.equals(isInitial))
         {
             // handle https://github.com/ccxt/ccxt/issues/29210
             if (((Map<?, ?>)this.orderbooks).containsKey(symbol))
@@ -814,7 +814,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             }
             String messageHash = "orders";
             Object orders = (this.watch(url, messageHash, null, messageHash, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
@@ -1028,7 +1028,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         //     ]
         //
         Object isArray = Helpers.isArray(message);
-        if (Helpers.isTrue(isArray))
+        if (Boolean.TRUE.equals(isArray))
         {
             this.handleOrder(client, message);
             return;
@@ -1075,11 +1075,11 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
                 String eventType = this.safeString(eventVar, "type");
                 Boolean isOrderBook = (java.util.Objects.equals(eventType, "change")) && (Helpers.inOp(eventVar, "side")) && Helpers.isTrue(this.inArray(Helpers.GetValue(eventVar, "side"), new ArrayList<Object>(Arrays.asList("ask", "bid"))));
                 String eventReason = this.safeString(eventVar, "reason");
-                Boolean isBidAsk = (java.util.Objects.equals(eventReason, "top-of-book")) || (Helpers.isTrue(isOrderBook) && (java.util.Objects.equals(eventReason, "initial")) && Helpers.isEqual(eventsLength, 2));
-                if (Helpers.isTrue(isBidAsk))
+                Boolean isBidAsk = (java.util.Objects.equals(eventReason, "top-of-book")) || (Boolean.TRUE.equals(isOrderBook) && (java.util.Objects.equals(eventReason, "initial")) && Helpers.isEqual(eventsLength, 2));
+                if (Boolean.TRUE.equals(isBidAsk))
                 {
                     ((List<Object>)bidaskItems).add(eventVar);
-                } else if (Helpers.isTrue(isOrderBook))
+                } else if (Boolean.TRUE.equals(isOrderBook))
                 {
                     ((List<Object>)orderBookItems).add(eventVar);
                 } else if (java.util.Objects.equals(eventType, "trade"))

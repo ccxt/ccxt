@@ -379,7 +379,7 @@ public class Zebpay extends ZebpayApi
             Boolean isSpot = (java.util.Objects.equals(type, "spot"));
             Object response = null;
             Object data = new HashMap<String, Object>() {{}};
-            if (Helpers.isTrue(isSpot))
+            if (Boolean.TRUE.equals(isSpot))
             {
                 response = (this.publicSpotGetV2SystemStatus(parameters)).join();
                 data = response;
@@ -434,7 +434,7 @@ public class Zebpay extends ZebpayApi
             Boolean isSpot = (java.util.Objects.equals(type, "spot"));
             Object response = null;
             Object data = new HashMap<String, Object>() {{}};
-            if (Helpers.isTrue(isSpot))
+            if (Boolean.TRUE.equals(isSpot))
             {
                 response = (this.publicSpotGetV2SystemTime(parameters)).join();
                 data = response;
@@ -572,9 +572,9 @@ public class Zebpay extends ZebpayApi
             String networkId = this.safeString(chain, "chainId");
             Object networkCode = this.networkIdToCode(networkId, code);
             Object depositAllowed = java.util.Objects.equals(this.safeBool(chain, "isDepositEnabled"), true);
-            deposit = ((Helpers.isTrue((depositAllowed)))) ? depositAllowed : deposit;
+            deposit = ((Boolean.TRUE.equals(depositAllowed))) ? depositAllowed : deposit;
             Object withdrawAllowed = java.util.Objects.equals(this.safeBool(chain, "isWithdrawEnabled"), true);
-            withdraw = ((Helpers.isTrue((withdrawAllowed)))) ? withdrawAllowed : withdraw;
+            withdraw = ((Boolean.TRUE.equals(withdrawAllowed))) ? withdrawAllowed : withdraw;
             String withdrawFeeString = this.safeString(chain, "withdrawalFee");
             if (!java.util.Objects.equals(withdrawFeeString, null))
             {
@@ -601,7 +601,7 @@ public class Zebpay extends ZebpayApi
     put( "info", chain );
     put( "id", networkId );
     put( "network", finalNetworkCode );
-    put( "active", Helpers.isTrue(finalDepositAllowed) && Helpers.isTrue(withdrawAllowed) );
+    put( "active", Boolean.TRUE.equals(finalDepositAllowed) && Boolean.TRUE.equals(withdrawAllowed) );
     put( "deposit", finalDepositAllowed );
     put( "withdraw", withdrawAllowed );
     put( "fee", Zebpay.this.parseNumber(finalWithdrawFeeString) );
@@ -1291,7 +1291,7 @@ public class Zebpay extends ZebpayApi
             parameters = ((List<Object>) typeparametersVariable).get(1);
             Boolean isSpot = (java.util.Objects.equals(type, "spot"));
             Object response = null;
-            if (Helpers.isTrue(isSpot))
+            if (Boolean.TRUE.equals(isSpot))
             {
                 response = (this.privateSpotGetV2AccountBalance(parameters)).join();
             } else
@@ -1383,13 +1383,13 @@ public class Zebpay extends ZebpayApi
                 ((Map<String, Object>)request).put("marginAsset", marginAsset);
                 Boolean hasTP = !java.util.Objects.equals(takeProfitPrice, null);
                 Boolean hasSL = !java.util.Objects.equals(stopLossPrice, null);
-                if (Helpers.isTrue(hasTP) || Helpers.isTrue(hasSL))
+                if (Boolean.TRUE.equals(hasTP) || Boolean.TRUE.equals(hasSL))
                 {
-                    if (Helpers.isTrue(hasTP))
+                    if (Boolean.TRUE.equals(hasTP))
                     {
                         ((Map<String, Object>)request).put("takeProfitPrice", this.parseToNumeric(this.priceToPrecision(symbol, takeProfitPrice)));
                     }
-                    if (Helpers.isTrue(hasSL))
+                    if (Boolean.TRUE.equals(hasSL))
                     {
                         ((Map<String, Object>)request).put("stopLossPrice", this.parseToNumeric(this.priceToPrecision(symbol, stopLossPrice)));
                     }
@@ -2421,7 +2421,7 @@ public class Zebpay extends ZebpayApi
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
         parameters = this.omit(parameters, "defaultType");
         Boolean isV1 = Helpers.isGreaterThan(Helpers.getIndexOf(path, "v1/"), Helpers.opNeg(1));
-        String marketType = ((Helpers.isTrue(isV1))) ? "swap" : "spot";
+        String marketType = ((Boolean.TRUE.equals(isV1))) ? "swap" : "spot";
         Object url = Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), marketType);
         String tail = ("/api/" + this.implodeParams(path, parameters));
         url = Helpers.add(url, tail);
@@ -2451,7 +2451,7 @@ public class Zebpay extends ZebpayApi
             this.checkRequiredCredentials();
             Boolean isSpot = java.util.Objects.equals(marketType, "spot");
             ((Map<String, Object>)parameters).put("timestamp", timestamp);
-            if (java.util.Objects.equals(method, "GET") || (java.util.Objects.equals(method, "DELETE") && Helpers.isTrue(isSpot)))
+            if (java.util.Objects.equals(method, "GET") || (java.util.Objects.equals(method, "DELETE") && Boolean.TRUE.equals(isSpot)))
             {
                 // For GET/DELETE: Append params to URL and sign the query string
                 Object queryString = this.urlencode(parameters);

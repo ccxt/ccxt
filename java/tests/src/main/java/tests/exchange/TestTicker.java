@@ -100,7 +100,7 @@ public class TestTicker extends BaseTest {
         // only check "above zero" values if exchange is not supposed to have exotic index markets
         Boolean isStandardMarket = (!java.util.Objects.equals(market, null) && Helpers.isTrue(exchange.inArray(((Map<String, Object>)market).get("type"), new ArrayList<Object>(Arrays.asList("spot", "swap", "future", "option")))));
         Object valuesShouldBePositive = isStandardMarket; // || (market === undefined) atm, no check for index markets
-        if (Helpers.isTrue(valuesShouldBePositive) && !(Helpers.inOp(skippedProperties, "positiveValues")))
+        if (Boolean.TRUE.equals(valuesShouldBePositive) && !(Helpers.inOp(skippedProperties, "positiveValues")))
         {
             TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "open", "0");
             TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "high", "0");
@@ -246,7 +246,7 @@ public class TestTicker extends BaseTest {
             // Assert (low !== undefined, 'vwap is defined, but low is not' + logText);
             // Assert (vwap >= low && vwap <= high)
             // todo: calc compare
-            Assert(!Helpers.isTrue(valuesShouldBePositive) || Helpers.isTrue(Precise.stringGe(vwap, "0")), ("vwap is not greater than zero" + logText));
+            Assert(!Boolean.TRUE.equals(valuesShouldBePositive) || Helpers.isTrue(Precise.stringGe(vwap, "0")), ("vwap is not greater than zero" + logText));
             if (!java.util.Objects.equals(baseVolume, null))
             {
                 Assert(!java.util.Objects.equals(quoteVolume, null), ("baseVolume & vwap is defined, but quoteVolume is not" + logText));
@@ -265,7 +265,7 @@ public class TestTicker extends BaseTest {
         }
         // last price should be within 1% of the bid/ask median price, but let's check only targeted fetchTicker (where tests use major pair like BTC/USDT) to ensure the precision
         String allowedPercentageVariation = "0.01";
-        if (Helpers.isTrue(isFetchTickerCalled) && !java.util.Objects.equals(lastString, null) && !java.util.Objects.equals(bidString, null) && !java.util.Objects.equals(askString, null) && !(Helpers.inOp(skippedProperties, "lastBetweenBidAsk")))
+        if (Boolean.TRUE.equals(isFetchTickerCalled) && !java.util.Objects.equals(lastString, null) && !java.util.Objects.equals(bidString, null) && !java.util.Objects.equals(askString, null) && !(Helpers.inOp(skippedProperties, "lastBetweenBidAsk")))
         {
             String medianPrice = Precise.stringDiv(Precise.stringAdd(bidString, askString), "2");
             String medianLow = Precise.stringMul(medianPrice, Precise.stringSub("1", allowedPercentageVariation));
@@ -281,7 +281,7 @@ public class TestTicker extends BaseTest {
         // intrinsic). the floors stay: a long option cannot lose more than its
         // premium, so percentage >= -100 and change >= -open hold for options too
         Object isOptionMarket = exchange.safeBool(market, "option", false);
-        if (!(Helpers.inOp(skippedProperties, "maxIncrease")) && !Helpers.isTrue(isUnrecognizedSymbol))
+        if (!(Helpers.inOp(skippedProperties, "maxIncrease")) && !Boolean.TRUE.equals(isUnrecognizedSymbol))
         {
             //
             // percentage

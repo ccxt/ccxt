@@ -561,7 +561,7 @@ public class Mudrex extends MudrexApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.privateGetFutures(this.extend(request, parameters))).join();
             Object data = this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object rows = ((Helpers.isTrue(Helpers.isArray(data)))) ? data : this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
+            Object rows = (((data instanceof List))) ? data : this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> resultTickers = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)rows).size(); i++)
             {
@@ -643,7 +643,7 @@ public class Mudrex extends MudrexApi
                 Map<String, Object> response = (this.privateGetFutures(q)).join();
                 Object data = this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList()));
                 Object items = new ArrayList<Object>(Arrays.asList());
-                if ((data instanceof Map) && !Helpers.isTrue(Helpers.isArray(data)))
+                if ((data instanceof Map) && !(data instanceof List))
                 {
                     items = this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
                     // hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
@@ -1121,7 +1121,7 @@ public class Mudrex extends MudrexApi
         String triggerPrice = null;
         String stopLossPrice = null;
         String takeProfitPrice = null;
-        if (Helpers.isTrue(isRiskOrder))
+        if (Boolean.TRUE.equals(isRiskOrder))
         {
             triggerPrice = priceString;
             orderPrice = null;
@@ -1945,7 +1945,7 @@ public class Mudrex extends MudrexApi
                 }
             }
             Object response = null;
-            if (Helpers.isTrue(useInr))
+            if (Boolean.TRUE.equals(useInr))
             {
                 response = (this.privatePostFuturesTransfersInr(this.extend(body, parameters))).join();
             } else

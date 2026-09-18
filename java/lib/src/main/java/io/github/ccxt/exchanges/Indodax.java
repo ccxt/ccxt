@@ -467,7 +467,7 @@ public class Indodax extends IndodaxApi
                     put( "swap", false );
                     put( "future", false );
                     put( "option", false );
-                    put( "active", ((Helpers.isTrue(inMaintenance))) ? false : true );
+                    put( "active", ((Boolean.TRUE.equals(inMaintenance))) ? false : true );
                     put( "contract", false );
                     put( "linear", null );
                     put( "inverse", null );
@@ -1234,7 +1234,7 @@ public class Indodax extends IndodaxApi
                     Helpers.addElementToObject(request, ((String)((Map<String, Object>)market).get("quoteId")), this.parseToNumeric(this.costToPrecision(symbol, Precise.stringMul(this.numberToString(amount), this.numberToString(price)))));
                 }
             }
-            if (Helpers.isTrue(priceIsRequired))
+            if (Boolean.TRUE.equals(priceIsRequired))
             {
                 if (java.util.Objects.equals(price, null))
                 {
@@ -1242,7 +1242,7 @@ public class Indodax extends IndodaxApi
                 }
                 ((Map<String, Object>)request).put("price", price);
             }
-            if (Helpers.isTrue(quantityIsRequired))
+            if (Boolean.TRUE.equals(quantityIsRequired))
             {
                 Helpers.addElementToObject(request, ((String)((Map<String, Object>)market).get("baseId")), this.amountToPrecision(symbol, amount));
             }
@@ -1862,7 +1862,7 @@ public class Indodax extends IndodaxApi
         // or
         // [{ data, ... }, { ... }, ... ]
         // {"success":"1","status":"approved","withdraw_currency":"strm","withdraw_address":"0x2b9A8cd5535D99b419aEfFBF1ae8D90a7eBdb24E","withdraw_amount":"2165.05767839","fee":"21.11000000","amount_after_fee":"2143.94767839","submit_time":"1730759489","withdraw_id":"strm-3423","txid":""}
-        if (Helpers.isTrue(Helpers.isArray(response)))
+        if ((response instanceof List))
         {
             return null;  // public endpoints may return []-arrays
         }

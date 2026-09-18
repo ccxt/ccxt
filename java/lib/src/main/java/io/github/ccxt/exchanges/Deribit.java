@@ -931,7 +931,7 @@ public class Deribit extends DeribitApi
         Object delimiter = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
         Object marketType = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Boolean isOption = (!java.util.Objects.equals(marketId, null)) && (Helpers.isTrue((((String)marketId).endsWith("-C"))) || Helpers.isTrue((((String)marketId).endsWith("-P"))));
-        if (Helpers.isTrue(isOption) && ((java.util.Objects.equals(this.markets_by_id, null)) || !(((Map<?, ?>)this.markets_by_id).containsKey(marketId))))
+        if (Boolean.TRUE.equals(isOption) && ((java.util.Objects.equals(this.markets_by_id, null)) || !(((Map<?, ?>)this.markets_by_id).containsKey(marketId))))
         {
             // handle expired option contracts
             return this.createExpiredOptionMarket(marketId);
@@ -1339,7 +1339,7 @@ public class Deribit extends DeribitApi
                     {
                         throw new ExchangeError((this.id + " method() missing kind")) ;
                     }
-                    Boolean future = !Helpers.isTrue(swap) && (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(kind, "future"), 0));
+                    Boolean future = !Boolean.TRUE.equals(swap) && (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(kind, "future"), 0));
                     if (java.util.Objects.equals(kind, null))
                     {
                         throw new ExchangeError((this.id + " method() missing kind")) ;
@@ -1355,28 +1355,28 @@ public class Deribit extends DeribitApi
                     String optionType = null;
                     Object symbol = id;
                     String type = "swap";
-                    if (Helpers.isTrue(future))
+                    if (Boolean.TRUE.equals(future))
                     {
                         type = "future";
-                    } else if (Helpers.isTrue(option))
+                    } else if (Boolean.TRUE.equals(option))
                     {
                         type = "option";
-                    } else if (Helpers.isTrue(isSpot))
+                    } else if (Boolean.TRUE.equals(isSpot))
                     {
                         type = "spot";
                     }
                     Object inverse = null;
                     Object linear = null;
-                    if (Helpers.isTrue(isSpot))
+                    if (Boolean.TRUE.equals(isSpot))
                     {
                         symbol = Helpers.add(Helpers.add(base, "/"), quote);
-                    } else if (!Helpers.isTrue(isComboMarket))
+                    } else if (!Boolean.TRUE.equals(isComboMarket))
                     {
                         symbol = Helpers.add((Helpers.add(Helpers.add(base, "/"), quote) + ":"), settle);
-                        if (Helpers.isTrue(option) || Helpers.isTrue(future))
+                        if (Boolean.TRUE.equals(option) || Boolean.TRUE.equals(future))
                         {
                             symbol = ((symbol + "-") + this.yymmdd(expiry, ""));
-                            if (Helpers.isTrue(option))
+                            if (Boolean.TRUE.equals(option))
                             {
                                 strike = this.safeNumber(market, "strike");
                                 optionType = this.safeString(market, "option_type");
@@ -1424,7 +1424,7 @@ public class Deribit extends DeribitApi
                         put( "future", future );
                         put( "option", finalOption );
                         put( "active", Deribit.this.safeValue(market, "is_active") );
-                        put( "contract", !Helpers.isTrue(isSpot) );
+                        put( "contract", !Boolean.TRUE.equals(isSpot) );
                         put( "linear", finalLinear );
                         put( "inverse", finalInverse );
                         put( "taker", Deribit.this.safeNumber(market, "taker_commission") );
@@ -1967,7 +1967,7 @@ public class Deribit extends DeribitApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 5000)).join();
             }
@@ -2688,18 +2688,18 @@ public class Deribit extends DeribitApi
             Boolean isStopMarket = java.util.Objects.equals(type, "stop_market");
             Boolean isTakeLimit = java.util.Objects.equals(type, "take_limit");
             Boolean isTakeMarket = java.util.Objects.equals(type, "take_market");
-            Boolean isStopLossOrder = Helpers.isTrue(isStopLimit) || Helpers.isTrue(isStopMarket) || (!java.util.Objects.equals(stopLossPrice, null));
-            Boolean isTakeProfitOrder = Helpers.isTrue(isTakeLimit) || Helpers.isTrue(isTakeMarket) || (!java.util.Objects.equals(takeProfitPrice, null));
-            if (Helpers.isTrue(isStopLossOrder) && Helpers.isTrue(isTakeProfitOrder))
+            Boolean isStopLossOrder = Boolean.TRUE.equals(isStopLimit) || Boolean.TRUE.equals(isStopMarket) || (!java.util.Objects.equals(stopLossPrice, null));
+            Boolean isTakeProfitOrder = Boolean.TRUE.equals(isTakeLimit) || Boolean.TRUE.equals(isTakeMarket) || (!java.util.Objects.equals(takeProfitPrice, null));
+            if (Boolean.TRUE.equals(isStopLossOrder) && Boolean.TRUE.equals(isTakeProfitOrder))
             {
                 throw new InvalidOrder((this.id + " createOrder () only allows one of stopLossPrice or takeProfitPrice to be specified")) ;
             }
-            Boolean isStopOrder = Helpers.isTrue(isStopLossOrder) || Helpers.isTrue(isTakeProfitOrder);
-            Boolean isLimitOrder = (java.util.Objects.equals(type, "limit")) || Helpers.isTrue(isStopLimit) || Helpers.isTrue(isTakeLimit);
-            Boolean isMarketOrder = (java.util.Objects.equals(type, "market")) || Helpers.isTrue(isStopMarket) || Helpers.isTrue(isTakeMarket);
+            Boolean isStopOrder = Boolean.TRUE.equals(isStopLossOrder) || Boolean.TRUE.equals(isTakeProfitOrder);
+            Boolean isLimitOrder = (java.util.Objects.equals(type, "limit")) || Boolean.TRUE.equals(isStopLimit) || Boolean.TRUE.equals(isTakeLimit);
+            Boolean isMarketOrder = (java.util.Objects.equals(type, "market")) || Boolean.TRUE.equals(isStopMarket) || Boolean.TRUE.equals(isTakeMarket);
             Object exchangeSpecificPostOnly = this.safeValue(parameters, "post_only");
             Object postOnly = this.isPostOnly(isMarketOrder, exchangeSpecificPostOnly, parameters);
-            if (Helpers.isTrue(isLimitOrder))
+            if (Boolean.TRUE.equals(isLimitOrder))
             {
                 ((Map<String, Object>)request).put("type", "limit");
                 ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
@@ -2707,19 +2707,19 @@ public class Deribit extends DeribitApi
             {
                 ((Map<String, Object>)request).put("type", "market");
             }
-            if (Helpers.isTrue(isTrailingAmountOrder))
+            if (Boolean.TRUE.equals(isTrailingAmountOrder))
             {
                 ((Map<String, Object>)request).put("trigger", trigger);
                 ((Map<String, Object>)request).put("type", "trailing_stop");
                 ((Map<String, Object>)request).put("trigger_offset", this.parseToNumeric(trailingAmount));
-            } else if (Helpers.isTrue(isStopOrder))
+            } else if (Boolean.TRUE.equals(isStopOrder))
             {
                 Object triggerPrice = (((!java.util.Objects.equals(stopLossPrice, null)))) ? stopLossPrice : takeProfitPrice;
                 ((Map<String, Object>)request).put("trigger_price", this.priceToPrecision(symbol, triggerPrice));
                 ((Map<String, Object>)request).put("trigger", trigger);
-                if (Helpers.isTrue(isStopLossOrder))
+                if (Boolean.TRUE.equals(isStopLossOrder))
                 {
-                    if (Helpers.isTrue(isMarketOrder))
+                    if (Boolean.TRUE.equals(isMarketOrder))
                     {
                         // stop_market (sell only)
                         ((Map<String, Object>)request).put("type", "stop_market");
@@ -2730,7 +2730,7 @@ public class Deribit extends DeribitApi
                     }
                 } else
                 {
-                    if (Helpers.isTrue(isMarketOrder))
+                    if (Boolean.TRUE.equals(isMarketOrder))
                     {
                         // take_market (buy only)
                         ((Map<String, Object>)request).put("type", "take_market");
@@ -2877,7 +2877,7 @@ public class Deribit extends DeribitApi
             }
             String trailingAmount = this.safeString2(parameters, "trailingAmount", "trigger_offset");
             Boolean isTrailingAmountOrder = !java.util.Objects.equals(trailingAmount, null);
-            if (Helpers.isTrue(isTrailingAmountOrder))
+            if (Boolean.TRUE.equals(isTrailingAmountOrder))
             {
                 ((Map<String, Object>)request).put("trigger_offset", this.parseToNumeric(trailingAmount));
                 parameters = this.omit(parameters, "trigger_offset");
@@ -4118,7 +4118,7 @@ public class Deribit extends DeribitApi
             parameters = ((List<Object>) paginateparametersVariable).get(1);
             Integer maxEntriesPerRequest = 744; // seems exchange returns max 744 items per request
             String eachItemDuration = "1h";
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 // fix for: https://github.com/ccxt/ccxt/issues/25040
                 Map<String, Object> paginationParams = this.extend(parameters, new HashMap<String, Object>() {{
@@ -4263,7 +4263,7 @@ public class Deribit extends DeribitApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchLiquidations", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchLiquidations", symbol, since, limit, parameters, "continuation", "continuation")).join();
             }

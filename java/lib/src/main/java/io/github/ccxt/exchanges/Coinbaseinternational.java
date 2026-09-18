@@ -647,7 +647,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 10000)).join();
             }
@@ -744,7 +744,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             maxEntriesPerRequest = ((List<Object>) maxEntriesPerRequestparametersVariable).get(0);
             parameters = ((List<Object>) maxEntriesPerRequestparametersVariable).get(1);
             String pageKey = "ccxtPageKey";
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, parameters, pageKey, maxEntriesPerRequest)).join();
             }
@@ -1836,13 +1836,13 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         Object fees = this.fees;
         Object symbol = Helpers.add(Helpers.add(baseId, "/"), quoteId);
         String settleId = null;
-        if (!Helpers.isTrue(isSpot))
+        if (!Boolean.TRUE.equals(isSpot))
         {
             settleId = quoteId;
             symbol = Helpers.add(symbol, Helpers.add(":", quoteId));
         }
-        Object isLinear = ((Helpers.isTrue(isSpot))) ? null : (java.util.Objects.equals(settleId, quoteId));
-        Object isInverse = ((Helpers.isTrue(isSpot))) ? null : (!java.util.Objects.equals(settleId, quoteId));
+        Object isLinear = ((Boolean.TRUE.equals(isSpot))) ? null : (java.util.Objects.equals(settleId, quoteId));
+        Object isInverse = ((Boolean.TRUE.equals(isSpot))) ? null : (!java.util.Objects.equals(settleId, quoteId));
         if (java.util.Objects.equals(marketId, null))
         {
             throw new ExchangeError((this.id + " parseMarket() missing marketId")) ;
@@ -1861,19 +1861,19 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             put( "baseId", finalBaseId );
             put( "quoteId", quoteId );
             put( "settleId", finalSettleId );
-            put( "type", ((Helpers.isTrue(isSpot))) ? "spot" : "swap" );
+            put( "type", ((Boolean.TRUE.equals(isSpot))) ? "spot" : "swap" );
             put( "spot", isSpot );
             put( "margin", false );
-            put( "swap", !Helpers.isTrue(isSpot) );
+            put( "swap", !Boolean.TRUE.equals(isSpot) );
             put( "future", false );
             put( "option", false );
             put( "active", java.util.Objects.equals(Coinbaseinternational.this.safeString(market, "trading_state"), "TRADING") );
-            put( "contract", !Helpers.isTrue(isSpot) );
+            put( "contract", !Boolean.TRUE.equals(isSpot) );
             put( "linear", isLinear );
             put( "inverse", isInverse );
             put( "taker", Helpers.GetValue(Helpers.GetValue(fees, "trading"), "taker") );
             put( "maker", Helpers.GetValue(Helpers.GetValue(fees, "trading"), "maker") );
-            put( "contractSize", ((Helpers.isTrue(isSpot))) ? null : 1 );
+            put( "contractSize", ((Boolean.TRUE.equals(isSpot))) ? null : 1 );
             put( "expiry", null );
             put( "expiryDatetime", null );
             put( "strike", null );
@@ -1890,7 +1890,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 }} );
                 put( "amount", new HashMap<String, Object>() {{
                     put( "min", null );
-                    put( "max", ((Helpers.isTrue(isSpot))) ? null : Coinbaseinternational.this.safeNumber(market, "position_limit_qty") );
+                    put( "max", ((Boolean.TRUE.equals(isSpot))) ? null : Coinbaseinternational.this.safeNumber(market, "position_limit_qty") );
                 }} );
                 put( "price", new HashMap<String, Object>() {{
                     put( "min", null );
@@ -1995,7 +1995,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             List<Object> instruments = (this.v1PublicGetInstruments(parameters)).join();
             Map<String, Object> tickers = new HashMap<String, Object>() {{}};
             List<Object> rows = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(Helpers.isArray(instruments)))
+            if ((instruments instanceof List))
             {
                 rows = instruments;
             }
@@ -2718,7 +2718,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             maxEntriesPerRequest = ((List<Object>) maxEntriesPerRequestparametersVariable).get(0);
             parameters = ((List<Object>) maxEntriesPerRequestparametersVariable).get(1);
             String pageKey = "ccxtPageKey";
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallIncremental("fetchOpenOrders", symbol, since, limit, parameters, pageKey, maxEntriesPerRequest)).join();
             }
@@ -2823,7 +2823,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             List<Object> maxEntriesPerRequestparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "maxEntriesPerRequest", maxEntriesPerRequest);
             maxEntriesPerRequest = ((List<Object>) maxEntriesPerRequestparametersVariable).get(0);
             parameters = ((List<Object>) maxEntriesPerRequestparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, parameters, pageKey, maxEntriesPerRequest)).join();
             }
@@ -2996,7 +2996,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             }
         }
         Object url = Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"), fullPath);
-        if (Helpers.isTrue(signed))
+        if (Boolean.TRUE.equals(signed))
         {
             this.checkRequiredCredentials();
             Object nonce = String.valueOf(this.nonce());

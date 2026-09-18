@@ -1679,7 +1679,7 @@ public class Bitteam extends BitteamApi
             //
             List<Object> tickers = new ArrayList<Object>(Arrays.asList());
             List<Object> rawTickers = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(Helpers.isArray(response)))
+            if ((response instanceof List))
             {
                 rawTickers = response;
             }
@@ -1998,7 +1998,7 @@ public class Bitteam extends BitteamApi
         String bestAskVolume = null;
         Object bids = this.safeValue(ticker, "bids");
         Object asks = this.safeValue(ticker, "asks");
-        if ((!java.util.Objects.equals(bids, null)) && Helpers.isTrue((Helpers.isArray(bids))) && (!java.util.Objects.equals(asks, null)) && Helpers.isTrue((Helpers.isArray(asks))))
+        if ((!java.util.Objects.equals(bids, null)) && (bids instanceof List) && (!java.util.Objects.equals(asks, null)) && (asks instanceof List))
         {
             Object bestBid = this.safeValue(bids, 0, new HashMap<String, Object>() {{}});
             bestBidPrice = this.safeString(bestBid, "price");

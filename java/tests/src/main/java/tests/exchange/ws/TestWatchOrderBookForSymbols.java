@@ -26,7 +26,7 @@ public class TestWatchOrderBookForSymbols extends BaseTest {
         Object currentTime = exchange.milliseconds();
         Object deadline = Helpers.add(currentTime, 15000);
         Boolean idle = false;
-        while ((Helpers.isLessThan(currentTime, deadline)) && !Helpers.isTrue(idle))
+        while ((Helpers.isLessThan(currentTime, deadline)) && !Boolean.TRUE.equals(idle))
         {
             Object response = null;
             Boolean succeeded = true;

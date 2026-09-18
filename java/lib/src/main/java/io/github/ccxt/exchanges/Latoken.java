@@ -703,7 +703,7 @@ public class Latoken extends LatokenApi
             put( "code", code );
             put( "info", currency );
             put( "name", Latoken.this.safeString(currency, "name") );
-            put( "type", ((Helpers.isTrue(isCrypto))) ? "crypto" : "other" );
+            put( "type", ((Boolean.TRUE.equals(isCrypto))) ? "crypto" : "other" );
             put( "active", java.util.Objects.equals(Latoken.this.safeString(currency, "status"), "CURRENCY_STATUS_ACTIVE") );
             put( "deposit", null );
             put( "withdraw", null );
@@ -1097,8 +1097,8 @@ public class Latoken extends LatokenApi
             }
         }
         Boolean isBuy = (java.util.Objects.equals(side, "buy"));
-        Boolean isMaker = (java.util.Objects.equals(makerBuyer, true)) && Helpers.isTrue(isBuy);
-        String takerOrMaker = ((Helpers.isTrue(isMaker))) ? "maker" : "taker";
+        Boolean isMaker = (java.util.Objects.equals(makerBuyer, true)) && Boolean.TRUE.equals(isBuy);
+        String takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
         String baseId = this.safeString(trade, "baseCurrency");
         String quoteId = this.safeString(trade, "quoteCurrency");
         String base = this.safeCurrencyCode(baseId);

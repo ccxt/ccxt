@@ -276,7 +276,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             }
             symbols = this.marketSymbols(symbols, null, false);
             Object ticker = (this.watchMultiHelper("ticker", "ticker", symbols, null, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(result, Helpers.GetValue(ticker, "symbol"), ticker);
@@ -304,7 +304,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             Object ticker = (this.watchMultiHelper("bidask", "ticker_lite", symbols, null, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(result, Helpers.GetValue(ticker, "symbol"), ticker);
@@ -359,7 +359,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
             Object trades = (this.watchMultiHelper("trade", "trade", symbols, null, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 List<Object> first = (List<Object>) this.safeList(trades, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
@@ -424,7 +424,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             }
             messageHash = ("positions" + messageHash);
             Object newPositions = (this.subscribePrivate("open_positions", messageHash, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 return newPositions;
             }
@@ -596,7 +596,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             parameters = ((List<Object>) verboseparametersVariable).get(1);
             Object name = "open_orders";
             String messageHash = "orders";
-            if (Helpers.isTrue(verbose))
+            if (Boolean.TRUE.equals(verbose))
             {
                 name = "open_orders_verbose";
                 messageHash = "orders:verbose";
@@ -617,7 +617,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 messageHash = (messageHash + (":" + ((Map<String, Object>)market).get("symbol")));
             }
             Object orders = (this.subscribePrivate(name, messageHash, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
@@ -658,7 +658,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 messageHash = (messageHash + (":" + ((Map<String, Object>)market).get("symbol")));
             }
             Object trades = (this.subscribePrivate(name, messageHash, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
@@ -1917,7 +1917,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         Object symbol = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
         Boolean withSymbol = !java.util.Objects.equals(symbol, null);
         Object messageHash = unifiedElementName;
-        if (!Helpers.isTrue(withSymbol))
+        if (!Boolean.TRUE.equals(withSymbol))
         {
             messageHash = (messageHash + "s");
         } else

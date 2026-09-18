@@ -146,7 +146,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             Object request = new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("id"), channel));
             String messageHash = ("kline::" + ((Map<String, Object>)market).get("symbol"));
             Object ohlcv = (this.subscribe("kline.subscribe", messageHash, request, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
@@ -306,7 +306,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             }};
             Map<String, Object> query = this.extend(subscribe, parameters);
             Object trades = (this.watchMultiple(url, messageHashes, query, messageHashes, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Object first = this.safeValue(trades, 0);
                 String tradeSymbol = this.safeString(first, "symbol");

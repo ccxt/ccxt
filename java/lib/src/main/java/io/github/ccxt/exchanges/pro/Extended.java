@@ -257,7 +257,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
                 put( "symbol", finalSymbol );
                 put( "limit", finalLimit );
             }})).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
@@ -391,7 +391,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
                 put( "symbol", finalSymbol );
                 put( "limit", finalLimit );
             }})).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
@@ -502,7 +502,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
                 put( "symbols", finalSymbols );
                 put( "limit", limit );
             }})).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 return positions;
             }
@@ -849,7 +849,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
                 put( "symbol", finalSymbol );
                 put( "limit", finalLimit );
             }})).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
@@ -973,7 +973,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
                 put( "limit", finalLimit );
                 put( "messageHash", messageHash );
             }})).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
@@ -1077,7 +1077,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         }
         String type = this.safeString(message, "type");
         Object data = this.safeValue(message, "data");
-        if (Helpers.isTrue(Helpers.isArray(data)))
+        if ((data instanceof List))
         {
             Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             String side = this.safeString(first, "S");
@@ -1119,7 +1119,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             } else if (Helpers.inOp(data, "f"))
             {
                 this.handleFundingRate(client, message);
-            } else if (!Helpers.isTrue(isAccountUpdate))
+            } else if (!Boolean.TRUE.equals(isAccountUpdate))
             {
                 this.handleOrderBook(client, message);
             }

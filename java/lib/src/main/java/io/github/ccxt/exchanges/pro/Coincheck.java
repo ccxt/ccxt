@@ -173,7 +173,7 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
             }};
             Map<String, Object> message = this.extend(request, parameters);
             Object trades = (this.watch(url, messageHash, message, messageHash, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
@@ -257,7 +257,7 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
     public void handleMessage(Client client, Object message)
     {
         Object data = this.safeValue(message, 0);
-        if (!Helpers.isTrue(Helpers.isArray(data)))
+        if (!(data instanceof List))
         {
             this.handleOrderBook(client, message);
         } else

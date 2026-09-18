@@ -1117,7 +1117,7 @@ public class Woo extends WooApi
         Object inverse = null;
         Boolean margin = true;
         Object contract = swap;
-        if (Helpers.isTrue(contract))
+        if (Boolean.TRUE.equals(contract))
         {
             margin = false;
             settleId = this.safeString(parts, 2);
@@ -1308,10 +1308,10 @@ public class Woo extends WooApi
         String side = this.safeStringLower(trade, "side");
         String id = this.safeString(trade, "id");
         String takerOrMaker = null;
-        if (Helpers.isTrue(isFromFetchOrder))
+        if (Boolean.TRUE.equals(isFromFetchOrder))
         {
             Boolean isMaker = java.util.Objects.equals(this.safeString2(trade, "is_maker", "isMaker"), "1");
-            takerOrMaker = ((Helpers.isTrue(isMaker))) ? "maker" : "taker";
+            takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
         }
         final Object finalTimestamp = timestamp;
         final Object finalTakerOrMaker = takerOrMaker;
@@ -1875,14 +1875,14 @@ public class Woo extends WooApi
             String trailingPercent = this.safeString2(parameters, "trailingPercent", "callbackRate");
             Boolean isTrailingAmountOrder = !java.util.Objects.equals(trailingAmount, null);
             Boolean isTrailingPercentOrder = !java.util.Objects.equals(trailingPercent, null);
-            Boolean isTrailing = Helpers.isTrue(isTrailingAmountOrder) || Helpers.isTrue(isTrailingPercentOrder);
-            Boolean isConditional = Helpers.isTrue(isTrailing) || !java.util.Objects.equals(triggerPrice, null) || Helpers.isTrue(hasStopLoss) || Helpers.isTrue(hasTakeProfit) || (!java.util.Objects.equals(this.safeValue(parameters, "childOrders"), null));
+            Boolean isTrailing = Boolean.TRUE.equals(isTrailingAmountOrder) || Boolean.TRUE.equals(isTrailingPercentOrder);
+            Boolean isConditional = Boolean.TRUE.equals(isTrailing) || !java.util.Objects.equals(triggerPrice, null) || Boolean.TRUE.equals(hasStopLoss) || Boolean.TRUE.equals(hasTakeProfit) || (!java.util.Objects.equals(this.safeValue(parameters, "childOrders"), null));
             Boolean isMarket = java.util.Objects.equals(orderType, "MARKET");
             String timeInForce = this.safeStringLower(parameters, "timeInForce");
             Object postOnly = this.isPostOnly(isMarket, null, parameters);
-            String clientOrderIdKey = ((Helpers.isTrue(isConditional))) ? "clientAlgoOrderId" : "clientOrderId";
+            String clientOrderIdKey = ((Boolean.TRUE.equals(isConditional))) ? "clientAlgoOrderId" : "clientOrderId";
             ((Map<String, Object>)request).put("type", orderType); // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
-            if (!Helpers.isTrue(isConditional))
+            if (!Boolean.TRUE.equals(isConditional))
             {
                 if (Helpers.isTrue(postOnly))
                 {
@@ -1899,17 +1899,17 @@ public class Woo extends WooApi
             {
                 ((Map<String, Object>)request).put("reduceOnly", reduceOnly);
             }
-            if (!Helpers.isTrue(isMarket) && !java.util.Objects.equals(price, null))
+            if (!Boolean.TRUE.equals(isMarket) && !java.util.Objects.equals(price, null))
             {
                 ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
             }
-            if (Helpers.isTrue(isMarket) && !Helpers.isTrue(isConditional))
+            if (Boolean.TRUE.equals(isMarket) && !Boolean.TRUE.equals(isConditional))
             {
                 // for market buy it requires the amount of quote currency to spend
                 String cost = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("cost", "order_amount", "orderAmount")));
                 parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("cost", "order_amount", "orderAmount")));
                 Boolean isPriceProvided = !java.util.Objects.equals(price, null);
-                if ((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)) && (Helpers.isTrue(isPriceProvided) || (!java.util.Objects.equals(cost, null))))
+                if ((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)) && (Boolean.TRUE.equals(isPriceProvided) || (!java.util.Objects.equals(cost, null))))
                 {
                     String quoteAmount = null;
                     if (!java.util.Objects.equals(cost, null))
@@ -1936,7 +1936,7 @@ public class Woo extends WooApi
             {
                 Helpers.addElementToObject(request, clientOrderIdKey, clientOrderId);
             }
-            if (Helpers.isTrue(isTrailing))
+            if (Boolean.TRUE.equals(isTrailing))
             {
                 if (java.util.Objects.equals(trailingTriggerPrice, null))
                 {
@@ -1944,10 +1944,10 @@ public class Woo extends WooApi
                 }
                 ((Map<String, Object>)request).put("activatedPrice", this.priceToPrecision(symbol, trailingTriggerPrice));
                 ((Map<String, Object>)request).put("algoType", "TRAILING_STOP");
-                if (Helpers.isTrue(isTrailingAmountOrder))
+                if (Boolean.TRUE.equals(isTrailingAmountOrder))
                 {
                     ((Map<String, Object>)request).put("callbackValue", trailingAmount);
-                } else if (Helpers.isTrue(isTrailingPercentOrder))
+                } else if (Boolean.TRUE.equals(isTrailingPercentOrder))
                 {
                     String convertedTrailingPercent = Precise.stringDiv(trailingPercent, "100");
                     ((Map<String, Object>)request).put("callbackRate", convertedTrailingPercent);
@@ -1959,7 +1959,7 @@ public class Woo extends WooApi
                     ((Map<String, Object>)request).put("triggerPrice", this.priceToPrecision(symbol, triggerPrice));
                     ((Map<String, Object>)request).put("algoType", "STOP");
                 }
-            } else if (Helpers.isTrue(hasStopLoss) || Helpers.isTrue(hasTakeProfit))
+            } else if (Boolean.TRUE.equals(hasStopLoss) || Boolean.TRUE.equals(hasTakeProfit))
             {
                 ((Map<String, Object>)request).put("algoType", "BRACKET");
                 Map<String, Object> outterOrder = new HashMap<String, Object>() {{
@@ -1970,7 +1970,7 @@ public class Woo extends WooApi
                 }};
                 Object childOrders = ((Map<String, Object>)outterOrder).get("childOrders");
                 String closeSide = (((java.util.Objects.equals(orderSide, "BUY")))) ? "SELL" : "BUY";
-                if (Helpers.isTrue(hasStopLoss))
+                if (Boolean.TRUE.equals(hasStopLoss))
                 {
                     String stopLossPrice = this.safeString(stopLoss, "triggerPrice", stopLoss);
                     Map<String, Object> stopLossOrder = new HashMap<String, Object>() {{
@@ -1982,7 +1982,7 @@ public class Woo extends WooApi
                     }};
                     ((List<Object>)childOrders).add(stopLossOrder);
                 }
-                if (Helpers.isTrue(hasTakeProfit))
+                if (Boolean.TRUE.equals(hasTakeProfit))
                 {
                     String takeProfitPrice = this.safeString(takeProfit, "triggerPrice", takeProfit);
                     Map<String, Object> takeProfitOrder = new HashMap<String, Object>() {{
@@ -1998,7 +1998,7 @@ public class Woo extends WooApi
             }
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit", "trailingPercent", "trailingAmount", "trailingTriggerPrice")));
             Object response = null;
-            if (Helpers.isTrue(isConditional))
+            if (Boolean.TRUE.equals(isConditional))
             {
                 response = (this.v3PrivatePostTradeAlgoOrder(this.extend(request, parameters))).join();
             } else
@@ -2080,17 +2080,17 @@ public class Woo extends WooApi
             String trailingPercent = this.safeString2(parameters, "trailingPercent", "callbackRate");
             Boolean isTrailingAmountOrder = !java.util.Objects.equals(trailingAmount, null);
             Boolean isTrailingPercentOrder = !java.util.Objects.equals(trailingPercent, null);
-            Boolean isTrailing = Helpers.isTrue(isTrailingAmountOrder) || Helpers.isTrue(isTrailingPercentOrder);
-            if (Helpers.isTrue(isTrailing))
+            Boolean isTrailing = Boolean.TRUE.equals(isTrailingAmountOrder) || Boolean.TRUE.equals(isTrailingPercentOrder);
+            if (Boolean.TRUE.equals(isTrailing))
             {
                 if (!java.util.Objects.equals(trailingTriggerPrice, null))
                 {
                     ((Map<String, Object>)request).put("activatedPrice", this.priceToPrecision(symbol, trailingTriggerPrice));
                 }
-                if (Helpers.isTrue(isTrailingAmountOrder))
+                if (Boolean.TRUE.equals(isTrailingAmountOrder))
                 {
                     ((Map<String, Object>)request).put("callbackValue", trailingAmount);
-                } else if (Helpers.isTrue(isTrailingPercentOrder))
+                } else if (Boolean.TRUE.equals(isTrailingPercentOrder))
                 {
                     String convertedTrailingPercent = Precise.stringDiv(trailingPercent, "100");
                     ((Map<String, Object>)request).put("callbackRate", convertedTrailingPercent);
@@ -2098,11 +2098,11 @@ public class Woo extends WooApi
             }
             Object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id", "stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent", "trigger", "stop")));
-            Boolean isConditional = (java.util.Objects.equals(isTrigger, true)) || Helpers.isTrue(isTrailing) || (!java.util.Objects.equals(triggerPrice, null)) || (!java.util.Objects.equals(this.safeValue(parameters, "childOrders"), null));
+            Boolean isConditional = (java.util.Objects.equals(isTrigger, true)) || Boolean.TRUE.equals(isTrailing) || (!java.util.Objects.equals(triggerPrice, null)) || (!java.util.Objects.equals(this.safeValue(parameters, "childOrders"), null));
             Object response = null;
-            if (Helpers.isTrue(isConditional))
+            if (Boolean.TRUE.equals(isConditional))
             {
-                if (Helpers.isTrue(isByClientOrder))
+                if (Boolean.TRUE.equals(isByClientOrder))
                 {
                     ((Map<String, Object>)request).put("clientAlgoOrderId", clientOrderIdExchangeSpecific);
                 } else
@@ -2112,7 +2112,7 @@ public class Woo extends WooApi
                 response = (this.v3PrivatePutTradeAlgoOrder(this.extend(request, parameters))).join();
             } else
             {
-                if (Helpers.isTrue(isByClientOrder))
+                if (Boolean.TRUE.equals(isByClientOrder))
                 {
                     ((Map<String, Object>)request).put("clientOrderId", clientOrderIdExchangeSpecific);
                 } else
@@ -2132,7 +2132,7 @@ public class Woo extends WooApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Map<String, Object> order = this.extend(response, data);
-            if (Helpers.isTrue(isByClientOrder))
+            if (Boolean.TRUE.equals(isByClientOrder))
             {
                 Helpers.addElementToObject(order, "clientOrderId", clientOrderIdExchangeSpecific);
             } else
@@ -2186,7 +2186,7 @@ public class Woo extends WooApi
             Object response = null;
             if (java.util.Objects.equals(isTrigger, true))
             {
-                if (Helpers.isTrue(isByClientOrder))
+                if (Boolean.TRUE.equals(isByClientOrder))
                 {
                     ((Map<String, Object>)request).put("clientAlgoOrderId", clientOrderIdExchangeSpecific);
                 } else
@@ -2197,7 +2197,7 @@ public class Woo extends WooApi
             } else
             {
                 ((Map<String, Object>)request).put("symbol", this.safeString(market, "id"));
-                if (Helpers.isTrue(isByClientOrder))
+                if (Boolean.TRUE.equals(isByClientOrder))
                 {
                     ((Map<String, Object>)request).put("clientOrderId", clientOrderIdExchangeSpecific);
                 } else
@@ -2217,7 +2217,7 @@ public class Woo extends WooApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             ((Map<String, Object>)data).put("timestamp", this.safeString(response, "timestamp"));
-            if (Helpers.isTrue(isByClientOrder))
+            if (Boolean.TRUE.equals(isByClientOrder))
             {
                 ((Map<String, Object>)data).put("clientOrderId", clientOrderIdExchangeSpecific);
             } else
@@ -2415,7 +2415,7 @@ public class Woo extends WooApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, parameters, "page", 500)).join();
             }
@@ -3157,7 +3157,7 @@ public class Woo extends WooApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, parameters, "page", 500)).join();
             }
@@ -4223,7 +4223,7 @@ public class Woo extends WooApi
                     String applicationId = "bc830de7-50f3-460b-9ee0-f430f83f9dad";
                     String brokerId = this.safeString(this.options, "brokerId", applicationId);
                     Boolean isTrigger = Helpers.isGreaterThan(Helpers.getIndexOf(path, "algo"), Helpers.opNeg(1));
-                    if (Helpers.isTrue(isTrigger))
+                    if (Boolean.TRUE.equals(isTrigger))
                     {
                         ((Map<String, Object>)parameters).put("brokerId", brokerId);
                     } else
@@ -4377,7 +4377,7 @@ public class Woo extends WooApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, parameters, "page", 500)).join();
             }
@@ -4646,7 +4646,7 @@ public class Woo extends WooApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, parameters, "page", 25)).join();
             }

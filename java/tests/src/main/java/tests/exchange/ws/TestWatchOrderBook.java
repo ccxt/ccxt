@@ -28,7 +28,7 @@ public class TestWatchOrderBook extends BaseTest {
         Object now = exchange.milliseconds();
         Object ends = Helpers.add(now, 15000);
         Boolean idle = false;
-        while ((Helpers.isLessThan(now, ends)) && !Helpers.isTrue(idle))
+        while ((Helpers.isLessThan(now, ends)) && !Boolean.TRUE.equals(idle))
         {
             Object response = null;
             Boolean success = true;

@@ -796,11 +796,11 @@ public class Blockchaincom extends BlockchaincomApi
             {
                 stopPriceRequired = true;
             }
-            if (Helpers.isTrue(priceRequired))
+            if (Boolean.TRUE.equals(priceRequired))
             {
                 ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
             }
-            if (Helpers.isTrue(stopPriceRequired))
+            if (Boolean.TRUE.equals(stopPriceRequired))
             {
                 ((Map<String, Object>)request).put("stopPx", this.priceToPrecision(symbol, triggerPrice));
             }

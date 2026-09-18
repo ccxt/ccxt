@@ -292,7 +292,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             }};
             Map<String, Object> request = this.deepExtend(message, parameters);
             Object newTickers = (this.watchMultiple(url, channels, request, channels, request)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Map<String, Object> tickers = new HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(tickers, Helpers.GetValue(newTickers, "symbol"), newTickers);
@@ -382,7 +382,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             }};
             Map<String, Object> request = this.deepExtend(message, parameters);
             Object newTickers = (this.watchMultiple(url, channels, request, channels, request)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Map<String, Object> tickers = new HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(tickers, Helpers.GetValue(newTickers, "symbol"), newTickers);
@@ -494,7 +494,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
                 (this.authenticate()).join();
             }
             Object trades = (this.watchMultipleWrapper("trades", interval, symbols, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
@@ -783,7 +783,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         Object descriptor = "";
         Object partsLength = ((List<?>)parts).size();
         Boolean isDetailed = Helpers.isEqual(partsLength, 5);
-        if (Helpers.isTrue(isDetailed))
+        if (Boolean.TRUE.equals(isDetailed))
         {
             String group = this.safeString(parts, 2);
             String depth = this.safeString(parts, 3);
@@ -900,7 +900,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             }};
             Map<String, Object> request = this.deepExtend(message, parameters);
             Object orders = (this.watch(url, channel, request, channel, request)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
@@ -954,7 +954,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         String channel = this.safeString(parameters, "channel", "");
         Object data = this.safeValue(parameters, "data", new HashMap<String, Object>() {{}});
         Object orders = new ArrayList<Object>(Arrays.asList());
-        if (Helpers.isTrue(Helpers.isArray(data)))
+        if ((data instanceof List))
         {
             orders = this.parseOrders(data);
         } else
@@ -1022,7 +1022,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
             Object symbolsLength = ((List<?>)symbolsAndTimeframes).size();
-            if (Helpers.isEqual(symbolsLength, 0) || !Helpers.isTrue(Helpers.isArray(Helpers.GetValue(symbolsAndTimeframes, 0))))
+            if (Helpers.isEqual(symbolsLength, 0) || !(Helpers.GetValue(symbolsAndTimeframes, 0) instanceof List))
             {
                 throw new ArgumentsRequired((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
             }
@@ -1030,7 +1030,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             var symbol = ((List<Object>) symboltimeframecandlesVariable).get(0);
             var timeframe = ((List<Object>) symboltimeframecandlesVariable).get(1);
             var candles = ((List<Object>) symboltimeframecandlesVariable).get(2);
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(candles, "getLimit", new Object[]{symbol, limit});
             }
@@ -1121,7 +1121,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             List<Object> rawSubscriptions = new ArrayList<Object>(Arrays.asList());
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             Boolean isOHLCV = (java.util.Objects.equals(channelName, "chart.trades"));
-            Object symbols = ((Helpers.isTrue(isOHLCV))) ? this.getListFromObjectValues(symbolsArray, 0) : symbolsArray;
+            Object symbols = ((Boolean.TRUE.equals(isOHLCV))) ? this.getListFromObjectValues(symbolsArray, 0) : symbolsArray;
             this.marketSymbols(symbols, null, false);
             if (java.util.Objects.equals(symbolsArray, null))
             {
@@ -1135,7 +1135,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
                 }
                 Object current = Helpers.GetValue(symbolsArray, i);
                 Object market = null;
-                if (Helpers.isTrue(isOHLCV))
+                if (Boolean.TRUE.equals(isOHLCV))
                 {
                     market = this.market(Helpers.GetValue(current, 0));
                     Object unifiedTf = Helpers.GetValue(current, 1);

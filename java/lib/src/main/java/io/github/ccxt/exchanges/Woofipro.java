@@ -1249,10 +1249,10 @@ public class Woofipro extends WoofiproApi
         String side = this.safeStringLower(trade, "side");
         String id = this.safeString(trade, "id");
         String takerOrMaker = null;
-        if (Helpers.isTrue(isFromFetchOrder))
+        if (Boolean.TRUE.equals(isFromFetchOrder))
         {
             Boolean isMaker = java.util.Objects.equals(this.safeString(trade, "is_maker"), "1");
-            takerOrMaker = ((Helpers.isTrue(isMaker))) ? "maker" : "taker";
+            takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
         }
         final Object finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
@@ -1834,7 +1834,7 @@ public class Woofipro extends WoofiproApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, parameters, "page", 25)).join();
             }
@@ -1959,7 +1959,7 @@ public class Woofipro extends WoofiproApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, parameters, "page", 500)).join();
             }
@@ -2414,15 +2414,15 @@ public class Woofipro extends WoofiproApi
         Boolean hasStopLoss = (!java.util.Objects.equals(stopLoss, null));
         Boolean hasTakeProfit = (!java.util.Objects.equals(takeProfit, null));
         String algoType = this.safeString(parameters, "algoType");
-        Boolean isConditional = !java.util.Objects.equals(triggerPrice, null) || Helpers.isTrue(hasStopLoss) || Helpers.isTrue(hasTakeProfit) || (!java.util.Objects.equals(this.safeValue(parameters, "childOrders"), null));
+        Boolean isConditional = !java.util.Objects.equals(triggerPrice, null) || Boolean.TRUE.equals(hasStopLoss) || Boolean.TRUE.equals(hasTakeProfit) || (!java.util.Objects.equals(this.safeValue(parameters, "childOrders"), null));
         Boolean isMarket = java.util.Objects.equals(orderType, "MARKET");
         String timeInForce = this.safeStringLower(parameters, "timeInForce");
         Object postOnly = this.isPostOnly(isMarket, null, parameters);
-        String orderQtyKey = ((Helpers.isTrue(isConditional))) ? "quantity" : "order_quantity";
-        String priceKey = ((Helpers.isTrue(isConditional))) ? "price" : "order_price";
-        String typeKey = ((Helpers.isTrue(isConditional))) ? "type" : "order_type";
+        String orderQtyKey = ((Boolean.TRUE.equals(isConditional))) ? "quantity" : "order_quantity";
+        String priceKey = ((Boolean.TRUE.equals(isConditional))) ? "price" : "order_price";
+        String typeKey = ((Boolean.TRUE.equals(isConditional))) ? "type" : "order_type";
         Helpers.addElementToObject(request, typeKey, orderType); // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
-        if (!Helpers.isTrue(isConditional))
+        if (!Boolean.TRUE.equals(isConditional))
         {
             if (Helpers.isTrue(postOnly))
             {
@@ -2443,7 +2443,7 @@ public class Woofipro extends WoofiproApi
         {
             Helpers.addElementToObject(request, priceKey, this.priceToPrecision(symbol, price));
         }
-        if (Helpers.isTrue(isMarket) && !Helpers.isTrue(isConditional))
+        if (Boolean.TRUE.equals(isMarket) && !Boolean.TRUE.equals(isConditional))
         {
             Helpers.addElementToObject(request, orderQtyKey, this.amountToPrecision(symbol, amount));
         } else if (!java.util.Objects.equals(algoType, "POSITIONAL_TP_SL"))
@@ -2459,12 +2459,12 @@ public class Woofipro extends WoofiproApi
         {
             ((Map<String, Object>)request).put("trigger_price", this.priceToPrecision(symbol, triggerPrice));
             ((Map<String, Object>)request).put("algo_type", "STOP");
-        } else if (Helpers.isTrue(hasStopLoss) || Helpers.isTrue(hasTakeProfit))
+        } else if (Boolean.TRUE.equals(hasStopLoss) || Boolean.TRUE.equals(hasTakeProfit))
         {
             ((Map<String, Object>)request).put("algo_type", "TP_SL");
             List<Object> childOrders = new ArrayList<Object>(Arrays.asList());
             String closeSide = (((java.util.Objects.equals(orderSide, "BUY")))) ? "SELL" : "BUY";
-            if (Helpers.isTrue(hasStopLoss))
+            if (Boolean.TRUE.equals(hasStopLoss))
             {
                 Object stopLossPrice = this.safeValue2(stopLoss, "triggerPrice", "price", stopLoss);
                 Map<String, Object> stopLossOrder = new HashMap<String, Object>() {{
@@ -2476,7 +2476,7 @@ public class Woofipro extends WoofiproApi
                 }};
                 ((List<Object>)childOrders).add(stopLossOrder);
             }
-            if (Helpers.isTrue(hasTakeProfit))
+            if (Boolean.TRUE.equals(hasTakeProfit))
             {
                 Object takeProfitPrice = this.safeValue2(takeProfit, "triggerPrice", "price", takeProfit);
                 Map<String, Object> takeProfitOrder = new HashMap<String, Object>() {{
@@ -2540,7 +2540,7 @@ public class Woofipro extends WoofiproApi
             Object takeProfit = this.safeValue(parameters, "takeProfit");
             Boolean isConditional = !java.util.Objects.equals(triggerPrice, null) || !java.util.Objects.equals(stopLoss, null) || !java.util.Objects.equals(takeProfit, null) || (!java.util.Objects.equals(this.safeValue(parameters, "childOrders"), null));
             Object response = null;
-            if (Helpers.isTrue(isConditional))
+            if (Boolean.TRUE.equals(isConditional))
             {
                 response = (this.v1PrivatePostAlgoOrder(request)).join();
             } else
@@ -2589,7 +2589,7 @@ public class Woofipro extends WoofiproApi
                 Object stopLoss = this.safeValue(orderParams, "stopLoss");
                 Object takeProfit = this.safeValue(orderParams, "takeProfit");
                 Boolean isConditional = !java.util.Objects.equals(triggerPrice, null) || !java.util.Objects.equals(stopLoss, null) || !java.util.Objects.equals(takeProfit, null) || (!java.util.Objects.equals(this.safeValue(orderParams, "childOrders"), null));
-                if (Helpers.isTrue(isConditional))
+                if (Boolean.TRUE.equals(isConditional))
                 {
                     throw new NotSupported((this.id + " createOrders() only support non-stop order")) ;
                 }
@@ -2664,8 +2664,8 @@ public class Woofipro extends WoofiproApi
                 ((Map<String, Object>)request).put("triggerPrice", this.priceToPrecision(symbol, triggerPrice));
             }
             Boolean isConditional = (!java.util.Objects.equals(triggerPrice, null)) || (!java.util.Objects.equals(this.safeValue(parameters, "childOrders"), null));
-            String orderQtyKey = ((Helpers.isTrue(isConditional))) ? "quantity" : "order_quantity";
-            String priceKey = ((Helpers.isTrue(isConditional))) ? "price" : "order_price";
+            String orderQtyKey = ((Boolean.TRUE.equals(isConditional))) ? "quantity" : "order_quantity";
+            String priceKey = ((Boolean.TRUE.equals(isConditional))) ? "price" : "order_price";
             if (!java.util.Objects.equals(price, null))
             {
                 Helpers.addElementToObject(request, priceKey, this.priceToPrecision(symbol, price));
@@ -2680,7 +2680,7 @@ public class Woofipro extends WoofiproApi
             {
                 throw new ArgumentsRequired((this.id + " editOrder() requires a side argument")) ;
             }
-            if (Helpers.isTrue(isConditional))
+            if (Boolean.TRUE.equals(isConditional))
             {
                 response = (this.v1PrivatePutAlgoOrder(this.extend(request, parameters))).join();
             } else
@@ -2777,7 +2777,7 @@ public class Woofipro extends WoofiproApi
             Object response = null;
             if (java.util.Objects.equals(trigger, true))
             {
-                if (Helpers.isTrue(isByClientOrder))
+                if (Boolean.TRUE.equals(isByClientOrder))
                 {
                     ((Map<String, Object>)request).put("client_order_id", clientOrderIdExchangeSpecific);
                     parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
@@ -2789,7 +2789,7 @@ public class Woofipro extends WoofiproApi
                 }
             } else
             {
-                if (Helpers.isTrue(isByClientOrder))
+                if (Boolean.TRUE.equals(isByClientOrder))
                 {
                     ((Map<String, Object>)request).put("client_order_id", clientOrderIdExchangeSpecific);
                     parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
@@ -2819,7 +2819,7 @@ public class Woofipro extends WoofiproApi
             Map<String, Object> extendParams = new HashMap<String, Object>() {{
                 put( "symbol", finalSymbol );
             }};
-            if (Helpers.isTrue(isByClientOrder))
+            if (Boolean.TRUE.equals(isByClientOrder))
             {
                 ((Map<String, Object>)extendParams).put("client_order_id", clientOrderIdExchangeSpecific);
             } else
@@ -3080,7 +3080,7 @@ public class Woofipro extends WoofiproApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, parameters, "page", maxLimit)).join();
             }
@@ -3327,7 +3327,7 @@ public class Woofipro extends WoofiproApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, parameters, "page", 500)).join();
             }

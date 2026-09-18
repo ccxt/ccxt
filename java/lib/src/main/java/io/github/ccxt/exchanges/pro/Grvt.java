@@ -245,7 +245,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
                 put( "selectors", rawHashes );
             }};
             Object ticker = (this.subscribeMultiple(messageHashes, this.extend(parameters, request), rawHashes)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Map<String, Object> tickers = new HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(tickers, Helpers.GetValue(ticker, "symbol"), ticker);
@@ -417,7 +417,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
                 put( "selectors", rawHashes );
             }};
             Object trades = (this.subscribeMultiple(messageHashes, this.extend(parameters, request), rawHashes)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Object first = this.safeValue(trades, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
@@ -553,7 +553,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             var symbol = ((List<Object>) symboltimeframestoredVariable).get(0);
             var timeframe = ((List<Object>) symboltimeframestoredVariable).get(1);
             var stored = ((List<Object>) symboltimeframestoredVariable).get(2);
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(stored, "getLimit", new Object[]{symbol, limit});
             }
@@ -686,7 +686,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             interval = ((List<Object>) intervalparametersVariable).get(0);
             parameters = ((List<Object>) intervalparametersVariable).get(1);
             symbols = this.marketSymbols(symbols);
-            Object extraPart = ((Helpers.isTrue(isSnapshot))) ? (((String.valueOf(interval) + "-") + String.valueOf(limit))) : String.valueOf(interval);
+            Object extraPart = ((Boolean.TRUE.equals(isSnapshot))) ? (((String.valueOf(interval) + "-") + String.valueOf(limit))) : String.valueOf(interval);
             Object rawHashes = new ArrayList<Object>(Arrays.asList());
             Object messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
@@ -752,7 +752,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         String stream = this.safeString(message, "stream");
         Boolean isSnapshotChannel = java.util.Objects.equals(stream, "v1.book.s");
         Boolean isSnapshotMessage = Helpers.isLessThanOrEqual(sequenceNumber, 0);
-        if (Helpers.isTrue(isSnapshotChannel) || Helpers.isTrue(isSnapshotMessage))
+        if (Boolean.TRUE.equals(isSnapshotChannel) || Boolean.TRUE.equals(isSnapshotMessage))
         {
             Object snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size");
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
@@ -861,7 +861,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
                 put( "selectors", rawHashes );
             }};
             Object trades = (this.subscribeMultiple(messageHashes, this.extend(request, parameters), messageHashes, false)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
@@ -973,7 +973,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
                 put( "selectors", rawHashes );
             }};
             Object newPositions = (this.subscribeMultiple(messageHashes, this.extend(request, parameters), rawHashes, false)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 return newPositions;
             }
@@ -1076,7 +1076,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
                 put( "selectors", rawHashes );
             }};
             Object orders = (this.subscribeMultiple(messageHashes, this.extend(request, parameters), rawHashes, false)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }

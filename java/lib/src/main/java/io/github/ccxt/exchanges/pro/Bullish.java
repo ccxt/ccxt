@@ -190,7 +190,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
             Object trades = (this.watchPublic(url, messageHash, request, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
@@ -486,7 +486,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
                 parameters = this.omit(parameters, "tradingAccountId");
             }
             Object orders = (this.watchPrivate(messageHash, subscribeHash, request, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
@@ -626,7 +626,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
                 parameters = this.omit(parameters, "tradingAccountId");
             }
             Object trades = (this.watchPrivate(messageHash, subscribeHash, request, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
@@ -865,7 +865,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
                 put( "topic", "derivativesPositionsV2" );
             }};
             Object positions = (this.watchPrivate(messageHash, subscribeHash, request, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 return positions;
             }

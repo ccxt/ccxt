@@ -547,7 +547,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 Helpers.addElementToObject(Helpers.GetValue(request, "subscription"), "dex", defaultDex);
             }
             Object tickers = (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 return this.filterByArrayTickers(tickers, "symbol", symbols);
             }
@@ -642,7 +642,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             }
             String subscribeHash = ("subscribe:userFills::" + userAddress.toLowerCase());
             Object trades = (this.watch(url, messageHash, message, subscribeHash, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
@@ -883,7 +883,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             }};
             Map<String, Object> message = this.extend(request, parameters);
             Object trades = (this.watch(url, messageHash, message, messageHash, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
@@ -1085,7 +1085,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             String messageHash = ((("candles:" + timeframe) + ":") + symbol);
             Map<String, Object> message = this.extend(request, parameters);
             Object ohlcv = (this.watch(url, messageHash, message, messageHash, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
@@ -1527,7 +1527,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             this.setPositionsCache(client, symbols);
             Object cache = this.positions;
             Object newPositions = (this.watch(url, messageHash, message, topic, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 return newPositions;
             }
@@ -1688,7 +1688,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             }
             String subscribeHash = ("subscribe:orderUpdates::" + userAddress.toLowerCase());
             Object orders = (this.watch(url, messageHash, message, subscribeHash, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }

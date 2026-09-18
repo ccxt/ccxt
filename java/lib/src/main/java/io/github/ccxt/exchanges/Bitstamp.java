@@ -1274,12 +1274,12 @@ public class Bitstamp extends BitstampApi
                     put( "spot", isSpot );
                     put( "margin", false );
                     put( "future", false );
-                    put( "swap", !Helpers.isTrue(isSpot) );
+                    put( "swap", !Boolean.TRUE.equals(isSpot) );
                     put( "option", false );
                     put( "active", (java.util.Objects.equals(Bitstamp.this.safeString(market, "trading"), "Enabled")) );
-                    put( "contract", !Helpers.isTrue(isSpot) );
-                    put( "linear", ((Helpers.isTrue(isSpot))) ? null : true );
-                    put( "inverse", ((Helpers.isTrue(isSpot))) ? null : false );
+                    put( "contract", !Boolean.TRUE.equals(isSpot) );
+                    put( "linear", ((Boolean.TRUE.equals(isSpot))) ? null : true );
+                    put( "inverse", ((Boolean.TRUE.equals(isSpot))) ? null : false );
                     put( "contractSize", null );
                     put( "expiry", null );
                     put( "expiryDatetime", null );
@@ -2766,7 +2766,7 @@ public class Bitstamp extends BitstampApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters)).join();
             }
@@ -3821,7 +3821,7 @@ public class Bitstamp extends BitstampApi
                 {
                     Object key = Helpers.GetValue(keys, i);
                     Object value = this.safeValue(error, key);
-                    if (Helpers.isTrue(Helpers.isArray(value)))
+                    if ((value instanceof List))
                     {
                         errors = this.arrayConcat(errors, value);
                     } else

@@ -190,7 +190,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             symbol = ((Map<String, Object>)market).get("symbol");
             String messageHash = (("TRADE" + ":") + symbol);
             Object trades = (this.watchPublic("trades", messageHash, ((Map<String, Object>)market).get("id"))).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
@@ -275,7 +275,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             Object url = (Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("ws"), "private"), "/") + "user-trades");
             this.authenticate(url);
             Object trades = (this.watch(url, messageHash, null, messageHash, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }

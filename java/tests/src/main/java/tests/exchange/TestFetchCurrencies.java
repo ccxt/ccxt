@@ -39,7 +39,7 @@ public class TestFetchCurrencies extends BaseTest {
             Object currenciesLength = ((List<?>)values).size();
             // ensure exchange returns enough length of currencies
             Boolean skipAmount = (Helpers.inOp(skippedProperties, "amountOfCurrencies"));
-            Assert(Helpers.isTrue(skipAmount) || Helpers.isGreaterThan(currenciesLength, 5), ((((exchange.id + " ") + method) + " must return at least several currencies, but it returned ") + String.valueOf(currenciesLength)));
+            Assert(Boolean.TRUE.equals(skipAmount) || Helpers.isGreaterThan(currenciesLength, 5), ((((exchange.id + " ") + method) + " must return at least several currencies, but it returned ") + String.valueOf(currenciesLength)));
             // allow skipped exchanges
             Boolean skipActive = (Helpers.inOp(skippedProperties, "activeCurrenciesQuota"));
             Boolean skipMajorCurrencyCheck = (Helpers.inOp(skippedProperties, "activeMajorCurrencies"));
@@ -60,14 +60,14 @@ public class TestFetchCurrencies extends BaseTest {
                 Object deposit = exchange.safeBool(currency, "deposit");
                 Object isMicaCompliant = exchange.safeBool(exchange.options, "mica", false);
                 Boolean skipUsdtForMica = (java.util.Objects.equals(isMicaCompliant, true)) && (java.util.Objects.equals(code, "USDT"));
-                if (Helpers.isTrue(exchange.inArray(code, requiredActiveCurrencies)) && !Helpers.isTrue(skipMajorCurrencyCheck) && (!java.util.Objects.equals(skipUsdtForMica, true)))
+                if (Helpers.isTrue(exchange.inArray(code, requiredActiveCurrencies)) && !Boolean.TRUE.equals(skipMajorCurrencyCheck) && (!java.util.Objects.equals(skipUsdtForMica, true)))
                 {
                     Assert((java.util.Objects.equals(withdraw, true)) && (java.util.Objects.equals(deposit, true)), ((Helpers.add("Major currency ", code) + " should have withdraw and deposit flags enabled ::: ") + exchange.json(currency)));
                 }
             }
             // check at least X% of currencies are active
             Object inactiveCurrenciesPercentage = Helpers.multiply((Helpers.divide(numInactiveCurrencies, currenciesLength)), 100);
-            Assert(Helpers.isTrue(skipActive) || (Helpers.isLessThan(inactiveCurrenciesPercentage, maxInactiveCurrenciesPercentage)), (((("Percentage of inactive currencies is too high at " + String.valueOf(inactiveCurrenciesPercentage)) + "% that is more than the allowed maximum of ") + String.valueOf(maxInactiveCurrenciesPercentage)) + "%"));
+            Assert(Boolean.TRUE.equals(skipActive) || (Helpers.isLessThan(inactiveCurrenciesPercentage, maxInactiveCurrenciesPercentage)), (((("Percentage of inactive currencies is too high at " + String.valueOf(inactiveCurrenciesPercentage)) + "% that is more than the allowed maximum of ") + String.valueOf(maxInactiveCurrenciesPercentage)) + "%"));
             detectCurrencyConflicts(exchange, currencies);
         }
         return true;
@@ -90,7 +90,7 @@ public class TestFetchCurrencies extends BaseTest {
             } else
             {
                 Boolean isDifferent = !Helpers.isEqual(Helpers.GetValue(ids, code), Helpers.GetValue(currency, "id"));
-                Assert(!Helpers.isTrue(isDifferent), Helpers.add((Helpers.add((Helpers.add((exchange.id + " fetchCurrencies() has different ids for the same code: "), code) + " "), Helpers.GetValue(ids, code)) + " "), Helpers.GetValue(currency, "id")));
+                Assert(!Boolean.TRUE.equals(isDifferent), Helpers.add((Helpers.add((Helpers.add((exchange.id + " fetchCurrencies() has different ids for the same code: "), code) + " "), Helpers.GetValue(ids, code)) + " "), Helpers.GetValue(currency, "id")));
             }
         }
         return true;

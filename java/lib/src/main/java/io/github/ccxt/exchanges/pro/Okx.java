@@ -136,10 +136,10 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         Boolean isBusiness = (java.util.Objects.equals(access, "business"));
         Boolean isPublic = (java.util.Objects.equals(access, "public"));
         Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-        if (Helpers.isTrue(isBusiness) || (Helpers.isGreaterThan(Helpers.getIndexOf(channel, "candle"), Helpers.opNeg(1))) || (java.util.Objects.equals(channel, "orders-algo")))
+        if (Boolean.TRUE.equals(isBusiness) || (Helpers.isGreaterThan(Helpers.getIndexOf(channel, "candle"), Helpers.opNeg(1))) || (java.util.Objects.equals(channel, "orders-algo")))
         {
             return Helpers.add(Helpers.add(url, "/business"), sandboxSuffix);
-        } else if (Helpers.isTrue(isPublic))
+        } else if (Boolean.TRUE.equals(isPublic))
         {
             return Helpers.add(Helpers.add(url, "/public"), sandboxSuffix);
         }
@@ -317,7 +317,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             }
             Object url = this.getUrl(channel, access);
             Object trades = (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Object first = this.safeValue(trades, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
@@ -527,7 +527,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             }};
             Object url = this.getUrl(channel, "public");
             Object fundingRate = (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 String symbol = this.safeString(fundingRate, "symbol");
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
@@ -654,7 +654,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             channel = ((List<Object>) channelparametersVariable).get(0);
             parameters = ((List<Object>) channelparametersVariable).get(1);
             Object newTickers = (this.subscribeMultiple("public", channel, symbols, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 return newTickers;
             }
@@ -719,7 +719,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             channel = ((List<Object>) channelparametersVariable).get(0);
             parameters = ((List<Object>) channelparametersVariable).get(1);
             Object newTickers = (this.subscribeMultiple("public", channel, symbols, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 return newTickers;
             }
@@ -869,7 +869,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "args", args );
             }};
             Object newTickers = (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Map<String, Object> tickers = new HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(tickers, Helpers.GetValue(newTickers, "symbol"), newTickers);
@@ -1042,7 +1042,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             }};
             Object url = this.getUrl(channel, "public");
             Object newLiquidations = (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 return newLiquidations;
             }
@@ -1150,7 +1150,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             }};
             Object url = this.getUrl(channel, "private");
             Object newLiquidations = (this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 return newLiquidations;
             }
@@ -1340,7 +1340,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             String interval = this.safeString(this.timeframes, timeframe, timeframe);
             Object name = ("candle" + interval);
             Object ohlcv = (this.subscribe("public", name, name, symbol, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
@@ -1391,7 +1391,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
             Object symbolsLength = ((List<?>)symbolsAndTimeframes).size();
-            if (Helpers.isEqual(symbolsLength, 0) || !Helpers.isTrue(Helpers.isArray(Helpers.GetValue(symbolsAndTimeframes, 0))))
+            if (Helpers.isEqual(symbolsLength, 0) || !(Helpers.GetValue(symbolsAndTimeframes, 0) instanceof List))
             {
                 throw new ArgumentsRequired((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
             }
@@ -1425,7 +1425,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             var symbol = ((List<Object>) symboltimeframecandlesVariable).get(0);
             var timeframe = ((List<Object>) symboltimeframecandlesVariable).get(1);
             var candles = ((List<Object>) symboltimeframecandlesVariable).get(2);
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(candles, "getLimit", new Object[]{symbol, limit});
             }
@@ -1451,7 +1451,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object symbolsLength = ((List<?>)symbolsAndTimeframes).size();
-            if (Helpers.isEqual(symbolsLength, 0) || !Helpers.isTrue(Helpers.isArray(Helpers.GetValue(symbolsAndTimeframes, 0))))
+            if (Helpers.isEqual(symbolsLength, 0) || !(Helpers.GetValue(symbolsAndTimeframes, 0) instanceof List))
             {
                 throw new ArgumentsRequired((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
             }
@@ -2169,7 +2169,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             put( "id", Okx.this.safeString(info, "tradeId") );
             put( "order", Okx.this.safeString(order, "id") );
             put( "type", Okx.this.safeString(order, "type") );
-            put( "takerOrMaker", ((Helpers.isTrue((isTaker)))) ? "taker" : "maker" );
+            put( "takerOrMaker", ((Boolean.TRUE.equals(isTaker))) ? "taker" : "maker" );
             put( "side", Okx.this.safeString(order, "side") );
             put( "price", Okx.this.safeNumber(info, "fillPx") );
             put( "amount", Okx.this.safeNumber(info, "fillSz") );
@@ -2254,7 +2254,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "instType", finalUppercaseType );
             }};
             Object orders = (this.subscribe("private", messageHash, channel, null, this.extend(request, parameters))).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
@@ -2311,7 +2311,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 newPositions = (this.subscribeMultiple("private", channel, symbols, this.extend(request, parameters))).join();
             }
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 return (((java.util.Objects.equals(newPositions, null)))) ? new ArrayList<Object>(Arrays.asList()) : newPositions;
             }
@@ -2494,7 +2494,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             }};
             Object channel = (((java.util.Objects.equals(isTrigger, true)))) ? "orders-algo" : "orders";
             Object orders = (this.subscribe("private", channel, channel, symbol, this.extend(request, parameters))).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }

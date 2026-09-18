@@ -216,7 +216,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
             }};
             String messageHash = ("ohlcv:" + symbol);
             Object ohlcv = (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
@@ -390,7 +390,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
                 put( "trades", new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("id"))) );
             }};
             Object trades = (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
@@ -467,7 +467,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
                 }} );
             }};
             Object trades = (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
@@ -515,7 +515,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
                 }} );
             }};
             Object orders = (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
@@ -850,7 +850,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
 
     public void handleMessage(Client client, Object message)
     {
-        if (Helpers.isTrue(Helpers.isArray(message)))
+        if ((message instanceof List))
         {
             this.handleCryptoMessage(client, message);
             return;

@@ -1705,7 +1705,7 @@ public class Dydx extends DydxApi
                 }
             }
         }
-        if (Helpers.isTrue(isConditional))
+        if (Boolean.TRUE.equals(isConditional))
         {
             // conditional
             orderFlag = 32;

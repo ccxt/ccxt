@@ -755,7 +755,7 @@ public class Grvt extends GrvtApi
     {
         Boolean privateKeyDefined = !java.util.Objects.equals(this.privateKey, null) && !java.util.Objects.equals(this.privateKey, "");
         Boolean apiKeyDefined = !java.util.Objects.equals(this.apiKey, null) && !java.util.Objects.equals(this.apiKey, "");
-        if (Helpers.isTrue(privateKeyDefined) && Helpers.isTrue(apiKeyDefined))
+        if (Boolean.TRUE.equals(privateKeyDefined) && Boolean.TRUE.equals(apiKeyDefined))
         {
             throw new ExchangeError("You should provide either \"privateKey\" or \"apikey & secret\"") ;
         }
@@ -898,7 +898,7 @@ public class Grvt extends GrvtApi
                     break;
                 }
             }
-            if (Helpers.isTrue(found))
+            if (Boolean.TRUE.equals(found))
             {
                 Helpers.addElementToObject(this.options, "approvedBuilderFee", true);
             } else
@@ -1037,7 +1037,7 @@ public class Grvt extends GrvtApi
         Boolean isSpot = (java.util.Objects.equals(type, "spot"));
         Boolean isSwap = (java.util.Objects.equals(type, "swap"));
         Boolean isFuture = (java.util.Objects.equals(type, "future"));
-        Boolean isContract = Helpers.isTrue(isSwap) || Helpers.isTrue(isFuture);
+        Boolean isContract = Boolean.TRUE.equals(isSwap) || Boolean.TRUE.equals(isFuture);
         final Object finalBase = base;
         final Object finalType = type;
         final Object finalIsSwap = isSwap;
@@ -1058,8 +1058,8 @@ public class Grvt extends GrvtApi
             put( "option", false );
             put( "active", null );
             put( "contract", isContract );
-            put( "linear", ((Helpers.isTrue(finalIsSwap))) ? true : null );
-            put( "inverse", ((Helpers.isTrue(finalIsSwap))) ? false : null );
+            put( "linear", ((Boolean.TRUE.equals(finalIsSwap))) ? true : null );
+            put( "inverse", ((Boolean.TRUE.equals(finalIsSwap))) ? false : null );
             put( "contractSize", Grvt.this.parseNumber("1") );
             put( "expiry", null );
             put( "expiryDatetime", null );
@@ -1478,8 +1478,8 @@ public class Grvt extends GrvtApi
         {
             Boolean isTaker = (java.util.Objects.equals(this.safeBool(trade, "is_taker"), true));
             Boolean isBuyer = (java.util.Objects.equals(this.safeBool(trade, "is_buyer"), true));
-            takerOrMaker = ((Helpers.isTrue(isTaker))) ? "taker" : "maker";
-            side = ((Helpers.isTrue(isBuyer))) ? "buy" : "sell";
+            takerOrMaker = ((Boolean.TRUE.equals(isTaker))) ? "taker" : "maker";
+            side = ((Boolean.TRUE.equals(isBuyer))) ? "buy" : "sell";
         }
         Object fee = null;
         String feeString = this.safeString(trade, "fee");
@@ -1545,7 +1545,7 @@ public class Grvt extends GrvtApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, maxLimit)).join();
             }
@@ -1652,7 +1652,7 @@ public class Grvt extends GrvtApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters)).join();
             }
@@ -2198,7 +2198,7 @@ public class Grvt extends GrvtApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTransfers", "paginate", false);
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchTransfers", null, since, limit, parameters, maxLimit)).join();
             }
@@ -2339,7 +2339,7 @@ public class Grvt extends GrvtApi
             {
                 Object msg = this.exceptionMessage(error);
                 Boolean isFromFundingAccount = java.util.Objects.equals(fromAccount, "funding");
-                if (Helpers.isTrue(isFromFundingAccount) && (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(msg, "You are not authorized"), 0)))
+                if (Boolean.TRUE.equals(isFromFundingAccount) && (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(msg, "You are not authorized"), 0)))
                 {
                     throw new PermissionDenied(((this.id + " transfer() failed. Ensure you use funding api-keys when trying to transfer from Funding accounts: ") + msg)) ;
                 }
@@ -2446,7 +2446,7 @@ public class Grvt extends GrvtApi
             //     }
             //
             Boolean accountIsUndefined = java.util.Objects.equals(this.safeString(this.options, "accountId"), null);
-            if (Helpers.isTrue(accountIsUndefined))
+            if (Boolean.TRUE.equals(accountIsUndefined))
             {
                 ((List<Object>)promises).add(this.privateTradingPostFullV1GetSubAccounts());
             }
@@ -2459,7 +2459,7 @@ public class Grvt extends GrvtApi
             Map<String, Object> result1 = (Map<String, Object>) this.safeDict(Helpers.GetValue(responses, 0), "result", new HashMap<String, Object>() {{}});
             String mainAccountId = this.safeString(result1, "main_account_id");
             Helpers.addElementToObject(this.options, "userMainAccountId", mainAccountId);
-            if (Helpers.isTrue(accountIsUndefined))
+            if (Boolean.TRUE.equals(accountIsUndefined))
             {
                 Object subAccountIds = this.safeList(Helpers.GetValue(responses, 1), "sub_account_ids", new ArrayList<Object>(Arrays.asList()));
                 Object length = ((List<?>)subAccountIds).size();
@@ -2627,7 +2627,7 @@ public class Grvt extends GrvtApi
                 timeInForce = this.safeString(tifMap, timeInForce, timeInForce);
             }
             ((Map<String, Object>)orderRequest).put("time_in_force", timeInForce);
-            if (!Helpers.isTrue(isMarketOrder))
+            if (!Boolean.TRUE.equals(isMarketOrder))
             {
                 if (Helpers.isTrue(postOnly))
                 {
@@ -2666,10 +2666,10 @@ public class Grvt extends GrvtApi
                 Boolean isBuy = (java.util.Objects.equals(side, "buy"));
                 if (!java.util.Objects.equals(stopLossPrice, null))
                 {
-                    selectedType = ((Helpers.isTrue(isBuy))) ? "STOP_LOSS" : "TAKE_PROFIT";
+                    selectedType = ((Boolean.TRUE.equals(isBuy))) ? "STOP_LOSS" : "TAKE_PROFIT";
                 } else if (!java.util.Objects.equals(takeProfitPrice, null))
                 {
-                    selectedType = ((Helpers.isTrue(isBuy))) ? "TAKE_PROFIT" : "STOP_LOSS";
+                    selectedType = ((Boolean.TRUE.equals(isBuy))) ? "TAKE_PROFIT" : "STOP_LOSS";
                 } else
                 {
                     String triggerDirection = this.safeString(parameters, "triggerDirection");
@@ -2681,10 +2681,10 @@ public class Grvt extends GrvtApi
                     {
                         if (java.util.Objects.equals(triggerDirection, "ascending"))
                         {
-                            selectedType = ((Helpers.isTrue(isBuy))) ? "STOP_LOSS" : "TAKE_PROFIT";
+                            selectedType = ((Boolean.TRUE.equals(isBuy))) ? "STOP_LOSS" : "TAKE_PROFIT";
                         } else if (java.util.Objects.equals(triggerDirection, "descending"))
                         {
-                            selectedType = ((Helpers.isTrue(isBuy))) ? "TAKE_PROFIT" : "STOP_LOSS";
+                            selectedType = ((Boolean.TRUE.equals(isBuy))) ? "TAKE_PROFIT" : "STOP_LOSS";
                         }
                     }
                 }
@@ -2874,7 +2874,7 @@ public class Grvt extends GrvtApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters)).join();
             }
@@ -3265,7 +3265,7 @@ public class Grvt extends GrvtApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchFundingHistory", symbol, since, limit, parameters, 1000)).join();
             }
@@ -3746,7 +3746,7 @@ public class Grvt extends GrvtApi
             market = this.safeMarket(marketId, market);
             size = this.safeString(firstLeg, "size");
             Boolean isBuyingAsset = (java.util.Objects.equals(this.safeBool(firstLeg, "is_buying_asset"), true));
-            side = ((Helpers.isTrue(isBuyingAsset))) ? "buy" : "sell";
+            side = ((Boolean.TRUE.equals(isBuyingAsset))) ? "buy" : "sell";
             price = this.safeString(firstLeg, "limit_price");
             filled = this.safeString(filledAmounts, primaryOrderIndex);
             avgPrice = this.safeString(avgPrices, primaryOrderIndex);

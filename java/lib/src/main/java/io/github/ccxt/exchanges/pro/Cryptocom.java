@@ -481,7 +481,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 ((List<Object>)topics).add(currentTopic);
             }
             Object trades = (this.watchPublicMultiple(topics, topics, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Object first = this.safeValue(trades, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
@@ -616,7 +616,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             Object messageHash = "user.trade";
             messageHash = (((!java.util.Objects.equals(market, null)))) ? (Helpers.add((messageHash + "."), ((Map<String, Object>)market).get("id"))) : messageHash;
             Object trades = (this.watchPrivateSubscribe(messageHash, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
@@ -716,7 +716,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 put( "nonce", id );
             }};
             Object ticker = (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(result, Helpers.GetValue(ticker, "symbol"), ticker);
@@ -898,7 +898,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 put( "nonce", id );
             }};
             Object newTickers = (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Map<String, Object> tickers = new HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(tickers, Helpers.GetValue(newTickers, "symbol"), newTickers);
@@ -972,7 +972,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             String interval = this.safeString(this.timeframes, timeframe, timeframe);
             String messageHash = Helpers.add(((("candlestick" + ".") + interval) + "."), ((Map<String, Object>)market).get("id"));
             Object ohlcv = (this.watchPublic(messageHash, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
@@ -1087,7 +1087,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             Object messageHash = "user.order";
             messageHash = (((!java.util.Objects.equals(market, null)))) ? (Helpers.add((messageHash + "."), ((Map<String, Object>)market).get("id"))) : messageHash;
             Object orders = (this.watchPrivateSubscribe(messageHash, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
@@ -1207,7 +1207,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
             }
             Object newPositions = (this.watch(url, messageHash, this.extend(request, parameters), null, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 return newPositions;
             }

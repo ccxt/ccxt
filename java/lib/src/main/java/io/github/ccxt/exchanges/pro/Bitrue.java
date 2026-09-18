@@ -211,13 +211,13 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             Long lockBalanceUpdateTime = this.safeInteger(balance, "t", 0);
             Boolean updateFree = !Helpers.isEqual(balanceUpdateTime, 0);
             Boolean updateUsed = !Helpers.isEqual(lockBalanceUpdateTime, 0);
-            if (Helpers.isTrue(updateFree) || Helpers.isTrue(updateUsed))
+            if (Boolean.TRUE.equals(updateFree) || Boolean.TRUE.equals(updateUsed))
             {
-                if (Helpers.isTrue(updateFree))
+                if (Boolean.TRUE.equals(updateFree))
                 {
                     Helpers.addElementToObject(account, "free", free);
                 }
-                if (Helpers.isTrue(updateUsed))
+                if (Boolean.TRUE.equals(updateUsed))
                 {
                     Helpers.addElementToObject(account, "used", used);
                 }
@@ -269,7 +269,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             }};
             Map<String, Object> request = this.deepExtend(message, parameters);
             Object orders = (this.watch(url, messageHash, request, messageHash, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
@@ -463,7 +463,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         String channelKind = this.safeString(parts, 1);
         Boolean isFutures = (java.util.Objects.equals(channelKind, "e"));
         Object market = null;
-        if (Helpers.isTrue(isFutures))
+        if (Boolean.TRUE.equals(isFutures))
         {
             String wsBaseQuote = this.safeStringLower(parts, 2);
             market = this.findSwapMarketByWsBaseQuote(((String)wsBaseQuote));
@@ -476,7 +476,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         Long timestamp = this.safeInteger(message, "ts");
         Object tick = this.safeValue(message, "tick", new HashMap<String, Object>() {{}});
         Object parseable = tick;
-        if (Helpers.isTrue(isFutures))
+        if (Boolean.TRUE.equals(isFutures))
         {
             List<Object> rawAsks = (List<Object>) this.safeList(tick, "asks", new ArrayList<Object>(Arrays.asList()));
             List<Object> rawBuys = (List<Object>) this.safeList(tick, "buys", new ArrayList<Object>(Arrays.asList()));
@@ -595,7 +595,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             }};
             Map<String, Object> request = this.deepExtend(message, parameters);
             Object trades = (this.watch(url, messageHash, request, messageHash, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
@@ -651,7 +651,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             Helpers.callDynamically(stored, "append", new Object[]{trade});
             appended = true;
         }
-        if (Helpers.isTrue(appended))
+        if (Boolean.TRUE.equals(appended))
         {
             String messageHash = Helpers.add("trades:", symbol);
             client.resolve(stored, messageHash);
@@ -736,7 +736,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             }};
             Map<String, Object> request = this.deepExtend(message, parameters);
             Object ohlcv = (this.watch(url, messageHash, request, messageHash, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }

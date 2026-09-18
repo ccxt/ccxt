@@ -260,7 +260,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                 put( "event", "sub" );
             }};
             Object trades = (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Object first = this.safeValue(trades, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
@@ -409,7 +409,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             var symbol = ((List<Object>) symboltimeframestoredVariable).get(0);
             var timeframe = ((List<Object>) symboltimeframestoredVariable).get(1);
             var stored = ((List<Object>) symboltimeframestoredVariable).get(2);
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(stored, "getLimit", new Object[]{symbol, limit});
             }
@@ -564,7 +564,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                 put( "event", "sub" );
             }};
             Object ticker = (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(result, Helpers.GetValue(ticker, "symbol"), ticker);
@@ -860,13 +860,13 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((List<Object>) marketTypeparametersVariable).get(1);
             Boolean isSpot = (java.util.Objects.equals(marketType, "spot"));
-            String type = ((Helpers.isTrue(isSpot))) ? "spot" : "contract";
+            String type = ((Boolean.TRUE.equals(isSpot))) ? "spot" : "contract";
             String spotSubHash = "spot:balance";
             String swapSubHash = "contract:private";
             String spotMessageHash = "spot:balance";
             String swapMessageHash = "contract:balance";
-            String messageHash = ((Helpers.isTrue(isSpot))) ? spotMessageHash : swapMessageHash;
-            String subscriptionHash = ((Helpers.isTrue(isSpot))) ? spotSubHash : swapSubHash;
+            String messageHash = ((Boolean.TRUE.equals(isSpot))) ? spotMessageHash : swapMessageHash;
+            String subscriptionHash = ((Boolean.TRUE.equals(isSpot))) ? spotSubHash : swapSubHash;
             if (java.util.Objects.equals(subscriptionHash, null))
             {
                 throw new ArgumentsRequired((this.id + " watchBalance() requires a subscription hash")) ;
@@ -1022,7 +1022,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             }
             Object url = this.getUserStreamUrl();
             Object orders = (this.watch(url, messageHash, parameters, messageHash, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
@@ -1168,7 +1168,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             }
             Object url = this.getUserStreamUrl();
             Object trades = (this.watch(url, messageHash, parameters, messageHash, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
@@ -1215,7 +1215,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         String marketId = this.safeString(trade, "s");
         String ts = this.safeString(trade, "t");
         Boolean isMaker = (java.util.Objects.equals(this.safeBool(trade, "m"), true));
-        String takerOrMaker = ((Helpers.isTrue(isMaker))) ? "maker" : "taker";
+        String takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
         return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", Toobit.this.safeString(trade, "T") );
@@ -1280,7 +1280,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                 return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
             }
             Object newPositions = (this.watch(url, messageHash, null, messageHash, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 return newPositions;
             }
@@ -1385,7 +1385,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         Object cache = Helpers.GetValue(this.positions, accountType);
         // handleMessage's fallback dispatches one item at a time
         Object rawPositions = message;
-        if (!Helpers.isTrue(Helpers.isArray(message)))
+        if (!(message instanceof List))
         {
             rawPositions = new ArrayList<Object>(Arrays.asList(message));
         }
