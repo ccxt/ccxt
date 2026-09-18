@@ -54,14 +54,14 @@ public class TestLoadMarkets extends BaseTest {
             if (!java.util.Objects.equals(Helpers.GetValue(exchange.has, mType), null) && !java.util.Objects.equals(Helpers.GetValue(exchange.has, mType), false))
             {
                 Boolean skipMarketTypes = (Helpers.inOp(skippedProperties, "optionsNotLoadedByDefault")) && java.util.Objects.equals(mType, "option");
-                Assert(Helpers.isTrue(exchange.inArray(mType, collectedTypes)) || Helpers.isTrue(skipMarketTypes), (((("exchange.has[" + mType) + "] is true, but no markets of type ") + mType) + " were found in exchange.markets"));
+                Assert(Helpers.isTrue(exchange.inArray(mType, collectedTypes)) || Boolean.TRUE.equals(skipMarketTypes), (((("exchange.has[" + mType) + "] is true, but no markets of type ") + mType) + " were found in exchange.markets"));
             } else if (java.util.Objects.equals(Helpers.GetValue(exchange.has, mType), false))
             {
                 // some exchanges might have a couple of markets of a certain type loaded even though 'has[type]' is
                 // marked as false (e.g. a legacy/edge-case market); such known exceptions can be whitelisted per-exchange
                 // in skip-tests.json by adding a key matching the market type (e.g. "swap") under that method's skips
                 Boolean isKnownException = (Helpers.inOp(skippedProperties, mType));
-                Assert(!Helpers.isTrue(exchange.inArray(mType, collectedTypes)) || Helpers.isTrue(isKnownException), (((("exchange.has[" + mType) + "] is false, but markets of type ") + mType) + " were found in exchange.markets"));
+                Assert(!Helpers.isTrue(exchange.inArray(mType, collectedTypes)) || Boolean.TRUE.equals(isKnownException), (((("exchange.has[" + mType) + "] is false, but markets of type ") + mType) + " were found in exchange.markets"));
             }
         }
         return true;

@@ -2484,7 +2484,7 @@ public class Coinex extends CoinexApi
             } else if (java.util.Objects.equals(marketType, "financial"))
             {
                 return (this.fetchFinancialBalance(parameters)).join();
-            } else if (Helpers.isTrue(isMargin))
+            } else if (Boolean.TRUE.equals(isMargin))
             {
                 return (this.fetchMarginBalance(parameters)).join();
             } else
@@ -2883,7 +2883,7 @@ public class Coinex extends CoinexApi
                     requestType = "fok";
                 }
             }
-            if (!Helpers.isTrue(isMarketOrder))
+            if (!Boolean.TRUE.equals(isMarketOrder))
             {
                 ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
             }
@@ -2933,7 +2933,7 @@ public class Coinex extends CoinexApi
                 parameters = ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
                 Object cost = this.safeNumber(parameters, "cost");
                 parameters = this.omit(parameters, "cost");
-                if (Helpers.isTrue(createMarketBuyOrderRequiresPrice))
+                if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
                 {
                     if ((java.util.Objects.equals(price, null)) && (java.util.Objects.equals(cost, null)))
                     {
@@ -3007,12 +3007,12 @@ public class Coinex extends CoinexApi
             Boolean isTriggerOrder = !java.util.Objects.equals(triggerPrice, null);
             Boolean isStopLossTriggerOrder = !java.util.Objects.equals(stopLossTriggerPrice, null);
             Boolean isTakeProfitTriggerOrder = !java.util.Objects.equals(takeProfitTriggerPrice, null);
-            Boolean isStopLossOrTakeProfitTrigger = Helpers.isTrue(isStopLossTriggerOrder) || Helpers.isTrue(isTakeProfitTriggerOrder);
+            Boolean isStopLossOrTakeProfitTrigger = Boolean.TRUE.equals(isStopLossTriggerOrder) || Boolean.TRUE.equals(isTakeProfitTriggerOrder);
             Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             Object response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
-                if (Helpers.isTrue(isTriggerOrder))
+                if (Boolean.TRUE.equals(isTriggerOrder))
                 {
                     response = (this.v2PrivatePostSpotStopOrder(request)).join();
                 } else
@@ -3021,15 +3021,15 @@ public class Coinex extends CoinexApi
                 }
             } else
             {
-                if (Helpers.isTrue(isTriggerOrder))
+                if (Boolean.TRUE.equals(isTriggerOrder))
                 {
                     response = (this.v2PrivatePostFuturesStopOrder(request)).join();
-                } else if (Helpers.isTrue(isStopLossOrTakeProfitTrigger))
+                } else if (Boolean.TRUE.equals(isStopLossOrTakeProfitTrigger))
                 {
-                    if (Helpers.isTrue(isStopLossTriggerOrder))
+                    if (Boolean.TRUE.equals(isStopLossTriggerOrder))
                     {
                         response = (this.v2PrivatePostFuturesSetPositionStopLoss(request)).join();
-                    } else if (Helpers.isTrue(isTakeProfitTriggerOrder))
+                    } else if (Boolean.TRUE.equals(isTakeProfitTriggerOrder))
                     {
                         response = (this.v2PrivatePostFuturesSetPositionTakeProfit(request)).join();
                     }
@@ -3107,7 +3107,7 @@ public class Coinex extends CoinexApi
                 isTriggerOrder = !java.util.Objects.equals(triggerPrice, null);
                 Boolean isStopLossTriggerOrder = !java.util.Objects.equals(stopLossTriggerPrice, null);
                 Boolean isTakeProfitTriggerOrder = !java.util.Objects.equals(takeProfitTriggerPrice, null);
-                isStopLossOrTakeProfitTrigger = Helpers.isTrue(isStopLossTriggerOrder) || Helpers.isTrue(isTakeProfitTriggerOrder);
+                isStopLossOrTakeProfitTrigger = Boolean.TRUE.equals(isStopLossTriggerOrder) || Boolean.TRUE.equals(isTakeProfitTriggerOrder);
                 Object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
@@ -3119,7 +3119,7 @@ public class Coinex extends CoinexApi
             Object response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
-                if (Helpers.isTrue(isTriggerOrder))
+                if (Boolean.TRUE.equals(isTriggerOrder))
                 {
                     response = (this.v2PrivatePostSpotBatchStopOrder(request)).join();
                 } else
@@ -3128,10 +3128,10 @@ public class Coinex extends CoinexApi
                 }
             } else
             {
-                if (Helpers.isTrue(isTriggerOrder))
+                if (Boolean.TRUE.equals(isTriggerOrder))
                 {
                     response = (this.v2PrivatePostFuturesBatchStopOrder(request)).join();
-                } else if (Helpers.isTrue(isStopLossOrTakeProfitTrigger))
+                } else if (Boolean.TRUE.equals(isStopLossOrTakeProfitTrigger))
                 {
                     throw new NotSupported((this.id + " createOrders() does not support stopLossPrice or takeProfitPrice orders")) ;
                 } else
@@ -3164,7 +3164,7 @@ public class Coinex extends CoinexApi
                 }
                 Object innerData = this.safeDict(entry, "data", new HashMap<String, Object>() {{}});
                 Object order = null;
-                if ((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)) && !Helpers.isTrue(isTriggerOrder))
+                if ((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)) && !Boolean.TRUE.equals(isTriggerOrder))
                 {
                     Helpers.addElementToObject(entry, "status", status);
                     order = this.parseOrder(entry, market);
@@ -3312,7 +3312,7 @@ public class Coinex extends CoinexApi
             String triggerPrice = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("stopPrice", "triggerPrice", "trigger_price")));
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopPrice", "triggerPrice")));
             Boolean isTriggerOrder = !java.util.Objects.equals(triggerPrice, null);
-            if (Helpers.isTrue(isTriggerOrder))
+            if (Boolean.TRUE.equals(isTriggerOrder))
             {
                 ((Map<String, Object>)request).put("trigger_price", this.priceToPrecision(symbol, triggerPrice));
                 ((Map<String, Object>)request).put("stop_id", this.parseToNumeric(id));
@@ -3333,7 +3333,7 @@ public class Coinex extends CoinexApi
                 {
                     ((Map<String, Object>)request).put("market_type", "SPOT");
                 }
-                if (Helpers.isTrue(isTriggerOrder))
+                if (Boolean.TRUE.equals(isTriggerOrder))
                 {
                     response = (this.v2PrivatePostSpotModifyStopOrder(this.extend(request, parameters))).join();
                 } else
@@ -3343,7 +3343,7 @@ public class Coinex extends CoinexApi
             } else
             {
                 ((Map<String, Object>)request).put("market_type", "FUTURES");
-                if (Helpers.isTrue(isTriggerOrder))
+                if (Boolean.TRUE.equals(isTriggerOrder))
                 {
                     response = (this.v2PrivatePostFuturesModifyStopOrder(this.extend(request, parameters))).join();
                 } else
@@ -3733,7 +3733,7 @@ public class Coinex extends CoinexApi
             if (java.util.Objects.equals(marketType, "swap"))
             {
                 ((Map<String, Object>)request).put("market_type", "FUTURES");
-                if (Helpers.isTrue(isClosed))
+                if (Boolean.TRUE.equals(isClosed))
                 {
                     if (java.util.Objects.equals(trigger, true))
                     {
@@ -3742,7 +3742,7 @@ public class Coinex extends CoinexApi
                     {
                         response = (this.v2PrivateGetFuturesFinishedOrder(this.extend(request, parameters))).join();
                     }
-                } else if (Helpers.isTrue(isOpen))
+                } else if (Boolean.TRUE.equals(isOpen))
                 {
                     if (java.util.Objects.equals(trigger, true))
                     {
@@ -3765,7 +3765,7 @@ public class Coinex extends CoinexApi
                 {
                     ((Map<String, Object>)request).put("market_type", "SPOT");
                 }
-                if (Helpers.isTrue(isClosed))
+                if (Boolean.TRUE.equals(isClosed))
                 {
                     if (java.util.Objects.equals(trigger, true))
                     {
@@ -4094,7 +4094,7 @@ public class Coinex extends CoinexApi
             if (!java.util.Objects.equals(symbols, null))
             {
                 Object symbol = null;
-                if (Helpers.isTrue(Helpers.isArray(symbols)))
+                if ((symbols instanceof List))
                 {
                     Object symbolsLength = ((List<?>)symbols).size();
                     if (Helpers.isGreaterThan(symbolsLength, 1))
@@ -5118,7 +5118,7 @@ final Object finalI = i;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters, 1000)).join();
             }

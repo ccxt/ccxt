@@ -166,7 +166,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                 }} );
             }};
             Object trades = (this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
@@ -384,7 +384,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                 }} );
             }};
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
-            if (!java.util.Objects.equals(symbols, null) && Helpers.isTrue(Helpers.isArray(symbols)))
+            if (!java.util.Objects.equals(symbols, null) && (symbols instanceof List))
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
@@ -396,7 +396,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                 ((List<Object>)messageHashes).add(channel);
             }
             Object newTicker = (this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(result, Helpers.GetValue(newTicker, "symbol"), newTicker);
@@ -454,7 +454,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                 }} );
             }};
             Object orders = (this.watch(url, messageHash, this.deepExtend(request, parameters), channel, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
@@ -638,7 +638,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                 ((List<Object>)messageHashes).add(channel);
             }
             Object newFundingRates = (this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(result, Helpers.GetValue(newFundingRates, "symbol"), newFundingRates);

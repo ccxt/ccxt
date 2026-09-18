@@ -409,22 +409,22 @@ public class Bitflyer extends BitflyerApi
                 String marketType = this.safeString(market, "market_type");
                 Boolean swap = (java.util.Objects.equals(marketType, "FX"));
                 Boolean future = (java.util.Objects.equals(marketType, "Futures"));
-                Boolean spot = !Helpers.isTrue(swap) && !Helpers.isTrue(future);
+                Boolean spot = !Boolean.TRUE.equals(swap) && !Boolean.TRUE.equals(future);
                 String type = "spot";
                 String settle = null;
                 Object baseId = null;
                 Object quoteId = null;
                 Object expiry = null;
-                if (Helpers.isTrue(spot))
+                if (Boolean.TRUE.equals(spot))
                 {
                     baseId = this.safeString(currencies, 0);
                     quoteId = this.safeString(currencies, 1);
-                } else if (Helpers.isTrue(swap))
+                } else if (Boolean.TRUE.equals(swap))
                 {
                     type = "swap";
                     baseId = this.safeString(currencies, 1);
                     quoteId = this.safeString(currencies, 2);
-                } else if (Helpers.isTrue(future))
+                } else if (Boolean.TRUE.equals(future))
                 {
                     String alias = this.safeString(market, "alias");
                     if (java.util.Objects.equals(alias, null))
@@ -454,14 +454,14 @@ public class Bitflyer extends BitflyerApi
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
                 Object taker = Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "taker");
                 Object maker = Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "maker");
-                Boolean contract = Helpers.isTrue(swap) || Helpers.isTrue(future);
-                if (Helpers.isTrue(contract))
+                Boolean contract = Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(future);
+                if (Boolean.TRUE.equals(contract))
                 {
                     maker = 0;
                     taker = 0;
                     settle = "JPY";
                     symbol = ((symbol + ":") + settle);
-                    if (Helpers.isTrue(future))
+                    if (Boolean.TRUE.equals(future))
                     {
                         symbol = ((symbol + "-") + this.yymmdd(expiry));
                     }
@@ -493,8 +493,8 @@ public class Bitflyer extends BitflyerApi
                     put( "option", false );
                     put( "active", true );
                     put( "contract", contract );
-                    put( "linear", ((Helpers.isTrue(spot))) ? null : true );
-                    put( "inverse", ((Helpers.isTrue(spot))) ? null : false );
+                    put( "linear", ((Boolean.TRUE.equals(spot))) ? null : true );
+                    put( "inverse", ((Boolean.TRUE.equals(spot))) ? null : false );
                     put( "taker", finalTaker );
                     put( "maker", finalMaker );
                     put( "contractSize", null );

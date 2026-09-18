@@ -246,7 +246,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         //    ['buy', '1665467516704', '98070', "19057.7", "14541220"]
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        if (!Helpers.isTrue(Helpers.isArray(trade)))
+        if (!(trade instanceof List))
         {
             trade = Helpers.split(trade, ":");
         }
@@ -394,7 +394,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             {
                 return (this.watchTickers((Object)(symbols), (Object)(parameters))).join();
             }
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(result, tickerSymbol, ticker);
@@ -612,7 +612,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             }};
             Map<String, Object> request = this.deepExtend(message, parameters);
             Object orders = (this.watch(url, messageHash, request, messageHash, request)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
@@ -915,7 +915,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         {
             Helpers.addElementToObject(order, "status", "canceled");
         }
-        if (Helpers.isTrue(isTransaction))
+        if (Boolean.TRUE.equals(isTransaction))
         {
             Helpers.addElementToObject(order, "status", "closed");
         }
@@ -989,7 +989,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             remaining = this.currencyFromPrecision(((Map<String, Object>)market).get("base"), remainsPrecision);
         }
         String amount = this.safeString(order, "amount");
-        if (!Helpers.isTrue(isTransaction))
+        if (!Boolean.TRUE.equals(isTransaction))
         {
             if (java.util.Objects.equals(market, null))
             {
@@ -1015,7 +1015,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         market = this.safeMarket(symbol, market);
         Long time = this.safeInteger(order, "time", this.milliseconds());
         Object timestamp = time;
-        if (Helpers.isTrue(isTransaction))
+        if (Boolean.TRUE.equals(isTransaction))
         {
             timestamp = this.parse8601(time);
         }
@@ -1024,7 +1024,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         if (java.util.Objects.equals(canceled, true))
         {
             status = "canceled";
-        } else if (Helpers.isTrue(isTransaction))
+        } else if (Boolean.TRUE.equals(isTransaction))
         {
             status = "closed";
         }
@@ -1061,7 +1061,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             }} );
             put( "trades", null );
         }};
-        if (Helpers.isTrue(isTransaction))
+        if (Boolean.TRUE.equals(isTransaction))
         {
             ((Map<String, Object>)parsedOrder).put("trades", this.parseWsTrade(order, market));
         }
@@ -1311,7 +1311,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
                 put( "rooms", new ArrayList<Object>(Arrays.asList(Helpers.add((Helpers.add("pair-", ((Map<String, Object>)market).get("baseId")) + "-"), ((Map<String, Object>)market).get("quoteId")))) );
             }};
             Object ohlcv = (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }

@@ -568,7 +568,7 @@ public class Hyperliquid extends HyperliquidApi
         if (!java.util.Objects.equals(fullName, null) && !java.util.Objects.equals(name, null))
         {
             Boolean isWrapped = Helpers.isTrue(fullName.startsWith(((String)"Unit "))) && Helpers.isTrue(name.startsWith(((String)"U")));
-            if (Helpers.isTrue(isWrapped))
+            if (Boolean.TRUE.equals(isWrapped))
             {
                 Object parts = Helpers.split(name, "U");
                 Object nameWithoutU = "";
@@ -1132,9 +1132,9 @@ public class Hyperliquid extends HyperliquidApi
         Object symbol = Helpers.add((base + "/"), quote);
         Boolean contract = true;
         Boolean swap = true;
-        if (Helpers.isTrue(contract))
+        if (Boolean.TRUE.equals(contract))
         {
-            if (Helpers.isTrue(swap))
+            if (Boolean.TRUE.equals(swap))
             {
                 symbol = Helpers.add((symbol + ":"), settle);
             }
@@ -1458,7 +1458,7 @@ public class Hyperliquid extends HyperliquidApi
                     }
                 }
             }
-            if (Helpers.isTrue(hip3))
+            if (Boolean.TRUE.equals(hip3))
             {
                 parameters = this.omit(parameters, "hip3");
                 response = (this.fetchHip3Markets(parameters)).join();
@@ -1745,7 +1745,7 @@ public class Hyperliquid extends HyperliquidApi
             //     ]
             //
             Object candles = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(Helpers.isArray(response)))
+            if ((response instanceof List))
             {
                 candles = response;
             }
@@ -1851,7 +1851,7 @@ public class Hyperliquid extends HyperliquidApi
             //     ]
             //
             Object fills = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(Helpers.isArray(response)))
+            if ((response instanceof List))
             {
                 fills = response;
             }
@@ -2692,7 +2692,7 @@ public class Hyperliquid extends HyperliquidApi
         Boolean isBuy = (java.util.Objects.equals(side, "BUY"));
         String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_id");
         String slippage = this.safeString(parameters, "slippage");
-        String defaultTimeInForce = ((Helpers.isTrue((isMarket)))) ? "ioc" : "gtc";
+        String defaultTimeInForce = ((Boolean.TRUE.equals(isMarket))) ? "ioc" : "gtc";
         Object postOnly = this.safeBool(parameters, "postOnly", false);
         if (java.util.Objects.equals(postOnly, true))
         {
@@ -2705,13 +2705,13 @@ public class Hyperliquid extends HyperliquidApi
         String takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
         Boolean isTrigger = ((!java.util.Objects.equals(stopLossPrice, null)) || (!java.util.Objects.equals(takeProfitPrice, null)));
         Object px = null;
-        if (Helpers.isTrue(isMarket))
+        if (Boolean.TRUE.equals(isMarket))
         {
             if (java.util.Objects.equals(price, null))
             {
                 throw new ArgumentsRequired((this.id + "  market orders require price to calculate the max slippage price. Default slippage can be set in options (default is 5%).")) ;
             }
-            px = ((Helpers.isTrue((isBuy)))) ? Precise.stringMul(price, Precise.stringAdd("1", slippage)) : Precise.stringMul(price, Precise.stringSub("1", slippage));
+            px = ((Boolean.TRUE.equals(isBuy))) ? Precise.stringMul(price, Precise.stringAdd("1", slippage)) : Precise.stringMul(price, Precise.stringSub("1", slippage));
             px = this.priceToPrecision(symbol, px); // round after adding slippage
         } else
         {
@@ -2720,7 +2720,7 @@ public class Hyperliquid extends HyperliquidApi
         Object sz = this.amountToPrecision(symbol, amount);
         Object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
         Map<String, Object> orderType = new HashMap<String, Object>() {{}};
-        if (Helpers.isTrue(isTrigger))
+        if (Boolean.TRUE.equals(isTrigger))
         {
             Boolean isTp = false;
             if (!java.util.Objects.equals(takeProfitPrice, null))
@@ -2731,7 +2731,7 @@ public class Hyperliquid extends HyperliquidApi
             {
                 triggerPrice = this.priceToPrecision(symbol, stopLossPrice);
             }
-            String tpSlType = ((Helpers.isTrue((isTp)))) ? "tp" : "sl";
+            String tpSlType = ((Boolean.TRUE.equals(isTp))) ? "tp" : "sl";
             final Object finalTriggerPrice = triggerPrice;
             ((Map<String, Object>)orderType).put("trigger", new HashMap<String, Object>() {{
     put( "isMarket", isMarket );
@@ -2787,7 +2787,7 @@ public class Hyperliquid extends HyperliquidApi
                 hasClientOrderId = true;
             }
         }
-        if (Helpers.isTrue(hasClientOrderId))
+        if (Boolean.TRUE.equals(hasClientOrderId))
         {
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
@@ -2823,7 +2823,7 @@ public class Hyperliquid extends HyperliquidApi
             Boolean hasTakeProfit = (!java.util.Objects.equals(takeProfit, null));
             orderParams = this.omit(orderParams, new ArrayList<Object>(Arrays.asList("stopLoss", "takeProfit")));
             Object mainOrderObj = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
-            if (Helpers.isTrue(hasStopLoss) || Helpers.isTrue(hasTakeProfit))
+            if (Boolean.TRUE.equals(hasStopLoss) || Boolean.TRUE.equals(hasTakeProfit))
             {
                 // grouping opposed orders for sl/tp
                 String stopLossOrderTriggerPrice = this.safeString2(stopLoss, "triggerPrice", "stopPrice");
@@ -2854,7 +2854,7 @@ public class Hyperliquid extends HyperliquidApi
                 {
                     triggerOrderSide = "buy";
                 }
-                if (Helpers.isTrue(hasTakeProfit))
+                if (Boolean.TRUE.equals(hasTakeProfit))
                 {
                     Object orderObj = this.createOrderRequest(symbol, takeProfitOrderType, triggerOrderSide, amount, takeProfitOrderLimitPrice, this.extend(orderParams, new HashMap<String, Object>() {{
                         put( "takeProfitPrice", takeProfitOrderTriggerPrice );
@@ -2862,7 +2862,7 @@ public class Hyperliquid extends HyperliquidApi
                     }}));
                     ((List<Object>)orderReq).add(orderObj);
                 }
-                if (Helpers.isTrue(hasStopLoss))
+                if (Boolean.TRUE.equals(hasStopLoss))
                 {
                     Object orderObj = this.createOrderRequest(symbol, stopLossOrderType, triggerOrderSide, amount, stopLossOrderLimitPrice, this.extend(orderParams, new HashMap<String, Object>() {{
                         put( "stopLossPrice", stopLossOrderTriggerPrice );
@@ -3120,7 +3120,7 @@ public class Hyperliquid extends HyperliquidApi
         Object baseId = this.parseToNumeric(((Map<String, Object>)market).get("baseId"));
         if (!java.util.Objects.equals(clientOrderId, null))
         {
-            if (!Helpers.isTrue(Helpers.isArray(clientOrderId)))
+            if (!(clientOrderId instanceof List))
             {
                 clientOrderId = new ArrayList<Object>(Arrays.asList(clientOrderId));
             }
@@ -3211,19 +3211,19 @@ final Object finalClientOrderId = clientOrderId;
                 {
                     throw new ArgumentsRequired((this.id + " cancelOrdersForSymbols() requires a symbol argument in each order")) ;
                 }
-                if (!java.util.Objects.equals(id, null) && Helpers.isTrue(cancelByCloid))
+                if (!java.util.Objects.equals(id, null) && Boolean.TRUE.equals(cancelByCloid))
                 {
                     throw new BadRequest((this.id + " cancelOrdersForSymbols() all orders must have either id or clientOrderId")) ;
                 }
-                String assetKey = ((Helpers.isTrue(cancelByCloid))) ? "asset" : "a";
-                String idKey = ((Helpers.isTrue(cancelByCloid))) ? "cloid" : "o";
+                String assetKey = ((Boolean.TRUE.equals(cancelByCloid))) ? "asset" : "a";
+                String idKey = ((Boolean.TRUE.equals(cancelByCloid))) ? "cloid" : "o";
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 Map<String, Object> cancelObj = new HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(cancelObj, assetKey, this.parseToNumeric(((Map<String, Object>)market).get("baseId")));
-                Helpers.addElementToObject(cancelObj, idKey, ((Helpers.isTrue(cancelByCloid))) ? clientOrderId : this.parseToNumeric(id));
+                Helpers.addElementToObject(cancelObj, idKey, ((Boolean.TRUE.equals(cancelByCloid))) ? clientOrderId : this.parseToNumeric(id));
                 ((List<Object>)cancelReq).add(cancelObj);
             }
-            ((Map<String, Object>)cancelAction).put("type", ((Helpers.isTrue(cancelByCloid))) ? "cancelByCloid" : "cancel");
+            ((Map<String, Object>)cancelAction).put("type", ((Boolean.TRUE.equals(cancelByCloid))) ? "cancelByCloid" : "cancel");
             ((Map<String, Object>)cancelAction).put("cancels", cancelReq);
             Object vaultAddress = null;
             List<Object> vaultAddressparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "cancelOrdersForSymbols", "vaultAddress", "subAccountAddress");
@@ -3331,7 +3331,7 @@ final Object finalClientOrderId = clientOrderId;
                 hasClientOrderId = true;
             }
         }
-        if (Helpers.isTrue(hasClientOrderId))
+        if (Boolean.TRUE.equals(hasClientOrderId))
         {
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
@@ -3362,7 +3362,7 @@ final Object finalClientOrderId = clientOrderId;
             Object orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
             String defaultSlippage = this.safeString(this.options, "defaultSlippage");
             String slippage = this.safeString(orderParams, "slippage", defaultSlippage);
-            String defaultTimeInForce = ((Helpers.isTrue((isMarket)))) ? "ioc" : "gtc";
+            String defaultTimeInForce = ((Boolean.TRUE.equals(isMarket))) ? "ioc" : "gtc";
             Object postOnly = this.safeBool(orderParams, "postOnly", false);
             if (java.util.Objects.equals(postOnly, true))
             {
@@ -3378,9 +3378,9 @@ final Object finalClientOrderId = clientOrderId;
             Object reduceOnly = this.safeBool(orderParams, "reduceOnly", false);
             orderParams = this.omit(orderParams, new ArrayList<Object>(Arrays.asList("slippage", "timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice", "clientOrderId", "client_id", "postOnly", "reduceOnly")));
             Object px = this.numberToString(price);
-            if (Helpers.isTrue(isMarket))
+            if (Boolean.TRUE.equals(isMarket))
             {
-                px = ((Helpers.isTrue((isBuy)))) ? Precise.stringMul(px, Precise.stringAdd("1", slippage)) : Precise.stringMul(px, Precise.stringSub("1", slippage));
+                px = ((Boolean.TRUE.equals(isBuy))) ? Precise.stringMul(px, Precise.stringAdd("1", slippage)) : Precise.stringMul(px, Precise.stringSub("1", slippage));
                 px = this.priceToPrecision(symbol, px);
             } else
             {
@@ -3388,7 +3388,7 @@ final Object finalClientOrderId = clientOrderId;
             }
             Object sz = this.amountToPrecision(symbol, amount);
             Map<String, Object> orderType = new HashMap<String, Object>() {{}};
-            if (Helpers.isTrue(isTrigger))
+            if (Boolean.TRUE.equals(isTrigger))
             {
                 Boolean isTp = false;
                 if (!java.util.Objects.equals(takeProfitPrice, null))
@@ -3399,7 +3399,7 @@ final Object finalClientOrderId = clientOrderId;
                 {
                     triggerPrice = this.priceToPrecision(symbol, stopLossPrice);
                 }
-                String tpSlType = ((Helpers.isTrue((isTp)))) ? "tp" : "sl";
+                String tpSlType = ((Boolean.TRUE.equals(isTp))) ? "tp" : "sl";
                 final Object finalTriggerPrice = triggerPrice;
                 ((Map<String, Object>)orderType).put("trigger", new HashMap<String, Object>() {{
     put( "isMarket", isMarket );
@@ -3682,7 +3682,7 @@ final Object finalClientOrderId = clientOrderId;
             //
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             Object fundings = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(Helpers.isArray(response)))
+            if ((response instanceof List))
             {
                 fundings = response;
             }
@@ -3785,7 +3785,7 @@ final Object finalClientOrderId = clientOrderId;
             //
             List<Object> orderWithStatus = new ArrayList<Object>(Arrays.asList());
             Object rawOrders = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(Helpers.isArray(response)))
+            if ((response instanceof List))
             {
                 rawOrders = response;
             }
@@ -3966,7 +3966,7 @@ final Object finalClientOrderId = clientOrderId;
             // Deduplicate by oid, keeping the entry with the most recent statusTimestamp.
             Map<String, Object> deduplicatedByOid = new HashMap<String, Object>() {{}};
             Object historicalOrders = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(Helpers.isArray(response)))
+            if ((response instanceof List))
             {
                 historicalOrders = response;
             }
@@ -4047,7 +4047,7 @@ final Object finalClientOrderId = clientOrderId;
             } else
             {
                 Boolean isClientOrderId = ((String)id).length() >= 34;
-                ((Map<String, Object>)request).put("oid", ((Helpers.isTrue(isClientOrderId))) ? id : this.parseToNumeric(id));
+                ((Map<String, Object>)request).put("oid", ((Boolean.TRUE.equals(isClientOrderId))) ? id : this.parseToNumeric(id));
             }
             Object response = (this.publicPostInfo(this.extend(request, parameters))).join();
             //
@@ -4227,7 +4227,7 @@ final Object finalClientOrderId = clientOrderId;
             postOnly = (java.util.Objects.equals(tif, "ALO"));
         }
         Boolean isTrigger = (java.util.Objects.equals(this.safeBool(entry, "isTrigger"), true));
-        Object triggerPx = ((Helpers.isTrue(isTrigger))) ? this.safeNumber(entry, "triggerPx") : null;
+        Object triggerPx = ((Boolean.TRUE.equals(isTrigger))) ? this.safeNumber(entry, "triggerPx") : null;
         // standalone stop / take-profit orders carry their trigger in triggerPx - surface it
         // through the unified stopLossPrice / takeProfitPrice fields as well, see #24318
         Object orderTypeRaw = ((String)this.safeStringLower(entry, "orderType", ""));
@@ -4391,7 +4391,7 @@ final Object finalClientOrderId = clientOrderId;
             //     ]
             //
             Object myFills = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(Helpers.isArray(response)))
+            if ((response instanceof List))
             {
                 myFills = response;
             }
@@ -4668,7 +4668,7 @@ final Object finalClientOrderId = clientOrderId;
         String absRawUnrealizedPnl = Precise.stringAbs(rawUnrealizedPnl);
         String marginUsed = this.safeString(entry, "marginUsed");
         String initialMargin = null;
-        if (Helpers.isTrue(isIsolated))
+        if (Boolean.TRUE.equals(isIsolated))
         {
             initialMargin = Precise.stringSub(marginUsed, rawUnrealizedPnl);
         } else
@@ -5073,7 +5073,7 @@ final Object finalClientOrderId = clientOrderId;
             String transferType = this.safeString(parameters, "type");
             parameters = this.omit(parameters, "type");
             Boolean isUsdc = (java.util.Objects.equals(code, null)) || (java.util.Objects.equals(((String)code).toUpperCase(), "USDC"));
-            if (Helpers.isTrue(isUsdc) && (!java.util.Objects.equals(transferType, "spot")))
+            if (Boolean.TRUE.equals(isUsdc) && (!java.util.Objects.equals(transferType, "spot")))
             {
                 // Transfer USDC with subAccountTransfer
                 Long usd = this.parseToInt(Precise.stringMul(this.numberToString(amount), "1000000"));
@@ -5606,7 +5606,7 @@ final Object finalClientOrderId = clientOrderId;
             // ]
             //
             Object depositLedger = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(Helpers.isArray(response)))
+            if ((response instanceof List))
             {
                 depositLedger = response;
             }
@@ -5700,7 +5700,7 @@ final Object finalClientOrderId = clientOrderId;
             // ]
             //
             Object withdrawalLedger = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(Helpers.isArray(response)))
+            if ((response instanceof List))
             {
                 withdrawalLedger = response;
             }
@@ -6134,12 +6134,12 @@ final Object finalClientOrderId = clientOrderId;
         }
         Object feedback = ((this.id + " ") + body);
         Boolean nonEmptyMessage = ((!java.util.Objects.equals(message, null)) && (!java.util.Objects.equals(message, "")));
-        if (Helpers.isTrue(nonEmptyMessage))
+        if (Boolean.TRUE.equals(nonEmptyMessage))
         {
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, feedback);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
         }
-        if (Helpers.isTrue(nonEmptyMessage))
+        if (Boolean.TRUE.equals(nonEmptyMessage))
         {
             throw new ExchangeError((String)feedback) ;
         }

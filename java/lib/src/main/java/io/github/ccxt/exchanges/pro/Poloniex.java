@@ -305,7 +305,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 if (!java.util.Objects.equals(cost, null))
                 {
                     quoteAmount = this.costToPrecision(symbol, cost);
-                } else if (Helpers.isTrue(createMarketBuyOrderRequiresPrice))
+                } else if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
                 {
                     if (java.util.Objects.equals(price, null))
                     {
@@ -482,7 +482,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 throw new BadRequest(((this.id + " watchOHLCV cannot take a timeframe of ") + timeframe)) ;
             }
             Object ohlcv = (this.subscribe(channel, channel, false, new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
@@ -540,7 +540,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             Object name = "ticker";
             symbols = this.marketSymbols(symbols);
             Object newTickers = (this.subscribe(name, name, false, symbols, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 return newTickers;
             }
@@ -616,7 +616,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 }
             }
             Object trades = (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Object first = this.safeValue(trades, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
@@ -691,7 +691,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             }
             Object symbols = (((java.util.Objects.equals(symbol, null)))) ? null : new ArrayList<Object>(Arrays.asList(symbol));
             Object orders = (this.subscribe(name, name, true, symbols, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
@@ -733,7 +733,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             }
             Object symbols = (((java.util.Objects.equals(symbol, null)))) ? null : new ArrayList<Object>(Arrays.asList(symbol));
             Object trades = (this.subscribe(name, messageHash, true, symbols, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
@@ -1369,9 +1369,9 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             Long timestamp = this.safeInteger(item, "ts");
             Object asks = this.safeValue(item, "asks");
             Object bids = this.safeValue(item, "bids");
-            if (Helpers.isTrue(snapshot) || Helpers.isTrue(update))
+            if (Boolean.TRUE.equals(snapshot) || Boolean.TRUE.equals(update))
             {
-                if (Helpers.isTrue(snapshot))
+                if (Boolean.TRUE.equals(snapshot))
                 {
                     Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
                 }

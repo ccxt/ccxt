@@ -816,7 +816,7 @@ public class Kraken extends KrakenApi
                 {
                     throw new ExchangeError((this.id + " method() missing base")) ;
                 }
-                if (Helpers.isTrue(spot) && (((Map<?, ?>)cachedCurrencies).containsKey(base)))
+                if (Boolean.TRUE.equals(spot) && (((Map<?, ?>)cachedCurrencies).containsKey(base)))
                 {
                     Object currency = this.safeValue(cachedCurrencies, base);
                     Double currencyPrecision = this.safeNumber(currency, "precision");
@@ -832,7 +832,7 @@ public class Kraken extends KrakenApi
                 }
                 String status = this.safeString(market, "status");
                 Boolean isActive = java.util.Objects.equals(status, "online");
-                Object symbol = ((Helpers.isTrue((!Helpers.isTrue(isSynthetic))))) ? (Helpers.add((base + "/"), quote)) : id;
+                Object symbol = ((Helpers.isTrue((!Boolean.TRUE.equals(isSynthetic))))) ? (Helpers.add((base + "/"), quote)) : id;
     final Object finalBase = base;
                 final Object finalSpot = spot;
                 final Object finalLeverageBuyLength = leverageBuyLength;
@@ -1069,7 +1069,7 @@ public class Kraken extends KrakenApi
             put( "info", finalRawCurrency );
             put( "name", Kraken.this.safeString(finalRawCurrency, "altname") );
             put( "active", java.util.Objects.equals(Kraken.this.safeString(finalRawCurrency, "status"), "enabled") );
-            put( "type", ((Helpers.isTrue(isFiat))) ? "fiat" : "crypto" );
+            put( "type", ((Boolean.TRUE.equals(isFiat))) ? "fiat" : "crypto" );
             put( "deposit", null );
             put( "withdraw", null );
             put( "fee", null );
@@ -1441,7 +1441,7 @@ public class Kraken extends KrakenApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 720)).join();
             }
@@ -1762,7 +1762,7 @@ public class Kraken extends KrakenApi
         String orderId = null;
         Object fee = null;
         Object symbol = null;
-        if (Helpers.isTrue(Helpers.isArray(trade)))
+        if ((trade instanceof List))
         {
             timestamp = this.safeTimestamp(trade, 2);
             side = (((java.util.Objects.equals(Helpers.GetValue(trade, 3), "s")))) ? "sell" : "buy";
@@ -2611,7 +2611,7 @@ final Object finalId = id;
         String takeProfitTriggerPrice = this.safeString(parameters, "takeProfitPrice");
         Boolean isStopLossTriggerOrder = !java.util.Objects.equals(stopLossTriggerPrice, null);
         Boolean isTakeProfitTriggerOrder = !java.util.Objects.equals(takeProfitTriggerPrice, null);
-        Boolean isStopLossOrTakeProfitTrigger = Helpers.isTrue(isStopLossTriggerOrder) || Helpers.isTrue(isTakeProfitTriggerOrder);
+        Boolean isStopLossOrTakeProfitTrigger = Boolean.TRUE.equals(isStopLossTriggerOrder) || Boolean.TRUE.equals(isTakeProfitTriggerOrder);
         String trailingAmount = this.safeString(parameters, "trailingAmount");
         String trailingPercent = this.safeString(parameters, "trailingPercent");
         String trailingLimitAmount = this.safeString(parameters, "trailingLimitAmount");
@@ -2624,7 +2624,7 @@ final Object finalId = id;
         String flags = this.safeString(parameters, "oflags");
         parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("cost", "oflags")));
         Boolean isViqcOrder = (!java.util.Objects.equals(flags, null)) && (Helpers.isGreaterThan(Helpers.getIndexOf(flags, "viqc"), Helpers.opNeg(1))); // volume in quote currency
-        if (Helpers.isTrue(isMarketOrder) && (!java.util.Objects.equals(cost, null) || Helpers.isTrue(isViqcOrder)))
+        if (Boolean.TRUE.equals(isMarketOrder) && (!java.util.Objects.equals(cost, null) || Boolean.TRUE.equals(isViqcOrder)))
         {
             if (java.util.Objects.equals(cost, null) && (!java.util.Objects.equals(amount, null)))
             {
@@ -2635,27 +2635,27 @@ final Object finalId = id;
             }
             Object extendedOflags = (((!java.util.Objects.equals(flags, null)))) ? (flags + ",viqc") : "viqc";
             ((Map<String, Object>)request).put("oflags", extendedOflags);
-        } else if (Helpers.isTrue(isLimitOrder) && !Helpers.isTrue(isTrailingAmountOrder) && !Helpers.isTrue(isTrailingPercentOrder))
+        } else if (Boolean.TRUE.equals(isLimitOrder) && !Boolean.TRUE.equals(isTrailingAmountOrder) && !Boolean.TRUE.equals(isTrailingPercentOrder))
         {
             ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
         }
         Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
-        if (Helpers.isTrue(isStopLossOrTakeProfitTrigger))
+        if (Boolean.TRUE.equals(isStopLossOrTakeProfitTrigger))
         {
-            if (Helpers.isTrue(isStopLossTriggerOrder))
+            if (Boolean.TRUE.equals(isStopLossTriggerOrder))
             {
                 ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, stopLossTriggerPrice));
-                if (Helpers.isTrue(isLimitOrder))
+                if (Boolean.TRUE.equals(isLimitOrder))
                 {
                     ((Map<String, Object>)request).put("ordertype", "stop-loss-limit");
                 } else
                 {
                     ((Map<String, Object>)request).put("ordertype", "stop-loss");
                 }
-            } else if (Helpers.isTrue(isTakeProfitTriggerOrder))
+            } else if (Boolean.TRUE.equals(isTakeProfitTriggerOrder))
             {
                 ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, takeProfitTriggerPrice));
-                if (Helpers.isTrue(isLimitOrder))
+                if (Boolean.TRUE.equals(isLimitOrder))
                 {
                     ((Map<String, Object>)request).put("ordertype", "take-profit-limit");
                 } else
@@ -2663,11 +2663,11 @@ final Object finalId = id;
                     ((Map<String, Object>)request).put("ordertype", "take-profit");
                 }
             }
-            if (Helpers.isTrue(isLimitOrder))
+            if (Boolean.TRUE.equals(isLimitOrder))
             {
                 ((Map<String, Object>)request).put("price2", this.priceToPrecision(symbol, price));
             }
-        } else if (Helpers.isTrue(isTrailingAmountOrder) || Helpers.isTrue(isTrailingPercentOrder))
+        } else if (Boolean.TRUE.equals(isTrailingAmountOrder) || Boolean.TRUE.equals(isTrailingPercentOrder))
         {
             Object trailingPercentString = null;
             if (!java.util.Objects.equals(trailingPercent, null))
@@ -2679,7 +2679,7 @@ final Object finalId = id;
             Object trailingLimitAmountString = (((!java.util.Objects.equals(trailingLimitAmount, null)))) ? Helpers.add(offset, this.numberToString(trailingLimitAmount)) : null;
             String trailingActivationPriceType = this.safeString(parameters, "trigger", "last");
             ((Map<String, Object>)request).put("trigger", trailingActivationPriceType);
-            if (Helpers.isTrue(isLimitOrder) || (!java.util.Objects.equals(trailingLimitAmount, null)) || (!java.util.Objects.equals(trailingLimitPercent, null)))
+            if (Boolean.TRUE.equals(isLimitOrder) || (!java.util.Objects.equals(trailingLimitAmount, null)) || (!java.util.Objects.equals(trailingLimitPercent, null)))
             {
                 ((Map<String, Object>)request).put("ordertype", "trailing-stop-limit");
                 if (!java.util.Objects.equals(trailingLimitPercent, null))
@@ -3652,7 +3652,7 @@ final Object finalId = id;
         Boolean isOnHoldDeposit = java.util.Objects.equals(statusProp, "on-hold");
         Boolean isCancellationRequest = java.util.Objects.equals(statusProp, "cancel-pending");
         Boolean isOnHoldWithdrawal = java.util.Objects.equals(statusProp, "onhold");
-        if (Helpers.isTrue(isOnHoldDeposit) || Helpers.isTrue(isCancellationRequest) || Helpers.isTrue(isOnHoldWithdrawal))
+        if (Boolean.TRUE.equals(isOnHoldDeposit) || Boolean.TRUE.equals(isCancellationRequest) || Boolean.TRUE.equals(isOnHoldWithdrawal))
         {
             status = "pending";
         }
@@ -3838,7 +3838,7 @@ final Object finalId = id;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchWithdrawals", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 ((Map<String, Object>)parameters).put("cursor", true);
                 return (this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, parameters, "next_cursor", "cursor")).join();
@@ -3902,7 +3902,7 @@ final Object finalId = id;
             //
             Object rawWithdrawals = null;
             Object result = this.safeValue(response, "result");
-            if (!Helpers.isTrue(Helpers.isArray(result)))
+            if (!(result instanceof List))
             {
                 rawWithdrawals = this.addPaginationCursorToResult(result);
             } else
@@ -4435,7 +4435,7 @@ final Object finalId = id;
             Boolean isBatchOrder = (java.util.Objects.equals(path, "AddOrderBatch"));
             this.checkRequiredCredentials();
             Object nonce = String.valueOf(this.nonce());
-            if (Helpers.isTrue(isCancelOrderBatch) || Helpers.isTrue(isTriggerPercent) || Helpers.isTrue(isBatchOrder))
+            if (Boolean.TRUE.equals(isCancelOrderBatch) || Helpers.isTrue(isTriggerPercent) || Boolean.TRUE.equals(isBatchOrder))
             {
                 final Object finalNonce = nonce;
                 body = this.json(this.extend(new HashMap<String, Object>() {{
@@ -4459,7 +4459,7 @@ final Object finalId = id;
                 put( "API-Key", Kraken.this.apiKey );
                 put( "API-Sign", signature );
             }};
-            if (Helpers.isTrue(isCancelOrderBatch) || Helpers.isTrue(isTriggerPercent) || Helpers.isTrue(isBatchOrder))
+            if (Boolean.TRUE.equals(isCancelOrderBatch) || Helpers.isTrue(isTriggerPercent) || Boolean.TRUE.equals(isBatchOrder))
             {
                 ((Map<String, Object>)headers).put("Content-Type", "application/json");
             } else

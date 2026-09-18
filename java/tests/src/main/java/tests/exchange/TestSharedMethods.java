@@ -57,17 +57,17 @@ public class TestSharedMethods extends BaseTest {
         Boolean same_string = ((entryKeyVal instanceof String)) && ((formatKeyVal instanceof String));
         Boolean same_numeric = ((entryKeyVal instanceof Long || entryKeyVal instanceof Integer || entryKeyVal instanceof Float || entryKeyVal instanceof Double)) && ((formatKeyVal instanceof Long || formatKeyVal instanceof Integer || formatKeyVal instanceof Float || formatKeyVal instanceof Double));
         Boolean same_boolean = ((java.util.Objects.equals(entryKeyVal, true)) || (java.util.Objects.equals(entryKeyVal, false))) && ((java.util.Objects.equals(formatKeyVal, true)) || (java.util.Objects.equals(formatKeyVal, false)));
-        Boolean same_array = Helpers.isTrue(Helpers.isArray(entryKeyVal)) && Helpers.isTrue(Helpers.isArray(formatKeyVal));
+        Boolean same_array = (entryKeyVal instanceof List) && (formatKeyVal instanceof List);
         // PHP cannot tell an empty dict {} from an empty list [] (both are array()), so isDictionary
         // returns false for an empty {} format marker — accept a dict entry against an empty-array format
         Boolean formatIsEmptyArray = false;
-        if (Helpers.isTrue(Helpers.isArray(formatKeyVal)))
+        if ((formatKeyVal instanceof List))
         {
             Object formatLen = ((List<?>)formatKeyVal).size();
             formatIsEmptyArray = (Helpers.isEqual(formatLen, 0));
         }
-        Boolean same_object = Helpers.isTrue(exchange.isDictionary(entryKeyVal)) && (Helpers.isTrue(exchange.isDictionary(formatKeyVal)) || Helpers.isTrue(formatIsEmptyArray));
-        Boolean result = (java.util.Objects.equals(entryKeyVal, null)) || Helpers.isTrue(same_string) || Helpers.isTrue(same_numeric) || Helpers.isTrue(same_boolean) || Helpers.isTrue(same_array) || Helpers.isTrue(same_object);
+        Boolean same_object = Helpers.isTrue(exchange.isDictionary(entryKeyVal)) && (Helpers.isTrue(exchange.isDictionary(formatKeyVal)) || Boolean.TRUE.equals(formatIsEmptyArray));
+        Boolean result = (java.util.Objects.equals(entryKeyVal, null)) || Boolean.TRUE.equals(same_string) || Boolean.TRUE.equals(same_numeric) || Boolean.TRUE.equals(same_boolean) || Boolean.TRUE.equals(same_array) || Boolean.TRUE.equals(same_object);
         return result;
     }
     public static void AssertStructure(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object format, Object... optionalArgs)
@@ -82,7 +82,7 @@ public class TestSharedMethods extends BaseTest {
         {
             emptyAllowedFor = concat(emptyAllowedFor, allowEmptySkips);
         }
-        if (Helpers.isTrue(Helpers.isArray(format)))
+        if ((format instanceof List))
         {
             Assert(Helpers.isArray(entry), ("entry is not an array" + logText));
             Object realLength = ((List<?>)entry).size();
@@ -95,7 +95,7 @@ public class TestSharedMethods extends BaseTest {
                 // check when:
                 // - it's not inside "allowe empty values" list
                 // - it's not undefined
-                if ((Helpers.isTrue(emptyAllowedForThisKey) && (java.util.Objects.equals(value, null))) || (Helpers.inOp(skippedProperties, i)))
+                if ((Boolean.TRUE.equals(emptyAllowedForThisKey) && (java.util.Objects.equals(value, null))) || (Helpers.inOp(skippedProperties, i)))
                 {
                     continue;
                 }
@@ -121,7 +121,7 @@ public class TestSharedMethods extends BaseTest {
                 // check when:
                 // - it's not inside "allowed empty values" list
                 // - it's not undefined
-                if (Helpers.isTrue(emptyAllowedForThisKey) && (java.util.Objects.equals(value, null)))
+                if (Boolean.TRUE.equals(emptyAllowedForThisKey) && (java.util.Objects.equals(value, null)))
                 {
                     continue;
                 }
@@ -134,7 +134,7 @@ public class TestSharedMethods extends BaseTest {
                     Assert(java.util.Objects.equals(typeAssertion, true), ((Helpers.add("\"", stringValue(key)) + "\" key is neither undefined, neither of expected type") + logText));
                     if (Helpers.isTrue(deep))
                     {
-                        if (Helpers.isTrue(exchange.isDictionary(value)) || Helpers.isTrue(Helpers.isArray(value)))
+                        if (Helpers.isTrue(exchange.isDictionary(value)) || (value instanceof List))
                         {
                             AssertStructure(exchange, skippedProperties, method, value, Helpers.GetValue(format, key), emptyAllowedFor, deep);
                         }
@@ -155,7 +155,7 @@ public class TestSharedMethods extends BaseTest {
             return;  // skipped
         }
         Boolean isDateTimeObject = (keyNameOrIndex instanceof String);
-        if (Helpers.isTrue(isDateTimeObject))
+        if (Boolean.TRUE.equals(isDateTimeObject))
         {
             Assert((Helpers.inOp(entry, keyNameOrIndex)), ((("timestamp key \"" + keyNameOrIndex) + "\" is missing from structure") + logText));
         } else
@@ -194,7 +194,7 @@ public class TestSharedMethods extends BaseTest {
         AssertTimestamp(exchange, skippedProperties, method, entry, nowToCheck, keyNameOrIndex);
         Boolean isDateTimeObject = (keyNameOrIndex instanceof String);
         // only in case if the entry is a dictionary, thus it must have 'timestamp' & 'datetime' string keys
-        if (Helpers.isTrue(isDateTimeObject))
+        if (Boolean.TRUE.equals(isDateTimeObject))
         {
             // we also test 'datetime' here because it's certain sibling of 'timestamp'
             Assert((Helpers.inOp(entry, "datetime")), ("\"datetime\" key is missing from structure" + logText));
@@ -253,9 +253,9 @@ public class TestSharedMethods extends BaseTest {
         Object logText = logTemplate(exchange, method, entry);
         Boolean undefinedValues = java.util.Objects.equals(currencyId, null) && java.util.Objects.equals(currencyCode, null);
         Boolean definedValues = !java.util.Objects.equals(currencyId, null) && !java.util.Objects.equals(currencyCode, null);
-        Assert(Helpers.isTrue(undefinedValues) || Helpers.isTrue(definedValues), ("currencyId and currencyCode should be either both defined or both undefined" + logText));
-        Assert(Helpers.isTrue(definedValues) || Helpers.isTrue(allowNull), ("currency code and id is not defined" + logText));
-        if (Helpers.isTrue(definedValues))
+        Assert(Boolean.TRUE.equals(undefinedValues) || Boolean.TRUE.equals(definedValues), ("currencyId and currencyCode should be either both defined or both undefined" + logText));
+        Assert(Boolean.TRUE.equals(definedValues) || Helpers.isTrue(allowNull), ("currency code and id is not defined" + logText));
+        if (Boolean.TRUE.equals(definedValues))
         {
             // check by code
             Object currencyByCode = exchange.currency(currencyCode);
@@ -284,7 +284,7 @@ public class TestSharedMethods extends BaseTest {
             Assert(java.util.Objects.equals(actualSymbol, expectedSymbol), ((Helpers.add((Helpers.add("symbol in response (\"", stringValue(actualSymbol)) + "\") should be equal to expected symbol (\""), stringValue(expectedSymbol)) + "\")") + logText));
         }
         Boolean definedValues = !java.util.Objects.equals(actualSymbol, null) && !java.util.Objects.equals(expectedSymbol, null);
-        Assert(Helpers.isTrue(definedValues) || Helpers.isTrue(allowNull), ("symbols are not defined" + logText));
+        Assert(Boolean.TRUE.equals(definedValues) || Helpers.isTrue(allowNull), ("symbols are not defined" + logText));
     }
     public static void AssertSymbolInMarkets(BaseExchange exchange, Object skippedProperties, Object method, Object symbol)
     {
@@ -589,7 +589,7 @@ public class TestSharedMethods extends BaseTest {
                             break;
                         }
                     }
-                    if (Helpers.isTrue(found))
+                    if (Boolean.TRUE.equals(found))
                     {
                         break;
                     }
@@ -619,9 +619,9 @@ public class TestSharedMethods extends BaseTest {
         // ### OPEN STATUS
         //
         // if strict check, then 'status' must be 'open' and filled amount should be less then whole order amount
-        Object strictOpen = Helpers.isTrue(statusOpen) && (Helpers.isTrue(filledDefined) && Helpers.isTrue(amountDefined) && Helpers.isLessThan(filled, amount));
+        Object strictOpen = Boolean.TRUE.equals(statusOpen) && (Boolean.TRUE.equals(filledDefined) && Boolean.TRUE.equals(amountDefined) && Helpers.isLessThan(filled, amount));
         // if non-strict check, then accept & ignore undefined values
-        Object nonstrictOpen = (Helpers.isTrue(statusOpen) || Helpers.isTrue(statusUndefined)) && ((!Helpers.isTrue(filledDefined) || !Helpers.isTrue(amountDefined)) || Helpers.isTrue(Precise.stringLt(filled, amount)));
+        Object nonstrictOpen = (Boolean.TRUE.equals(statusOpen) || Boolean.TRUE.equals(statusUndefined)) && ((!Boolean.TRUE.equals(filledDefined) || !Boolean.TRUE.equals(amountDefined)) || Helpers.isTrue(Precise.stringLt(filled, amount)));
         // check
         if (java.util.Objects.equals(AssertedStatus, "open"))
         {
@@ -633,9 +633,9 @@ public class TestSharedMethods extends BaseTest {
         // ### CLOSED STATUS
         //
         // if strict check, then 'status' must be 'closed' and filled amount should be equal to the whole order amount
-        Object closedStrict = Helpers.isTrue(statusClosed) && (Helpers.isTrue(filledDefined) && Helpers.isTrue(amountDefined) && Helpers.isTrue(Precise.stringEq(filled, amount)));
+        Object closedStrict = Boolean.TRUE.equals(statusClosed) && (Boolean.TRUE.equals(filledDefined) && Boolean.TRUE.equals(amountDefined) && Helpers.isTrue(Precise.stringEq(filled, amount)));
         // if non-strict check, then accept & ignore undefined values
-        Object closedNonStrict = (Helpers.isTrue(statusClosed) || Helpers.isTrue(statusUndefined)) && ((!Helpers.isTrue(filledDefined) || !Helpers.isTrue(amountDefined)) || Helpers.isTrue(Precise.stringEq(filled, amount)));
+        Object closedNonStrict = (Boolean.TRUE.equals(statusClosed) || Boolean.TRUE.equals(statusUndefined)) && ((!Boolean.TRUE.equals(filledDefined) || !Boolean.TRUE.equals(amountDefined)) || Helpers.isTrue(Precise.stringEq(filled, amount)));
         // check
         if (java.util.Objects.equals(AssertedStatus, "closed"))
         {
@@ -647,9 +647,9 @@ public class TestSharedMethods extends BaseTest {
         // ### CANCELED STATUS
         //
         // if strict check, then 'status' must be 'canceled' and filled amount should be less then whole order amount
-        Object canceledStrict = Helpers.isTrue(statusClanceled) && (Helpers.isTrue(filledDefined) && Helpers.isTrue(amountDefined) && Helpers.isTrue(Precise.stringLt(filled, amount)));
+        Object canceledStrict = Boolean.TRUE.equals(statusClanceled) && (Boolean.TRUE.equals(filledDefined) && Boolean.TRUE.equals(amountDefined) && Helpers.isTrue(Precise.stringLt(filled, amount)));
         // if non-strict check, then accept & ignore undefined values
-        Object canceledNonStrict = (Helpers.isTrue(statusClanceled) || Helpers.isTrue(statusUndefined)) && ((!Helpers.isTrue(filledDefined) || !Helpers.isTrue(amountDefined)) || Helpers.isTrue(Precise.stringLt(filled, amount)));
+        Object canceledNonStrict = (Boolean.TRUE.equals(statusClanceled) || Boolean.TRUE.equals(statusUndefined)) && ((!Boolean.TRUE.equals(filledDefined) || !Boolean.TRUE.equals(amountDefined)) || Helpers.isTrue(Precise.stringLt(filled, amount)));
         // check
         if (java.util.Objects.equals(AssertedStatus, "canceled"))
         {
@@ -662,7 +662,7 @@ public class TestSharedMethods extends BaseTest {
         //
         if (java.util.Objects.equals(AssertedStatus, "closed_or_canceled"))
         {
-            condition = ((Helpers.isTrue(strictCheck))) ? (Helpers.isTrue(closedStrict) || Helpers.isTrue(canceledStrict)) : (Helpers.isTrue(closedNonStrict) || Helpers.isTrue(canceledNonStrict));
+            condition = ((Helpers.isTrue(strictCheck))) ? (Boolean.TRUE.equals(closedStrict) || Boolean.TRUE.equals(canceledStrict)) : (Boolean.TRUE.equals(closedNonStrict) || Boolean.TRUE.equals(canceledNonStrict));
             Assert(condition, msg);
             return;
         }
@@ -735,7 +735,7 @@ public class TestSharedMethods extends BaseTest {
         // as false positive FAILs in the live tests on https://github.com/ccxt/ccxt/pull/29696
         Object hint = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Boolean isEmptyArrayResponse = false;
-        if (Helpers.isTrue(Helpers.isArray(response)))
+        if ((response instanceof List))
         {
             Object responseLength = ((List<?>)response).size();
             isEmptyArrayResponse = (Helpers.isEqual(responseLength, 0));
@@ -745,7 +745,7 @@ public class TestSharedMethods extends BaseTest {
         {
             hintText = (" " + hint);
         }
-        Assert(Helpers.isTrue(exchange.isDictionary(response)) || Helpers.isTrue(isEmptyArrayResponse), (((((exchange.id + " ") + method) + hintText) + " must return a dict. ") + exchange.json(response)));
+        Assert(Helpers.isTrue(exchange.isDictionary(response)) || Boolean.TRUE.equals(isEmptyArrayResponse), (((((exchange.id + " ") + method) + hintText) + " must return a dict. ") + exchange.json(response)));
     }
     public static void AssertNonEmtpyArray(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object... optionalArgs)
     {

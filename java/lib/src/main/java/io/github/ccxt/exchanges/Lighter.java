@@ -537,7 +537,7 @@ public class Lighter extends LighterApi
             libraryPath = ((List<Object>) libraryPathparametersVariable).get(0);
             parameters = ((List<Object>) libraryPathparametersVariable).get(1);
             Boolean lighterPrivateKeyIsSet = (!java.util.Objects.equals(privateKey, null)) && (!java.util.Objects.equals(privateKey, ""));
-            if (Helpers.isTrue(lighterPrivateKeyIsSet) && (!java.util.Objects.equals(libraryPath, null)) && (!java.util.Objects.equals(apiKeyIndex, null)) && (!java.util.Objects.equals(accountIndex, null)))
+            if (Boolean.TRUE.equals(lighterPrivateKeyIsSet) && (!java.util.Objects.equals(libraryPath, null)) && (!java.util.Objects.equals(apiKeyIndex, null)) && (!java.util.Objects.equals(accountIndex, null)))
             {
                 // load lighter library, and create lighter client
                 signer = (this.loadLighterLibrary(libraryPath, chainId, privateKey, this.parseToInt(apiKeyIndex), this.parseToInt(accountIndex), true)).join();
@@ -545,7 +545,7 @@ public class Lighter extends LighterApi
                 return signer;
             }
             Boolean privateKeyIsSet = (!java.util.Objects.equals(this.privateKey, null)) && (!java.util.Objects.equals(this.privateKey, ""));
-            if (Helpers.isTrue(privateKeyIsSet) && (!java.util.Objects.equals(apiKeyIndex, null)) && (!java.util.Objects.equals(accountIndex, null)))
+            if (Boolean.TRUE.equals(privateKeyIsSet) && (!java.util.Objects.equals(apiKeyIndex, null)) && (!java.util.Objects.equals(accountIndex, null)))
             {
                 if (((String)this.privateKey).length() > 66)
                 {
@@ -714,7 +714,7 @@ public class Lighter extends LighterApi
                 // }
                 //
                 Object subAccounts = this.safeList(res, "sub_accounts");
-                if (Helpers.isTrue(Helpers.isArray(subAccounts)))
+                if ((subAccounts instanceof List))
                 {
                     Object account = this.safeDict(subAccounts, 0);
                     if (java.util.Objects.equals(account, null))
@@ -1063,7 +1063,7 @@ public class Lighter extends LighterApi
         parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLoss", "takeProfit", "timeInForce")));
         Object orderTypeNum = null;
         Object timeInForceNum = null;
-        if (Helpers.isTrue(isMarketOrder))
+        if (Boolean.TRUE.equals(isMarketOrder))
         {
             orderTypeNum = 1;
             timeInForceNum = 0;
@@ -1084,7 +1084,7 @@ public class Lighter extends LighterApi
             orderExpiry = Helpers.opNeg(1);
         } else
         {
-            if (!Helpers.isTrue(isMarketOrder))
+            if (!Boolean.TRUE.equals(isMarketOrder))
             {
                 if (java.util.Objects.equals(timeInForce, "ioc"))
                 {
@@ -1106,12 +1106,12 @@ public class Lighter extends LighterApi
         Object defaultClientOrderId = this.randNumber(9); // c# only support int32 2147483647.
         Long clientOrderId = (Long) this.safeInteger2(parameters, "client_order_index", "clientOrderId", defaultClientOrderId);
         parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "timeInForce", "postOnly", "nonce", "apiKeyIndex", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice", "client_order_index", "clientOrderId")));
-        if (Helpers.isTrue(isConditional))
+        if (Boolean.TRUE.equals(isConditional))
         {
             amountStr = this.numberToString(amount);
             if (!java.util.Objects.equals(stopLossPrice, null))
             {
-                if (Helpers.isTrue(isMarketOrder))
+                if (Boolean.TRUE.equals(isMarketOrder))
                 {
                     orderTypeNum = 2;
                 } else
@@ -1121,7 +1121,7 @@ public class Lighter extends LighterApi
                 triggerPriceStr = this.priceToPrecision(symbol, stopLossPrice);
             } else if (!java.util.Objects.equals(takeProfitPrice, null))
             {
-                if (Helpers.isTrue(isMarketOrder))
+                if (Boolean.TRUE.equals(isMarketOrder))
                 {
                     orderTypeNum = 4;
                 } else
@@ -1150,7 +1150,7 @@ public class Lighter extends LighterApi
         }
         List<Object> orders = new ArrayList<Object>(Arrays.asList());
         ((List<Object>)orders).add(this.extend(request, parameters));
-        if (Helpers.isTrue(hasStopLoss) || Helpers.isTrue(hasTakeProfit))
+        if (Boolean.TRUE.equals(hasStopLoss) || Boolean.TRUE.equals(hasTakeProfit))
         {
             // group order
             Helpers.addElementToObject(Helpers.GetValue(orders, 0), "client_order_index", 0); // client order index should be 0
@@ -1217,7 +1217,7 @@ public class Lighter extends LighterApi
             List<Object> skipNonceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchNonce", "skipNonce", true);
             skipNonce = ((List<Object>) skipNonceparametersVariable).get(0);
             parameters = ((List<Object>) skipNonceparametersVariable).get(1);
-            if (Helpers.isTrue(skipNonce))
+            if (Boolean.TRUE.equals(skipNonce))
             {
                 return this.milliseconds();
             }
@@ -1744,7 +1744,7 @@ public class Lighter extends LighterApi
         Boolean isUSDC = (java.util.Objects.equals(code, "USDC"));
         Object depositMin = null;
         Object withdrawMin = null;
-        if (Helpers.isTrue(isUSDC))
+        if (Boolean.TRUE.equals(isUSDC))
         {
             depositMin = this.safeNumber(rawCurrency, "min_transfer_amount");
             withdrawMin = this.safeNumber(rawCurrency, "min_withdrawal_amount");
@@ -3211,7 +3211,7 @@ public class Lighter extends LighterApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTransfers", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchTransfers", code, since, limit, parameters, "cursor", "cursor", null, 50)).join();
             }
@@ -3340,7 +3340,7 @@ public class Lighter extends LighterApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchDeposits", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, parameters, "cursor", "cursor", null, 50)).join();
             }
@@ -3430,7 +3430,7 @@ public class Lighter extends LighterApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchWithdrawals", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, parameters, "cursor", "cursor", null, 50)).join();
             }
@@ -3664,7 +3664,7 @@ public class Lighter extends LighterApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, parameters, "next_cursor", "cursor", null, 50)).join();
             }

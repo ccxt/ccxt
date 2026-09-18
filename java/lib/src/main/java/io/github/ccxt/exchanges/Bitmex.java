@@ -842,7 +842,7 @@ public class Bitmex extends BitmexApi
             }
         }
         Object currencyEnabled = this.safeValue(currency, "enabled");
-        Boolean currencyActive = (java.util.Objects.equals(currencyEnabled, true)) || (Helpers.isTrue(depositEnabled) || Helpers.isTrue(withdrawEnabled));
+        Boolean currencyActive = (java.util.Objects.equals(currencyEnabled, true)) || (Boolean.TRUE.equals(depositEnabled) || Boolean.TRUE.equals(withdrawEnabled));
         String minWithdrawalString = this.safeString(currency, "minWithdrawalAmount");
         Object minWithdrawal = this.parseNumber(Precise.stringMul(minWithdrawalString, precisionString));
         String maxWithdrawalString = this.safeString(currency, "maxWithdrawalAmount");
@@ -877,7 +877,7 @@ public class Bitmex extends BitmexApi
                 }} );
             }} );
             put( "networks", networks );
-            put( "type", ((Helpers.isTrue(isCrypto))) ? "crypto" : "other" );
+            put( "type", ((Boolean.TRUE.equals(isCrypto))) ? "crypto" : "other" );
         }});
     }
 
@@ -925,7 +925,7 @@ public class Bitmex extends BitmexApi
         }
         symbol = this.safeSymbol(symbol);
         Object marketExists = this.inArray(symbol, this.symbols);
-        if (!Helpers.isTrue(marketExists))
+        if (!Boolean.TRUE.equals(marketExists))
         {
             return this.parseNumber(rawQuantity);
         }
@@ -1181,20 +1181,20 @@ public class Bitmex extends BitmexApi
         }
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
-        Boolean contract = Helpers.isTrue(swap) || Helpers.isTrue(future);
+        Boolean contract = Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(future);
         String contractSize = null;
         Object isInverse = this.safeValue(market, "isInverse"); // this is true when BASE and SETTLE are same, i.e. BTC/XXX:BTC
         Object isQuanto = this.safeValue(market, "isQuanto"); // this is true when BASE and SETTLE are different, i.e. AXS/XXX:BTC
-        Object linear = ((Helpers.isTrue(contract))) ? ((!java.util.Objects.equals(isInverse, true)) && (!java.util.Objects.equals(isQuanto, true))) : null;
+        Object linear = ((Boolean.TRUE.equals(contract))) ? ((!java.util.Objects.equals(isInverse, true)) && (!java.util.Objects.equals(isQuanto, true))) : null;
         String status = this.safeString(market, "state");
         Boolean active = java.util.Objects.equals(status, "Open"); // Open, Settled, Unlisted
         Object expiry = null;
         String expiryDatetime = null;
         Object symbol = null;
-        if (Helpers.isTrue(spot))
+        if (Boolean.TRUE.equals(spot))
         {
             symbol = Helpers.add(Helpers.add(base, "/"), quote);
-        } else if (Helpers.isTrue(contract))
+        } else if (Boolean.TRUE.equals(contract))
         {
             symbol = Helpers.add((Helpers.add(Helpers.add(base, "/"), quote) + ":"), settle);
             if (java.util.Objects.equals(linear, true))
@@ -1207,7 +1207,7 @@ public class Bitmex extends BitmexApi
             }
             expiryDatetime = this.safeString2(market, "expiry", "closingTimestamp");
             expiry = this.parse8601(expiryDatetime);
-            if (!java.util.Objects.equals(expiry, null) && Helpers.isTrue(future))
+            if (!java.util.Objects.equals(expiry, null) && Boolean.TRUE.equals(future))
             {
                 symbol = ((symbol + "-") + this.yymmdd(expiry));
             }
@@ -1223,7 +1223,7 @@ public class Bitmex extends BitmexApi
         String initMargin = this.safeString(market, "initMargin", "1");
         Object maxLeverage = this.parseNumber(Precise.stringDiv("1", initMargin));
         // subtype should be undefined for spot markets
-        if (Helpers.isTrue(spot))
+        if (Boolean.TRUE.equals(spot))
         {
             isInverse = null;
             isQuanto = null;
@@ -1280,12 +1280,12 @@ public class Bitmex extends BitmexApi
             }} );
             put( "limits", new HashMap<String, Object>() {{
                 put( "leverage", new HashMap<String, Object>() {{
-                    put( "min", ((Helpers.isTrue(contract))) ? Bitmex.this.parseNumber("1") : null );
-                    put( "max", ((Helpers.isTrue(contract))) ? maxLeverage : null );
+                    put( "min", ((Boolean.TRUE.equals(contract))) ? Bitmex.this.parseNumber("1") : null );
+                    put( "max", ((Boolean.TRUE.equals(contract))) ? maxLeverage : null );
                 }} );
                 put( "amount", new HashMap<String, Object>() {{
                     put( "min", null );
-                    put( "max", ((Helpers.isTrue(positionIsQuote))) ? null : maxOrderQty );
+                    put( "max", ((Boolean.TRUE.equals(positionIsQuote))) ? null : maxOrderQty );
                 }} );
                 put( "price", new HashMap<String, Object>() {{
                     put( "min", null );
@@ -1293,7 +1293,7 @@ public class Bitmex extends BitmexApi
                 }} );
                 put( "cost", new HashMap<String, Object>() {{
                     put( "min", null );
-                    put( "max", ((Helpers.isTrue(positionIsQuote))) ? maxOrderQty : null );
+                    put( "max", ((Boolean.TRUE.equals(positionIsQuote))) ? maxOrderQty : null );
                 }} );
             }} );
             put( "created", null );
@@ -1568,7 +1568,7 @@ public class Bitmex extends BitmexApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, parameters, 100)).join();
             }
@@ -1693,7 +1693,7 @@ public class Bitmex extends BitmexApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters, 100)).join();
             }
@@ -2289,7 +2289,7 @@ public class Bitmex extends BitmexApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters)).join();
             }
@@ -2650,7 +2650,7 @@ public class Bitmex extends BitmexApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, parameters)).join();
             }
@@ -2781,7 +2781,7 @@ public class Bitmex extends BitmexApi
             String trailingAmount = this.safeString2(parameters, "trailingAmount", "pegOffsetValue");
             Boolean isTriggerOrder = !java.util.Objects.equals(triggerPrice, null);
             Boolean isTrailingAmountOrder = !java.util.Objects.equals(trailingAmount, null);
-            if (Helpers.isTrue(isTriggerOrder) || Helpers.isTrue(isTrailingAmountOrder))
+            if (Boolean.TRUE.equals(isTriggerOrder) || Boolean.TRUE.equals(isTrailingAmountOrder))
             {
                 String triggerDirection = this.safeString(parameters, "triggerDirection");
                 Boolean triggerAbove = ((java.util.Objects.equals(triggerDirection, "ascending")) || (java.util.Objects.equals(triggerDirection, "above")));
@@ -2793,26 +2793,26 @@ public class Bitmex extends BitmexApi
                 {
                     if (java.util.Objects.equals(side, "buy"))
                     {
-                        orderType = ((Helpers.isTrue(triggerAbove))) ? "StopLimit" : "LimitIfTouched";
+                        orderType = ((Boolean.TRUE.equals(triggerAbove))) ? "StopLimit" : "LimitIfTouched";
                     } else
                     {
-                        orderType = ((Helpers.isTrue(triggerAbove))) ? "LimitIfTouched" : "StopLimit";
+                        orderType = ((Boolean.TRUE.equals(triggerAbove))) ? "LimitIfTouched" : "StopLimit";
                     }
                 } else if (java.util.Objects.equals(type, "market"))
                 {
                     if (java.util.Objects.equals(side, "buy"))
                     {
-                        orderType = ((Helpers.isTrue(triggerAbove))) ? "Stop" : "MarketIfTouched";
+                        orderType = ((Boolean.TRUE.equals(triggerAbove))) ? "Stop" : "MarketIfTouched";
                     } else
                     {
-                        orderType = ((Helpers.isTrue(triggerAbove))) ? "MarketIfTouched" : "Stop";
+                        orderType = ((Boolean.TRUE.equals(triggerAbove))) ? "MarketIfTouched" : "Stop";
                     }
                 }
-                if (Helpers.isTrue(isTrailingAmountOrder))
+                if (Boolean.TRUE.equals(isTrailingAmountOrder))
                 {
                     Boolean isStopSellOrder = (java.util.Objects.equals(side, "sell")) && ((java.util.Objects.equals(orderType, "Stop")) || (java.util.Objects.equals(orderType, "StopLimit")));
                     Boolean isBuyIfTouchedOrder = (java.util.Objects.equals(side, "buy")) && ((java.util.Objects.equals(orderType, "MarketIfTouched")) || (java.util.Objects.equals(orderType, "LimitIfTouched")));
-                    if (Helpers.isTrue(isStopSellOrder) || Helpers.isTrue(isBuyIfTouchedOrder))
+                    if (Boolean.TRUE.equals(isStopSellOrder) || Boolean.TRUE.equals(isBuyIfTouchedOrder))
                     {
                         trailingAmount = Helpers.add("-", trailingAmount);
                     }
@@ -2862,7 +2862,7 @@ public class Bitmex extends BitmexApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             String trailingAmount = this.safeString2(parameters, "trailingAmount", "pegOffsetValue");
             Boolean isTrailingAmountOrder = !java.util.Objects.equals(trailingAmount, null);
-            if (Helpers.isTrue(isTrailingAmountOrder))
+            if (Boolean.TRUE.equals(isTrailingAmountOrder))
             {
                 String triggerDirection = this.safeString(parameters, "triggerDirection");
                 Boolean triggerAbove = ((java.util.Objects.equals(triggerDirection, "ascending")) || (java.util.Objects.equals(triggerDirection, "above")));
@@ -2875,24 +2875,24 @@ public class Bitmex extends BitmexApi
                 {
                     if (java.util.Objects.equals(side, "buy"))
                     {
-                        orderType = ((Helpers.isTrue(triggerAbove))) ? "StopLimit" : "LimitIfTouched";
+                        orderType = ((Boolean.TRUE.equals(triggerAbove))) ? "StopLimit" : "LimitIfTouched";
                     } else
                     {
-                        orderType = ((Helpers.isTrue(triggerAbove))) ? "LimitIfTouched" : "StopLimit";
+                        orderType = ((Boolean.TRUE.equals(triggerAbove))) ? "LimitIfTouched" : "StopLimit";
                     }
                 } else if (java.util.Objects.equals(type, "market"))
                 {
                     if (java.util.Objects.equals(side, "buy"))
                     {
-                        orderType = ((Helpers.isTrue(triggerAbove))) ? "Stop" : "MarketIfTouched";
+                        orderType = ((Boolean.TRUE.equals(triggerAbove))) ? "Stop" : "MarketIfTouched";
                     } else
                     {
-                        orderType = ((Helpers.isTrue(triggerAbove))) ? "MarketIfTouched" : "Stop";
+                        orderType = ((Boolean.TRUE.equals(triggerAbove))) ? "MarketIfTouched" : "Stop";
                     }
                 }
                 Boolean isStopSellOrder = (java.util.Objects.equals(side, "sell")) && ((java.util.Objects.equals(orderType, "Stop")) || (java.util.Objects.equals(orderType, "StopLimit")));
                 Boolean isBuyIfTouchedOrder = (java.util.Objects.equals(side, "buy")) && ((java.util.Objects.equals(orderType, "MarketIfTouched")) || (java.util.Objects.equals(orderType, "LimitIfTouched")));
-                if (Helpers.isTrue(isStopSellOrder) || Helpers.isTrue(isBuyIfTouchedOrder))
+                if (Boolean.TRUE.equals(isStopSellOrder) || Boolean.TRUE.equals(isBuyIfTouchedOrder))
                 {
                     trailingAmount = Helpers.add("-", trailingAmount);
                 }
@@ -4095,7 +4095,7 @@ public class Bitmex extends BitmexApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchLiquidations", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchLiquidations", symbol, since, limit, parameters)).join();
             }

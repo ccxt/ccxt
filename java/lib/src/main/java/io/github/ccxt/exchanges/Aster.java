@@ -1391,7 +1391,7 @@ public class Aster extends AsterApi
         Object contractSize = null;
         String contractType = this.safeString(market, "contractType");
         Boolean isContract = !java.util.Objects.equals(contractType, null);
-        if (Helpers.isTrue(isContract))
+        if (Boolean.TRUE.equals(isContract))
         {
             // currently, there is only perpetuals, not futures
             spot = false;
@@ -1441,7 +1441,7 @@ public class Aster extends AsterApi
             put( "baseId", baseId );
             put( "quoteId", quoteId );
             put( "settleId", finalSettleId );
-            put( "type", ((Helpers.isTrue(isContract))) ? "swap" : "spot" );
+            put( "type", ((Boolean.TRUE.equals(isContract))) ? "swap" : "spot" );
             put( "spot", finalSpot );
             put( "margin", false );
             put( "swap", finalSwap );
@@ -1603,11 +1603,11 @@ public class Aster extends AsterApi
             Boolean isIndex = (java.util.Objects.equals(price, "index"));
             parameters = this.omit(parameters, "price");
             Object response = null;
-            if (Helpers.isTrue(isMark))
+            if (Boolean.TRUE.equals(isMark))
             {
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
                 response = (this.fapiPublicGetV3MarkPriceKlines(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(isIndex))
+            } else if (Boolean.TRUE.equals(isIndex))
             {
                 ((Map<String, Object>)request).put("pair", ((Map<String, Object>)market).get("id"));
                 response = (this.fapiPublicGetV3IndexPriceKlines(this.extend(request, parameters))).join();
@@ -1769,11 +1769,11 @@ public class Aster extends AsterApi
             Object response = null;
             Boolean sinceDefined = !java.util.Objects.equals(since, null);
             Boolean untilDefined = (((Map<?, ?>)parameters).containsKey("until"));
-            if (Helpers.isTrue(sinceDefined))
+            if (Boolean.TRUE.equals(sinceDefined))
             {
                 ((Map<String, Object>)request).put("startTime", since);
             }
-            if (Helpers.isTrue(untilDefined))
+            if (Boolean.TRUE.equals(untilDefined))
             {
                 request = this.handleUntilOption("endTime", request, parameters);
             }
@@ -2003,7 +2003,7 @@ public class Aster extends AsterApi
         String low = this.safeString(ticker, "lowPrice");
         Boolean isTickerResponse = (((Map<?, ?>)ticker).containsKey("priceChange"));
         String marketType = null;
-        if (Helpers.isTrue(isTickerResponse))
+        if (Boolean.TRUE.equals(isTickerResponse))
         {
             marketType = (((((Map<?, ?>)ticker).containsKey("baseAsset")))) ? "spot" : "swap";
         } else
@@ -3474,7 +3474,7 @@ public class Aster extends AsterApi
         Boolean isTakeProfit = !java.util.Objects.equals(takeProfitPrice, null);
         Object uppercaseType = initialUppercaseType;
         String stopPrice = null;
-        if (Helpers.isTrue(isTrailingPercentOrder))
+        if (Boolean.TRUE.equals(isTrailingPercentOrder))
         {
             if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
@@ -3485,23 +3485,23 @@ public class Aster extends AsterApi
                     ((Map<String, Object>)request).put("activationPrice", this.priceToPrecision(symbol, trailingTriggerPrice));
                 }
             }
-        } else if (Helpers.isTrue(isStopLoss))
+        } else if (Boolean.TRUE.equals(isStopLoss))
         {
             stopPrice = stopLossPrice;
-            if (Helpers.isTrue(isMarketOrder))
+            if (Boolean.TRUE.equals(isMarketOrder))
             {
                 uppercaseType = "STOP_MARKET";
-            } else if (Helpers.isTrue(isLimitOrder))
+            } else if (Boolean.TRUE.equals(isLimitOrder))
             {
                 uppercaseType = "STOP";
             }
-        } else if (Helpers.isTrue(isTakeProfit))
+        } else if (Boolean.TRUE.equals(isTakeProfit))
         {
             stopPrice = takeProfitPrice;
-            if (Helpers.isTrue(isMarketOrder))
+            if (Boolean.TRUE.equals(isMarketOrder))
             {
                 uppercaseType = "TAKE_PROFIT_MARKET";
-            } else if (Helpers.isTrue(isLimitOrder))
+            } else if (Boolean.TRUE.equals(isLimitOrder))
             {
                 uppercaseType = "TAKE_PROFIT";
             }
@@ -3577,11 +3577,11 @@ public class Aster extends AsterApi
                 ((Map<String, Object>)request).put("activationPrice", this.priceToPrecision(symbol, trailingTriggerPrice));
             }
         }
-        if (Helpers.isTrue(quantityIsRequired))
+        if (Boolean.TRUE.equals(quantityIsRequired))
         {
             String marketAmountPrecision = this.safeString(((Map<String, Object>)market).get("precision"), "amount");
             Boolean isPrecisionAvailable = (!java.util.Objects.equals(marketAmountPrecision, null));
-            if (Helpers.isTrue(isPrecisionAvailable))
+            if (Boolean.TRUE.equals(isPrecisionAvailable))
             {
                 ((Map<String, Object>)request).put("quantity", this.amountToPrecision(symbol, amount));
             } else
@@ -3589,7 +3589,7 @@ public class Aster extends AsterApi
                 ((Map<String, Object>)request).put("quantity", this.parseToNumeric(amount));
             }
         }
-        if (Helpers.isTrue(priceIsRequired))
+        if (Boolean.TRUE.equals(priceIsRequired))
         {
             if (java.util.Objects.equals(price, null))
             {
@@ -3597,7 +3597,7 @@ public class Aster extends AsterApi
             }
             String pricePrecision = this.safeString(((Map<String, Object>)market).get("precision"), "price");
             Boolean isPricePrecisionAvailable = (!java.util.Objects.equals(pricePrecision, null));
-            if (Helpers.isTrue(isPricePrecisionAvailable))
+            if (Boolean.TRUE.equals(isPricePrecisionAvailable))
             {
                 ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
             } else
@@ -3605,7 +3605,7 @@ public class Aster extends AsterApi
                 ((Map<String, Object>)request).put("price", this.parseToNumeric(price));
             }
         }
-        if (Helpers.isTrue(triggerPriceIsRequired))
+        if (Boolean.TRUE.equals(triggerPriceIsRequired))
         {
             if (java.util.Objects.equals(stopPrice, null))
             {
@@ -3616,7 +3616,7 @@ public class Aster extends AsterApi
                 ((Map<String, Object>)request).put("stopPrice", this.priceToPrecision(symbol, stopPrice));
             }
         }
-        if (Helpers.isTrue(timeInForceIsRequired) && (java.util.Objects.equals(this.safeString(parameters, "timeInForce"), null)) && (java.util.Objects.equals(this.safeString(request, "timeInForce"), null)))
+        if (Boolean.TRUE.equals(timeInForceIsRequired) && (java.util.Objects.equals(this.safeString(parameters, "timeInForce"), null)) && (java.util.Objects.equals(this.safeString(request, "timeInForce"), null)))
         {
             Object tif = null;
             List<Object> tifparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "timeInForce");
@@ -4108,7 +4108,7 @@ public class Aster extends AsterApi
             put( "amount", Aster.this.safeNumber(data, "amount") );
             put( "code", Aster.this.safeString(data, "asset") );
             put( "total", null );
-            put( "status", (((Helpers.isTrue(finalSuccess) || Helpers.isTrue(noErrorCode)))) ? "ok" : "failed" );
+            put( "status", (((Boolean.TRUE.equals(finalSuccess) || Boolean.TRUE.equals(noErrorCode)))) ? "ok" : "failed" );
             put( "timestamp", timestamp );
             put( "datetime", Aster.this.iso8601(timestamp) );
         }};
@@ -4466,9 +4466,9 @@ public class Aster extends AsterApi
             String basePrecisionValue = this.safeString(precision, "base");
             String quotePrecisionValue = this.safeString2(precision, "quote", "price");
             Boolean precisionIsUndefined = (java.util.Objects.equals(basePrecisionValue, null)) && (java.util.Objects.equals(quotePrecisionValue, null));
-            if (!Helpers.isTrue(precisionIsUndefined))
+            if (!Boolean.TRUE.equals(precisionIsUndefined))
             {
-                if (Helpers.isTrue(linear))
+                if (Boolean.TRUE.equals(linear))
                 {
                     // walletBalance = (liquidationPrice * (±1 + mmp) ± entryPrice) * contracts
                     Object onePlusMaintenanceMarginPercentageString = null;
@@ -4614,7 +4614,7 @@ public class Aster extends AsterApi
             Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbols, null))
             {
-                if (!Helpers.isTrue(Helpers.isArray(symbols)))
+                if (!(symbols instanceof List))
                 {
                     throw new ArgumentsRequired((this.id + " fetchPositionsRisk() requires an array argument for symbols")) ;
                 }
@@ -4736,7 +4736,7 @@ public class Aster extends AsterApi
             String maintenanceMargin = this.safeString(position, "maintMargin");
             // check for maintenance margin so empty positions are not returned
             Boolean isPositionOpen = (!java.util.Objects.equals(maintenanceMargin, "0")) && (!java.util.Objects.equals(maintenanceMargin, "0.00000000"));
-            if (!Helpers.isTrue(filterClosed) || Helpers.isTrue(isPositionOpen))
+            if (!Helpers.isTrue(filterClosed) || Boolean.TRUE.equals(isPositionOpen))
             {
                 // sometimes not all the codes are correctly returned...
                 if (((Map<?, ?>)balances).containsKey(code))
@@ -4852,7 +4852,7 @@ public class Aster extends AsterApi
             side = ((Helpers.isTrue(Precise.stringLt(notionalString, "0")))) ? "short" : "long";
             marginRatio = this.parseNumber(Precise.stringDiv(Precise.stringAdd(Precise.stringDiv(maintenanceMarginString, collateralString), "5e-5"), "1", 4));
             percentage = this.parseNumber(Precise.stringMul(Precise.stringDiv(unrealizedPnlString, initialMarginString, 4), "100"));
-            if (Helpers.isTrue(usdm))
+            if (Boolean.TRUE.equals(usdm))
             {
                 // calculate liquidation price
                 //
@@ -4972,7 +4972,7 @@ public class Aster extends AsterApi
             Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbols, null))
             {
-                if (!Helpers.isTrue(Helpers.isArray(symbols)))
+                if (!(symbols instanceof List))
                 {
                     throw new ArgumentsRequired((this.id + " fetchPositions() requires an array argument for symbols")) ;
                 }
@@ -5372,7 +5372,7 @@ public class Aster extends AsterApi
             String paramString = null;
             Object paramsToEncode = null;
             Boolean isApproveBuilder = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(path, "/approveBuilder"), 0));
-            if (Helpers.isTrue(isApproveBuilder))
+            if (Boolean.TRUE.equals(isApproveBuilder))
             {
                 // domain['name'] = 'Aster';
                 messageTypes = new HashMap<String, Object>() {{
@@ -5440,8 +5440,8 @@ public class Aster extends AsterApi
         {
             Object key = Helpers.GetValue(keys, i);
             Object value = Helpers.GetValue(values, key);
-            Boolean isObj = Helpers.isTrue(Helpers.isArray(value)) || Helpers.isTrue(this.isDictionary(value));
-            Object valueJsonified = ((Helpers.isTrue(isObj))) ? this.json(value) : String.valueOf(value);
+            Boolean isObj = (value instanceof List) || Helpers.isTrue(this.isDictionary(value));
+            Object valueJsonified = ((Boolean.TRUE.equals(isObj))) ? this.json(value) : String.valueOf(value);
             Object encoded = this.encodeURIComponent(valueJsonified);
             encodedString = (encodedString + (((key + "=") + encoded) + "&"));
         }
@@ -5545,7 +5545,7 @@ public class Aster extends AsterApi
                     break;
                 }
             }
-            if (!Helpers.isTrue(found))
+            if (!Boolean.TRUE.equals(found))
             {
                 Helpers.addElementToObject(this.options, "approvedBuilderFee", true);
                 try

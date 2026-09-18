@@ -268,9 +268,9 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             type = ((List<Object>) typeparametersVariable).get(0);
             parameters = ((List<Object>) typeparametersVariable).get(1);
             Boolean isSpot = (java.util.Objects.equals(type, "spot"));
-            Object url = ((Helpers.isTrue((isSpot)))) ? Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "spot") : Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "swap");
+            Object url = ((Boolean.TRUE.equals(isSpot))) ? Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "spot") : Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "swap");
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            if (Helpers.isTrue(isSpot))
+            if (Boolean.TRUE.equals(isSpot))
             {
                 throw new NotSupported((this.id + " watchTickers does not support spot markets")) ;
             } else
@@ -280,7 +280,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 ((List<Object>)messageHashes).add("ticker");
             }
             Object ticker = (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
-            if (Helpers.isTrue(Helpers.isTrue(isSpot) && Helpers.isTrue(this.newUpdates)))
+            if (Helpers.isTrue(Boolean.TRUE.equals(isSpot) && this.newUpdates))
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(result, Helpers.GetValue(ticker, "symbol"), ticker);
@@ -359,7 +359,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object channelStartsWithSpot = channel.startsWith(((String)"spot"));
         Boolean marketIdIsUndefined = java.util.Objects.equals(marketId, null);
-        Object isSpot = ((Helpers.isTrue(marketIdIsUndefined))) ? channelStartsWithSpot : ((Map<String, Object>)market).get("spot");
+        Object isSpot = ((Boolean.TRUE.equals(marketIdIsUndefined))) ? channelStartsWithSpot : ((Map<String, Object>)market).get("spot");
         String spotPrefix = "spot:";
         String messageHashPrefix = (((java.util.Objects.equals(isSpot, true)))) ? spotPrefix : "";
         Object topic = Helpers.add(messageHashPrefix, "ticker");
@@ -480,7 +480,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((List<Object>) marketTypeparametersVariable).get(1);
             Boolean isSpot = java.util.Objects.equals(marketType, "spot");
-            if (!Helpers.isTrue(isSpot))
+            if (!Boolean.TRUE.equals(isSpot))
             {
                 throw new NotSupported((this.id + " watchBidsAsks only support spot market")) ;
             }
@@ -488,7 +488,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             List<Object> topics = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                if (Helpers.isTrue(isSpot))
+                if (Boolean.TRUE.equals(isSpot))
                 {
                     Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
                     ((List<Object>)topics).add(Helpers.add("spot@public.aggre.bookTicker.v3.api.pb@100ms@", ((Map<String, Object>)market).get("id")));
@@ -501,7 +501,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 put( "params", topics );
             }};
             Object ticker = (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Map<String, Object> tickers = new HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(tickers, Helpers.GetValue(ticker, "symbol"), ticker);
@@ -684,7 +684,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 ohlcv = (this.watchSwapPublic(channel, messageHash, requestParams, parameters)).join();
             }
             ohlcv = this.requireValue(ohlcv, "watchOHLCV() ohlcv is required");
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
@@ -1050,7 +1050,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             // return;
             shouldReturn = true;
         }
-        if (Helpers.isTrue(shouldReturn))
+        if (Boolean.TRUE.equals(shouldReturn))
         {
             return;  // go requirement
         }
@@ -1068,7 +1068,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(bidasks)); i++)
         {
             Object bidask = Helpers.GetValue(bidasks, i);
-            if (Helpers.isTrue(Helpers.isArray(bidask)))
+            if ((bidask instanceof List))
             {
                 Helpers.callDynamically(bookside, "storeArray", new Object[]{bidask});
             } else
@@ -1140,7 +1140,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 trades = (this.watchSwapPublic(channel, messageHash, requestParams, parameters)).join();
             }
             trades = this.requireValue(trades, "watchTrades() trades is required");
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
@@ -1280,7 +1280,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 trades = (this.watchSwapPrivate(messageHash, parameters)).join();
             }
             trades = this.requireValue(trades, "watchMyTrades() trades is required");
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
@@ -1493,7 +1493,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 orders = (this.watchSwapPrivate(messageHash, parameters)).join();
             }
             orders = this.requireValue(orders, "watchOrders() orders is required");
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
@@ -2036,9 +2036,9 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             type = ((List<Object>) typeparametersVariable).get(0);
             parameters = ((List<Object>) typeparametersVariable).get(1);
             Boolean isSpot = (java.util.Objects.equals(type, "spot"));
-            Object url = ((Helpers.isTrue((isSpot)))) ? Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "spot") : Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "swap");
+            Object url = ((Boolean.TRUE.equals(isSpot))) ? Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "spot") : Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "swap");
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            if (Helpers.isTrue(isSpot))
+            if (Boolean.TRUE.equals(isSpot))
             {
                 throw new NotSupported((this.id + " watchTickers does not support spot markets")) ;
             } else
@@ -2085,7 +2085,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((List<Object>) marketTypeparametersVariable).get(1);
             Boolean isSpot = java.util.Objects.equals(marketType, "spot");
-            if (!Helpers.isTrue(isSpot))
+            if (!Boolean.TRUE.equals(isSpot))
             {
                 throw new NotSupported((this.id + " watchBidsAsks only support spot market")) ;
             }
@@ -2093,7 +2093,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             List<Object> topics = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
-                if (Helpers.isTrue(isSpot))
+                if (Boolean.TRUE.equals(isSpot))
                 {
                     Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
                     ((List<Object>)topics).add(Helpers.add("spot@public.aggre.bookTicker.v3.api.pb@100ms@", ((Map<String, Object>)market).get("id")));

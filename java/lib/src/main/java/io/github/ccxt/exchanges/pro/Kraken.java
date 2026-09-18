@@ -195,7 +195,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         Object trailingPercentString = (((!java.util.Objects.equals(trailingPercent, null)))) ? Helpers.add(offset, this.numberToString(trailingPercent)) : null;
         Object trailingLimitAmountString = (((!java.util.Objects.equals(trailingLimitAmount, null)))) ? Helpers.add(offset, this.numberToString(trailingLimitAmount)) : null;
         Object trailingLimitPercentString = (((!java.util.Objects.equals(trailingLimitPercent, null)))) ? Helpers.add(offset, this.numberToString(trailingLimitPercent)) : null;
-        String priceType = (((Helpers.isTrue(isTrailingPercentOrder) || Helpers.isTrue(isTrailingLimitPercentOrder)))) ? "pct" : "quote";
+        String priceType = (((Boolean.TRUE.equals(isTrailingPercentOrder) || Boolean.TRUE.equals(isTrailingLimitPercentOrder)))) ? "pct" : "quote";
         if (java.util.Objects.equals(method, "createOrderWs"))
         {
             Object reduceOnly = this.safeBool(parameters, "reduceOnly");
@@ -209,18 +209,18 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 Helpers.addElementToObject(Helpers.GetValue(request, "params"), "time_in_force", timeInForce);
             }
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "timeInForce")));
-            if (Helpers.isTrue(isStopLossPriceOrder) || Helpers.isTrue(isTakeProfitPriceOrder) || Helpers.isTrue(isTrailingAmountOrder) || Helpers.isTrue(isTrailingPercentOrder) || Helpers.isTrue(isTrailingLimitAmountOrder) || Helpers.isTrue(isTrailingLimitPercentOrder))
+            if (Boolean.TRUE.equals(isStopLossPriceOrder) || Boolean.TRUE.equals(isTakeProfitPriceOrder) || Boolean.TRUE.equals(isTrailingAmountOrder) || Boolean.TRUE.equals(isTrailingPercentOrder) || Boolean.TRUE.equals(isTrailingLimitAmountOrder) || Boolean.TRUE.equals(isTrailingLimitPercentOrder))
             {
                 Helpers.addElementToObject(Helpers.GetValue(request, "params"), "triggers", new HashMap<String, Object>() {{}});
             }
-            if (Helpers.isTrue(isPresetStopLoss) || Helpers.isTrue(isPresetTakeProfit))
+            if (Boolean.TRUE.equals(isPresetStopLoss) || Boolean.TRUE.equals(isPresetTakeProfit))
             {
                 Helpers.addElementToObject(Helpers.GetValue(request, "params"), "conditional", new HashMap<String, Object>() {{}});
-                if (Helpers.isTrue(isPresetStopLoss))
+                if (Boolean.TRUE.equals(isPresetStopLoss))
                 {
                     Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(request, "params"), "conditional"), "order_type", "stop-loss");
                     Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(request, "params"), "conditional"), "trigger_price", this.parseToNumeric(this.priceToPrecision(symbol, presetStopLoss)));
-                } else if (Helpers.isTrue(isPresetTakeProfit))
+                } else if (Boolean.TRUE.equals(isPresetTakeProfit))
                 {
                     Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(request, "params"), "conditional"), "order_type", "take-profit");
                     Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(request, "params"), "conditional"), "trigger_price", this.parseToNumeric(this.priceToPrecision(symbol, presetTakeProfit)));
@@ -235,9 +235,9 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                     Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(request, "params"), "conditional"), "limit_price", this.parseToNumeric(this.priceToPrecision(symbol, presetTakeProfitLimit)));
                 }
                 parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLoss", "takeProfit")));
-            } else if (Helpers.isTrue(isStopLossPriceOrder) || Helpers.isTrue(isTakeProfitPriceOrder))
+            } else if (Boolean.TRUE.equals(isStopLossPriceOrder) || Boolean.TRUE.equals(isTakeProfitPriceOrder))
             {
-                if (Helpers.isTrue(isStopLossPriceOrder))
+                if (Boolean.TRUE.equals(isStopLossPriceOrder))
                 {
                     Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(request, "params"), "triggers"), "price", this.parseToNumeric(this.priceToPrecision(symbol, stopLossPrice)));
                     if (Helpers.isTrue(isLimitOrder))
@@ -258,13 +258,13 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                         Helpers.addElementToObject(Helpers.GetValue(request, "params"), "order_type", "take-profit");
                     }
                 }
-            } else if (Helpers.isTrue(isTrailingAmountOrder) || Helpers.isTrue(isTrailingPercentOrder) || Helpers.isTrue(isTrailingLimitAmountOrder) || Helpers.isTrue(isTrailingLimitPercentOrder))
+            } else if (Boolean.TRUE.equals(isTrailingAmountOrder) || Boolean.TRUE.equals(isTrailingPercentOrder) || Boolean.TRUE.equals(isTrailingLimitAmountOrder) || Boolean.TRUE.equals(isTrailingLimitPercentOrder))
             {
                 Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(request, "params"), "triggers"), "price_type", priceType);
-                if (!Helpers.isTrue(isLimitOrder) && (Helpers.isTrue(isTrailingAmountOrder) || Helpers.isTrue(isTrailingPercentOrder)))
+                if (!Helpers.isTrue(isLimitOrder) && (Boolean.TRUE.equals(isTrailingAmountOrder) || Boolean.TRUE.equals(isTrailingPercentOrder)))
                 {
                     Helpers.addElementToObject(Helpers.GetValue(request, "params"), "order_type", "trailing-stop");
-                    if (Helpers.isTrue(isTrailingAmountOrder))
+                    if (Boolean.TRUE.equals(isTrailingAmountOrder))
                     {
                         Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(request, "params"), "triggers"), "price", this.parseToNumeric(trailingAmountString));
                     } else
@@ -276,7 +276,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                     // trailing limit orders are not conventionally supported because the static limit_price_type param is not available for trailing-stop-limit orders
                     Helpers.addElementToObject(Helpers.GetValue(request, "params"), "limit_price_type", priceType);
                     Helpers.addElementToObject(Helpers.GetValue(request, "params"), "order_type", "trailing-stop-limit");
-                    if (Helpers.isTrue(isTrailingLimitAmountOrder))
+                    if (Boolean.TRUE.equals(isTrailingLimitAmountOrder))
                     {
                         Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(request, "params"), "triggers"), "price", this.parseToNumeric(trailingLimitAmountString));
                     } else
@@ -287,25 +287,25 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             }
         } else if (java.util.Objects.equals(method, "editOrderWs"))
         {
-            if (Helpers.isTrue(isPresetStopLoss) || Helpers.isTrue(isPresetTakeProfit))
+            if (Boolean.TRUE.equals(isPresetStopLoss) || Boolean.TRUE.equals(isPresetTakeProfit))
             {
                 throw new NotSupported((this.id + " editing the stopLoss and takeProfit on existing orders is currently not supported")) ;
             }
-            if (Helpers.isTrue(isStopLossPriceOrder) || Helpers.isTrue(isTakeProfitPriceOrder))
+            if (Boolean.TRUE.equals(isStopLossPriceOrder) || Boolean.TRUE.equals(isTakeProfitPriceOrder))
             {
-                if (Helpers.isTrue(isStopLossPriceOrder))
+                if (Boolean.TRUE.equals(isStopLossPriceOrder))
                 {
                     Helpers.addElementToObject(Helpers.GetValue(request, "params"), "trigger_price", this.parseToNumeric(this.priceToPrecision(symbol, stopLossPrice)));
                 } else
                 {
                     Helpers.addElementToObject(Helpers.GetValue(request, "params"), "trigger_price", this.parseToNumeric(this.priceToPrecision(symbol, takeProfitPrice)));
                 }
-            } else if (Helpers.isTrue(isTrailingAmountOrder) || Helpers.isTrue(isTrailingPercentOrder) || Helpers.isTrue(isTrailingLimitAmountOrder) || Helpers.isTrue(isTrailingLimitPercentOrder))
+            } else if (Boolean.TRUE.equals(isTrailingAmountOrder) || Boolean.TRUE.equals(isTrailingPercentOrder) || Boolean.TRUE.equals(isTrailingLimitAmountOrder) || Boolean.TRUE.equals(isTrailingLimitPercentOrder))
             {
                 Helpers.addElementToObject(Helpers.GetValue(request, "params"), "trigger_price_type", priceType);
-                if (!Helpers.isTrue(isLimitOrder) && (Helpers.isTrue(isTrailingAmountOrder) || Helpers.isTrue(isTrailingPercentOrder)))
+                if (!Helpers.isTrue(isLimitOrder) && (Boolean.TRUE.equals(isTrailingAmountOrder) || Boolean.TRUE.equals(isTrailingPercentOrder)))
                 {
-                    if (Helpers.isTrue(isTrailingAmountOrder))
+                    if (Boolean.TRUE.equals(isTrailingAmountOrder))
                     {
                         Helpers.addElementToObject(Helpers.GetValue(request, "params"), "trigger_price", this.parseToNumeric(trailingAmountString));
                     } else
@@ -315,7 +315,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 } else
                 {
                     Helpers.addElementToObject(Helpers.GetValue(request, "params"), "limit_price_type", priceType);
-                    if (Helpers.isTrue(isTrailingLimitAmountOrder))
+                    if (Boolean.TRUE.equals(isTrailingLimitAmountOrder))
                     {
                         Helpers.addElementToObject(Helpers.GetValue(request, "params"), "trigger_price", this.parseToNumeric(trailingLimitAmountString));
                     } else
@@ -815,7 +815,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             (this.loadMarkets()).join();
             symbols = this.marketSymbols(symbols, null, false);
             Object ticker = (this.watchMultiHelper("ticker", "ticker", symbols, null, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(result, Helpers.GetValue(ticker, "symbol"), ticker);
@@ -846,7 +846,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             symbols = this.marketSymbols(symbols, null, false);
             ((Map<String, Object>)parameters).put("event_trigger", "bbo");
             Object ticker = (this.watchMultiHelper("bidask", "ticker", symbols, null, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(result, Helpers.GetValue(ticker, "symbol"), ticker);
@@ -901,7 +901,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
             Object trades = (this.watchMultiHelper("trade", "trade", symbols, null, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Object first = this.safeList(trades, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
@@ -1011,7 +1011,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             }};
             Map<String, Object> request = this.deepExtend(subscribe, parameters);
             Object ohlcv = (this.watch(url, messageHash, request, messageHash, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
@@ -1407,7 +1407,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 ((Map<String, Object>)subscribe).put("params", this.deepExtend(((Map<String, Object>)subscribe).get("params"), parameters));
             }
             Object result = (this.watch(url, messageHash, subscribe, subscriptionHash, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(result, "getLimit", new Object[]{symbol, limit});
             }
@@ -1882,7 +1882,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         Object symbol = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
         Boolean withSymbol = !java.util.Objects.equals(symbol, null);
         Object messageHash = unifiedElementName;
-        if (!Helpers.isTrue(withSymbol))
+        if (!Boolean.TRUE.equals(withSymbol))
         {
             messageHash = (messageHash + "s");
         } else

@@ -707,7 +707,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             }};
             Object message = this.extend(request, parameters);
             Object bidsasks = (this.watchPublic(topic, message)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 return bidsasks;
             }
@@ -848,7 +848,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             }};
             Object message = this.extend(request, parameters);
             Object ohlcv = (this.watchPublic(topic, message)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{((Map<String, Object>)market).get("symbol"), limit});
             }
@@ -965,7 +965,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             }};
             Object message = this.extend(request, parameters);
             Object trades = (this.watchPublic(topic, message)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{((Map<String, Object>)market).get("symbol"), limit});
             }
@@ -1250,7 +1250,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             }};
             Object message = this.extend(request, parameters);
             Object orders = (this.watchPrivate(messageHash, message)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
@@ -1301,7 +1301,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             }};
             Object message = this.extend(request, parameters);
             Object trades = (this.watchPrivate(messageHash, message)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
@@ -1467,7 +1467,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         //
         String topic = this.safeString(message, "topic");
         Object data = this.safeValue(message, "data");
-        if (Helpers.isTrue(Helpers.isArray(data)))
+        if ((data instanceof List))
         {
             // algoexecutionreportv2
             for (var i = 0; i < ((List<?>)data).size(); i++)
@@ -1636,7 +1636,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 put( "topic", "position" );
             }};
             Object newPositions = (this.watchPrivateMultiple(messageHashes, request, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 return newPositions;
             }

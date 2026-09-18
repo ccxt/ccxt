@@ -1234,7 +1234,7 @@ public class Toobit extends ToobitApi
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         Boolean isContract = (((Map<?, ?>)market).containsKey("contractMultiplier"));
         Object inverse = this.safeBool2(market, "isInverse", "inverse");
-        if (Helpers.isTrue(isContract))
+        if (Boolean.TRUE.equals(isContract))
         {
             symbol = Helpers.add(symbol, Helpers.add(":", settle));
         }
@@ -1250,16 +1250,16 @@ public class Toobit extends ToobitApi
             put( "baseId", baseId );
             put( "quoteId", quoteId );
             put( "settleId", settleId );
-            put( "type", ((Helpers.isTrue(isContract))) ? "swap" : "spot" );
-            put( "spot", !Helpers.isTrue(isContract) );
+            put( "type", ((Boolean.TRUE.equals(isContract))) ? "swap" : "spot" );
+            put( "spot", !Boolean.TRUE.equals(isContract) );
             put( "margin", false );
             put( "swap", isContract );
             put( "future", false );
             put( "option", false );
             put( "active", active );
             put( "contract", isContract );
-            put( "linear", ((Helpers.isTrue(isContract))) ? (!java.util.Objects.equals(finalInverse, true)) : null );
-            put( "inverse", ((Helpers.isTrue(isContract))) ? finalInverse : null );
+            put( "linear", ((Boolean.TRUE.equals(isContract))) ? (!java.util.Objects.equals(finalInverse, true)) : null );
+            put( "inverse", ((Boolean.TRUE.equals(isContract))) ? finalInverse : null );
             put( "contractSize", Toobit.this.safeNumber(market, "contractMultiplier") );
             put( "expiry", null );
             put( "expiryDatetime", null );
@@ -1583,7 +1583,7 @@ public class Toobit extends ToobitApi
                 response = (this.commonGetQuoteV1Klines(this.extend(request, parameters))).join();
             }
             Object candles = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(Helpers.isArray(response)))
+            if ((response instanceof List))
             {
                 candles = response;
             }
@@ -1956,7 +1956,7 @@ public class Toobit extends ToobitApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters)).join();
             }
@@ -2248,7 +2248,7 @@ public class Toobit extends ToobitApi
             put( "mark", "MARK_PRICE" );
             put( "last", "CONTRACT_PRICE" );
         }};
-        if (Helpers.isTrue(hasStopLoss))
+        if (Boolean.TRUE.equals(hasStopLoss))
         {
             ((Map<String, Object>)request).put("stopLoss", this.safeValue(stopLoss, "triggerPrice"));
             Object limitPrice = this.safeValue(stopLoss, "price");
@@ -2264,7 +2264,7 @@ public class Toobit extends ToobitApi
             }
             parameters = this.omit(parameters, "stopLoss");
         }
-        if (Helpers.isTrue(hasTakeProfit))
+        if (Boolean.TRUE.equals(hasTakeProfit))
         {
             ((Map<String, Object>)request).put("takeProfit", this.safeValue(takeProfit, "triggerPrice"));
             Object limitPrice = this.safeValue(takeProfit, "price");
@@ -2836,7 +2836,7 @@ public class Toobit extends ToobitApi
             }
             List<Object> ordersList = new ArrayList<Object>(Arrays.asList());
             Object responseList = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(Helpers.isArray(response)))
+            if ((response instanceof List))
             {
                 responseList = response;
             }
@@ -3339,7 +3339,7 @@ public class Toobit extends ToobitApi
         String addressTo = this.safeString(transaction, "address");
         String addressFrom = this.safeString(transaction, "fromAddress");
         Boolean isWithdraw = (((Map<?, ?>)transaction).containsKey("arriveQuantity"));
-        String type = ((Helpers.isTrue(isWithdraw))) ? "withdrawal" : "deposit";
+        String type = ((Boolean.TRUE.equals(isWithdraw))) ? "withdrawal" : "deposit";
         final Object finalFee = fee;
         return new HashMap<String, Object>() {{
             put( "info", transaction );
@@ -3759,7 +3759,7 @@ public class Toobit extends ToobitApi
         if (!java.util.Objects.equals(api, "private"))
         {
             // Public endpoints
-            if (!Helpers.isTrue(isPost))
+            if (!Boolean.TRUE.equals(isPost))
             {
                 if (((List<?>)Helpers.objectKeys(query)).size() > 0)
                 {
@@ -3775,10 +3775,10 @@ public class Toobit extends ToobitApi
             ((Map<String, Object>)extraQuery).put("timestamp", String.valueOf(timestamp));
             Map<String, Object> queryExtended = this.extend(query, extraQuery);
             Object queryString = "";
-            if (Helpers.isTrue(isPost) || Helpers.isTrue(isDelete))
+            if (Boolean.TRUE.equals(isPost) || Boolean.TRUE.equals(isDelete))
             {
                 // everything else except Batch-Orders
-                if (!Helpers.isTrue(Helpers.isArray(parameters)))
+                if (!(parameters instanceof List))
                 {
                     body = this.urlencode(queryExtended);
                 } else

@@ -914,12 +914,12 @@ public class Digifinex extends DigifinexApi
                 Object isAllowed = this.safeInteger(market, "is_allow", 1);
                 String type = (((java.util.Objects.equals(defaultType, "margin")))) ? "margin" : "spot";
                 Boolean spot = java.util.Objects.equals(settle, null);
-                Boolean swap = !Helpers.isTrue(spot);
+                Boolean swap = !Boolean.TRUE.equals(spot);
                 Object margin = (((!java.util.Objects.equals(marginMode, null)))) ? true : null;
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
                 Object isInverse = null;
                 Object isLinear = null;
-                if (Helpers.isTrue(swap))
+                if (Boolean.TRUE.equals(swap))
                 {
                     type = "swap";
                     symbol = ((Helpers.add(Helpers.add(base, "/"), quote) + ":") + settle);
@@ -2308,11 +2308,11 @@ public class Digifinex extends DigifinexApi
         Boolean swap = (java.util.Objects.equals(marketType, "swap"));
         Boolean isMarketOrder = (java.util.Objects.equals(type, "market"));
         Boolean isLimitOrder = (java.util.Objects.equals(type, "limit"));
-        String marketIdRequest = ((Helpers.isTrue(swap))) ? "instrument_id" : "symbol";
+        String marketIdRequest = ((Boolean.TRUE.equals(swap))) ? "instrument_id" : "symbol";
         Helpers.addElementToObject(request, marketIdRequest, ((Map<String, Object>)market).get("id"));
         Object postOnly = this.isPostOnly(isMarketOrder, false, parameters);
         Object postOnlyParsed = null;
-        if (Helpers.isTrue(swap))
+        if (Boolean.TRUE.equals(swap))
         {
             Object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
             String timeInForce = this.safeString(parameters, "timeInForce");
@@ -2326,17 +2326,17 @@ public class Digifinex extends DigifinexApi
                 Object requestType = (((java.util.Objects.equals(reduceOnly, true)))) ? 3 : 2;
                 ((Map<String, Object>)request).put("type", requestType);
             }
-            if (Helpers.isTrue(isLimitOrder))
+            if (Boolean.TRUE.equals(isLimitOrder))
             {
                 orderType = 0;
             }
             if (java.util.Objects.equals(timeInForce, "FOK"))
             {
-                orderType = ((Helpers.isTrue(isMarketOrder))) ? 15 : 9;
+                orderType = ((Boolean.TRUE.equals(isMarketOrder))) ? 15 : 9;
             } else if (java.util.Objects.equals(timeInForce, "IOC"))
             {
-                orderType = ((Helpers.isTrue(isMarketOrder))) ? 13 : 4;
-            } else if ((java.util.Objects.equals(timeInForce, "GTC")) || Helpers.isTrue((isMarketOrder)))
+                orderType = ((Boolean.TRUE.equals(isMarketOrder))) ? 13 : 4;
+            } else if ((java.util.Objects.equals(timeInForce, "GTC")) || Boolean.TRUE.equals(isMarketOrder))
             {
                 orderType = 14;
             } else if (java.util.Objects.equals(timeInForce, "PO"))
@@ -2369,14 +2369,14 @@ public class Digifinex extends DigifinexApi
             List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrderRequest", "createMarketBuyOrderRequiresPrice", true);
             createMarketBuyOrderRequiresPrice = ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
             parameters = ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
-            if (Helpers.isTrue(isMarketOrder) && (java.util.Objects.equals(side, "buy")))
+            if (Boolean.TRUE.equals(isMarketOrder) && (java.util.Objects.equals(side, "buy")))
             {
                 Double cost = this.safeNumber(parameters, "cost");
                 parameters = this.omit(parameters, "cost");
                 if (!java.util.Objects.equals(cost, null))
                 {
                     quantity = this.costToPrecision(symbol, cost);
-                } else if (Helpers.isTrue(createMarketBuyOrderRequiresPrice))
+                } else if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
                 {
                     if (java.util.Objects.equals(price, null))
                     {
@@ -2837,7 +2837,7 @@ public class Digifinex extends DigifinexApi
             var query = ((List<Object>) marginModequeryVariable).get(1);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Boolean swap = (java.util.Objects.equals(marketType, "swap"));
-            if (Helpers.isTrue(swap))
+            if (Boolean.TRUE.equals(swap))
             {
                 if (!java.util.Objects.equals(since, null))
                 {
@@ -2853,7 +2853,7 @@ public class Digifinex extends DigifinexApi
             }
             if (!java.util.Objects.equals(market, null))
             {
-                String marketIdRequest = ((Helpers.isTrue(swap))) ? "instrument_id" : "symbol";
+                String marketIdRequest = ((Boolean.TRUE.equals(swap))) ? "instrument_id" : "symbol";
                 Helpers.addElementToObject(request, marketIdRequest, ((Map<String, Object>)market).get("id"));
             }
             Object response = null;
@@ -3863,13 +3863,13 @@ public class Digifinex extends DigifinexApi
             Boolean toSwap = (java.util.Objects.equals(toAccount, "swap"));
             Object response = null;
             Object amountString = this.currencyToPrecision(code, amount);
-            if (Helpers.isTrue(fromSwap) || Helpers.isTrue(toSwap))
+            if (Boolean.TRUE.equals(fromSwap) || Boolean.TRUE.equals(toSwap))
             {
                 if ((!java.util.Objects.equals(fromId, "1")) && (!java.util.Objects.equals(toId, "1")))
                 {
                     throw new ExchangeError((this.id + " transfer() supports transferring between spot and swap, spot and margin, spot and OTC only")) ;
                 }
-                ((Map<String, Object>)request).put("type", ((Helpers.isTrue(toSwap))) ? 1 : 2); // 1 = spot to swap, 2 = swap to spot
+                ((Map<String, Object>)request).put("type", ((Boolean.TRUE.equals(toSwap))) ? 1 : 2); // 1 = spot to swap, 2 = swap to spot
                 ((Map<String, Object>)request).put("currency", currencyId);
                 ((Map<String, Object>)request).put("transfer_amount", amountString);
                 //
@@ -4478,7 +4478,7 @@ public class Digifinex extends DigifinexApi
             if (!java.util.Objects.equals(symbols, null))
             {
                 Object symbol = null;
-                if (Helpers.isTrue(Helpers.isArray(symbols)))
+                if ((symbols instanceof List))
                 {
                     Object symbolsLength = ((List<?>)symbols).size();
                     if (Helpers.isGreaterThan(symbolsLength, 1))
@@ -5522,14 +5522,14 @@ final Object finalI = i;
         Object url = Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"), payload);
         Object query = this.omit(parameters, this.extractParams(path));
         Object urlencoded = null;
-        if (Helpers.isTrue(signed) && (java.util.Objects.equals(pathPart, "/swap/v2")) && (java.util.Objects.equals(method, "POST")))
+        if (Boolean.TRUE.equals(signed) && (java.util.Objects.equals(pathPart, "/swap/v2")) && (java.util.Objects.equals(method, "POST")))
         {
             urlencoded = Helpers.json(parameters);
         } else
         {
             urlencoded = this.urlencode(this.keysort(query));
         }
-        if (Helpers.isTrue(signed))
+        if (Boolean.TRUE.equals(signed))
         {
             Object auth = null;
             Object nonce = null;

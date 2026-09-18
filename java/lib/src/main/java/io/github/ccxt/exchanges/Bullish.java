@@ -1215,7 +1215,7 @@ public class Bullish extends BullishApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 parameters = this.handlePaginationParams("fetchTrades", since, parameters);
                 return (this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, parameters, maxLimit)).join();
@@ -1296,7 +1296,7 @@ public class Bullish extends BullishApi
                 List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
                 paginate = ((List<Object>) paginateparametersVariable).get(0);
                 parameters = ((List<Object>) paginateparametersVariable).get(1);
-                if (Helpers.isTrue(paginate))
+                if (Boolean.TRUE.equals(paginate))
                 {
                     parameters = this.handlePaginationParams("fetchMyTrades", since, parameters);
                     return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters, 100)).join();
@@ -1695,7 +1695,7 @@ public class Bullish extends BullishApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, maxLimit)).join();
             }
@@ -1785,7 +1785,7 @@ public class Bullish extends BullishApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 parameters = this.handlePaginationParams("fetchFundingRateHistory", since, parameters);
                 return (this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, parameters, maxLimit)).join();
@@ -2230,7 +2230,7 @@ public class Bullish extends BullishApi
             List<Object> postOnlyparametersVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(type, "POST_ONLY"), parameters);
             postOnly = (Boolean) ((List<Object>) postOnlyparametersVariable).get(0);
             parameters = ((List<Object>) postOnlyparametersVariable).get(1);
-            if (Helpers.isTrue(postOnly))
+            if (Boolean.TRUE.equals(postOnly))
             {
                 type = "POST_ONLY";
             }
@@ -2239,14 +2239,14 @@ public class Bullish extends BullishApi
             timeInForce = ((List<Object>) timeInForceparametersVariable).get(0);
             parameters = ((List<Object>) timeInForceparametersVariable).get(1);
             ((Map<String, Object>)parameters).put("timeInForce", ((String)timeInForce).toUpperCase());
-            if (!Helpers.isTrue(isMarketOrder))
+            if (!Boolean.TRUE.equals(isMarketOrder))
             {
                 ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
             }
             String triggerPrice = this.safeString(parameters, "triggerPrice");
             if (!java.util.Objects.equals(triggerPrice, null))
             {
-                if (Helpers.isTrue(isMarketOrder))
+                if (Boolean.TRUE.equals(isMarketOrder))
                 {
                     throw new NotSupported((this.id + " createOrder() does not support market trigger orders")) ;
                 }
@@ -2978,7 +2978,7 @@ public class Bullish extends BullishApi
             network = ((List<Object>) networkparametersVariable).get(0);
             parameters = ((List<Object>) networkparametersVariable).get(1);
             Boolean networkDefinedByUser = !java.util.Objects.equals(network, null);
-            if ((Helpers.isGreaterThan(length, 1)) || Helpers.isTrue((networkDefinedByUser)))
+            if ((Helpers.isGreaterThan(length, 1)) || Boolean.TRUE.equals(networkDefinedByUser))
             {
                 // some currencies have multiple networks
                 if (java.util.Objects.equals(network, null))
@@ -3000,7 +3000,7 @@ public class Bullish extends BullishApi
                             break;
                         }
                     }
-                    if (Helpers.isTrue(networkDefinedByUser))
+                    if (Boolean.TRUE.equals(networkDefinedByUser))
                     {
                         data = new HashMap<String, Object>() {{}}; // return an empty structure if the user-defined network was not found
                     }
@@ -3260,7 +3260,7 @@ public class Bullish extends BullishApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTransfers", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 parameters = this.handlePaginationParams("fetchTransfers", since, parameters);
                 return (this.fetchPaginatedCallDynamic("fetchTransfers", code, since, limit, parameters, maxLimit)).join();

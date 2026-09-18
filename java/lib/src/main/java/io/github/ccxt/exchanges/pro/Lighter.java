@@ -501,7 +501,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 }
             }
             Object newTicker = (this.subscribePublicMultiple(messageHashes, this.extend(request, parameters))).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(result, Helpers.GetValue(newTicker, "symbol"), newTicker);
@@ -1024,7 +1024,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 put( "channel", Helpers.add("account_all_trades/", Lighter.this.numberToString(finalAccountIndex)) );
             }};
             Object trades = (this.subscribePublic(messageHash, this.extend(request, parameters))).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
@@ -1404,7 +1404,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 ((Map<String, Object>)request).put("channel", Helpers.add("account_all_orders/", this.numberToString(accountIndex)));
             }
             Object orders = (this.subscribePrivate(messageHash, this.extend(request, parameters))).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
@@ -1714,7 +1714,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                     }
                 }
             }
-            if (!Helpers.isTrue(handled))
+            if (!Boolean.TRUE.equals(handled))
             {
                 client.reject(e);
             }

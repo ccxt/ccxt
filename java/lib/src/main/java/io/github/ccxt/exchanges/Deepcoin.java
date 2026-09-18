@@ -711,7 +711,7 @@ public class Deepcoin extends DeepcoinApi
         String quote = this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         Object isLinear = null;
-        if (Helpers.isTrue(swap))
+        if (Boolean.TRUE.equals(swap))
         {
             isLinear = (!java.util.Objects.equals(quoteId, "USD"));
             settleId = ((Helpers.isTrue(isLinear))) ? quoteId : baseId;
@@ -725,8 +725,8 @@ public class Deepcoin extends DeepcoinApi
         String maxLimitSize = this.safeString(market, "maxLmtSz");
         Object maxAmount = this.parseNumber(Precise.stringMax(maxMarketSize, maxLimitSize));
         String state = this.safeString(market, "state");
-        Boolean isMargin = Helpers.isTrue(spot) && Helpers.isTrue((Precise.stringGt(maxLeverage, "1")));
-        Object isInverse = ((Helpers.isTrue(swap))) ? (!java.util.Objects.equals(isLinear, true)) : null;
+        Boolean isMargin = Boolean.TRUE.equals(spot) && Helpers.isTrue((Precise.stringGt(maxLeverage, "1")));
+        Object isInverse = ((Boolean.TRUE.equals(swap))) ? (!java.util.Objects.equals(isLinear, true)) : null;
         final Object finalSymbol = symbol;
         final Object finalBase = base;
         final Object finalSettle = settle;
@@ -756,7 +756,7 @@ public class Deepcoin extends DeepcoinApi
             put( "contract", swap );
             put( "linear", finalIsLinear );
             put( "inverse", isInverse );
-            put( "contractSize", ((Helpers.isTrue(swap))) ? Deepcoin.this.safeNumber(market, "ctVal") : null );
+            put( "contractSize", ((Boolean.TRUE.equals(swap))) ? Deepcoin.this.safeNumber(market, "ctVal") : null );
             put( "expiry", null );
             put( "expiryDatetime", null );
             put( "strike", null );
@@ -898,7 +898,7 @@ public class Deepcoin extends DeepcoinApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 parameters = this.extend(parameters, new HashMap<String, Object>() {{
                     put( "calculateUntil", true );
@@ -1323,7 +1323,7 @@ public class Deepcoin extends DeepcoinApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchDeposits", "paginate", false);
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, parameters, "code", null, 1, 50)).join();
             }
@@ -1389,7 +1389,7 @@ public class Deepcoin extends DeepcoinApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchWithdrawals", "paginate", false);
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, parameters, "code", null, 1, 50)).join();
             }
@@ -1978,7 +1978,7 @@ public class Deepcoin extends DeepcoinApi
                 throw new BadRequest((this.id + " createOrder() accepts a cost parameter for spot non-trigger market orders only")) ;
             }
         }
-        if (Helpers.isTrue(isTriggerOrder))
+        if (Boolean.TRUE.equals(isTriggerOrder))
         {
             return this.createTriggerOrderRequest(symbol, type, side, amount, price, parameters);
         } else
@@ -2055,12 +2055,12 @@ public class Deepcoin extends DeepcoinApi
         Boolean isMarketOrder = (java.util.Objects.equals(type, "market"));
         if (!java.util.Objects.equals(price, null))
         {
-            if (Helpers.isTrue(isMarketOrder))
+            if (Boolean.TRUE.equals(isMarketOrder))
             {
                 throw new BadRequest((this.id + " createOrder() does not require a price argument for market orders")) ;
             }
             ((Map<String, Object>)request).put("px", this.priceToPrecision(symbol, price));
-        } else if (!Helpers.isTrue(isMarketOrder))
+        } else if (!Boolean.TRUE.equals(isMarketOrder))
         {
             throw new BadRequest((this.id + " createOrder() requires a price argument for limit orders")) ;
         }
@@ -2069,7 +2069,7 @@ public class Deepcoin extends DeepcoinApi
             String cost = this.safeString(parameters, "cost");
             if (!java.util.Objects.equals(cost, null))
             {
-                if (!Helpers.isTrue(isMarketOrder))
+                if (!Boolean.TRUE.equals(isMarketOrder))
                 {
                     throw new BadRequest((this.id + " createOrder() accepts a cost parameter for spot market orders only")) ;
                 }
@@ -2227,7 +2227,7 @@ public class Deepcoin extends DeepcoinApi
         List<Object> postOnlyparametersVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), java.util.Objects.equals(type, "post_only"), parameters);
         postOnly = (Boolean) ((List<Object>) postOnlyparametersVariable).get(0);
         parameters = ((List<Object>) postOnlyparametersVariable).get(1);
-        if (Helpers.isTrue(postOnly))
+        if (Boolean.TRUE.equals(postOnly))
         {
             type = "post_only";
         }
@@ -2471,7 +2471,7 @@ public class Deepcoin extends DeepcoinApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchCanceledAndClosedOrders", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchCanceledAndClosedOrders", symbol, since, limit, parameters)).join();
             }
@@ -2890,7 +2890,7 @@ public class Deepcoin extends DeepcoinApi
             List<Object> mergedparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelAllOrders", "merged", merged);
             merged = ((List<Object>) mergedparametersVariable).get(0);
             parameters = ((List<Object>) mergedparametersVariable).get(1);
-            Object isMergedMode = ((Helpers.isTrue(merged))) ? 1 : 0;
+            Object isMergedMode = ((Boolean.TRUE.equals(merged))) ? 1 : 0;
             final Object finalEncodedMarginMode = encodedMarginMode;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "InstrumentID", ((Map<String, Object>)market).get("id") );
@@ -2951,7 +2951,7 @@ public class Deepcoin extends DeepcoinApi
             Double takeProfitPrice = this.safeNumber(parameters, "takeProfitPrice");
             Boolean isTPSL = (!java.util.Objects.equals(stopLossPrice, null)) || (!java.util.Objects.equals(takeProfitPrice, null));
             Object response = null;
-            if (Helpers.isTrue(isTPSL))
+            if (Boolean.TRUE.equals(isTPSL))
             {
                 if ((!java.util.Objects.equals(price, null)) || (!java.util.Objects.equals(amount, null)))
                 {
@@ -3710,7 +3710,7 @@ public class Deepcoin extends DeepcoinApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters)).join();
             }

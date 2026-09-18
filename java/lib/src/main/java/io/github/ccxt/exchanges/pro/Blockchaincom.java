@@ -198,7 +198,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             request = this.deepExtend(request, parameters);
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Object ohlcv = (this.watch(url, messageHash, request, messageHash, request)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
@@ -540,7 +540,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             String messageHash = "orders";
             Map<String, Object> request = this.deepExtend(message, parameters);
             Object orders = (this.watch(url, messageHash, request, messageHash, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }

@@ -1375,12 +1375,12 @@ public class Bitso extends BitsoApi
             Boolean markerInParams = (((Map<?, ?>)parameters).containsKey("marker"));
             // warn the user with an exception if the user wants to filter
             // starting from since timestamp, but does not set the trade id with an extra 'marker' param
-            if ((!java.util.Objects.equals(since, null)) && !Helpers.isTrue(markerInParams))
+            if ((!java.util.Objects.equals(since, null)) && !Boolean.TRUE.equals(markerInParams))
             {
                 throw new ExchangeError((this.id + " fetchMyTrades() does not support fetching trades starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id")) ;
             }
             // convert it to an integer unconditionally
-            if (Helpers.isTrue(markerInParams))
+            if (Boolean.TRUE.equals(markerInParams))
             {
                 Object marker = Helpers.parseInt(((Map<String, Object>)parameters).get("marker"));
                 parameters = this.extend(parameters, new HashMap<String, Object>() {{
@@ -1503,7 +1503,7 @@ public class Bitso extends BitsoApi
 
             Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            if (!Helpers.isTrue(Helpers.isArray(ids)))
+            if (!(ids instanceof List))
             {
                 throw new ArgumentsRequired((this.id + " cancelOrders() ids argument should be an array")) ;
             }
@@ -1668,12 +1668,12 @@ public class Bitso extends BitsoApi
             Boolean markerInParams = (((Map<?, ?>)parameters).containsKey("marker"));
             // warn the user with an exception if the user wants to filter
             // starting from since timestamp, but does not set the trade id with an extra 'marker' param
-            if ((!java.util.Objects.equals(since, null)) && !Helpers.isTrue(markerInParams))
+            if ((!java.util.Objects.equals(since, null)) && !Boolean.TRUE.equals(markerInParams))
             {
                 throw new ExchangeError((this.id + " fetchOpenOrders() does not support fetching orders starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id")) ;
             }
             // convert it to an integer unconditionally
-            if (Helpers.isTrue(markerInParams))
+            if (Boolean.TRUE.equals(markerInParams))
             {
                 Object marker = Helpers.parseInt(((Map<String, Object>)parameters).get("marker"));
                 parameters = this.extend(parameters, new HashMap<String, Object>() {{
@@ -1717,7 +1717,7 @@ public class Bitso extends BitsoApi
                 put( "oid", id );
             }})).join();
             Object payload = this.safeValue(response, "payload");
-            if (Helpers.isTrue(Helpers.isArray(payload)))
+            if ((payload instanceof List))
             {
                 Object numOrders = ((List<?>)payload).size();
                 if (Helpers.isEqual(numOrders, 1))

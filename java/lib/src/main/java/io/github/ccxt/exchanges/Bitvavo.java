@@ -745,7 +745,7 @@ final Object finalBase = base;
         Object networksArray = this.safeList(rawCurrency, "networks", new ArrayList<Object>(Arrays.asList()));
         Boolean deposit = java.util.Objects.equals(this.safeString(rawCurrency, "depositStatus"), "OK");
         Boolean withdrawal = java.util.Objects.equals(this.safeString(rawCurrency, "withdrawalStatus"), "OK");
-        Boolean active = Helpers.isTrue(deposit) && Helpers.isTrue(withdrawal);
+        Boolean active = Boolean.TRUE.equals(deposit) && Boolean.TRUE.equals(withdrawal);
         Double withdrawFee = this.safeNumber(rawCurrency, "withdrawalFee");
         String precision = this.safeString(rawCurrency, "decimals", "8");
         Double minWithdraw = this.safeNumber(rawCurrency, "withdrawalMinAmount");
@@ -788,7 +788,7 @@ final Object finalBase = base;
             put( "networks", networks );
             put( "fee", withdrawFee );
             put( "precision", null );
-            put( "type", ((Helpers.isTrue(isFiat))) ? "fiat" : "crypto" );
+            put( "type", ((Boolean.TRUE.equals(isFiat))) ? "fiat" : "crypto" );
             put( "limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
                     put( "min", null );
@@ -977,7 +977,7 @@ final Object finalBase = base;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, parameters)).join();
             }
@@ -1366,7 +1366,7 @@ final Object finalBase = base;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 1440)).join();
             }
@@ -1814,7 +1814,7 @@ final Object finalBase = base;
         Object stopLossPrice = this.safeValue(parameters, "stopLossPrice"); // trigger when price crosses from above to below this value
         Object takeProfitPrice = this.safeValue(parameters, "takeProfitPrice"); // trigger when price crosses from below to above this value
         parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice")));
-        if (Helpers.isTrue(isMarketOrder))
+        if (Boolean.TRUE.equals(isMarketOrder))
         {
             Object cost = null;
             if (!java.util.Objects.equals(price, null))
@@ -1836,27 +1836,27 @@ final Object finalBase = base;
                 ((Map<String, Object>)request).put("amount", this.amountToPrecision(symbol, amount));
             }
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("cost")));
-        } else if (Helpers.isTrue(isLimitOrder))
+        } else if (Boolean.TRUE.equals(isLimitOrder))
         {
             ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
             ((Map<String, Object>)request).put("amount", this.amountToPrecision(symbol, amount));
         }
         Boolean isTakeProfit = (!java.util.Objects.equals(takeProfitPrice, null)) || (java.util.Objects.equals(type, "takeProfit")) || (java.util.Objects.equals(type, "takeProfitLimit"));
-        Boolean isStopLoss = (!java.util.Objects.equals(stopLossPrice, null)) || (!java.util.Objects.equals(triggerPrice, null)) && Helpers.isTrue((!Helpers.isTrue(isTakeProfit))) || (java.util.Objects.equals(type, "stopLoss")) || (java.util.Objects.equals(type, "stopLossLimit"));
-        if (Helpers.isTrue(isStopLoss))
+        Boolean isStopLoss = (!java.util.Objects.equals(stopLossPrice, null)) || (!java.util.Objects.equals(triggerPrice, null)) && Helpers.isTrue((!Boolean.TRUE.equals(isTakeProfit))) || (java.util.Objects.equals(type, "stopLoss")) || (java.util.Objects.equals(type, "stopLossLimit"));
+        if (Boolean.TRUE.equals(isStopLoss))
         {
             if (!java.util.Objects.equals(stopLossPrice, null))
             {
                 triggerPrice = stopLossPrice;
             }
-            ((Map<String, Object>)request).put("orderType", ((Helpers.isTrue(isMarketOrder))) ? "stopLoss" : "stopLossLimit");
-        } else if (Helpers.isTrue(isTakeProfit))
+            ((Map<String, Object>)request).put("orderType", ((Boolean.TRUE.equals(isMarketOrder))) ? "stopLoss" : "stopLossLimit");
+        } else if (Boolean.TRUE.equals(isTakeProfit))
         {
             if (!java.util.Objects.equals(takeProfitPrice, null))
             {
                 triggerPrice = takeProfitPrice;
             }
-            ((Map<String, Object>)request).put("orderType", ((Helpers.isTrue(isMarketOrder))) ? "takeProfit" : "takeProfitLimit");
+            ((Map<String, Object>)request).put("orderType", ((Boolean.TRUE.equals(isMarketOrder))) ? "takeProfit" : "takeProfitLimit");
         }
         if (!java.util.Objects.equals(triggerPrice, null))
         {
@@ -2365,7 +2365,7 @@ final Object finalBase = base;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, parameters)).join();
             }
@@ -2674,7 +2674,7 @@ final Object finalBase = base;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters)).join();
             }
@@ -3260,7 +3260,7 @@ final Object finalBase = base;
         Object query = this.omit(parameters, this.extractParams(path));
         Object url = ((Helpers.add("/", this.version) + "/") + this.implodeParams(path, parameters));
         Boolean getOrDelete = (java.util.Objects.equals(method, "GET")) || (java.util.Objects.equals(method, "DELETE"));
-        if (Helpers.isTrue(getOrDelete))
+        if (Boolean.TRUE.equals(getOrDelete))
         {
             if (((List<?>)Helpers.objectKeys(query)).size() > 0)
             {
@@ -3271,7 +3271,7 @@ final Object finalBase = base;
         {
             this.checkRequiredCredentials();
             Object payload = "";
-            if (!Helpers.isTrue(getOrDelete))
+            if (!Boolean.TRUE.equals(getOrDelete))
             {
                 if (((List<?>)Helpers.objectKeys(query)).size() > 0)
                 {
@@ -3290,7 +3290,7 @@ final Object finalBase = base;
                 put( "BITVAVO-ACCESS-TIMESTAMP", finalTimestamp );
                 put( "BITVAVO-ACCESS-WINDOW", accessWindow );
             }};
-            if (!Helpers.isTrue(getOrDelete))
+            if (!Boolean.TRUE.equals(getOrDelete))
             {
                 ((Map<String, Object>)headers).put("Content-Type", "application/json");
             }

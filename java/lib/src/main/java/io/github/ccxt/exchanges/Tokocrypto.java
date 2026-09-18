@@ -1426,7 +1426,7 @@ public class Tokocrypto extends TokocryptoApi
         Boolean isCoinm = (((Map<?, ?>)ticker).containsKey("baseVolume"));
         String baseVolume = null;
         String quoteVolume = null;
-        if (Helpers.isTrue(isCoinm))
+        if (Boolean.TRUE.equals(isCoinm))
         {
             baseVolume = this.safeString(ticker, "baseVolume");
             quoteVolume = this.safeString(ticker, "volume");
@@ -1485,7 +1485,7 @@ public class Tokocrypto extends TokocryptoApi
             // result omits the native markets instead of raising for them, unlike
             // the single symbol fetchTicker
             Object response = (this.binanceGetTicker24hr(parameters)).join();
-            if (!Helpers.isTrue(Helpers.isArray(response)))
+            if (!(response instanceof List))
             {
                 // a user-supplied symbol param makes the endpoint answer a single
                 // ticker object, the unified fetchTickers contract returns a
@@ -1561,7 +1561,7 @@ public class Tokocrypto extends TokocryptoApi
                 put( "symbol", Tokocrypto.this.getMarketIdByType(market) );
             }};
             Object response = (this.binanceGetTicker24hr(this.extend(request, parameters))).join();
-            if (Helpers.isTrue(Helpers.isArray(response)))
+            if ((response instanceof List))
             {
                 Object firstTicker = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
                 return this.parseTicker(firstTicker, market);
@@ -1736,7 +1736,7 @@ public class Tokocrypto extends TokocryptoApi
             //     }
             //
             Object data = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(Helpers.isArray(response)))
+            if ((response instanceof List))
             {
                 data = response;
             } else
@@ -2161,7 +2161,7 @@ public class Tokocrypto extends TokocryptoApi
                     if (!java.util.Objects.equals(cost, null))
                     {
                         quoteAmount = cost;
-                    } else if (Helpers.isTrue(createMarketBuyOrderRequiresPrice))
+                    } else if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
                     {
                         if (java.util.Objects.equals(price, null))
                         {
@@ -2203,11 +2203,11 @@ public class Tokocrypto extends TokocryptoApi
                 priceIsRequired = true;
                 quantityIsRequired = true;
             }
-            if (Helpers.isTrue(quantityIsRequired))
+            if (Boolean.TRUE.equals(quantityIsRequired))
             {
                 ((Map<String, Object>)request).put("quantity", this.amountToPrecision(symbol, amount));
             }
-            if (Helpers.isTrue(priceIsRequired))
+            if (Boolean.TRUE.equals(priceIsRequired))
             {
                 if (java.util.Objects.equals(price, null))
                 {
@@ -2215,7 +2215,7 @@ public class Tokocrypto extends TokocryptoApi
                 }
                 ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
             }
-            if (Helpers.isTrue(triggerPriceIsRequired))
+            if (Boolean.TRUE.equals(triggerPriceIsRequired))
             {
                 if (java.util.Objects.equals(triggerPrice, null))
                 {
@@ -3045,7 +3045,7 @@ public class Tokocrypto extends TokocryptoApi
             url = Helpers.add(url, ".html");
         }
         Boolean userDataStream = (java.util.Objects.equals(path, "userDataStream")) || (java.util.Objects.equals(path, "listenKey"));
-        if (Helpers.isTrue(userDataStream))
+        if (Boolean.TRUE.equals(userDataStream))
         {
             if ((!java.util.Objects.equals(this.apiKey, null)) && (!java.util.Objects.equals(this.apiKey, "")))
             {

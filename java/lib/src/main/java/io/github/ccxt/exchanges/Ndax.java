@@ -909,7 +909,7 @@ public class Ndax extends NdaxApi
             put( "swap", false );
             put( "future", false );
             put( "option", false );
-            put( "active", (Helpers.isTrue(finalSessionRunning) && (!java.util.Objects.equals(finalIsDisable, true))) );
+            put( "active", (Boolean.TRUE.equals(finalSessionRunning) && (!java.util.Objects.equals(finalIsDisable, true))) );
             put( "contract", false );
             put( "linear", null );
             put( "inverse", null );
@@ -1329,7 +1329,7 @@ public class Ndax extends NdaxApi
             //     ]
             //
             List<Object> candles = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(Helpers.isArray(response)))
+            if ((response instanceof List))
             {
                 candles = response;
             }
@@ -1460,7 +1460,7 @@ public class Ndax extends NdaxApi
         Object takerOrMaker = null;
         Map<String, Object> fee = new HashMap<String, Object>() {{}};
         Object type = null;
-        if (Helpers.isTrue(Helpers.isArray(trade)))
+        if ((trade instanceof List))
         {
             priceString = this.safeString(trade, 3);
             amountString = this.safeString(trade, 2);

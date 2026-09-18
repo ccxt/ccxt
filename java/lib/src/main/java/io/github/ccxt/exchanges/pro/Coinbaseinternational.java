@@ -278,7 +278,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             }
             Object fundingRate = (this.subscribeMultiple("RISK", symbols, parameters)).join();
             String symbol = this.safeString(fundingRate, "symbol");
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(result, symbol, fundingRate);
@@ -360,7 +360,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             channel = ((List<Object>) channelparametersVariable).get(0);
             parameters = ((List<Object>) channelparametersVariable).get(1);
             Object ticker = (this.subscribe(channel, symbols, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(result, Helpers.GetValue(ticker, "symbol"), ticker);
@@ -590,7 +590,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             Object options = this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
             Object interval = this.safeString(options, timeframe, timeframe);
             Object ohlcv = (this.subscribe(interval, new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
@@ -689,7 +689,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             }
             symbols = this.marketSymbols(symbols, null, false, true, true);
             Object trades = (this.subscribeMultiple("MATCH", symbols, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Object first = this.safeDict(trades, 0);
                 String tradeSymbol = this.safeString(first, "symbol");

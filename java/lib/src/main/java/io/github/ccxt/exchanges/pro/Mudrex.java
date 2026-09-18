@@ -154,7 +154,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
             }};
             Map<String, Object> request = this.extend(subscribe, parameters);
             Object ticker = (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(result, Helpers.GetValue(ticker, "symbol"), ticker);
@@ -205,7 +205,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
             }};
             Map<String, Object> request = this.extend(subscribe, parameters);
             Object ohlcv = (this.watch(url, messageHash, request, messageHash, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }

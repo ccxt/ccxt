@@ -358,7 +358,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             }};
             Map<String, Object> request = this.deepExtend(subscribe, parameters);
             Object trades = (this.watch(url, messageHash, request, subscribeHash, request)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
@@ -557,7 +557,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             }};
             Map<String, Object> request = this.deepExtend(subscribe, parameters);
             Object orders = (this.watch(url, messageHash, request, subscribeHash, request)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
@@ -1269,7 +1269,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
     }})) );
             }};
             Object ohlcv = (this.watch(url, messageHash, this.deepExtend(request, parameters), subscriptionHash, subscription)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }

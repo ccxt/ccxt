@@ -1068,7 +1068,7 @@ public class Bigone extends BigoneApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             symbols = this.marketSymbols(symbols);
             Object data = null;
-            if (Helpers.isTrue(isSpot))
+            if (Boolean.TRUE.equals(isSpot))
             {
                 if (!java.util.Objects.equals(symbols, null))
                 {
@@ -1554,7 +1554,7 @@ public class Bigone extends BigoneApi
             Boolean sinceIsDefined = (!java.util.Objects.equals(since, null));
             if (java.util.Objects.equals(limit, null))
             {
-                limit = (((Helpers.isTrue(sinceIsDefined) && Helpers.isTrue(untilIsDefined)))) ? 500 : 100; // default 100, max 500, if since and limit defined then fetch all the candles between them unless it exceeds the max of 500
+                limit = (((Boolean.TRUE.equals(sinceIsDefined) && Boolean.TRUE.equals(untilIsDefined)))) ? 500 : 100; // default 100, max 500, if since and limit defined then fetch all the candles between them unless it exceeds the max of 500
             }
             final Object finalLimit = limit;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1562,19 +1562,19 @@ public class Bigone extends BigoneApi
                 put( "period", Bigone.this.safeString(Bigone.this.timeframes, timeframe, timeframe) );
                 put( "limit", finalLimit );
             }};
-            if (Helpers.isTrue(sinceIsDefined))
+            if (Boolean.TRUE.equals(sinceIsDefined))
             {
                 // const start = this.parseToInt (since / 1000);
                 int duration = this.parseTimeframe(timeframe);
                 Object endByLimit = this.sum(since, Helpers.multiply(Helpers.multiply(limit, duration), 1000));
-                if (Helpers.isTrue(untilIsDefined))
+                if (Boolean.TRUE.equals(untilIsDefined))
                 {
                     ((Map<String, Object>)request).put("time", this.iso8601(Helpers.mathMin(endByLimit, Helpers.add(until, 1))));
                 } else
                 {
                     ((Map<String, Object>)request).put("time", this.iso8601(endByLimit));
                 }
-            } else if (Helpers.isTrue(untilIsDefined))
+            } else if (Boolean.TRUE.equals(untilIsDefined))
             {
                 ((Map<String, Object>)request).put("time", this.iso8601(Helpers.add(until, 1)));
             }
@@ -1843,7 +1843,7 @@ public class Bigone extends BigoneApi
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Boolean isBuy = (java.util.Objects.equals(side, "buy"));
-            String requestSide = ((Helpers.isTrue(isBuy))) ? "BID" : "ASK";
+            String requestSide = ((Boolean.TRUE.equals(isBuy))) ? "BID" : "ASK";
             Object uppercaseType = ((String)type).toUpperCase();
             Boolean isLimit = java.util.Objects.equals(uppercaseType, "LIMIT");
             Object exchangeSpecificParam = this.safeBool(parameters, "post_only", false);
@@ -1857,10 +1857,10 @@ public class Bigone extends BigoneApi
                 put( "side", requestSide );
                 put( "amount", Bigone.this.amountToPrecision(symbol, amount) );
             }};
-            if (Helpers.isTrue(isLimit) || (java.util.Objects.equals(uppercaseType, "STOP_LIMIT")))
+            if (Boolean.TRUE.equals(isLimit) || (java.util.Objects.equals(uppercaseType, "STOP_LIMIT")))
             {
                 ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
-                if (Helpers.isTrue(isLimit))
+                if (Boolean.TRUE.equals(isLimit))
                 {
                     String timeInForce = this.safeString(parameters, "timeInForce");
                     if (java.util.Objects.equals(timeInForce, "IOC"))
@@ -1875,7 +1875,7 @@ public class Bigone extends BigoneApi
                 ((Map<String, Object>)request).put("amount", this.amountToPrecision(symbol, amount));
             } else
             {
-                if (Helpers.isTrue(isBuy))
+                if (Boolean.TRUE.equals(isBuy))
                 {
                     Object createMarketBuyOrderRequiresPrice = null;
                     List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
@@ -1908,8 +1908,8 @@ public class Bigone extends BigoneApi
             if (!java.util.Objects.equals(triggerPrice, null))
             {
                 ((Map<String, Object>)request).put("stop_price", this.priceToPrecision(symbol, triggerPrice));
-                ((Map<String, Object>)request).put("operator", ((Helpers.isTrue(isBuy))) ? "GTE" : "LTE");
-                if (Helpers.isTrue(isLimit))
+                ((Map<String, Object>)request).put("operator", ((Boolean.TRUE.equals(isBuy))) ? "GTE" : "LTE");
+                if (Boolean.TRUE.equals(isLimit))
                 {
                     uppercaseType = "STOP_LIMIT";
                 } else if (java.util.Objects.equals(uppercaseType, "MARKET"))

@@ -928,8 +928,8 @@ public class Paradex extends ParadexApi
         String assetKind = this.safeString(market, "asset_kind");
         Boolean isOptionPerpetual = (java.util.Objects.equals(assetKind, "PERP_OPTION"));
         Boolean isOptionDelivery = (java.util.Objects.equals(assetKind, "OPTION"));
-        Boolean isOption = Helpers.isTrue(isOptionPerpetual) || Helpers.isTrue(isOptionDelivery);
-        String type = ((Helpers.isTrue((isOption)))) ? "option" : "swap";
+        Boolean isOption = Boolean.TRUE.equals(isOptionPerpetual) || Boolean.TRUE.equals(isOptionDelivery);
+        String type = ((Boolean.TRUE.equals(isOption))) ? "option" : "swap";
         Boolean isSwap = (java.util.Objects.equals(type, "swap"));
         String marketId = this.safeString(market, "symbol");
         String quoteId = this.safeString(market, "quote_currency");
@@ -944,7 +944,7 @@ public class Paradex extends ParadexApi
         String strikePrice = this.safeString(market, "strike_price");
         Object takerFee = this.parseNumber("0.0003");
         Object makerFee = this.parseNumber("-0.00005");
-        if (Helpers.isTrue(isOption))
+        if (Boolean.TRUE.equals(isOption))
         {
             String optionTypeSuffix = (((java.util.Objects.equals(optionType, "CALL")))) ? "C" : "P";
             Object deliveryValue = (((Helpers.isEqual(expiry, 0)))) ? "" : (this.yymmdd(expiry) + "-");
@@ -1533,7 +1533,7 @@ public class Paradex extends ParadexApi
         final Object finalInterval = interval;
         return new HashMap<String, Object>() {{
             put( "info", contract );
-            put( "symbol", ((Helpers.isTrue(funds))) ? ((Map<String, Object>)finalMarket).get("symbol") : null );
+            put( "symbol", ((Boolean.TRUE.equals(funds))) ? ((Map<String, Object>)finalMarket).get("symbol") : null );
             put( "markPrice", Paradex.this.safeNumber(contract, "mark_price") );
             put( "indexPrice", Paradex.this.safeNumber(contract, "underlying_price") );
             put( "interestRate", null );
@@ -1639,7 +1639,7 @@ public class Paradex extends ParadexApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchTrades", symbol, since, limit, parameters, "next", "cursor", null, 100)).join();
             }
@@ -1729,7 +1729,7 @@ public class Paradex extends ParadexApi
         String side = this.safeStringLower(trade, "side");
         String liability = this.safeStringLower(trade, "liquidity", "taker");
         Boolean isTaker = java.util.Objects.equals(liability, "taker");
-        String takerOrMaker = ((Helpers.isTrue((isTaker)))) ? "taker" : "maker";
+        String takerOrMaker = ((Boolean.TRUE.equals(isTaker))) ? "taker" : "maker";
         String currencyId = this.safeString(trade, "fee_currency");
         String code = this.safeCurrencyCode(currencyId);
         final Object finalMarket = market;
@@ -2230,10 +2230,10 @@ public class Paradex extends ParadexApi
         Boolean isMarket = java.util.Objects.equals(orderType, "MARKET");
         Boolean isTakeProfitOrder = (!java.util.Objects.equals(takeProfitPrice, null));
         Boolean isStopLossOrder = (!java.util.Objects.equals(stopLossPrice, null));
-        Boolean isStopOrder = (!java.util.Objects.equals(triggerPrice, null)) || Helpers.isTrue(isTakeProfitOrder) || Helpers.isTrue(isStopLossOrder);
+        Boolean isStopOrder = (!java.util.Objects.equals(triggerPrice, null)) || Boolean.TRUE.equals(isTakeProfitOrder) || Boolean.TRUE.equals(isStopLossOrder);
         String timeInForce = this.safeStringUpper(parameters, "timeInForce");
         Object postOnly = this.isPostOnly(isMarket, null, parameters);
-        if (!Helpers.isTrue(isMarket))
+        if (!Boolean.TRUE.equals(isMarket))
         {
             if (Helpers.isTrue(postOnly))
             {
@@ -2254,17 +2254,17 @@ public class Paradex extends ParadexApi
         }
         Object sizeString = "0";
         Object stopPrice = null;
-        if (Helpers.isTrue(isStopOrder))
+        if (Boolean.TRUE.equals(isStopOrder))
         {
             // flags: Reduce_Only must be provided for TPSL orders.
-            if (Helpers.isTrue(isMarket))
+            if (Boolean.TRUE.equals(isMarket))
             {
-                if (Helpers.isTrue(isStopLossOrder))
+                if (Boolean.TRUE.equals(isStopLossOrder))
                 {
                     stopPrice = this.priceToPrecision(symbol, stopLossPrice);
                     reduceOnly = true;
                     ((Map<String, Object>)request).put("type", "STOP_LOSS_MARKET");
-                } else if (Helpers.isTrue(isTakeProfitOrder))
+                } else if (Boolean.TRUE.equals(isTakeProfitOrder))
                 {
                     stopPrice = this.priceToPrecision(symbol, takeProfitPrice);
                     reduceOnly = true;
@@ -2277,12 +2277,12 @@ public class Paradex extends ParadexApi
                 }
             } else
             {
-                if (Helpers.isTrue(isStopLossOrder))
+                if (Boolean.TRUE.equals(isStopLossOrder))
                 {
                     stopPrice = this.priceToPrecision(symbol, stopLossPrice);
                     reduceOnly = true;
                     ((Map<String, Object>)request).put("type", "STOP_LOSS_LIMIT");
-                } else if (Helpers.isTrue(isTakeProfitOrder))
+                } else if (Boolean.TRUE.equals(isTakeProfitOrder))
                 {
                     stopPrice = this.priceToPrecision(symbol, takeProfitPrice);
                     reduceOnly = true;
@@ -2332,7 +2332,7 @@ public class Paradex extends ParadexApi
                 put( "side", (((java.util.Objects.equals(((Map<String, Object>)request).get("side"), "BUY")))) ? "1" : "2" );
                 put( "orderType", Paradex.this.stringToBase16(((Map<String, Object>)request).get("type")) );
                 put( "size", Paradex.this.scaleNumber(((Map<String, Object>)request).get("size")) );
-                put( "price", ((Helpers.isTrue((isMarket)))) ? "0" : Paradex.this.scaleNumber(((Map<String, Object>)request).get("price")) );
+                put( "price", ((Boolean.TRUE.equals(isMarket))) ? "0" : Paradex.this.scaleNumber(((Map<String, Object>)request).get("price")) );
             }};
             List<Object> orderFields = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
         put( "name", "timestamp" );
@@ -2676,18 +2676,18 @@ public class Paradex extends ParadexApi
             }
             Object clientOrderIds = this.safeListN(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")));
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")));
-            Boolean hasOrderIds = (!java.util.Objects.equals(ids, null)) && Helpers.isTrue((Helpers.isArray(ids)));
-            Boolean hasClientOrderIds = (!java.util.Objects.equals(clientOrderIds, null)) && Helpers.isTrue((Helpers.isArray(clientOrderIds)));
-            if (!Helpers.isTrue(hasOrderIds) && !Helpers.isTrue(hasClientOrderIds))
+            Boolean hasOrderIds = (!java.util.Objects.equals(ids, null)) && (ids instanceof List);
+            Boolean hasClientOrderIds = (!java.util.Objects.equals(clientOrderIds, null)) && (clientOrderIds instanceof List);
+            if (!Boolean.TRUE.equals(hasOrderIds) && !Boolean.TRUE.equals(hasClientOrderIds))
             {
                 throw new ArgumentsRequired((this.id + " cancelOrders() requires a non-empty ids argument or a non-empty clientOrderIds parameter")) ;
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            if (Helpers.isTrue(hasOrderIds))
+            if (Boolean.TRUE.equals(hasOrderIds))
             {
                 ((Map<String, Object>)request).put("order_ids", ids);
             }
-            if (Helpers.isTrue(hasClientOrderIds))
+            if (Boolean.TRUE.equals(hasClientOrderIds))
             {
                 ((Map<String, Object>)request).put("client_order_ids", clientOrderIds);
             }
@@ -2889,7 +2889,7 @@ public class Paradex extends ParadexApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchOrders", symbol, since, limit, parameters, "next", "cursor", null, 50)).join();
             }
@@ -3119,7 +3119,7 @@ public class Paradex extends ParadexApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, parameters, "next", "cursor", null, 100)).join();
             }
@@ -3434,7 +3434,7 @@ public class Paradex extends ParadexApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchDeposits", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, parameters, "next", "cursor", null, 100)).join();
             }
@@ -3518,7 +3518,7 @@ public class Paradex extends ParadexApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchWithdrawals", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, parameters, "next", "cursor", null, 100)).join();
             }
@@ -3602,7 +3602,7 @@ public class Paradex extends ParadexApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTransfers", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchTransfers", code, since, limit, parameters, "next", "cursor", null, 100)).join();
             }
@@ -4200,7 +4200,7 @@ public class Paradex extends ParadexApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, parameters, "next", "cursor", null, 100)).join();
             }

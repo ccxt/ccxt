@@ -1073,8 +1073,8 @@ public class Derive extends DeriveApi
             linear = true;
             inverse = false;
         }
-        Object contractSize = ((Helpers.isTrue((spot)))) ? null : 1;
-        Boolean isContract = (Helpers.isTrue(swap) || Helpers.isTrue(option));
+        Object contractSize = ((Boolean.TRUE.equals(spot))) ? null : 1;
+        Boolean isContract = (Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(option));
         final Object finalSymbol = symbol;
         final Object finalBase = base;
         final Object finalSettle = settle;
@@ -1423,7 +1423,7 @@ public class Derive extends DeriveApi
             Object rawTrade = Helpers.GetValue(tradesArray, i);
             Boolean isFetchTrades = !(Helpers.inOp(rawTrade, "order_id"));
             String liquidityRole = this.safeString(rawTrade, "liquidity_role");
-            if (Helpers.isTrue(isFetchTrades) && (java.util.Objects.equals(liquidityRole, "maker")))
+            if (Boolean.TRUE.equals(isFetchTrades) && (java.util.Objects.equals(liquidityRole, "maker")))
             {
                 continue;
             }
@@ -2103,7 +2103,7 @@ public class Derive extends DeriveApi
             String clientOrderIdExchangeSpecific = this.safeString(parameters, "label", clientOrderIdUnified);
             Boolean isByClientOrder = !java.util.Objects.equals(clientOrderIdExchangeSpecific, null);
             Object response = null;
-            if (Helpers.isTrue(isByClientOrder))
+            if (Boolean.TRUE.equals(isByClientOrder))
             {
                 ((Map<String, Object>)request).put("label", clientOrderIdExchangeSpecific);
                 parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "label")));
@@ -2167,7 +2167,7 @@ public class Derive extends DeriveApi
                 put( "symbol", finalSymbol );
             }};
             Object order = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(isByClientOrder))
+            if (Boolean.TRUE.equals(isByClientOrder))
             {
                 ((Map<String, Object>)extendParams).put("client_order_id", clientOrderIdExchangeSpecific);
             }
@@ -2272,7 +2272,7 @@ public class Derive extends DeriveApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, parameters, "page", 500)).join();
             }
@@ -2755,7 +2755,7 @@ public class Derive extends DeriveApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, parameters, "page", 500)).join();
             }
@@ -3024,7 +3024,7 @@ public class Derive extends DeriveApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, parameters, "page", 500)).join();
             }

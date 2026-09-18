@@ -142,7 +142,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             Object topic = ("kline_" + interval);
             String messageHash = ((("ohlcv:" + symbol) + ":") + timeframe);
             Object ohlcv = (this.wathPublic(market, topic, messageHash, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
@@ -320,7 +320,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             Object topic = "trade";
             String messageHash = ("trades:" + symbol);
             Object trades = (this.wathPublic(market, topic, messageHash, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
@@ -490,7 +490,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
                 messageHash = ((messageHash + ":") + symbol);
             }
             Object orders = (this.watchPrivate(messageHash)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
@@ -643,7 +643,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
                 messageHash = (messageHash + (":" + symbol));
             }
             Object trades = (this.watchPrivate(messageHash)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
@@ -725,7 +725,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isBuyerMaker, null))
         {
-            if (Helpers.isTrue(isPublicTrade))
+            if (Boolean.TRUE.equals(isPublicTrade))
             {
                 takerOrMaker = "taker";
                 side = ((Helpers.isTrue(isBuyerMaker))) ? "sell" : "buy";
@@ -796,7 +796,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             }
             Object url = this.getPrivateUrl(listenKey);
             Object positions = (this.watchMultiple(url, messageHashes, null, messageHashes, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 return positions;
             }
@@ -990,7 +990,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         Object data = this.safeList(message, "B", new ArrayList<Object>(Arrays.asList()));
         Object balanceUpdate = this.safeDict(data, 0);
         Boolean isSpot = java.util.Objects.equals(eventVar, "outboundAccountInfo");
-        String type = ((Helpers.isTrue(isSpot))) ? "spot" : "swap";
+        String type = ((Boolean.TRUE.equals(isSpot))) ? "spot" : "swap";
         if (!(Helpers.inOp(this.balance, type)))
         {
             Helpers.addElementToObject(this.balance, type, new HashMap<String, Object>() {{}});
@@ -1109,7 +1109,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
 
     public void handleMessage(Client client, Object message)
     {
-        if (Helpers.isTrue(Helpers.isArray(message)))
+        if ((message instanceof List))
         {
             message = this.safeDict(message, 0, new HashMap<String, Object>() {{}});
         }

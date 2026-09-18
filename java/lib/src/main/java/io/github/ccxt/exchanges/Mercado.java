@@ -992,14 +992,14 @@ public class Mercado extends MercadoApi
             if (java.util.Objects.equals(code, "BRL"))
             {
                 Boolean account_ref = (((Map<?, ?>)parameters).containsKey("account_ref"));
-                if (!Helpers.isTrue(account_ref))
+                if (!Boolean.TRUE.equals(account_ref))
                 {
                     throw new ArgumentsRequired(((this.id + " withdraw() requires account_ref parameter to withdraw ") + code)) ;
                 }
             } else if (!java.util.Objects.equals(code, "LTC"))
             {
                 Boolean tx_fee = (((Map<?, ?>)parameters).containsKey("tx_fee"));
-                if (!Helpers.isTrue(tx_fee))
+                if (!Boolean.TRUE.equals(tx_fee))
                 {
                     throw new ArgumentsRequired(((this.id + " withdraw() requires tx_fee parameter to withdraw ") + code)) ;
                 }

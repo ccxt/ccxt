@@ -336,7 +336,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             }
             symbol = this.symbol(symbol);
             Object trades = (this.watchPublic("trades", symbol, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
@@ -419,7 +419,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             }};
             Map<String, Object> message = this.extend(request, parameters);
             Object trades = (this.watchMultiple(url, messageHashes, message, messageHashes, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Object first = this.safeValue(trades, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
@@ -534,7 +534,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             }};
             Map<String, Object> message = this.extend(request, parameters);
             Object ohlcv = (this.watch(url, messageHash, message, messageHash, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
@@ -669,7 +669,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             var symbol = ((List<Object>) symboltimeframecandlesVariable).get(0);
             var timeframe = ((List<Object>) symboltimeframecandlesVariable).get(1);
             var candles = ((List<Object>) symboltimeframecandlesVariable).get(2);
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(candles, "getLimit", new Object[]{symbol, limit});
             }
@@ -1250,7 +1250,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
     }})) );
             }};
             Object orders = (this.watch(url, messageHash, request, messageHash, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
@@ -1301,7 +1301,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
     }})) );
             }};
             Object trades = (this.watch(url, messageHash, request, messageHash, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
@@ -2326,7 +2326,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             rejected = true;
             client.reject(e, messageHash);
         }
-        if (!Helpers.isTrue(rejected))
+        if (!Boolean.TRUE.equals(rejected))
         {
             client.reject(message, messageHash);
             return true;

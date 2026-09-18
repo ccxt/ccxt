@@ -2148,7 +2148,7 @@ public class Kucoin extends KucoinApi
             type = ((List<Object>) typeparametersVariable).get(0);
             parameters = ((List<Object>) typeparametersVariable).get(1);
             Object response = null;
-            if (Helpers.isTrue(uta))
+            if (Boolean.TRUE.equals(uta))
             {
                 String defaultType = this.safeString(this.options, "defaultType", "spot");
                 String defaultTradeType = (((java.util.Objects.equals(defaultType, "spot")))) ? "SPOT" : "FUTURES";
@@ -2204,7 +2204,7 @@ public class Kucoin extends KucoinApi
             List<Object> utaparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMarkets", "uta", uta);
             uta = ((List<Object>) utaparametersVariable).get(0);
             parameters = ((List<Object>) utaparametersVariable).get(1);
-            if (Helpers.isTrue(uta))
+            if (Boolean.TRUE.equals(uta))
             {
                 return (this.fetchUTAMarkets(parameters)).join();
             }
@@ -2220,9 +2220,9 @@ public class Kucoin extends KucoinApi
                 fetchContractMarkets = true;
             }
             Object fetchSpotMarkets = this.inArray("spot", types);
-            fetchTickersFees = Helpers.isTrue(fetchTickersFees) && Helpers.isTrue(fetchSpotMarkets); // tickers and fees are only fetched for spot markets
+            fetchTickersFees = Helpers.isTrue(fetchTickersFees) && Boolean.TRUE.equals(fetchSpotMarkets); // tickers and fees are only fetched for spot markets
             List<Object> promises = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(fetchSpotMarkets))
+            if (Boolean.TRUE.equals(fetchSpotMarkets))
             {
                 ((List<Object>)promises).add(this.publicGetSymbols(parameters));
             }
@@ -2271,7 +2271,7 @@ public class Kucoin extends KucoinApi
                 //
                 ((List<Object>)promises).add(this.publicGetMarketAllTickers(parameters));
             }
-            if (Helpers.isTrue(fetchContractMarkets))
+            if (Boolean.TRUE.equals(fetchContractMarkets))
             {
                 ((List<Object>)promises).add(this.fetchContractMarkets(parameters));
             }
@@ -2281,13 +2281,13 @@ public class Kucoin extends KucoinApi
                 ((List<Object>)promises).add(this.loadMigrationStatus());
             }
             Object responses = (Helpers.promiseAll(promises)).join();
-            Object symbolsData = ((Helpers.isTrue(fetchSpotMarkets))) ? this.safeList(Helpers.GetValue(responses, 0), "data", new ArrayList<Object>(Arrays.asList())) : new ArrayList<Object>(Arrays.asList());
+            Object symbolsData = ((Boolean.TRUE.equals(fetchSpotMarkets))) ? this.safeList(Helpers.GetValue(responses, 0), "data", new ArrayList<Object>(Arrays.asList())) : new ArrayList<Object>(Arrays.asList());
             Object crossIndex = 0;
             Object isolatedIndex = 0;
             Object tickersIndex = 0;
             Object contractIndex = 0;
             Object nextIndex = 0;
-            if (Helpers.isTrue(fetchSpotMarkets))
+            if (Boolean.TRUE.equals(fetchSpotMarkets))
             {
                 nextIndex = 1;
             }
@@ -2302,7 +2302,7 @@ public class Kucoin extends KucoinApi
                 tickersIndex = nextIndex;
                 nextIndex = this.sum(nextIndex, 1);
             }
-            if (Helpers.isTrue(fetchContractMarkets))
+            if (Boolean.TRUE.equals(fetchContractMarkets))
             {
                 contractIndex = nextIndex;
             }
@@ -2337,7 +2337,7 @@ public class Kucoin extends KucoinApi
                 String takerCoefficient = this.safeString(ticker, "takerCoefficient");
                 Boolean hasCrossMargin = (((Map<?, ?>)crossById).containsKey(id));
                 Boolean hasIsolatedMargin = (((Map<?, ?>)isolatedById).containsKey(id));
-                Boolean isMarginable = Helpers.isTrue(this.safeBool(market, "isMarginEnabled", false)) || Helpers.isTrue(hasCrossMargin) || Helpers.isTrue(hasIsolatedMargin);
+                Boolean isMarginable = Helpers.isTrue(this.safeBool(market, "isMarginEnabled", false)) || Boolean.TRUE.equals(hasCrossMargin) || Boolean.TRUE.equals(hasIsolatedMargin);
     final Object finalId = id;
                 final Object finalBase = base;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
@@ -2396,7 +2396,7 @@ public class Kucoin extends KucoinApi
                     put( "info", market );
                 }});
             }
-            if (Helpers.isTrue(fetchContractMarkets))
+            if (Boolean.TRUE.equals(fetchContractMarkets))
             {
                 Object contractMarkets = this.safeList(responses, contractIndex, new ArrayList<Object>(Arrays.asList()));
                 result = this.arrayConcat(result, contractMarkets);
@@ -2487,7 +2487,7 @@ public class Kucoin extends KucoinApi
                 String id = this.safeString(market, "symbol");
                 Long expiry = this.safeInteger(market, "expireDate");
                 Boolean future = java.util.Objects.equals(this.safeString(market, "nextFundingRateTime"), null);
-                Boolean swap = !Helpers.isTrue(future);
+                Boolean swap = !Boolean.TRUE.equals(future);
                 String baseId = this.safeString(market, "baseCurrency");
                 String quoteId = this.safeString(market, "quoteCurrency");
                 String settleId = this.safeString(market, "settleCurrency");
@@ -2496,7 +2496,7 @@ public class Kucoin extends KucoinApi
                 String settle = this.safeCurrencyCode(settleId);
                 Object symbol = Helpers.add((Helpers.add(Helpers.add(base, "/"), quote) + ":"), settle);
                 String type = "swap";
-                if (Helpers.isTrue(future))
+                if (Boolean.TRUE.equals(future))
                 {
                     symbol = ((symbol + "-") + this.yymmdd(expiry, ""));
                     type = "future";
@@ -2969,7 +2969,7 @@ public class Kucoin extends KucoinApi
             put( "id", id );
             put( "name", Kucoin.this.safeString(entry, "fullName") );
             put( "code", code );
-            put( "type", ((Helpers.isTrue(isFiat))) ? "fiat" : "crypto" );
+            put( "type", ((Boolean.TRUE.equals(isFiat))) ? "fiat" : "crypto" );
             put( "precision", precision );
             put( "info", entry );
             put( "networks", networks );
@@ -3635,7 +3635,7 @@ public class Kucoin extends KucoinApi
             type = ((List<Object>) typeparametersVariable).get(0);
             parameters = ((List<Object>) typeparametersVariable).get(1);
             Object response = null;
-            if ((!java.util.Objects.equals(tradeType, null)) || Helpers.isTrue(uta))
+            if ((!java.util.Objects.equals(tradeType, null)) || Boolean.TRUE.equals(uta))
             {
                 if (java.util.Objects.equals(tradeType, null))
                 {
@@ -3820,7 +3820,7 @@ public class Kucoin extends KucoinApi
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTicker", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
             parameters = ((List<Object>) typeparametersVariable).get(1);
-            if (Helpers.isTrue(uta))
+            if (Boolean.TRUE.equals(uta))
             {
                 ((Map<String, Object>)request).put("tradeType", this.typeToTradeType(type));
                 response = (this.utaGetMarketTicker(this.extend(request, parameters))).join();
@@ -4013,11 +4013,11 @@ public class Kucoin extends KucoinApi
             uta = ((List<Object>) utaparametersVariable).get(0);
             parameters = ((List<Object>) utaparametersVariable).get(1);
             String priceType = this.safeString(parameters, "price");
-            if ((!java.util.Objects.equals(priceType, null)) && Helpers.isTrue((!Helpers.isTrue(uta))))
+            if ((!java.util.Objects.equals(priceType, null)) && Helpers.isTrue((!Boolean.TRUE.equals(uta))))
             {
                 uta = true; // mark, index, premiumIndex price types are only available for UTA
             }
-            if (Helpers.isTrue(uta))
+            if (Boolean.TRUE.equals(uta))
             {
                 return (this.fetchUTAOHLCV(symbol, timeframe, since, limit, parameters)).join();
             } else if (java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true))
@@ -4062,7 +4062,7 @@ public class Kucoin extends KucoinApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchUTAOHLCV", symbol, since, limit, timeframe, parameters, maxLimit)).join();
             }
@@ -4172,7 +4172,7 @@ public class Kucoin extends KucoinApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchSpotOHLCV", symbol, since, limit, timeframe, parameters, maxLimit)).join();
             }
@@ -4248,7 +4248,7 @@ public class Kucoin extends KucoinApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchContractOHLCV", symbol, since, limit, timeframe, parameters, maxLimit)).join();
             }
@@ -4647,7 +4647,7 @@ public class Kucoin extends KucoinApi
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOrderBook", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
             parameters = ((List<Object>) typeparametersVariable).get(1);
-            if (Helpers.isTrue(uta))
+            if (Boolean.TRUE.equals(uta))
             {
                 String limitString = "20";
                 if ((java.util.Objects.equals(limit, null)) || (Helpers.isGreaterThanOrEqual(limit, 100)))
@@ -4784,7 +4784,7 @@ public class Kucoin extends KucoinApi
         Object takeProfitPrice = this.safeValue(parameters, "takeProfitPrice");
         Boolean isStopLoss = !java.util.Objects.equals(stopLossPrice, null);
         Boolean isTakeProfit = !java.util.Objects.equals(takeProfitPrice, null);
-        if ((Helpers.isTrue(isStopLoss) && Helpers.isTrue(isTakeProfit)) || ((!java.util.Objects.equals(triggerPrice, null)) && (!java.util.Objects.equals(stopLossPrice, null))) || ((!java.util.Objects.equals(triggerPrice, null)) && Helpers.isTrue(isTakeProfit)))
+        if ((Boolean.TRUE.equals(isStopLoss) && Boolean.TRUE.equals(isTakeProfit)) || ((!java.util.Objects.equals(triggerPrice, null)) && (!java.util.Objects.equals(stopLossPrice, null))) || ((!java.util.Objects.equals(triggerPrice, null)) && Boolean.TRUE.equals(isTakeProfit)))
         {
             throw new ExchangeError((this.id + " createOrder() - you should use either triggerPrice or stopLossPrice or takeProfitPrice")) ;
         }
@@ -4929,7 +4929,7 @@ public class Kucoin extends KucoinApi
             Object response = null;
             if (java.util.Objects.equals(testOrder, true))
             {
-                if (Helpers.isTrue(isMarginOrder))
+                if (Boolean.TRUE.equals(isMarginOrder))
                 {
                     if (java.util.Objects.equals(hf, true))
                     {
@@ -4945,16 +4945,16 @@ public class Kucoin extends KucoinApi
                 {
                     response = (this.privatePostOrdersTest(orderRequest)).join();
                 }
-            } else if (Helpers.isTrue(isTriggerOrder))
+            } else if (Boolean.TRUE.equals(isTriggerOrder))
             {
-                if (Helpers.isTrue(isMarginOrder))
+                if (Boolean.TRUE.equals(isMarginOrder))
                 {
                     response = (this.privatePostHfMarginStopOrder(orderRequest)).join();
                 } else
                 {
                     response = (this.privatePostStopOrder(orderRequest)).join();
                 }
-            } else if (Helpers.isTrue(isMarginOrder))
+            } else if (Boolean.TRUE.equals(isMarginOrder))
             {
                 if (java.util.Objects.equals(hf, true))
                 {
@@ -4963,7 +4963,7 @@ public class Kucoin extends KucoinApi
                 {
                     response = (this.privatePostMarginOrder(orderRequest)).join();
                 }
-            } else if (Helpers.isTrue(useSync))
+            } else if (Boolean.TRUE.equals(useSync))
             {
                 response = (this.privatePostHfOrdersSync(orderRequest)).join();
             } else if (java.util.Objects.equals(hf, true))
@@ -5045,7 +5045,7 @@ public class Kucoin extends KucoinApi
         Boolean isTriggerOrder = (!java.util.Objects.equals(triggerPrice, null)) || (!java.util.Objects.equals(stopLossPrice, null)) || (!java.util.Objects.equals(takeProfitPrice, null));
         Boolean isMarginOrder = java.util.Objects.equals(tradeType, "MARGIN_TRADE") || !java.util.Objects.equals(marginMode, null);
         parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLossPrice", "takeProfitPrice", "triggerPrice", "stopPrice")));
-        if (Helpers.isTrue(isTriggerOrder))
+        if (Boolean.TRUE.equals(isTriggerOrder))
         {
             if (!java.util.Objects.equals(triggerPrice, null))
             {
@@ -5069,7 +5069,7 @@ public class Kucoin extends KucoinApi
             {
                 ((Map<String, Object>)request).put("tradeType", Helpers.GetValue(((Map<String, Object>)this.options).get("marginModes"), marginMode));
             }
-        } else if (Helpers.isTrue(isMarginOrder))
+        } else if (Boolean.TRUE.equals(isMarginOrder))
         {
             if (java.util.Objects.equals(marginMode, "isolated"))
             {
@@ -5157,7 +5157,7 @@ public class Kucoin extends KucoinApi
                 response = (this.futuresPrivatePostOrdersTest(orderRequest)).join();
             } else
             {
-                if (Helpers.isTrue(hasTpOrSlOrder))
+                if (Boolean.TRUE.equals(hasTpOrSlOrder))
                 {
                     response = (this.futuresPrivatePostStOrders(orderRequest)).join();
                 } else
@@ -5253,17 +5253,17 @@ public class Kucoin extends KucoinApi
             ((Map<String, Object>)request).put("stop", (((java.util.Objects.equals(side, "buy")))) ? "up" : "down");
             ((Map<String, Object>)request).put("stopPrice", this.priceToPrecision(symbol, triggerPrice));
             ((Map<String, Object>)request).put("stopPriceType", triggerPriceTypeValue);
-        } else if (Helpers.isTrue(hasStopLoss) || Helpers.isTrue(hasTakeProfit))
+        } else if (Boolean.TRUE.equals(hasStopLoss) || Boolean.TRUE.equals(hasTakeProfit))
         {
             String priceType = triggerPriceTypeValue;
-            if (Helpers.isTrue(hasStopLoss))
+            if (Boolean.TRUE.equals(hasStopLoss))
             {
                 String slPrice = this.safeString2(stopLoss, "triggerPrice", "stopPrice");
                 ((Map<String, Object>)request).put("triggerStopDownPrice", this.priceToPrecision(symbol, slPrice));
                 priceType = this.safeString(stopLoss, "triggerPriceType", "mark");
                 priceType = this.safeString(triggerPriceTypes, priceType, priceType);
             }
-            if (Helpers.isTrue(hasTakeProfit))
+            if (Boolean.TRUE.equals(hasTakeProfit))
             {
                 String tpPrice = this.safeString2(takeProfit, "triggerPrice", "takeProfitPrice");
                 ((Map<String, Object>)request).put("triggerStopUpPrice", this.priceToPrecision(symbol, tpPrice));
@@ -5464,7 +5464,7 @@ public class Kucoin extends KucoinApi
         if (!java.util.Objects.equals(cost, null))
         {
             parameters = this.omit(parameters, "cost");
-            if ((java.util.Objects.equals(isSpot, true)) && Helpers.isTrue(isMarketOrder))
+            if ((java.util.Objects.equals(isSpot, true)) && Boolean.TRUE.equals(isMarketOrder))
             {
                 ((Map<String, Object>)request).put("sizeUnit", "QUOTECCY");
                 ((Map<String, Object>)request).put("size", this.marketOrderAmountToPrecision(symbol, cost));
@@ -5484,7 +5484,7 @@ public class Kucoin extends KucoinApi
             ((Map<String, Object>)request).put("sizeUnit", sizeUnit);
             ((Map<String, Object>)request).put("size", this.amountToPrecision(symbol, amount));
         }
-        if (!Helpers.isTrue(isMarketOrder))
+        if (!Boolean.TRUE.equals(isMarketOrder))
         {
             ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
         }
@@ -5504,7 +5504,7 @@ public class Kucoin extends KucoinApi
         }
         if (java.util.Objects.equals(isContract, true))
         {
-            if (!Helpers.isTrue(isUnified))
+            if (!Boolean.TRUE.equals(isUnified))
             {
                 if (!java.util.Objects.equals(marginMode, null))
                 {
@@ -5557,20 +5557,20 @@ public class Kucoin extends KucoinApi
             }
             ((Map<String, Object>)request).put("triggerDirection", (((java.util.Objects.equals(triggerDirection, "ascending")))) ? "UP" : "DOWN");
             ((Map<String, Object>)request).put("triggerPrice", this.priceToPrecision(symbol, triggerPrice));
-        } else if (Helpers.isTrue(hasStopLoss) || Helpers.isTrue(hasTakeProfit))
+        } else if (Boolean.TRUE.equals(hasStopLoss) || Boolean.TRUE.equals(hasTakeProfit))
         {
             if (!java.util.Objects.equals(isContract, true))
             {
                 throw new NotSupported((this.id + " createOrder() stopLoss and takeProfit parameters are only supported for contract orders")) ;
             }
-            if (Helpers.isTrue(hasStopLoss))
+            if (Boolean.TRUE.equals(hasStopLoss))
             {
                 String slTriggerPrice = this.safeString2(stopLoss, "triggerPrice", "stopPrice");
                 String slTriggerPriceType = this.safeString(stopLoss, "triggerPriceType", "mark");
                 ((Map<String, Object>)request).put("slTriggerPrice", this.priceToPrecision(symbol, slTriggerPrice));
                 ((Map<String, Object>)request).put("slTriggerPriceType", this.safeString(triggerPriceTypes, slTriggerPriceType, slTriggerPriceType));
             }
-            if (Helpers.isTrue(hasTakeProfit))
+            if (Boolean.TRUE.equals(hasTakeProfit))
             {
                 String tpTriggerPrice = this.safeString2(takeProfit, "triggerPrice", "takeProfitPrice");
                 String tpTriggerPriceType = this.safeString(takeProfit, "triggerPriceType", "mark");
@@ -5725,13 +5725,13 @@ public class Kucoin extends KucoinApi
                     isContract = true;
                 }
             }
-            if (Helpers.isTrue(isSpot) && Helpers.isTrue(isContract))
+            if (Boolean.TRUE.equals(isSpot) && Boolean.TRUE.equals(isContract))
             {
                 throw new BadRequest((this.id + " createOrders() requires all orders to be either spot or contract")) ;
-            } else if (Helpers.isTrue(isSpot))
+            } else if (Boolean.TRUE.equals(isSpot))
             {
                 return (this.createSpotOrders((Object)(orders), (Object)(parameters))).join();
-            } else if (Helpers.isTrue(isContract))
+            } else if (Boolean.TRUE.equals(isContract))
             {
                 return (this.createContractOrders((Object)(orders), (Object)(parameters))).join();
             } else
@@ -5815,7 +5815,7 @@ public class Kucoin extends KucoinApi
             useSync = ((List<Object>) useSyncparametersVariable).get(0);
             parameters = ((List<Object>) useSyncparametersVariable).get(1);
             Object response = null;
-            if (Helpers.isTrue(useSync))
+            if (Boolean.TRUE.equals(useSync))
             {
                 response = (this.privatePostHfOrdersMultiSync(this.extend(request, parameters))).join();
             } else if (java.util.Objects.equals(hf, true))
@@ -6104,7 +6104,7 @@ public class Kucoin extends KucoinApi
             parameters = ((List<Object>) marginModeparametersVariable).get(1);
             String tradeType = this.safeString(parameters, "tradeType"); // keep it for backward compatibility
             Boolean isMarginOrder = java.util.Objects.equals(tradeType, "MARGIN_TRADE") || !java.util.Objects.equals(marginMode, null);
-            if ((java.util.Objects.equals(hf, true)) || Helpers.isTrue(useSync) || Helpers.isTrue(isMarginOrder))
+            if ((java.util.Objects.equals(hf, true)) || Boolean.TRUE.equals(useSync) || Boolean.TRUE.equals(isMarginOrder))
             {
                 if (!java.util.Objects.equals(trigger, true))
                 {
@@ -6123,7 +6123,7 @@ public class Kucoin extends KucoinApi
                 ((Map<String, Object>)request).put("clientOid", clientOrderId);
                 if (java.util.Objects.equals(trigger, true))
                 {
-                    if (Helpers.isTrue(isMarginOrder))
+                    if (Boolean.TRUE.equals(isMarginOrder))
                     {
                         response = (this.privateDeleteHfMarginStopOrderCancelByClientOid(this.extend(request, parameters))).join();
                         Object data = this.safeDict(response, "data");
@@ -6146,10 +6146,10 @@ public class Kucoin extends KucoinApi
                         //
                         response = (this.privateDeleteStopOrderCancelOrderByClientOid(this.extend(request, parameters))).join();
                     }
-                } else if (Helpers.isTrue(isMarginOrder))
+                } else if (Boolean.TRUE.equals(isMarginOrder))
                 {
                     response = (this.privateDeleteHfMarginOrdersClientOrderClientOid(this.extend(request, parameters))).join();
-                } else if (Helpers.isTrue(useSync))
+                } else if (Boolean.TRUE.equals(useSync))
                 {
                     response = (this.privateDeleteHfOrdersSyncClientOrderClientOid(this.extend(request, parameters))).join();
                 } else if (java.util.Objects.equals(hf, true))
@@ -6166,7 +6166,7 @@ public class Kucoin extends KucoinApi
                 ((Map<String, Object>)request).put("orderId", id);
                 if (java.util.Objects.equals(trigger, true))
                 {
-                    if (Helpers.isTrue(isMarginOrder))
+                    if (Boolean.TRUE.equals(isMarginOrder))
                     {
                         response = (this.privateDeleteHfMarginStopOrderCancelById(this.extend(request, parameters))).join();
                     } else
@@ -6179,10 +6179,10 @@ public class Kucoin extends KucoinApi
                         //
                         response = (this.privateDeleteStopOrderOrderId(this.extend(request, parameters))).join();
                     }
-                } else if (Helpers.isTrue(isMarginOrder))
+                } else if (Boolean.TRUE.equals(isMarginOrder))
                 {
                     response = (this.privateDeleteHfMarginOrdersOrderId(this.extend(request, parameters))).join();
-                } else if (Helpers.isTrue(useSync))
+                } else if (Boolean.TRUE.equals(useSync))
                 {
                     response = (this.privateDeleteHfOrdersSyncOrderId(this.extend(request, parameters))).join();
                 } else if (java.util.Objects.equals(hf, true))
@@ -6455,11 +6455,11 @@ public class Kucoin extends KucoinApi
             if (!java.util.Objects.equals(symbol, null))
             {
                 ((Map<String, Object>)request).put("symbol", this.marketId(symbol));
-            } else if ((!java.util.Objects.equals(trigger, true)) && Helpers.isTrue(isMarginOrders))
+            } else if ((!java.util.Objects.equals(trigger, true)) && Boolean.TRUE.equals(isMarginOrders))
             {
                 throw new ArgumentsRequired((this.id + " cancelAllOrders() requires a symbol argument for margin non-trigger orders")) ;
             }
-            if (Helpers.isTrue(isMarginOrders))
+            if (Boolean.TRUE.equals(isMarginOrders))
             {
                 ((Map<String, Object>)request).put("tradeType", Helpers.GetValue(((Map<String, Object>)this.options).get("marginModes"), marginMode));
                 if (java.util.Objects.equals(marginMode, "isolated") && (java.util.Objects.equals(trigger, true)))
@@ -6470,14 +6470,14 @@ public class Kucoin extends KucoinApi
             Object response = null;
             if (java.util.Objects.equals(trigger, true))
             {
-                if (Helpers.isTrue(isMarginOrders))
+                if (Boolean.TRUE.equals(isMarginOrders))
                 {
                     response = (this.privateDeleteHfMarginStopOrderCancel(this.extend(request, query))).join();
                 } else
                 {
                     response = (this.privateDeleteStopOrderCancel(this.extend(request, query))).join();
                 }
-            } else if (Helpers.isTrue(isMarginOrders))
+            } else if (Boolean.TRUE.equals(isMarginOrders))
             {
                 response = (this.privateDeleteHfMarginOrders(this.extend(request, query))).join();
             } else if (java.util.Objects.equals(hf, true))
@@ -6776,13 +6776,13 @@ public class Kucoin extends KucoinApi
             }
             ((Map<String, Object>)request).put("tradeType", this.safeString(((Map<String, Object>)this.options).get("marginModes"), marginMode, "TRADE"));
             Object response = null;
-            if (Helpers.isTrue(isMarginOrder) && java.util.Objects.equals(lowercaseStatus, "active") && (!java.util.Objects.equals(trigger, true)))
+            if (Boolean.TRUE.equals(isMarginOrder) && java.util.Objects.equals(lowercaseStatus, "active") && (!java.util.Objects.equals(trigger, true)))
             {
                 // hf margin open non-trigger orders require only symbol and tradeType params
                 response = (this.privateGetHfMarginOrdersActive(this.extend(request, query))).join();
             } else
             {
-                if (!Helpers.isTrue(isMarginOrder))
+                if (!Boolean.TRUE.equals(isMarginOrder))
                 {
                     ((Map<String, Object>)request).put("status", lowercaseStatus);
                 }
@@ -6800,14 +6800,14 @@ public class Kucoin extends KucoinApi
                 }
                 if (java.util.Objects.equals(trigger, true))
                 {
-                    if (Helpers.isTrue(isMarginOrder))
+                    if (Boolean.TRUE.equals(isMarginOrder))
                     {
                         response = (this.privateGetHfMarginStopOrders(this.extend(request, query))).join();
                     } else
                     {
                         response = (this.privateGetStopOrder(this.extend(request, query))).join();
                     }
-                } else if (Helpers.isTrue(isMarginOrder))
+                } else if (Boolean.TRUE.equals(isMarginOrder))
                 {
                     response = (this.privateGetHfMarginOrdersDone(this.extend(request, query))).join();
                 } else if (java.util.Objects.equals(hf, true))
@@ -6871,7 +6871,7 @@ public class Kucoin extends KucoinApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrdersByStatus", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchOrdersByStatus", symbol, since, limit, parameters)).join();
             }
@@ -7009,7 +7009,7 @@ public class Kucoin extends KucoinApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrdersByStatus", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchOrdersByStatus", symbol, since, limit, parameters, maxLimit)).join();
             }
@@ -7034,7 +7034,7 @@ public class Kucoin extends KucoinApi
             }
             parameters = this.omit(parameters, "marketType");
             Boolean isContract = (!java.util.Objects.equals(marketType, "spot")) && (!java.util.Objects.equals(marketType, "margin"));
-            if (!Helpers.isTrue(isContract) && (java.util.Objects.equals(symbol, null)))
+            if (!Boolean.TRUE.equals(isContract) && (java.util.Objects.equals(symbol, null)))
             {
                 throw new ArgumentsRequired((this.id + " fetchOrdersByStatus() requires a symbol argument for spot and margin markets when using uta endpoint")) ;
             }
@@ -7168,7 +7168,7 @@ public class Kucoin extends KucoinApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchClosedOrders", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, parameters)).join();
             }
@@ -7221,7 +7221,7 @@ public class Kucoin extends KucoinApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, parameters)).join();
             }
@@ -7348,7 +7348,7 @@ public class Kucoin extends KucoinApi
             {
                 market = this.market(symbol);
             }
-            if ((java.util.Objects.equals(hf, true)) || Helpers.isTrue(isMarginOrder))
+            if ((java.util.Objects.equals(hf, true)) || Boolean.TRUE.equals(isMarginOrder))
             {
                 if (!java.util.Objects.equals(trigger, true))
                 {
@@ -7366,7 +7366,7 @@ public class Kucoin extends KucoinApi
                 ((Map<String, Object>)request).put("clientOid", clientOrderId);
                 if (java.util.Objects.equals(trigger, true))
                 {
-                    if (Helpers.isTrue(isMarginOrder))
+                    if (Boolean.TRUE.equals(isMarginOrder))
                     {
                         response = (this.privateGetHfMarginStopOrderClientOid(this.extend(request, parameters))).join();
                     } else
@@ -7377,7 +7377,7 @@ public class Kucoin extends KucoinApi
                         }
                         response = (this.privateGetStopOrderQueryOrderByClientOid(this.extend(request, parameters))).join();
                     }
-                } else if (Helpers.isTrue(isMarginOrder))
+                } else if (Boolean.TRUE.equals(isMarginOrder))
                 {
                     response = (this.privateGetHfMarginOrdersClientOrderClientOid(this.extend(request, parameters))).join();
                 } else if (java.util.Objects.equals(hf, true))
@@ -7399,14 +7399,14 @@ public class Kucoin extends KucoinApi
                 ((Map<String, Object>)request).put("orderId", id);
                 if (java.util.Objects.equals(trigger, true))
                 {
-                    if (Helpers.isTrue(isMarginOrder))
+                    if (Boolean.TRUE.equals(isMarginOrder))
                     {
                         response = (this.privateGetHfMarginStopOrderOrderId(this.extend(request, parameters))).join();
                     } else
                     {
                         response = (this.privateGetStopOrderOrderId(this.extend(request, parameters))).join();
                     }
-                } else if (Helpers.isTrue(isMarginOrder))
+                } else if (Boolean.TRUE.equals(isMarginOrder))
                 {
                     response = (this.privateGetHfMarginOrdersOrderId(this.extend(request, parameters))).join();
                 } else if (java.util.Objects.equals(hf, true))
@@ -7418,7 +7418,7 @@ public class Kucoin extends KucoinApi
                 }
             }
             Object responseData = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isArray(responseData)))
+            if ((responseData instanceof List))
             {
                 responseData = this.safeValue(responseData, 0);
             }
@@ -7663,7 +7663,7 @@ public class Kucoin extends KucoinApi
         {
             isUtaOrder = true;
         }
-        if (Helpers.isTrue(isUtaOrder))
+        if (Boolean.TRUE.equals(isUtaOrder))
         {
             return this.parseUtaOrder(order, market);
         }
@@ -7967,7 +7967,7 @@ public class Kucoin extends KucoinApi
                 status = "closed";
             }
         }
-        if (Helpers.isTrue(trigger))
+        if (Boolean.TRUE.equals(trigger))
         {
             if (java.util.Objects.equals(responseStatus, "NEW"))
             {
@@ -8283,7 +8283,7 @@ public class Kucoin extends KucoinApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters)).join();
             }
@@ -8297,7 +8297,7 @@ public class Kucoin extends KucoinApi
             marginMode = ((List<Object>) marginModeparametersVariable).get(0);
             parameters = ((List<Object>) marginModeparametersVariable).get(1);
             Boolean isMargin = !java.util.Objects.equals(marginMode, null);
-            if (Helpers.isTrue(isMargin))
+            if (Boolean.TRUE.equals(isMargin))
             {
                 hf = true;
                 ((Map<String, Object>)request).put("tradeType", (((java.util.Objects.equals(marginMode, null)))) ? null : this.safeString(((Map<String, Object>)this.options).get("marginModes"), marginMode, marginMode));
@@ -8330,7 +8330,7 @@ public class Kucoin extends KucoinApi
                     // only returns trades up to one week after the since param
                     ((Map<String, Object>)request).put("startAt", since);
                 }
-                if (Helpers.isTrue(isMargin))
+                if (Boolean.TRUE.equals(isMargin))
                 {
                     response = (this.privateGetHfMarginFills(this.extend(request, parameters))).join();
                 } else
@@ -8400,7 +8400,7 @@ public class Kucoin extends KucoinApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             // v1 (historical) returns the trade list directly under 'data', v2 nests it under 'items'
             Object trades = null;
-            if (Helpers.isTrue(parseResponseData))
+            if (Boolean.TRUE.equals(parseResponseData))
             {
                 trades = data;
             } else
@@ -8448,7 +8448,7 @@ public class Kucoin extends KucoinApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters)).join();
             }
@@ -8549,7 +8549,7 @@ public class Kucoin extends KucoinApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters)).join();
             }
@@ -8683,7 +8683,7 @@ public class Kucoin extends KucoinApi
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTrades", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
             parameters = ((List<Object>) typeparametersVariable).get(1);
-            if (Helpers.isTrue(uta))
+            if (Boolean.TRUE.equals(uta))
             {
                 if ((java.util.Objects.equals(type, "spot")) || (java.util.Objects.equals(type, "margin")))
                 {
@@ -9428,7 +9428,7 @@ public class Kucoin extends KucoinApi
         Object updated = this.safeInteger(transaction, "updatedAt");
         Boolean isV1 = !(((Map<?, ?>)transaction).containsKey("createdAt"));
         // if it's a v1 structure
-        if (Helpers.isTrue(isV1))
+        if (Boolean.TRUE.equals(isV1))
         {
             type = (((((Map<?, ?>)transaction).containsKey("address")))) ? "withdrawal" : "deposit";
             if (!java.util.Objects.equals(timestamp, null))
@@ -9516,7 +9516,7 @@ public class Kucoin extends KucoinApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchDeposits", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchDeposits", code, since, limit, parameters)).join();
             }
@@ -9713,7 +9713,7 @@ public class Kucoin extends KucoinApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchWithdrawals", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, parameters, maxLimit)).join();
             }
@@ -9948,14 +9948,14 @@ public class Kucoin extends KucoinApi
             parameters = ((List<Object>) marginModeparametersVariable).get(1);
             Boolean isolated = (java.util.Objects.equals(marginMode, "isolated")) || (java.util.Objects.equals(type, "isolated"));
             Boolean cross = (java.util.Objects.equals(marginMode, "cross")) || (java.util.Objects.equals(type, "margin"));
-            if (Helpers.isTrue(isolated))
+            if (Boolean.TRUE.equals(isolated))
             {
                 if (!java.util.Objects.equals(currency, null))
                 {
                     ((Map<String, Object>)request).put("balanceCurrency", ((Map<String, Object>)currency).get("id"));
                 }
                 response = (this.privateGetIsolatedAccounts(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(cross))
+            } else if (Boolean.TRUE.equals(cross))
             {
                 response = (this.privateGetMarginAccount(this.extend(request, parameters))).join();
             } else
@@ -10050,7 +10050,7 @@ public class Kucoin extends KucoinApi
                 put( "timestamp", null );
                 put( "datetime", null );
             }};
-            if (Helpers.isTrue(isolated))
+            if (Boolean.TRUE.equals(isolated))
             {
                 Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 Object assets = this.safeValue(data, "assets", data);
@@ -10070,7 +10070,7 @@ public class Kucoin extends KucoinApi
                         result = this.mergeBalanceAccount(result, quoteCode, this.parseBalanceHelper(quote));
                     }
                 }
-            } else if (Helpers.isTrue(cross))
+            } else if (Boolean.TRUE.equals(cross))
             {
                 Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 Object accounts = this.safeList(data, "accounts", new ArrayList<Object>(Arrays.asList()));
@@ -10300,7 +10300,7 @@ public class Kucoin extends KucoinApi
                 put( "datetime", Kucoin.this.iso8601(timestamp) );
             }};
             Object accounts = this.safeList(data, "accounts", new ArrayList<Object>(Arrays.asList()));
-            if (Helpers.isTrue(isIsolated))
+            if (Boolean.TRUE.equals(isIsolated))
             {
                 for (var i = 0; i < ((List<?>)accounts).size(); i++)
                 {
@@ -10447,12 +10447,12 @@ public class Kucoin extends KucoinApi
             Object exchangeIds = (((java.util.Objects.equals(this.ids, null)))) ? new ArrayList<Object>(Arrays.asList()) : this.ids;
             Object fromIsolated = this.inArray(fromId, exchangeIds);
             Object toIsolated = this.inArray(toId, exchangeIds);
-            if (Helpers.isTrue(fromIsolated))
+            if (Boolean.TRUE.equals(fromIsolated))
             {
                 ((Map<String, Object>)request).put("fromAccountSymbol", fromId);
                 fromId = "ISOLATED";
             }
-            if (Helpers.isTrue(toIsolated))
+            if (Boolean.TRUE.equals(toIsolated))
             {
                 ((Map<String, Object>)request).put("toAccountSymbol", toId);
                 toId = "ISOLATED";
@@ -10545,12 +10545,12 @@ public class Kucoin extends KucoinApi
             Object exchangeIds = (((java.util.Objects.equals(this.ids, null)))) ? new ArrayList<Object>(Arrays.asList()) : this.ids;
             Object fromIsolated = this.inArray(fromId, exchangeIds);
             Object toIsolated = this.inArray(toId, exchangeIds);
-            if (Helpers.isTrue(fromIsolated))
+            if (Boolean.TRUE.equals(fromIsolated))
             {
                 ((Map<String, Object>)request).put("fromAccountTag", fromId);
                 fromId = "isolated";
             }
-            if (Helpers.isTrue(toIsolated))
+            if (Boolean.TRUE.equals(toIsolated))
             {
                 ((Map<String, Object>)request).put("toAccountTag", toId);
                 toId = "isolated";
@@ -10671,7 +10671,7 @@ public class Kucoin extends KucoinApi
         Boolean isLedgerEntry = (!java.util.Objects.equals(bizType, null));
         Object accountFromRaw = null;
         Object accountToRaw = null;
-        if (Helpers.isTrue(isLedgerEntry))
+        if (Boolean.TRUE.equals(isLedgerEntry))
         {
             // Ledger entry format: uses accountType + direction
             String accountType = this.safeStringLower(transfer, "accountType");
@@ -11015,7 +11015,7 @@ public class Kucoin extends KucoinApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchLedger", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, parameters, maxLimit)).join();
             }
@@ -12177,7 +12177,7 @@ public class Kucoin extends KucoinApi
             uta = ((List<Object>) utaparametersVariable).get(0);
             parameters = ((List<Object>) utaparametersVariable).get(1);
             Object response = null;
-            if (Helpers.isTrue(uta))
+            if (Boolean.TRUE.equals(uta))
             {
                 //
                 //     {
@@ -12270,7 +12270,7 @@ public class Kucoin extends KucoinApi
                 String marketId = this.safeString(entry, "symbol");
                 // kucoin returns funding index symbols (e.g. .ETHUSDTMFPI8H) alongside tradeable contracts
                 Boolean isFundingIndex = (!java.util.Objects.equals(marketId, null)) && Helpers.isTrue((marketId.startsWith(((String)"."))));
-                if (!Helpers.isTrue(isFundingIndex))
+                if (!Boolean.TRUE.equals(isFundingIndex))
                 {
                     ((List<Object>)rates).add(entry);
                 }
@@ -12400,7 +12400,7 @@ public class Kucoin extends KucoinApi
             }
             Object response = null;
             String resultKey = "data";
-            if (Helpers.isTrue(uta))
+            if (Boolean.TRUE.equals(uta))
             {
                 ((Map<String, Object>)request).put("startAt", start);
                 ((Map<String, Object>)request).put("endAt", end);
@@ -13221,7 +13221,7 @@ public class Kucoin extends KucoinApi
                 orders = this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
             } else
             {
-                String requestKey = ((Helpers.isTrue(useClientorderId))) ? "clientOidsList" : "orderIdsList";
+                String requestKey = ((Boolean.TRUE.equals(useClientorderId))) ? "clientOidsList" : "orderIdsList";
                 Helpers.addElementToObject(request, requestKey, ordersRequests);
                 response = (this.futuresPrivateDeleteOrdersMultiCancel(this.extend(request, parameters))).join();
                 //
@@ -13711,7 +13711,7 @@ public class Kucoin extends KucoinApi
             List<Object> utaparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMarketLeverageTiers", "uta", uta);
             uta = ((List<Object>) utaparametersVariable).get(0);
             parameters = ((List<Object>) utaparametersVariable).get(1);
-            if (Helpers.isTrue(uta))
+            if (Boolean.TRUE.equals(uta))
             {
                 Object result = (this.fetchLeverageTiers((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
                 return this.safeList(result, symbol, new ArrayList<Object>(Arrays.asList()));
@@ -14014,7 +14014,7 @@ final Object finalMarket = market;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenInterestHistory", "paginate", paginate);
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, timeframe, parameters, maxLimit)).join();
             }
@@ -14135,7 +14135,7 @@ final Object finalMarket = market;
         Boolean isPrivate = (java.util.Objects.equals(api, "private"));
         Boolean isBroker = (java.util.Objects.equals(api, "broker"));
         Boolean isEarn = (java.util.Objects.equals(api, "earn"));
-        if (Helpers.isTrue(isPrivate) || Helpers.isTrue(isFuturePrivate) || Helpers.isTrue(isBroker) || Helpers.isTrue(isEarn) || Helpers.isTrue(isUtaPrivate))
+        if (Boolean.TRUE.equals(isPrivate) || Boolean.TRUE.equals(isFuturePrivate) || Boolean.TRUE.equals(isBroker) || Boolean.TRUE.equals(isEarn) || Boolean.TRUE.equals(isUtaPrivate))
         {
             this.checkRequiredCredentials();
             Object timestamp = String.valueOf(this.nonce());
@@ -14159,9 +14159,9 @@ final Object finalMarket = market;
             Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
             ((Map<String, Object>)headers).put("KC-API-SIGN", signature);
             Object partner = this.safeDict(this.options, "partner", new HashMap<String, Object>() {{}});
-            Boolean isUtaFuturePrivate = Helpers.isTrue(isUtaPrivate) && (java.util.Objects.equals(tradeType, "FUTURES"));
-            Boolean isFuturePartner = Helpers.isTrue(isFuturePrivate) || Helpers.isTrue(isUtaFuturePrivate);
-            partner = ((Helpers.isTrue(isFuturePartner))) ? this.safeValue(partner, "future", partner) : this.safeValue(partner, "spot", partner);
+            Boolean isUtaFuturePrivate = Boolean.TRUE.equals(isUtaPrivate) && (java.util.Objects.equals(tradeType, "FUTURES"));
+            Boolean isFuturePartner = Boolean.TRUE.equals(isFuturePrivate) || Boolean.TRUE.equals(isUtaFuturePrivate);
+            partner = ((Boolean.TRUE.equals(isFuturePartner))) ? this.safeValue(partner, "future", partner) : this.safeValue(partner, "spot", partner);
             String partnerId = this.safeString(partner, "id");
             String partnerSecret = this.safeString2(partner, "secret", "key");
             if ((!java.util.Objects.equals(partnerId, null)) && (!java.util.Objects.equals(partnerSecret, null)))
@@ -14172,7 +14172,7 @@ final Object finalMarket = market;
                 ((Map<String, Object>)headers).put("KC-API-PARTNER", partnerId);
                 ((Map<String, Object>)headers).put("KC-API-PARTNER-VERIFY", "true");
             }
-            if (Helpers.isTrue(isBroker))
+            if (Boolean.TRUE.equals(isBroker))
             {
                 String brokerName = this.safeString(partner, "name");
                 if (!java.util.Objects.equals(brokerName, null))
@@ -14249,7 +14249,7 @@ final Object finalMarket = market;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTransfers", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchTransfers", code, since, limit, parameters)).join();
             }

@@ -152,7 +152,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
                 put( "args", rawSubscriptions );
             }};
             Object ticker = (this.watchMultiple(url, messageHashes, this.extend(request, parameters), rawSubscriptions, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(result, Helpers.GetValue(ticker, "symbol"), ticker);
@@ -483,7 +483,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
                 put( "args", subscriptionHashes );
             }};
             Object newLiquidations = (this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), subscriptionHashes, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 return newLiquidations;
             }
@@ -880,7 +880,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
                 put( "args", new ArrayList<Object>(Arrays.asList(subscriptionHash)) );
             }};
             Object newPositions = (this.watch(url, messageHash, request, subscriptionHash, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 return newPositions;
             }
@@ -1129,7 +1129,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
                 put( "args", new ArrayList<Object>(Arrays.asList(subscriptionHash)) );
             }};
             Object orders = (this.watch(url, messageHash, request, subscriptionHash, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
@@ -1366,7 +1366,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
                 put( "args", new ArrayList<Object>(Arrays.asList(subscriptionHash)) );
             }};
             Object trades = (this.watch(url, messageHash, request, subscriptionHash, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
@@ -1587,7 +1587,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
                 put( "args", topics );
             }};
             Object trades = (this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), topics, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Object first = this.safeValue(trades, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
@@ -1633,7 +1633,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
                 put( "args", new ArrayList<Object>(Arrays.asList(messageHash)) );
             }};
             Object ohlcv = (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }

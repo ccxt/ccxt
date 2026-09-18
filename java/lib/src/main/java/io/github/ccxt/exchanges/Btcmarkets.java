@@ -1224,7 +1224,7 @@ public class Btcmarkets extends BtcmarketsApi
             {
                 triggerPriceIsRequired = true;
             }
-            if (Helpers.isTrue(priceIsRequired))
+            if (Boolean.TRUE.equals(priceIsRequired))
             {
                 if (java.util.Objects.equals(price, null))
                 {
@@ -1234,7 +1234,7 @@ public class Btcmarkets extends BtcmarketsApi
                     ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
                 }
             }
-            if (Helpers.isTrue(triggerPriceIsRequired))
+            if (Boolean.TRUE.equals(triggerPriceIsRequired))
             {
                 Double triggerPrice = this.safeNumber(parameters, "triggerPrice");
                 parameters = this.omit(parameters, "triggerPrice");

@@ -284,7 +284,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 ((List<Object>)channels).add(channelName);
             }
             Object newTicker = (this.subscribePublic(messageHashes, channels, isContract, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(result, Helpers.GetValue(newTicker, "symbol"), newTicker);
@@ -525,7 +525,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 ((List<Object>)channels).add(channelName);
             }
             Object trades = (this.subscribePublic(messageHashes, channels, isContract, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Object first = this.safeValue(trades, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
@@ -791,7 +791,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             var symbol = ((List<Object>) symboltimeframestoredVariable).get(0);
             var timeframe = ((List<Object>) symboltimeframestoredVariable).get(1);
             var stored = ((List<Object>) symboltimeframestoredVariable).get(2);
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(stored, "getLimit", new Object[]{symbol, limit});
             }
@@ -1234,7 +1234,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 ((List<Object>)channels).add(channelName);
             }
             Object newTicker = (this.subscribePublic(messageHashes, channels, false, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(result, Helpers.GetValue(newTicker, "symbol"), newTicker);
@@ -1381,7 +1381,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((List<Object>) marketTypeparametersVariable).get(1);
             Object isContract = (!java.util.Objects.equals(marketType, "spot"));
-            String messageHash = (String) (((Helpers.isTrue(isContract))) ? "myContractTrades" : "myTrades");
+            String messageHash = (String) (((Boolean.TRUE.equals(isContract))) ? "myContractTrades" : "myTrades");
             Object subscriptionHash = messageHash;
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -1389,7 +1389,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             }
             Object channel = "fill";
             Object trades = (this.subscribePrivate(messageHash, subscriptionHash, channel, isContract, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
@@ -1425,7 +1425,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((List<Object>) marketTypeparametersVariable).get(1);
             Object isContract = (!java.util.Objects.equals(marketType, "spot"));
-            String subHash = ((Helpers.isTrue(isContract))) ? "myContractTrades" : "myTrades";
+            String subHash = ((Boolean.TRUE.equals(isContract))) ? "myContractTrades" : "myTrades";
             Object unSubHash = Helpers.add("unsubscribe::", subHash);
             Object channel = "fill";
             Object subscription = new HashMap<String, Object>() {{
@@ -1633,7 +1633,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((List<Object>) marketTypeparametersVariable).get(1);
             Object isContract = (!java.util.Objects.equals(marketType, "spot"));
-            String messageHash = (String) (((Helpers.isTrue(isContract))) ? "contractOrders" : "orders");
+            String messageHash = (String) (((Boolean.TRUE.equals(isContract))) ? "contractOrders" : "orders");
             Object subscriptionHash = messageHash;
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -1641,7 +1641,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             }
             Object channel = "orders";
             Object orders = (this.subscribePrivate(messageHash, subscriptionHash, channel, isContract, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
@@ -1676,7 +1676,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((List<Object>) marketTypeparametersVariable).get(1);
             Object isContract = (!java.util.Objects.equals(marketType, "spot"));
-            String subHash = ((Helpers.isTrue(isContract))) ? "contractOrders" : "orders";
+            String subHash = ((Boolean.TRUE.equals(isContract))) ? "contractOrders" : "orders";
             Object unSubHash = Helpers.add("unsubscribe::", subHash);
             Object channel = "orders";
             Object subscription = new HashMap<String, Object>() {{
@@ -1968,7 +1968,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             type = ((List<Object>) typeparametersVariable).get(0);
             parameters = ((List<Object>) typeparametersVariable).get(1);
             Object isContract = (!java.util.Objects.equals(type, "spot"));
-            String urlType = ((Helpers.isTrue(isContract))) ? "contract" : "spot";
+            String urlType = ((Boolean.TRUE.equals(isContract))) ? "contract" : "spot";
             Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), urlType), "/private");
             this.authenticate(url);
             Client client = this.client(url);
@@ -2171,7 +2171,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
             }
             Object newPositions = (this.subscribePrivate(messageHash, subscriptionHash, channel, true, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 return newPositions;
             }

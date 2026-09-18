@@ -1780,7 +1780,7 @@ public class Coinsph extends CoinsphApi
                     if (!java.util.Objects.equals(cost, null))
                     {
                         quoteAmount = this.costToPrecision(symbol, cost);
-                    } else if (Helpers.isTrue(createMarketBuyOrderRequiresPrice))
+                    } else if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
                     {
                         if (java.util.Objects.equals(price, null))
                         {
@@ -2763,7 +2763,7 @@ public class Coinsph extends CoinsphApi
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);
-            if (Helpers.isTrue(Helpers.isArray(Helpers.GetValue(query, key))))
+            if ((Helpers.GetValue(query, key) instanceof List))
             {
                 if (!Helpers.isEqual(i, 0))
                 {

@@ -677,7 +677,7 @@ public class Apex extends ApexApi
         Object networkKeys = Helpers.objectKeys(networks);
         Object networksLength = ((List<?>)networkKeys).size();
         Boolean emptyChains = Helpers.isEqual(networksLength, 0); // non-functional coins
-        Object valueForEmpty = ((Helpers.isTrue(emptyChains))) ? false : null;
+        Object valueForEmpty = ((Boolean.TRUE.equals(emptyChains))) ? false : null;
         return this.safeCurrencyStructure(new HashMap<String, Object>() {{
             put( "info", currency );
             put( "code", code );
@@ -1546,7 +1546,7 @@ public class Apex extends ApexApi
     public Object generateRandomClientIdOmni(Object _accountId)
     {
         Boolean hasAccountId = (!java.util.Objects.equals(_accountId, null)) && (!java.util.Objects.equals(_accountId, ""));
-        Object accountId = ((Helpers.isTrue(hasAccountId))) ? _accountId : String.valueOf(this.randNumber(12));
+        Object accountId = ((Boolean.TRUE.equals(hasAccountId))) ? _accountId : String.valueOf(this.randNumber(12));
         return ((((("apexomni-" + accountId) + "-") + String.valueOf(this.milliseconds())) + "-") + String.valueOf(this.randNumber(6)));
     }
 
@@ -1650,7 +1650,7 @@ public class Apex extends ApexApi
                 triggerPrice = takeProfitPrice;
             }
             Boolean isMarket = java.util.Objects.equals(orderType, "MARKET");
-            if (Helpers.isTrue(isMarket) && (java.util.Objects.equals(price, null)))
+            if (Boolean.TRUE.equals(isMarket) && (java.util.Objects.equals(price, null)))
             {
                 throw new ArgumentsRequired((this.id + " createOrder() requires a price argument for market orders")) ;
             }
@@ -1660,7 +1660,7 @@ public class Apex extends ApexApi
             {
                 timeInForce = "GOOD_TIL_CANCEL";
             }
-            if (!Helpers.isTrue(isMarket))
+            if (!Boolean.TRUE.equals(isMarket))
             {
                 if (Helpers.isTrue(postOnly))
                 {

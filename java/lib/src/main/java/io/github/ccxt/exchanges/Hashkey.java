@@ -1233,7 +1233,7 @@ public class Hashkey extends HashkeyApi
         String amountMaxLimitString = this.safeString(amountFilter, "maxQty");
         Object minLeverage = null;
         Object maxLeverage = null;
-        if (Helpers.isTrue(isSwap))
+        if (Boolean.TRUE.equals(isSwap))
         {
             amountPrecisionString = Precise.stringDiv(amountPrecisionString, contractSizeString);
             amountMinLimitString = Precise.stringDiv(amountMinLimitString, contractSizeString);
@@ -1257,7 +1257,7 @@ public class Hashkey extends HashkeyApi
             }
         }
         Object tradingFees = this.safeDict(this.fees, "trading");
-        Object fees = ((Helpers.isTrue(isSpot))) ? this.safeDict(tradingFees, "spot") : this.safeDict(tradingFees, "swap");
+        Object fees = ((Boolean.TRUE.equals(isSpot))) ? this.safeDict(tradingFees, "spot") : this.safeDict(tradingFees, "swap");
         final Object finalBase = base;
         final Object finalBaseId = baseId;
         final Object finalMarketType = marketType;
@@ -1790,7 +1790,7 @@ public class Hashkey extends HashkeyApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 1000)).join();
             }
@@ -3029,7 +3029,7 @@ public class Hashkey extends HashkeyApi
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Boolean isMarketBuy = (java.util.Objects.equals(type, "market")) && (java.util.Objects.equals(side, "buy"));
             String cost = this.safeString(parameters, "cost");
-            if (Helpers.isTrue((!Helpers.isTrue(isMarketBuy))) && (!java.util.Objects.equals(cost, null)))
+            if (Helpers.isTrue((!Boolean.TRUE.equals(isMarketBuy))) && (!java.util.Objects.equals(cost, null)))
             {
                 throw new NotSupported((this.id + " createOrder() supports cost parameter for spot market buy orders only")) ;
             }
@@ -3040,7 +3040,7 @@ public class Hashkey extends HashkeyApi
             {
                 parameters = this.omit(parameters, "test");
                 response = (this.privatePostApiV1SpotOrderTest(request)).join();
-            } else if (Helpers.isTrue(isMarketBuy) && (java.util.Objects.equals(cost, null)))
+            } else if (Boolean.TRUE.equals(isMarketBuy) && (java.util.Objects.equals(cost, null)))
             {
                 response = (this.privatePostApiV11SpotOrder(request)).join(); // the endpoint for market buy orders by amount
             } else
@@ -3136,7 +3136,7 @@ public class Hashkey extends HashkeyApi
         List<Object> postOnlyparametersVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(type, "LIMIT_MAKER"), parameters);
         postOnly = (Boolean) ((List<Object>) postOnlyparametersVariable).get(0);
         parameters = ((List<Object>) postOnlyparametersVariable).get(1);
-        if (Helpers.isTrue(postOnly) && (java.util.Objects.equals(type, "LIMIT")))
+        if (Boolean.TRUE.equals(postOnly) && (java.util.Objects.equals(type, "LIMIT")))
         {
             ((Map<String, Object>)request).put("type", "LIMIT_MAKER");
         }
@@ -3180,7 +3180,7 @@ public class Hashkey extends HashkeyApi
             put( "quantity", Hashkey.this.amountToPrecision(symbol, amount) );
         }};
         Boolean isMarketOrder = java.util.Objects.equals(type, "market");
-        if (Helpers.isTrue(isMarketOrder))
+        if (Boolean.TRUE.equals(isMarketOrder))
         {
             ((Map<String, Object>)request).put("priceType", "MARKET");
         }
@@ -3207,7 +3207,7 @@ public class Hashkey extends HashkeyApi
         List<Object> postOnlyparametersVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(timeInForce, "LIMIT_MAKER"), parameters);
         postOnly = (Boolean) ((List<Object>) postOnlyparametersVariable).get(0);
         parameters = ((List<Object>) postOnlyparametersVariable).get(1);
-        if (Helpers.isTrue(postOnly))
+        if (Boolean.TRUE.equals(postOnly))
         {
             timeInForce = "LIMIT_MAKER";
         }
@@ -4781,7 +4781,7 @@ public class Hashkey extends HashkeyApi
             put( "amount", null );
             put( "total", Hashkey.this.safeNumber(data, "margin") );
             put( "code", ((Map<String, Object>)finalMarket).get("settle") );
-            put( "status", ((Helpers.isTrue((success)))) ? "ok" : "failed" );
+            put( "status", ((Boolean.TRUE.equals(success))) ? "ok" : "failed" );
             put( "timestamp", timestamp );
             put( "datetime", Hashkey.this.iso8601(timestamp) );
         }};
@@ -5155,7 +5155,7 @@ final Object finalI = i;
                 }
             }
         }
-        if ((!Helpers.isEqual(code, 200)) || Helpers.isTrue(errorInArray))
+        if ((!Helpers.isEqual(code, 200)) || Boolean.TRUE.equals(errorInArray))
         {
             Object feedback = Helpers.add((this.id + " "), body);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), responseCodeString, feedback);

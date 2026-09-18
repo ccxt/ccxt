@@ -529,7 +529,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 put( "params", parameters );
             }};
             Object trades = (this.watchPublic(topic, request, subscription)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{((Map<String, Object>)market).get("symbol"), limit});
             }
@@ -674,7 +674,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             }};
             Object message = this.extend(request, parameters);
             Object orders = (this.watchPrivate(messageHash, message, subscription)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
@@ -819,7 +819,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             }};
             Object message = this.extend(request, parameters);
             Object trades = (this.watchPrivate(messageHash, message, subscription)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }

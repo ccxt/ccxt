@@ -41,7 +41,7 @@ public class TestWatchTickers extends BaseTest {
         Object ends = Helpers.add(now, 15000);
         Integer maxIdleTime = 5000;
         Boolean idle = false;
-        while ((Helpers.isLessThan(now, ends)) && !Helpers.isTrue(idle))
+        while ((Helpers.isLessThan(now, ends)) && !Boolean.TRUE.equals(idle))
         {
             Object response = new HashMap<String, Object>() {{}};
             Boolean success = true;
@@ -69,7 +69,7 @@ public class TestWatchTickers extends BaseTest {
                 success = false;
             }
             now = exchange.milliseconds();
-            if (Helpers.isTrue(shouldReturn))
+            if (Boolean.TRUE.equals(shouldReturn))
             {
                 return false;
             }

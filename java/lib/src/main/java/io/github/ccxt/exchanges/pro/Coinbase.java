@@ -103,7 +103,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             Object market = null;
             Object messageHash = name;
             Object productIds = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(Helpers.isArray(symbol)))
+            if ((symbol instanceof List))
             {
                 Object symbols = this.marketSymbols(symbol);
                 Object marketIds = this.marketIds(symbols);
@@ -168,7 +168,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             Object watchMessageHash = name;
             Object unWatchMessageHash = ("unsubscribe:" + name);
             Object productIds = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(Helpers.isArray(symbol)))
+            if ((symbol instanceof List))
             {
                 Object symbols = this.marketSymbols(symbol);
                 Object marketIds = this.marketIds(symbols);
@@ -345,7 +345,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         this.checkRequiredCredentials();
         Boolean isCloudAPiKey = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(this.apiKey, "organizations/"), 0)) || Helpers.isTrue((this.secret.startsWith("-----BEGIN")));
         Object auth = Helpers.add(Helpers.add(timestamp, name), String.join(",", (List<String>)productIds));
-        if (!Helpers.isTrue(isCloudAPiKey))
+        if (!Boolean.TRUE.equals(isCloudAPiKey))
         {
             ((Map<String, Object>)subscribe).put("api_key", this.apiKey);
             ((Map<String, Object>)subscribe).put("timestamp", timestamp);
@@ -447,7 +447,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             }
             Object name = "ticker_batch";
             Object ticker = (this.subscribeMultiple(name, false, symbols, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Map<String, Object> tickers = new HashMap<String, Object>() {{}};
                 Object symbol = Helpers.GetValue(ticker, "symbol");
@@ -686,7 +686,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             symbol = this.symbol(symbol);
             Object name = "market_trades";
             Object trades = (this.subscribe(name, false, symbol, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
@@ -745,7 +745,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             }
             Object name = "market_trades";
             Object trades = (this.subscribeMultiple(name, false, symbols, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Object first = this.safeDict(trades, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
@@ -807,7 +807,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             }
             Object name = "user";
             Object orders = (this.subscribe(name, true, symbol, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
@@ -1235,7 +1235,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         Boolean isUnsub = (((Map<?, ?>)firstEvent).containsKey("subscriptions"));
         Object subKeys = Helpers.objectKeys(((Map<String, Object>)firstEvent).get("subscriptions"));
         Object subKeysLength = ((List<?>)subKeys).size();
-        if (Helpers.isTrue(isUnsub) && Helpers.isEqual(subKeysLength, 0))
+        if (Boolean.TRUE.equals(isUnsub) && Helpers.isEqual(subKeysLength, 0))
         {
             Object unSubObject = this.safeDict(this.options, "unSubscription", new HashMap<String, Object>() {{}});
             Object messageHashes = this.safeList(unSubObject, "messageHashes", new ArrayList<Object>(Arrays.asList()));

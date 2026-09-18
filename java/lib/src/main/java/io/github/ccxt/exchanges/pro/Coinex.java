@@ -387,7 +387,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         Object info = null;
         String account = null;
         Object rawBalances = new ArrayList<Object>(Arrays.asList());
-        if (Helpers.isTrue(isSpot))
+        if (Boolean.TRUE.equals(isSpot))
         {
             account = "spot";
             for (var i = 0; i < ((List<?>)balances).size(); i++)
@@ -396,7 +396,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             }
             info = rawBalances;
         }
-        if (Helpers.isTrue(isSwap))
+        if (Boolean.TRUE.equals(isSwap))
         {
             account = "swap";
             for (var i = 0; i < ((List<?>)balances).size(); i++)
@@ -536,7 +536,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             }};
             Map<String, Object> request = this.deepExtend(message, parameters);
             Object trades = (this.watch(url, messageHash, request, messageHash, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
@@ -569,7 +569,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "market");
         Boolean isSpot = Helpers.isGreaterThan(Helpers.getIndexOf(client.url, "spot"), Helpers.opNeg(1));
-        String defaultType = ((Helpers.isTrue(isSpot))) ? "spot" : "swap";
+        String defaultType = ((Boolean.TRUE.equals(isSpot))) ? "spot" : "swap";
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, defaultType);
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String messageHash = ("myTrades:" + symbol);
@@ -633,7 +633,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         Object trades = this.safeList(data, "deal_list", new ArrayList<Object>(Arrays.asList()));
         String marketId = this.safeString(data, "market");
         Boolean isSpot = Helpers.isGreaterThan(Helpers.getIndexOf(client.url, "spot"), Helpers.opNeg(1));
-        String defaultType = ((Helpers.isTrue(isSpot))) ? "spot" : "swap";
+        String defaultType = ((Boolean.TRUE.equals(isSpot))) ? "spot" : "swap";
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, defaultType);
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String messageHash = ("trades:" + symbol);
@@ -696,7 +696,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeInteger(trade, "created_at");
         Boolean isSpot = (Helpers.inOp(trade, "margin_market"));
-        String defaultType = ((Helpers.isTrue(isSpot))) ? "spot" : "swap";
+        String defaultType = ((Boolean.TRUE.equals(isSpot))) ? "spot" : "swap";
         String marketId = this.safeString(trade, "market");
         market = this.safeMarket(marketId, market, null, defaultType);
         Map<String, Object> fee = new HashMap<String, Object>() {{}};
@@ -781,7 +781,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             Object market = null;
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             Boolean symbolsDefined = (!java.util.Objects.equals(symbols, null));
-            if (Helpers.isTrue(symbolsDefined))
+            if (Boolean.TRUE.equals(symbolsDefined))
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
@@ -809,7 +809,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                 put( "id", Coinex.this.requestId() );
             }};
             Object result = (this.watchMultiple(url, messageHashes, this.deepExtend(subscribe, parameters), subscriptionHashes, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 return result;
             }
@@ -876,7 +876,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             callerMethodName = (String) ((List<Object>) callerMethodNameparametersVariable).get(0);
             parameters = ((List<Object>) callerMethodNameparametersVariable).get(1);
             Boolean symbolsDefined = (!java.util.Objects.equals(symbols, null));
-            if (Helpers.isTrue(symbolsDefined))
+            if (Boolean.TRUE.equals(symbolsDefined))
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
@@ -903,7 +903,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                 put( "id", Coinex.this.requestId() );
             }};
             Object trades = (this.watchMultiple(url, messageHashes, this.deepExtend(subscribe, parameters), messageHashes, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 return trades;
             }
@@ -961,7 +961,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             }
             parameters = this.omit(parameters, "aggregation");
             Boolean symbolsDefined = (!java.util.Objects.equals(symbols, null));
-            if (!Helpers.isTrue(symbolsDefined))
+            if (!Boolean.TRUE.equals(symbolsDefined))
             {
                 throw new ArgumentsRequired((this.id + " watchOrderBookForSymbols() requires a symbol argument")) ;
             }
@@ -986,7 +986,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             // const subscriptionHashes = this.hash (this.encode (this.json (watchOrderBookSubscriptions)), sha256());
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), type);
             Object orderbooks = (this.watchMultiple(url, messageHashes, this.deepExtend(subscribe, parameters), messageHashes, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 return orderbooks;
             }
@@ -1063,7 +1063,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         //     }
         //
         Boolean isSpot = Helpers.isGreaterThan(Helpers.getIndexOf(client.url, "spot"), Helpers.opNeg(1));
-        String defaultType = ((Helpers.isTrue(isSpot))) ? "spot" : "swap";
+        String defaultType = ((Boolean.TRUE.equals(isSpot))) ? "spot" : "swap";
         Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Object depth = this.safeDict(data, "depth", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "market");
@@ -1176,7 +1176,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), type);
             Map<String, Object> request = this.deepExtend(message, parameters);
             Object orders = (this.watch(url, messageHash, request, messageHash, request)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
@@ -1419,7 +1419,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         String marketId = this.safeString(order, "market");
         String status = this.safeString(order, "status");
         Boolean isSpot = (Helpers.inOp(order, "margin_market"));
-        String defaultType = ((Helpers.isTrue(isSpot))) ? "spot" : "swap";
+        String defaultType = ((Boolean.TRUE.equals(isSpot))) ? "spot" : "swap";
         market = this.safeMarket(marketId, market, null, defaultType);
         Object fee = null;
         Object feeCost = this.omitZero(this.safeString2(order, "fee", "quote_ccy_fee"));
@@ -1499,7 +1499,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             Object market = null;
             Boolean symbolsDefined = (!java.util.Objects.equals(symbols, null));
-            if (Helpers.isTrue(symbolsDefined))
+            if (Boolean.TRUE.equals(symbolsDefined))
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
@@ -1525,7 +1525,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
                 put( "id", Coinex.this.requestId() );
             }};
             Object result = (this.watchMultiple(url, messageHashes, this.deepExtend(subscribe, parameters), subscriptionHashes, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 return result;
             }
@@ -1630,7 +1630,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         Boolean isErrorMessage = (!java.util.Objects.equals(message, null)) && (!java.util.Objects.equals(message, "ok"));
         String errorCode = this.safeString(response, "code");
         Boolean isErrorCode = (!java.util.Objects.equals(errorCode, null)) && (!java.util.Objects.equals(errorCode, "0"));
-        if (Helpers.isTrue(isErrorCode) || Helpers.isTrue(isErrorMessage))
+        if (Boolean.TRUE.equals(isErrorCode) || Boolean.TRUE.equals(isErrorMessage))
         {
             Object feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);

@@ -94,7 +94,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
             }};
             Map<String, Object> request = this.deepExtend(subscribe, parameters);
             Object trades = (this.watch(url, messageHash, request, subscriptionHash, subscription)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }

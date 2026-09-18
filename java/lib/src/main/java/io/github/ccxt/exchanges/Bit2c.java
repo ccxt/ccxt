@@ -926,7 +926,7 @@ public class Bit2c extends Bit2cApi
         // 1 = Open
         // 5 = Completed
         String status = null;
-        if (Helpers.isTrue(isNewOrder))
+        if (Boolean.TRUE.equals(isNewOrder))
         {
             Long tempStatus = this.safeInteger(orderUnified, "status_type");
             if (Helpers.isEqual(tempStatus, 0) || Helpers.isEqual(tempStatus, 1))
@@ -970,7 +970,7 @@ public class Bit2c extends Bit2cApi
         String price = this.safeString(orderUnified, "price");
         String amount = null;
         String remaining = null;
-        if (Helpers.isTrue(isNewOrder))
+        if (Boolean.TRUE.equals(isNewOrder))
         {
             amount = this.safeString(orderUnified, "amount"); // NOTE:'initialAmount' is currently not set on new order
             remaining = this.safeString(orderUnified, "amount");

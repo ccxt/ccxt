@@ -1353,7 +1353,7 @@ public class Bitbank extends BitbankApi
             String timeWindow = this.safeString(this.options, "timeWindow", "5000");
             Object nonce = String.valueOf(this.nonce());
             Object auth = null;
-            if (Helpers.isTrue(isTimeWindow))
+            if (Boolean.TRUE.equals(isTimeWindow))
             {
                 auth = Helpers.add(requestTime, timeWindow);
             } else
@@ -1381,7 +1381,7 @@ public class Bitbank extends BitbankApi
                 put( "ACCESS-KEY", Bitbank.this.apiKey );
                 put( "ACCESS-SIGNATURE", Bitbank.this.hmac(Bitbank.this.encode(finalAuth), Bitbank.this.encode(Bitbank.this.secret), sha256()) );
             }};
-            if (Helpers.isTrue(isTimeWindow))
+            if (Boolean.TRUE.equals(isTimeWindow))
             {
                 ((Map<String, Object>)headers).put("ACCESS-REQUEST-TIME", requestTime);
                 ((Map<String, Object>)headers).put("ACCESS-TIME-WINDOW", timeWindow);

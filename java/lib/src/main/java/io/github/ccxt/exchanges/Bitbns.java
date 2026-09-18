@@ -417,7 +417,7 @@ public class Bitbns extends BitbnsApi
                 Object costLimits = this.safeDict(marketLimits, "cost", new HashMap<String, Object>() {{}});
                 Boolean usdt = (java.util.Objects.equals(quoteId, "USDT"));
                 // INR markets don't need a _INR prefix
-                Object uppercaseId = ((Helpers.isTrue(usdt))) ? (Helpers.add(Helpers.add(baseId, "_"), quoteId)) : baseId;
+                Object uppercaseId = ((Boolean.TRUE.equals(usdt))) ? (Helpers.add(Helpers.add(baseId, "_"), quoteId)) : baseId;
     final Object finalBase = base;
                 final Object finalBaseId = baseId;
                 final Object finalQuoteId = quoteId;
@@ -1649,7 +1649,7 @@ public class Bitbns extends BitbnsApi
         String code = this.safeString(response, "code");
         String message = this.safeString(response, "msg");
         Boolean error = (!java.util.Objects.equals(code, null)) && (!java.util.Objects.equals(code, "200")) && (!java.util.Objects.equals(code, "204"));
-        if (Helpers.isTrue(error) || (!java.util.Objects.equals(message, null)))
+        if (Boolean.TRUE.equals(error) || (!java.util.Objects.equals(message, null)))
         {
             Object feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), code, feedback);

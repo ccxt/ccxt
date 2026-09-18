@@ -123,7 +123,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             Object reqParams = new ArrayList<Object>(Arrays.asList(marketId, interval));
             Object method = "candles_subscribe";
             Object ohlcv = (this.watchPublic(messageHash, method, reqParams, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
@@ -457,7 +457,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             Object method = "trades_subscribe";
             // every time we want to subscribe to another market we have to 're-subscribe' sending it all again
             Object trades = (this.watchMultipleSubscription(messageHash, method, symbol, false, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
@@ -547,7 +547,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             String messageHash = ("myTrades:" + symbol);
             Object method = "deals_subscribe";
             Object trades = (this.watchMultipleSubscription(messageHash, method, symbol, true, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
@@ -702,7 +702,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             String messageHash = ("orders:" + symbol);
             Object method = "ordersPending_subscribe";
             Object trades = (this.watchMultipleSubscription(messageHash, method, symbol, false, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
@@ -1029,7 +1029,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         {
             Object balanceDict = this.safeDict(data, i, new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(this.balance, "info", balanceDict);
-            if (Helpers.isTrue(isMargin))
+            if (Boolean.TRUE.equals(isMargin))
             {
                 String currencyId = this.safeString(balanceDict, "a");
                 String code = this.safeCurrencyCode(currencyId);
@@ -1145,7 +1145,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                     }
                     hasSymbolSubscription = false;
                 }
-                if (Helpers.isTrue(hasSymbolSubscription))
+                if (Boolean.TRUE.equals(hasSymbolSubscription))
                 {
                     // already subscribed to this market(s)
                     return (this.watch(url, messageHash, request, method, subscription)).join();

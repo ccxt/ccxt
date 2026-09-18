@@ -1837,7 +1837,7 @@ public class Xt extends XtApi
             spot = false;
         }
         Object isActive = false;
-        if (Helpers.isTrue(contract))
+        if (Boolean.TRUE.equals(contract))
         {
             isActive = this.safeBool(market, "isOpenApi", false);
         } else
@@ -1953,7 +1953,7 @@ public class Xt extends XtApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 1000)).join();
             }
@@ -2435,12 +2435,12 @@ public class Xt extends XtApi
             parameters = ((List<Object>) subTypeparametersVariable).get(1);
             Boolean isInverse = (java.util.Objects.equals(subType, "inverse"));
             Boolean isLinear = (java.util.Objects.equals(subType, "linear")) || (java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future"));
-            Boolean isContract = Helpers.isTrue(isInverse) || Helpers.isTrue(isLinear);
+            Boolean isContract = Boolean.TRUE.equals(isInverse) || Boolean.TRUE.equals(isLinear);
             Object response = null;
-            if (Helpers.isTrue(isInverse))
+            if (Boolean.TRUE.equals(isInverse))
             {
                 response = (this.publicInverseGetFutureMarketV1PublicQTickerBooks(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(isLinear))
+            } else if (Boolean.TRUE.equals(isLinear))
             {
                 response = (this.publicLinearGetFutureMarketV1PublicQTickerBooks(this.extend(request, parameters))).join();
             } else
@@ -2492,7 +2492,7 @@ public class Xt extends XtApi
                 // the spot and contract payloads share the same field names, so
                 // the market type cannot be inferred from the entry itself
                 String marketId = this.safeString(rawTicker, "s");
-                String marketType = ((Helpers.isTrue(isContract))) ? "contract" : "spot";
+                String marketType = ((Boolean.TRUE.equals(isContract))) ? "contract" : "spot";
                 Map<String, Object> marketInner = (Map<String, Object>) this.safeMarket(marketId, market, "_", marketType);
                 Object ticker = this.parseTicker(rawTicker, marketInner);
                 Object symbol = ((Map<String, Object>)ticker).get("symbol");
@@ -2559,7 +2559,7 @@ public class Xt extends XtApi
         Boolean hasSpotKeys = (Helpers.inOp(ticker, "cv")) || (Helpers.inOp(ticker, "aq"));
         if (java.util.Objects.equals(marketType, null))
         {
-            marketType = ((Helpers.isTrue(hasSpotKeys))) ? "spot" : "contract";
+            marketType = ((Boolean.TRUE.equals(hasSpotKeys))) ? "spot" : "contract";
         }
         market = this.safeMarket(marketId, market, "_", marketType);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -2938,7 +2938,7 @@ public class Xt extends XtApi
         Boolean hasSpotKeys = (Helpers.inOp(trade, "b")) || (Helpers.inOp(trade, "bizType")) || (Helpers.inOp(trade, "oi"));
         if (java.util.Objects.equals(marketType, null))
         {
-            marketType = ((Helpers.isTrue(hasSpotKeys))) ? "spot" : "contract";
+            marketType = ((Boolean.TRUE.equals(hasSpotKeys))) ? "spot" : "contract";
         }
         market = this.safeMarket(marketId, market, "_", marketType);
         Object side = null;
@@ -3047,7 +3047,7 @@ public class Xt extends XtApi
             if (java.util.Objects.equals(subType, "inverse"))
             {
                 response = (this.privateInverseGetFutureUserV1BalanceList(parameters)).join();
-            } else if ((java.util.Objects.equals(subType, "linear")) || Helpers.isTrue(isContractWallet))
+            } else if ((java.util.Objects.equals(subType, "linear")) || Boolean.TRUE.equals(isContractWallet))
             {
                 response = (this.privateLinearGetFutureUserV1BalanceList(parameters)).join();
             } else
@@ -3099,7 +3099,7 @@ public class Xt extends XtApi
             //     }
             //
             Object balances = null;
-            if ((!java.util.Objects.equals(subType, null)) || Helpers.isTrue(isContractWallet))
+            if ((!java.util.Objects.equals(subType, null)) || Boolean.TRUE.equals(isContractWallet))
             {
                 balances = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             } else
@@ -3243,7 +3243,7 @@ public class Xt extends XtApi
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 Boolean isTrailing = (((Map<?, ?>)parameters).containsKey("trailingPercent")) || (((Map<?, ?>)parameters).containsKey("trailingAmount")) || (((Map<?, ?>)parameters).containsKey("trailingTriggerPrice"));
-                if (Helpers.isTrue(isTrailing))
+                if (Boolean.TRUE.equals(isTrailing))
                 {
                     throw new NotSupported((this.id + " createOrder() trailing orders are only supported on swap markets")) ;
                 }
@@ -3406,22 +3406,22 @@ public class Xt extends XtApi
             Boolean isStopLoss = (!java.util.Objects.equals(stopLoss, null));
             Boolean isTakeProfit = (!java.util.Objects.equals(takeProfit, null));
             Boolean isTrailing = (!java.util.Objects.equals(trailingPercent, null)) || (!java.util.Objects.equals(trailingAmount, null));
-            if (Helpers.isTrue(isTrailing) && (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)))
+            if (Boolean.TRUE.equals(isTrailing) && (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)))
             {
                 throw new NotSupported((this.id + " createOrder() trailing orders are only supported on swap markets")) ;
             }
-            if ((!java.util.Objects.equals(trailingTriggerPrice, null)) && !Helpers.isTrue(isTrailing))
+            if ((!java.util.Objects.equals(trailingTriggerPrice, null)) && !Boolean.TRUE.equals(isTrailing))
             {
                 throw new ArgumentsRequired((this.id + " createOrder() trailingTriggerPrice requires trailingPercent or trailingAmount")) ;
             }
             if (!java.util.Objects.equals(price, null))
             {
-                if (!Helpers.isTrue((isStopLoss)) && !Helpers.isTrue((isTakeProfit)) && !Helpers.isTrue((isTrailing)))
+                if (!Boolean.TRUE.equals(isStopLoss) && !Boolean.TRUE.equals(isTakeProfit) && !Boolean.TRUE.equals(isTrailing))
                 {
                     ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
                 }
             }
-            if (Helpers.isTrue(isTrailing))
+            if (Boolean.TRUE.equals(isTrailing))
             {
                 ((Map<String, Object>)request).put("orderSide", ((String)side).toUpperCase());
                 ((Map<String, Object>)request).put("triggerPriceType", this.safeString(parameters, "triggerPriceType", "LATEST_PRICE"));
@@ -3451,7 +3451,7 @@ public class Xt extends XtApi
                 {
                     response = (this.privateInversePostFutureTradeV1EntrustCreateTrack(this.extend(request, parameters))).join();
                 }
-            } else if (Helpers.isTrue(isTrigger))
+            } else if (Boolean.TRUE.equals(isTrigger))
             {
                 ((Map<String, Object>)request).put("timeInForce", (((java.util.Objects.equals(timeInForce, null)))) ? "GTC" : timeInForce);
                 ((Map<String, Object>)request).put("triggerPriceType", this.safeString(parameters, "triggerPriceType", "LATEST_PRICE"));
@@ -3467,9 +3467,9 @@ public class Xt extends XtApi
                 {
                     response = (this.privateInversePostFutureTradeV1EntrustCreatePlan(this.extend(request, parameters))).join();
                 }
-            } else if (Helpers.isTrue(isStopLoss) || Helpers.isTrue(isTakeProfit))
+            } else if (Boolean.TRUE.equals(isStopLoss) || Boolean.TRUE.equals(isTakeProfit))
             {
-                if (Helpers.isTrue(isStopLoss))
+                if (Boolean.TRUE.equals(isStopLoss))
                 {
                     ((Map<String, Object>)request).put("triggerStopPrice", this.priceToPrecision(symbol, stopLoss));
                 } else
@@ -3558,7 +3558,7 @@ public class Xt extends XtApi
             if (java.util.Objects.equals(trailing, true))
             {
                 Boolean isContract = (!java.util.Objects.equals(subType, null)) || (java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future"));
-                if (!Helpers.isTrue(isContract))
+                if (!Boolean.TRUE.equals(isContract))
                 {
                     throw new NotSupported((this.id + " fetchOrder() trailing orders are only supported on swap and future markets")) ;
                 }
@@ -3797,7 +3797,7 @@ public class Xt extends XtApi
             if (java.util.Objects.equals(trailing, true))
             {
                 Boolean isContract = (!java.util.Objects.equals(subType, null)) || (java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future"));
-                if (!Helpers.isTrue(isContract))
+                if (!Boolean.TRUE.equals(isContract))
                 {
                     throw new NotSupported((this.id + " fetchOrders() trailing orders are only supported on swap and future markets")) ;
                 }
@@ -3998,7 +3998,7 @@ public class Xt extends XtApi
             if (java.util.Objects.equals(trailing, true))
             {
                 Boolean isContract = (!java.util.Objects.equals(subType, null)) || (java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future"));
-                if (!Helpers.isTrue(isContract))
+                if (!Boolean.TRUE.equals(isContract))
                 {
                     throw new NotSupported((this.id + " fetchOrdersByStatus() trailing orders are only supported on swap and future markets")) ;
                 }
@@ -4470,7 +4470,7 @@ public class Xt extends XtApi
             if (java.util.Objects.equals(trailing, true))
             {
                 Boolean isContract = (!java.util.Objects.equals(subType, null)) || (java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future"));
-                if (!Helpers.isTrue(isContract))
+                if (!Boolean.TRUE.equals(isContract))
                 {
                     throw new NotSupported((this.id + " cancelOrder() trailing orders are only supported on swap and future markets")) ;
                 }
@@ -4550,7 +4550,7 @@ public class Xt extends XtApi
             //     }
             //
             Boolean isContractResponse = ((!java.util.Objects.equals(subType, null)) || (java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future")));
-            Object order = ((Helpers.isTrue(isContractResponse))) ? response : this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Object order = ((Boolean.TRUE.equals(isContractResponse))) ? response : this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
@@ -4605,7 +4605,7 @@ public class Xt extends XtApi
             if (java.util.Objects.equals(trailing, true))
             {
                 Boolean isContract = (!java.util.Objects.equals(subType, null)) || (java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future"));
-                if (!Helpers.isTrue(isContract))
+                if (!Boolean.TRUE.equals(isContract))
                 {
                     throw new NotSupported((this.id + " cancelAllOrders() trailing orders are only supported on swap and future markets")) ;
                 }
@@ -5891,7 +5891,7 @@ final Object finalMarket = market;
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, parameters, "id", "id", 1, 200)).join();
             }
@@ -6248,7 +6248,7 @@ final Object finalMarket = market;
             parameters = ((List<Object>) subTypeparametersVariable).get(1);
             Boolean isInverse = (java.util.Objects.equals(subType, "inverse"));
             Object response = null;
-            if (Helpers.isTrue(isInverse))
+            if (Boolean.TRUE.equals(isInverse))
             {
                 response = (this.privateInverseGetFutureUserV1UserStepRate(parameters)).join();
             } else
@@ -6265,7 +6265,7 @@ final Object finalMarket = market;
             {
                 Object symbol = Helpers.GetValue(symbols, i);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                Object matchesSubType = ((Helpers.isTrue((isInverse)))) ? ((Map<String, Object>)market).get("inverse") : ((Map<String, Object>)market).get("linear");
+                Object matchesSubType = ((Boolean.TRUE.equals(isInverse))) ? ((Map<String, Object>)market).get("inverse") : ((Map<String, Object>)market).get("linear");
                 if ((java.util.Objects.equals(((Map<String, Object>)market).get("contract"), true)) && (java.util.Objects.equals(matchesSubType, true)))
                 {
                     Helpers.addElementToObject(result, symbol, this.parseTradingFee(fee, market));
@@ -6809,7 +6809,7 @@ final Object finalMarket = market;
         // "ISOLATED"/"CROSSED" on position/list, 1 = cross / 2 = isolated on position/list-history
         String positionType = this.safeString(position, "positionType");
         Boolean isCross = (java.util.Objects.equals(positionType, "CROSSED")) || (java.util.Objects.equals(positionType, "1"));
-        String marginMode = ((Helpers.isTrue((isCross)))) ? "cross" : "isolated";
+        String marginMode = ((Boolean.TRUE.equals(isCross))) ? "cross" : "isolated";
         Double collateral = this.safeNumber(position, "isolatedMargin");
         // history entries carry the liquidation price in forceMarkPrice when force is true
         Object liquidationPriceString = this.omitZero(this.safeString2(position, "breakPrice", "forceMarkPrice"));
@@ -7034,7 +7034,7 @@ final Object finalMarket = market;
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLoss", "takeProfit")));
             Boolean isStopLoss = (!java.util.Objects.equals(stopLoss, null));
             Boolean isTakeProfit = (!java.util.Objects.equals(takeProfit, null));
-            if (Helpers.isTrue(isStopLoss) || Helpers.isTrue(isTakeProfit))
+            if (Boolean.TRUE.equals(isStopLoss) || Boolean.TRUE.equals(isTakeProfit))
             {
                 ((Map<String, Object>)request).put("profitId", id);
             } else
@@ -7045,7 +7045,7 @@ final Object finalMarket = market;
             Object response = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
-                if (Helpers.isTrue(isStopLoss))
+                if (Boolean.TRUE.equals(isStopLoss))
                 {
                     ((Map<String, Object>)request).put("triggerStopPrice", this.priceToPrecision(symbol, stopLoss));
                 } else if (!java.util.Objects.equals(takeProfit, null))
@@ -7061,7 +7061,7 @@ final Object finalMarket = market;
                 parameters = ((List<Object>) subTypeparametersVariable).get(1);
                 if (java.util.Objects.equals(subType, "inverse"))
                 {
-                    if (Helpers.isTrue(isStopLoss) || Helpers.isTrue(isTakeProfit))
+                    if (Boolean.TRUE.equals(isStopLoss) || Boolean.TRUE.equals(isTakeProfit))
                     {
                         response = (this.privateInversePostFutureTradeV1EntrustUpdateProfitStop(this.extend(request, parameters))).join();
                     } else
@@ -7070,7 +7070,7 @@ final Object finalMarket = market;
                     }
                 } else
                 {
-                    if (Helpers.isTrue(isStopLoss) || Helpers.isTrue(isTakeProfit))
+                    if (Boolean.TRUE.equals(isStopLoss) || Boolean.TRUE.equals(isTakeProfit))
                     {
                         response = (this.privateLinearPostFutureTradeV1EntrustUpdateProfitStop(this.extend(request, parameters))).join();
                     } else
@@ -7172,7 +7172,7 @@ final Object finalMarket = market;
         Object payload = null;
         if ((java.util.Objects.equals(endpoint, "spot")) || (java.util.Objects.equals(endpoint, "user")))
         {
-            if (Helpers.isTrue(signed))
+            if (Boolean.TRUE.equals(signed))
             {
                 payload = Helpers.add(Helpers.add("/", this.version), request);
             } else
@@ -7189,7 +7189,7 @@ final Object finalMarket = market;
         headers = new HashMap<String, Object>() {{
             put( "Content-Type", "application/json" );
         }};
-        if (Helpers.isTrue(signed))
+        if (Boolean.TRUE.equals(signed))
         {
             this.checkRequiredCredentials();
             String defaultRecvWindow = this.safeString(this.options, "recvWindow");
@@ -7220,12 +7220,12 @@ final Object finalMarket = market;
             {
                 isUndefinedBody = false;
             }
-            body = ((Helpers.isTrue(isUndefinedBody))) ? null : this.json(body);
+            body = ((Boolean.TRUE.equals(isUndefinedBody))) ? null : this.json(body);
             Object payloadString = null;
             if ((java.util.Objects.equals(endpoint, "spot")) || (java.util.Objects.equals(endpoint, "user")))
             {
                 payloadString = (((Helpers.add((("xt-validate-algorithms=HmacSHA256&xt-validate-appkey=" + this.apiKey) + "&xt-validate-recvwindow="), recvWindow) + "&xt-validate-t") + "imestamp=") + timestamp);
-                if (Helpers.isTrue(isUndefinedBody))
+                if (Boolean.TRUE.equals(isUndefinedBody))
                 {
                     if (!java.util.Objects.equals(urlencoded, ""))
                     {

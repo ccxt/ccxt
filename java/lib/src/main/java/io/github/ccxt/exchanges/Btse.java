@@ -860,11 +860,11 @@ public class Btse extends BtseApi
         String type = "spot";
         Object expiry = null;
         String contractSize = null;
-        if (!Helpers.isTrue(isSpot))
+        if (!Boolean.TRUE.equals(isSpot))
         {
             symbol = Helpers.add(symbol, Helpers.add(":", quote));
             contractSize = this.safeString(market, "contractSize");
-            if (Helpers.isTrue(isFuture))
+            if (Boolean.TRUE.equals(isFuture))
             {
                 expiry = this.safeInteger(market, "contractEndTime");
                 symbol = (symbol + ("-" + this.yymmdd(expiry)));
@@ -875,7 +875,7 @@ public class Btse extends BtseApi
             }
         }
         Object fees = this.safeValue(this.fees, "contract");
-        if (Helpers.isTrue(isSpot))
+        if (Boolean.TRUE.equals(isSpot))
         {
             fees = this.safeValue(this.fees, "spot");
         }
@@ -891,20 +891,20 @@ public class Btse extends BtseApi
             put( "symbol", finalSymbol );
             put( "base", finalBase );
             put( "quote", quote );
-            put( "settle", ((Helpers.isTrue(isSpot))) ? null : quote );
+            put( "settle", ((Boolean.TRUE.equals(isSpot))) ? null : quote );
             put( "baseId", baseId );
             put( "quoteId", quoteId );
-            put( "settleId", ((Helpers.isTrue(isSpot))) ? null : quoteId );
+            put( "settleId", ((Boolean.TRUE.equals(isSpot))) ? null : quoteId );
             put( "type", finalType );
             put( "spot", isSpot );
-            put( "margin", ((Helpers.isTrue(isSpot))) ? false : null );
+            put( "margin", ((Boolean.TRUE.equals(isSpot))) ? false : null );
             put( "swap", finalIsSwap );
             put( "future", isFuture );
             put( "option", false );
             put( "active", active );
-            put( "contract", Helpers.isTrue(finalIsSwap) || Helpers.isTrue(isFuture) );
-            put( "linear", ((Helpers.isTrue(isSpot))) ? null : true );
-            put( "inverse", ((Helpers.isTrue(isSpot))) ? null : false );
+            put( "contract", Boolean.TRUE.equals(finalIsSwap) || Boolean.TRUE.equals(isFuture) );
+            put( "linear", ((Boolean.TRUE.equals(isSpot))) ? null : true );
+            put( "inverse", ((Boolean.TRUE.equals(isSpot))) ? null : false );
             put( "taker", Helpers.GetValue(finalFees, "taker") );
             put( "maker", Helpers.GetValue(finalFees, "maker") );
             put( "contractSize", Btse.this.parseNumber(finalContractSize) );
@@ -968,7 +968,7 @@ public class Btse extends BtseApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, maxLimit);
             }
@@ -2342,7 +2342,7 @@ public class Btse extends BtseApi
             List<Object> postOnlyparametersVariable = (List<Object>) this.handlePostOnly(isMarketOrder, postOnly, parameters);
             postOnly = (Boolean) ((List<Object>) postOnlyparametersVariable).get(0);
             parameters = ((List<Object>) postOnlyparametersVariable).get(1); // this will remove PO from params.timeInForce if present
-            if (Helpers.isTrue(postOnly))
+            if (Boolean.TRUE.equals(postOnly))
             {
                 ((Map<String, Object>)request).put("postOnly", true);
             }
@@ -2356,9 +2356,9 @@ public class Btse extends BtseApi
             String stopLossPrice = this.safeString(parameters, "stopLossPrice");
             Boolean isTriggerOrder = (!java.util.Objects.equals(triggerPrice, null)) || (!java.util.Objects.equals(takeProfitPrice, null));
             Boolean isStopLossOrder = (!java.util.Objects.equals(stopLossPrice, null));
-            Boolean isConditionalOrder = (Helpers.isTrue(isTriggerOrder) || Helpers.isTrue(isStopLossOrder)) && (Helpers.isTrue(isMarketOrder) || Helpers.isTrue(isLimitOrder));
-            Boolean isAlgoOrder = Helpers.isTrue(isConditionalOrder) || (!Helpers.isTrue(isMarketOrder) && !Helpers.isTrue(isLimitOrder));
-            if (Helpers.isTrue(isLimitOrder) || (java.util.Objects.equals(type, "PEG")) || (java.util.Objects.equals(type, "OCO")))
+            Boolean isConditionalOrder = (Boolean.TRUE.equals(isTriggerOrder) || Boolean.TRUE.equals(isStopLossOrder)) && (Boolean.TRUE.equals(isMarketOrder) || Boolean.TRUE.equals(isLimitOrder));
+            Boolean isAlgoOrder = Boolean.TRUE.equals(isConditionalOrder) || (!Boolean.TRUE.equals(isMarketOrder) && !Boolean.TRUE.equals(isLimitOrder));
+            if (Boolean.TRUE.equals(isLimitOrder) || (java.util.Objects.equals(type, "PEG")) || (java.util.Objects.equals(type, "OCO")))
             {
                 if (java.util.Objects.equals(price, null))
                 {
@@ -2368,8 +2368,8 @@ public class Btse extends BtseApi
             // market and trailing buys are denominated in the quote currency while
             // every other combination is denominated in the base currency, the
             // sizing rules are strict on both sides, verified live
-            Boolean needsQuoteSize = (Helpers.isTrue(isMarketOrder) || (java.util.Objects.equals(type, "TRAILING"))) && (java.util.Objects.equals(upperSide, "BUY"));
-            if (Helpers.isTrue(needsQuoteSize))
+            Boolean needsQuoteSize = (Boolean.TRUE.equals(isMarketOrder) || (java.util.Objects.equals(type, "TRAILING"))) && (java.util.Objects.equals(upperSide, "BUY"));
+            if (Boolean.TRUE.equals(needsQuoteSize))
             {
                 String quoteAmount = null;
                 Object createMarketBuyOrderRequiresPrice = true;
@@ -2381,7 +2381,7 @@ public class Btse extends BtseApi
                 if (!java.util.Objects.equals(cost, null))
                 {
                     quoteAmount = this.costToPrecision(symbol, cost);
-                } else if (Helpers.isTrue(createMarketBuyOrderRequiresPrice))
+                } else if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
                 {
                     if (java.util.Objects.equals(price, null))
                     {
@@ -2402,10 +2402,10 @@ public class Btse extends BtseApi
                 ((Map<String, Object>)request).put("orderSize", this.amountToPrecision(symbol, amount));
             }
             Object response = null;
-            if (!Helpers.isTrue(isAlgoOrder))
+            if (!Boolean.TRUE.equals(isAlgoOrder))
             {
                 ((Map<String, Object>)request).put("orderType", type);
-                if (Helpers.isTrue(isLimitOrder))
+                if (Boolean.TRUE.equals(isLimitOrder))
                 {
                     ((Map<String, Object>)request).put("orderPrice", this.priceToPrecision(symbol, price));
                 }
@@ -2441,12 +2441,12 @@ public class Btse extends BtseApi
                 response = (this.privatePostSpotApiV4TradeOrders(this.extend(request, parameters))).join();
             } else
             {
-                if (Helpers.isTrue(isConditionalOrder))
+                if (Boolean.TRUE.equals(isConditionalOrder))
                 {
                     ((Map<String, Object>)request).put("orderType", "CONDITIONAL");
                     Object triggerOrderType = null;
                     String triggerPriceToSend = null;
-                    if (Helpers.isTrue(isStopLossOrder))
+                    if (Boolean.TRUE.equals(isStopLossOrder))
                     {
                         triggerOrderType = "STOP_LOSS";
                         triggerPriceToSend = stopLossPrice;
@@ -2459,7 +2459,7 @@ public class Btse extends BtseApi
                             triggerPriceToSend = takeProfitPrice;
                         }
                     }
-                    if (Helpers.isTrue(isLimitOrder))
+                    if (Boolean.TRUE.equals(isLimitOrder))
                     {
                         triggerOrderType = (triggerOrderType + "_LIMIT");
                         ((Map<String, Object>)request).put("orderPrice", this.priceToPrecision(symbol, price));
@@ -2592,12 +2592,12 @@ public class Btse extends BtseApi
                 parameters = ((List<Object>) marginModeparametersVariable).get(1);
                 if (java.util.Objects.equals(marginMode, "isolated"))
                 {
-                    if (Helpers.isTrue(hedged))
+                    if (Boolean.TRUE.equals(hedged))
                     {
                         throw new BadRequest((this.id + " createOrder() cannot use isolated margin with hedged positions")) ;
                     }
                     ((Map<String, Object>)request).put("positionMode", "ISOLATED");
-                } else if (Helpers.isTrue(hedged))
+                } else if (Boolean.TRUE.equals(hedged))
                 {
                     ((Map<String, Object>)request).put("positionMode", "HEDGE");
                 }
@@ -2609,7 +2609,7 @@ public class Btse extends BtseApi
             List<Object> postOnlyparametersVariable = (List<Object>) this.handlePostOnly(isMarketOrder, postOnly, parameters);
             postOnly = (Boolean) ((List<Object>) postOnlyparametersVariable).get(0);
             parameters = ((List<Object>) postOnlyparametersVariable).get(1); // this will remove PO from params.timeInForce if present
-            if (Helpers.isTrue(postOnly))
+            if (Boolean.TRUE.equals(postOnly))
             {
                 ((Map<String, Object>)request).put("postOnly", true);
             }
@@ -2623,9 +2623,9 @@ public class Btse extends BtseApi
             String stopLossPrice = this.safeString(parameters, "stopLossPrice");
             Boolean isTriggerOrder = (!java.util.Objects.equals(triggerPrice, null)) || (!java.util.Objects.equals(takeProfitPrice, null));
             Boolean isStopLossOrder = (!java.util.Objects.equals(stopLossPrice, null));
-            Boolean isConditionalOrder = (Helpers.isTrue(isTriggerOrder) || Helpers.isTrue(isStopLossOrder)) && (Helpers.isTrue(isMarketOrder) || Helpers.isTrue(isLimitOrder));
-            Boolean isAlgoOrder = Helpers.isTrue(isConditionalOrder) || (!Helpers.isTrue(isMarketOrder) && !Helpers.isTrue(isLimitOrder));
-            if (Helpers.isTrue(isLimitOrder) || (java.util.Objects.equals(type, "OCO")))
+            Boolean isConditionalOrder = (Boolean.TRUE.equals(isTriggerOrder) || Boolean.TRUE.equals(isStopLossOrder)) && (Boolean.TRUE.equals(isMarketOrder) || Boolean.TRUE.equals(isLimitOrder));
+            Boolean isAlgoOrder = Boolean.TRUE.equals(isConditionalOrder) || (!Boolean.TRUE.equals(isMarketOrder) && !Boolean.TRUE.equals(isLimitOrder));
+            if (Boolean.TRUE.equals(isLimitOrder) || (java.util.Objects.equals(type, "OCO")))
             {
                 if (java.util.Objects.equals(price, null))
                 {
@@ -2660,10 +2660,10 @@ public class Btse extends BtseApi
                 parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("takeProfit", "stopLoss")));
             }
             Object response = null;
-            if (!Helpers.isTrue(isAlgoOrder))
+            if (!Boolean.TRUE.equals(isAlgoOrder))
             {
                 ((Map<String, Object>)request).put("orderType", type);
-                if (Helpers.isTrue(isLimitOrder))
+                if (Boolean.TRUE.equals(isLimitOrder))
                 {
                     ((Map<String, Object>)request).put("orderPrice", this.priceToPrecision(symbol, price));
                 }
@@ -2694,7 +2694,7 @@ public class Btse extends BtseApi
                 response = (this.privatePostFuturesApiV3TradeOrders(this.extend(request, parameters))).join();
             } else
             {
-                if (Helpers.isTrue(isConditionalOrder))
+                if (Boolean.TRUE.equals(isConditionalOrder))
                 {
                     // the futures conditional variant has no trigger direction field,
                     // it takes a plain trigger price with an optional limit price
@@ -2711,7 +2711,7 @@ public class Btse extends BtseApi
                     ((Map<String, Object>)request).put("triggerPrice", this.priceToPrecision(symbol, triggerPriceToSend));
                     String triggerPriceType = this.safeString(parameters, "triggerPriceType", "mark");
                     ((Map<String, Object>)request).put("triggerType", this.encodeTriggerPriceType(triggerPriceType));
-                    if (Helpers.isTrue(isLimitOrder))
+                    if (Boolean.TRUE.equals(isLimitOrder))
                     {
                         ((Map<String, Object>)request).put("orderPrice", this.priceToPrecision(symbol, price));
                     }
@@ -2768,7 +2768,7 @@ public class Btse extends BtseApi
             // the normal futures endpoint responds with a single order dict, keep a
             // one element array guard in case a gateway wraps it
             Object order = response;
-            if (Helpers.isTrue(Helpers.isArray(response)))
+            if ((response instanceof List))
             {
                 order = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             }
@@ -2846,7 +2846,7 @@ public class Btse extends BtseApi
             }
             // accept a bare order dict, a data envelope and a one element array
             Object order = this.safeValue(response, "data", response);
-            if (Helpers.isTrue(Helpers.isArray(order)))
+            if ((order instanceof List))
             {
                 order = this.safeDict(order, 0, new HashMap<String, Object>() {{}});
             }
@@ -4369,7 +4369,7 @@ public class Btse extends BtseApi
             //     ]
             //
             List<Object> safeResponse = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(Helpers.isArray(response)))
+            if ((response instanceof List))
             {
                 safeResponse = response;
             }
@@ -4512,7 +4512,7 @@ public class Btse extends BtseApi
             throw new ExchangeError((String)feedback) ;
         }
         Object rows = new ArrayList<Object>(Arrays.asList());
-        if (Helpers.isTrue(Helpers.isArray(response)))
+        if ((response instanceof List))
         {
             rows = response;
         } else
@@ -4555,7 +4555,7 @@ public class Btse extends BtseApi
         // in both directions
         Boolean isBodyDelete = (java.util.Objects.equals(method, "DELETE")) && (java.util.Objects.equals(((String)path).startsWith("futures/api/v3/"), true));
         Object queryString = "";
-        if (((java.util.Objects.equals(method, "GET")) || (java.util.Objects.equals(method, "DELETE"))) && !Helpers.isTrue(isBodyDelete))
+        if (((java.util.Objects.equals(method, "GET")) || (java.util.Objects.equals(method, "DELETE"))) && !Boolean.TRUE.equals(isBodyDelete))
         {
             if (((List<?>)Helpers.objectKeys(query)).size() > 0)
             {
@@ -4568,7 +4568,7 @@ public class Btse extends BtseApi
             this.checkRequiredCredentials();
             Object nonce = this.nonce();
             Object bodyString = this.json(query);
-            if (((java.util.Objects.equals(method, "GET")) || (java.util.Objects.equals(method, "DELETE"))) && !Helpers.isTrue(isBodyDelete))
+            if (((java.util.Objects.equals(method, "GET")) || (java.util.Objects.equals(method, "DELETE"))) && !Boolean.TRUE.equals(isBodyDelete))
             {
                 bodyString = "";
             } else

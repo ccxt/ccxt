@@ -720,7 +720,7 @@ public class Bithumb extends BithumbApi
                         Object market = Helpers.GetValue(data, currencyId);
                         String base = this.safeCurrencyCode(currencyId);
                         Boolean active = true;
-                        if (Helpers.isTrue(Helpers.isArray(market)))
+                        if ((market instanceof List))
                         {
                             Object numElements = ((List<?>)market).size();
                             if (Helpers.isEqual(numElements, 0))
@@ -1218,7 +1218,7 @@ public class Bithumb extends BithumbApi
                         ((List<Object>)marketIdsChunk).add(Helpers.GetValue(marketIds, i));
                         Object marketIdsChunkLength = ((List<?>)marketIdsChunk).size();
                         Boolean isLastMarketId = (Helpers.isEqual(i, (Helpers.subtract(marketIdsLength, 1))));
-                        if ((Helpers.isGreaterThanOrEqual(marketIdsChunkLength, maxMarketIdsPerRequest)) || Helpers.isTrue(isLastMarketId))
+                        if ((Helpers.isGreaterThanOrEqual(marketIdsChunkLength, maxMarketIdsPerRequest)) || Boolean.TRUE.equals(isLastMarketId))
                         {
                             ((List<Object>)marketIdsChunks).add(marketIdsChunk);
                             ((Map<String, Object>)request).put("markets", String.join(",", (List<String>)marketIdsChunk));
@@ -1276,7 +1276,7 @@ public class Bithumb extends BithumbApi
                         expectedMarketId = firstMarketId;
                     }
                     Object tickers = new ArrayList<Object>(Arrays.asList());
-                    if (Helpers.isTrue(Helpers.isArray(response)))
+                    if ((response instanceof List))
                     {
                         tickers = response;
                     } else if (Helpers.isTrue(this.isDictionary(response)))
@@ -1501,7 +1501,7 @@ public class Bithumb extends BithumbApi
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object timestamp = null;
-        if (Helpers.isTrue(Helpers.isArray(ohlcv)))
+        if ((ohlcv instanceof List))
         {
             timestamp = this.safeInteger2(ohlcv, 0, "timestamp");
         } else
@@ -1723,7 +1723,7 @@ public class Bithumb extends BithumbApi
                 timestamp = this.safeIntegerProduct(trade, "transaction_date", 0.001);
             }
         }
-        if ((!java.util.Objects.equals(timestamp, null)) && Helpers.isTrue((!Helpers.isTrue(isGenerationTwo))))
+        if ((!java.util.Objects.equals(timestamp, null)) && Helpers.isTrue((!Boolean.TRUE.equals(isGenerationTwo))))
         {
             timestamp = Helpers.subtract(timestamp, (9L * 3600000L)); // they report UTC + 9 hours, server in Korean timezone
         }
@@ -2001,7 +2001,7 @@ public class Bithumb extends BithumbApi
         List<Object> postOnlyparametersVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), false, parameters);
         postOnly = (Boolean) ((List<Object>) postOnlyparametersVariable).get(0);
         parameters = ((List<Object>) postOnlyparametersVariable).get(1);
-        if (Helpers.isTrue(postOnly) || (java.util.Objects.equals(timeInForce, "PO")))
+        if (Boolean.TRUE.equals(postOnly) || (java.util.Objects.equals(timeInForce, "PO")))
         {
             ((Map<String, Object>)request).put("time_in_force", "post_only");
             parameters = this.omit(parameters, "postOnly");
@@ -2030,7 +2030,7 @@ public class Bithumb extends BithumbApi
                 List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 createMarketBuyOrderRequiresPrice = ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
                 parameters = ((List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
-                if (Helpers.isTrue(createMarketBuyOrderRequiresPrice))
+                if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
                 {
                     if ((java.util.Objects.equals(price, null)) && (java.util.Objects.equals(cost, null)))
                     {
@@ -3028,7 +3028,7 @@ public class Bithumb extends BithumbApi
                     throw new ArgumentsRequired((this.id + " cancelOrder() requires a market with defined base and quote")) ;
                 }
                 Boolean side_in_params = (((Map<?, ?>)parameters).containsKey("side"));
-                if (!Helpers.isTrue(side_in_params))
+                if (!Boolean.TRUE.equals(side_in_params))
                 {
                     throw new ArgumentsRequired((this.id + " cancelOrder() requires a `side` parameter (sell or buy)")) ;
                 }
@@ -3914,7 +3914,7 @@ public class Bithumb extends BithumbApi
         {
             Object key = Helpers.GetValue(keys, i);
             Object value = Helpers.GetValue(query, key);
-            if (Helpers.isTrue(Helpers.isArray(value)))
+            if ((value instanceof List))
             {
                 Object encodedKey = (this.encodeURIComponent(key) + "[]");
                 for (var j = 0; j < ((List<?>)value).size(); j++)
@@ -3964,7 +3964,7 @@ public class Bithumb extends BithumbApi
             headers = new HashMap<String, Object>() {{
                 put( "OPEN-API-PARTNER", "CCXT" );
             }};
-            if (Helpers.isTrue(hasQuery))
+            if (Boolean.TRUE.equals(hasQuery))
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
@@ -3972,7 +3972,7 @@ public class Bithumb extends BithumbApi
         {
             this.checkRequiredCredentials();
             Boolean isVersionedApi = (Helpers.isTrue(endpoint.startsWith(((String)"/v1/"))) || Helpers.isTrue(endpoint.startsWith(((String)"/v2/"))));
-            if (Helpers.isTrue(isVersionedApi))
+            if (Boolean.TRUE.equals(isVersionedApi))
             {
                 headers = new HashMap<String, Object>() {{
                     put( "Accept", "application/json" );
@@ -3987,17 +3987,17 @@ public class Bithumb extends BithumbApi
                 if ((!java.util.Objects.equals(method, "GET")) && (!java.util.Objects.equals(method, "DELETE")))
                 {
                     ((Map<String, Object>)headers).put("Content-Type", "application/json");
-                    if (Helpers.isTrue(hasQuery))
+                    if (Boolean.TRUE.equals(hasQuery))
                     {
                         body = this.json(query);
                         auth = this.urlencodeWithArrayBrackets(query);
                     }
-                } else if (Helpers.isTrue(hasQuery))
+                } else if (Boolean.TRUE.equals(hasQuery))
                 {
                     auth = this.urlencodeWithArrayBrackets(query);
                     url = (url + ("?" + auth));
                 }
-                if (Helpers.isTrue(hasQuery))
+                if (Boolean.TRUE.equals(hasQuery))
                 {
                     Object authString = (((java.util.Objects.equals(auth, null)))) ? "" : auth;
                     ((Map<String, Object>)request).put("query_hash", this.hash(this.encode(authString), sha512()));

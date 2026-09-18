@@ -458,7 +458,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
             Object symbolsLength = ((List<?>)symbolsAndTimeframes).size();
-            if (Helpers.isEqual(symbolsLength, 0) || !Helpers.isTrue(Helpers.isArray(Helpers.GetValue(symbolsAndTimeframes, 0))))
+            if (Helpers.isEqual(symbolsLength, 0) || !(Helpers.GetValue(symbolsAndTimeframes, 0) instanceof List))
             {
                 throw new ArgumentsRequired((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")) ;
             }
@@ -480,7 +480,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             var symbol = ((List<Object>) symboltimeframecandlesVariable).get(0);
             var timeframe = ((List<Object>) symboltimeframecandlesVariable).get(1);
             var candles = ((List<Object>) symboltimeframecandlesVariable).get(2);
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(candles, "getLimit", new Object[]{symbol, limit});
             }
@@ -506,7 +506,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object symbolsLength = ((List<?>)symbolsAndTimeframes).size();
-            if (Helpers.isEqual(symbolsLength, 0) || !Helpers.isTrue(Helpers.isArray(Helpers.GetValue(symbolsAndTimeframes, 0))))
+            if (Helpers.isEqual(symbolsLength, 0) || !(Helpers.GetValue(symbolsAndTimeframes, 0) instanceof List))
             {
                 throw new ArgumentsRequired((this.id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")) ;
             }
@@ -815,7 +815,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 }
             }
             Object orders = (this.watchPrivate(messageHashes, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Object first = this.safeValue(orders, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
@@ -987,7 +987,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 }
             }
             Object positions = (this.watchPrivate(messageHashes, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 return positions;
             }

@@ -390,7 +390,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             parameters = ((List<Object>) typeparametersVariable).get(1);
             Boolean usePerpetualApi = java.util.Objects.equals(this.safeString(parameters, "settle"), "USDT");
             Object messageHash = ":balance";
-            messageHash = ((Helpers.isTrue(usePerpetualApi))) ? ("perpetual" + messageHash) : Helpers.add(type, messageHash);
+            messageHash = ((Boolean.TRUE.equals(usePerpetualApi))) ? ("perpetual" + messageHash) : Helpers.add(type, messageHash);
             return (this.subscribePrivate(type, messageHash, parameters)).join();
         }).thenApply(Balances::new);
 
@@ -617,7 +617,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             String name = "spot_market24h";
             if (java.util.Objects.equals(isSwap, true))
             {
-                name = ((Helpers.isTrue(settleIsUSDT))) ? "perp_market24h_pack_p" : "market24h";
+                name = ((Boolean.TRUE.equals(settleIsUSDT))) ? "perp_market24h_pack_p" : "market24h";
             }
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Object requestId = this.requestId();
@@ -665,7 +665,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             String name = "spot_market24h";
             if (java.util.Objects.equals(isSwap, true))
             {
-                name = ((Helpers.isTrue(settleIsUSDT))) ? "perp_market24h_pack_p" : "market24h";
+                name = ((Boolean.TRUE.equals(settleIsUSDT))) ? "perp_market24h_pack_p" : "market24h";
             }
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Object requestId = this.requestId();
@@ -682,7 +682,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             }};
             Map<String, Object> request = this.deepExtend(subscribe, parameters);
             Object ticker = (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(result, Helpers.GetValue(ticker, "symbol"), ticker);
@@ -724,8 +724,8 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             Object requestId = this.requestId();
             Object isSwap = ((Map<String, Object>)market).get("swap");
             Boolean settleIsUSDT = java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDT");
-            Boolean isUsdtSwap = (java.util.Objects.equals(isSwap, true)) && Helpers.isTrue(settleIsUSDT);
-            String name = ((Helpers.isTrue(isUsdtSwap))) ? "trade_p" : "trade";
+            Boolean isUsdtSwap = (java.util.Objects.equals(isSwap, true)) && Boolean.TRUE.equals(settleIsUSDT);
+            String name = ((Boolean.TRUE.equals(isUsdtSwap))) ? "trade_p" : "trade";
             String messageHash = ("trade:" + symbol);
             Object method = Helpers.add(name, ".subscribe");
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
@@ -735,7 +735,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             }};
             Map<String, Object> request = this.deepExtend(subscribe, parameters);
             Object trades = (this.watch(url, messageHash, request, messageHash, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
@@ -774,8 +774,8 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             Object requestId = this.requestId();
             Object isSwap = ((Map<String, Object>)market).get("swap");
             Boolean settleIsUSDT = java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDT");
-            Boolean isUsdtSwap = (java.util.Objects.equals(isSwap, true)) && Helpers.isTrue(settleIsUSDT);
-            String name = ((Helpers.isTrue(isUsdtSwap))) ? "orderbook_p" : "orderbook";
+            Boolean isUsdtSwap = (java.util.Objects.equals(isSwap, true)) && Boolean.TRUE.equals(settleIsUSDT);
+            String name = ((Boolean.TRUE.equals(isUsdtSwap))) ? "orderbook_p" : "orderbook";
             String messageHash = ("orderbook:" + symbol);
             Object method = Helpers.add(name, ".subscribe");
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
@@ -823,8 +823,8 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             Object requestId = this.requestId();
             Object isSwap = ((Map<String, Object>)market).get("swap");
             Boolean settleIsUSDT = java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDT");
-            Boolean isUsdtSwap = (java.util.Objects.equals(isSwap, true)) && Helpers.isTrue(settleIsUSDT);
-            String name = ((Helpers.isTrue(isUsdtSwap))) ? "kline_p" : "kline";
+            Boolean isUsdtSwap = (java.util.Objects.equals(isSwap, true)) && Boolean.TRUE.equals(settleIsUSDT);
+            String name = ((Boolean.TRUE.equals(isUsdtSwap))) ? "kline_p" : "kline";
             String messageHash = ((("kline:" + timeframe) + ":") + symbol);
             Object method = Helpers.add(name, ".subscribe");
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
@@ -834,7 +834,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             }};
             Map<String, Object> request = this.deepExtend(subscribe, parameters);
             Object ohlcv = (this.watch(url, messageHash, request, messageHash, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
@@ -986,7 +986,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 messageHash = (((java.util.Objects.equals(settle, "USDT")))) ? ((messageHash + "perpetual")) : (Helpers.add(messageHash, type));
             }
             Object trades = (this.subscribePrivate(type, messageHash, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
@@ -1176,10 +1176,10 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             Boolean isUSDTSettled = java.util.Objects.equals(this.safeString(parameters, "settle"), "USDT");
             if (java.util.Objects.equals(symbol, null))
             {
-                messageHash = ((Helpers.isTrue((isUSDTSettled)))) ? ((messageHash + "perpetual")) : (Helpers.add(messageHash, type));
+                messageHash = ((Boolean.TRUE.equals(isUSDTSettled))) ? ((messageHash + "perpetual")) : (Helpers.add(messageHash, type));
             }
             Object orders = (this.subscribePrivate(type, messageHash, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
@@ -1405,7 +1405,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             if (java.util.Objects.equals(type, null))
             {
                 Boolean isUsdt = java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDT");
-                type = ((Helpers.isTrue(isUsdt))) ? "perpetual" : ((Map<String, Object>)market).get("type");
+                type = ((Boolean.TRUE.equals(isUsdt))) ? "perpetual" : ((Map<String, Object>)market).get("type");
             }
             Helpers.addElementToObject(marketIds, symbol, true);
         }
@@ -1792,7 +1792,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             {
                 channel = "wo.subscribe";
             }
-            if (Helpers.isTrue(settleIsUSDT))
+            if (Boolean.TRUE.equals(settleIsUSDT))
             {
                 channel = "aop_p.subscribe";
             }

@@ -794,11 +794,11 @@ public class Extended extends ExtendedApi
             put( "type", finalType );
             put( "spot", finalIsSpot );
             put( "margin", false );
-            put( "swap", !Helpers.isTrue(finalIsSpot) );
+            put( "swap", !Boolean.TRUE.equals(finalIsSpot) );
             put( "future", false );
             put( "option", false );
             put( "active", active );
-            put( "contract", !Helpers.isTrue(finalIsSpot) );
+            put( "contract", !Boolean.TRUE.equals(finalIsSpot) );
             put( "linear", finalLinear );
             put( "inverse", finalInverse );
             put( "taker", Extended.this.safeNumber(Extended.this.fees, "taker") );
@@ -1261,7 +1261,7 @@ public class Extended extends ExtendedApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, parameters, "cursor", "cursor", null, 100)).join();
             }
@@ -1351,7 +1351,7 @@ public class Extended extends ExtendedApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, parameters, "cursor", "cursor", null, 100)).join();
             }
@@ -1663,7 +1663,7 @@ public class Extended extends ExtendedApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, parameters, "cursor", "cursor", null, 10000)).join();
             }
@@ -2043,7 +2043,7 @@ public class Extended extends ExtendedApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchLedger", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchLedger", code, since, limit, parameters, "cursor", "cursor", null, 50)).join();
             }
@@ -2164,7 +2164,7 @@ public class Extended extends ExtendedApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTransactions", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchTransactions", code, since, limit, parameters, "cursor", "cursor", null, 50)).join();
             }
@@ -2385,7 +2385,7 @@ public class Extended extends ExtendedApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTransfers", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchTransfers", code, since, limit, parameters, "cursor", "cursor", null, 50)).join();
             }
@@ -2984,7 +2984,7 @@ public class Extended extends ExtendedApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchPositionsHistory", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchPositionsHistory", symbols, since, limit, parameters, "cursor", "cursor", null, 10000)).join();
             }
@@ -3314,7 +3314,7 @@ public class Extended extends ExtendedApi
             String fee = this.safeString(parameters, "fee", "0.0005");
             Object builderFeeRate = null;
             Object builderId = null;
-            if (Helpers.isTrue(this.isSandboxModeEnabled))
+            if (this.isSandboxModeEnabled)
             {
                 builderFeeRate = this.safeString2(parameters, "builderFeeRate", "defaultBuilderFeeRate");
                 builderId = this.safeString2(parameters, "builderId", "defaultBuilderId");
@@ -3418,16 +3418,16 @@ public class Extended extends ExtendedApi
             Object takeProfit = this.safeDict(parameters, "takeProfit");
             Boolean hasStopLoss = (!java.util.Objects.equals(stopLoss, null));
             Boolean hasTakeProfit = (!java.util.Objects.equals(takeProfit, null));
-            if (Helpers.isTrue(hasStopLoss) || Helpers.isTrue(hasTakeProfit))
+            if (Boolean.TRUE.equals(hasStopLoss) || Boolean.TRUE.equals(hasTakeProfit))
             {
                 ((Map<String, Object>)request).put("tpSlType", "ORDER");
-                if (Helpers.isTrue(hasStopLoss))
+                if (Boolean.TRUE.equals(hasStopLoss))
                 {
                     String stopLossTrigger = this.safeString(stopLoss, "triggerPrice");
                     String stopLossTriggerPriceType = this.safeString(stopLoss, "triggerPriceType");
                     String stopLossExecutionPrice = this.safeString(stopLoss, "price");
                     String stopLossType = this.safeString(stopLoss, "type");
-                    Object stopLossSettlement = this.createOrderSettlementData(!Helpers.isTrue(isBuy), ((String)amountString), stopLossExecutionPrice, settlementParams);
+                    Object stopLossSettlement = this.createOrderSettlementData(!Boolean.TRUE.equals(isBuy), ((String)amountString), stopLossExecutionPrice, settlementParams);
                     Map<String, Object> requestStopLoss = new HashMap<String, Object>() {{
                         put( "triggerPrice", Extended.this.priceToPrecision(symbol, stopLossTrigger) );
                         put( "price", Extended.this.priceToPrecision(symbol, stopLossExecutionPrice) );
@@ -3450,13 +3450,13 @@ public class Extended extends ExtendedApi
                     }
                     ((Map<String, Object>)request).put("stopLoss", requestStopLoss);
                 }
-                if (Helpers.isTrue(hasTakeProfit))
+                if (Boolean.TRUE.equals(hasTakeProfit))
                 {
                     String takeProfitTrigger = this.safeString(takeProfit, "triggerPrice");
                     String takeProfitTriggerPriceType = this.safeString(takeProfit, "triggerPriceType");
                     String takeProfitExecutionPrice = this.safeString(takeProfit, "price");
                     String takeProfitType = this.safeString(takeProfit, "type");
-                    Object takeProfitSettlement = this.createOrderSettlementData(!Helpers.isTrue(isBuy), ((String)amountString), takeProfitExecutionPrice, settlementParams);
+                    Object takeProfitSettlement = this.createOrderSettlementData(!Boolean.TRUE.equals(isBuy), ((String)amountString), takeProfitExecutionPrice, settlementParams);
                     Map<String, Object> requestTakeProfit = new HashMap<String, Object>() {{
                         put( "triggerPrice", Extended.this.priceToPrecision(symbol, takeProfitTrigger) );
                         put( "price", Extended.this.priceToPrecision(symbol, takeProfitExecutionPrice) );
@@ -3495,19 +3495,19 @@ public class Extended extends ExtendedApi
                     ((Map<String, Object>)trigger).put("direction", triggerDirection);
                     ((Map<String, Object>)request).put("type", "CONDITIONAL");
                     ((Map<String, Object>)request).put("trigger", trigger);
-                } else if (Helpers.isTrue(isStopLossOrder) || Helpers.isTrue(isTakeProfitOrder))
+                } else if (Boolean.TRUE.equals(isStopLossOrder) || Boolean.TRUE.equals(isTakeProfitOrder))
                 {
-                    triggerPriceStr = ((Helpers.isTrue(isStopLossOrder))) ? stopLossTriggerPrice : takeProfitTriggerPrice;
+                    triggerPriceStr = ((Boolean.TRUE.equals(isStopLossOrder))) ? stopLossTriggerPrice : takeProfitTriggerPrice;
                     final Object finalTriggerPriceStr_2 = triggerPriceStr;
                     Map<String, Object> trigger = new HashMap<String, Object>() {{
                         put( "triggerPrice", Extended.this.priceToPrecision(symbol, finalTriggerPriceStr_2) );
                     }};
-                    if (Helpers.isTrue(isBuy))
+                    if (Boolean.TRUE.equals(isBuy))
                     {
-                        ((Map<String, Object>)trigger).put("direction", ((Helpers.isTrue(isStopLossOrder))) ? "UP" : "DOWN");
+                        ((Map<String, Object>)trigger).put("direction", ((Boolean.TRUE.equals(isStopLossOrder))) ? "UP" : "DOWN");
                     } else
                     {
-                        ((Map<String, Object>)trigger).put("direction", ((Helpers.isTrue(isStopLossOrder))) ? "DOWN" : "UP");
+                        ((Map<String, Object>)trigger).put("direction", ((Boolean.TRUE.equals(isStopLossOrder))) ? "DOWN" : "UP");
                     }
                     ((Map<String, Object>)request).put("type", "CONDITIONAL");
                     ((Map<String, Object>)request).put("trigger", trigger);
@@ -3787,7 +3787,7 @@ public class Extended extends ExtendedApi
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderIds", "client_order_ids", "clientOrderId", "client_id", "externalOrderIds", "external_order_ids", "orderIds", "order_ids", "markets", "cancelAll", "cancel_all")));
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Boolean hasOrderIds = !java.util.Objects.equals(ids, null);
-            if (Helpers.isTrue(hasOrderIds))
+            if (Boolean.TRUE.equals(hasOrderIds))
             {
                 Object idsLength = ((List<?>)ids).size();
                 if (Helpers.isGreaterThan(idsLength, 0))
@@ -3808,7 +3808,7 @@ public class Extended extends ExtendedApi
                     ((Map<String, Object>)request).put("externalOrderIds", clientOrderIds);
                 }
             }
-            if (!Helpers.isTrue(hasOrderIds) && !Helpers.isTrue(hasClientOrderIds))
+            if (!Boolean.TRUE.equals(hasOrderIds) && !Boolean.TRUE.equals(hasClientOrderIds))
             {
                 throw new ArgumentsRequired((this.id + " cancelOrders() requires an ids argument or clientOrderIds parameter")) ;
             }
@@ -4037,7 +4037,7 @@ public class Extended extends ExtendedApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchOrders", symbol, since, limit, parameters, "cursor", "cursor", null, 100)).join();
             }
@@ -4332,7 +4332,7 @@ public class Extended extends ExtendedApi
     {
         Object domainTypeHash = this.convertToBigInt(this.extendedStarknetGetSelectorFromName("\"StarknetDomain\"(\"name\":\"shortstring\",\"version\":\"shortstring\",\"chainId\":\"shortstring\",\"revision\":\"shortstring\")"));
         Boolean isTestnet = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"), "sepolia"), 0);
-        String defaultChainId = ((Helpers.isTrue(isTestnet))) ? "SN_SEPOLIA" : "SN_MAIN";
+        String defaultChainId = ((Boolean.TRUE.equals(isTestnet))) ? "SN_SEPOLIA" : "SN_MAIN";
         String chainId = this.safeString(this.options, "chainId", defaultChainId);
         return this.convertToBigInt(this.extendedStarknetComputePoseidonHashOnElements(new ArrayList<Object>(Arrays.asList(domainTypeHash, this.getExtendedStringToFelt("Perpetuals"), this.getExtendedStringToFelt("v0"), this.getExtendedStringToFelt(chainId), this.convertToBigInt("1")))));
     }
@@ -4421,14 +4421,14 @@ public class Extended extends ExtendedApi
             headers = new HashMap<String, Object>() {{
                 put( "X-Api-Key", Extended.this.apiKey );
             }};
-            if (((java.util.Objects.equals(method, "POST")) || (java.util.Objects.equals(method, "PATCH"))) && !Helpers.isTrue(queryPost))
+            if (((java.util.Objects.equals(method, "POST")) || (java.util.Objects.equals(method, "PATCH"))) && !Boolean.TRUE.equals(queryPost))
             {
                 body = this.json(query);
                 ((Map<String, Object>)headers).put("Content-Type", "application/json");
             }
         }
         url = Helpers.add(Helpers.add((url + "/api/"), version), endpoint);
-        if ((java.util.Objects.equals(method, "GET") || java.util.Objects.equals(method, "DELETE") || Helpers.isTrue(queryPost)) && (((List<?>)Helpers.objectKeys(query)).size() > 0))
+        if ((java.util.Objects.equals(method, "GET") || java.util.Objects.equals(method, "DELETE") || Boolean.TRUE.equals(queryPost)) && (((List<?>)Helpers.objectKeys(query)).size() > 0))
         {
             url = (url + ("?" + this.urlencodeWithArrayRepeat(query)));
         }

@@ -840,7 +840,7 @@ public class Blofin extends BlofinApi
         Boolean future = (java.util.Objects.equals(type, "future"));
         Boolean swap = (java.util.Objects.equals(type, "swap"));
         Boolean option = (java.util.Objects.equals(type, "option"));
-        Boolean contract = Helpers.isTrue(swap) || Helpers.isTrue(future);
+        Boolean contract = Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(future);
         String baseId = this.safeString(market, "baseCurrency");
         String quoteId = this.safeString(market, "quoteCurrency");
         String settleId = this.safeString(market, "settleCurrency", quoteId);
@@ -848,7 +848,7 @@ public class Blofin extends BlofinApi
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
-        if (Helpers.isTrue(swap))
+        if (Boolean.TRUE.equals(swap))
         {
             symbol = Helpers.add((symbol + ":"), settle);
         }
@@ -862,7 +862,7 @@ public class Blofin extends BlofinApi
         String maxLeverage = this.safeString(market, "maxLeverage", "100");
         maxLeverage = Precise.stringMax(maxLeverage, "1");
         Boolean isActive = (java.util.Objects.equals(this.safeString(market, "state"), "live"));
-        Boolean isMargin = Helpers.isTrue(spot) && Helpers.isTrue((Precise.stringGt(maxLeverage, "1")));
+        Boolean isMargin = Boolean.TRUE.equals(spot) && Helpers.isTrue((Precise.stringGt(maxLeverage, "1")));
         String contractType = this.safeString(market, "contractType");
         Double maxLimitAmount = this.safeNumber(market, "maxLimitSize");
         Object maxSpotCost = this.safeNumber(market, "maxMarketSize"); // for spot, market-buy size is denominated in the quote currency, i.e. cost
@@ -892,9 +892,9 @@ public class Blofin extends BlofinApi
             put( "taker", taker );
             put( "maker", maker );
             put( "contract", contract );
-            put( "linear", ((Helpers.isTrue(contract))) ? (java.util.Objects.equals(finalContractType, "linear")) : null );
-            put( "inverse", ((Helpers.isTrue(contract))) ? (java.util.Objects.equals(finalContractType, "inverse")) : null );
-            put( "contractSize", ((Helpers.isTrue(contract))) ? Blofin.this.safeNumber(market, "contractValue") : null );
+            put( "linear", ((Boolean.TRUE.equals(contract))) ? (java.util.Objects.equals(finalContractType, "linear")) : null );
+            put( "inverse", ((Boolean.TRUE.equals(contract))) ? (java.util.Objects.equals(finalContractType, "inverse")) : null );
+            put( "contractSize", ((Boolean.TRUE.equals(contract))) ? Blofin.this.safeNumber(market, "contractValue") : null );
             put( "expiry", expiry );
             put( "expiryDatetime", expiry );
             put( "strike", strikePrice );
@@ -919,7 +919,7 @@ public class Blofin extends BlofinApi
                 }} );
                 put( "cost", new HashMap<String, Object>() {{
                     put( "min", null );
-                    put( "max", ((Helpers.isTrue(contract))) ? null : maxSpotCost );
+                    put( "max", ((Boolean.TRUE.equals(contract))) ? null : maxSpotCost );
                 }} );
             }} );
             put( "info", market );
@@ -1213,7 +1213,7 @@ public class Blofin extends BlofinApi
                 put( "currency", finalFeeCurrency );
             }};
         }
-        if (Helpers.isTrue(isSpot))
+        if (Boolean.TRUE.equals(isSpot))
         {
             Object spotSymbol = ((((Map<String, Object>)market).get("base") + "/") + ((Map<String, Object>)market).get("quote"));
             Object cost = this.parseNumber(Precise.stringMul(price, amount));
@@ -1287,7 +1287,7 @@ public class Blofin extends BlofinApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchTrades", symbol, since, limit, parameters, "tradeId", "after", null, 100)).join();
             }
@@ -1365,7 +1365,7 @@ public class Blofin extends BlofinApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 100)).join();
             }
@@ -1426,7 +1426,7 @@ public class Blofin extends BlofinApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters, 100)).join();
             }
@@ -1556,7 +1556,7 @@ public class Blofin extends BlofinApi
     public Object parseBalanceByType(Object response)
     {
         Object data = this.safeList(response, "data");
-        if ((!java.util.Objects.equals(data, null)) && Helpers.isTrue(Helpers.isArray(data)))
+        if ((!java.util.Objects.equals(data, null)) && (data instanceof List))
         {
             return this.parseFundingBalance(response);
         } else
@@ -1756,8 +1756,8 @@ public class Blofin extends BlofinApi
         Boolean isMarketOrder = java.util.Objects.equals(type, "market");
         parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce")));
         Boolean ioc = (java.util.Objects.equals(timeInForce, "IOC")) || (java.util.Objects.equals(type, "ioc"));
-        Boolean marketIOC = (Helpers.isTrue(isMarketOrder) && Helpers.isTrue(ioc));
-        if (Helpers.isTrue(isMarketOrder) || Helpers.isTrue(marketIOC))
+        Boolean marketIOC = (Boolean.TRUE.equals(isMarketOrder) && Boolean.TRUE.equals(ioc));
+        if (Boolean.TRUE.equals(isMarketOrder) || Boolean.TRUE.equals(marketIOC))
         {
             ((Map<String, Object>)request).put("orderType", "market");
         } else
@@ -1769,7 +1769,7 @@ public class Blofin extends BlofinApi
         List<Object> postOnlyparametersVariable = (List<Object>) this.handlePostOnly(isMarketOrder, java.util.Objects.equals(type, "post_only"), parameters);
         postOnly = (Boolean) ((List<Object>) postOnlyparametersVariable).get(0);
         parameters = ((List<Object>) postOnlyparametersVariable).get(1);
-        if (Helpers.isTrue(postOnly))
+        if (Boolean.TRUE.equals(postOnly))
         {
             ((Map<String, Object>)request).put("type", "post_only");
         }
@@ -1778,16 +1778,16 @@ public class Blofin extends BlofinApi
         parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLoss", "takeProfit", "hedged")));
         Boolean hasStopLoss = !java.util.Objects.equals(stopLoss, null);
         Boolean hasTakeProfit = !java.util.Objects.equals(takeProfit, null);
-        if (Helpers.isTrue(hasStopLoss) || Helpers.isTrue(hasTakeProfit))
+        if (Boolean.TRUE.equals(hasStopLoss) || Boolean.TRUE.equals(hasTakeProfit))
         {
-            if (Helpers.isTrue(hasStopLoss))
+            if (Boolean.TRUE.equals(hasStopLoss))
             {
                 String slTriggerPrice = this.safeString2(stopLoss, "triggerPrice", "stopPrice");
                 ((Map<String, Object>)request).put("slTriggerPrice", this.priceToPrecision(symbol, slTriggerPrice));
                 String slOrderPrice = this.safeString(stopLoss, "price", "-1");
                 ((Map<String, Object>)request).put("slOrderPrice", this.priceToPrecision(symbol, slOrderPrice));
             }
-            if (Helpers.isTrue(hasTakeProfit))
+            if (Boolean.TRUE.equals(hasTakeProfit))
             {
                 String tpTriggerPrice = this.safeString2(takeProfit, "triggerPrice", "stopPrice");
                 ((Map<String, Object>)request).put("tpTriggerPrice", this.priceToPrecision(symbol, tpTriggerPrice));
@@ -1798,7 +1798,7 @@ public class Blofin extends BlofinApi
         {
             ((Map<String, Object>)request).put("orderType", "trigger");
             ((Map<String, Object>)request).put("triggerPrice", this.priceToPrecision(symbol, triggerPriceAny));
-            if (Helpers.isTrue(isMarketOrder))
+            if (Boolean.TRUE.equals(isMarketOrder))
             {
                 ((Map<String, Object>)request).put("orderPrice", "-1");
             }
@@ -2011,19 +2011,19 @@ public class Blofin extends BlofinApi
             List<Object> isTpslEndpointparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "tpsl", false);
             isTpslEndpoint = ((List<Object>) isTpslEndpointparametersVariable).get(0);
             parameters = ((List<Object>) isTpslEndpointparametersVariable).get(1);
-            Boolean isCombinedSlTp = (Helpers.isTrue(isStopLossPriceDefined) && Helpers.isTrue(isTakeProfitPriceDefined)) || Helpers.isTrue(isTpslEndpoint);
-            Boolean isSlOrTp = Helpers.isTrue(isStopLossPriceDefined) || Helpers.isTrue(isTakeProfitPriceDefined);
+            Boolean isCombinedSlTp = (Boolean.TRUE.equals(isStopLossPriceDefined) && Boolean.TRUE.equals(isTakeProfitPriceDefined)) || Boolean.TRUE.equals(isTpslEndpoint);
+            Boolean isSlOrTp = Boolean.TRUE.equals(isStopLossPriceDefined) || Boolean.TRUE.equals(isTakeProfitPriceDefined);
             Object response = null;
             Object reduceOnly = this.safeBool(parameters, "reduceOnly");
             if (!java.util.Objects.equals(reduceOnly, null))
             {
                 ((Map<String, Object>)parameters).put("reduceOnly", ((Helpers.isTrue(reduceOnly))) ? "true" : "false");
             }
-            if (Helpers.isTrue(isCombinedSlTp))
+            if (Boolean.TRUE.equals(isCombinedSlTp))
             {
                 Object tpslRequest = this.createTpslOrderRequest(symbol, type, side, amount, price, parameters);
                 response = (this.privatePostTradeOrderTpsl(tpslRequest)).join();
-            } else if (Helpers.isTrue(isTriggerOrder) || Helpers.isTrue(isSlOrTp))
+            } else if (Boolean.TRUE.equals(isTriggerOrder) || Boolean.TRUE.equals(isSlOrTp))
             {
                 Object triggerRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters);
                 response = (this.privatePostTradeOrderAlgo(triggerRequest)).join();
@@ -2032,7 +2032,7 @@ public class Blofin extends BlofinApi
                 Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
                 response = (this.privatePostTradeOrder(request)).join();
             }
-            if (Helpers.isTrue(isCombinedSlTp) || Helpers.isTrue(isSlOrTp) || Helpers.isTrue(isTriggerOrder))
+            if (Boolean.TRUE.equals(isCombinedSlTp) || Boolean.TRUE.equals(isSlOrTp) || Boolean.TRUE.equals(isTriggerOrder))
             {
                 Object dataDict = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 return this.parseOrder(dataDict, market);
@@ -2262,7 +2262,7 @@ public class Blofin extends BlofinApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, parameters)).join();
             }
@@ -2334,7 +2334,7 @@ public class Blofin extends BlofinApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters)).join();
             }
@@ -2422,7 +2422,7 @@ public class Blofin extends BlofinApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchDeposits", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchDeposits", code, since, limit, parameters)).join();
             }
@@ -2481,7 +2481,7 @@ public class Blofin extends BlofinApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchWithdrawals", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, parameters)).join();
             }
@@ -2690,7 +2690,7 @@ public class Blofin extends BlofinApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchLedger", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, parameters)).join();
             }
@@ -3650,7 +3650,7 @@ public class Blofin extends BlofinApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchClosedOrders", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, parameters)).join();
             }

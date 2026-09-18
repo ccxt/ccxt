@@ -423,7 +423,7 @@ public class Nado extends NadoApi
             Object placeOrder = this.safeDict(request, "place_order", new HashMap<String, Object>() {{}});
             Boolean isTriggerOrder = (((Map<?, ?>)placeOrder).containsKey("trigger"));
             Object response = null;
-            if (Helpers.isTrue(isTriggerOrder))
+            if (Boolean.TRUE.equals(isTriggerOrder))
             {
                 response = (this.triggerPrivatePostExecute(request)).join();
             } else
@@ -531,8 +531,8 @@ public class Nado extends NadoApi
             Boolean isStopLossOrder = !java.util.Objects.equals(stopLossTriggerPrice, null);
             Boolean isTakeProfitOrder = !java.util.Objects.equals(takeProfitTriggerPrice, null);
             Boolean isStopOrder = !java.util.Objects.equals(triggerPrice, null);
-            Boolean isTriggerOrder = Helpers.isTrue(isStopOrder) || Helpers.isTrue(isStopLossOrder) || Helpers.isTrue(isTakeProfitOrder);
-            if (Helpers.isTrue(isStopOrder))
+            Boolean isTriggerOrder = Boolean.TRUE.equals(isStopOrder) || Boolean.TRUE.equals(isStopLossOrder) || Boolean.TRUE.equals(isTakeProfitOrder);
+            if (Boolean.TRUE.equals(isStopOrder))
             {
                 Object triggerDirection = null;
                 List<Object> triggerDirectionparametersVariable = (List<Object>) this.handleTriggerDirectionAndParams(parameters);
@@ -548,17 +548,17 @@ public class Nado extends NadoApi
                     }} );
                 }};
                 ((Map<String, Object>)placeOrder).put("trigger", trigger);
-            } else if (Helpers.isTrue(isStopLossOrder) || Helpers.isTrue(isTakeProfitOrder))
+            } else if (Boolean.TRUE.equals(isStopLossOrder) || Boolean.TRUE.equals(isTakeProfitOrder))
             {
                 Object triggerDirection = "";
-                if (Helpers.isTrue(isBuy))
+                if (Boolean.TRUE.equals(isBuy))
                 {
-                    triggerDirection = ((Helpers.isTrue(isStopLossOrder))) ? "above" : "below";
+                    triggerDirection = ((Boolean.TRUE.equals(isStopLossOrder))) ? "above" : "below";
                 } else
                 {
-                    triggerDirection = ((Helpers.isTrue(isStopLossOrder))) ? "below" : "above";
+                    triggerDirection = ((Boolean.TRUE.equals(isStopLossOrder))) ? "below" : "above";
                 }
-                triggerPrice = ((Helpers.isTrue(isStopLossOrder))) ? stopLossTriggerPrice : takeProfitTriggerPrice;
+                triggerPrice = ((Boolean.TRUE.equals(isStopLossOrder))) ? stopLossTriggerPrice : takeProfitTriggerPrice;
                 String triggerPriceX18 = this.convertToX18(triggerPrice);
                 Map<String, Object> priceRequirement = new HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(priceRequirement, ("oracle_price_" + triggerDirection), triggerPriceX18);
@@ -2012,10 +2012,10 @@ public class Nado extends NadoApi
                 Object quoteAsset = this.safeDict(assetsByCode, quote);
                 String baseId = this.safeString(baseAsset, "product_id", rawBaseId);
                 String quoteId = this.safeString(quoteAsset, "product_id", rawQuoteId);
-                String settleId = ((Helpers.isTrue(contract))) ? quoteId : null;
-                String settle = ((Helpers.isTrue(contract))) ? quote : null;
+                String settleId = ((Boolean.TRUE.equals(contract))) ? quoteId : null;
+                String settle = ((Boolean.TRUE.equals(contract))) ? quote : null;
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
-                if (Helpers.isTrue(contract))
+                if (Boolean.TRUE.equals(contract))
                 {
                     symbol = Helpers.add(symbol, Helpers.add(":", settle));
                 }
@@ -2046,11 +2046,11 @@ public class Nado extends NadoApi
                     put( "option", false );
                     put( "active", active );
                     put( "contract", contract );
-                    put( "linear", ((Helpers.isTrue(contract))) ? true : null );
-                    put( "inverse", ((Helpers.isTrue(contract))) ? false : null );
+                    put( "linear", ((Boolean.TRUE.equals(contract))) ? true : null );
+                    put( "inverse", ((Boolean.TRUE.equals(contract))) ? false : null );
                     put( "taker", Nado.this.parseX18(Nado.this.safeString(market, "taker_fee_rate_x18")) );
                     put( "maker", Nado.this.parseX18(Nado.this.safeString(market, "maker_fee_rate_x18")) );
-                    put( "contractSize", ((Helpers.isTrue(contract))) ? 1 : null );
+                    put( "contractSize", ((Boolean.TRUE.equals(contract))) ? 1 : null );
                     put( "expiry", null );
                     put( "expiryDatetime", null );
                     put( "strike", null );
@@ -2752,7 +2752,7 @@ public class Nado extends NadoApi
         }
         String feeString = this.safeString(trade, "fee");
         Object feeCost = null;
-        if (Helpers.isTrue(isArchiveMatch))
+        if (Boolean.TRUE.equals(isArchiveMatch))
         {
             feeCost = this.parseX18(feeString);
         } else
@@ -2773,7 +2773,7 @@ public class Nado extends NadoApi
         if (!java.util.Objects.equals(amountString, null))
         {
             String absoluteAmount = Precise.stringAbs(amountString);
-            if (Helpers.isTrue(isArchiveMatch))
+            if (Boolean.TRUE.equals(isArchiveMatch))
             {
                 parsedAmount = this.parseX18(absoluteAmount);
             } else
@@ -2785,7 +2785,7 @@ public class Nado extends NadoApi
         if (!java.util.Objects.equals(costString, null))
         {
             String absoluteCost = Precise.stringAbs(costString);
-            if (Helpers.isTrue(isArchiveMatch))
+            if (Boolean.TRUE.equals(isArchiveMatch))
             {
                 parsedCost = this.parseX18(absoluteCost);
             } else

@@ -972,7 +972,7 @@ public class Bitfinex extends BitfinexApi
                 // quoteId = 'f' + quoteId;
                 Object settle = null;
                 Object settleId = null;
-                if (Helpers.isTrue(swap))
+                if (Boolean.TRUE.equals(swap))
                 {
                     settle = quote;
                     settleId = quote;
@@ -1001,15 +1001,15 @@ public class Bitfinex extends BitfinexApi
                     put( "type", finalType );
                     put( "spot", finalSpot );
                     put( "tradfi", Bitfinex.this.inArray(id, securitiesMarketsIds) );
-                    put( "margin", (Helpers.isTrue(finalSpot) && Helpers.isTrue(Bitfinex.this.inArray(id, marginIds))) );
+                    put( "margin", (Boolean.TRUE.equals(finalSpot) && Helpers.isTrue(Bitfinex.this.inArray(id, marginIds))) );
                     put( "swap", swap );
                     put( "future", false );
                     put( "option", false );
                     put( "active", true );
-                    put( "contract", !Helpers.isTrue(finalSpot) );
-                    put( "linear", ((Helpers.isTrue(swap))) ? true : null );
-                    put( "inverse", ((Helpers.isTrue(swap))) ? false : null );
-                    put( "contractSize", ((Helpers.isTrue(swap))) ? Bitfinex.this.parseNumber("1") : null );
+                    put( "contract", !Boolean.TRUE.equals(finalSpot) );
+                    put( "linear", ((Boolean.TRUE.equals(swap))) ? true : null );
+                    put( "inverse", ((Boolean.TRUE.equals(swap))) ? false : null );
+                    put( "contractSize", ((Boolean.TRUE.equals(swap))) ? Bitfinex.this.parseNumber("1") : null );
                     put( "expiry", null );
                     put( "expiryDatetime", null );
                     put( "strike", null );
@@ -1209,7 +1209,7 @@ public class Bitfinex extends BitfinexApi
         Object pool = this.safeList(Helpers.GetValue(indexed, "pool"), id, new ArrayList<Object>(Arrays.asList()));
         String rawType = this.safeString(pool, 1);
         Boolean isCryptoCoin = (!java.util.Objects.equals(rawType, null)) || (Helpers.inOp(Helpers.GetValue(indexed, "explorer"), id)); // "hacky" solution
-        String type = ((Helpers.isTrue(isCryptoCoin))) ? "crypto" : null;
+        String type = ((Boolean.TRUE.equals(isCryptoCoin))) ? "crypto" : null;
         Object feeValues = this.safeList(Helpers.GetValue(indexed, "fees"), id, new ArrayList<Object>(Arrays.asList()));
         Object fees = this.safeList(feeValues, 1, new ArrayList<Object>(Arrays.asList()));
         Double fee = this.safeNumber(fees, 1);
@@ -1330,8 +1330,8 @@ public class Bitfinex extends BitfinexApi
                 Object start = Helpers.subtract(currencyId.length(), 2);
                 Boolean isDerivativeCode = java.util.Objects.equals(Helpers.slice(currencyId, start, null), "f0");
                 // this will only filter the derivative codes if the requestedType is 'derivatives'
-                Boolean derivativeCondition = (!Helpers.isTrue(isDerivative) || Helpers.isTrue(isDerivativeCode));
-                if ((java.util.Objects.equals(accountType, type)) && Helpers.isTrue(derivativeCondition))
+                Boolean derivativeCondition = (!Boolean.TRUE.equals(isDerivative) || Boolean.TRUE.equals(isDerivativeCode));
+                if ((java.util.Objects.equals(accountType, type)) && Boolean.TRUE.equals(derivativeCondition))
                 {
                     String code = this.safeCurrencyCode(currencyId);
                     Helpers.addElementToObject(account, "total", this.safeString(balance, 2));
@@ -1507,7 +1507,7 @@ public class Bitfinex extends BitfinexApi
             currencyId = this.safeString(underlying, 0, transferId);
             Object start = Helpers.subtract(((String)((String)currencyId)).length(), 2);
             Boolean isDerivativeCode = java.util.Objects.equals(Helpers.slice(((String)currencyId), start, null), "F0");
-            if (!Helpers.isTrue(isDerivativeCode))
+            if (!Boolean.TRUE.equals(isDerivativeCode))
             {
                 currencyId = Helpers.add(currencyId, "F0");
             }
@@ -1631,10 +1631,10 @@ public class Bitfinex extends BitfinexApi
         // look like a number and the whole array would be read off by one.
         String firstValue = this.safeString(ticker, 0);
         Boolean hasMarketId = (!java.util.Objects.equals(firstValue, null)) && (Helpers.isTrue(firstValue.startsWith(((String)"t"))) || Helpers.isTrue(firstValue.startsWith(((String)"f"))));
-        Boolean isFetchTicker = !Helpers.isTrue(hasMarketId);
+        Boolean isFetchTicker = !Boolean.TRUE.equals(hasMarketId);
         Object symbol = null;
         Integer minusIndex = 0;
-        if (Helpers.isTrue(isFetchTicker))
+        if (Boolean.TRUE.equals(isFetchTicker))
         {
             minusIndex = 1;
         } else
@@ -1652,7 +1652,7 @@ public class Bitfinex extends BitfinexApi
         String volume = null;
         String high = null;
         String low = null;
-        if (Helpers.isTrue(isFundingCurrency))
+        if (Boolean.TRUE.equals(isFundingCurrency))
         {
             // per api docs, they are different array type
             last = this.safeString(ticker, Helpers.subtract(10, minusIndex));
@@ -1849,10 +1849,10 @@ public class Bitfinex extends BitfinexApi
         Object tradeLength = ((List<?>)tradeList).size();
         Boolean isPrivate = (Helpers.isGreaterThan(tradeLength, 5));
         String id = this.safeString(tradeList, 0);
-        Object amountIndex = ((Helpers.isTrue(isPrivate))) ? 4 : 2;
+        Object amountIndex = ((Boolean.TRUE.equals(isPrivate))) ? 4 : 2;
         String side = null;
         String amountString = this.safeString(tradeList, amountIndex);
-        Object priceIndex = ((Helpers.isTrue(isPrivate))) ? 5 : 3;
+        Object priceIndex = ((Boolean.TRUE.equals(isPrivate))) ? 5 : 3;
         String priceString = this.safeString(tradeList, priceIndex);
         if (java.util.Objects.equals(Helpers.GetValue(amountString, 0), "-"))
         {
@@ -1867,9 +1867,9 @@ public class Bitfinex extends BitfinexApi
         String type = null;
         Object fee = null;
         String symbol = this.safeSymbol(null, market);
-        Object timestampIndex = ((Helpers.isTrue(isPrivate))) ? 2 : 1;
+        Object timestampIndex = ((Boolean.TRUE.equals(isPrivate))) ? 2 : 1;
         Long timestamp = this.safeInteger(tradeList, timestampIndex);
-        if (Helpers.isTrue(isPrivate))
+        if (Boolean.TRUE.equals(isPrivate))
         {
             Object marketId = Helpers.GetValue(tradeList, 1);
             symbol = this.safeSymbol(marketId);
@@ -1941,7 +1941,7 @@ public class Bitfinex extends BitfinexApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, parameters, 10000)).join();
             }
@@ -2020,7 +2020,7 @@ public class Bitfinex extends BitfinexApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 10000)).join();
             }
@@ -2268,11 +2268,11 @@ public class Bitfinex extends BitfinexApi
         Boolean ioc = (java.util.Objects.equals(timeInForce, "IOC"));
         Boolean fok = (java.util.Objects.equals(timeInForce, "FOK"));
         Boolean postOnly = ((java.util.Objects.equals(postOnlyParam, true)) || (java.util.Objects.equals(timeInForce, "PO")));
-        if ((Helpers.isTrue(ioc) || Helpers.isTrue(fok)) && (java.util.Objects.equals(price, null)))
+        if ((Boolean.TRUE.equals(ioc) || Boolean.TRUE.equals(fok)) && (java.util.Objects.equals(price, null)))
         {
             throw new InvalidOrder((this.id + " createOrder() requires a price argument with IOC and FOK orders")) ;
         }
-        if ((Helpers.isTrue(ioc) || Helpers.isTrue(fok)) && (java.util.Objects.equals(type, "market")))
+        if ((Boolean.TRUE.equals(ioc) || Boolean.TRUE.equals(fok)) && (java.util.Objects.equals(type, "market")))
         {
             throw new InvalidOrder((this.id + " createOrder() does not allow market IOC and FOK orders")) ;
         }
@@ -2280,10 +2280,10 @@ public class Bitfinex extends BitfinexApi
         {
             ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
         }
-        if (Helpers.isTrue(ioc))
+        if (Boolean.TRUE.equals(ioc))
         {
             orderType = "IOC";
-        } else if (Helpers.isTrue(fok))
+        } else if (Boolean.TRUE.equals(fok))
         {
             orderType = "FOK";
         }
@@ -2299,7 +2299,7 @@ public class Bitfinex extends BitfinexApi
         ((Map<String, Object>)request).put("type", orderType);
         // flag values may be summed to combine flags
         Object flags = 0;
-        if (Helpers.isTrue(postOnly))
+        if (Boolean.TRUE.equals(postOnly))
         {
             flags = this.sum(flags, 4096);
         }
@@ -2876,7 +2876,7 @@ public class Bitfinex extends BitfinexApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchClosedOrders", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, parameters)).join();
             }
@@ -3864,7 +3864,7 @@ public class Bitfinex extends BitfinexApi
         // ["error", 11010, "ratelimit: error"]
         if (!java.util.Objects.equals(response, null))
         {
-            if (!Helpers.isTrue(Helpers.isArray(response)))
+            if (!(response instanceof List))
             {
                 String message = this.safeString2(response, "message", "error");
                 Object feedback = Helpers.add((this.id + " "), body);
@@ -4007,7 +4007,7 @@ public class Bitfinex extends BitfinexApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchLedger", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, parameters, 2500)).join();
             }
@@ -4160,7 +4160,7 @@ public class Bitfinex extends BitfinexApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters, 5000)).join();
             }
@@ -4494,7 +4494,7 @@ public class Bitfinex extends BitfinexApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOpenInterestHistory", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, "8h", parameters, 5000)).join();
             }
@@ -4652,7 +4652,7 @@ public class Bitfinex extends BitfinexApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchLiquidations", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchLiquidations", symbol, since, limit, "8h", parameters, 500)).join();
             }
@@ -4963,7 +4963,7 @@ public class Bitfinex extends BitfinexApi
             }
             // flag values may be summed to combine flags
             Object flags = 0;
-            if (Helpers.isTrue(postOnly))
+            if (Boolean.TRUE.equals(postOnly))
             {
                 flags = this.sum(flags, 4096);
             }

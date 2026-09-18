@@ -275,7 +275,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 ((List<Object>)messageHashes).add(("ticker:" + symbol));
             }
             Object tickers = (this.watchPublicMultiple(uta, messageHashes, topics, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(result, Helpers.GetValue(tickers, "symbol"), tickers);
@@ -543,7 +543,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 ((List<Object>)messageHashes).add(("bidask:" + symbol));
             }
             Object tickers = (this.watchPublicMultiple(uta, messageHashes, topics, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(result, Helpers.GetValue(tickers, "symbol"), tickers);
@@ -653,7 +653,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 messageHash = ((("candles:" + timeframe) + ":") + symbol);
             }
             Object ohlcv = (this.watchPublic(uta, messageHash, args, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
@@ -1031,7 +1031,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 ((Map<String, Object>)parameters).put("uta", true);
             }
             Object orderbook = (this.watchPublicMultiple(uta, messageHashes, topics, parameters)).join();
-            if (Helpers.isTrue(incrementalFeed))
+            if (Boolean.TRUE.equals(incrementalFeed))
             {
                 return Helpers.callDynamically(orderbook, "limit", new Object[]{});
             } else
@@ -1102,7 +1102,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         Object rawOrderBook = this.safeValue(data, 0);
         Long timestamp = this.safeInteger(rawOrderBook, "ts");
         Boolean incrementalBook = java.util.Objects.equals(channel, "books");
-        if (Helpers.isTrue(incrementalBook))
+        if (Boolean.TRUE.equals(incrementalBook))
         {
             // storedOrderBook = this.safeValue (this.orderbooks, symbol);
             if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
@@ -1124,7 +1124,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             // UTA order books do not provide a crc32 checksum (they rely on seq/pseq for integrity),
             // so only validate the checksum when the exchange actually sends one
             Long responseChecksum = this.safeInteger(rawOrderBook, "checksum");
-            if (!Helpers.isTrue(isSnapshot) && (java.util.Objects.equals(checksum, true)) && (!java.util.Objects.equals(responseChecksum, null)))
+            if (!Boolean.TRUE.equals(isSnapshot) && (java.util.Objects.equals(checksum, true)) && (!java.util.Objects.equals(responseChecksum, null)))
             {
                 Object storedAsks = Helpers.GetValue(storedOrderBook, "asks");
                 Object storedBids = Helpers.GetValue(storedOrderBook, "bids");
@@ -1300,7 +1300,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 }});
             }
             Object trades = (this.watchPublicMultiple(uta, messageHashes, topics, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Object first = this.safeValue(trades, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
@@ -1617,7 +1617,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 }});
             }
             Object newPositions = (this.watchPrivate(uta, messageHash, subscriptionHash, args, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 return newPositions;
             }
@@ -1983,7 +1983,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 }});
             }
             Object orders = (this.watchPrivate(uta, messageHash, subscriptionHash, args, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
@@ -2117,8 +2117,8 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             this.triggerOrders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Boolean isTrigger = (java.util.Objects.equals(channel, "orders-algo")) || (java.util.Objects.equals(channel, "ordersAlgo"));
-        Object stored = ((Helpers.isTrue(isTrigger))) ? this.triggerOrders : this.orders;
-        String messageHash = ((Helpers.isTrue(isTrigger))) ? "triggerOrder" : "order";
+        Object stored = ((Boolean.TRUE.equals(isTrigger))) ? this.triggerOrders : this.orders;
+        String messageHash = ((Boolean.TRUE.equals(isTrigger))) ? "triggerOrder" : "order";
         Map<String, Object> marketSymbols = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
@@ -2148,15 +2148,15 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             client.resolve(stored, innerMessageHash);
         }
         client.resolve(stored, messageHash);
-        if (Helpers.isTrue(isLinearSwap))
+        if (Boolean.TRUE.equals(isLinearSwap))
         {
             client.resolve(stored, "order:linear");
         }
-        if (Helpers.isTrue(isInverseSwap))
+        if (Boolean.TRUE.equals(isInverseSwap))
         {
             client.resolve(stored, "order:inverse");
         }
-        if (Helpers.isTrue(isUSDCFutures))
+        if (Boolean.TRUE.equals(isUSDCFutures))
         {
             client.resolve(stored, "order:usdcfutures");
         }
@@ -2351,10 +2351,10 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         Double triggerPrice = this.safeNumber(order, "triggerPrice");
         Boolean isTriggerOrder = (!java.util.Objects.equals(triggerPrice, null));
         Object price = null;
-        if (!Helpers.isTrue(isTriggerOrder))
+        if (!Boolean.TRUE.equals(isTriggerOrder))
         {
             price = this.safeNumber(order, "price");
-        } else if (Helpers.isTrue(isSpot) && Helpers.isTrue(isTriggerOrder))
+        } else if (Boolean.TRUE.equals(isSpot) && Boolean.TRUE.equals(isTriggerOrder))
         {
             // for spot trigger order, limit price is this
             price = this.safeNumber(order, "executePrice");
@@ -2372,9 +2372,9 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         Object cost = null;
         String remaining = null;
         String totalFilled = this.safeString2(order, "accBaseVolume", "cumExecQty");
-        if (Helpers.isTrue(isSpot))
+        if (Boolean.TRUE.equals(isSpot))
         {
-            if (Helpers.isTrue(isMargin))
+            if (Boolean.TRUE.equals(isMargin))
             {
                 totalAmount = this.safeString2(order, "baseSize", "qty");
                 totalFilled = this.safeString2(order, "baseVolume", "cumExecQty");
@@ -2389,9 +2389,9 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 {
                     filledAmount = totalFilled;
                 }
-                if (Helpers.isTrue(isMarketOrder))
+                if (Boolean.TRUE.equals(isMarketOrder))
                 {
-                    if (Helpers.isTrue(isBuy))
+                    if (Boolean.TRUE.equals(isBuy))
                     {
                         totalAmount = accBaseVolume;
                         cost = newSizeValue;
@@ -2532,7 +2532,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 }});
             }
             Object trades = (this.watchPrivate(uta, messageHash, subscriptionHash, args, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }

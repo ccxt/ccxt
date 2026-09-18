@@ -846,7 +846,7 @@ public class Cryptocom extends CryptocomApi
             List<Object> skipFetchCurrenciesparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchCurrencies", "skipFetchCurrencies", false);
             skipFetchCurrencies = ((List<Object>) skipFetchCurrenciesparametersVariable).get(0);
             parameters = ((List<Object>) skipFetchCurrenciesparametersVariable).get(1);
-            if (Helpers.isTrue(skipFetchCurrencies))
+            if (Boolean.TRUE.equals(skipFetchCurrencies))
             {
                 // sub-accounts can't access this endpoint
                 return new HashMap<String, Object>() {{}};
@@ -1084,10 +1084,10 @@ public class Cryptocom extends CryptocomApi
                 Boolean option = java.util.Objects.equals(inst_type, "WARRANT");
                 String baseId = this.safeString(market, "base_ccy");
                 String quoteId = this.safeString(market, "quote_ccy");
-                String settleId = ((Helpers.isTrue(spot))) ? null : quoteId;
+                String settleId = ((Boolean.TRUE.equals(spot))) ? null : quoteId;
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
-                Object settle = ((Helpers.isTrue(spot))) ? null : this.safeCurrencyCode(settleId);
+                Object settle = ((Boolean.TRUE.equals(spot))) ? null : this.safeCurrencyCode(settleId);
                 String optionType = this.safeStringLower(market, "put_call");
                 String strike = this.safeString(market, "strike");
                 Object marginBuyEnabled = this.safeBool(market, "margin_buy_enabled");
@@ -1208,7 +1208,7 @@ public class Cryptocom extends CryptocomApi
             if (!java.util.Objects.equals(symbols, null))
             {
                 Object symbol = null;
-                if (Helpers.isTrue(Helpers.isArray(symbols)))
+                if ((symbols instanceof List))
                 {
                     Object symbolsLength = ((List<?>)symbols).size();
                     if (Helpers.isGreaterThan(symbolsLength, 1))
@@ -1311,7 +1311,7 @@ public class Cryptocom extends CryptocomApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, parameters)).join();
             }
@@ -1412,7 +1412,7 @@ public class Cryptocom extends CryptocomApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, parameters)).join();
             }
@@ -1493,7 +1493,7 @@ public class Cryptocom extends CryptocomApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 300)).join();
             }
@@ -1844,7 +1844,7 @@ public class Cryptocom extends CryptocomApi
         Boolean isTrigger = (!java.util.Objects.equals(triggerPrice, null));
         Boolean isStopLossTrigger = (!java.util.Objects.equals(stopLossPrice, null));
         Boolean isTakeProfitTrigger = (!java.util.Objects.equals(takeProfitPrice, null));
-        if (Helpers.isTrue(isTrigger))
+        if (Boolean.TRUE.equals(isTrigger))
         {
             ((Map<String, Object>)request).put("ref_price", this.priceToPrecision(symbol, triggerPrice));
             Object priceString = this.numberToString(price);
@@ -1891,7 +1891,7 @@ public class Cryptocom extends CryptocomApi
                     }
                 }
             }
-        } else if (Helpers.isTrue(isStopLossTrigger))
+        } else if (Boolean.TRUE.equals(isStopLossTrigger))
         {
             if ((java.util.Objects.equals(uppercaseType, "LIMIT")) || (java.util.Objects.equals(uppercaseType, "STOP_LIMIT")))
             {
@@ -1901,7 +1901,7 @@ public class Cryptocom extends CryptocomApi
                 ((Map<String, Object>)request).put("type", "STOP_LOSS");
             }
             ((Map<String, Object>)request).put("ref_price", this.priceToPrecision(symbol, stopLossPrice));
-        } else if (Helpers.isTrue(isTakeProfitTrigger))
+        } else if (Boolean.TRUE.equals(isTakeProfitTrigger))
         {
             if ((java.util.Objects.equals(uppercaseType, "LIMIT")) || (java.util.Objects.equals(uppercaseType, "TAKE_PROFIT_LIMIT")))
             {
@@ -2121,7 +2121,7 @@ public class Cryptocom extends CryptocomApi
         Boolean isTrigger = (!java.util.Objects.equals(triggerPrice, null));
         Boolean isStopLossTrigger = (!java.util.Objects.equals(stopLossPrice, null));
         Boolean isTakeProfitTrigger = (!java.util.Objects.equals(takeProfitPrice, null));
-        if (Helpers.isTrue(isTrigger))
+        if (Boolean.TRUE.equals(isTrigger))
         {
             Object priceString = this.numberToString(price);
             if ((java.util.Objects.equals(uppercaseType, "LIMIT")) || (java.util.Objects.equals(uppercaseType, "STOP_LIMIT")) || (java.util.Objects.equals(uppercaseType, "TAKE_PROFIT_LIMIT")))
@@ -2167,7 +2167,7 @@ public class Cryptocom extends CryptocomApi
                     }
                 }
             }
-        } else if (Helpers.isTrue(isStopLossTrigger))
+        } else if (Boolean.TRUE.equals(isStopLossTrigger))
         {
             if ((java.util.Objects.equals(uppercaseType, "LIMIT")) || (java.util.Objects.equals(uppercaseType, "STOP_LIMIT")))
             {
@@ -2176,7 +2176,7 @@ public class Cryptocom extends CryptocomApi
             {
                 ((Map<String, Object>)request).put("type", "STOP_LOSS");
             }
-        } else if (Helpers.isTrue(isTakeProfitTrigger))
+        } else if (Boolean.TRUE.equals(isTakeProfitTrigger))
         {
             if ((java.util.Objects.equals(uppercaseType, "LIMIT")) || (java.util.Objects.equals(uppercaseType, "TAKE_PROFIT_LIMIT")))
             {
@@ -2202,7 +2202,7 @@ public class Cryptocom extends CryptocomApi
             if (!java.util.Objects.equals(cost, null))
             {
                 quoteAmount = this.costToPrecision(symbol, cost);
-            } else if (Helpers.isTrue(createMarketBuyOrderRequiresPrice))
+            } else if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
             {
                 if (java.util.Objects.equals(price, null))
                 {
@@ -2570,7 +2570,7 @@ public class Cryptocom extends CryptocomApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters, 100)).join();
             }
@@ -4010,7 +4010,7 @@ public class Cryptocom extends CryptocomApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters)).join();
             }
@@ -4155,7 +4155,7 @@ public class Cryptocom extends CryptocomApi
             if (!java.util.Objects.equals(symbols, null))
             {
                 Object symbol = null;
-                if (Helpers.isTrue(Helpers.isArray(symbols)))
+                if ((symbols instanceof List))
                 {
                     Object symbolsLength = ((List<?>)symbols).size();
                     if (Helpers.isGreaterThan(symbolsLength, 1))
@@ -4277,7 +4277,7 @@ public class Cryptocom extends CryptocomApi
         }
         Object returnString = "";
         Object paramsKeys = null;
-        if (Helpers.isTrue(Helpers.isArray(obj)))
+        if ((obj instanceof List))
         {
             paramsKeys = obj;
         } else
@@ -4293,7 +4293,7 @@ public class Cryptocom extends CryptocomApi
             if (java.util.Objects.equals(value, "undefined"))
             {
                 returnString = (returnString + "null");
-            } else if (Helpers.isTrue(Helpers.isArray(value)))
+            } else if ((value instanceof List))
             {
                 for (var j = 0; j < ((List<?>)value).size(); j++)
                 {

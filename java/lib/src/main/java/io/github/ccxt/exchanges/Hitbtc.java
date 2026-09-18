@@ -923,9 +923,9 @@ public class Hitbtc extends HitbtcApi
                 Boolean contract = (java.util.Objects.equals(marketType, "futures"));
                 Boolean spot = (java.util.Objects.equals(marketType, "spot"));
                 Object marginTrading = this.safeBool(market, "margin_trading", false);
-                Boolean margin = Helpers.isTrue(spot) && Helpers.isTrue(marginTrading);
+                Boolean margin = Boolean.TRUE.equals(spot) && Helpers.isTrue(marginTrading);
                 Boolean future = (!java.util.Objects.equals(expiry, null));
-                Boolean swap = (Helpers.isTrue(contract) && !Helpers.isTrue(future));
+                Boolean swap = (Boolean.TRUE.equals(contract) && !Boolean.TRUE.equals(future));
                 Boolean option = false;
                 String baseId = this.safeString2(market, "base_currency", "underlying");
                 String quoteId = this.safeString(market, "quote_currency");
@@ -940,7 +940,7 @@ public class Hitbtc extends HitbtcApi
                 Object contractSize = null;
                 Object linear = null;
                 Object inverse = null;
-                if (Helpers.isTrue(contract))
+                if (Boolean.TRUE.equals(contract))
                 {
                     contractSize = this.parseNumber("1");
                     settleId = feeCurrencyId;
@@ -948,7 +948,7 @@ public class Hitbtc extends HitbtcApi
                     linear = ((!java.util.Objects.equals(quote, null)) && (java.util.Objects.equals(quote, settle)));
                     inverse = !Helpers.isTrue(linear);
                     symbol = Helpers.add((symbol + ":"), settle);
-                    if (Helpers.isTrue(future))
+                    if (Boolean.TRUE.equals(future))
                     {
                         symbol = Helpers.add((symbol + "-"), expiry);
                         type = "future";
@@ -2211,7 +2211,7 @@ public class Hitbtc extends HitbtcApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 1000)).join();
             }
@@ -3032,7 +3032,7 @@ public class Hitbtc extends HitbtcApi
         {
             ((Map<String, Object>)request).put("time_in_force", timeInForce);
         }
-        if (Helpers.isTrue(isLimit) || (java.util.Objects.equals(type, "stopLimit")) || (java.util.Objects.equals(type, "takeProfitLimit")))
+        if (Boolean.TRUE.equals(isLimit) || (java.util.Objects.equals(type, "stopLimit")) || (java.util.Objects.equals(type, "takeProfitLimit")))
         {
             if (java.util.Objects.equals(price, null))
             {
@@ -3051,7 +3051,7 @@ public class Hitbtc extends HitbtcApi
         if (!java.util.Objects.equals(triggerPrice, null))
         {
             ((Map<String, Object>)request).put("stop_price", this.priceToPrecision(((Map<String, Object>)market).get("symbol"), triggerPrice));
-            if (Helpers.isTrue(isLimit))
+            if (Boolean.TRUE.equals(isLimit))
             {
                 ((Map<String, Object>)request).put("type", "stopLimit");
             } else if (java.util.Objects.equals(type, "market"))
@@ -3569,7 +3569,7 @@ public class Hitbtc extends HitbtcApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters, 1000)).join();
             }

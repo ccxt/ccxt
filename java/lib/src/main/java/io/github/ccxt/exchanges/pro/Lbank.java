@@ -191,7 +191,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             }};
             Map<String, Object> request = this.deepExtend(subscribe, parameters);
             Object ohlcv = (this.watch(url, messageHash, request, messageHash, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }

@@ -766,7 +766,7 @@ public class Pacifica extends PacificaApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (Helpers.isTrue(this.isSandboxModeEnabled))
+            if (this.isSandboxModeEnabled)
             {
                 return false;
             }
@@ -913,7 +913,7 @@ public class Pacifica extends PacificaApi
         String baseId = this.safeString(market, "base_asset", id);
         String instrumentType = this.safeString(market, "instrument_type");
         Boolean isSpot = (java.util.Objects.equals(instrumentType, "spot"));
-        Boolean isSwap = !Helpers.isTrue(isSpot);
+        Boolean isSwap = !Boolean.TRUE.equals(isSpot);
         String quoteId = "USDC";
         String settleId = null;
         String type = "spot";
@@ -928,13 +928,13 @@ public class Pacifica extends PacificaApi
         {
             throw new ExchangeError((this.id + " parseMarket() missing id")) ;
         }
-        if (Helpers.isTrue(isSpot))
+        if (Boolean.TRUE.equals(isSpot))
         {
             Object idParts = Helpers.split(id, "-");
             quoteId = this.safeString(idParts, 1, quoteId);
         }
         Object isolatedOnly = this.safeBool(market, "isolated_only", false);
-        if (Helpers.isTrue(isSwap))
+        if (Boolean.TRUE.equals(isSwap))
         {
             settleId = quoteId;
             type = "swap";
@@ -950,7 +950,7 @@ public class Pacifica extends PacificaApi
         String quote = this.safeCurrencyCode(quoteId);
         String settle = this.safeCurrencyCode(settleId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
-        if (Helpers.isTrue(isSwap))
+        if (Boolean.TRUE.equals(isSwap))
         {
             symbol = Helpers.add((symbol + ":"), settle);
         }
@@ -1582,7 +1582,7 @@ public class Pacifica extends PacificaApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, defaultMaxLimit)).join();
             }
@@ -1756,7 +1756,7 @@ public class Pacifica extends PacificaApi
             userAddress = ((List<Object>) userAddressparametersVariable).get(0);
             parameters = ((List<Object>) userAddressparametersVariable).get(1);
             Integer defaultLimit = 100; // Default max limit
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, parameters, "next_cursor", "cursor", null, defaultLimit)).join();
             }
@@ -2035,17 +2035,17 @@ public class Pacifica extends PacificaApi
         Boolean isStopLossOrder = (!java.util.Objects.equals(stopLossPrice, null));
         Boolean isStopOrder = (!java.util.Objects.equals(triggerPrice, null));
         String timeInForce = this.mapTimeInForce(tifRaw);
-        if (Helpers.isTrue(isMarket))
+        if (Boolean.TRUE.equals(isMarket))
         {
             operationType = "create_market_order";
             ((Map<String, Object>)sigPayload).put("reduce_only", reduceOnly);
             Object defaultSlippage = this.handleOption("createOrder", "defaultSlippage", "0.5");
             String slippage = this.safeString2(parameters, "slippage", "slippage_percent", defaultSlippage);
             ((Map<String, Object>)sigPayload).put("slippage_percent", slippage);
-        } else if ((Helpers.isTrue(isTakeProfitOrder) || Helpers.isTrue(isStopLossOrder)) && (java.util.Objects.equals(price, null)))
+        } else if ((Boolean.TRUE.equals(isTakeProfitOrder) || Boolean.TRUE.equals(isStopLossOrder)) && (java.util.Objects.equals(price, null)))
         {
             operationType = "set_position_tpsl";
-        } else if (Helpers.isTrue(isStopOrder))
+        } else if (Boolean.TRUE.equals(isStopOrder))
         {
             operationType = "create_stop_order";
             ((Map<String, Object>)sigPayload).put("reduce_only", reduceOnly);
@@ -2078,7 +2078,7 @@ public class Pacifica extends PacificaApi
                 ((Map<String, Object>)sigPayload).put("tif", timeInForce);
             }
         }
-        if (Helpers.isTrue(isTakeProfitOrder))
+        if (Boolean.TRUE.equals(isTakeProfitOrder))
         {
             final Object finalTakeProfitPrice = takeProfitPrice;
             Map<String, Object> tpPayload = new HashMap<String, Object>() {{
@@ -2090,7 +2090,7 @@ public class Pacifica extends PacificaApi
             }
             ((Map<String, Object>)sigPayload).put("take_profit", tpPayload);
         }
-        if (Helpers.isTrue(isStopLossOrder))
+        if (Boolean.TRUE.equals(isStopLossOrder))
         {
             final Object finalStopLossPrice = stopLossPrice;
             Map<String, Object> slPayload = new HashMap<String, Object>() {{
@@ -2661,7 +2661,7 @@ public class Pacifica extends PacificaApi
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
             Integer defaultLimit = 100; // Default max limit
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, parameters, "next_cursor", "cursor", null, defaultLimit)).join();
             }
@@ -3004,7 +3004,7 @@ public class Pacifica extends PacificaApi
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
             Integer defaultLimit = 100; // max default 100
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchOrders", symbol, since, limit, parameters, "next_cursor", "cursor", null, defaultLimit)).join();
             }
@@ -3851,7 +3851,7 @@ public class Pacifica extends PacificaApi
             userAddress = ((List<Object>) userAddressparametersVariable).get(0);
             parameters = ((List<Object>) userAddressparametersVariable).get(1);
             Integer defaultLimit = 100; // Default max limit
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchLedger", code, since, limit, parameters, "next_cursor", "cursor", null, defaultLimit)).join();
             }
@@ -3991,7 +3991,7 @@ public class Pacifica extends PacificaApi
                 ((Map<String, Object>)request).put("limit", limit);
             }
             Integer defaultLimit = 100;
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, parameters, "next_cursor", "cursor", null, defaultLimit)).join();
             }
@@ -4387,7 +4387,7 @@ public class Pacifica extends PacificaApi
             error = true;
         }
         Boolean nonEmptyMessage = ((!java.util.Objects.equals(message, null)) && (!java.util.Objects.equals(message, "")));
-        if (Helpers.isTrue(error) || Helpers.isTrue(nonEmptyMessage))
+        if (Helpers.isTrue(error) || Boolean.TRUE.equals(nonEmptyMessage))
         {
             Object feedback = ((this.id + " ") + body);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback); // Try deeper catch first
@@ -4406,7 +4406,7 @@ public class Pacifica extends PacificaApi
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
         Object isTestnet = this.isSandboxModeEnabled;
-        String urlKey = ((Helpers.isTrue((isTestnet)))) ? "test" : "api";
+        String urlKey = ((Boolean.TRUE.equals(isTestnet))) ? "test" : "api";
         String host = (String) this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), api));
         Object url = ((Helpers.add((host + "/api/"), this.version) + "/") + this.implodeParams(path, parameters));
         parameters = this.omit(parameters, this.extractParams(path));
@@ -4469,7 +4469,7 @@ public class Pacifica extends PacificaApi
                 Helpers.addElementToObject(result, key, this.sortJsonKeys(Helpers.GetValue(value, key)));
             }
             return result;
-        } else if (Helpers.isTrue(Helpers.isArray(value)))
+        } else if ((value instanceof List))
         {
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)value).size(); i++)
@@ -4515,7 +4515,7 @@ public class Pacifica extends PacificaApi
         {
             throw new ArgumentsRequired((((this.id + " action: ") + operationType) + " postActionRequest() requires \"operationType\"")) ;
         }
-        if (!Helpers.isTrue(this.isSandboxModeEnabled))
+        if (!this.isSandboxModeEnabled)
         {
             Object useBuilder = this.handleOption("postActionRequest", "builderFee", true);
             Object builderCode = null;

@@ -29,7 +29,7 @@ public class TestWatchTradesForSymbols extends BaseTest {
         Integer maxIdleTime = 5000;
         Boolean idle = false;
         List<Object> returnedSymbols = new ArrayList<Object>(Arrays.asList());
-        while ((Helpers.isLessThan(now, ends)) && !Helpers.isTrue(idle))
+        while ((Helpers.isLessThan(now, ends)) && !Boolean.TRUE.equals(idle))
         {
             Object response = null;
             Boolean success = true;

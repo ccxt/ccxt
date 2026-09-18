@@ -87,7 +87,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
                 put( "id", ((Map<String, Object>)market).get("id") );
             }};
             Object trades = (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
@@ -320,7 +320,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
 
     public void handleDelta(Object bookside, Object delta)
     {
-        if (Helpers.isTrue(Helpers.isArray(delta)))
+        if ((delta instanceof List))
         {
             Double price = this.safeFloat(delta, 0);
             Double amount = this.safeFloat(delta, 1);
@@ -367,7 +367,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
                 put( "id", Helpers.add(Helpers.add(((Map<String, Object>)market).get("id"), "/"), resolution) );
             }};
             Object ohlcv = (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }

@@ -211,7 +211,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             Object channel = "ticker";
             String messageHash = "ticker";
             Object ticker = (this.subscribeMultiple(channel, symbols, messageHash, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(result, Helpers.GetValue(ticker, "symbol"), ticker);
@@ -247,7 +247,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             symbol = this.symbol(symbol);
             Object name = "matches";
             Object trades = (this.subscribe(name, symbol, name, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
@@ -286,7 +286,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             symbols = this.marketSymbols(symbols);
             Object name = "matches";
             Object trades = (this.subscribeMultiple(name, symbols, name, parameters)).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Object first = this.safeValue(trades, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
@@ -329,7 +329,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             String messageHash = "myTrades";
             Object authentication = this.authenticate();
             Object trades = (this.subscribe(name, symbol, messageHash, this.extend(parameters, authentication))).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
@@ -365,7 +365,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             String messageHash = "myTrades";
             Object authentication = this.authenticate();
             Object trades = (this.subscribeMultiple(name, symbols, messageHash, this.extend(parameters, authentication))).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Object first = this.safeValue(trades, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
@@ -403,7 +403,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             String messageHash = "orders";
             Object authentication = this.authenticate();
             Object orders = (this.subscribeMultiple(name, symbols, messageHash, this.extend(parameters, authentication))).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 Object first = this.safeValue(orders, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
@@ -446,7 +446,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             String messageHash = "orders";
             Object authentication = this.authenticate();
             Object orders = (this.subscribe(name, symbol, messageHash, this.extend(parameters, authentication))).join();
-            if (Helpers.isTrue(this.newUpdates))
+            if (this.newUpdates)
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
@@ -693,7 +693,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
     put( "sell", "buy" );
 }}, currentSide, currentSide));
         }
-        String idKey = ((Helpers.isTrue(isMaker))) ? "maker_order_id" : "taker_order_id";
+        String idKey = ((Boolean.TRUE.equals(isMaker))) ? "maker_order_id" : "taker_order_id";
         Helpers.addElementToObject(parsed, "order", this.safeString(trade, idKey));
         market = this.market(((Map<String, Object>)parsed).get("symbol"));
         Object feeCurrency = ((Map<String, Object>)market).get("quote");
@@ -1231,7 +1231,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         {
             if (java.util.Objects.equals(type, "match"))
             {
-                if (Helpers.isTrue(authenticated))
+                if (Boolean.TRUE.equals(authenticated))
                 {
                     this.handleMyTrade(client, message);
                     this.handleOrder(client, message);

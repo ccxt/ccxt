@@ -544,7 +544,7 @@ public class Delta extends DeltaApi
         Object delimiter = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
         Object marketType = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Boolean isOption = (!java.util.Objects.equals(marketId, null)) && (Helpers.isTrue((((String)marketId).endsWith("-C"))) || Helpers.isTrue((((String)marketId).endsWith("-P"))) || Helpers.isTrue((((String)marketId).startsWith("C-"))) || Helpers.isTrue((((String)marketId).startsWith("P-"))));
-        if (Helpers.isTrue(isOption) && ((java.util.Objects.equals(this.markets_by_id, null)) || !(((Map<?, ?>)this.markets_by_id).containsKey(marketId))))
+        if (Boolean.TRUE.equals(isOption) && ((java.util.Objects.equals(this.markets_by_id, null)) || !(((Map<?, ?>)this.markets_by_id).containsKey(marketId))))
         {
             // handle expired option contracts
             return this.createExpiredOptionMarket(marketId);
@@ -1054,13 +1054,13 @@ public class Delta extends DeltaApi
                 Boolean spot = (java.util.Objects.equals(type, "spot"));
                 Boolean swap = (java.util.Objects.equals(type, "perpetual_futures"));
                 Boolean future = (java.util.Objects.equals(type, "futures"));
-                Boolean option = (Helpers.isTrue(callOptions) || Helpers.isTrue(putOptions) || Helpers.isTrue(moveOptions));
+                Boolean option = (Boolean.TRUE.equals(callOptions) || Boolean.TRUE.equals(putOptions) || Boolean.TRUE.equals(moveOptions));
                 String strike = this.safeString(market, "strike_price");
                 String expiryDatetime = this.safeString(market, "settlement_time");
                 Long expiry = this.parse8601(expiryDatetime);
                 Object contractSize = this.safeNumber(market, "contract_value");
                 Object amountPrecision = null;
-                if (Helpers.isTrue(spot))
+                if (Boolean.TRUE.equals(spot))
                 {
                     amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(productSpecs, "underlying_precision"))); // seems inverse of 'impact_size'
                 } else
@@ -1071,22 +1071,22 @@ public class Delta extends DeltaApi
                 Object linear = (java.util.Objects.equals(settle, quote));
                 String optionType = null;
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
-                if (Helpers.isTrue(swap) || Helpers.isTrue(future) || Helpers.isTrue(option))
+                if (Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(future) || Boolean.TRUE.equals(option))
                 {
                     symbol = Helpers.add((symbol + ":"), settle);
-                    if (Helpers.isTrue(future) || Helpers.isTrue(option))
+                    if (Boolean.TRUE.equals(future) || Boolean.TRUE.equals(option))
                     {
                         symbol = ((symbol + "-") + this.yymmdd(expiry));
-                        if (Helpers.isTrue(option))
+                        if (Boolean.TRUE.equals(option))
                         {
                             type = "option";
                             String letter = "C";
                             optionType = "call";
-                            if (Helpers.isTrue(putOptions))
+                            if (Boolean.TRUE.equals(putOptions))
                             {
                                 letter = "P";
                                 optionType = "put";
-                            } else if (Helpers.isTrue(moveOptions))
+                            } else if (Boolean.TRUE.equals(moveOptions))
                             {
                                 letter = "M";
                                 optionType = "move";
@@ -1128,12 +1128,12 @@ public class Delta extends DeltaApi
                     put( "future", finalFuture );
                     put( "option", option );
                     put( "active", (java.util.Objects.equals(finalState, "live")) );
-                    put( "contract", !Helpers.isTrue(spot) );
-                    put( "linear", ((Helpers.isTrue(spot))) ? null : linear );
-                    put( "inverse", ((Helpers.isTrue(spot))) ? null : !Helpers.isTrue(linear) );
+                    put( "contract", !Boolean.TRUE.equals(spot) );
+                    put( "linear", ((Boolean.TRUE.equals(spot))) ? null : linear );
+                    put( "inverse", ((Boolean.TRUE.equals(spot))) ? null : !Boolean.TRUE.equals(linear) );
                     put( "taker", Delta.this.safeNumber(market, "taker_commission_rate") );
                     put( "maker", Delta.this.safeNumber(market, "maker_commission_rate") );
-                    put( "contractSize", ((Helpers.isTrue(spot))) ? null : contractSize );
+                    put( "contractSize", ((Boolean.TRUE.equals(spot))) ? null : contractSize );
                     put( "expiry", expiry );
                     put( "expiryDatetime", Delta.this.iso8601(expiry) );
                     put( "strike", Delta.this.parseNumber(strike) );
@@ -1298,7 +1298,7 @@ public class Delta extends DeltaApi
         String turnoverSymbol = this.safeStringUpper(ticker, "turnover_symbol");
         String quoteId = this.safeStringUpper(market, "quoteId");
         Boolean baseDenominated = (!java.util.Objects.equals(turnoverSymbol, null)) && (!java.util.Objects.equals(quoteId, null)) && (!java.util.Objects.equals(turnoverSymbol, quoteId));
-        Object quoteVolume = ((Helpers.isTrue(baseDenominated))) ? this.safeNumber(ticker, "turnover_usd") : this.safeNumber(ticker, "turnover");
+        Object quoteVolume = ((Boolean.TRUE.equals(baseDenominated))) ? this.safeNumber(ticker, "turnover_usd") : this.safeNumber(ticker, "turnover");
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -1903,13 +1903,13 @@ public class Delta extends DeltaApi
             limit = (((!java.util.Objects.equals(limit, null) && !java.util.Objects.equals(limit, null) && !Helpers.isEqual(limit, 0)))) ? limit : 2000; // max 2000
             Object until = this.safeIntegerProduct(parameters, "until", 0.001);
             Boolean untilIsDefined = (!java.util.Objects.equals(until, null));
-            if (Helpers.isTrue(untilIsDefined))
+            if (Boolean.TRUE.equals(untilIsDefined))
             {
                 until = this.parseToInt(until);
             }
             if (java.util.Objects.equals(since, null))
             {
-                Object end = ((Helpers.isTrue(untilIsDefined))) ? until : this.seconds();
+                Object end = ((Boolean.TRUE.equals(untilIsDefined))) ? until : this.seconds();
                 ((Map<String, Object>)request).put("end", end);
                 if (java.util.Objects.equals(end, null))
                 {
@@ -1920,7 +1920,7 @@ public class Delta extends DeltaApi
             {
                 Long start = this.parseToInt(Helpers.divide(since, 1000));
                 ((Map<String, Object>)request).put("start", start);
-                ((Map<String, Object>)request).put("end", ((Helpers.isTrue(untilIsDefined))) ? until : this.sum(start, Helpers.multiply(limit, duration)));
+                ((Map<String, Object>)request).put("end", ((Boolean.TRUE.equals(untilIsDefined))) ? until : this.sum(start, Helpers.multiply(limit, duration)));
             }
             String price = this.safeString(parameters, "price");
             if (java.util.Objects.equals(price, "mark"))
