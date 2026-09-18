@@ -189,7 +189,7 @@ public partial class kucoin : ccxt.kucoin
         Dictionary<string, object> market = this.market(symbol);
         string urlType = (isEqual(GetValue(market, "contract"), true)) ? "futures" : "spot";
         string tradeType = urlType.ToUpper();
-        object action = "subscribe";
+        string action = "subscribe";
         if (!isEqual(subscription, null))
         {
             bool? unsubscribe = this.safeBool(subscription, "unsubscribe", false);
@@ -217,7 +217,7 @@ public partial class kucoin : ccxt.kucoin
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         string requestId = this.requestId().ToString();
-        object action = "subscribe";
+        string action = "subscribe";
         if (!isEqual(subscription, null))
         {
             bool? unsubscribe = this.safeBool(subscription, "unsubscribe", false);
@@ -551,7 +551,7 @@ public partial class kucoin : ccxt.kucoin
         bool isContract = (isEqual(getValue(market, "contract"), true));
         string urlType = isContract ? "futures" : "spot";
         string tradeType = urlType.ToUpper();
-        object action = "subscribe";
+        string action = "subscribe";
         if (!isEqual(subscription, null))
         {
             bool? unsubscribe = this.safeBool(subscription, "unsubscribe", false);

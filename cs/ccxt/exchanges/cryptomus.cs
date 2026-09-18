@@ -837,9 +837,9 @@ public partial class cryptomus : Exchange
         bool sideBuy = isEqual(side, "buy");
         string? amountToString = this.numberToString(amount);
         string? priceToString = this.numberToString(price);
-        object cost = null;
+        string? cost = null;
         IList<object> costparametersVariable = (IList<object>)this.handleParamString(parameters, "cost");
-        cost = costparametersVariable[0];
+        cost = (string)costparametersVariable[0];
         parameters = costparametersVariable[1];
         Dictionary<string, object> response = null;
         if (isEqual(type, "market"))
@@ -861,7 +861,7 @@ public partial class cryptomus : Exchange
                     }
                 } else
                 {
-                    cost = ((cost != null) && !isEqual(cost, "")) ? cost : amountToString;
+                    cost = ((cost != null) && cost != "") ? cost : amountToString;
                 }
                 request["value"] = cost;
             } else

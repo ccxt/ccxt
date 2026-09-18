@@ -985,7 +985,7 @@ public partial class modetrade : ccxt.modetrade
             {
                 object order = getValue(data, i);
                 string? tradeIdStr = this.safeString(data, "tradeId");
-                object tradeId = ((tradeIdStr == null)) ? null : this.omitZero(tradeIdStr);
+                string? tradeId = ((tradeIdStr == null)) ? null : this.omitZero(tradeIdStr);
                 if ((tradeId != null))
                 {
                     this.handleMyTrade(client, order);
@@ -996,7 +996,7 @@ public partial class modetrade : ccxt.modetrade
         {
             // executionreport
             string? tradeIdStr = this.safeString(data, "tradeId");
-            object tradeId = ((tradeIdStr == null)) ? null : this.omitZero(tradeIdStr);
+            string? tradeId = ((tradeIdStr == null)) ? null : this.omitZero(tradeIdStr);
             if ((tradeId != null))
             {
                 this.handleMyTrade(client, data);

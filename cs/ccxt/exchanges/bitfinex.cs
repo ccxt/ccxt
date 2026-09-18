@@ -2088,7 +2088,7 @@ public partial class bitfinex : Exchange
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
         Dictionary<string, object> market = this.market(symbol);
-        object amountString = this.amountToPrecision(symbol, amount);
+        string? amountString = this.amountToPrecision(symbol, amount);
         amountString = (isEqual(side, "buy")) ? amountString : Precise.stringNeg(amountString);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },
@@ -4567,7 +4567,7 @@ public partial class bitfinex : Exchange
         };
         if (!isEqual(amount, null))
         {
-            object amountString = this.amountToPrecision(symbol, amount);
+            string? amountString = this.amountToPrecision(symbol, amount);
             amountString = (isEqual(side, "buy")) ? amountString : Precise.stringNeg(amountString);
             request["amount"] = amountString;
         }

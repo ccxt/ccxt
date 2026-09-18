@@ -1466,15 +1466,15 @@ public partial class lighter : Exchange
         {
             object market = getValue(markets, i);
             string? id = this.safeString(market, "market_id");
-            object type = this.safeString(market, "market_type");
-            type = (isEqual(type, "perp")) ? "swap" : type;
+            string? type = this.safeString(market, "market_type");
+            type = (type == "perp") ? "swap" : type;
             object baseId = this.safeString(market, "symbol");
             if ((baseId != null) && !isEqual(getIndexOf(baseId, "/"), -1))
             {
                 baseId = getValue(((string)baseId).Split(new [] {"/"}, StringSplitOptions.None).ToList<object>(), 0);
             }
             string quoteId = "USDC";
-            string? settleId = (isEqual(type, "swap")) ? "USDC" : null;
+            string? settleId = (type == "swap") ? "USDC" : null;
             object bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
             string? settle = this.safeCurrencyCode(settleId);
@@ -1498,15 +1498,15 @@ public partial class lighter : Exchange
                 { "quoteId", quoteId },
                 { "settleId", settleId },
                 { "type", type },
-                { "spot", isEqual(type, "spot") },
+                { "spot", type == "spot" },
                 { "margin", false },
-                { "swap", isEqual(type, "swap") },
+                { "swap", type == "swap" },
                 { "future", false },
                 { "option", false },
                 { "active", (this.safeString(market, "status") == "active") },
-                { "contract", isEqual(type, "swap") },
-                { "linear", (isEqual(type, "swap")) ? true : null },
-                { "inverse", (isEqual(type, "swap")) ? false : null },
+                { "contract", type == "swap" },
+                { "linear", (type == "swap") ? true : null },
+                { "inverse", (type == "swap") ? false : null },
                 { "taker", this.safeNumber(market, "taker_fee") },
                 { "maker", this.safeNumber(market, "maker_fee") },
                 { "contractSize", quoteMultiplier },

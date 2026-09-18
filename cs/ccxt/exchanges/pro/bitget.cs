@@ -2220,7 +2220,7 @@ public partial class bitget : ccxt.bitget
             price = this.safeNumber(order, "executePrice");
         }
         string? avgPriceString = this.safeStringLowerN(order, new List<object>() {"priceAvg", "fillPrice", "avgPrice"});
-        object avgPrice = ((avgPriceString == null)) ? null : this.omitZero(avgPriceString);
+        string? avgPrice = ((avgPriceString == null)) ? null : this.omitZero(avgPriceString);
         string? side = this.safeString(order, "side");
         string? type = this.safeString(order, "orderType");
         string? accBaseVolume = this.omitZero(this.safeString2(order, "accBaseVolume", "cumExecQty"));

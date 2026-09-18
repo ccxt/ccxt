@@ -1452,10 +1452,10 @@ public partial class deepcoin : Exchange
         {
             await this.loadMarkets();
         }
-        object network = this.safeString(parameters, "network");
+        string? network = this.safeString(parameters, "network");
         IDictionary<string, object> defaultNetworks = this.safeDict(this.options, "defaultNetworks", new Dictionary<string, object>() {});
         string? defaultNetwork = this.safeString(defaultNetworks, code);
-        network = ((network != null) && !isEqual(network, "")) ? network : defaultNetwork;
+        network = ((network != null) && network != "") ? network : defaultNetwork;
         if ((network != null))
         {
             parameters = this.omit(parameters, "network");
