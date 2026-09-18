@@ -3656,7 +3656,12 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
                         // checked (see the self-concat / self-omit sections).
                         const selfConcat = (csharpType === 'string') && (selfConcatWriteType (csharp, context, declaration, parent.right) === 'string');
                         const selfOmit = (csharpType === 'Dictionary<string, object>') && (selfOmitWriteType (csharp, context, declaration, parent.right) === 'Dictionary<string, object>');
-                        if (!selfConcat && !selfOmit) {
+                        // `x = (x === undefined) ? <default> : x` — the self arm has no C# type
+                        // while this declaration is being classified; scoped to the
+                        // safeDict*/safeList* family (see safeCollectionFamilyLocal).
+                        const selfTernary = (written === undefined) && safeCollectionFamilyLocal (declaration.initializer)
+                            && assignable (csharpType, selfTernaryCollectionWriteType (csharp, context, declaration, parent.right));
+                        if (!selfConcat && !selfOmit && !selfTernary) {
                             return false;
                         }
                     }
@@ -4678,6 +4683,47 @@ function selfOmitWriteType (csharp, context, declaration, value) {
     return isSelfRead (csharp, read, declaration) ? 'Dictionary<string, object>' : undefined;
 }
 
+// the safeDict*/safeList* typed-local family (their CSHARP_LOCAL_THIS_RETURN_TYPES entries): the
+// six names whose generated C# return is the collection interface. Kept as its own table so the
+// self-ternary write proof below is scoped to this family and moves no other family's verdict.
+const CSHARP_SAFE_COLLECTION_METHODS_TYPED = new Set ([ 'safeDict', 'safeDict2', 'safeDictN', 'safeList', 'safeList2', 'safeListN' ]);
+
+// `object x = this.safeDict*/safeList* (…)` — the family's declaration shape.
+function safeCollectionFamilyLocal (initializer) {
+    let node = initializer;
+    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        node = node.expression;
+    }
+    if (node?.kind !== ts.SyntaxKind.CallExpression) {
+        return false;
+    }
+    const callee = node.expression;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        return false;
+    }
+    return CSHARP_SAFE_COLLECTION_METHODS_TYPED.has (callee.name?.escapedText);
+}
+
+// `x = (x === undefined) ? <default> : x`: the C# conditional computes its own natural type
+// from the arms, so the self arm's candidate type IS the write's type whenever the other arm
+// converts to it (assignable()'s one-way edges: a `{}` literal, a declared Dictionary local, ...).
+function selfTernaryCollectionWriteType (csharp, context, declaration, value) {
+    let node = value;
+    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        node = node.expression;
+    }
+    if (node?.kind !== ts.SyntaxKind.ConditionalExpression) {
+        return undefined;
+    }
+    if (isSelfRead (csharp, node.whenTrue, declaration)) {
+        return csharpTypeOfValue (csharp, node.whenFalse, context);
+    }
+    if (isSelfRead (csharp, node.whenFalse, declaration)) {
+        return csharpTypeOfValue (csharp, node.whenTrue, context);
+    }
+    return undefined;
+}
+
 // `const x = this.omitZero (v)` — printed `this.omitZero (v)`. The hand-written C# helper
 // (cs/ccxt/base/Exchange.Generic.cs) returns null for a double / Int64 / numeric-string ZERO
 // and hands every other box straight back, so for an argument whose C# static type is string
@@ -5199,6 +5245,13 @@ function typeFromValueOrWrites (csharp, scope, declaration, varName, initial, co
             // `x = this.omit (x, keys)` accumulator write: same self-read shape, proven
             // against the running Dictionary type (see selfOmitWriteType).
             written = selfOmitWriteType (csharp, context, declaration, parent.right);
+        }
+        if (written === undefined && safeCollectionFamilyLocal (declaration.initializer) && !sawNull) {
+            // `x = (x === undefined) ? <default> : x` (the safeDict*/safeList* family): the
+            // self arm is the running type, so the write contributes it exactly when the
+            // default arm converts to it (see selfTernaryCollectionWriteType).
+            const defaultArm = selfTernaryCollectionWriteType (csharp, context, declaration, parent.right);
+            written = (type !== undefined && assignable (type, defaultArm)) ? type : undefined;
         }
         if (written === undefined) {
             return undefined;

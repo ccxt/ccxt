@@ -2529,7 +2529,7 @@ public partial class kraken : Exchange
                 ((IDictionary<string,object>)request)["reduce_only"] = "true"; // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
             }
         }
-        object close = this.safeDict(parameters, "close");
+        IDictionary<string, object> close = this.safeDict(parameters, "close");
         if ((close != null))
         {
             close = this.extend(new Dictionary<string, object>() {}, close);
