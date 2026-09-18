@@ -3718,14 +3718,14 @@ public partial class bitget : Exchange
         bool fetchMargins = false;
         for (int i = 0; i < getArrayLength(types); postFixIncrement(ref i))
         {
-            object type = getValue(types, i);
+            object type = types[i];
             if ((isEqual(type, "swap")) || (isEqual(type, "future")))
             {
                 List<object> subTypes = new List<object>() {"USDT-FUTURES", "COIN-FUTURES", "USDC-FUTURES", "SUSDT-FUTURES", "SCOIN-FUTURES", "SUSDC-FUTURES"};
                 for (int j = 0; j < getArrayLength(subTypes); postFixIncrement(ref j))
                 {
                     ((IList<object>)promises).Add(this.publicMixGetV2MixMarketContracts(this.extend(parameters, new Dictionary<string, object>() {
-                        { "productType", getValue(subTypes, j) },
+                        { "productType", subTypes[j] },
                     })));
                 }
             } else if (isEqual(type, "spot"))
@@ -3839,7 +3839,7 @@ public partial class bitget : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < getArrayLength(markets); postFixIncrement(ref i))
         {
-            object market = getValue(markets, i);
+            object market = markets[i];
             string? marketId = this.safeString(market, "symbol");
             string? quoteId = this.safeString(market, "quoteCoin");
             string? baseId = this.safeString(market, "baseCoin");
@@ -4005,7 +4005,7 @@ public partial class bitget : Exchange
         for (int i = 0; i < getArrayLength(subTypes); postFixIncrement(ref i))
         {
             Dictionary<string, object> req = this.extend(parameters, new Dictionary<string, object>() {
-                { "category", getValue(subTypes, i) },
+                { "category", subTypes[i] },
             });
             ((IList<object>)promises).Add(this.publicUtaGetV3MarketInstruments(req));
         }
@@ -4109,7 +4109,7 @@ public partial class bitget : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < getArrayLength(markets); postFixIncrement(ref i))
         {
-            object market = getValue(markets, i);
+            object market = markets[i];
             string? category = this.safeString(market, "category");
             string? marketId = this.safeString(market, "symbol");
             string? quoteId = this.safeString(market, "quoteCoin");
@@ -6295,7 +6295,7 @@ public partial class bitget : Exchange
             Dictionary<string, object> utaResult = new Dictionary<string, object>() {};
             for (int i = 0; i < rows.Count; postFixIncrement(ref i))
             {
-                object entry = getValue(rows, i);
+                object entry = rows[i];
                 string? entryMarketId = this.safeString(entry, "symbol");
                 if (((entryMarketId == null)) || (isEqual(this.markets_by_id, null)) || !(this.markets_by_id.ContainsKey(entryMarketId)))
                 {
@@ -6409,7 +6409,7 @@ public partial class bitget : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < data.Count; postFixIncrement(ref i))
         {
-            object entry = getValue(data, i);
+            object entry = data[i];
             string? marketId = this.safeString(entry, "symbol");
             string? symbol = this.safeSymbol(marketId, null, null, marketType);
             Dictionary<string, object> market = this.market(symbol);
@@ -7288,7 +7288,7 @@ public partial class bitget : Exchange
                 object feeObject = null;
                 for (int i = 0; i < feeValues.Count; postFixIncrement(ref i))
                 {
-                    object feeValue = getValue(feeValues, i);
+                    object feeValue = feeValues[i];
                     if (!isEqual(this.safeValue(feeValue, "feeCoinCode"), null))
                     {
                         feeObject = feeValue;
@@ -11041,7 +11041,7 @@ public partial class bitget : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < getArrayLength(position); postFixIncrement(ref i))
         {
-            ((IList<object>)result).Add(this.parsePosition(getValue(position, i), market));
+            ((IList<object>)result).Add(this.parsePosition(position[i], market));
         }
         symbols = this.marketSymbols(symbols);
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbols, false));
@@ -11382,7 +11382,7 @@ public partial class bitget : Exchange
         List<object> rates = new List<object>() {};
         for (int i = 0; i < getArrayLength(result); postFixIncrement(ref i))
         {
-            object entry = getValue(result, i);
+            object entry = result[i];
             string? marketId = this.safeString(entry, "symbol");
             string? symbolInner = this.safeSymbol(marketId, market);
             Int64? timestamp = this.safeInteger2(entry, "fundingTime", "fundingRateTimestamp");
@@ -13897,7 +13897,7 @@ public partial class bitget : Exchange
         List<object> data = this.safeList(response, "data", new List<object>() {});
         for (int i = 0; i < data.Count; postFixIncrement(ref i))
         {
-            object entry = getValue(data, i);
+            object entry = data[i];
             string? id = this.safeString(entry, "coin");
             string? code = this.safeCurrencyCode(id);
             if ((code != null))

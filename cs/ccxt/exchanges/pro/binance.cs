@@ -1340,7 +1340,7 @@ public partial class binance : ccxt.binance
         List<object> subMessageHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});
         for (int j = 0; j < messageHashes.Count; postFixIncrement(ref j))
         {
-            object unsubHash = getValue(messageHashes, j);
+            object unsubHash = messageHashes[j];
             object subHash = getValue(subMessageHashes, j);
             this.cleanUnsubscription(client as WebSocketClient, subHash, unsubHash);
         }
@@ -3620,7 +3620,7 @@ public partial class binance : ccxt.binance
             List<object> messageHashes = new List<object>(((IDictionary<string, ccxt.Exchange.Future>)client.futures).Keys);
             for (int i = 0; i < messageHashes.Count; postFixIncrement(ref i))
             {
-                string? messageHash = ((string)getValue(messageHashes, i));
+                string? messageHash = ((string)messageHashes[i]);
                 ((WebSocketClient)client).reject(error, messageHash);
             }
             ((IDictionary<string,object>)this.options)[(string)type] = this.extend(options, new Dictionary<string, object>() {
@@ -3647,12 +3647,12 @@ public partial class binance : ccxt.binance
         }
         for (int i = 0; i < clients.Count; postFixIncrement(ref i))
         {
-            var client = getValue(clients, i);
+            var client = clients[i];
             IDictionary<string, object> clientSubscriptions = this.safeDict(client as WebSocketClient, "subscriptions", new Dictionary<string, object>() {});
             List<object> subscriptionKeys = new List<object>(((IDictionary<string,object>)clientSubscriptions).Keys);
             for (int j = 0; j < subscriptionKeys.Count; postFixIncrement(ref j))
             {
-                string? subscribeType = ((string)getValue(subscriptionKeys, j));
+                string? subscribeType = ((string)subscriptionKeys[j]);
                 if (isEqual(subscribeType, type))
                 {
                     this.delay(listenKeyRefreshRate,  this.keepAliveListenKey, new object[] { delayParams});
@@ -3948,7 +3948,7 @@ public partial class binance : ccxt.binance
         List<object> positions = new List<object>() {};
         for (int i = 0; i < result.Count; postFixIncrement(ref i))
         {
-            object parsed = this.parsePositionRisk(getValue(result, i));
+            object parsed = this.parsePositionRisk(result[i]);
             string? entryPrice = this.safeString(parsed, "entryPrice");
             if (((entryPrice != "0")) && ((entryPrice != "0.0")) && ((entryPrice != "0.00000000")))
             {
@@ -4139,7 +4139,7 @@ public partial class binance : ccxt.binance
             }
             for (int i = 0; i < B.Count; postFixIncrement(ref i))
             {
-                object entry = getValue(B, i);
+                object entry = B[i];
                 string? currencyId = this.safeString(entry, "a");
                 string? code = this.safeCurrencyCode(currencyId);
                 Dictionary<string, object> account = this.account();
@@ -5545,7 +5545,7 @@ public partial class binance : ccxt.binance
         List<object> orders = this.safeList(message, "o", new List<object>() {});
         for (int i = 0; i < orders.Count; postFixIncrement(ref i))
         {
-            object order = getValue(orders, i);
+            object order = orders[i];
             List<object> fills = this.safeList(order, "fi", new List<object>() {});
             string? rawQty = this.safeString(order, "q", "0");
             string side = "BUY";
@@ -5580,7 +5580,7 @@ public partial class binance : ccxt.binance
             this.handleOrder(client as WebSocketClient, normalizedOrder);
             for (int j = 0; j < fills.Count; postFixIncrement(ref j))
             {
-                object fill = getValue(fills, j);
+                object fill = fills[j];
                 bool isMaker = ((this.safeString(fill, "m") == "MAKER"));
                 // normalize fill fields to the flat format parseWsTrade/handleMyTrade expect
                 Dictionary<string, object> normalizedTrade = new Dictionary<string, object>() {
@@ -5798,7 +5798,7 @@ public partial class binance : ccxt.binance
         List<object> newPositions = new List<object>() {};
         for (int i = 0; i < rawPositions.Count; postFixIncrement(ref i))
         {
-            object rawPosition = getValue(rawPositions, i);
+            object rawPosition = rawPositions[i];
             Dictionary<string, object> position = ((Dictionary<string, object>)this.parseWsPosition(rawPosition));
             Int64? timestamp = this.safeInteger(message, "E");
             ((IDictionary<string,object>)position)["timestamp"] = timestamp;
@@ -5809,7 +5809,7 @@ public partial class binance : ccxt.binance
         List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, add(accountType, ":positions::"));
         for (int i = 0; i < getArrayLength(messageHashes); postFixIncrement(ref i))
         {
-            object messageHash = getValue(messageHashes, i);
+            object messageHash = messageHashes[i];
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
             string? symbolsString = ((string)getValue(parts, 1));
             List<object> symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
@@ -6377,7 +6377,7 @@ public partial class binance : ccxt.binance
         List<object> B = this.safeList(message, "B", new List<object>() {});
         for (int i = 0; i < B.Count; postFixIncrement(ref i))
         {
-            object entry = getValue(B, i);
+            object entry = B[i];
             string? currencyId = this.safeString(entry, "a");
             string? code = this.safeCurrencyCode(currencyId);
             if ((code != null))
@@ -6406,7 +6406,7 @@ public partial class binance : ccxt.binance
         List<object> newPositions = new List<object>() {};
         for (int i = 0; i < P.Count; postFixIncrement(ref i))
         {
-            object rawPosition = getValue(P, i);
+            object rawPosition = P[i];
             Dictionary<string, object> position = ((Dictionary<string, object>)this.parseWsOptionsPosition(rawPosition));
             ((IDictionary<string,object>)position)["timestamp"] = timestamp;
             ((IDictionary<string,object>)position)["datetime"] = this.iso8601(timestamp);
@@ -6416,7 +6416,7 @@ public partial class binance : ccxt.binance
         List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, (accountType + ":positions::"));
         for (int i = 0; i < getArrayLength(messageHashes); postFixIncrement(ref i))
         {
-            object messageHash = getValue(messageHashes, i);
+            object messageHash = messageHashes[i];
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
             string? symbolsString = ((string)getValue(parts, 1));
             List<object> symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
@@ -6458,7 +6458,7 @@ public partial class binance : ccxt.binance
             List<object> subscriptionKeys = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);
             for (int i = 0; i < subscriptionKeys.Count; postFixIncrement(ref i))
             {
-                string? subscriptionHash = ((string)getValue(subscriptionKeys, i));
+                string? subscriptionHash = ((string)subscriptionKeys[i]);
                 string? subscriptionId = this.safeString(getValue(((WebSocketClient)client).subscriptions, subscriptionHash), "id");
                 string? subscription = this.safeString(getValue(((WebSocketClient)client).subscriptions, subscriptionHash), "subscription");
                 if ((id == subscriptionId))
