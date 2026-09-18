@@ -1061,7 +1061,12 @@ func (this *Hitbtc) ParseCurrency(currency any) any {
 		var rawNetwork any = GetValue(rawNetworks, j)
 		var networkId *string = this.SafeString2(rawNetwork, "protocol", "network")
 		var networkCode any = this.NetworkIdToCode(networkId, code)
-		networkCode = func() any { if (networkCode != nil) { return ToUpper(networkCode) }; return code }() // as hitbtc is white label, ensure we safeguard from possible bugs
+		networkCode = func() any {
+			if networkCode != nil {
+				return ToUpper(networkCode)
+			}
+			return code
+		}() // as hitbtc is white label, ensure we safeguard from possible bugs
 		if networkCode != nil {
 			AddElementToObject(networks, networkCode, map[string]any{
 				"info":      rawNetwork,
@@ -1256,7 +1261,12 @@ func (this *Hitbtc) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var typeVar *string = this.SafeStringLower(params, "type", "spot")
 	params = this.Omit(params, []any{"type"})
 	var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
-	var account any = func() any { if (typeVar == nil) { return nil }; return this.SafeString(accountsByType, typeVar, typeVar) }()
+	var account any = func() any {
+		if typeVar == nil {
+			return nil
+		}
+		return this.SafeString(accountsByType, typeVar, typeVar)
+	}()
 	var response any = nil
 	if IsEqual(account, "wallet") {
 
@@ -1665,7 +1675,12 @@ func (this *Hitbtc) ParseTrade(trade any, optionalArgs ...any) any {
 	var taker any = this.SafeValue(trade, "taker")
 	var takerOrMaker any = nil
 	if !IsEqual(taker, nil) {
-		takerOrMaker = func() any { if (taker == true) { return "taker" }; return "maker" }()
+		takerOrMaker = func() any {
+			if taker == true {
+				return "taker"
+			}
+			return "maker"
+		}()
 	} else {
 		takerOrMaker = "taker" // the only case when `taker` field is missing, is public fetchTrades and it must be taker
 	}
@@ -3117,7 +3132,7 @@ func (this *Hitbtc) CreateOrderRequest(market any, marketType any, typeVar any, 
 	}
 	if !IsEqual(reduceOnly, nil) {
 		if (!IsEqual(GetValue(market, "type"), "swap")) && (!IsEqual(GetValue(market, "type"), "margin")) {
-			panic(InvalidOrder(Add(Add(this.Id + " createOrder() does not support reduce_only for ", GetValue(market, "type")), " orders, reduce_only orders are supported for swap and margin markets only")))
+			panic(InvalidOrder(Add(Add(this.Id+" createOrder() does not support reduce_only for ", GetValue(market, "type")), " orders, reduce_only orders are supported for swap and margin markets only")))
 		}
 	}
 	if reduceOnly == true {
@@ -3590,7 +3605,7 @@ func (this *Hitbtc) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
 	if !IsEqual(typeVar, "swap") {
-		panic(NotSupported(Add(Add(this.Id + " fetchFundingRates() does not support ", typeVar), " markets")))
+		panic(NotSupported(Add(Add(this.Id+" fetchFundingRates() does not support ", typeVar), " markets")))
 	}
 
 	response := (<-this.PublicGetPublicFuturesInfo(this.Extend(request, params)))
@@ -4592,7 +4607,7 @@ func (this *Hitbtc) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 		panic(BadSymbol(this.Id + " setLeverage() supports swap contracts only"))
 	}
 	if (IsLessThan(leverage, 1)) || (IsGreaterThan(leverage, maxLeverage)) {
-		panic(BadRequest(Add(this.Id + " setLeverage() leverage should be between 1 and " + ToString(maxLeverage) + " for ", symbol)))
+		panic(BadRequest(Add(this.Id+" setLeverage() leverage should be between 1 and "+ToString(maxLeverage)+" for ", symbol)))
 	}
 	var request map[string]any = map[string]any{
 		"symbol":         GetValue(market, "id"),
@@ -4697,12 +4712,22 @@ func (this *Hitbtc) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 		var networkId *string = this.SafeString(networkEntry, "network")
 		var code *string = this.SafeString(currency, "code")
 		var networkCode any = this.NetworkIdToCode(networkId, code)
-		networkCode = func() any { if (networkCode != nil) { return ToUpper(networkCode) }; return nil }()
+		networkCode = func() any {
+			if networkCode != nil {
+				return ToUpper(networkCode)
+			}
+			return nil
+		}()
 		var withdrawFee *float64 = this.SafeNumber(networkEntry, "payout_fee")
 		var isDefault any = this.SafeValue(networkEntry, "default")
 		var withdrawResult map[string]any = map[string]any{
-			"fee":        withdrawFee,
-			"percentage": func() any { if (withdrawFee != nil) { return false }; return nil }(),
+			"fee": withdrawFee,
+			"percentage": func() any {
+				if withdrawFee != nil {
+					return false
+				}
+				return nil
+			}(),
 		}
 		if isDefault == true {
 			AddElementToObject(result, "withdraw", withdrawResult)
@@ -4825,7 +4850,7 @@ func (this *Hitbtc) HandleErrors(code any, reason any, url any, method any, head
 	var error any = this.SafeValue(response, "error")
 	var errorCode *string = this.SafeString(error, "code")
 	if errorCode != nil {
-		var feedback any = Add(this.Id + " ", body)
+		var feedback any = Add(this.Id+" ", body)
 		var message *string = this.SafeString2(error, "message", "description")
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
@@ -4879,7 +4904,7 @@ func (this *Hitbtc) Sign(path any, optionalArgs ...any) any {
 		var signature string = this.Hmac(this.Encode(payloadString), this.Encode(this.Secret), sha256, "hex")
 		var secondPayload any = Add(Add(Add(Add(this.ApiKey, ":"), signature), ":"), timestamp)
 		var encoded string = this.StringToBase64(secondPayload)
-		AddElementToObject(headers, "Authorization", "HS256 " + encoded)
+		AddElementToObject(headers, "Authorization", "HS256 "+encoded)
 	}
 	return map[string]any{
 		"url":     url,

@@ -771,7 +771,12 @@ func (this *Bitrue) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	//
 	var keys []string = ObjectKeys(response)
 	var keysLength int = len(keys)
-	var formattedStatus any = func() any { if (keysLength > 0) { return "maintenance" }; return "ok" }()
+	var formattedStatus any = func() any {
+		if keysLength > 0 {
+			return "maintenance"
+		}
+		return "ok"
+	}()
 
 	ch <- map[string]any{
 		"status":  formattedStatus,
@@ -975,7 +980,7 @@ func (this *Bitrue) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		} else if IsEqual(marketType, "inverse") {
 			AppendToArray(&promisesRaw, this.DapiV1PublicGetContracts(params))
 		} else {
-			panic(ExchangeError(Add(Add(this.Id + " fetchMarkets() this.options fetchMarkets \"", marketType), "\" is not a supported market type")))
+			panic(ExchangeError(Add(Add(this.Id+" fetchMarkets() this.options fetchMarkets \"", marketType), "\" is not a supported market type")))
 		}
 	}
 
@@ -1972,10 +1977,20 @@ func (this *Bitrue) ParseTrade(trade any, optionalArgs ...any) any {
 	var buyerMaker *bool = this.SafeBool(trade, "isBuyerMaker") // ignore "m" until Bitrue fixes api
 	var isBuyer *bool = this.SafeBool(trade, "isBuyer")
 	if buyerMaker != nil {
-		side = func() any { if (buyerMaker != nil && *buyerMaker) { return "sell" }; return "buy" }()
+		side = func() any {
+			if buyerMaker != nil && *buyerMaker {
+				return "sell"
+			}
+			return "buy"
+		}()
 	}
 	if isBuyer != nil {
-		side = func() any { if (isBuyer != nil && *isBuyer) { return "buy" }; return "sell" }() // this is a true side
+		side = func() any {
+			if isBuyer != nil && *isBuyer {
+				return "buy"
+			}
+			return "sell"
+		}() // this is a true side
 	}
 	var fee any = nil
 	if InOp(trade, "commission") {
@@ -1987,7 +2002,12 @@ func (this *Bitrue) ParseTrade(trade any, optionalArgs ...any) any {
 	var takerOrMaker any = nil
 	var isMaker *bool = this.SafeBool(trade, "isMaker")
 	if isMaker != nil {
-		takerOrMaker = func() any { if (isMaker != nil && *isMaker) { return "maker" }; return "taker" }()
+		takerOrMaker = func() any {
+			if isMaker != nil && *isMaker {
+				return "maker"
+			}
+			return "taker"
+		}()
 	}
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
@@ -2320,7 +2340,12 @@ func (this *Bitrue) createOrderBody(ch chan any, symbol any, typeVar any, side a
 				var amountString *string = this.NumberToString(amount)
 				var priceString *string = this.NumberToString(price)
 				var quoteAmount *string = Precise.StringMul(amountString, priceString)
-				var requestAmount any = func() any { if (cost != nil) { return cost }; return quoteAmount }()
+				var requestAmount any = func() any {
+					if cost != nil {
+						return cost
+					}
+					return quoteAmount
+				}()
 				request["amount"] = this.CostToPrecision(symbol, requestAmount)
 				request["volume"] = this.CostToPrecision(symbol, requestAmount)
 			}
@@ -2330,7 +2355,12 @@ func (this *Bitrue) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		}
 		request["positionType"] = 1
 		var reduceOnly any = this.SafeValue2(params, "reduceOnly", "reduce_only")
-		request["open"] = func() any { if (reduceOnly == true) { return "CLOSE" }; return "OPEN" }()
+		request["open"] = func() any {
+			if reduceOnly == true {
+				return "CLOSE"
+			}
+			return "OPEN"
+		}()
 		var leverage *string = this.SafeString(params, "leverage", "1")
 		request["leverage"] = this.ParseToNumeric(leverage)
 		params = this.Omit(params, []any{"leverage", "reduceOnly", "reduce_only", "timeInForce"})
@@ -2349,7 +2379,7 @@ func (this *Bitrue) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		request["quantity"] = this.AmountToPrecision(symbol, amount)
 		var validOrderTypes any = this.SafeValue(GetValue(market, "info"), "orderTypes")
 		if !this.InArray(uppercaseType, validOrderTypes) {
-			panic(InvalidOrder(Add(Add(Add(this.Id + " ", typeVar), " is not a valid order type in market "), symbol)))
+			panic(InvalidOrder(Add(Add(Add(this.Id+" ", typeVar), " is not a valid order type in market "), symbol)))
 		}
 		var clientOrderId *string = this.SafeString2(params, "newClientOrderId", "clientOrderId")
 		if clientOrderId != nil {
@@ -3246,7 +3276,12 @@ func (this *Bitrue) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var updated *int64 = this.SafeInteger(transaction, "updatedAt")
 	var payAmount bool = (InOp(transaction, "payAmount"))
 	var ctime bool = (InOp(transaction, "ctime"))
-	var typeVar any = func() any { if (payAmount || ctime) { return "withdrawal" }; return "deposit" }()
+	var typeVar any = func() any {
+		if payAmount || ctime {
+			return "withdrawal"
+		}
+		return "deposit"
+	}()
 	var status *string = this.ParseTransactionStatusByType(this.SafeString(transaction, "status"), typeVar)
 	var amount *float64 = this.SafeNumber(transaction, "amount")
 	var network any = nil
@@ -3791,7 +3826,7 @@ func (this *Bitrue) Sign(path any, optionalArgs ...any) any {
 				"recvWindow": recvWindow,
 			}, params))
 			var signature string = this.Hmac(this.Encode(query), this.Encode(this.Secret), sha256)
-			query = Add(query, "&" + "signature=" + signature)
+			query = Add(query, "&"+"signature="+signature)
 			headers = map[string]any{
 				"X-MBX-APIKEY": this.ApiKey,
 			}
@@ -3815,7 +3850,7 @@ func (this *Bitrue) Sign(path any, optionalArgs ...any) any {
 				var keys []string = ObjectKeys(params)
 				var keysLength int = len(keys)
 				if keysLength > 0 {
-					signMessage = Add(signMessage, "?" + this.Urlencode(params))
+					signMessage = Add(signMessage, "?"+this.Urlencode(params))
 				}
 				var signature string = this.Hmac(this.Encode(signMessage), this.Encode(this.Secret), sha256)
 				headers = map[string]any{
@@ -3823,7 +3858,7 @@ func (this *Bitrue) Sign(path any, optionalArgs ...any) any {
 					"X-CH-SIGN":   signature,
 					"X-CH-TS":     timestamp,
 				}
-				url = Add(url, "?" + this.Urlencode(params))
+				url = Add(url, "?"+this.Urlencode(params))
 			} else {
 				var query any = this.Extend(map[string]any{
 					"recvWindow": recvWindow,
@@ -3841,7 +3876,7 @@ func (this *Bitrue) Sign(path any, optionalArgs ...any) any {
 		}
 	} else {
 		if len(ObjectKeys(params)) > 0 {
-			url = Add(url, "?" + this.Urlencode(params))
+			url = Add(url, "?"+this.Urlencode(params))
 		}
 	}
 	return map[string]any{
@@ -3853,20 +3888,20 @@ func (this *Bitrue) Sign(path any, optionalArgs ...any) any {
 }
 func (this *Bitrue) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
 	if (IsEqual(code, 418)) || (IsEqual(code, 429)) {
-		panic(DDoSProtection(Add(Add(Add(this.Id + " " + ToString(code) + " ", reason), " "), body)))
+		panic(DDoSProtection(Add(Add(Add(this.Id+" "+ToString(code)+" ", reason), " "), body)))
 	}
 	// error response in a form: { "code": -1013, "msg": "Invalid quantity." }
 	// following block contains legacy checks against message patterns in "msg" property
 	// will switch "code" checks eventually, when we know all of them
 	if IsGreaterThanOrEqual(code, 400) {
 		if GetIndexOf(body, "Price * QTY is zero or less") >= 0 {
-			panic(InvalidOrder(Add(this.Id + " order cost = amount * price is zero or less ", body)))
+			panic(InvalidOrder(Add(this.Id+" order cost = amount * price is zero or less ", body)))
 		}
 		if GetIndexOf(body, "LOT_SIZE") >= 0 {
-			panic(InvalidOrder(Add(this.Id + " order amount should be evenly divisible by lot size ", body)))
+			panic(InvalidOrder(Add(this.Id+" order amount should be evenly divisible by lot size ", body)))
 		}
 		if GetIndexOf(body, "PRICE_FILTER") >= 0 {
-			panic(InvalidOrder(Add(this.Id + " order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use this.priceToPrecision (symbol, amount) ", body)))
+			panic(InvalidOrder(Add(this.Id+" order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use this.priceToPrecision (symbol, amount) ", body)))
 		}
 	}
 	if IsEqual(response, nil) {
@@ -3908,8 +3943,8 @@ func (this *Bitrue) HandleErrors(code any, reason any, url any, method any, head
 	}
 	var message *string = this.SafeString(response, "msg")
 	if message != nil {
-		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, Add(this.Id + " ", message))
-		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, Add(this.Id + " ", message))
+		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, Add(this.Id+" ", message))
+		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, Add(this.Id+" ", message))
 	}
 	// checks against error codes
 	var error *string = this.SafeString(response, "code")
@@ -3923,14 +3958,14 @@ func (this *Bitrue) HandleErrors(code any, reason any, url any, method any, head
 		// despite that their message is very confusing, it is raised by Binance
 		// on a temporary ban, the API key is valid, but disabled for a while
 		if (error != nil && *error == "-2015") && (IsEqual(GetValue(this.Options, "hasAlreadyAuthenticatedSuccessfully"), true)) {
-			panic(DDoSProtection(Add(this.Id + " temporary banned: ", body)))
+			panic(DDoSProtection(Add(this.Id+" temporary banned: ", body)))
 		}
-		var feedback any = Add(this.Id + " ", body)
+		var feedback any = Add(this.Id+" ", body)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], error, feedback)
 		panic(ExchangeError(feedback))
 	}
 	if success == nil || *success != true {
-		panic(ExchangeError(Add(this.Id + " ", body)))
+		panic(ExchangeError(Add(this.Id+" ", body)))
 	}
 	return nil
 }

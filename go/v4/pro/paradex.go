@@ -341,7 +341,7 @@ func (this *Paradex) watchTickerBody(ch chan any, symbol any, optionalArgs ...an
 			"channel": channel,
 		},
 	}
-	var messageHash any = ccxt.Add(channel + ".", symbol)
+	var messageHash any = ccxt.Add(channel+".", symbol)
 
 	retRes27515 := (<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash))
 	ccxt.PanicOnError(retRes27515)
@@ -388,7 +388,7 @@ func (this *Paradex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var messageHashes any = []any{}
 	if !ccxt.IsEqual(symbols, nil) && ccxt.IsArray(symbols) {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-			var messageHash any = ccxt.Add(channel + ".", ccxt.GetValue(symbols, i))
+			var messageHash any = ccxt.Add(channel+".", ccxt.GetValue(symbols, i))
 			ccxt.AppendToArray(&messageHashes, messageHash)
 		}
 	} else {
@@ -512,7 +512,7 @@ func (this *Paradex) HandleOrder(client any, message any) {
 	var messageHash string = "orders"
 	client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
 	if symbol != nil {
-		var symbolMessageHash any = ccxt.Add(messageHash + ":", symbol)
+		var symbolMessageHash any = ccxt.Add(messageHash+":", symbol)
 		client.(ccxt.ClientInterface).Resolve(this.Orders, symbolMessageHash)
 	}
 }
@@ -589,7 +589,7 @@ func (this *Paradex) watchFundingRateBody(ch chan any, symbol any, optionalArgs 
 			"channel": channel,
 		},
 	}
-	var messageHash any = ccxt.Add(channel + ".", symbol)
+	var messageHash any = ccxt.Add(channel+".", symbol)
 
 	retRes46815 := (<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash))
 	ccxt.PanicOnError(retRes46815)
@@ -638,7 +638,7 @@ func (this *Paradex) watchFundingRatesBody(ch chan any, optionalArgs ...any) any
 		var symbolsLength int = ccxt.GetArrayLength(symbols)
 		if symbolsLength > 0 {
 			for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-				var messageHash any = ccxt.Add(channel + ".", ccxt.GetValue(symbols, i))
+				var messageHash any = ccxt.Add(channel+".", ccxt.GetValue(symbols, i))
 				ccxt.AppendToArray(&messageHashes, messageHash)
 			}
 		} else {
@@ -749,7 +749,7 @@ func (this *Paradex) HandleErrorMessage(client any, message any) any {
 	} else {
 		var errorCode *string = this.SafeString(error, "code")
 		if errorCode != nil {
-			var feedback any = ccxt.Add(this.Id + " ", this.Json(error))
+			var feedback any = ccxt.Add(this.Id+" ", this.Json(error))
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], "-32600", feedback)
 			var messageString any = this.SafeValue(error, "message")
 			if !ccxt.IsEqual(messageString, nil) {

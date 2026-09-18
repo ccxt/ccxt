@@ -56,7 +56,7 @@ func testFetchCurrenciesBody(ch chan any, exchange ccxt.ICoreExchange, skippedPr
 		}
 		// check at least X% of currencies are active
 		var inactiveCurrenciesPercentage any = Multiply((Divide(numInactiveCurrencies, currenciesLength)), 100)
-		Assert(skipActive || (IsLessThan(inactiveCurrenciesPercentage, maxInactiveCurrenciesPercentage)), "Percentage of inactive currencies is too high at " + ToString(inactiveCurrenciesPercentage) + "% that is more than the allowed maximum of " + ToString(maxInactiveCurrenciesPercentage) + "%")
+		Assert(skipActive || (IsLessThan(inactiveCurrenciesPercentage, maxInactiveCurrenciesPercentage)), "Percentage of inactive currencies is too high at "+ToString(inactiveCurrenciesPercentage)+"% that is more than the allowed maximum of "+ToString(maxInactiveCurrenciesPercentage)+"%")
 		DetectCurrencyConflicts(exchange, currencies)
 	}
 

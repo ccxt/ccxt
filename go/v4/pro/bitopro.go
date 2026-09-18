@@ -105,7 +105,7 @@ func (this *Bitopro) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	}
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
-	var messageHash any = ccxt.Add("ORDER_BOOK" + ":", symbol)
+	var messageHash any = ccxt.Add("ORDER_BOOK"+":", symbol)
 	var endPart any = nil
 	if ccxt.IsEqual(limit, nil) {
 		endPart = ccxt.GetValue(market, "id")
@@ -188,7 +188,7 @@ func (this *Bitopro) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
-	var messageHash any = ccxt.Add("TRADE" + ":", symbol)
+	var messageHash any = ccxt.Add("TRADE"+":", symbol)
 
 	trades := (<-this.WatchPublicAsync("trades", messageHash, ccxt.GetValue(market, "id")))
 	ccxt.PanicOnError(trades)
@@ -432,7 +432,7 @@ func (this *Bitopro) watchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
-	var messageHash any = ccxt.Add("TICKER" + ":", symbol)
+	var messageHash any = ccxt.Add("TICKER"+":", symbol)
 
 	retRes35215 := (<-this.WatchPublicAsync("tickers", messageHash, ccxt.GetValue(market, "id")))
 	ccxt.PanicOnError(retRes35215)

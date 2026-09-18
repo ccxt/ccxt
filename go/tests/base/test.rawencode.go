@@ -21,5 +21,5 @@ func TestRawencode() {
 	var expected2a string = "a=1&b=+&"
 	var expected2b string = "b=+&&a=1"
 	var result2 string = exchange.Rawencode(dict2)
-	assert((result2 == expected2a) || (result2 == expected2b), "rawencode: expected " + expected2a + " or " + expected2b + " but got " + result2)
+	assert((result2 == expected2a) || (result2 == expected2b), "rawencode: expected "+expected2a+" or "+expected2b+" but got "+result2)
 }

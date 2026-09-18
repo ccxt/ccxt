@@ -786,7 +786,7 @@ func (this *Bittrade) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		response = (<-this.PublicGetCommonSymbols(params))
 		PanicOnError(response)
 	} else {
-		panic(NotSupported(Add(Add(this.Id + " fetchMarkets() does not support the ", method), " method")))
+		panic(NotSupported(Add(Add(this.Id+" fetchMarkets() does not support the ", method), " method")))
 	}
 	//
 	//    {
@@ -823,7 +823,7 @@ func (this *Bittrade) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var markets any = this.SafeList(response, "data", []any{})
 	var numMarkets int = GetArrayLength(markets)
 	if numMarkets < 1 {
-		panic(NetworkError(Add(this.Id + " fetchMarkets() returned empty response: ", this.Json(markets))))
+		panic(NetworkError(Add(this.Id+" fetchMarkets() returned empty response: ", this.Json(markets))))
 	}
 	var result any = []any{}
 	for i := 0; i < GetArrayLength(markets); i++ {
@@ -836,7 +836,12 @@ func (this *Bittrade) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var leverageRatio *string = this.SafeString(market, "leverage-ratio", "1")
 		var superLeverageRatio *string = this.SafeString(market, "super-margin-leverage-ratio", "1")
 		var margin bool = Precise.StringGt(leverageRatio, "1") || Precise.StringGt(superLeverageRatio, "1")
-		var fee any = func() any { if (base != nil && *base == "OMG") { return this.ParseNumber("0") }; return this.ParseNumber("0.002") }()
+		var fee any = func() any {
+			if base != nil && *base == "OMG" {
+				return this.ParseNumber("0")
+			}
+			return this.ParseNumber("0.002")
+		}()
 		if baseId == nil {
 			panic(ExchangeError(this.Id + " fetchMarkets() missing baseId"))
 		}
@@ -1046,7 +1051,7 @@ func (this *Bittrade) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	//
 	if InOp(response, "tick") {
 		if (IsEqual(GetValue(response, "tick"), nil)) || (IsEqual(GetValue(response, "tick"), nil)) {
-			panic(BadSymbol(Add(this.Id + " fetchOrderBook() returned empty response: ", this.Json(response))))
+			panic(BadSymbol(Add(this.Id+" fetchOrderBook() returned empty response: ", this.Json(response))))
 		}
 		var tick any = this.SafeValue(response, "tick")
 		var timestamp *int64 = this.SafeInteger(tick, "ts", this.SafeInteger(response, "ts"))
@@ -1056,7 +1061,7 @@ func (this *Bittrade) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		ch <- result
 		return nil
 	}
-	panic(ExchangeError(Add(this.Id + " fetchOrderBook() returned unrecognized response: ", this.Json(response))))
+	panic(ExchangeError(Add(this.Id+" fetchOrderBook() returned unrecognized response: ", this.Json(response))))
 }
 
 /**
@@ -1707,7 +1712,7 @@ func (this *Bittrade) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		response = (<-this.PrivateGetAccountAccountsIdBalance(this.Extend(request, params)))
 		PanicOnError(response)
 	} else {
-		panic(NotSupported(Add(Add(this.Id + " fetchBalance() does not support the ", method), " method")))
+		panic(NotSupported(Add(Add(this.Id+" fetchBalance() does not support the ", method), " method")))
 	}
 
 	ch <- this.ParseBalance(response)
@@ -2086,7 +2091,12 @@ func (this *Bittrade) ParseOrder(order any, optionalArgs ...any) any {
 	var feeCost *string = this.SafeString2(order, "filled-fees", "field-fees")            // typo in their API, filled fees
 	var fee any = nil
 	if feeCost != nil {
-		var feeCurrency any = func() any { if (IsEqual(side, "sell")) { return GetValue(market, "quote") }; return GetValue(market, "base") }()
+		var feeCurrency any = func() any {
+			if IsEqual(side, "sell") {
+				return GetValue(market, "quote")
+			}
+			return GetValue(market, "base")
+		}()
 		fee = map[string]any{
 			"cost":     feeCost,
 			"currency": feeCurrency,
@@ -2241,7 +2251,7 @@ func (this *Bittrade) createOrderBody(ch chan any, symbol any, typeVar any, side
 		response = (<-this.PrivatePostOrderOrdersPlace(this.Extend(request, params)))
 		PanicOnError(response)
 	} else {
-		panic(NotSupported(Add(Add(this.Id + " createOrder() does not support the ", method), " method")))
+		panic(NotSupported(Add(Add(this.Id+" createOrder() does not support the ", method), " method")))
 	}
 	var id *string = this.SafeString(response, "data")
 
@@ -2845,7 +2855,7 @@ func (this *Bittrade) Sign(path any, optionalArgs ...any) any {
 		// eslint-disable-next-line quotes
 		var payload string = Join(content, "\n")
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "base64")
-		auth = Add(auth, "&" + this.Urlencode(map[string]any{
+		auth = Add(auth, "&"+this.Urlencode(map[string]any{
 			"Signature": signature,
 		}))
 		url = Add(url, Add("?", auth))
@@ -2861,7 +2871,7 @@ func (this *Bittrade) Sign(path any, optionalArgs ...any) any {
 		}
 	} else {
 		if len(ObjectKeys(params)) > 0 {
-			url = Add(url, "?" + this.Urlencode(params))
+			url = Add(url, "?"+this.Urlencode(params))
 		}
 	}
 	url = Add(this.ImplodeParams(GetValue(GetValue(this.Urls, "api"), api), map[string]any{
@@ -2885,7 +2895,7 @@ func (this *Bittrade) HandleErrors(httpCode any, reason any, url any, method any
 		var status *string = this.SafeString(response, "status")
 		if status != nil && *status == "error" {
 			var code *string = this.SafeString(response, "err-code")
-			var feedback any = Add(this.Id + " ", body)
+			var feedback any = Add(this.Id+" ", body)
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
 			var message *string = this.SafeString(response, "err-msg")

@@ -1220,24 +1220,39 @@ func (this *Toobit) ParseMarket(market any) any {
 		symbol = Add(symbol, Add(":", settle))
 	}
 	return this.SafeMarketStructure(map[string]any{
-		"id":             id,
-		"symbol":         symbol,
-		"base":           base,
-		"quote":          quote,
-		"settle":         settle,
-		"baseId":         baseId,
-		"quoteId":        quoteId,
-		"settleId":       settleId,
-		"type":           func() any { if isContract { return "swap" }; return "spot" }(),
-		"spot":           !isContract,
-		"margin":         false,
-		"swap":           isContract,
-		"future":         false,
-		"option":         false,
-		"active":         active,
-		"contract":       isContract,
-		"linear":         func() any { if isContract { return (inverse == nil || *inverse != true) }; return nil }(),
-		"inverse":        func() any { if isContract { return inverse }; return nil }(),
+		"id":       id,
+		"symbol":   symbol,
+		"base":     base,
+		"quote":    quote,
+		"settle":   settle,
+		"baseId":   baseId,
+		"quoteId":  quoteId,
+		"settleId": settleId,
+		"type": func() any {
+			if isContract {
+				return "swap"
+			}
+			return "spot"
+		}(),
+		"spot":     !isContract,
+		"margin":   false,
+		"swap":     isContract,
+		"future":   false,
+		"option":   false,
+		"active":   active,
+		"contract": isContract,
+		"linear": func() any {
+			if isContract {
+				return (inverse == nil || *inverse != true)
+			}
+			return nil
+		}(),
+		"inverse": func() any {
+			if isContract {
+				return inverse
+			}
+			return nil
+		}(),
 		"contractSize":   this.SafeNumber(market, "contractMultiplier"),
 		"expiry":         nil,
 		"expiryDatetime": nil,
@@ -1477,7 +1492,12 @@ func (this *Toobit) ParseTrade(trade any, optionalArgs ...any) any {
 	var isMaker *bool = this.SafeBool(trade, "isMaker")
 	var takerOrMaker any = nil
 	if isMaker != nil {
-		takerOrMaker = func() any { if (isMaker != nil && *isMaker) { return "maker" }; return "taker" }()
+		takerOrMaker = func() any {
+			if isMaker != nil && *isMaker {
+				return "maker"
+			}
+			return "taker"
+		}()
 	}
 	market = this.SafeMarket(nil, market)
 	var symbol any = GetValue(market, "symbol")
@@ -2212,9 +2232,19 @@ func (this *Toobit) CreateContractOrderRequest(symbol any, typeVar any, side any
 	reduceOnly = GetValue(reduceOnlyparamsVariable, 0)
 	params = GetValue(reduceOnlyparamsVariable, 1)
 	if IsEqual(side, "buy") {
-		side = func() any { if (reduceOnly == true) { return "BUY_CLOSE" }; return "BUY_OPEN" }()
+		side = func() any {
+			if reduceOnly == true {
+				return "BUY_CLOSE"
+			}
+			return "BUY_OPEN"
+		}()
 	} else if IsEqual(side, "sell") {
-		side = func() any { if (reduceOnly == true) { return "SELL_CLOSE" }; return "SELL_OPEN" }()
+		side = func() any {
+			if reduceOnly == true {
+				return "SELL_CLOSE"
+			}
+			return "SELL_OPEN"
+		}()
 	}
 	request["side"] = side
 	if !IsEqual(price, nil) {
@@ -2469,7 +2499,7 @@ func (this *Toobit) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	// response same as in `createOrder`
 	var status *string = this.ParseOrderStatus(this.SafeString(response, "status"))
 	if status == nil || *status != "open" {
-		panic(OrderNotFound(Add(Add(Add(this.Id + " order ", id), " can not be canceled, "), this.Json(response))))
+		panic(OrderNotFound(Add(Add(Add(this.Id+" order ", id), " can not be canceled, "), this.Json(response))))
 	}
 
 	ch <- this.ParseOrder(response, market)
@@ -2788,7 +2818,7 @@ func (this *Toobit) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		response = (<-this.PrivateGetApiV1SpotTradeOrders(request))
 		PanicOnError(response)
 	} else {
-		panic(NotSupported(Add(Add(this.Id + " fetchOrders() is not supported for ", marketType), " markets")))
+		panic(NotSupported(Add(Add(this.Id+" fetchOrders() is not supported for ", marketType), " markets")))
 	}
 
 	ch <- this.ParseOrders(response, market, since, limit)
@@ -2846,7 +2876,7 @@ func (this *Toobit) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 	params = GetValue(marketTypeparamsVariable, 1)
 	var response any = []any{}
 	if IsEqual(marketType, "spot") {
-		panic(NotSupported(Add(Add(this.Id + " fetchOrders() is not supported for ", marketType), " markets")))
+		panic(NotSupported(Add(Add(this.Id+" fetchOrders() is not supported for ", marketType), " markets")))
 	} else {
 
 		response = (<-this.PrivateGetApiV1FuturesHistoryOrders(request))
@@ -3161,7 +3191,7 @@ func (this *Toobit) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	if IsEqual(marketType, "spot") {
-		panic(NotSupported(Add(Add(this.Id + " fetchTradingFees(): does not support ", marketType), " markets")))
+		panic(NotSupported(Add(Add(this.Id+" fetchTradingFees(): does not support ", marketType), " markets")))
 	} else if this.InArray(marketType, []any{"swap", "future"}) {
 		var symbol any = nil
 		var symbolparamsVariable []any = this.HandleParamString(params, "symbol")
@@ -3381,7 +3411,12 @@ func (this *Toobit) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var addressTo *string = this.SafeString(transaction, "address")
 	var addressFrom *string = this.SafeString(transaction, "fromAddress")
 	var isWithdraw bool = (InOp(transaction, "arriveQuantity"))
-	var typeVar any = func() any { if isWithdraw { return "withdrawal" }; return "deposit" }()
+	var typeVar any = func() any {
+		if isWithdraw {
+			return "withdrawal"
+		}
+		return "deposit"
+	}()
 	return map[string]any{
 		"info":        transaction,
 		"id":          this.SafeString(transaction, "id"),
@@ -3698,7 +3733,12 @@ func (this *Toobit) ParseLeverage(leverage any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString2(leverage, "symbolId", "symbol")
 	var leverageValue *int64 = this.SafeInteger(leverage, "leverage")
 	var marginType *string = this.SafeStringLower(leverage, "marginType")
-	var marginMode any = func() any { if (marginType != nil && *marginType == "cross") { return "cross" }; return "isolated" }()
+	var marginMode any = func() any {
+		if marginType != nil && *marginType == "cross" {
+			return "cross"
+		}
+		return "isolated"
+	}()
 	return map[string]any{
 		"info":          leverage,
 		"symbol":        this.SafeSymbol(marketId, market),
@@ -3832,7 +3872,7 @@ func (this *Toobit) Sign(path any, optionalArgs ...any) any {
 		// Public endpoints
 		if !isPost {
 			if len(ObjectKeys(query)) > 0 {
-				url = Add(url, "?" + this.Urlencode(query))
+				url = Add(url, "?"+this.Urlencode(query))
 			}
 		}
 	} else {
@@ -3860,10 +3900,10 @@ func (this *Toobit) Sign(path any, optionalArgs ...any) any {
 		}
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "hex")
 		if !IsEqual(queryString, "") {
-			queryString = Add(queryString, "&signature=" + signature)
+			queryString = Add(queryString, "&signature="+signature)
 			url = Add(url, Add("?", queryString))
 		} else {
-			body = Add(body, "&signature=" + signature)
+			body = Add(body, "&signature="+signature)
 		}
 		headers = map[string]any{
 			"Referrer":          "CCXT",
@@ -3886,7 +3926,7 @@ func (this *Toobit) HandleErrors(code any, reason any, url any, method any, head
 	var errorCode *string = this.SafeString(response, "code")
 	var message *string = this.SafeString(response, "msg")
 	if ((errorCode != nil) && (errorCode == nil || *errorCode != "")) && (errorCode == nil || *errorCode != "200") && (errorCode == nil || *errorCode != "0") {
-		var feedback any = Add(this.Id + " ", body)
+		var feedback any = Add(this.Id+" ", body)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		panic(ExchangeError(feedback))

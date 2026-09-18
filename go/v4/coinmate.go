@@ -1063,7 +1063,7 @@ func (this *Coinmate) withdrawBody(ch chan any, code any, amount any, address an
 		response = (<-this.PrivatePostSolWithdrawal(requestParams))
 		PanicOnError(response)
 	} else {
-		panic(ExchangeError(Add(Add(this.Id + " withdraw() does not support the ", method), " method")))
+		panic(ExchangeError(Add(Add(this.Id+" withdraw() does not support the ", method), " method")))
 	}
 	//
 	//     {
@@ -1191,7 +1191,12 @@ func (this *Coinmate) ParseTrade(trade any, optionalArgs ...any) any {
 		}
 	}
 	var takerOrMaker any = DerefScalar(this.SafeString(trade, "feeType"))
-	takerOrMaker = func() any { if (IsEqual(takerOrMaker, "MAKER")) { return "maker" }; return "taker" }()
+	takerOrMaker = func() any {
+		if IsEqual(takerOrMaker, "MAKER") {
+			return "maker"
+		}
+		return "taker"
+	}()
 	return this.SafeTrade(map[string]any{
 		"id":           id,
 		"info":         trade,
@@ -1588,7 +1593,7 @@ func (this *Coinmate) createOrderBody(ch chan any, symbol any, typeVar any, side
 		response = (<-this.PrivatePostSellLimit(requestParams))
 		PanicOnError(response)
 	} else {
-		panic(InvalidOrder(Add(this.Id + " createOrder() does not support order type ", typeVar)))
+		panic(InvalidOrder(Add(this.Id+" createOrder() does not support order type ", typeVar)))
 	}
 	var id *string = this.SafeString(response, "data")
 
@@ -1704,7 +1709,7 @@ func (this *Coinmate) Sign(path any, optionalArgs ...any) any {
 	var url any = Add(Add(GetValue(GetValue(this.Urls, "api"), "rest"), "/"), path)
 	if IsEqual(api, "public") {
 		if len(ObjectKeys(params)) > 0 {
-			url = Add(url, "?" + this.Urlencode(params))
+			url = Add(url, "?"+this.Urlencode(params))
 		}
 	} else {
 		this.CheckRequiredCredentials()
@@ -1738,7 +1743,7 @@ func (this *Coinmate) HandleErrors(code any, reason any, url any, method any, he
 	//
 	var errorMessage *string = this.SafeString(response, "errorMessage")
 	if errorMessage != nil {
-		var feedback any = Add(this.Id + " ", body)
+		var feedback any = Add(this.Id+" ", body)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorMessage, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errorMessage, feedback)
 		panic(ExchangeError(feedback))

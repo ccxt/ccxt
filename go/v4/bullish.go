@@ -1021,7 +1021,7 @@ func (this *Bullish) ParseMarket(market any) any {
 			var idParts []string = Split(id, "-")
 			var datePart *string = this.SafeString(idParts, 2)
 			var dateYmd string = Slice(datePart, 2, nil)
-			symbol = Add(symbol, "-" + dateYmd)
+			symbol = Add(symbol, "-"+dateYmd)
 			if typeVar != nil && *typeVar == "future" {
 				future = true
 			} else if typeVar != nil && *typeVar == "option" {
@@ -1640,7 +1640,7 @@ func (this *Bullish) safeDeterministicCallBody(ch chan any, method any, optional
 	maxRetries = GetValue(maxRetriesparamsVariable, 0)
 	params = GetValue(maxRetriesparamsVariable, 1)
 	if (!IsEqual(method, "fetchOHLCV")) && (!IsEqual(method, "fetchFundingRateHistory")) && (!IsEqual(method, "fetchTrades")) {
-		panic(NotSupported(Add(Add(this.Id + " safeDeterministicCall() does not support the ", method), " method")))
+		panic(NotSupported(Add(Add(this.Id+" safeDeterministicCall() does not support the ", method), " method")))
 	}
 	var errors any = 0
 	params = this.Omit(params, "until")
@@ -2015,7 +2015,7 @@ func (this *Bullish) HandlePaginationParams(method any, optionalArgs ...any) any
 	var now int64 = this.Milliseconds()
 	var allowedSince any = now - ninetyDays
 	if (!IsEqual(since, nil)) && (IsLessThan(since, allowedSince)) {
-		panic(BadRequest(Add(Add(this.Id + " ", method), "() only allows fetching entries up to 90 days in the past")))
+		panic(BadRequest(Add(Add(this.Id+" ", method), "() only allows fetching entries up to 90 days in the past")))
 	}
 	params = this.Omit(params, "paginate")
 	params = this.Extend(params, map[string]any{
@@ -3837,7 +3837,7 @@ func (this *Bullish) Sign(path any, optionalArgs ...any) any {
 		var nonce string = ToString(this.Microseconds())
 		var timestamp string = ToString(this.GetTimestamp())
 		if IsEqual(method, "GET") {
-			var payload any = Add(Add(Add(timestamp + nonce, method), "/trading-api/"), path)
+			var payload any = Add(Add(Add(timestamp+nonce, method), "/trading-api/"), path)
 			var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "hex")
 			headers = map[string]any{
 				"BX-TIMESTAMP": timestamp,
@@ -3846,7 +3846,7 @@ func (this *Bullish) Sign(path any, optionalArgs ...any) any {
 			}
 		} else if IsEqual(method, "POST") {
 			body = this.Json(params)
-			var payload any = Add(Add(Add(Add(timestamp + nonce, method), "/trading-api/"), path), body)
+			var payload any = Add(Add(Add(Add(timestamp+nonce, method), "/trading-api/"), path), body)
 			var digest any = this.Hash(this.Encode(payload), sha256, "hex")
 			var signature string = this.Hmac(this.Encode(digest), this.Encode(this.Secret), sha256, "hex")
 			headers = map[string]any{
@@ -3862,21 +3862,31 @@ func (this *Bullish) Sign(path any, optionalArgs ...any) any {
 			}
 		}
 		if IsEqual(path, "v1/users/hmac/login") {
-			headers = func() any { if (IsEqual(headers, nil)) { return map[string]any{} }; return headers }()
+			headers = func() any {
+				if IsEqual(headers, nil) {
+					return map[string]any{}
+				}
+				return headers
+			}()
 			AddElementToObject(headers, "BX-PUBLIC-KEY", this.ApiKey)
 		} else {
 			var token any = this.Token
 			if token == nil {
 				panic(AuthenticationError(this.Id + " requires a token, please call signIn() first"))
 			}
-			headers = func() any { if (IsEqual(headers, nil)) { return map[string]any{} }; return headers }()
+			headers = func() any {
+				if IsEqual(headers, nil) {
+					return map[string]any{}
+				}
+				return headers
+			}()
 			AddElementToObject(headers, "Authorization", Add("Bearer ", token))
 		}
 	}
 	if IsEqual(method, "GET") {
 		var query string = this.Urlencode(request)
 		if GetLength(query) > 0 {
-			url = Add(url, "?" + query)
+			url = Add(url, "?"+query)
 		}
 	}
 	return map[string]any{
@@ -3976,7 +3986,7 @@ func (this *Bullish) HandleErrors(httpCode any, reason any, url any, method any,
 		} else {
 			message = typeVar
 		}
-		var feedback any = Add(this.Id + " ", body)
+		var feedback any = Add(this.Id+" ", body)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)

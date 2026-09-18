@@ -1274,7 +1274,12 @@ func (this *Woo) ParseTrade(trade any, optionalArgs ...any) any {
 	var takerOrMaker any = nil
 	if isFromFetchOrder {
 		var isMaker bool = IsEqual(this.SafeString2(trade, "is_maker", "isMaker"), "1")
-		takerOrMaker = func() any { if isMaker { return "maker" }; return "taker" }()
+		takerOrMaker = func() any {
+			if isMaker {
+				return "maker"
+			}
+			return "taker"
+		}()
 	}
 	return this.SafeTrade(map[string]any{
 		"id":           id,
@@ -1876,7 +1881,12 @@ func (this *Woo) createOrderBody(ch chan any, symbol any, typeVar any, side any,
 	var isMarket bool = (orderType == "MARKET")
 	var timeInForce *string = this.SafeStringLower(params, "timeInForce")
 	var postOnly bool = this.IsPostOnly(isMarket, nil, params)
-	var clientOrderIdKey any = func() any { if isConditional { return "clientAlgoOrderId" }; return "clientOrderId" }()
+	var clientOrderIdKey any = func() any {
+		if isConditional {
+			return "clientAlgoOrderId"
+		}
+		return "clientOrderId"
+	}()
 	request["type"] = orderType // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
 	if !isConditional {
 		if postOnly {
@@ -1945,7 +1955,12 @@ func (this *Woo) createOrderBody(ch chan any, symbol any, typeVar any, side any,
 			"childOrders": []any{},
 		}
 		var childOrders any = outterOrder["childOrders"]
-		var closeSide any = func() any { if (orderSide == "BUY") { return "SELL" }; return "BUY" }()
+		var closeSide any = func() any {
+			if orderSide == "BUY" {
+				return "SELL"
+			}
+			return "BUY"
+		}()
 		if hasStopLoss {
 			var stopLossPrice *string = this.SafeString(stopLoss, "triggerPrice", stopLoss)
 			var stopLossOrder map[string]any = map[string]any{
@@ -2287,7 +2302,12 @@ func (this *Woo) cancelAllOrdersAfterBody(ch chan any, timeout any, optionalArgs
 		PanicOnError(retRes178712)
 	}
 	var request map[string]any = map[string]any{
-		"triggerAfter": func() any { if (IsGreaterThan(timeout, 0)) { return mathMin(timeout, 900000) }; return 0 }(),
+		"triggerAfter": func() any {
+			if IsGreaterThan(timeout, 0) {
+				return mathMin(timeout, 900000)
+			}
+			return 0
+		}(),
 	}
 
 	response := (<-this.V3PrivatePostTradeCancelAllAfter(this.Extend(request, params)))
@@ -2908,7 +2928,7 @@ func (this *Woo) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) a
 	var rows any = this.SafeList(data, "rows", []any{})
 	var first any = this.SafeDict(rows, 0)
 	if IsEqual(first, nil) {
-		panic(BadSymbol(Add(this.Id + " fetchTicker() could not find ticker data for ", symbol)))
+		panic(BadSymbol(Add(this.Id+" fetchTicker() could not find ticker data for ", symbol)))
 	}
 	var ticker map[string]any = this.Extend(map[string]any{
 		"timestamp": this.SafeInteger(response, "timestamp"),
@@ -3501,10 +3521,15 @@ func (this *Woo) GetDedicatedNetworkId(currency any, params any) any {
 	networkCode = GetValue(networkCodeparamsVariable, 0)
 	params = GetValue(networkCodeparamsVariable, 1)
 	networkCode = this.NetworkIdToCode(networkCode, GetValue(currency, "code"))
-	var networkEntry any = func() any { if (networkCode == nil) { return nil }; return this.SafeDict(GetValue(currency, "networks"), networkCode) }()
+	var networkEntry any = func() any {
+		if networkCode == nil {
+			return nil
+		}
+		return this.SafeDict(GetValue(currency, "networks"), networkCode)
+	}()
 	if IsEqual(networkEntry, nil) {
 		var supportedNetworks []string = ObjectKeys(GetValue(currency, "networks"))
-		panic(BadRequest(Add(this.Id + "  can not determine a network code, please provide unified \"network\" param, one from the following: ", this.Json(supportedNetworks))))
+		panic(BadRequest(Add(this.Id+"  can not determine a network code, please provide unified \"network\" param, one from the following: ", this.Json(supportedNetworks))))
 	}
 	var currentyNetworkId *string = this.SafeString(networkEntry, "currencyNetworkId")
 	return []any{currentyNetworkId, params}
@@ -3678,7 +3703,12 @@ func (this *Woo) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	currency = this.SafeCurrency(code, currency)
 	var amount *float64 = this.SafeNumber(item, "amount")
 	var side *string = this.SafeString(item, "tokenSide")
-	var direction any = func() any { if (side != nil && *side == "DEPOSIT") { return "in" }; return "out" }()
+	var direction any = func() any {
+		if side != nil && *side == "DEPOSIT" {
+			return "in"
+		}
+		return "out"
+	}()
 	var timestamp *int64 = this.SafeTimestamp(item, "createdTime")
 	var fee any = this.ParseTokenAndFeeTemp(item, []any{"feeToken"}, []any{"feeAmount"})
 	return this.SafeLedgerEntry(map[string]any{
@@ -4098,7 +4128,12 @@ func (this *Woo) ParseTransfer(transfer any, optionalArgs ...any) any {
 	var success *bool = this.SafeBool(transfer, "success")
 	var status any = nil
 	if success != nil {
-		status = func() any { if (success != nil && *success) { return "ok" }; return "failed" }()
+		status = func() any {
+			if success != nil && *success {
+				return "ok"
+			}
+			return "failed"
+		}()
 	}
 	var fromAccount any = this.SafeDict(transfer, "from", map[string]any{})
 	var toAccount any = this.SafeDict(transfer, "to", map[string]any{})
@@ -4158,7 +4193,7 @@ func (this *Woo) withdrawBody(ch chan any, code any, amount any, address any, op
 	}
 	var network *string = this.SafeString(params, "network")
 	if network == nil {
-		panic(ArgumentsRequired(Add(this.Id + " withdraw() requires a network parameter for ", code)))
+		panic(ArgumentsRequired(Add(this.Id+" withdraw() requires a network parameter for ", code)))
 	}
 	params = this.Omit(params, "network")
 	request["token"] = GetValue(currency, "id")
@@ -4285,12 +4320,12 @@ func (this *Woo) Sign(path any, optionalArgs ...any) any {
 	if IsEqual(access, "public") {
 		url = Add(url, Add(Add(access, "/"), pathWithParams))
 		if len(ObjectKeys(params)) > 0 {
-			url = Add(url, "?" + this.Urlencode(params))
+			url = Add(url, "?"+this.Urlencode(params))
 		}
 	} else if IsEqual(access, "pub") {
 		url = Add(url, pathWithParams)
 		if len(ObjectKeys(params)) > 0 {
-			url = Add(url, "?" + this.Urlencode(params))
+			url = Add(url, "?"+this.Urlencode(params))
 		}
 	} else {
 		this.CheckRequiredCredentials()
@@ -4324,8 +4359,8 @@ func (this *Woo) Sign(path any, optionalArgs ...any) any {
 			} else {
 				if len(ObjectKeys(params)) > 0 {
 					var query string = this.Urlencode(params)
-					url = Add(url, "?" + query)
-					auth = Add(auth, "?" + query)
+					url = Add(url, "?"+query)
+					auth = Add(auth, "?"+query)
 				}
 			}
 		} else {
@@ -4337,7 +4372,7 @@ func (this *Woo) Sign(path any, optionalArgs ...any) any {
 					url = Add(url, Add("?", auth))
 				}
 			}
-			auth = Add(auth, "|" + ts)
+			auth = Add(auth, "|"+ts)
 			AddElementToObject(headers, "content-type", "application/x-www-form-urlencoded")
 		}
 		AddElementToObject(headers, "x-api-signature", this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256))
@@ -4360,7 +4395,7 @@ func (this *Woo) HandleErrors(httpCode any, reason any, url any, method any, hea
 	var success *bool = this.SafeBool(response, "success")
 	var errorCode *string = this.SafeString(response, "code")
 	if success == nil || *success != true {
-		var feedback any = Add(this.Id + " ", this.Json(response))
+		var feedback any = Add(this.Id+" ", this.Json(response))
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 	}
@@ -4391,7 +4426,12 @@ func (this *Woo) ParseIncome(income any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(income, "updatedTime")
 	var rate *float64 = this.SafeNumber(income, "fundingRate")
 	var paymentType *string = this.SafeString(income, "paymentType")
-	amount = func() any { if (paymentType != nil && *paymentType == "Pay") { return Precise.StringNeg(amount) }; return amount }()
+	amount = func() any {
+		if paymentType != nil && *paymentType == "Pay" {
+			return Precise.StringNeg(amount)
+		}
+		return amount
+	}()
 	return map[string]any{
 		"info":      income,
 		"symbol":    symbol,
@@ -4894,7 +4934,7 @@ func (this *Woo) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any)
 		response = (<-this.V3PrivateGetFuturesLeverage(this.Extend(request, params)))
 		PanicOnError(response)
 	} else {
-		panic(NotSupported(Add(Add(this.Id + " fetchLeverage() is not supported for ", GetValue(market, "type")), " markets")))
+		panic(NotSupported(Add(Add(this.Id+" fetchLeverage() is not supported for ", GetValue(market, "type")), " markets")))
 	}
 	var data any = this.SafeDict(response, "data", map[string]any{})
 
@@ -4992,7 +5032,7 @@ func (this *Woo) setLeverageBody(ch chan any, leverage any, optionalArgs ...any)
 		ch <- retRes410919
 		return nil
 	} else {
-		panic(NotSupported(Add(Add(this.Id + " fetchLeverage() is not supported for ", this.SafeString(market, "type")), " markets")))
+		panic(NotSupported(Add(Add(this.Id+" fetchLeverage() is not supported for ", this.SafeString(market, "type")), " markets")))
 	}
 }
 

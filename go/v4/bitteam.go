@@ -1364,7 +1364,7 @@ func (this *Bitteam) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	}
 	if IsEqual(typeVar, "limit") {
 		if IsEqual(price, nil) {
-			panic(ArgumentsRequired(Add(Add(this.Id + " createOrder() requires a price argument for a ", typeVar), " order")))
+			panic(ArgumentsRequired(Add(Add(this.Id+" createOrder() requires a price argument for a ", typeVar), " order")))
 		} else {
 			request["price"] = this.PriceToPrecision(symbol, price)
 		}
@@ -2815,7 +2815,7 @@ func (this *Bitteam) Sign(path any, optionalArgs ...any) any {
 		if IsEqual(method, "POST") {
 			body = this.Json(request)
 		} else if GetLength(query) != 0 {
-			url = Add(url, "?" + query)
+			url = Add(url, "?"+query)
 		}
 		var auth any = Add(Add(this.ApiKey, ":"), this.Secret)
 		var auth64 string = this.StringToBase64(auth)
@@ -2825,7 +2825,7 @@ func (this *Bitteam) Sign(path any, optionalArgs ...any) any {
 			"Content-Type":  "application/json",
 		}
 	} else if GetLength(query) != 0 {
-		url = Add(url, "?" + query)
+		url = Add(url, "?"+query)
 	}
 	return map[string]any{
 		"url":     url,
@@ -2843,15 +2843,15 @@ func (this *Bitteam) HandleErrors(code any, reason any, url any, method any, hea
 			if (GetIndexOf(url, "/ccxt/order/") >= 0) && (IsEqual(method, "GET")) {
 				var parts []string = Split(url, "/order/")
 				var orderId *string = this.SafeString(parts, 1)
-				panic(OrderNotFound(Add(Add(this.Id + " order ", orderId), " not found")))
+				panic(OrderNotFound(Add(Add(this.Id+" order ", orderId), " not found")))
 			}
 			if GetIndexOf(url, "/cmc/orderbook/") >= 0 {
 				var parts []string = Split(url, "/cmc/orderbook/")
 				var symbolId *string = this.SafeString(parts, 1)
-				panic(BadSymbol(Add(Add(this.Id + " symbolId ", symbolId), " not found")))
+				panic(BadSymbol(Add(Add(this.Id+" symbolId ", symbolId), " not found")))
 			}
 		}
-		var feedback any = Add(this.Id + " ", body)
+		var feedback any = Add(this.Id+" ", body)
 		var message *string = this.SafeString(response, "message")
 		var responseCode *string = this.SafeString(response, "code")
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)

@@ -164,7 +164,12 @@ func (this *Derive) HandleOrderBook(client any, message any) {
 	var topic *string = this.SafeString(params, "channel")
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		var defaultLimit *int64 = this.SafeInteger(this.Options, "watchOrderBookLimit", 1000)
-		var subscription any = func() any { if (topic == nil) { return nil }; return ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), topic) }()
+		var subscription any = func() any {
+			if topic == nil {
+				return nil
+			}
+			return ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), topic)
+		}()
 		var limit *int64 = this.SafeInteger(subscription, "limit", defaultLimit)
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
 	}
@@ -445,7 +450,7 @@ func (this *Derive) HandleOrderBookUnSubscription(client any, topic any) {
 	if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), topic) {
 		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), topic)
 	}
-	error := ccxt.UnsubscribeError(ccxt.Add(this.Id + " orderbook ", symbol))
+	error := ccxt.UnsubscribeError(ccxt.Add(this.Id+" orderbook ", symbol))
 	client.(ccxt.ClientInterface).Reject(error, topic)
 	client.(ccxt.ClientInterface).Resolve(error, ccxt.Add("unwatch", topic))
 }
@@ -460,7 +465,7 @@ func (this *Derive) HandleTradesUnSubscription(client any, topic any) {
 	if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), topic) {
 		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), topic)
 	}
-	error := ccxt.UnsubscribeError(ccxt.Add(this.Id + " trades ", symbol))
+	error := ccxt.UnsubscribeError(ccxt.Add(this.Id+" trades ", symbol))
 	client.(ccxt.ClientInterface).Reject(error, topic)
 	client.(ccxt.ClientInterface).Resolve(error, ccxt.Add("unwatch", topic))
 }
@@ -758,7 +763,12 @@ func (this *Derive) HandleOrder(client any, message any) {
 			}
 			var cachedOrders any = this.Orders
 			var orders any = this.SafeValue(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol, map[string]any{})
-			var order any = func() any { if (orderId == nil) { return nil }; return this.SafeValue(orders, orderId) }()
+			var order any = func() any {
+				if orderId == nil {
+					return nil
+				}
+				return this.SafeValue(orders, orderId)
+			}()
 			if !ccxt.IsEqual(order, nil) {
 				var fee any = this.SafeValue(order, "fee")
 				if !ccxt.IsEqual(fee, nil) {
@@ -902,7 +912,7 @@ func (this *Derive) HandleErrorMessage(client any, message any) any {
 			}()
 			// try block:
 			if errorCode != nil {
-				var feedback any = ccxt.Add(this.Id + " ", this.Json(message))
+				var feedback any = ccxt.Add(this.Id+" ", this.Json(message))
 				this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 				panic(ccxt.ExchangeError(feedback))
 			}
@@ -944,7 +954,12 @@ func (this *Derive) HandleMessage(client any, message any) {
 			}
 		}
 	}
-	var method any = func() any { if (event == nil) { return nil }; return this.SafeValue(methods, event) }()
+	var method any = func() any {
+		if event == nil {
+			return nil
+		}
+		return this.SafeValue(methods, event)
+	}()
 	if !ccxt.IsEqual(method, nil) {
 		ccxt.CallDynamically(method, client, message)
 		return
@@ -952,7 +967,12 @@ func (this *Derive) HandleMessage(client any, message any) {
 	if ccxt.InOp(message, "id") {
 		var id *string = this.SafeString(message, "id")
 		var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).GetSubscriptions(), "id")
-		var subscription any = func() any { if (id == nil) { return map[string]any{} }; return this.SafeValue(subscriptionsById, id, map[string]any{}) }()
+		var subscription any = func() any {
+			if id == nil {
+				return map[string]any{}
+			}
+			return this.SafeValue(subscriptionsById, id, map[string]any{})
+		}()
 		if ccxt.InOp(subscription, "method") {
 			if ccxt.IsEqual(ccxt.GetValue(subscription, "method"), "public/login") {
 				this.HandleAuth(client, message)

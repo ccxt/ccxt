@@ -349,7 +349,12 @@ func (this *Phemex) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	params = ccxt.GetValue(typeVarparamsVariable, 1)
 	var usePerpetualApi bool = ccxt.IsEqual(this.SafeString(params, "settle"), "USDT")
 	var messageHash any = ":balance"
-	messageHash = func() any { if usePerpetualApi { return ccxt.Add("perpetual", messageHash) }; return ccxt.Add(typeVar, messageHash) }()
+	messageHash = func() any {
+		if usePerpetualApi {
+			return ccxt.Add("perpetual", messageHash)
+		}
+		return ccxt.Add(typeVar, messageHash)
+	}()
 
 	retRes33115 := (<-this.SubscribePrivateAsync(typeVar, messageHash, params))
 	ccxt.PanicOnError(retRes33115)
@@ -463,7 +468,7 @@ func (this *Phemex) HandleTrades(client any, message any) {
 	var marketId *string = this.SafeString(message, "symbol")
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
-	var messageHash any = ccxt.Add(name + ":", symbol)
+	var messageHash any = ccxt.Add(name+":", symbol)
 	var stored any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(stored, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -566,7 +571,12 @@ func (this *Phemex) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	var settleIsUSDT bool = ccxt.IsEqual(ccxt.GetValue(market, "settle"), "USDT")
 	var name any = "spot_market24h"
 	if isSwap == true {
-		name = func() any { if settleIsUSDT { return "perp_market24h_pack_p" }; return "market24h" }()
+		name = func() any {
+			if settleIsUSDT {
+				return "perp_market24h_pack_p"
+			}
+			return "market24h"
+		}()
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var requestId any = this.RequestId()
@@ -621,7 +631,12 @@ func (this *Phemex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var settleIsUSDT bool = ccxt.IsEqual(ccxt.GetValue(market, "settle"), "USDT")
 	var name any = "spot_market24h"
 	if isSwap == true {
-		name = func() any { if settleIsUSDT { return "perp_market24h_pack_p" }; return "market24h" }()
+		name = func() any {
+			if settleIsUSDT {
+				return "perp_market24h_pack_p"
+			}
+			return "market24h"
+		}()
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var requestId any = this.RequestId()
@@ -690,7 +705,12 @@ func (this *Phemex) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	var isSwap any = ccxt.GetValue(market, "swap")
 	var settleIsUSDT bool = ccxt.IsEqual(ccxt.GetValue(market, "settle"), "USDT")
 	var isUsdtSwap bool = (isSwap == true) && settleIsUSDT
-	var name any = func() any { if isUsdtSwap { return "trade_p" }; return "trade" }()
+	var name any = func() any {
+		if isUsdtSwap {
+			return "trade_p"
+		}
+		return "trade"
+	}()
 	var messageHash any = ccxt.Add("trade:", symbol)
 	var method any = ccxt.Add(name, ".subscribe")
 	var subscribe map[string]any = map[string]any{
@@ -747,7 +767,12 @@ func (this *Phemex) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	var isSwap any = ccxt.GetValue(market, "swap")
 	var settleIsUSDT bool = ccxt.IsEqual(ccxt.GetValue(market, "settle"), "USDT")
 	var isUsdtSwap bool = (isSwap == true) && settleIsUSDT
-	var name any = func() any { if isUsdtSwap { return "orderbook_p" }; return "orderbook" }()
+	var name any = func() any {
+		if isUsdtSwap {
+			return "orderbook_p"
+		}
+		return "orderbook"
+	}()
 	var messageHash any = ccxt.Add("orderbook:", symbol)
 	var method any = ccxt.Add(name, ".subscribe")
 	var subscribe map[string]any = map[string]any{
@@ -806,7 +831,12 @@ func (this *Phemex) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	var isSwap any = ccxt.GetValue(market, "swap")
 	var settleIsUSDT bool = ccxt.IsEqual(ccxt.GetValue(market, "settle"), "USDT")
 	var isUsdtSwap bool = (isSwap == true) && settleIsUSDT
-	var name any = func() any { if isUsdtSwap { return "kline_p" }; return "kline" }()
+	var name any = func() any {
+		if isUsdtSwap {
+			return "kline_p"
+		}
+		return "kline"
+	}()
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("kline:", timeframe), ":"), symbol)
 	var method any = ccxt.Add(name, ".subscribe")
 	var subscribe map[string]any = map[string]any{
@@ -888,7 +918,7 @@ func (this *Phemex) HandleOrderBook(client any, message any) {
 	var typeVar *string = this.SafeString(message, "type")
 	var depth *int64 = this.SafeInteger(message, "depth")
 	var name string = "orderbook"
-	var messageHash any = ccxt.Add(name + ":", symbol)
+	var messageHash any = ccxt.Add(name+":", symbol)
 	var nonce *int64 = this.SafeInteger(message, "sequence")
 	var timestamp *int64 = this.SafeIntegerProduct(message, "timestamp", 0.000001)
 	if typeVar != nil && *typeVar == "snapshot" {
@@ -963,7 +993,12 @@ func (this *Phemex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	params = ccxt.GetValue(typeVarparamsVariable, 1)
 	if symbol == nil {
 		var settle *string = this.SafeString(params, "settle")
-		messageHash = func() any { if (settle != nil && *settle == "USDT") { return (ccxt.Add(messageHash, "perpetual")) }; return (ccxt.Add(messageHash, typeVar)) }()
+		messageHash = func() any {
+			if settle != nil && *settle == "USDT" {
+				return (ccxt.Add(messageHash, "perpetual"))
+			}
+			return (ccxt.Add(messageHash, typeVar))
+		}()
 	}
 
 	trades := (<-this.SubscribePrivateAsync(typeVar, messageHash, params))
@@ -1089,7 +1124,12 @@ func (this *Phemex) HandleMyTrades(client any, message any) {
 		cachedTrades.(ccxt.Appender).Append(parsed)
 		var symbol any = ccxt.GetValue(parsed, "symbol")
 		if typeVar == nil {
-			typeVar = func() any { if (ccxt.IsEqual(ccxt.GetValue(market, "settle"), "USDT")) { return "perpetual" }; return ccxt.GetValue(market, "type") }()
+			typeVar = func() any {
+				if ccxt.IsEqual(ccxt.GetValue(market, "settle"), "USDT") {
+					return "perpetual"
+				}
+				return ccxt.GetValue(market, "type")
+			}()
 		}
 		if symbol != nil {
 			ccxt.AddElementToObject(marketIds, symbol, true)
@@ -1102,7 +1142,7 @@ func (this *Phemex) HandleMyTrades(client any, message any) {
 		client.(ccxt.ClientInterface).Resolve(cachedTrades, hash)
 	}
 	// generic subscription
-	var messageHash any = ccxt.Add(channel + ":", typeVar)
+	var messageHash any = ccxt.Add(channel+":", typeVar)
 	client.(ccxt.ClientInterface).Resolve(cachedTrades, messageHash)
 }
 
@@ -1154,7 +1194,12 @@ func (this *Phemex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	params = ccxt.GetValue(typeVarparamsVariable, 1)
 	var isUSDTSettled bool = ccxt.IsEqual(this.SafeString(params, "settle"), "USDT")
 	if symbol == nil {
-		messageHash = func() any { if (isUSDTSettled) { return (ccxt.Add(messageHash, "perpetual")) }; return (ccxt.Add(messageHash, typeVar)) }()
+		messageHash = func() any {
+			if isUSDTSettled {
+				return (ccxt.Add(messageHash, "perpetual"))
+			}
+			return (ccxt.Add(messageHash, typeVar))
+		}()
 	}
 
 	orders := (<-this.SubscribePrivateAsync(typeVar, messageHash, params))
@@ -1372,13 +1417,18 @@ func (this *Phemex) HandleOrders(client any, message any) {
 		var market any = this.Market(symbol)
 		if typeVar == nil {
 			var isUsdt bool = ccxt.IsEqual(ccxt.GetValue(market, "settle"), "USDT")
-			typeVar = func() any { if isUsdt { return "perpetual" }; return ccxt.GetValue(market, "type") }()
+			typeVar = func() any {
+				if isUsdt {
+					return "perpetual"
+				}
+				return ccxt.GetValue(market, "type")
+			}()
 		}
 		ccxt.AddElementToObject(marketIds, symbol, true)
 	}
 	var keys []string = ccxt.ObjectKeys(marketIds)
 	for i := 0; i < len(keys); i++ {
-		var currentMessageHash any = ccxt.Add("orders" + ":", ccxt.GetValue(keys, i))
+		var currentMessageHash any = ccxt.Add("orders"+":", ccxt.GetValue(keys, i))
 		client.(ccxt.ClientInterface).Resolve(this.Orders, currentMessageHash)
 	}
 	// resolve generic subscription (spot or swap)
@@ -1684,7 +1734,12 @@ func (this *Phemex) HandleMessage(client any, message any) {
 		this.HandleOrders(client, orders)
 	}
 	if (ccxt.InOp(message, "accounts")) || (ccxt.InOp(message, "accounts_p")) || (ccxt.InOp(message, "wallets")) {
-		var typeVar any = func() any { if (ccxt.InOp(message, "accounts")) { return "swap" }; return "spot" }()
+		var typeVar any = func() any {
+			if ccxt.InOp(message, "accounts") {
+				return "swap"
+			}
+			return "spot"
+		}()
 		if ccxt.InOp(message, "accounts_p") {
 			typeVar = "perpetual"
 		}
@@ -1708,7 +1763,7 @@ func (this *Phemex) HandleAuthenticate(client any, message any) {
 	if status != nil && *status == "success" {
 		client.(ccxt.ClientInterface).Resolve(message, messageHash)
 	} else {
-		error := ccxt.AuthenticationError(ccxt.Add(this.Id + " ", this.Json(message)))
+		error := ccxt.AuthenticationError(ccxt.Add(this.Id+" ", this.Json(message)))
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
 		if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
 			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)

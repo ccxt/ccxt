@@ -408,7 +408,12 @@ func (this *Bitbns) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var costLimits any = this.SafeDict(marketLimits, "cost", map[string]any{})
 		var usdt bool = (quoteId != nil && *quoteId == "USDT")
 		// INR markets don't need a _INR prefix
-		var uppercaseId any = func() any { if usdt { return (Add(Add(baseId, "_"), quoteId)) }; return baseId }()
+		var uppercaseId any = func() any {
+			if usdt {
+				return (Add(Add(baseId, "_"), quoteId))
+			}
+			return baseId
+		}()
 		AppendToArray(&result, map[string]any{
 			"id":             id,
 			"uppercaseId":    uppercaseId,
@@ -896,7 +901,12 @@ func (this *Bitbns) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	//         "code":200
 	//     }
 	//
-	var parsed any = func() any { if (IsEqual(response, nil)) { return map[string]any{} }; return response }()
+	var parsed any = func() any {
+		if IsEqual(response, nil) {
+			return map[string]any{}
+		}
+		return response
+	}()
 
 	ch <- this.ParseOrder(parsed, market)
 	return nil
@@ -942,14 +952,29 @@ func (this *Bitbns) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 		"symbol":   GetValue(market, "uppercaseId"),
 	}
 	var response any = nil
-	var tail any = func() any { if (isTrigger != nil && *isTrigger == true) { return "StopLossOrder" }; return "Order" }()
-	var quoteSide any = func() any { if (IsEqual(GetValue(market, "quoteId"), "USDT")) { return "usdtcancel" }; return "cancel" }()
+	var tail any = func() any {
+		if isTrigger != nil && *isTrigger == true {
+			return "StopLossOrder"
+		}
+		return "Order"
+	}()
+	var quoteSide any = func() any {
+		if IsEqual(GetValue(market, "quoteId"), "USDT") {
+			return "usdtcancel"
+		}
+		return "cancel"
+	}()
 	quoteSide = Add(quoteSide, tail)
 	request["side"] = quoteSide
 
 	response = (<-this.V2PostCancel(this.Extend(request, params)))
 	PanicOnError(response)
-	var parsed any = func() any { if (IsEqual(response, nil)) { return map[string]any{} }; return response }()
+	var parsed any = func() any {
+		if IsEqual(response, nil) {
+			return map[string]any{}
+		}
+		return response
+	}()
 
 	ch <- this.ParseOrder(parsed, market)
 	return nil
@@ -1069,11 +1094,21 @@ func (this *Bitbns) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var market any = this.Market(symbol)
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop")
 	params = this.Omit(params, []any{"trigger", "stop"})
-	var quoteSide any = func() any { if (IsEqual(GetValue(market, "quoteId"), "USDT")) { return "usdtListOpen" }; return "listOpen" }()
+	var quoteSide any = func() any {
+		if IsEqual(GetValue(market, "quoteId"), "USDT") {
+			return "usdtListOpen"
+		}
+		return "listOpen"
+	}()
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "uppercaseId"),
 		"page":   0,
-		"side":   func() any { if (isTrigger != nil && *isTrigger == true) { return (Add(quoteSide, "StopOrders")) }; return (Add(quoteSide, "Orders")) }(),
+		"side": func() any {
+			if isTrigger != nil && *isTrigger == true {
+				return (Add(quoteSide, "StopOrders"))
+			}
+			return (Add(quoteSide, "Orders"))
+		}(),
 	}
 
 	response := (<-this.V2PostGetordersnew(this.Extend(request, params)))
@@ -1615,7 +1650,7 @@ func (this *Bitbns) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var urls any = this.Urls
 	if !(InOp(GetValue(urls, "api"), api)) {
-		panic(ExchangeError(Add(Add(this.Id + " does not have a testnet/sandbox URL for ", api), " endpoints")))
+		panic(ExchangeError(Add(Add(this.Id+" does not have a testnet/sandbox URL for ", api), " endpoints")))
 	}
 	if !IsEqual(api, "www") {
 		this.CheckRequiredCredentials()
@@ -1629,7 +1664,7 @@ func (this *Bitbns) Sign(path any, optionalArgs ...any) any {
 	var nonce string = ToString(this.Nonce())
 	if IsEqual(method, "GET") {
 		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, "?" + this.Urlencode(query))
+			url = Add(url, "?"+this.Urlencode(query))
 		}
 	} else if IsEqual(method, "POST") {
 		if len(ObjectKeys(query)) > 0 {
@@ -1643,7 +1678,12 @@ func (this *Bitbns) Sign(path any, optionalArgs ...any) any {
 		}
 		var payload string = this.StringToBase64(this.Json(auth))
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha512)
-		headers = func() any { if (IsEqual(headers, nil)) { return map[string]any{} }; return headers }()
+		headers = func() any {
+			if IsEqual(headers, nil) {
+				return map[string]any{}
+			}
+			return headers
+		}()
 		AddElementToObject(headers, "X-BITBNS-PAYLOAD", payload)
 		AddElementToObject(headers, "X-BITBNS-SIGNATURE", signature)
 		AddElementToObject(headers, "Content-Type", "application/x-www-form-urlencoded")
@@ -1667,7 +1707,7 @@ func (this *Bitbns) HandleErrors(httpCode any, reason any, url any, method any, 
 	var message *string = this.SafeString(response, "msg")
 	var error bool = (code != nil) && (code == nil || *code != "200") && (code == nil || *code != "204")
 	if error || (message != nil) {
-		var feedback any = Add(this.Id + " ", body)
+		var feedback any = Add(this.Id+" ", body)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)

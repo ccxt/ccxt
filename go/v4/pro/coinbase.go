@@ -1327,7 +1327,12 @@ func (this *Coinbase) HandleMessage(client any, message any) {
 	if typeVar != nil && *typeVar == "error" {
 		var errorMessage *string = this.SafeString(message, "message")
 		// ternary (not ||) so the ast-transpiler emits a value-typed conditional, not a boolean
-		var errorMessageValue any = func() any { if (errorMessage != nil) { return errorMessage }; return "unknown error" }()
+		var errorMessageValue any = func() any {
+			if errorMessage != nil {
+				return errorMessage
+			}
+			return "unknown error"
+		}()
 		panic(ccxt.ExchangeError(errorMessageValue))
 	}
 	var method any = this.SafeValue(methods, channel)

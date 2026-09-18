@@ -728,7 +728,12 @@ func (this *Gemini) ParseCurrency(rawCurrency any) any {
 	var code *string = this.SafeCurrencyCode(id)
 	var fiatFlag *string = this.SafeString(rawCurrency, 7)
 	var isFiat bool = (fiatFlag != nil) && (fiatFlag == nil || *fiatFlag != "")
-	var typeVar any = func() any { if isFiat { return "fiat" }; return "crypto" }()
+	var typeVar any = func() any {
+		if isFiat {
+			return "fiat"
+		}
+		return "crypto"
+	}()
 	var precision any = this.ParseNumber(this.ParsePrecision(this.SafeString(rawCurrency, 5)))
 	var networks map[string]any = map[string]any{}
 	var networkId *string = this.SafeString(rawCurrency, 9)
@@ -1153,7 +1158,12 @@ func (this *Gemini) ParseMarket(response any) any {
 		linear = true           // always linear
 		inverse = false
 	}
-	var typeVar any = func() any { if swap { return "swap" }; return "spot" }()
+	var typeVar any = func() any {
+		if swap {
+			return "swap"
+		}
+		return "spot"
+	}()
 	var isSpot bool = !swap
 	return this.SafeMarketStructure(map[string]any{
 		"id":             marketId,
@@ -2143,7 +2153,7 @@ func (this *Gemini) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	var triggerPrice *string = this.SafeStringN(params, []any{"triggerPrice", "stop_price", "stopPrice"})
 	params = this.Omit(params, []any{"triggerPrice", "stop_price", "stopPrice", "type"})
 	if IsEqual(typeVar, "stopLimit") {
-		panic(ArgumentsRequired(Add(Add(this.Id + " createOrder() requires a triggerPrice parameter or a stop_price parameter for ", typeVar), " orders")))
+		panic(ArgumentsRequired(Add(Add(this.Id+" createOrder() requires a triggerPrice parameter or a stop_price parameter for ", typeVar), " orders")))
 	}
 	if triggerPrice != nil {
 		request["stop_price"] = this.PriceToPrecision(symbol, triggerPrice)
@@ -2385,7 +2395,7 @@ func (this *Gemini) withdrawBody(ch chan any, code any, amount any, address any,
 	//
 	var result *string = this.SafeString(response, "result")
 	if result != nil && *result == "error" {
-		panic(ExchangeError(Add(this.Id + " withdraw() failed: ", this.Json(response))))
+		panic(ExchangeError(Add(this.Id+" withdraw() failed: ", this.Json(response))))
 	}
 
 	ch <- this.ParseTransaction(response, currency)
@@ -2656,7 +2666,7 @@ func (this *Gemini) Sign(path any, optionalArgs ...any) any {
 		}
 	} else {
 		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, "?" + this.Urlencode(query))
+			url = Add(url, "?"+this.Urlencode(query))
 		}
 	}
 	url = Add(GetValue(GetValue(this.Urls, "api"), api), url)
@@ -2673,7 +2683,7 @@ func (this *Gemini) Sign(path any, optionalArgs ...any) any {
 func (this *Gemini) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
 	if IsEqual(response, nil) {
 		if IsString(body) {
-			var feedback any = Add(this.Id + " ", body)
+			var feedback any = Add(this.Id+" ", body)
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
 		}
 		return nil // fallback to default error handler
@@ -2689,7 +2699,7 @@ func (this *Gemini) HandleErrors(httpCode any, reason any, url any, method any, 
 	if result != nil && *result == "error" {
 		var reasonInner *string = this.SafeString(response, "reason")
 		var message *string = this.SafeString(response, "message")
-		var feedback any = Add(this.Id + " ", message)
+		var feedback any = Add(this.Id+" ", message)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], reasonInner, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)

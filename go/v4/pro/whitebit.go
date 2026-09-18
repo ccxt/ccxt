@@ -150,7 +150,7 @@ func (this *Whitebit) HandleOHLCV(client any, message any) any {
 		var marketId *string = this.SafeString(data, 7)
 		var market any = this.SafeMarket(marketId)
 		var symbol any = ccxt.GetValue(market, "symbol")
-		var messageHash any = ccxt.Add("candles" + ":", symbol)
+		var messageHash any = ccxt.Add("candles"+":", symbol)
 		var parsed any = this.ParseOHLCV(data, market)
 		// this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol)
 		if !(ccxt.InOp(this.Ohlcvs, symbol)) {
@@ -200,7 +200,7 @@ func (this *Whitebit) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	if ccxt.IsEqual(limit, nil) {
 		limit = 10 // max 100
 	}
-	var messageHash any = ccxt.Add("orderbook" + ":", ccxt.GetValue(market, "symbol"))
+	var messageHash any = ccxt.Add("orderbook"+":", ccxt.GetValue(market, "symbol"))
 	var method string = "depth_subscribe"
 	var options any = this.SafeValue(this.Options, "watchOrderBook", map[string]any{})
 	var defaultPriceInterval *string = this.SafeString(options, "priceInterval", "0")
@@ -275,7 +275,7 @@ func (this *Whitebit) HandleOrderBook(client any, message any) {
 		this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), asks)
 		this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), bids)
 	}
-	var messageHash any = ccxt.Add("orderbook" + ":", symbol)
+	var messageHash any = ccxt.Add("orderbook"+":", symbol)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *Whitebit) HandleDelta(bookside any, delta any) {
@@ -399,7 +399,7 @@ func (this *Whitebit) HandleTicker(client any, message any) any {
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var rawTicker any = this.SafeValue(tickers, 1, map[string]any{})
-	var messageHash any = ccxt.Add("ticker" + ":", symbol)
+	var messageHash any = ccxt.Add("ticker"+":", symbol)
 	var ticker any = this.ParseTicker(rawTicker, market)
 	ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 	// watchTicker
@@ -456,7 +456,7 @@ func (this *Whitebit) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	}
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
-	var messageHash any = ccxt.Add("trades" + ":", symbol)
+	var messageHash any = ccxt.Add("trades"+":", symbol)
 	var method string = "trades_subscribe"
 	// every time we want to subscribe to another market we have to 're-subscribe' sending it all again
 
@@ -628,7 +628,12 @@ func (this *Whitebit) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var feeCost *string = this.SafeString(trade, 6)
 	if feeCost != nil {
 		var feeCurrencyId *string = this.SafeString(trade, 10)
-		var feeCurrencyCode any = func() any { if (feeCurrencyId != nil) { return this.SafeCurrencyCode(feeCurrencyId) }; return ccxt.GetValue(market, "quote") }()
+		var feeCurrencyCode any = func() any {
+			if feeCurrencyId != nil {
+				return this.SafeCurrencyCode(feeCurrencyId)
+			}
+			return ccxt.GetValue(market, "quote")
+		}()
 		fee = map[string]any{
 			"cost":     feeCost,
 			"currency": feeCurrencyCode,
@@ -811,7 +816,12 @@ func (this *Whitebit) ParseWsOrder(order any, optionalArgs ...any) any {
 	var lastTradeTimestamp *int64 = this.SafeTimestamp(order, "mtime")
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var rawSide *int64 = this.SafeInteger(order, "side")
-	var side any = func() any { if (rawSide != nil && *rawSide == 1) { return "sell" }; return "buy" }()
+	var side any = func() any {
+		if rawSide != nil && *rawSide == 1 {
+			return "sell"
+		}
+		return "buy"
+	}()
 	var dealFee *string = this.SafeString(order, "deal_fee")
 	var fee any = nil
 	if dealFee != nil {
@@ -1353,7 +1363,7 @@ func (this *Whitebit) HandleErrorMessage(client any, message any) any {
 			// try block:
 			if !ccxt.IsEqual(error, nil) {
 				var code *string = this.SafeString(message, "code")
-				var feedback any = ccxt.Add(this.Id + " ", this.Json(message))
+				var feedback any = ccxt.Add(this.Id+" ", this.Json(message))
 				this.ThrowExactlyMatchedException(ccxt.GetValue(this.Exceptions["ws"], "exact"), code, feedback)
 			}
 			return nil

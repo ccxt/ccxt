@@ -171,11 +171,36 @@ func (this *Kraken) OrderRequestWs(method any, symbol any, typeVar any, request 
 	var isTrailingLimitAmountOrder bool = (trailingLimitAmount != nil)
 	var isTrailingLimitPercentOrder bool = (trailingLimitPercent != nil)
 	var offset *string = this.SafeString(params, "offset", "") // can set this to - for minus
-	var trailingAmountString any = func() any { if (trailingAmount != nil) { return ccxt.Add(offset, this.NumberToString(trailingAmount)) }; return nil }()
-	var trailingPercentString any = func() any { if (trailingPercent != nil) { return ccxt.Add(offset, this.NumberToString(trailingPercent)) }; return nil }()
-	var trailingLimitAmountString any = func() any { if (trailingLimitAmount != nil) { return ccxt.Add(offset, this.NumberToString(trailingLimitAmount)) }; return nil }()
-	var trailingLimitPercentString any = func() any { if (trailingLimitPercent != nil) { return ccxt.Add(offset, this.NumberToString(trailingLimitPercent)) }; return nil }()
-	var priceType any = func() any { if (isTrailingPercentOrder || isTrailingLimitPercentOrder) { return "pct" }; return "quote" }()
+	var trailingAmountString any = func() any {
+		if trailingAmount != nil {
+			return ccxt.Add(offset, this.NumberToString(trailingAmount))
+		}
+		return nil
+	}()
+	var trailingPercentString any = func() any {
+		if trailingPercent != nil {
+			return ccxt.Add(offset, this.NumberToString(trailingPercent))
+		}
+		return nil
+	}()
+	var trailingLimitAmountString any = func() any {
+		if trailingLimitAmount != nil {
+			return ccxt.Add(offset, this.NumberToString(trailingLimitAmount))
+		}
+		return nil
+	}()
+	var trailingLimitPercentString any = func() any {
+		if trailingLimitPercent != nil {
+			return ccxt.Add(offset, this.NumberToString(trailingLimitPercent))
+		}
+		return nil
+	}()
+	var priceType any = func() any {
+		if isTrailingPercentOrder || isTrailingLimitPercentOrder {
+			return "pct"
+		}
+		return "quote"
+	}()
 	if ccxt.IsEqual(method, "createOrderWs") {
 		var reduceOnly *bool = this.SafeBool(params, "reduceOnly")
 		if reduceOnly != nil && *reduceOnly == true {
@@ -1253,7 +1278,7 @@ func (this *Kraken) HandleOrderBook(client any, message any) {
 		var payload string = ccxt.Join(payloadArray, "")
 		var localChecksum int64 = this.Crc32(payload, false)
 		if c == nil || *c != localChecksum {
-			error := ccxt.ChecksumError(ccxt.Add(this.Id + " ", this.OrderbookChecksumMessage(symbol)))
+			error := ccxt.ChecksumError(ccxt.Add(this.Id+" ", this.OrderbookChecksumMessage(symbol)))
 			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 			ccxt.Remove(this.Orderbooks, symbol)
 			client.(ccxt.ClientInterface).Reject(error, messageHash)
@@ -1551,7 +1576,7 @@ func (this *Kraken) HandleMyTrades(client any, message any, optionalArgs ...any)
 		client.(ccxt.ClientInterface).Resolve(this.MyTrades, name)
 		var keys []string = ccxt.ObjectKeys(symbols)
 		for i := 0; i < len(keys); i++ {
-			var messageHash any = ccxt.Add(name + ":", ccxt.GetValue(keys, i))
+			var messageHash any = ccxt.Add(name+":", ccxt.GetValue(keys, i))
 			client.(ccxt.ClientInterface).Resolve(this.MyTrades, messageHash)
 		}
 	}
@@ -1598,7 +1623,12 @@ func (this *Kraken) ParseWsTrade(trade any, optionalArgs ...any) any {
 	}
 	var datetime *string = this.SafeString(trade, "timestamp")
 	var liquidityIndicator *string = this.SafeString(trade, "liquidity_ind")
-	var takerOrMaker any = func() any { if (liquidityIndicator != nil && *liquidityIndicator == "t") { return "taker" }; return "maker" }()
+	var takerOrMaker any = func() any {
+		if liquidityIndicator != nil && *liquidityIndicator == "t" {
+			return "taker"
+		}
+		return "maker"
+	}()
 	return map[string]any{
 		"info":         trade,
 		"id":           this.SafeString(trade, "exec_id"),
@@ -1719,7 +1749,7 @@ func (this *Kraken) HandleOrders(client any, message any, optionalArgs ...any) {
 		client.(ccxt.ClientInterface).Resolve(this.Orders, name)
 		var keys []string = ccxt.ObjectKeys(symbols)
 		for i := 0; i < len(keys); i++ {
-			var messageHash any = ccxt.Add(name + ":", ccxt.GetValue(keys, i))
+			var messageHash any = ccxt.Add(name+":", ccxt.GetValue(keys, i))
 			client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
 		}
 	}
@@ -2023,7 +2053,12 @@ func (this *Kraken) HandleMessage(client any, message any) {
 			var data any = this.SafeList(message, "data", []any{})
 			var first any = this.SafeDict(data, 0, map[string]any{})
 			var execType *string = this.SafeString(first, "exec_type")
-			channel = func() any { if (execType != nil && *execType == "trade") { return "myTrades" }; return "orders" }()
+			channel = func() any {
+				if execType != nil && *execType == "trade" {
+					return "myTrades"
+				}
+				return "orders"
+			}()
 		}
 		var methods map[string]any = map[string]any{
 			"balances": this.HandleBalance,

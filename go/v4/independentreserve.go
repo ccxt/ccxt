@@ -1216,7 +1216,12 @@ func (this *Independentreserve) createOrderBody(ch chan any, symbol any, typeVar
 	}
 	var market any = this.Market(symbol)
 	var orderType any = this.Capitalize(typeVar)
-	orderType = Add(orderType, func() any { if (IsEqual(side, "sell")) { return "Offer" }; return "Bid" }())
+	orderType = Add(orderType, func() any {
+		if IsEqual(side, "sell") {
+			return "Offer"
+		}
+		return "Bid"
+	}())
 	var request map[string]any = map[string]any{
 		"primaryCurrencyCode":   GetValue(market, "baseId"),
 		"secondaryCurrencyCode": GetValue(market, "quoteId"),
@@ -1503,7 +1508,7 @@ func (this *Independentreserve) Sign(path any, optionalArgs ...any) any {
 	var url any = Add(Add(GetValue(GetValue(this.Urls, "api"), api), "/"), path)
 	if IsEqual(api, "public") {
 		if len(ObjectKeys(params)) > 0 {
-			url = Add(url, "?" + this.Urlencode(params))
+			url = Add(url, "?"+this.Urlencode(params))
 		}
 	} else {
 		this.CheckRequiredCredentials()
@@ -1513,7 +1518,7 @@ func (this *Independentreserve) Sign(path any, optionalArgs ...any) any {
 		for i := 0; i < len(keys); i++ {
 			var key string = GetValue(keys, i).(string)
 			var value string = ToString(GetValue(params, key))
-			AppendToArray(&auth, key + "=" + value)
+			AppendToArray(&auth, key+"="+value)
 		}
 		var message string = Join(auth, ",")
 		var signature string = this.Hmac(this.Encode(message), this.Encode(this.Secret), sha256)

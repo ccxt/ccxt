@@ -480,7 +480,12 @@ func (this *Coinone) ParseCurrency(rawCurrency any) any {
 	var code *string = this.SafeCurrencyCode(id)
 	var isWithdrawEnabled bool = IsEqual(this.SafeString(rawCurrency, "withdraw_status", ""), "normal")
 	var isDepositEnabled bool = IsEqual(this.SafeString(rawCurrency, "deposit_status", ""), "normal")
-	var typeVar any = func() any { if (code == nil || *code != "KRW") { return "crypto" }; return "fiat" }()
+	var typeVar any = func() any {
+		if code == nil || *code != "KRW" {
+			return "crypto"
+		}
+		return "fiat"
+	}()
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":        id,
 		"code":      code,
@@ -992,7 +997,12 @@ func (this *Coinone) ParseTrade(trade any, optionalArgs ...any) any {
 	var isSellerMaker *bool = this.SafeBool(trade, "is_seller_maker")
 	var side any = nil
 	if isSellerMaker != nil {
-		side = func() any { if (isSellerMaker != nil && *isSellerMaker) { return "sell" }; return "buy" }()
+		side = func() any {
+			if isSellerMaker != nil && *isSellerMaker {
+				return "sell"
+			}
+			return "buy"
+		}()
 	}
 	var priceString *string = this.SafeString(trade, "price")
 	var amountString *string = this.SafeString(trade, "qty")
@@ -1003,7 +1013,12 @@ func (this *Coinone) ParseTrade(trade any, optionalArgs ...any) any {
 		feeCostString = Precise.StringAbs(feeCostString)
 		var feeRateString *string = this.SafeString(trade, "feeRate")
 		feeRateString = Precise.StringAbs(feeRateString)
-		var feeCurrencyCode any = func() any { if (IsEqual(side, "sell")) { return GetValue(market, "quote") }; return GetValue(market, "base") }()
+		var feeCurrencyCode any = func() any {
+			if IsEqual(side, "sell") {
+				return GetValue(market, "quote")
+			}
+			return GetValue(market, "base")
+		}()
 		fee = map[string]any{
 			"cost":     feeCostString,
 			"currency": feeCurrencyCode,
@@ -1320,7 +1335,12 @@ func (this *Coinone) ParseOrder(order any, optionalArgs ...any) any {
 	var fee any = nil
 	var feeCostString *string = this.SafeString(order, "fee")
 	if feeCostString != nil {
-		var feeCurrencyCode any = func() any { if (IsEqual(side, "sell")) { return quote }; return base }()
+		var feeCurrencyCode any = func() any {
+			if IsEqual(side, "sell") {
+				return quote
+			}
+			return base
+		}()
 		fee = map[string]any{
 			"cost":     feeCostString,
 			"rate":     this.SafeString2(order, "feeRate", "fee_rate"),
@@ -1648,7 +1668,7 @@ func (this *Coinone) Sign(path any, optionalArgs ...any) any {
 	if IsEqual(api, "public") {
 		url = Add(url, request)
 		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, "?" + this.Urlencode(query))
+			url = Add(url, "?"+this.Urlencode(query))
 		}
 	} else {
 		this.CheckRequiredCredentials()
@@ -1691,7 +1711,7 @@ func (this *Coinone) HandleErrors(code any, reason any, url any, method any, hea
 	//
 	var errorCode *string = this.SafeString(response, "error_code")
 	if (errorCode != nil) && (errorCode == nil || *errorCode != "0") {
-		var feedback any = Add(this.Id + " ", body)
+		var feedback any = Add(this.Id+" ", body)
 		this.ThrowExactlyMatchedException(this.Exceptions, errorCode, feedback)
 		panic(ExchangeError(feedback))
 	}

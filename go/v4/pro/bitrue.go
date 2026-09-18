@@ -338,7 +338,12 @@ func (this *Bitrue) ParseWsOrder(order any, optionalArgs ...any) any {
 	var sideId *int64 = this.SafeInteger(order, "S")
 	// 1: buy
 	// 2: sell
-	var side any = func() any { if (sideId != nil && *sideId == 1) { return "buy" }; return "sell" }()
+	var side any = func() any {
+		if sideId != nil && *sideId == 1 {
+			return "buy"
+		}
+		return "sell"
+	}()
 	var statusId *string = this.SafeString(order, "X")
 	var feeCurrencyId *string = this.SafeString(order, "N")
 	return this.SafeOrder(map[string]any{
@@ -699,7 +704,7 @@ func (this *Bitrue) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	var futuresTimeframes any = this.SafeDict(this.Options, "futuresTimeframes", map[string]any{})
 	var interval *string = this.SafeString(futuresTimeframes, timeframe)
 	if interval == nil {
-		panic(ccxt.NotSupported(ccxt.Add(this.Id + " watchOHLCV does not support timeframe ", timeframe)))
+		panic(ccxt.NotSupported(ccxt.Add(this.Id+" watchOHLCV does not support timeframe ", timeframe)))
 	}
 	var baseIdLower *string = this.SafeStringLower(market, "baseId")
 	var quoteIdLower *string = this.SafeStringLower(market, "quoteId")
@@ -777,7 +782,12 @@ func (this *Bitrue) ParseWsOHLCV(tick any, optionalArgs ...any) any {
 	_ = market
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var idSeconds *int64 = this.SafeInteger(tick, "id")
-	var timestamp any = func() any { if (idSeconds == nil) { return nil }; return ccxt.Multiply(idSeconds, 1000) }()
+	var timestamp any = func() any {
+		if idSeconds == nil {
+			return nil
+		}
+		return ccxt.Multiply(idSeconds, 1000)
+	}()
 	var open *float64 = this.SafeNumber(tick, "open")
 	var high *float64 = this.SafeNumber(tick, "high")
 	var low *float64 = this.SafeNumber(tick, "low")
@@ -881,7 +891,12 @@ func (this *Bitrue) ParseWsTicker(tick any, market any, optionalArgs ...any) any
 	var quoteVolume any = this.ConvertFromRawQuantity(symbol, rawAmount)
 	var close *float64 = this.SafeNumber(tick, "close")
 	var rose *float64 = this.SafeNumber(tick, "rose")
-	var percentage any = func() any { if (rose == nil) { return nil }; return ccxt.Multiply(rose, 100) }()
+	var percentage any = func() any {
+		if rose == nil {
+			return nil
+		}
+		return ccxt.Multiply(rose, 100)
+	}()
 	return this.SafeTicker(map[string]any{
 		"info":          tick,
 		"symbol":        symbol,

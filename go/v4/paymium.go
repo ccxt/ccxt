@@ -861,7 +861,7 @@ func (this *Paymium) Sign(path any, optionalArgs ...any) any {
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsEqual(api, "public") {
 		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, "?" + this.Urlencode(query))
+			url = Add(url, "?"+this.Urlencode(query))
 		}
 	} else {
 		this.CheckRequiredCredentials()
@@ -881,7 +881,7 @@ func (this *Paymium) Sign(path any, optionalArgs ...any) any {
 			if len(ObjectKeys(query)) > 0 {
 				var queryString string = this.Urlencode(query)
 				auth = Add(auth, queryString)
-				url = Add(url, "?" + queryString)
+				url = Add(url, "?"+queryString)
 			}
 		}
 		AddElementToObject(headers, "Api-Signature", this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256))
@@ -899,7 +899,7 @@ func (this *Paymium) HandleErrors(httpCode any, reason any, url any, method any,
 	}
 	var errors any = this.SafeValue(response, "errors")
 	if !IsEqual(errors, nil) {
-		panic(ExchangeError(Add(this.Id + " ", this.Json(response))))
+		panic(ExchangeError(Add(this.Id+" ", this.Json(response))))
 	}
 	return nil
 }

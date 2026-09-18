@@ -83,7 +83,12 @@ func (this *Backpack) watchPublicBody(ch chan any, topics any, messageHashes any
 		ccxt.PanicOnError(retRes6412)
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
-	var method any = func() any { if ccxt.EvalTruthy(unwatch) { return "UNSUBSCRIBE" }; return "SUBSCRIBE" }()
+	var method any = func() any {
+		if ccxt.EvalTruthy(unwatch) {
+			return "UNSUBSCRIBE"
+		}
+		return "SUBSCRIBE"
+	}()
 	var request map[string]any = map[string]any{
 		"method": method,
 		"params": topics,
@@ -116,9 +121,14 @@ func (this *Backpack) watchPrivateBody(ch chan any, topics any, messageHashes an
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private")
 	var instruction string = "subscribe"
 	var ts string = ccxt.ToString(this.Nonce())
-	var method any = func() any { if ccxt.EvalTruthy(unwatch) { return "UNSUBSCRIBE" }; return "SUBSCRIBE" }()
+	var method any = func() any {
+		if ccxt.EvalTruthy(unwatch) {
+			return "UNSUBSCRIBE"
+		}
+		return "SUBSCRIBE"
+	}()
 	var recvWindow *string = this.SafeString2(this.Options, "recvWindow", "X-Window", "5000")
-	var payload any = ccxt.Add("instruction=" + instruction + "&" + "timestamp=" + ts + "&window=", recvWindow)
+	var payload any = ccxt.Add("instruction="+instruction+"&"+"timestamp="+ts+"&window=", recvWindow)
 	var secretBytes []byte = this.Base64ToBinary(this.Secret)
 	var seed any = this.ArraySlice(secretBytes, 0, 32)
 	var signature string = ccxt.Eddsa(this.Encode(payload), seed, ccxt.Ed25519)
@@ -236,8 +246,8 @@ func (this *Backpack) watchTickerBody(ch chan any, symbol any, optionalArgs ...a
 	}
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
-	var topic any = ccxt.Add("ticker" + ".", ccxt.GetValue(market, "id"))
-	var messageHash any = ccxt.Add("ticker" + ":", symbol)
+	var topic any = ccxt.Add("ticker"+".", ccxt.GetValue(market, "id"))
+	var messageHash any = ccxt.Add("ticker"+":", symbol)
 
 	retRes19215 := (<-this.WatchPublicAsync([]any{topic}, []any{messageHash}, params))
 	ccxt.PanicOnError(retRes19215)
@@ -378,7 +388,7 @@ func (this *Backpack) HandleTicker(client any, message any) {
 	var market any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var parsedTicker any = this.ParseWsTicker(ticker, market)
-	var messageHash any = ccxt.Add("ticker" + ":", symbol)
+	var messageHash any = ccxt.Add("ticker"+":", symbol)
 	ccxt.AddElementToObject(this.Tickers, symbol, parsedTicker)
 	client.(ccxt.ClientInterface).Resolve(parsedTicker, messageHash)
 }
@@ -534,7 +544,7 @@ func (this *Backpack) HandleBidAsk(client any, message any) {
 	var market any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var parsedBidAsk any = this.ParseWsBidAsk(data, market)
-	var messageHash any = ccxt.Add("bidask" + ":", symbol)
+	var messageHash any = ccxt.Add("bidask"+":", symbol)
 	ccxt.AddElementToObject(this.Bidsasks, symbol, parsedBidAsk)
 	client.(ccxt.ClientInterface).Resolve(parsedBidAsk, messageHash)
 }
@@ -1429,7 +1439,7 @@ func (this *Backpack) HandleOrder(client any, message any) {
 	}
 	orders.(ccxt.Appender).Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(orders, messageHash)
-	var symbolSpecificMessageHash any = ccxt.Add(messageHash + ":", symbol)
+	var symbolSpecificMessageHash any = ccxt.Add(messageHash+":", symbol)
 	client.(ccxt.ClientInterface).Resolve(orders, symbolSpecificMessageHash)
 }
 func (this *Backpack) ParseWsOrder(order any, optionalArgs ...any) any {
@@ -1569,7 +1579,7 @@ func (this *Backpack) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	if !ccxt.IsEqual(symbols, nil) {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 			var symbol any = ccxt.GetValue(symbols, i)
-			ccxt.AppendToArray(&messageHashes, ccxt.Add("positions" + ":", symbol))
+			ccxt.AppendToArray(&messageHashes, ccxt.Add("positions"+":", symbol))
 			ccxt.AppendToArray(&topics, ccxt.Add("account.positionUpdate.", this.MarketId(symbol)))
 		}
 	} else {
@@ -1621,7 +1631,7 @@ func (this *Backpack) unWatchPositionsBody(ch chan any, optionalArgs ...any) any
 	if !ccxt.IsEqual(symbols, nil) {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 			var symbol any = ccxt.GetValue(symbols, i)
-			ccxt.AppendToArray(&messageHashes, ccxt.Add("unsubscribe:positions" + ":", symbol))
+			ccxt.AppendToArray(&messageHashes, ccxt.Add("unsubscribe:positions"+":", symbol))
 			ccxt.AppendToArray(&topics, ccxt.Add("account.positionUpdate.", this.MarketId(symbol)))
 		}
 	} else {
@@ -1670,7 +1680,7 @@ func (this *Backpack) HandlePositions(client any, message any) {
 	ccxt.AddElementToObject(parsedPosition, "timestamp", timestamp)
 	ccxt.AddElementToObject(parsedPosition, "datetime", this.Iso8601(timestamp))
 	cache.(ccxt.Appender).Append(parsedPosition)
-	var symbolSpecificMessageHash any = ccxt.Add(messageHash + ":", ccxt.GetValue(parsedPosition, "symbol"))
+	var symbolSpecificMessageHash any = ccxt.Add(messageHash+":", ccxt.GetValue(parsedPosition, "symbol"))
 	client.(ccxt.ClientInterface).Resolve([]any{parsedPosition}, messageHash)
 	client.(ccxt.ClientInterface).Resolve([]any{parsedPosition}, symbolSpecificMessageHash)
 }
@@ -1803,7 +1813,7 @@ func (this *Backpack) HandleErrorMessage(client any, message any) any {
 			// try block:
 			if code != nil {
 				var msg *string = this.SafeString(error, "message")
-				panic(ccxt.ExchangeError(ccxt.Add(this.Id + " ", msg)))
+				panic(ccxt.ExchangeError(ccxt.Add(this.Id+" ", msg)))
 			}
 			return true
 

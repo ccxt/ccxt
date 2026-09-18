@@ -111,7 +111,7 @@ func (this *PredictionExchange) RequireEventQuery(optionalArgs ...any) any {
 		}
 		extraNames = Add(Add(extraNames, ", "), scopeKey)
 	}
-	panic(ArgumentsRequired(Add(Add(this.Id + " fetchEvents() requires at least one of query, queries, tags, eventId, slug", extraNames), " to scope the search")))
+	panic(ArgumentsRequired(Add(Add(this.Id+" fetchEvents() requires at least one of query, queries, tags, eventId, slug", extraNames), " to scope the search")))
 }
 func (this *PredictionExchange) ApplyEventFetchParams(events any, optionalArgs ...any) any {
 	// applies the unified fetchEvents options client-side (eventId/slug/status/searchIn/sort/limit)
@@ -444,7 +444,7 @@ func (this *PredictionExchange) GetEvent(eventIdOrSlug any) any {
 	if (!IsEqual(this.Events_by_slug, nil)) && (InOp(this.Events_by_slug, eventIdOrSlug)) {
 		return GetValue(this.Events_by_slug, eventIdOrSlug)
 	}
-	panic(BadSymbol(Add(Add(this.Id + " has no cached event ", eventIdOrSlug), " - call fetchEvents ({ 'query': ... }) first")))
+	panic(BadSymbol(Add(Add(this.Id+" has no cached event ", eventIdOrSlug), " - call fetchEvents ({ 'query': ... }) first")))
 }
 func (this *PredictionExchange) Outcome(outcomeSymbol any) any {
 	if outcomeSymbol == nil {
@@ -459,7 +459,7 @@ func (this *PredictionExchange) Outcome(outcomeSymbol any) any {
 	if (!IsEqual(this.Outcomes_by_id, nil)) && (InOp(this.Outcomes_by_id, outcomeSymbol)) {
 		return GetValue(this.Outcomes_by_id, outcomeSymbol)
 	}
-	panic(BadSymbol(Add(Add(this.Id + " does not have outcome ", outcomeSymbol), " - pass a known outcome handle or outcomeId, or call fetchEvents ()/loadOutcomes () first")))
+	panic(BadSymbol(Add(Add(this.Id+" does not have outcome ", outcomeSymbol), " - pass a known outcome handle or outcomeId, or call fetchEvents ()/loadOutcomes () first")))
 }
 func (this *PredictionExchange) HasOutcome(outcomeIdOrSymbol any) any {
 	// sync cache-only membership probe — never throws and never fetches. this is the predicate
@@ -534,7 +534,12 @@ func (this *PredictionExchange) ShortenSlug(slug any) any {
 		"percent":                 "pct",
 	}
 	var stopWords []any = []any{"will", "the", "a", "an", "after", "before", "in", "at", "by", "of", "there", "be", "to", "or", "and", "for", "on", "its", "that", "this", "from", "with", "as", "is", "are", "was", "were", "?", "how", "many", "who", "what", "when", "where", "which", "much"}
-	var lower any = func() any { if (slug == nil) { return "" }; return ToLower(slug) }()
+	var lower any = func() any {
+		if slug == nil {
+			return ""
+		}
+		return ToLower(slug)
+	}()
 	var allowed string = "abcdefghijklmnopqrstuvwxyz0123456789"
 	var chars []string = this.StringToCharsArray(lower)
 	var s any = ""
@@ -988,7 +993,7 @@ func (this *PredictionExchange) fetchOutcomeBody(ch chan any, outcomeSymbol any)
 			return nil
 		}
 	}
-	panic(BadSymbol(Add(Add(this.Id + " could not resolve outcome ", outcomeSymbol), " — call fetchEvents ({ 'query': ... }) first, or pass a known outcomeId")))
+	panic(BadSymbol(Add(Add(this.Id+" could not resolve outcome ", outcomeSymbol), " — call fetchEvents ({ 'query': ... }) first, or pass a known outcomeId")))
 }
 
 /**
@@ -1788,7 +1793,12 @@ func (this *PredictionExchange) SafePredictionOrder(outcomeOrder any, optionalAr
 		average = Precise.StringDiv(cost, filled)
 	}
 	if (cost == nil) && (filled != nil) {
-		var multiplyPrice any = func() any { if (average != nil) { return average }; return price }()
+		var multiplyPrice any = func() any {
+			if average != nil {
+				return average
+			}
+			return price
+		}()
 		if multiplyPrice != nil {
 			cost = Precise.StringMul(filled, multiplyPrice)
 		}
@@ -1985,9 +1995,24 @@ func (this *PredictionExchange) SafePredictionOrderBook(orderbook any, optionalA
 	outcomeObj := GetArg(optionalArgs, 0, nil)
 	_ = outcomeObj
 	var fallback *string = this.SafeString2(orderbook, "outcome", "symbol")
-	AddElementToObject(orderbook, "outcome", func() any { if (IsEqual(outcomeObj, nil)) { return fallback }; return this.SafeString(outcomeObj, "outcome", fallback) }())
-	AddElementToObject(orderbook, "outcomeId", func() any { if (IsEqual(outcomeObj, nil)) { return this.SafeString(orderbook, "outcomeId") }; return this.SafeString(outcomeObj, "outcomeId") }())
-	AddElementToObject(orderbook, "market", func() any { if (IsEqual(outcomeObj, nil)) { return this.SafeString(orderbook, "market") }; return this.SafeString(outcomeObj, "market") }())
+	AddElementToObject(orderbook, "outcome", func() any {
+		if IsEqual(outcomeObj, nil) {
+			return fallback
+		}
+		return this.SafeString(outcomeObj, "outcome", fallback)
+	}())
+	AddElementToObject(orderbook, "outcomeId", func() any {
+		if IsEqual(outcomeObj, nil) {
+			return this.SafeString(orderbook, "outcomeId")
+		}
+		return this.SafeString(outcomeObj, "outcomeId")
+	}())
+	AddElementToObject(orderbook, "market", func() any {
+		if IsEqual(outcomeObj, nil) {
+			return this.SafeString(orderbook, "market")
+		}
+		return this.SafeString(outcomeObj, "market")
+	}())
 	// omit (not delete) — `del dict['symbol']` raises KeyError in python/php when absent
 	return this.Omit(orderbook, "symbol")
 }
@@ -2192,12 +2217,12 @@ func (this *PredictionExchange) RlpEncodeBytes(hex any) any {
 		return hex
 	}
 	if byteLength < 56 {
-		return Add(this.IntToBase16(128 + byteLength), hex)
+		return Add(this.IntToBase16(128+byteLength), hex)
 	}
 	var lengthHex any = this.IntToBase16(byteLength)
 	lengthHex = this.PadHexToEven(lengthHex)
 	var lengthOfLength int64 = this.ParseToInt(Divide(GetLength(lengthHex), 2))
-	return Add(Add(this.IntToBase16(183 + lengthOfLength), lengthHex), hex)
+	return Add(Add(this.IntToBase16(183+lengthOfLength), lengthHex), hex)
 }
 func (this *PredictionExchange) RlpEncodeList(items any) any {
 	var concatenated any = ""
@@ -2206,12 +2231,12 @@ func (this *PredictionExchange) RlpEncodeList(items any) any {
 	}
 	var byteLength int64 = this.ParseToInt(Divide(GetLength(concatenated), 2))
 	if byteLength < 56 {
-		return Add(this.IntToBase16(192 + byteLength), concatenated)
+		return Add(this.IntToBase16(192+byteLength), concatenated)
 	}
 	var lengthHex any = this.IntToBase16(byteLength)
 	lengthHex = this.PadHexToEven(lengthHex)
 	var lengthOfLength int64 = this.ParseToInt(Divide(GetLength(lengthHex), 2))
-	return Add(Add(this.IntToBase16(247 + lengthOfLength), lengthHex), concatenated)
+	return Add(Add(this.IntToBase16(247+lengthOfLength), lengthHex), concatenated)
 }
 func (this *PredictionExchange) IntToRlpHex(value any) any {
 	if IsEqual(value, nil) {
@@ -2271,7 +2296,7 @@ func (this *PredictionExchange) ethRpcBody(ch chan any, rpcUrl any, method any, 
 	PanicOnError(response)
 	var rpcError any = this.SafeValue(response, "error")
 	if !IsEqual(rpcError, nil) {
-		panic(ExchangeError(Add(Add(Add(this.Id + " rpc ", method), " error: "), this.Json(rpcError))))
+		panic(ExchangeError(Add(Add(Add(this.Id+" rpc ", method), " error: "), this.Json(rpcError))))
 	}
 
 	// the result is either a hex string (nonce/gasPrice/txhash) or an object (receipt) —
@@ -2336,7 +2361,7 @@ func (this *PredictionExchange) waitForTransactionReceiptBody(ch chan any, rpcUr
 		retRes179012 := (<-this.Sleep(2000))
 		PanicOnError(retRes179012)
 	}
-	panic(ExchangeError(Add(Add(this.Id + " transaction ", txHash), " not mined within timeout")))
+	panic(ExchangeError(Add(Add(this.Id+" transaction ", txHash), " not mined within timeout")))
 }
 
 func (this *PredictionExchange) CallEndpointAsync(endpointName string, args ...any) <-chan any {

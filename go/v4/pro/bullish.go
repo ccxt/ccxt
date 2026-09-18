@@ -863,7 +863,7 @@ func (this *Bullish) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var messageHash any = subscribeHash
 	if (!ccxt.IsEqual(symbols, nil)) && !ccxt.EvalTruthy(this.IsEmpty(symbols)) {
 		symbols = this.MarketSymbols(symbols)
-		messageHash = ccxt.Add(messageHash, "::" + ccxt.Join(symbols, ","))
+		messageHash = ccxt.Add(messageHash, "::"+ccxt.Join(symbols, ","))
 	}
 	var request map[string]any = map[string]any{
 		"topic": "derivativesPositionsV2",
@@ -929,7 +929,7 @@ func (this *Bullish) HandleErrorMessage(client any, message any) {
 	//     }
 	//
 	var data any = this.SafeDict(message, "data", map[string]any{})
-	var feedback any = ccxt.Add(this.Id + " ", this.Json(data))
+	var feedback any = ccxt.Add(this.Id+" ", this.Json(data))
 
 	{
 		func(this *Bullish) (ret_ any) {

@@ -266,7 +266,7 @@ func (this *Blofin) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 	params = ccxt.GetValue(channelNameparamsVariable, 1)
 	// due to some problem, temporarily disable other channels
 	if !ccxt.IsEqual(channelName, "books") {
-		panic(ccxt.NotSupported(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(this.Id + " ", callerMethodName), "() at this moment "), channelName), " is not supported, coming soon")))
+		panic(ccxt.NotSupported(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(this.Id+" ", callerMethodName), "() at this moment "), channelName), " is not supported, coming soon")))
 	}
 
 	orderbook := (<-this.WatchMultipleWrapperAsync(true, channelName, callerMethodName, symbols, params))
@@ -627,7 +627,7 @@ func (this *Blofin) HandleOHLCV(client any, message any) {
 		stored.(ccxt.Appender).Append(parsed)
 	}
 	var resolveData []any = []any{symbol, unifiedTimeframe, stored}
-	var messageHash any = ccxt.Add("candle" + interval + ":", symbol)
+	var messageHash any = ccxt.Add("candle"+interval+":", symbol)
 	client.(ccxt.ClientInterface).Resolve(resolveData, messageHash)
 }
 
@@ -727,7 +727,12 @@ func (this *Blofin) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 	ccxt.AddElementToObject(params, "callerMethodName", "watchOrders")
-	var symbolsArray any = func() any { if (symbol != nil) { return []any{symbol} }; return []any{} }()
+	var symbolsArray any = func() any {
+		if symbol != nil {
+			return []any{symbol}
+		}
+		return []any{}
+	}()
 
 	retRes53515 := (<-this.WatchOrdersForSymbolsAsync(symbolsArray, since, limit, params))
 	ccxt.PanicOnError(retRes53515)
@@ -772,7 +777,12 @@ func (this *Blofin) watchOrdersForSymbolsBody(ch chan any, symbols any, optional
 	}
 	var trigger any = this.SafeValue2(params, "stop", "trigger")
 	params = this.Omit(params, []any{"stop", "trigger"})
-	var channel any = func() any { if (trigger == true) { return "orders-algo" }; return "orders" }()
+	var channel any = func() any {
+		if trigger == true {
+			return "orders-algo"
+		}
+		return "orders"
+	}()
 
 	orders := (<-this.WatchMultipleWrapperAsync(false, channel, "watchOrdersForSymbols", symbols, params))
 	ccxt.PanicOnError(orders)
@@ -985,7 +995,12 @@ func (this *Blofin) watchMultipleWrapperBody(ch chan any, isPublic any, channelN
 	params = ccxt.GetValue(callerMethodNameparamsVariable, 1)
 	// if ccxt.OHLCV method are being called, then symbols would be symbolsAndTimeframes (multi-dimensional) array
 	var isOHLCV bool = (ccxt.IsEqual(channelName, "candle"))
-	var symbols any = func() any { if isOHLCV { return this.GetListFromObjectValues(symbolsArray, 0) }; return symbolsArray }()
+	var symbols any = func() any {
+		if isOHLCV {
+			return this.GetListFromObjectValues(symbolsArray, 0)
+		}
+		return symbolsArray
+	}()
 	symbols = this.MarketSymbols(symbols, nil, true, true)
 	var firstMarket any = nil
 	var firstSymbol *string = this.SafeString(symbols, 0)
@@ -997,7 +1012,7 @@ func (this *Blofin) watchMultipleWrapperBody(ch chan any, isPublic any, channelN
 	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
 	params = ccxt.GetValue(marketTypeparamsVariable, 1)
 	if !ccxt.IsEqual(marketType, "swap") {
-		panic(ccxt.NotSupported(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(this.Id + " ", callerMethodName), "() does not support "), marketType), " markets yet")))
+		panic(ccxt.NotSupported(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(this.Id+" ", callerMethodName), "() does not support "), marketType), " markets yet")))
 	}
 	var rawSubscriptions any = []any{}
 	var messageHashes any = []any{}
@@ -1039,7 +1054,12 @@ func (this *Blofin) watchMultipleWrapperBody(ch chan any, isPublic any, channelN
 		}}
 	}
 	var request any = this.GetSubscriptionRequest(rawSubscriptions)
-	var privateOrPublic any = func() any { if ccxt.EvalTruthy(isPublic) { return "public" }; return "private" }()
+	var privateOrPublic any = func() any {
+		if ccxt.EvalTruthy(isPublic) {
+			return "public"
+		}
+		return "private"
+	}()
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue((ccxt.GetValue(this.Urls, "api")), "ws"), marketType), privateOrPublic)
 
 	retRes76215 := (<-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), messageHashes))
@@ -1091,7 +1111,7 @@ func (this *Blofin) HandleMessage(client any, message any) {
 			future.(*ccxt.Future).Resolve(true)
 			return
 		} else if event != nil && *event == "error" {
-			panic(ccxt.ExchangeError(ccxt.Add(this.Id + " error: ", this.Json(message))))
+			panic(ccxt.ExchangeError(ccxt.Add(this.Id+" error: ", this.Json(message))))
 		}
 		var arg any = this.SafeDict(message, "arg")
 		var channelName *string = this.SafeString(arg, "channel")
@@ -1119,7 +1139,7 @@ func (this *Blofin) authenticateBody(ch chan any, optionalArgs ...any) any {
 	var messageHash string = "authenticate_hash"
 	var timestamp string = ccxt.ToString(milliseconds)
 	var nonce any = "n_" + timestamp
-	var auth any = ccxt.Add("/users/self/verify" + "GET" + timestamp + "", nonce)
+	var auth any = ccxt.Add("/users/self/verify"+"GET"+timestamp+"", nonce)
 	var signature string = this.StringToBase64(this.Hmac(this.Encode(auth), this.Encode(this.Secret), ccxt.Sha256))
 	var request map[string]any = map[string]any{
 		"op": "login",

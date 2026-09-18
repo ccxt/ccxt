@@ -608,7 +608,12 @@ func (this *Zaif) ParseTrade(trade any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var side any = DerefScalar(this.SafeString(trade, "trade_type"))
-	side = func() any { if (IsEqual(side, "bid")) { return "buy" }; return "sell" }()
+	side = func() any {
+		if IsEqual(side, "bid") {
+			return "buy"
+		}
+		return "sell"
+	}()
 	var timestamp *int64 = this.SafeTimestamp(trade, "date")
 	var id *string = this.SafeString2(trade, "id", "tid")
 	var priceString *string = this.SafeString(trade, "price")
@@ -730,9 +735,14 @@ func (this *Zaif) createOrderBody(ch chan any, symbol any, typeVar any, side any
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"currency_pair": GetValue(market, "id"),
-		"action":        func() any { if (IsEqual(side, "buy")) { return "bid" }; return "ask" }(),
-		"amount":        amount,
-		"price":         price,
+		"action": func() any {
+			if IsEqual(side, "buy") {
+				return "bid"
+			}
+			return "ask"
+		}(),
+		"amount": amount,
+		"price":  price,
 	}
 
 	response := (<-this.PrivatePostTrade(this.Extend(request, params)))
@@ -819,7 +829,12 @@ func (this *Zaif) ParseOrder(order any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var side any = DerefScalar(this.SafeString(order, "action"))
-	side = func() any { if (IsEqual(side, "bid")) { return "buy" }; return "sell" }()
+	side = func() any {
+		if IsEqual(side, "bid") {
+			return "buy"
+		}
+		return "sell"
+	}()
 	var timestamp *int64 = this.SafeTimestamp(order, "timestamp")
 	var marketId *string = this.SafeString(order, "currency_pair")
 	var symbol *string = this.SafeSymbol(marketId, market, "_")
@@ -980,7 +995,7 @@ func (this *Zaif) withdrawBody(ch chan any, code any, amount any, address any, o
 	}
 	var currency any = this.Currency(code)
 	if IsEqual(code, "JPY") {
-		panic(ExchangeError(Add(Add(this.Id + " withdraw() does not allow ", code), " withdrawals")))
+		panic(ExchangeError(Add(Add(this.Id+" withdraw() does not allow ", code), " withdrawals")))
 	}
 	var request map[string]any = map[string]any{
 		"currency": GetValue(currency, "id"),
@@ -1117,7 +1132,7 @@ func (this *Zaif) HandleErrors(httpCode any, reason any, url any, method any, he
 	//
 	//     {"error": "unsupported currency_pair"}
 	//
-	var feedback any = Add(this.Id + " ", body)
+	var feedback any = Add(this.Id+" ", body)
 	var error *string = this.SafeString(response, "error")
 	if error != nil {
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], error, feedback)

@@ -1074,7 +1074,12 @@ func (this *Extended) ParseTicker(ticker any, optionalArgs ...any) any {
 	var symbol *string = this.SafeSymbol(nil, market)
 	var last *float64 = this.SafeNumber(ticker, "lastPrice")
 	var percentageRaw *string = this.SafeString(ticker, "dailyPriceChangePercentage")
-	var percentage any = func() any { if (percentageRaw != nil) { return Precise.StringMul(percentageRaw, "100") }; return nil }()
+	var percentage any = func() any {
+		if percentageRaw != nil {
+			return Precise.StringMul(percentageRaw, "100")
+		}
+		return nil
+	}()
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     nil,
@@ -1463,7 +1468,12 @@ func (this *Extended) ParseFundingHistories(histories any, optionalArgs ...any) 
 	for i := 0; i < GetArrayLength(histories); i++ {
 		AppendToArray(&result, this.ParseFundingHistory(GetValue(histories, i), market))
 	}
-	var symbol any = func() any { if (IsEqual(market, nil)) { return nil }; return GetValue(market, "symbol") }()
+	var symbol any = func() any {
+		if IsEqual(market, nil) {
+			return nil
+		}
+		return GetValue(market, "symbol")
+	}()
 	return this.FilterBySymbolSinceLimit(result, symbol, since, limit)
 }
 func (this *Extended) ParseTrade(trade any, optionalArgs ...any) any {
@@ -1506,16 +1516,36 @@ func (this *Extended) ParseTrade(trade any, optionalArgs ...any) any {
 	var priceString *string = this.SafeString2(trade, "p", "price")
 	var amountString *string = this.SafeString2(trade, "q", "qty")
 	var sideRaw *string = this.SafeString2(trade, "S", "side")
-	var side any = func() any { if (sideRaw != nil) { return ToLower(sideRaw) }; return nil }()
+	var side any = func() any {
+		if sideRaw != nil {
+			return ToLower(sideRaw)
+		}
+		return nil
+	}()
 	var feeCost *string = this.SafeString(trade, "fee")
-	var fee any = Ternary((feeCost == nil), nil, map[string]any{
-		"cost":     feeCost,
-		"currency": func() any { if (IsEqual(market, nil)) { return nil }; return GetValue(market, "settle") }(),
-	})
+	var fee any = func() any {
+		if feeCost == nil {
+			return nil
+		}
+		return map[string]any{
+			"cost": feeCost,
+			"currency": func() any {
+				if IsEqual(market, nil) {
+					return nil
+				}
+				return GetValue(market, "settle")
+			}(),
+		}
+	}()
 	var isTaker *bool = this.SafeBool(trade, "isTaker")
 	var takerOrMaker any = nil
 	if isTaker != nil {
-		takerOrMaker = func() any { if (isTaker != nil && *isTaker) { return "taker" }; return "maker" }()
+		takerOrMaker = func() any {
+			if isTaker != nil && *isTaker {
+				return "taker"
+			}
+			return "maker"
+		}()
 	}
 	return this.SafeTrade(map[string]any{
 		"id":           this.SafeString2(trade, "i", "id"),
@@ -1586,7 +1616,12 @@ func (this *Extended) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		"market":     GetValue(market, "id"),
 		"candleType": candleType,
 		"interval":   this.SafeString(this.Timeframes, timeframe, timeframe),
-		"limit":      func() any { if (!IsEqual(limit, nil)) { return limit }; return 100 }(),
+		"limit": func() any {
+			if !IsEqual(limit, nil) {
+				return limit
+			}
+			return 100
+		}(),
 	}
 	if until != nil {
 		request["endTime"] = until
@@ -2026,7 +2061,12 @@ func (this *Extended) ParseAccount(account any) any {
 	var accountIndex *int64 = this.SafeInteger(account, "accountIndex")
 	var typeVar any = nil
 	if accountIndex != nil {
-		typeVar = func() any { if (accountIndex != nil && *accountIndex == 0) { return "main" }; return "subaccount" }()
+		typeVar = func() any {
+			if accountIndex != nil && *accountIndex == 0 {
+				return "main"
+			}
+			return "subaccount"
+		}()
 	}
 	return map[string]any{
 		"id":   this.SafeString2(account, "accountId", "id"),
@@ -2130,7 +2170,12 @@ func (this *Extended) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var amountString *string = this.SafeString(item, "amount")
 	var direction any = nil
 	if amountString != nil {
-		direction = func() any { if Precise.StringLt(amountString, "0") { return "out" }; return "in" }()
+		direction = func() any {
+			if Precise.StringLt(amountString, "0") {
+				return "out"
+			}
+			return "in"
+		}()
 	}
 	var fee any = nil
 	var feeCost *string = this.SafeString(item, "fee")
@@ -2151,11 +2196,16 @@ func (this *Extended) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		"referenceAccount": this.SafeString(item, "counterpartyAccountId"),
 		"type":             this.ParseTransactionType(this.SafeString(item, "type")),
 		"currency":         code,
-		"amount":           func() any { if (amountString == nil) { return nil }; return this.ParseNumber(Precise.StringAbs(amountString)) }(),
-		"before":           nil,
-		"after":            nil,
-		"status":           this.ParseTransactionStatus(this.SafeString(item, "status")),
-		"fee":              fee,
+		"amount": func() any {
+			if amountString == nil {
+				return nil
+			}
+			return this.ParseNumber(Precise.StringAbs(amountString))
+		}(),
+		"before": nil,
+		"after":  nil,
+		"status": this.ParseTransactionStatus(this.SafeString(item, "status")),
+		"fee":    fee,
 	}, ledgerCurrency)
 }
 
@@ -2560,7 +2610,12 @@ func (this *Extended) transferBody(ch chan any, code any, amount any, fromAccoun
 	var now int64 = this.Milliseconds()
 	var status any = "pending"
 	if validSignature != nil {
-		status = func() any { if (validSignature != nil && *validSignature) { return "ok" }; return "failed" }()
+		status = func() any {
+			if validSignature != nil && *validSignature {
+				return "ok"
+			}
+			return "failed"
+		}()
 	}
 
 	ch <- map[string]any{
@@ -2583,7 +2638,12 @@ func (this *Extended) ParseTransfer(transfer any, optionalArgs ...any) any {
 	var assetId *string = this.SafeString(transfer, "asset")
 	var code any = this.GetExtendedCurrencyCodeById(assetId, currency)
 	var amountString *string = this.SafeString(transfer, "amount")
-	var amount any = func() any { if (amountString == nil) { return nil }; return this.ParseNumber(Precise.StringAbs(amountString)) }()
+	var amount any = func() any {
+		if amountString == nil {
+			return nil
+		}
+		return this.ParseNumber(Precise.StringAbs(amountString))
+	}()
 	var accountId *string = this.SafeString(transfer, "accountId")
 	var counterpartyAccountId *string = this.SafeString(transfer, "counterpartyAccountId")
 	var fromAccount *string = accountId
@@ -2595,7 +2655,12 @@ func (this *Extended) ParseTransfer(transfer any, optionalArgs ...any) any {
 	var validSignature *bool = this.SafeBool(transfer, "validSignature")
 	var status any = nil
 	if validSignature != nil {
-		status = func() any { if (validSignature != nil && *validSignature) { return "ok" }; return "failed" }()
+		status = func() any {
+			if validSignature != nil && *validSignature {
+				return "ok"
+			}
+			return "failed"
+		}()
 	} else {
 		status = this.ParseTransactionStatus(this.SafeString(transfer, "status"))
 	}
@@ -2669,7 +2734,12 @@ func (this *Extended) ParseTransaction(transaction any, optionalArgs ...any) any
 	var assetId *string = this.SafeString(transaction, "asset")
 	var code any = this.GetExtendedCurrencyCodeById(assetId, currency)
 	var amountString *string = this.SafeString(transaction, "amount")
-	var amount any = func() any { if (amountString == nil) { return nil }; return this.ParseNumber(Precise.StringAbs(amountString)) }()
+	var amount any = func() any {
+		if amountString == nil {
+			return nil
+		}
+		return this.ParseNumber(Precise.StringAbs(amountString))
+	}()
 	var fee any = nil
 	var feeCost *string = this.SafeString(transaction, "fee")
 	if feeCost != nil {
@@ -3286,7 +3356,7 @@ func (this *Extended) CreateWithdrawalSettlementData(address any, amountString a
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var now int64 = this.Milliseconds()
-	var settlementExpiration *int64 = this.SafeInteger(params, "settlementExpiration", (this.ParseToInt((now + 999) / 1000) + 1209600) + 60)
+	var settlementExpiration *int64 = this.SafeInteger(params, "settlementExpiration", (this.ParseToInt((now+999)/1000)+1209600)+60)
 	var nonce *int64 = this.SafeInteger(params, "nonce", this.Nonce())
 	var positionId *string = this.SafeString2(params, "positionId", "l2Vault", this.SafeString(account, "l2Vault"))
 	var recipient *string = this.SafeString(params, "recipient", address)
@@ -3320,7 +3390,7 @@ func (this *Extended) CreateTransferSettlementData(amountString any, currency an
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var now int64 = this.Milliseconds()
-	var settlementExpiration *int64 = this.SafeInteger(params, "settlementExpiration", this.ParseToInt((now + 999) / 1000) + 1814400)
+	var settlementExpiration *int64 = this.SafeInteger(params, "settlementExpiration", this.ParseToInt((now+999)/1000)+1814400)
 	var nonce *int64 = this.SafeInteger(params, "nonce", this.Nonce())
 	var fromVault *string = this.SafeString2(params, "fromVault", "senderPositionId", this.SafeString(account, "l2Vault"))
 	var fromL2Key *string = this.SafeString2(params, "fromL2Key", "senderPublicKey", this.SafeString(account, "l2Key"))
@@ -3388,7 +3458,12 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan any, symbol any, ty
 	var reduceOnly *bool = this.SafeBool2(params, "reduceOnly", "reduce_only", false)
 	var timeInForce any = this.SafeStringUpper(params, "timeInForce")
 	if timeInForce == nil {
-		timeInForce = func() any { if (uppercaseType == "MARKET") { return "IOC" }; return "GTT" }()
+		timeInForce = func() any {
+			if uppercaseType == "MARKET" {
+				return "IOC"
+			}
+			return "GTT"
+		}()
 	}
 	var fee *string = this.SafeString(params, "fee", "0.0005")
 	var builderFeeRate any = nil
@@ -3410,8 +3485,8 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan any, symbol any, ty
 		totalFee = Precise.StringAdd(fee, builderFeeRate)
 	}
 	var now int64 = this.Milliseconds()
-	var expiryEpochMillis *int64 = this.SafeInteger(params, "expiryEpochMillis", now + 3600000)
-	var settlementExpiration *int64 = this.SafeInteger(params, "settlementExpiration", this.ParseToInt(Divide((Add(expiryEpochMillis, 999)), 1000)) + 1209600)
+	var expiryEpochMillis *int64 = this.SafeInteger(params, "expiryEpochMillis", now+3600000)
+	var settlementExpiration *int64 = this.SafeInteger(params, "settlementExpiration", this.ParseToInt(Divide((Add(expiryEpochMillis, 999)), 1000))+1209600)
 	var nonce *string = this.NumberToString(this.Nonce())
 
 	account := (<-this.FetchExtendedAccountAsync())
@@ -3550,14 +3625,29 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan any, symbol any, ty
 			request["type"] = "CONDITIONAL"
 			request["trigger"] = trigger
 		} else if isStopLossOrder || isTakeProfitOrder {
-			triggerPriceStr = func() any { if isStopLossOrder { return stopLossTriggerPrice }; return takeProfitTriggerPrice }()
+			triggerPriceStr = func() any {
+				if isStopLossOrder {
+					return stopLossTriggerPrice
+				}
+				return takeProfitTriggerPrice
+			}()
 			var trigger map[string]any = map[string]any{
 				"triggerPrice": this.PriceToPrecision(symbol, triggerPriceStr),
 			}
 			if isBuy {
-				trigger["direction"] = func() any { if isStopLossOrder { return "UP" }; return "DOWN" }()
+				trigger["direction"] = func() any {
+					if isStopLossOrder {
+						return "UP"
+					}
+					return "DOWN"
+				}()
 			} else {
-				trigger["direction"] = func() any { if isStopLossOrder { return "DOWN" }; return "UP" }()
+				trigger["direction"] = func() any {
+					if isStopLossOrder {
+						return "DOWN"
+					}
+					return "UP"
+				}()
 			}
 			request["type"] = "CONDITIONAL"
 			request["trigger"] = trigger
@@ -3804,8 +3894,18 @@ func (this *Extended) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 	//         "status": "OK"
 	//     }
 	//
-	var orderId any = func() any { if (clientOrderId == nil) { return id }; return nil }()
-	var orderSymbol any = func() any { if (IsEqual(market, nil)) { return symbol }; return GetValue(market, "symbol") }()
+	var orderId any = func() any {
+		if clientOrderId == nil {
+			return id
+		}
+		return nil
+	}()
+	var orderSymbol any = func() any {
+		if IsEqual(market, nil) {
+			return symbol
+		}
+		return GetValue(market, "symbol")
+	}()
 
 	ch <- this.SafeOrder(map[string]any{
 		"info":          response,
@@ -3953,7 +4053,12 @@ func (this *Extended) cancelAllOrdersAfterBody(ch chan any, timeout any, optiona
 	retRes30958 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes30958)
 	var request map[string]any = map[string]any{
-		"countdownTime": func() any { if (IsGreaterThan(timeout, 0)) { return this.ParseToInt(Divide(timeout, 1000)) }; return 0 }(),
+		"countdownTime": func() any {
+			if IsGreaterThan(timeout, 0) {
+				return this.ParseToInt(Divide(timeout, 1000))
+			}
+			return 0
+		}(),
 	}
 
 	response := (<-this.V1PrivatePostUserDeadmanswitch(this.Extend(request, params)))
@@ -4350,8 +4455,13 @@ func (this *Extended) ParseOrder(order any, optionalArgs ...any) any {
 	var takeProfit any = this.SafeDict(order, "takeProfit", map[string]any{})
 	var stopLoss any = this.SafeDict(order, "stopLoss", map[string]any{})
 	var fee map[string]any = map[string]any{
-		"cost":     feeCost,
-		"currency": func() any { if (IsEqual(market, nil)) { return nil }; return GetValue(market, "settle") }(),
+		"cost": feeCost,
+		"currency": func() any {
+			if IsEqual(market, nil) {
+				return nil
+			}
+			return GetValue(market, "settle")
+		}(),
 	}
 	return this.SafeOrder(map[string]any{
 		"info":                order,
@@ -4428,7 +4538,12 @@ func (this *Extended) GetExtendedSignatureHex(signature any) any {
 func (this *Extended) GetExtendedDomainHash() any {
 	var domainTypeHash any = this.ConvertToBigInt(this.ExtendedStarknetGetSelectorFromName("\"StarknetDomain\"(\"name\":\"shortstring\",\"version\":\"shortstring\",\"chainId\":\"shortstring\",\"revision\":\"shortstring\")"))
 	var isTestnet bool = (GetIndexOf(GetValue(GetValue(this.Urls, "api"), "rest"), "sepolia") >= 0)
-	var defaultChainId any = func() any { if isTestnet { return "SN_SEPOLIA" }; return "SN_MAIN" }()
+	var defaultChainId any = func() any {
+		if isTestnet {
+			return "SN_SEPOLIA"
+		}
+		return "SN_MAIN"
+	}()
 	var chainId *string = this.SafeString(this.Options, "chainId", defaultChainId)
 	return this.ConvertToBigInt(this.ExtendedStarknetComputePoseidonHashOnElements([]any{domainTypeHash, this.GetExtendedStringToFelt("Perpetuals"), this.GetExtendedStringToFelt("v0"), this.GetExtendedStringToFelt(chainId), this.ConvertToBigInt("1")}))
 }
@@ -4476,7 +4591,7 @@ func (this *Extended) HandleErrors(httpCode any, reason any, url any, method any
 	if status != nil && *status == "error" {
 		var error any = this.SafeDict(response, "error")
 		var errorCode *string = this.SafeString(error, "code")
-		var feedback any = Add(this.Id + " ", this.Json(response))
+		var feedback any = Add(this.Id+" ", this.Json(response))
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		panic(ExchangeError(feedback))
@@ -4515,7 +4630,7 @@ func (this *Extended) Sign(path any, optionalArgs ...any) any {
 	}
 	url = Add(Add(Add(url, "/api/"), version), endpoint)
 	if ((IsEqual(method, "GET")) || (IsEqual(method, "DELETE")) || queryPost) && (len(ObjectKeys(query)) > 0) {
-		url = Add(url, "?" + this.UrlencodeWithArrayRepeat(query))
+		url = Add(url, "?"+this.UrlencodeWithArrayRepeat(query))
 	}
 	return map[string]any{
 		"url":     url,

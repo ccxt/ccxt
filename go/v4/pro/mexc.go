@@ -261,7 +261,12 @@ func (this *Mexc) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
 	params = ccxt.GetValue(typeVarparamsVariable, 1)
 	var isSpot bool = (ccxt.IsEqual(typeVar, "spot"))
-	var url any = func() any { if (isSpot) { return ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "spot") }; return ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "swap") }()
+	var url any = func() any {
+		if isSpot {
+			return ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "spot")
+		}
+		return ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "swap")
+	}()
 	var request map[string]any = map[string]any{}
 	if isSpot {
 		panic(ccxt.NotSupported(this.Id + " watchTickers does not support spot markets"))
@@ -351,9 +356,19 @@ func (this *Mexc) HandleTickers(client any, message any) {
 	var market any = this.SafeMarket(marketId)
 	var channelStartsWithSpot bool = ccxt.StartsWith(channel, "spot")
 	var marketIdIsUndefined bool = (marketId == nil)
-	var isSpot any = func() any { if marketIdIsUndefined { return channelStartsWithSpot }; return ccxt.GetValue(market, "spot") }()
+	var isSpot any = func() any {
+		if marketIdIsUndefined {
+			return channelStartsWithSpot
+		}
+		return ccxt.GetValue(market, "spot")
+	}()
 	var spotPrefix string = "spot:"
-	var messageHashPrefix any = func() any { if (isSpot == true) { return spotPrefix }; return "" }()
+	var messageHashPrefix any = func() any {
+		if isSpot == true {
+			return spotPrefix
+		}
+		return ""
+	}()
 	var topic any = ccxt.Add(messageHashPrefix, "ticker")
 	var result any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(data); i++ {
@@ -558,7 +573,12 @@ func (this *Mexc) watchSpotPublicBody(ch chan any, channel any, messageHash any,
 	var unsubscribed *bool = this.SafeBool(params, "unsubscribed", false)
 	params = this.Omit(params, []any{"unsubscribed"})
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "spot")
-	var method any = func() any { if (unsubscribed != nil && *unsubscribed == true) { return "UNSUBSCRIPTION" }; return "SUBSCRIPTION" }()
+	var method any = func() any {
+		if unsubscribed != nil && *unsubscribed == true {
+			return "UNSUBSCRIPTION"
+		}
+		return "SUBSCRIPTION"
+	}()
 	var request map[string]any = map[string]any{
 		"method": method,
 		"params": []any{channel},
@@ -1366,7 +1386,7 @@ func (this *Mexc) HandleMyTrade(client any, message any, optionalArgs ...any) {
 	}
 	trades.(ccxt.Appender).Append(trade)
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
-	var symbolSpecificMessageHash any = ccxt.Add(messageHash + ":", symbol)
+	var symbolSpecificMessageHash any = ccxt.Add(messageHash+":", symbol)
 	client.(ccxt.ClientInterface).Resolve(trades, symbolSpecificMessageHash)
 }
 func (this *Mexc) ParseWsTrade(trade any, optionalArgs ...any) any {
@@ -1430,23 +1450,33 @@ func (this *Mexc) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var priceString *string = this.SafeString2(trade, "p", "price")
 	var amountString *string = this.SafeString2(trade, "v", "quantity")
 	var rawSide *string = this.SafeString2(trade, "S", "tradeType")
-	var side any = func() any { if (rawSide != nil && *rawSide == "1") { return "buy" }; return "sell" }()
+	var side any = func() any {
+		if rawSide != nil && *rawSide == "1" {
+			return "buy"
+		}
+		return "sell"
+	}()
 	var isMaker *int64 = this.SafeInteger(trade, "m")
 	var feeAmount *string = this.SafeString2(trade, "n", "feeAmount")
 	var feeCurrencyId *string = this.SafeString2(trade, "N", "feeCurrency")
 	return this.SafeTrade(map[string]any{
-		"info":         trade,
-		"id":           tradeId,
-		"order":        this.SafeString2(trade, "i", "orderId"),
-		"timestamp":    timestamp,
-		"datetime":     this.Iso8601(timestamp),
-		"symbol":       this.SafeSymbol(nil, market),
-		"type":         nil,
-		"side":         side,
-		"takerOrMaker": func() any { if ((isMaker != nil) && (isMaker == nil || *isMaker != 0)) { return "maker" }; return "taker" }(),
-		"price":        priceString,
-		"amount":       amountString,
-		"cost":         this.SafeString(trade, "amount"),
+		"info":      trade,
+		"id":        tradeId,
+		"order":     this.SafeString2(trade, "i", "orderId"),
+		"timestamp": timestamp,
+		"datetime":  this.Iso8601(timestamp),
+		"symbol":    this.SafeSymbol(nil, market),
+		"type":      nil,
+		"side":      side,
+		"takerOrMaker": func() any {
+			if (isMaker != nil) && (isMaker == nil || *isMaker != 0) {
+				return "maker"
+			}
+			return "taker"
+		}(),
+		"price":  priceString,
+		"amount": amountString,
+		"cost":   this.SafeString(trade, "amount"),
 		"fee": map[string]any{
 			"cost":     feeAmount,
 			"currency": this.SafeCurrencyCode(feeCurrencyId),
@@ -1617,7 +1647,7 @@ func (this *Mexc) HandleOrder(client any, message any) {
 	}
 	orders.(ccxt.Appender).Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(orders, messageHash)
-	var symbolSpecificMessageHash any = ccxt.Add(messageHash + ":", symbol)
+	var symbolSpecificMessageHash any = ccxt.Add(messageHash+":", symbol)
 	client.(ccxt.ClientInterface).Resolve(orders, symbolSpecificMessageHash)
 }
 func (this *Mexc) ParseWsOrder(order any, optionalArgs ...any) any {
@@ -1712,18 +1742,23 @@ func (this *Mexc) ParseWsOrder(order any, optionalArgs ...any) any {
 		"symbol":             this.SafeSymbol(nil, market),
 		"type":               this.ParseWsOrderType(typeVar),
 		"timeInForce":        this.ParseWsTimeInForce(typeVar),
-		"side":               func() any { if (side != nil && *side == "1") { return "buy" }; return "sell" }(),
-		"price":              this.SafeString(order, "price"),
-		"stopPrice":          this.SafeString2(order, "triggerPrice", "P"),
-		"triggerPrice":       this.SafeString2(order, "triggerPrice", "P"),
-		"average":            this.SafeString(order, "avgPrice"),
-		"amount":             this.SafeString(order, "quantity"),
-		"cost":               this.SafeString(order, "amount"),
-		"filled":             this.SafeString(order, "cumulativeQuantity"),
-		"remaining":          this.SafeString(order, "remainQuantity"),
-		"fee":                fee,
-		"trades":             nil,
-		"info":               order,
+		"side": func() any {
+			if side != nil && *side == "1" {
+				return "buy"
+			}
+			return "sell"
+		}(),
+		"price":        this.SafeString(order, "price"),
+		"stopPrice":    this.SafeString2(order, "triggerPrice", "P"),
+		"triggerPrice": this.SafeString2(order, "triggerPrice", "P"),
+		"average":      this.SafeString(order, "avgPrice"),
+		"amount":       this.SafeString(order, "quantity"),
+		"cost":         this.SafeString(order, "amount"),
+		"filled":       this.SafeString(order, "cumulativeQuantity"),
+		"remaining":    this.SafeString(order, "remainQuantity"),
+		"fee":          fee,
+		"trades":       nil,
+		"info":         order,
 	}, market)
 }
 func (this *Mexc) ParseWsOrderStatus(status any, optionalArgs ...any) *string {
@@ -1850,7 +1885,12 @@ func (this *Mexc) HandleBalance(client any, message any) {
 	//     }
 	//
 	var channel *string = this.SafeString(message, "channel")
-	var typeVar any = func() any { if (channel != nil && *channel == "spot@private.account.v3.api.pb") { return "spot" }; return "swap" }()
+	var typeVar any = func() any {
+		if channel != nil && *channel == "spot@private.account.v3.api.pb" {
+			return "spot"
+		}
+		return "swap"
+	}()
 	var messageHash any = ccxt.Add("balance:", typeVar)
 	var data any = this.SafeDictN(message, []any{"data", "privateAccount"})
 	var futuresTimestamp *int64 = this.SafeInteger2(message, "ts", "createTime")
@@ -2054,7 +2094,12 @@ func (this *Mexc) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
 	params = ccxt.GetValue(typeVarparamsVariable, 1)
 	var isSpot bool = (ccxt.IsEqual(typeVar, "spot"))
-	var url any = func() any { if (isSpot) { return ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "spot") }; return ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "swap") }()
+	var url any = func() any {
+		if isSpot {
+			return ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "spot")
+		}
+		return ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "swap")
+	}()
 	var request map[string]any = map[string]any{}
 	if isSpot {
 		panic(ccxt.NotSupported(this.Id + " watchTickers does not support spot markets"))

@@ -919,7 +919,12 @@ func (this *Bigone) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketType any = func() any { if (InOp(ticker, "asset_pair_name")) { return "spot" }; return "swap" }()
+	var marketType any = func() any {
+		if InOp(ticker, "asset_pair_name") {
+			return "spot"
+		}
+		return "swap"
+	}()
 	var marketId *string = this.SafeString2(ticker, "asset_pair_name", "symbol")
 	var symbol *string = this.SafeSymbol(marketId, market, "-", marketType)
 	var close *string = this.SafeString2(ticker, "close", "latestPrice")
@@ -1317,12 +1322,22 @@ func (this *Bigone) ParseTrade(trade any, optionalArgs ...any) any {
 	var takerSide *string = this.SafeString(trade, "taker_side")
 	var takerOrMaker any = nil
 	if (takerSide != nil) && (side != nil) && (!IsEqual(side, "SELF_TRADING")) {
-		takerOrMaker = func() any { if (IsEqual(takerSide, side)) { return "taker" }; return "maker" }()
+		takerOrMaker = func() any {
+			if IsEqual(takerSide, side) {
+				return "taker"
+			}
+			return "maker"
+		}()
 	}
 	if side == nil {
 		// taker side is not related to buy/sell side
 		// the following code is probably a mistake
-		side = func() any { if (takerSide != nil && *takerSide == "ASK") { return "sell" }; return "buy" }()
+		side = func() any {
+			if takerSide != nil && *takerSide == "ASK" {
+				return "sell"
+			}
+			return "buy"
+		}()
 	} else {
 		if IsEqual(side, "BID") {
 			side = "buy"
@@ -1537,7 +1552,12 @@ func (this *Bigone) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	var untilIsDefined bool = (until != nil)
 	var sinceIsDefined bool = (!IsEqual(since, nil))
 	if IsEqual(limit, nil) {
-		limit = func() any { if (sinceIsDefined && untilIsDefined) { return 500 }; return 100 }() // default 100, max 500, if since and limit defined then fetch all the candles between them unless it exceeds the max of 500
+		limit = func() any {
+			if sinceIsDefined && untilIsDefined {
+				return 500
+			}
+			return 100
+		}() // default 100, max 500, if since and limit defined then fetch all the candles between them unless it exceeds the max of 500
 	}
 	var request map[string]any = map[string]any{
 		"asset_pair_name": GetValue(market, "id"),
@@ -1822,7 +1842,12 @@ func (this *Bigone) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	}
 	var market any = this.Market(symbol)
 	var isBuy bool = (IsEqual(side, "buy"))
-	var requestSide any = func() any { if isBuy { return "BID" }; return "ASK" }()
+	var requestSide any = func() any {
+		if isBuy {
+			return "BID"
+		}
+		return "ASK"
+	}()
 	var uppercaseType string = ToUpper(typeVar)
 	var isLimit bool = (uppercaseType == "LIMIT")
 	var exchangeSpecificParam *bool = this.SafeBool(params, "post_only", false)
@@ -1863,7 +1888,12 @@ func (this *Bigone) createOrderBody(ch chan any, symbol any, typeVar any, side a
 					var amountString *string = this.NumberToString(amount)
 					var priceString *string = this.NumberToString(price)
 					var quoteAmount any = this.ParseToNumeric(Precise.StringMul(amountString, priceString))
-					var costRequest any = func() any { if (cost != nil) { return cost }; return quoteAmount }()
+					var costRequest any = func() any {
+						if cost != nil {
+							return cost
+						}
+						return quoteAmount
+					}()
 					request["amount"] = this.CostToPrecision(symbol, costRequest)
 				}
 			} else {
@@ -1875,7 +1905,12 @@ func (this *Bigone) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	}
 	if triggerPrice != nil {
 		request["stop_price"] = this.PriceToPrecision(symbol, triggerPrice)
-		request["operator"] = func() any { if isBuy { return "GTE" }; return "LTE" }()
+		request["operator"] = func() any {
+			if isBuy {
+				return "GTE"
+			}
+			return "LTE"
+		}()
 		if isLimit {
 			uppercaseType = "STOP_LIMIT"
 		} else if uppercaseType == "MARKET" {
@@ -2310,7 +2345,7 @@ func (this *Bigone) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 }
 func (this *Bigone) Nonce() any {
 	var exchangeTimeCorrection any = Multiply(this.SafeInteger(this.Options, "exchangeMillisecondsCorrection", 0), 1000000)
-	return this.Sum(this.Microseconds() * 1000, exchangeTimeCorrection)
+	return this.Sum(this.Microseconds()*1000, exchangeTimeCorrection)
 }
 func (this *Bigone) Sign(path any, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
@@ -2329,7 +2364,7 @@ func (this *Bigone) Sign(path any, optionalArgs ...any) any {
 	headers = map[string]any{}
 	if (IsEqual(api, "public")) || (IsEqual(api, "webExchange")) || (IsEqual(api, "contractPublic")) {
 		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, "?" + this.Urlencode(query))
+			url = Add(url, "?"+this.Urlencode(query))
 		}
 	} else {
 		this.CheckRequiredCredentials()
@@ -2340,17 +2375,17 @@ func (this *Bigone) Sign(path any, optionalArgs ...any) any {
 			"nonce": nonce,
 		}
 		var token string = Jwt(request, this.Encode(this.Secret), sha256)
-		AddElementToObject(headers, "Authorization", "Bearer " + token)
+		AddElementToObject(headers, "Authorization", "Bearer "+token)
 		if IsEqual(method, "GET") {
 			if len(ObjectKeys(query)) > 0 {
-				url = Add(url, "?" + this.Urlencode(query))
+				url = Add(url, "?"+this.Urlencode(query))
 			}
 		} else if IsEqual(method, "POST") {
 			AddElementToObject(headers, "Content-Type", "application/json")
 			body = this.Json(query)
 		}
 	}
-	AddElementToObject(headers, "User-Agent", Add("ccxt/" + this.Id + "-", this.Version))
+	AddElementToObject(headers, "User-Agent", Add("ccxt/"+this.Id+"-", this.Version))
 	return map[string]any{
 		"url":     url,
 		"method":  method,
@@ -2505,7 +2540,12 @@ func (this *Bigone) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var txid *string = this.SafeString(transaction, "txid")
 	var address *string = this.SafeString(transaction, "target_address")
 	var tag *string = this.SafeString(transaction, "memo")
-	var typeVar any = func() any { if (InOp(transaction, "customer_id")) { return "withdrawal" }; return "deposit" }()
+	var typeVar any = func() any {
+		if InOp(transaction, "customer_id") {
+			return "withdrawal"
+		}
+		return "deposit"
+	}()
 	var internal *bool = this.SafeBool(transaction, "is_internal")
 	return map[string]any{
 		"info":        transaction,
@@ -2852,7 +2892,7 @@ func (this *Bigone) HandleErrors(httpCode any, reason any, url any, method any, 
 	var code *string = this.SafeString(response, "code")
 	var message *string = this.SafeString(response, "message")
 	if (code == nil || *code != "0") && (code != nil) {
-		var feedback any = Add(this.Id + " ", body)
+		var feedback any = Add(this.Id+" ", body)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)

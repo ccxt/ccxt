@@ -688,7 +688,12 @@ func (this *Woofipro) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var takerOrMaker any = nil
 	var maker *bool = this.SafeBool(trade, "maker")
 	if maker != nil {
-		takerOrMaker = func() any { if (maker != nil && *maker) { return "maker" }; return "taker" }()
+		takerOrMaker = func() any {
+			if maker != nil && *maker {
+				return "maker"
+			}
+			return "taker"
+		}()
 	}
 	var fee any = nil
 	var feeValue *string = this.SafeString(trade, "fee")
@@ -866,7 +871,12 @@ func (this *Woofipro) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes69112)
 	}
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger", false)
-	var topic any = func() any { if (trigger != nil && *trigger == true) { return "algoexecutionreport" }; return "executionreport" }()
+	var topic any = func() any {
+		if trigger != nil && *trigger == true {
+			return "algoexecutionreport"
+		}
+		return "executionreport"
+	}()
 	params = this.Omit(params, []any{"stop", "trigger"})
 	var messageHash any = topic
 	if symbol != nil {
@@ -925,7 +935,12 @@ func (this *Woofipro) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes72912)
 	}
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger", false)
-	var topic any = func() any { if (trigger != nil && *trigger == true) { return "algoexecutionreport" }; return "executionreport" }()
+	var topic any = func() any {
+		if trigger != nil && *trigger == true {
+			return "algoexecutionreport"
+		}
+		return "executionreport"
+	}()
 	params = this.Omit(params, "stop")
 	var messageHash any = "myTrades"
 	if symbol != nil {
@@ -1193,7 +1208,7 @@ func (this *Woofipro) HandleMyTrade(client any, message any) {
 	}
 	trades.(ccxt.Appender).Append(trade)
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
-	var symbolSpecificMessageHash any = ccxt.Add(messageHash + ":", symbol)
+	var symbolSpecificMessageHash any = ccxt.Add(messageHash+":", symbol)
 	client.(ccxt.ClientInterface).Resolve(trades, symbolSpecificMessageHash)
 }
 
@@ -1572,7 +1587,7 @@ func (this *Woofipro) HandleErrorMessage(client any, message any) any {
 			}()
 			// try block:
 			if errorMessage != nil {
-				var feedback any = ccxt.Add(this.Id + " ", this.Json(message))
+				var feedback any = ccxt.Add(this.Id+" ", this.Json(message))
 				this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorMessage, feedback)
 			}
 			return false

@@ -292,7 +292,12 @@ func (this *Btcbox) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var id string = ToLower(baseCurr)
 		var res any = this.SafeDict(response1, marketId, map[string]any{})
 		var symbol any = Add(Add(baseCurr, "/"), quote)
-		var fee any = func() any { if (id == "BTC") { return this.ParseNumber("0.0005") }; return this.ParseNumber("0.0010") }()
+		var fee any = func() any {
+			if id == "BTC" {
+				return this.ParseNumber("0.0005")
+			}
+			return this.ParseNumber("0.0010")
+		}()
 		var details any = this.SafeDict(result2Data, id, map[string]any{})
 		var tradeDetails any = this.SafeDict(details, "trade", map[string]any{})
 		AppendToArray(&markets, this.SafeMarketStructure(map[string]any{
@@ -1060,7 +1065,7 @@ func (this *Btcbox) Sign(path any, optionalArgs ...any) any {
 	var url any = Add(Add(Add(Add(GetValue(GetValue(this.Urls, "api"), "rest"), "/"), this.Version), "/"), path)
 	if IsEqual(api, "public") {
 		if len(ObjectKeys(params)) > 0 {
-			url = Add(url, "?" + this.Urlencode(params))
+			url = Add(url, "?"+this.Urlencode(params))
 		}
 	} else if IsEqual(api, "webApi") {
 		url = Add(Add(GetValue(this.Urls, "www"), "/"), path)
@@ -1099,7 +1104,7 @@ func (this *Btcbox) HandleErrors(httpCode any, reason any, url any, method any, 
 		return nil // either public API (no error codes expected) or success
 	}
 	var code any = this.SafeValue(response, "code")
-	var feedback any = Add(this.Id + " ", body)
+	var feedback any = Add(this.Id+" ", body)
 	this.ThrowExactlyMatchedException(this.Exceptions, code, feedback)
 	panic(ExchangeError(feedback))
 }
@@ -1130,7 +1135,7 @@ func (this *Btcbox) requestBody(ch chan any, path any, optionalArgs ...any) any 
 		// sometimes the exchange returns whitespace prepended to json
 		response = this.Strip(response)
 		if !EvalTruthy(this.IsJsonEncodedObject(response)) {
-			panic(ExchangeError(Add(this.Id + " ", response)))
+			panic(ExchangeError(Add(this.Id+" ", response)))
 		}
 		response = JsonParse(response)
 	}

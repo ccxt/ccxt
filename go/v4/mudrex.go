@@ -246,7 +246,7 @@ func (this *Mudrex) Sign(path any, optionalArgs ...any) any {
 	var apiUrls any = this.SafeDict(this.Urls, "api", map[string]any{})
 	var base *string = this.SafeString(apiUrls, api)
 	if base == nil {
-		panic(ExchangeError(Add(this.Id + " unknown API namespace: ", api)))
+		panic(ExchangeError(Add(this.Id+" unknown API namespace: ", api)))
 	}
 	var url any = Add(Add(base, "/"), this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
@@ -268,7 +268,7 @@ func (this *Mudrex) Sign(path any, optionalArgs ...any) any {
 			var isSymbol *string = this.SafeString(query, "is_symbol")
 			if isSymbol != nil {
 				query = this.Omit(query, "is_symbol")
-				url = Add(url, "?" + this.Urlencode(map[string]any{
+				url = Add(url, "?"+this.Urlencode(map[string]any{
 					"is_symbol": isSymbol,
 				}))
 			}
@@ -290,7 +290,7 @@ func (this *Mudrex) Sign(path any, optionalArgs ...any) any {
 		}
 	}
 	if len(ObjectKeys(query)) > 0 {
-		url = Add(url, "?" + this.Urlencode(query))
+		url = Add(url, "?"+this.Urlencode(query))
 	}
 	return map[string]any{
 		"url":     url,
@@ -309,10 +309,10 @@ func (this *Mudrex) HandleErrors(code any, reason any, url any, method any, head
 		var first any = this.SafeDict(errors, 0, map[string]any{})
 		var text *string = this.SafeString(first, "text", this.Json(response))
 		var errCode *string = this.SafeString(first, "code")
-		this.ThrowExactlyMatchedException(this.Exceptions["exact"], text, Add(this.Id + " ", text))
-		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errCode, Add(this.Id + " ", text))
-		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], text, Add(this.Id + " ", text))
-		var msg any = Add(this.Id + " ", text)
+		this.ThrowExactlyMatchedException(this.Exceptions["exact"], text, Add(this.Id+" ", text))
+		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errCode, Add(this.Id+" ", text))
+		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], text, Add(this.Id+" ", text))
+		var msg any = Add(this.Id+" ", text)
 		var low string = ToLower(text)
 		if (IsEqual(code, 401)) || (GetIndexOf(low, "auth") >= 0) {
 			panic(AuthenticationError(msg))
@@ -544,7 +544,12 @@ func (this *Mudrex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	response := (<-this.PrivateGetFutures(this.Extend(request, params)))
 	PanicOnError(response)
 	var data any = this.SafeValue(response, "data", []any{})
-	var rows any = func() any { if IsArray(data) { return data }; return this.SafeList(data, "items", []any{}) }()
+	var rows any = func() any {
+		if IsArray(data) {
+			return data
+		}
+		return this.SafeList(data, "items", []any{})
+	}()
 	var resultTickers map[string]any = map[string]any{}
 	for i := 0; i < GetArrayLength(rows); i++ {
 		var t any = GetValue(rows, i)
@@ -975,14 +980,24 @@ func (this *Mudrex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument for market orders"))
 	}
 	var request map[string]any = map[string]any{
-		"asset_id":     GetValue(market, "id"),
-		"is_symbol":    1,
-		"leverage":     this.NumberToString(lev),
-		"quantity":     this.AmountToPrecision(symbol, amount),
-		"order_price":  this.PriceToPrecision(symbol, price),
-		"order_type":   func() any { if (IsEqual(side, "buy")) { return "LONG" }; return "SHORT" }(),
-		"trigger_type": func() any { if (IsEqual(typeVar, "market")) { return "MARKET" }; return "LIMIT" }(),
-		"reduce_only":  this.SafeBool(params, "reduceOnly", false),
+		"asset_id":    GetValue(market, "id"),
+		"is_symbol":   1,
+		"leverage":    this.NumberToString(lev),
+		"quantity":    this.AmountToPrecision(symbol, amount),
+		"order_price": this.PriceToPrecision(symbol, price),
+		"order_type": func() any {
+			if IsEqual(side, "buy") {
+				return "LONG"
+			}
+			return "SHORT"
+		}(),
+		"trigger_type": func() any {
+			if IsEqual(typeVar, "market") {
+				return "MARKET"
+			}
+			return "LIMIT"
+		}(),
+		"reduce_only": this.SafeBool(params, "reduceOnly", false),
 	}
 	// mudrex only supports take-profit / stop-loss orders attached to the position-opening order
 	var takeProfit any = this.SafeDict(params, "takeProfit")

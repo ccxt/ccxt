@@ -357,7 +357,7 @@ func (this *Bit2c) ParseBalance(response any) any {
 		var currency any = this.Currency(code)
 		var uppercase string = ToUpper(GetValue(currency, "id"))
 		if InOp(response, uppercase) {
-			AddElementToObject(account, "free", this.SafeString(response, "AVAILABLE_" + uppercase))
+			AddElementToObject(account, "free", this.SafeString(response, "AVAILABLE_"+uppercase))
 			AddElementToObject(account, "total", this.SafeString(response, uppercase))
 		}
 		result[code] = account
@@ -1182,8 +1182,18 @@ func (this *Bit2c) ParseTrade(trade any, optionalArgs ...any) any {
 		market = this.SafeMarket(marketId, market)
 		market = this.SafeMarket(GetValue(reference_parts, 0), market)
 		var isMaker any = this.SafeValue(trade, "isMaker")
-		makerOrTaker = func() any { if (isMaker == true) { return "maker" }; return "taker" }()
-		orderId = func() any { if (isMaker == true) { return GetValue(reference_parts, 2) }; return GetValue(reference_parts, 1) }()
+		makerOrTaker = func() any {
+			if isMaker == true {
+				return "maker"
+			}
+			return "taker"
+		}()
+		orderId = func() any {
+			if isMaker == true {
+				return GetValue(reference_parts, 2)
+			}
+			return GetValue(reference_parts, 1)
+		}()
 		var action *int64 = this.SafeInteger(trade, "action")
 		if action != nil && *action == 0 {
 			side = "buy"
@@ -1322,7 +1332,7 @@ func (this *Bit2c) Sign(path any, optionalArgs ...any) any {
 		var auth string = this.Urlencode(query)
 		if IsEqual(method, "GET") {
 			if len(ObjectKeys(query)) > 0 {
-				url = Add(url, "?" + auth)
+				url = Add(url, "?"+auth)
 			}
 		} else {
 			body = auth
@@ -1355,7 +1365,7 @@ func (this *Bit2c) HandleErrors(httpCode any, reason any, url any, method any, h
 		error = this.SafeString(response, "Error")
 	}
 	if error != nil {
-		var feedback any = Add(this.Id + " ", body)
+		var feedback any = Add(this.Id+" ", body)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], error, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], error, feedback)
 		panic(ExchangeError(feedback))

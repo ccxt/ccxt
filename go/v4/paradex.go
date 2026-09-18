@@ -761,7 +761,12 @@ func (this *Paradex) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	var status *string = this.SafeString(response, "status")
 
 	ch <- map[string]any{
-		"status":  func() any { if (status != nil && *status == "ok") { return "ok" }; return "maintenance" }(),
+		"status": func() any {
+			if status != nil && *status == "ok" {
+				return "ok"
+			}
+			return "maintenance"
+		}(),
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
@@ -910,7 +915,12 @@ func (this *Paradex) ParseMarket(market any) any {
 	var isOptionPerpetual bool = (assetKind != nil && *assetKind == "PERP_OPTION")
 	var isOptionDelivery bool = (assetKind != nil && *assetKind == "OPTION")
 	var isOption bool = isOptionPerpetual || isOptionDelivery
-	var typeVar any = func() any { if (isOption) { return "option" }; return "swap" }()
+	var typeVar any = func() any {
+		if isOption {
+			return "option"
+		}
+		return "swap"
+	}()
 	var isSwap bool = (IsEqual(typeVar, "swap"))
 	var marketId *string = this.SafeString(market, "symbol")
 	var quoteId *string = this.SafeString(market, "quote_currency")
@@ -926,14 +936,29 @@ func (this *Paradex) ParseMarket(market any) any {
 	var takerFee any = this.ParseNumber("0.0003")
 	var makerFee any = this.ParseNumber("-0.00005")
 	if isOption {
-		var optionTypeSuffix any = func() any { if (optionType != nil && *optionType == "CALL") { return "C" }; return "P" }()
-		var deliveryValue any = func() any { if (IsEqual(expiry, 0)) { return "" }; return this.Yymmdd(expiry) + "-" }()
+		var optionTypeSuffix any = func() any {
+			if optionType != nil && *optionType == "CALL" {
+				return "C"
+			}
+			return "P"
+		}()
+		var deliveryValue any = func() any {
+			if IsEqual(expiry, 0) {
+				return ""
+			}
+			return this.Yymmdd(expiry) + "-"
+		}()
 		symbol = Add(Add(Add(Add(Add(symbol, "-"), deliveryValue), strikePrice), "-"), optionTypeSuffix)
 		makerFee = this.ParseNumber("0.0003")
 	} else {
 		expiry = nil
 	}
-	var expireDatetime any = func() any { if (IsEqual(expiry, 0)) { return nil }; return this.Iso8601(expiry) }()
+	var expireDatetime any = func() any {
+		if IsEqual(expiry, 0) {
+			return nil
+		}
+		return this.Iso8601(expiry)
+	}()
 	return this.SafeMarketStructure(map[string]any{
 		"id":             marketId,
 		"symbol":         symbol,
@@ -1493,7 +1518,7 @@ func (this *Paradex) fetchFundingRateBody(ch chan any, symbol any, optionalArgs 
 	PanicOnError(rates)
 	var rate any = this.SafeDict(rates, GetValue(market, "symbol"))
 	if IsEqual(rate, nil) {
-		panic(BadSymbol(Add(this.Id + " fetchFundingRate() could not find a funding rate for ", symbol)))
+		panic(BadSymbol(Add(this.Id+" fetchFundingRate() could not find a funding rate for ", symbol)))
 	}
 
 	ch <- rate
@@ -1537,8 +1562,13 @@ func (this *Paradex) ParseFundingRate(contract any, optionalArgs ...any) any {
 		interval = Add(hours, "h")
 	}
 	return map[string]any{
-		"info":                     contract,
-		"symbol":                   func() any { if funds { return GetValue(market, "symbol") }; return nil }(),
+		"info": contract,
+		"symbol": func() any {
+			if funds {
+				return GetValue(market, "symbol")
+			}
+			return nil
+		}(),
 		"markPrice":                this.SafeNumber(contract, "mark_price"),
 		"indexPrice":               this.SafeNumber(contract, "underlying_price"),
 		"interestRate":             nil,
@@ -1749,7 +1779,12 @@ func (this *Paradex) ParseTrade(trade any, optionalArgs ...any) any {
 	var side *string = this.SafeStringLower(trade, "side")
 	var liability *string = this.SafeStringLower(trade, "liquidity", "taker")
 	var isTaker bool = (liability != nil && *liability == "taker")
-	var takerOrMaker any = func() any { if (isTaker) { return "taker" }; return "maker" }()
+	var takerOrMaker any = func() any {
+		if isTaker {
+			return "taker"
+		}
+		return "maker"
+	}()
 	var currencyId *string = this.SafeString(trade, "fee_currency")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	return this.SafeTrade(map[string]any{
@@ -2348,10 +2383,20 @@ func (this *Paradex) signOrderRequestBody(ch chan any, request any, optionalArgs
 	var orderReq map[string]any = map[string]any{
 		"timestamp": Multiply(now, 1000),
 		"market":    this.StringToBase16(GetValue(request, "market")),
-		"side":      func() any { if (IsEqual(GetValue(request, "side"), "BUY")) { return "1" }; return "2" }(),
+		"side": func() any {
+			if IsEqual(GetValue(request, "side"), "BUY") {
+				return "1"
+			}
+			return "2"
+		}(),
 		"orderType": this.StringToBase16(GetValue(request, "type")),
 		"size":      this.ScaleNumber(GetValue(request, "size")),
-		"price":     func() any { if (isMarket) { return "0" }; return this.ScaleNumber(GetValue(request, "price")) }(),
+		"price": func() any {
+			if isMarket {
+				return "0"
+			}
+			return this.ScaleNumber(GetValue(request, "price"))
+		}(),
 	}
 	var orderFields any = []any{map[string]any{
 		"name": "timestamp",
@@ -3898,7 +3943,12 @@ func (this *Paradex) ParseTransaction(transaction any, optionalArgs ...any) any 
 	var timestamp *int64 = this.SafeInteger(transaction, "created_at")
 	var updated *int64 = this.SafeInteger(transaction, "last_updated_at")
 	var typeVar any = DerefScalar(this.SafeString(transaction, "kind"))
-	typeVar = func() any { if (IsEqual(typeVar, "DEPOSIT")) { return "deposit" }; return "withdrawal" }()
+	typeVar = func() any {
+		if IsEqual(typeVar, "DEPOSIT") {
+			return "deposit"
+		}
+		return "withdrawal"
+	}()
 	var status *string = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
 	var amount *float64 = this.SafeNumber(transaction, "amount")
 	return map[string]any{
@@ -4611,7 +4661,7 @@ func (this *Paradex) Sign(path any, optionalArgs ...any) any {
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsEqual(api, "public") {
 		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, "?" + this.Urlencode(query))
+			url = Add(url, "?"+this.Urlencode(query))
 		}
 	} else if IsEqual(api, "private") {
 		headers = map[string]any{
@@ -4664,7 +4714,7 @@ func (this *Paradex) HandleErrors(httpCode any, reason any, url any, method any,
 	//
 	var errorCode *string = this.SafeString(response, "error")
 	if errorCode != nil {
-		var feedback any = Add(this.Id + " ", body)
+		var feedback any = Add(this.Id+" ", body)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		panic(ExchangeError(feedback))

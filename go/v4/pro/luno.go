@@ -151,7 +151,12 @@ func (this *Luno) ParseTrade(trade any, optionalArgs ...any) any {
 	//
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
-	var symbol any = func() any { if (ccxt.IsEqual(market, nil)) { return nil }; return ccxt.GetValue(market, "symbol") }()
+	var symbol any = func() any {
+		if ccxt.IsEqual(market, nil) {
+			return nil
+		}
+		return ccxt.GetValue(market, "symbol")
+	}()
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           nil,

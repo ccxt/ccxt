@@ -588,7 +588,12 @@ func (this *Hollaex) ParseCurrency(rawCurrency any) any {
 	var code *string = this.SafeCurrencyCode(id)
 	var withdrawalLimits any = this.SafeList(rawCurrency, "withdrawal_limits", []any{})
 	var rawType *string = this.SafeString(rawCurrency, "type")
-	var typeVar any = func() any { if (rawType != nil && *rawType == "blockchain") { return "crypto" }; return "other" }()
+	var typeVar any = func() any {
+		if rawType != nil && *rawType == "blockchain" {
+			return "crypto"
+		}
+		return "other"
+	}()
 	var rawNetworks any = this.SafeDict(rawCurrency, "withdrawal_fees", map[string]any{})
 	var networks map[string]any = map[string]any{}
 	var networkIds []string = ObjectKeys(rawNetworks)
@@ -1227,8 +1232,8 @@ func (this *Hollaex) ParseBalance(response any) any {
 		var currencyId string = GetValue(currencyIds, i).(string)
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
-		AddElementToObject(account, "free", this.SafeString(response, currencyId + "_available"))
-		AddElementToObject(account, "total", this.SafeString(response, currencyId + "_balance"))
+		AddElementToObject(account, "free", this.SafeString(response, currencyId+"_available"))
+		AddElementToObject(account, "total", this.SafeString(response, currencyId+"_balance"))
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}
@@ -1472,7 +1477,7 @@ func (this *Hollaex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	//             }
 	var order any = response
 	if IsEqual(order, nil) {
-		panic(OrderNotFound(Add(this.Id + " fetchOrder() could not find order id ", id)))
+		panic(OrderNotFound(Add(this.Id+" fetchOrder() could not find order id ", id)))
 	}
 
 	ch <- this.ParseOrder(order)
@@ -2008,7 +2013,12 @@ func (this *Hollaex) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 	//     }
 	//
 	var wallet any = this.SafeValue(response, "wallet", []any{})
-	var addresses any = func() any { if (network == nil) { return wallet }; return this.FilterBy(wallet, "network", network) }()
+	var addresses any = func() any {
+		if network == nil {
+			return wallet
+		}
+		return this.FilterBy(wallet, "network", network)
+	}()
 
 	ch <- this.ParseDepositAddresses(addresses, codes, false)
 	return nil
@@ -2554,7 +2564,7 @@ func (this *Hollaex) Sign(path any, optionalArgs ...any) any {
 	path = Add(Add(Add("/", this.Version), "/"), this.ImplodeParams(path, params))
 	if (IsEqual(method, "GET")) || (IsEqual(method, "DELETE")) {
 		if len(ObjectKeys(query)) > 0 {
-			path = Add(path, "?" + this.Urlencode(query))
+			path = Add(path, "?"+this.Urlencode(query))
 		}
 	}
 	var url any = Add(GetValue(GetValue(this.Urls, "api"), "rest"), path)
@@ -2600,7 +2610,7 @@ func (this *Hollaex) HandleErrors(code any, reason any, url any, method any, hea
 		//
 		//  { "message":"Error 1001 - POST ONLY order can not be of type market" }
 		//
-		var feedback any = Add(this.Id + " ", body)
+		var feedback any = Add(this.Id+" ", body)
 		var message *string = this.SafeString(response, "message")
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		var status string = ToString(code)

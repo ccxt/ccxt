@@ -807,10 +807,15 @@ func (this *Coinsph) ParseCurrency(rawCurrency any) any {
 		}
 	}
 	return this.SafeCurrencyStructure(map[string]any{
-		"id":        id,
-		"name":      this.SafeString(rawCurrency, "name"),
-		"code":      code,
-		"type":      func() any { if (isFiat != nil && *isFiat == true) { return "fiat" }; return "crypto" }(),
+		"id":   id,
+		"name": this.SafeString(rawCurrency, "name"),
+		"code": code,
+		"type": func() any {
+			if isFiat != nil && *isFiat == true {
+				return "fiat"
+			}
+			return "crypto"
+		}(),
 		"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(rawCurrency, "transferPrecision"))),
 		"info":      rawCurrency,
 		"active":    nil,
@@ -1625,12 +1630,22 @@ func (this *Coinsph) ParseTrade(trade any, optionalArgs ...any) any {
 	var isBuyer *bool = this.SafeBool2(trade, "isBuyer", "isBuyerMaker")
 	var side any = nil
 	if isBuyer != nil {
-		side = func() any { if (isBuyer != nil && *isBuyer == true) { return "buy" }; return "sell" }()
+		side = func() any {
+			if isBuyer != nil && *isBuyer == true {
+				return "buy"
+			}
+			return "sell"
+		}()
 	}
 	var isMaker *string = this.SafeString(trade, "isMaker")
 	var takerOrMaker any = nil
 	if isMaker != nil {
-		takerOrMaker = func() any { if (isMaker != nil && *isMaker == "true") { return "maker" }; return "taker" }()
+		takerOrMaker = func() any {
+			if isMaker != nil && *isMaker == "true" {
+				return "maker"
+			}
+			return "taker"
+		}()
 	}
 	var costString any = nil
 	if orderId != nil {
@@ -1775,7 +1790,7 @@ func (this *Coinsph) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	// if limit order
 	if (IsEqual(orderType, "LIMIT")) || (IsEqual(orderType, "STOP_LOSS_LIMIT")) || (IsEqual(orderType, "TAKE_PROFIT_LIMIT")) || (IsEqual(orderType, "LIMIT_MAKER")) {
 		if IsEqual(price, nil) {
-			panic(ArgumentsRequired(Add(Add(this.Id + " createOrder() requires a price argument for a ", typeVar), " order")))
+			panic(ArgumentsRequired(Add(Add(this.Id+" createOrder() requires a price argument for a ", typeVar), " order")))
 		}
 		newOrderRespType = DerefScalar(this.SafeString(newOrderRespType, "limit", "FULL"))
 		request["price"] = this.PriceToPrecision(symbol, price)
@@ -2423,7 +2438,12 @@ func (this *Coinsph) withdrawBody(ch chan any, code any, amount any, address any
 		panic(InvalidAddress(this.Id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account"))
 	}
 	var networkCode *string = this.SafeString(params, "network")
-	var networkId any = func() any { if (networkCode == nil) { return nil }; return this.NetworkCodeToId(networkCode, code) }()
+	var networkId any = func() any {
+		if networkCode == nil {
+			return nil
+		}
+		return this.NetworkCodeToId(networkCode, code)
+	}()
 	if networkId == nil {
 		panic(BadRequest(this.Id + " withdraw() require network parameter"))
 	}
@@ -2748,7 +2768,12 @@ func (this *Coinsph) fetchDepositAddressBody(ch chan any, code any, optionalArgs
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var networkCode *string = this.SafeString(params, "network")
-	var networkId any = func() any { if (networkCode == nil) { return nil }; return this.NetworkCodeToId(networkCode, code) }()
+	var networkId any = func() any {
+		if networkCode == nil {
+			return nil
+		}
+		return this.NetworkCodeToId(networkCode, code)
+	}()
 	if networkId == nil {
 		panic(BadRequest(this.Id + " fetchDepositAddress() require network parameter"))
 	}
@@ -2816,7 +2841,7 @@ func (this *Coinsph) UrlEncodeQuery(optionalArgs ...any) any {
 	}
 	var encodedQuery string = this.Urlencode(query)
 	if GetLength(encodedQuery) != 0 {
-		return Add(encodedQuery + "&", encodedArrayParams)
+		return Add(encodedQuery+"&", encodedArrayParams)
 	} else {
 		return encodedArrayParams
 	}
@@ -2878,7 +2903,7 @@ func (this *Coinsph) HandleErrors(code any, reason any, url any, method any, hea
 	}
 	var responseCode *string = this.SafeString(response, "code")
 	if (responseCode != nil) && (responseCode == nil || *responseCode != "200") && (responseCode == nil || *responseCode != "0") {
-		var feedback any = Add(this.Id + " ", body)
+		var feedback any = Add(this.Id+" ", body)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], responseCode, feedback)
 		panic(ExchangeError(feedback))

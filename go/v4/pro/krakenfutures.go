@@ -1040,7 +1040,7 @@ func (this *Krakenfutures) HandleOrder(client any, message any) any {
 			var parsed any = this.ParseWsOrder(order)
 			orders.(ccxt.Appender).Append(parsed)
 			client.(ccxt.ClientInterface).Resolve(orders, messageHash)
-			client.(ccxt.ClientInterface).Resolve(orders, ccxt.Add(messageHash + ":", symbol))
+			client.(ccxt.ClientInterface).Resolve(orders, ccxt.Add(messageHash+":", symbol))
 		} else {
 			var trade any = this.ParseWsTrade(order)
 			if ccxt.IsEqual(ccxt.GetValue(previousOrder, "trades"), nil) {
@@ -1082,7 +1082,7 @@ func (this *Krakenfutures) HandleOrder(client any, message any) any {
 			}
 			// update the newUpdates count
 			orders.(ccxt.Appender).Append(this.SafeOrder(previousOrder))
-			client.(ccxt.ClientInterface).Resolve(orders, ccxt.Add(messageHash + ":", symbol))
+			client.(ccxt.ClientInterface).Resolve(orders, ccxt.Add(messageHash+":", symbol))
 			client.(ccxt.ClientInterface).Resolve(orders, messageHash)
 		}
 	} else {
@@ -1114,7 +1114,7 @@ func (this *Krakenfutures) HandleOrder(client any, message any) any {
 						"info":   info,
 					}))
 					client.(ccxt.ClientInterface).Resolve(orders, messageHash)
-					client.(ccxt.ClientInterface).Resolve(orders, ccxt.Add(messageHash + ":", ccxt.GetValue(currentOrder, "symbol")))
+					client.(ccxt.ClientInterface).Resolve(orders, ccxt.Add(messageHash+":", ccxt.GetValue(currentOrder, "symbol")))
 					break
 				}
 			}
@@ -1264,16 +1264,21 @@ func (this *Krakenfutures) ParseWsOrder(order any, optionalArgs ...any) any {
 		"type":               this.SafeString(unparsedOrder, "type"),
 		"timeInForce":        nil,
 		"postOnly":           nil,
-		"side":               func() any { if (direction != nil && *direction == 0) { return "buy" }; return "sell" }(),
-		"price":              this.SafeString(unparsedOrder, "limit_price"),
-		"stopPrice":          this.SafeString(unparsedOrder, "stop_price"),
-		"triggerPrice":       this.SafeString(unparsedOrder, "stop_price"),
-		"amount":             nil,
-		"cost":               nil,
-		"average":            nil,
-		"filled":             this.SafeString(unparsedOrder, "filled"),
-		"remaining":          this.SafeString(unparsedOrder, "qty"),
-		"status":             status,
+		"side": func() any {
+			if direction != nil && *direction == 0 {
+				return "buy"
+			}
+			return "sell"
+		}(),
+		"price":        this.SafeString(unparsedOrder, "limit_price"),
+		"stopPrice":    this.SafeString(unparsedOrder, "stop_price"),
+		"triggerPrice": this.SafeString(unparsedOrder, "stop_price"),
+		"amount":       nil,
+		"cost":         nil,
+		"average":      nil,
+		"filled":       this.SafeString(unparsedOrder, "filled"),
+		"remaining":    this.SafeString(unparsedOrder, "qty"),
+		"status":       status,
 		"fee": map[string]any{
 			"rate":     nil,
 			"cost":     nil,
@@ -1728,7 +1733,7 @@ func (this *Krakenfutures) HandleBalance(client any, message any) {
 		}
 		ccxt.AddElementToObject(this.Balance, "margin", futuresResult)
 		ccxt.AddElementToObject(this.Balance, "margin", this.SafeBalance(ccxt.GetValue(this.Balance, "margin")))
-		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, "margin"), messageHash + "futures")
+		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, "margin"), messageHash+"futures")
 	}
 	if !ccxt.IsEqual(flexFutures, nil) {
 		var flexFutureCurrencies any = this.SafeDict(flexFutures, "currencies", map[string]any{})
@@ -1752,7 +1757,7 @@ func (this *Krakenfutures) HandleBalance(client any, message any) {
 		}
 		ccxt.AddElementToObject(this.Balance, "flex", flexFuturesResult)
 		ccxt.AddElementToObject(this.Balance, "flex", this.SafeBalance(ccxt.GetValue(this.Balance, "flex")))
-		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, "flex"), messageHash + "flex_futures")
+		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, "flex"), messageHash+"flex_futures")
 	}
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }
@@ -1833,14 +1838,19 @@ func (this *Krakenfutures) ParseWsMyTrade(trade any, optionalArgs ...any) any {
 	var isBuy any = this.SafeValue(trade, "buy")
 	var feeCurrencyId *string = this.SafeString(trade, "fee_currency")
 	return this.SafeTrade(map[string]any{
-		"info":         trade,
-		"id":           this.SafeString(trade, "fill_id"),
-		"timestamp":    timestamp,
-		"datetime":     this.Iso8601(timestamp),
-		"symbol":       this.SafeString(market, "symbol"),
-		"order":        this.SafeString(trade, "order_id"),
-		"type":         this.SafeString(trade, "type"),
-		"side":         func() any { if (isBuy == true) { return "buy" }; return "sell" }(),
+		"info":      trade,
+		"id":        this.SafeString(trade, "fill_id"),
+		"timestamp": timestamp,
+		"datetime":  this.Iso8601(timestamp),
+		"symbol":    this.SafeString(market, "symbol"),
+		"order":     this.SafeString(trade, "order_id"),
+		"type":      this.SafeString(trade, "type"),
+		"side": func() any {
+			if isBuy == true {
+				return "buy"
+			}
+			return "sell"
+		}(),
 		"takerOrMaker": this.SafeString(trade, "fill_type"),
 		"price":        this.SafeString(trade, "price"),
 		"amount":       this.SafeString(trade, "qty"),
@@ -1959,7 +1969,7 @@ func (this *Krakenfutures) HandleErrorMessage(client any, message any) any {
 				}
 			}()
 			// try block:
-			panic(ccxt.ExchangeError(ccxt.Add(this.Id + " ", errMsg)))
+			panic(ccxt.ExchangeError(ccxt.Add(this.Id+" ", errMsg)))
 
 		}(this)
 		if ret__ != nil {
@@ -2025,7 +2035,7 @@ func (this *Krakenfutures) HandleAuthenticate(client any, message any) any {
 		var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
 		future.(*ccxt.Future).Resolve(true)
 	} else {
-		error := ccxt.AuthenticationError(ccxt.Add(this.Id + " ", this.Json(message)))
+		error := ccxt.AuthenticationError(ccxt.Add(this.Id+" ", this.Json(message)))
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
 		if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
 			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)

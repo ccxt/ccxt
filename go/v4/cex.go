@@ -432,7 +432,12 @@ func (this *Cex) ParseCurrency(rawCurrency any) any {
 	var id *string = this.SafeString(rawCurrency, "currency")
 	var code *string = this.SafeCurrencyCode(id)
 	var isFiat bool = (IsEqual(this.SafeBool(rawCurrency, "fiat"), true))
-	var typeVar any = func() any { if isFiat { return "fiat" }; return "crypto" }()
+	var typeVar any = func() any {
+		if isFiat {
+			return "fiat"
+		}
+		return "crypto"
+	}()
 	var currencyPrecision any = this.ParseNumber(this.ParsePrecision(this.SafeString(rawCurrency, "precision")))
 	var networks map[string]any = map[string]any{}
 	var rawNetworks any = this.SafeDict(rawCurrency, "blockchains", map[string]any{})
@@ -2020,7 +2025,12 @@ func (this *Cex) ParseTransaction(transaction any, optionalArgs ...any) any {
 	_ = currency
 	var currencyId *string = this.SafeString(transaction, "currency")
 	var direction *string = this.SafeString(transaction, "direction")
-	var typeVar any = func() any { if (direction != nil && *direction == "withdraw") { return "withdrawal" }; return "deposit" }()
+	var typeVar any = func() any {
+		if direction != nil && *direction == "withdraw" {
+			return "withdrawal"
+		}
+		return "deposit"
+	}()
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var updatedAt *string = this.SafeString(transaction, "updatedAt")
 	var timestamp *int64 = this.Parse8601(updatedAt)
@@ -2117,7 +2127,12 @@ func (this *Cex) transferBetweenMainAndSubAccountBody(ch chan any, code any, amo
 	}
 	var currency any = this.Currency(code)
 	var fromMain bool = (IsEqual(fromAccount, ""))
-	var targetAccount any = func() any { if fromMain { return toAccount }; return fromAccount }()
+	var targetAccount any = func() any {
+		if fromMain {
+			return toAccount
+		}
+		return fromAccount
+	}()
 	var guid *string = this.SafeString(params, "guid", this.Uuid())
 	var request map[string]any = map[string]any{
 		"currency":   GetValue(currency, "id"),
@@ -2323,7 +2338,7 @@ func (this *Cex) Sign(path any, optionalArgs ...any) any {
 	if IsEqual(api, "public") {
 		if IsEqual(method, "GET") {
 			if len(ObjectKeys(query)) > 0 {
-				url = Add(url, "?" + this.Urlencode(query))
+				url = Add(url, "?"+this.Urlencode(query))
 			}
 		} else {
 			body = this.Json(query)
@@ -2362,12 +2377,12 @@ func (this *Cex) HandleErrors(code any, reason any, url any, method any, headers
 			var fixed string = this.FixStringifiedJsonMembers(body)
 			response = this.ParseJson(fixed)
 		} else {
-			panic(NullResponse(Add(this.Id + " returned unparsed response: ", body)))
+			panic(NullResponse(Add(this.Id+" returned unparsed response: ", body)))
 		}
 	}
 	var error *string = this.SafeString(response, "error")
 	if error != nil {
-		var feedback any = Add(this.Id + " ", body)
+		var feedback any = Add(this.Id+" ", body)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], error, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], error, feedback)
 		panic(ExchangeError(feedback))
@@ -2378,7 +2393,7 @@ func (this *Cex) HandleErrors(code any, reason any, url any, method any, headers
 		var rejectReason *string = this.SafeString(data, "rejectReason")
 		if rejectReason != nil {
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], rejectReason, rejectReason)
-			panic(ExchangeError(Add(this.Id + " createOrder() ", rejectReason)))
+			panic(ExchangeError(Add(this.Id+" createOrder() ", rejectReason)))
 		}
 	}
 	return nil

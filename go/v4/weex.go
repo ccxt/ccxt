@@ -1100,7 +1100,12 @@ func (this *Weex) ParseCurrency(rawCurrency any) any {
 	var networkKeys []string = ObjectKeys(networks)
 	var networksLength int = len(networkKeys)
 	var emptyChains bool = (networksLength == 0) // non-functional coins
-	var valueForEmpty any = func() any { if emptyChains { return false }; return nil }()
+	var valueForEmpty any = func() any {
+		if emptyChains {
+			return false
+		}
+		return nil
+	}()
 	return this.SafeCurrencyStructure(map[string]any{
 		"info":      rawCurrency,
 		"code":      code,
@@ -1255,22 +1260,32 @@ func (this *Weex) ParseMarket(market any) any {
 		amountPrecision = this.ParseNumber(amountPrecisionString)
 		pricePrecision = this.ParseNumber(pricePrecisionString)
 	}
-	var fees any = this.SafeDict(this.Fees, func() any { if isSpot { return "spot" }; return "contract" }(), map[string]any{})
+	var fees any = this.SafeDict(this.Fees, func() any {
+		if isSpot {
+			return "spot"
+		}
+		return "contract"
+	}(), map[string]any{})
 	if id == nil {
 		panic(ExchangeError(this.Id + " method() missing id"))
 	}
 	return this.SafeMarketStructure(map[string]any{
-		"id":             id,
-		"lowercaseId":    ToLower(id),
-		"numericId":      this.SafeInteger(market, "contractId"),
-		"symbol":         symbol,
-		"base":           base,
-		"quote":          quote,
-		"settle":         settle,
-		"baseId":         baseId,
-		"quoteId":        quoteId,
-		"settleId":       settleId,
-		"type":           func() any { if isSpot { return "spot" }; return "swap" }(),
+		"id":          id,
+		"lowercaseId": ToLower(id),
+		"numericId":   this.SafeInteger(market, "contractId"),
+		"symbol":      symbol,
+		"base":        base,
+		"quote":       quote,
+		"settle":      settle,
+		"baseId":      baseId,
+		"quoteId":     quoteId,
+		"settleId":    settleId,
+		"type": func() any {
+			if isSpot {
+				return "spot"
+			}
+			return "swap"
+		}(),
 		"spot":           isSpot,
 		"margin":         false,
 		"swap":           !isSpot,
@@ -2008,7 +2023,12 @@ func (this *Weex) fetchContractOHLCVBody(ch chan any, symbol any, optionalArgs .
 		if (IsEqual(since, nil)) || (until == nil) {
 			var now int64 = this.Milliseconds()
 			var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
-			var numberOfCandles any = func() any { if (!IsEqual(limit, nil) && !IsEqual(limit, nil) && (!IsEqual(limit, 0))) { return limit }; return maxHistoricalLimit }()
+			var numberOfCandles any = func() any {
+				if !IsEqual(limit, nil) && !IsEqual(limit, nil) && (!IsEqual(limit, 0)) {
+					return limit
+				}
+				return maxHistoricalLimit
+			}()
 			var timeDelta any = Multiply(numberOfCandles, duration)
 			if (IsEqual(since, nil)) && (until == nil) {
 				endTime = now
@@ -2175,15 +2195,30 @@ func (this *Weex) ParseTrade(trade any, optionalArgs ...any) any {
 	var side any = this.SafeStringLower(trade, "side")
 	var isBuyerMaker *bool = this.SafeBool(trade, "isBuyerMaker")
 	if isBuyer != nil {
-		side = func() any { if (isBuyer != nil && *isBuyer) { return "buy" }; return "sell" }()
+		side = func() any {
+			if isBuyer != nil && *isBuyer {
+				return "buy"
+			}
+			return "sell"
+		}()
 	} else if isBuyerMaker != nil {
-		side = func() any { if (isBuyerMaker != nil && *isBuyerMaker) { return "sell" }; return "buy" }()
+		side = func() any {
+			if isBuyerMaker != nil && *isBuyerMaker {
+				return "sell"
+			}
+			return "buy"
+		}()
 	}
 	var isSpot any = true
 	if IsEqual(market, nil) {
 		var marketId *string = this.SafeString(trade, "symbol")
 		var realizedPnl *string = this.SafeString(trade, "realizedPnl")
-		var marketType any = func() any { if (realizedPnl != nil) { return "swap" }; return "spot" }()
+		var marketType any = func() any {
+			if realizedPnl != nil {
+				return "swap"
+			}
+			return "spot"
+		}()
 		market = this.SafeMarket(marketId, nil, nil, marketType)
 		isSpot = (IsEqual(marketType, "spot"))
 	} else {
@@ -2209,7 +2244,12 @@ func (this *Weex) ParseTrade(trade any, optionalArgs ...any) any {
 	var isMaker *bool = this.SafeBool(trade, "maker")
 	var takerOrMaker any = nil
 	if isMaker != nil {
-		takerOrMaker = func() any { if (isMaker != nil && *isMaker) { return "maker" }; return "taker" }()
+		takerOrMaker = func() any {
+			if isMaker != nil && *isMaker {
+				return "maker"
+			}
+			return "taker"
+		}()
 	} else if isBuyerMaker != nil {
 		takerOrMaker = "taker"
 	}
@@ -4004,7 +4044,12 @@ func (this *Weex) ParseOrder(order any, optionalArgs ...any) any {
 	if IsEqual(market, nil) {
 		var marketId any = this.FromSandboxMarketId(this.SafeString(order, "symbol"))
 		var positionSide *string = this.SafeString(order, "positionSide")
-		var marketType any = func() any { if (positionSide == nil) { return "spot" }; return "swap" }()
+		var marketType any = func() any {
+			if positionSide == nil {
+				return "spot"
+			}
+			return "swap"
+		}()
 		market = this.SafeMarket(marketId, nil, nil, marketType)
 	}
 	var timestamp *int64 = this.SafeIntegerN(order, []any{"transactTime", "time", "createTime"})
@@ -4094,7 +4139,7 @@ func (this *Weex) HandleOrderOrPositionError(errorCode any, errorMessage any, or
 		// some endpoints could return an empty string if there is no error
 		return
 	}
-	var feedback any = Add(this.Id + " ", this.Json(order))
+	var feedback any = Add(this.Id+" ", this.Json(order))
 	this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorMessage, feedback)
 	this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 	this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errorMessage, feedback)
@@ -5401,7 +5446,12 @@ func (this *Weex) setPositionModeBody(ch chan any, hedged any, optionalArgs ...a
 	if marginMode == nil {
 		panic(ArgumentsRequired(this.Id + " setPositionMode() also sets marginMode, so a marginMode parameter is required"))
 	}
-	var separatedType any = func() any { if EvalTruthy(hedged) { return "SEPARATED" }; return "COMBINED" }()
+	var separatedType any = func() any {
+		if EvalTruthy(hedged) {
+			return "SEPARATED"
+		}
+		return "COMBINED"
+	}()
 	var request map[string]any = map[string]any{
 		"symbol":        GetValue(market, "id"),
 		"marginType":    this.EncodeMarginMode(marginMode),
@@ -5439,7 +5489,12 @@ func (this *Weex) modifyMarginHelperBody(ch chan any, symbol any, amount any, ty
 		"amount":             this.CostToPrecision(symbol, amount),
 		"type":               typeVar,
 	}
-	var parsedType any = func() any { if (IsEqual(typeVar, 1)) { return "add" }; return "reduce" }()
+	var parsedType any = func() any {
+		if IsEqual(typeVar, 1) {
+			return "add"
+		}
+		return "reduce"
+	}()
 
 	response := (<-this.ContractPrivatePostCapiV3AccountPositionMargin(this.Extend(request, params)))
 	PanicOnError(response)
@@ -5461,7 +5516,12 @@ func (this *Weex) ParseMarginModification(data any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var msg *string = this.SafeString(data, "msg")
-	var status any = func() any { if (msg != nil && *msg == "success") { return "ok" }; return "failed" }()
+	var status any = func() any {
+		if msg != nil && *msg == "success" {
+			return "ok"
+		}
+		return "failed"
+	}()
 	var timestamp *int64 = this.SafeInteger(data, "requestTime")
 	return map[string]any{
 		"info":       data,
@@ -5593,13 +5653,13 @@ func (this *Weex) Sign(path any, optionalArgs ...any) any {
 	var isBatch bool = (GetIndexOf(path, "batch") >= 0)
 	if !isBatch && ((IsEqual(method, "GET")) || (IsEqual(method, "DELETE"))) {
 		if len(ObjectKeys(query)) > 0 {
-			endpoint = Add(endpoint, "?" + this.Urlencode(query))
+			endpoint = Add(endpoint, "?"+this.Urlencode(query))
 		}
 	}
 	if (IsEqual(api, "private")) || (IsEqual(api, "contractPrivate")) {
 		var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 		if (sandboxMode != nil && *sandboxMode == true) && (!IsEqual(GetIndexOf(path, "capi/v3/sim/"), 0)) {
-			panic(NotSupported(Add(Add(this.Id + " ", path), " is not available in sandbox mode, demo trading only supports fetchBalance, createOrder, fetchPositions, fetchClosedOrders and fetchCanceledOrders for swap markets")))
+			panic(NotSupported(Add(Add(this.Id+" ", path), " is not available in sandbox mode, demo trading only supports fetchBalance, createOrder, fetchPositions, fetchClosedOrders and fetchCanceledOrders for swap markets")))
 		}
 		this.CheckRequiredCredentials()
 		var timestamp *string = this.NumberToString(this.Nonce())
@@ -5641,11 +5701,11 @@ func (this *Weex) HandleErrors(code any, reason any, url any, method any, header
 	var message *string = this.SafeString(response, "msg")
 	if message != nil {
 		var errorCode *string = this.SafeString(response, "code")
-		var feedback any = Add(this.Id + " ", body)
+		var feedback any = Add(this.Id+" ", body)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
-		panic(ExchangeError(Add(this.Id + " ", body)))
+		panic(ExchangeError(Add(this.Id+" ", body)))
 	}
 	return nil
 }

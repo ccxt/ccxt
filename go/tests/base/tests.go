@@ -146,7 +146,7 @@ func (this *testMainClass) initInnerBody(ch chan any, exchangeId any, symbolArgv
 		return nil
 	}
 	var newLine string = "\n"
-	Dump(newLine + "" + newLine + "" + "[INFO] TESTING ", this.Ext, map[string]any{
+	Dump(newLine+""+newLine+""+"[INFO] TESTING ", this.Ext, map[string]any{
 		"exchange": exchangeId,
 		"symbol":   symbolArgv,
 		"method":   methodArgv,
@@ -222,7 +222,7 @@ func (this *testMainClass) importFilesBody(ch chan any, exchange ccxt.ICoreExcha
 }
 func (this *testMainClass) LoadCredentialsFromEnv(exchange ccxt.ICoreExchange) {
 	var exchangeId any = exchange.GetId()
-	var reqCreds any = GetExchangeProp(exchange, "re" + "quiredCredentials") // dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
+	var reqCreds any = GetExchangeProp(exchange, "re"+"quiredCredentials") // dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
 	var objkeys []string = ObjectKeys(reqCreds)
 	for i := 0; i < len(objkeys); i++ {
 		var credential string = GetValue(objkeys, i).(string)
@@ -231,7 +231,12 @@ func (this *testMainClass) LoadCredentialsFromEnv(exchange ccxt.ICoreExchange) {
 			var fullKey any = Add(Add(exchangeId, "_"), credential)
 			var credentialEnvName string = ToUpper(fullKey) // example: KRAKEN_APIKEY
 			var envVars any = GetEnvVars()
-			var credentialValue any = func() any { if (InOp(envVars, credentialEnvName)) { return GetValue(envVars, credentialEnvName) }; return nil }()
+			var credentialValue any = func() any {
+				if InOp(envVars, credentialEnvName) {
+					return GetValue(envVars, credentialEnvName)
+				}
+				return nil
+			}()
 			if !IsEqual(credentialValue, nil) && (credentialValue != "") {
 				SetExchangeProp(exchange, credential, credentialValue)
 			}
@@ -478,7 +483,12 @@ func (this *testMainClass) testSafeBody(ch chan any, methodName any, exchange cc
 							var isAuthError bool = (IsInstance(e, AuthenticationError))
 							var isNotSupported bool = (IsInstance(e, NotSupported))
 							var isOperationFailed bool = (IsInstance(e, OperationFailed)) // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "OperationFailed", "InvalidNonce", ...
-							var lastUrlMsg any = func() any { if EvalTruthy(this.WsTests) { return "" }; return Add(Add(" (Last url: ", this.GetLastRequestUrl(exchange)), " )") }()
+							var lastUrlMsg any = func() any {
+								if EvalTruthy(this.WsTests) {
+									return ""
+								}
+								return Add(Add(" (Last url: ", this.GetLastRequestUrl(exchange)), " )")
+							}()
 							if isOperationFailed {
 								// if last retry was gone with same `tempFailure` error, then let's eventually return false
 								if i == Subtract(maxRetries, 1) {
@@ -508,7 +518,12 @@ func (this *testMainClass) testSafeBody(ch chan any, methodName any, exchange cc
 										}
 									}
 									// output the message
-									var failType any = func() any { if EvalTruthy(shouldFail) { return "[TEST_FAILURE]" }; return "[TEST_WARNING]" }()
+									var failType any = func() any {
+										if EvalTruthy(shouldFail) {
+											return "[TEST_FAILURE]"
+										}
+										return "[TEST_WARNING]"
+									}()
 									Dump(failType, exchange.GetId(), methodName, argsStringified, lastUrlMsg, "Method could not be tested due to a repeated Network/Availability issues", " | ", ExceptionMessage(e))
 
 									ch <- retSuccess
@@ -683,10 +698,15 @@ func (this *testMainClass) runTestsBody(ch chan any, exchange ccxt.ICoreExchange
 			AppendToArray(&failedMethods, testName)
 		}
 	}
-	var testPrefixString any = func() any { if EvalTruthy(isPublicTest) { return "PUBLIC_TESTS" }; return "PRIVATE_TESTS" }()
+	var testPrefixString any = func() any {
+		if EvalTruthy(isPublicTest) {
+			return "PUBLIC_TESTS"
+		}
+		return "PRIVATE_TESTS"
+	}()
 	if GetArrayLength(failedMethods) > 0 {
 		var errorsString string = Join(failedMethods, ", ")
-		Dump("[TEST_FAILURE]", exchange.GetId(), testPrefixString, "Failed methods : " + errorsString)
+		Dump("[TEST_FAILURE]", exchange.GetId(), testPrefixString, "Failed methods : "+errorsString)
 	}
 	if EvalTruthy(this.Info) {
 		Dump(this.AddPadding(Add(Add(Add("[INFO] END ", testPrefixString), " "), exchange.GetId()), 25))
@@ -777,7 +797,12 @@ func (this *testMainClass) GetValidSymbol(exchange ccxt.ICoreExchange, optionalA
 	var codes []any = []any{"BTC", "ETH", "XRP", "LTC", "BNB", "DASH", "DOGE", "ETC", "TRX", "USDT", "USDC", "USD", "GUSD", "EUR", "TUSD", "CNY", "JPY", "BRL"}
 	var spotSymbols []any = []any{"BTC/USDT", "BTC/USDC", "BTC/USD", "BTC/CNY", "BTC/EUR", "BTC/AUD", "BTC/BRL", "BTC/JPY", "ETH/USDT", "ETH/USDC", "ETH/USD", "ETH/CNY", "ETH/EUR", "ETH/AUD", "ETH/BRL", "ETH/JPY", "EUR/USDT", "EUR/USD", "EUR/USDC", "USDT/EUR", "USD/EUR", "USDC/EUR", "BTC/ETH", "ETH/BTC"}
 	var swapSymbols []any = []any{"BTC/USDT:USDT", "BTC/USD:USDT", "BTC/USDC:USDC", "BTC/USD:USDC", "BTC/USD:USD", "ETH/USDT:USDT", "ETH/USD:USDT", "ETH/USDC:USDC", "ETH/USD:USDC", "ETH/USD:USD", "BTC/USD:BTC", "ETH/USD:ETH"}
-	var targetSymbols any = func() any { if EvalTruthy(spot) { return spotSymbols }; return swapSymbols }()
+	var targetSymbols any = func() any {
+		if EvalTruthy(spot) {
+			return spotSymbols
+		}
+		return swapSymbols
+	}()
 	var symbol any = this.GetTestSymbol(exchange, spot, targetSymbols)
 	// if symbols wasn't found from above hardcoded list, then try to locate any symbol which has our target hardcoded 'base' code
 	if IsEqual(symbol, nil) {
@@ -859,7 +884,12 @@ func (this *testMainClass) getMostActiveSymbolsBody(ch chan any, exchange ccxt.I
 	// an explicit per-exchange pin is a deliberate maintainer choice (it usually
 	// works around a venue-specific quirk), so never rank around it
 	var isSpot any = ccxt.DerefScalar(exchange.SafeBool(defaultMarket, "spot", false))
-	var preferredKey any = func() any { if (isSpot == true) { return "preferredSpotSymbol" }; return "preferredSwapSymbol" }()
+	var preferredKey any = func() any {
+		if isSpot == true {
+			return "preferredSpotSymbol"
+		}
+		return "preferredSwapSymbol"
+	}()
 	var preferredSymbol any = exchange.SafeString(this.SkippedSettingsForExchange, preferredKey)
 	if !IsEqual(preferredSymbol, nil) {
 
@@ -1709,7 +1739,7 @@ func (this *testMainClass) CheckConstructor(exchange ccxt.ICoreExchange) {
 	if IsEqual(exchange.GetId(), "binance") {
 		Assert(IsEqual(exchange.GetHostname(), nil) || IsEqual(exchange.GetHostname(), ""), "binance.com hostname should be empty")
 		Assert(IsEqual(GetValue(GetValue(exchange.GetUrls(), "api"), "public"), "https://api.binance.com/api/v3"), Add("https://api.binance.com/api/v3 does not match: ", GetValue(GetValue(exchange.GetUrls(), "api"), "public")))
-		Assert((InOp(GetValue(GetValue(exchange.GetApi(), "sapi"), "get"), "lending/union/account")), "SAPI should contain the endpoint lending/union/account, " + JsonStringify(GetValue(GetValue(exchange.GetApi(), "sapi"), "get")))
+		Assert((InOp(GetValue(GetValue(exchange.GetApi(), "sapi"), "get"), "lending/union/account")), "SAPI should contain the endpoint lending/union/account, "+JsonStringify(GetValue(GetValue(exchange.GetApi(), "sapi"), "get")))
 	} else if IsEqual(exchange.GetId(), "binanceus") {
 		Assert(IsEqual(exchange.GetHostname(), "binance.us"), Add("binance.us hostname does not match ", exchange.GetHostname()))
 		Assert(IsEqual(GetValue(GetValue(exchange.GetUrls(), "api"), "public"), "https://api.binance.us/api/v3"), Add("https://api.binance.us/api/v3 does not match: ", GetValue(GetValue(exchange.GetUrls(), "api"), "public")))
@@ -1856,7 +1886,7 @@ func (this *testMainClass) AssertStaticError(cond any, message any, calculatedOu
 	if !IsEqual(key, nil) {
 		errorMessage = Add(Add("[", key), "]")
 	}
-	errorMessage = Add(errorMessage, " computed: " + storedString + " stored: " + calculatedString)
+	errorMessage = Add(errorMessage, " computed: "+storedString+" stored: "+calculatedString)
 	Assert(cond, errorMessage)
 }
 func (this *testMainClass) LoadMarketsFromFile(id any) any {
@@ -2068,7 +2098,7 @@ func (this *testMainClass) AssertNewAndStoredOutputInner(exchange ccxt.ICoreExch
 				if (this.Lang == "C#") && EvalTruthy(this.IsVacantValue(exchange, GetValue(storedOutput, key))) {
 					continue
 				}
-				this.AssertStaticError(false, "output key missing: " + key, storedOutput, newOutput)
+				this.AssertStaticError(false, "output key missing: "+key, storedOutput, newOutput)
 			}
 			var storedValue any = GetValue(storedOutput, key)
 			var newValue any = GetValue(newOutput, key)
@@ -2092,13 +2122,33 @@ func (this *testMainClass) AssertNewAndStoredOutputInner(exchange ccxt.ICoreExch
 		}
 	} else {
 		// built-in types like strings, numbers, booleans
-		var sanitizedNewOutput any = func() any { if EvalTruthy((IsNullValue(newOutput))) { return nil }; return newOutput }() // we store undefined as nulls in the json file so we need to convert it back
-		var sanitizedStoredOutput any = func() any { if EvalTruthy((IsNullValue(storedOutput))) { return nil }; return storedOutput }()
+		var sanitizedNewOutput any = func() any {
+			if EvalTruthy((IsNullValue(newOutput))) {
+				return nil
+			}
+			return newOutput
+		}() // we store undefined as nulls in the json file so we need to convert it back
+		var sanitizedStoredOutput any = func() any {
+			if EvalTruthy((IsNullValue(storedOutput))) {
+				return nil
+			}
+			return storedOutput
+		}()
 		// a truthiness test here turns a real 0 / 0.0 / "" into "undefined", which a
 		// typed core hits constantly (its Num fields are real doubles, so an unset
 		// cost arrives as 0.0 rather than as a string). Test for undefined instead.
-		var newOutputString any = func() any { if (!IsEqual(sanitizedNewOutput, nil)) { return ToString(sanitizedNewOutput) }; return "undefined" }()
-		var storedOutputString any = func() any { if (!IsEqual(sanitizedStoredOutput, nil)) { return ToString(sanitizedStoredOutput) }; return "undefined" }()
+		var newOutputString any = func() any {
+			if !IsEqual(sanitizedNewOutput, nil) {
+				return ToString(sanitizedNewOutput)
+			}
+			return "undefined"
+		}()
+		var storedOutputString any = func() any {
+			if !IsEqual(sanitizedStoredOutput, nil) {
+				return ToString(sanitizedStoredOutput)
+			}
+			return "undefined"
+		}()
 		var messageError any = Add(Add(Add("output value mismatch:", newOutputString), " != "), storedOutputString)
 		if EvalTruthy(strictTypeCheck) && (this.Lang != "C#") {
 			// upon building the request we want strict type check to make sure all the types are correct
@@ -2398,13 +2448,18 @@ func (this *testMainClass) testRequestStaticallyBody(ch chan any, exchange ccxt.
 			// silently corrupt when a header literal contains a local/parameter name of sign ()
 			var storedHeaders any = exchange.SafeDict(data, "headers")
 			if !IsEqual(storedHeaders, nil) {
-				var sentHeaders any = func() any { if (!IsEqual(exchange.GetLast_request_headers(), nil)) { return exchange.GetLast_request_headers() }; return map[string]any{} }()
+				var sentHeaders any = func() any {
+					if !IsEqual(exchange.GetLast_request_headers(), nil) {
+						return exchange.GetLast_request_headers()
+					}
+					return map[string]any{}
+				}()
 				var storedHeaderKeys []string = ObjectKeys(storedHeaders)
 				for i := 0; i < len(storedHeaderKeys); i++ {
 					var headerKey string = GetValue(storedHeaderKeys, i).(string)
 					var storedHeaderValue any = GetValue(storedHeaders, headerKey)
 					var sentHeaderValue any = exchange.SafeString(sentHeaders, headerKey)
-					this.AssertStaticError(IsEqual(sentHeaderValue, storedHeaderValue), "header mismatch for " + headerKey, storedHeaderValue, sentHeaderValue)
+					this.AssertStaticError(IsEqual(sentHeaderValue, storedHeaderValue), "header mismatch for "+headerKey, storedHeaderValue, sentHeaderValue)
 				}
 			}
 			return nil
@@ -2586,7 +2641,7 @@ func (this *testMainClass) AssertWsSentMessages(exchange ccxt.ICoreExchange, url
 	var sentMessages any = GetWsSentMessages(exchange, url)
 	var sentLength int = GetArrayLength(sentMessages)
 	var expectedLength int = GetArrayLength(expectedSent)
-	Assert(IsEqual(sentLength, expectedLength), "sent ws messages count mismatch: sent " + ToString(sentLength) + ", expected " + ToString(expectedLength) + " " + JsonStringify(sentMessages))
+	Assert(IsEqual(sentLength, expectedLength), "sent ws messages count mismatch: sent "+ToString(sentLength)+", expected "+ToString(expectedLength)+" "+JsonStringify(sentMessages))
 	for i := 0; i < expectedLength; i++ {
 		var unifiedSent any = JsonParse(JsonStringify(GetValue(sentMessages, i)))
 		this.AssertStaticResponseOutput(exchange, sentSkipKeys, unifiedSent, GetValue(expectedSent, i))
@@ -2675,8 +2730,18 @@ func (this *testMainClass) testExchangeWsStaticallyBody(ch chan any, exchangeNam
 	defer ReturnPanicError(ch)
 	testName := GetArg(optionalArgs, 0, nil)
 	_ = testName
-	var globalOptions any = func() any { if IsEqual(GetValue(exchangeData, "options"), nil) { return map[string]any{} }; return GetValue(exchangeData, "options") }()
-	var methods any = func() any { if IsEqual(GetValue(exchangeData, "methods"), nil) { return map[string]any{} }; return GetValue(exchangeData, "methods") }()
+	var globalOptions any = func() any {
+		if IsEqual(GetValue(exchangeData, "options"), nil) {
+			return map[string]any{}
+		}
+		return GetValue(exchangeData, "options")
+	}()
+	var methods any = func() any {
+		if IsEqual(GetValue(exchangeData, "methods"), nil) {
+			return map[string]any{}
+		}
+		return GetValue(exchangeData, "methods")
+	}()
 	var methodsNames []string = ObjectKeys(methods)
 	for i := 0; i < len(methodsNames); i++ {
 		var method string = GetValue(methodsNames, i).(string)
@@ -3201,7 +3266,12 @@ func (this *testMainClass) runStaticTestsBody(ch chan any, typeVar any, optional
 	if EvalTruthy(this.RequestTestsFailed) || EvalTruthy(this.ResponseTestsFailed) || EvalTruthy(this.StaticWsTestsFailed) {
 		ExitScript(1)
 	} else {
-		var prefix any = func() any { if EvalTruthy((IsSync())) { return "[SYNC]" }; return "" }()
+		var prefix any = func() any {
+			if EvalTruthy((IsSync())) {
+				return "[SYNC]"
+			}
+			return ""
+		}()
 		var successMessage any = Add(Add(Add(Add(Add(Add(Add(Add("[", this.Lang), "]"), prefix), "[TEST_SUCCESS] "), ToString(sum)), " static "), typeVar), " tests passed.")
 		Dump(Add("[INFO]", successMessage))
 	}
@@ -3498,7 +3568,7 @@ func (this *testMainClass) testOkxBody(ch chan any) any {
 	var idString string = ToString(id)
 	Assert(IsEqual(StartsWith(clientOrderId, idString), true), Add(Add(Add("okx - spot clientOrderId: ", clientOrderId), " does not start with id: "), idString))
 	var spotTag any = GetValue(GetValue(spotOrderRequest, 0), "tag")
-	Assert(IsEqual(spotTag, id), Add("okx - id: " + id + " different from spot tag: ", spotTag))
+	Assert(IsEqual(spotTag, id), Add("okx - id: "+id+" different from spot tag: ", spotTag))
 	var swapOrderRequest any = map[string]any{}
 
 	{
@@ -3526,7 +3596,7 @@ func (this *testMainClass) testOkxBody(ch chan any) any {
 	var clientOrderIdSwap any = GetValue(GetValue(swapOrderRequest, 0), "clOrdId")
 	Assert(IsEqual(StartsWith(clientOrderIdSwap, idString), true), Add(Add(Add("okx - swap clientOrderId: ", clientOrderIdSwap), " does not start with id: "), idString))
 	var swapTag any = GetValue(GetValue(swapOrderRequest, 0), "tag")
-	Assert(IsEqual(swapTag, id), Add("okx - id: " + id + " different from swap tag: ", swapTag))
+	Assert(IsEqual(swapTag, id), Add("okx - id: "+id+" different from swap tag: ", swapTag))
 	if !EvalTruthy(IsSync()) {
 
 		retRes276912 := (<-Close(exchange))
@@ -3574,7 +3644,7 @@ func (this *testMainClass) testCryptocomBody(ch chan any) any {
 
 	}
 	var brokerId any = GetValue(GetValue(request, "params"), "broker_id")
-	Assert(IsEqual(brokerId, id), Add("cryptocom - id: " + id + " different from  broker_id: ", brokerId))
+	Assert(IsEqual(brokerId, id), Add("cryptocom - id: "+id+" different from  broker_id: ", brokerId))
 	if !EvalTruthy(IsSync()) {
 
 		retRes278712 := (<-Close(exchange))
@@ -3607,7 +3677,12 @@ func (this *testMainClass) testBybitBody(ch chan any) any {
 					ret_ = func(this *testMainClass) any {
 						// catch block:
 						// we expect an error here, we're only interested in the headers
-						reqHeaders = func() any { if (!IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil)) { return exchange.GetLast_request_headers() }; return map[string]any{} }()
+						reqHeaders = func() any {
+							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+								return exchange.GetLast_request_headers()
+							}
+							return map[string]any{}
+						}()
 						return nil
 					}(this)
 				}
@@ -3620,7 +3695,7 @@ func (this *testMainClass) testBybitBody(ch chan any) any {
 		}(this)
 
 	}
-	Assert(IsEqual(GetValue(reqHeaders, "Referer"), id), "bybit - id: " + id + " not in headers.")
+	Assert(IsEqual(GetValue(reqHeaders, "Referer"), id), "bybit - id: "+id+" not in headers.")
 	if !EvalTruthy(IsSync()) {
 
 		retRes280512 := (<-Close(exchange))
@@ -3652,7 +3727,12 @@ func (this *testMainClass) testBithumbBody(ch chan any) any {
 					ret_ = func(this *testMainClass) any {
 						// catch block:
 						// we expect an error here, we're only interested in the headers
-						reqHeaders = func() any { if (!IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil)) { return exchange.GetLast_request_headers() }; return map[string]any{} }()
+						reqHeaders = func() any {
+							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+								return exchange.GetLast_request_headers()
+							}
+							return map[string]any{}
+						}()
 						return nil
 					}(this)
 				}
@@ -3666,7 +3746,7 @@ func (this *testMainClass) testBithumbBody(ch chan any) any {
 		}(this)
 
 	}
-	Assert(IsEqual(GetValue(reqHeaders, "OPEN-API-PARTNER"), id), "bithumb - id: " + id + " not in headers (v2 endpoints).")
+	Assert(IsEqual(GetValue(reqHeaders, "OPEN-API-PARTNER"), id), "bithumb - id: "+id+" not in headers (v2 endpoints).")
 	reqHeaders = map[string]any{}
 
 	{
@@ -3678,7 +3758,12 @@ func (this *testMainClass) testBithumbBody(ch chan any) any {
 					}
 					ret_ = func(this *testMainClass) any {
 						// catch block:
-						reqHeaders = func() any { if (!IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil)) { return exchange.GetLast_request_headers() }; return map[string]any{} }()
+						reqHeaders = func() any {
+							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+								return exchange.GetLast_request_headers()
+							}
+							return map[string]any{}
+						}()
 						return nil
 					}(this)
 				}
@@ -3694,7 +3779,7 @@ func (this *testMainClass) testBithumbBody(ch chan any) any {
 		}(this)
 
 	}
-	Assert(IsEqual(GetValue(reqHeaders, "OPEN-API-PARTNER"), id), "bithumb - id: " + id + " not in headers (legacy endpoints).")
+	Assert(IsEqual(GetValue(reqHeaders, "OPEN-API-PARTNER"), id), "bithumb - id: "+id+" not in headers (legacy endpoints).")
 	reqHeaders = map[string]any{}
 
 	{
@@ -3706,7 +3791,12 @@ func (this *testMainClass) testBithumbBody(ch chan any) any {
 					}
 					ret_ = func(this *testMainClass) any {
 						// catch block:
-						reqHeaders = func() any { if (!IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil)) { return exchange.GetLast_request_headers() }; return map[string]any{} }()
+						reqHeaders = func() any {
+							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+								return exchange.GetLast_request_headers()
+							}
+							return map[string]any{}
+						}()
 						return nil
 					}(this)
 				}
@@ -3720,7 +3810,7 @@ func (this *testMainClass) testBithumbBody(ch chan any) any {
 		}(this)
 
 	}
-	Assert(IsEqual(GetValue(reqHeaders, "OPEN-API-PARTNER"), id), "bithumb - id: " + id + " not in headers (public endpoints).")
+	Assert(IsEqual(GetValue(reqHeaders, "OPEN-API-PARTNER"), id), "bithumb - id: "+id+" not in headers (public endpoints).")
 	if !EvalTruthy(IsSync()) {
 
 		retRes283912 := (<-Close(exchange))
@@ -3760,7 +3850,12 @@ func (this *testMainClass) testKucoinBody(ch chan any) any {
 					ret_ = func(this *testMainClass) any {
 						// catch block:
 						// we expect an error here, we're only interested in the headers
-						reqHeaders = func() any { if (!IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil)) { return exchange.GetLast_request_headers() }; return map[string]any{} }()
+						reqHeaders = func() any {
+							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+								return exchange.GetLast_request_headers()
+							}
+							return map[string]any{}
+						}()
 						return nil
 					}(this)
 				}
@@ -3774,7 +3869,7 @@ func (this *testMainClass) testKucoinBody(ch chan any) any {
 
 	}
 	var id string = "ccxt"
-	Assert(IsEqual(GetValue(reqHeaders, "KC-API-PARTNER"), id), "kucoin - id: " + id + " not in headers for spot orders.")
+	Assert(IsEqual(GetValue(reqHeaders, "KC-API-PARTNER"), id), "kucoin - id: "+id+" not in headers for spot orders.")
 
 	{
 		func(this *testMainClass) (ret_ any) {
@@ -3785,7 +3880,12 @@ func (this *testMainClass) testKucoinBody(ch chan any) any {
 					}
 					ret_ = func(this *testMainClass) any {
 						// catch block:
-						reqHeaders = func() any { if (!IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil)) { return exchange.GetLast_request_headers() }; return map[string]any{} }()
+						reqHeaders = func() any {
+							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+								return exchange.GetLast_request_headers()
+							}
+							return map[string]any{}
+						}()
 						return nil
 					}(this)
 				}
@@ -3800,7 +3900,7 @@ func (this *testMainClass) testKucoinBody(ch chan any) any {
 		}(this)
 
 	}
-	Assert(IsEqual(GetValue(reqHeaders, "KC-API-PARTNER"), id), "kucoin - id: " + id + " not in headers for spot uta orders.")
+	Assert(IsEqual(GetValue(reqHeaders, "KC-API-PARTNER"), id), "kucoin - id: "+id+" not in headers for spot uta orders.")
 	id = "ccxtfutures"
 
 	{
@@ -3812,7 +3912,12 @@ func (this *testMainClass) testKucoinBody(ch chan any) any {
 					}
 					ret_ = func(this *testMainClass) any {
 						// catch block:
-						reqHeaders = func() any { if (!IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil)) { return exchange.GetLast_request_headers() }; return map[string]any{} }()
+						reqHeaders = func() any {
+							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+								return exchange.GetLast_request_headers()
+							}
+							return map[string]any{}
+						}()
 						return nil
 					}(this)
 				}
@@ -3825,7 +3930,7 @@ func (this *testMainClass) testKucoinBody(ch chan any) any {
 		}(this)
 
 	}
-	Assert(IsEqual(GetValue(reqHeaders, "KC-API-PARTNER"), id), "kucoin - id: " + id + " not in headers for swap orders.")
+	Assert(IsEqual(GetValue(reqHeaders, "KC-API-PARTNER"), id), "kucoin - id: "+id+" not in headers for swap orders.")
 
 	{
 		func(this *testMainClass) (ret_ any) {
@@ -3836,7 +3941,12 @@ func (this *testMainClass) testKucoinBody(ch chan any) any {
 					}
 					ret_ = func(this *testMainClass) any {
 						// catch block:
-						reqHeaders = func() any { if (!IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil)) { return exchange.GetLast_request_headers() }; return map[string]any{} }()
+						reqHeaders = func() any {
+							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+								return exchange.GetLast_request_headers()
+							}
+							return map[string]any{}
+						}()
 						return nil
 					}(this)
 				}
@@ -3851,7 +3961,7 @@ func (this *testMainClass) testKucoinBody(ch chan any) any {
 		}(this)
 
 	}
-	Assert(IsEqual(GetValue(reqHeaders, "KC-API-PARTNER"), id), "kucoin - id: " + id + " not in headers for swap uta orders.")
+	Assert(IsEqual(GetValue(reqHeaders, "KC-API-PARTNER"), id), "kucoin - id: "+id+" not in headers for swap uta orders.")
 	if !EvalTruthy(IsSync()) {
 
 		retRes288412 := (<-Close(exchange))
@@ -3886,7 +3996,12 @@ func (this *testMainClass) testKucoinfuturesBody(ch chan any) any {
 					}
 					ret_ = func(this *testMainClass) any {
 						// catch block:
-						reqHeaders = func() any { if (!IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil)) { return exchange.GetLast_request_headers() }; return map[string]any{} }()
+						reqHeaders = func() any {
+							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+								return exchange.GetLast_request_headers()
+							}
+							return map[string]any{}
+						}()
 						return nil
 					}(this)
 				}
@@ -3900,7 +4015,7 @@ func (this *testMainClass) testKucoinfuturesBody(ch chan any) any {
 		}(this)
 
 	}
-	Assert(IsEqual(GetValue(reqHeaders, "KC-API-PARTNER"), id), "kucoinfutures - id: " + id + " not in headers.")
+	Assert(IsEqual(GetValue(reqHeaders, "KC-API-PARTNER"), id), "kucoinfutures - id: "+id+" not in headers.")
 
 	{
 		func(this *testMainClass) (ret_ any) {
@@ -3911,7 +4026,12 @@ func (this *testMainClass) testKucoinfuturesBody(ch chan any) any {
 					}
 					ret_ = func(this *testMainClass) any {
 						// catch block:
-						reqHeaders = func() any { if (!IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil)) { return exchange.GetLast_request_headers() }; return map[string]any{} }()
+						reqHeaders = func() any {
+							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+								return exchange.GetLast_request_headers()
+							}
+							return map[string]any{}
+						}()
 						return nil
 					}(this)
 				}
@@ -3925,7 +4045,7 @@ func (this *testMainClass) testKucoinfuturesBody(ch chan any) any {
 		}(this)
 
 	}
-	Assert(IsEqual(GetValue(reqHeaders, "KC-API-PARTNER"), id), "kucoinfutures - id: " + id + " not in headers for uta orders.")
+	Assert(IsEqual(GetValue(reqHeaders, "KC-API-PARTNER"), id), "kucoinfutures - id: "+id+" not in headers for uta orders.")
 	if !EvalTruthy(IsSync()) {
 
 		retRes291212 := (<-Close(exchange))
@@ -3946,7 +4066,7 @@ func (this *testMainClass) testBitgetBody(ch chan any) any {
 	var exchange ccxt.ICoreExchange = this.InitOfflineExchange("bitget")
 	var reqHeaders any = map[string]any{}
 	var id string = "p4sve"
-	Assert(IsEqual(GetValue(exchange.GetOptions(), "broker"), id), "bitget - id: " + id + " not in options")
+	Assert(IsEqual(GetValue(exchange.GetOptions(), "broker"), id), "bitget - id: "+id+" not in options")
 
 	{
 		func(this *testMainClass) (ret_ any) {
@@ -3957,7 +4077,12 @@ func (this *testMainClass) testBitgetBody(ch chan any) any {
 					}
 					ret_ = func(this *testMainClass) any {
 						// catch block:
-						reqHeaders = func() any { if (!IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil)) { return exchange.GetLast_request_headers() }; return map[string]any{} }()
+						reqHeaders = func() any {
+							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+								return exchange.GetLast_request_headers()
+							}
+							return map[string]any{}
+						}()
 						return nil
 					}(this)
 				}
@@ -3970,7 +4095,7 @@ func (this *testMainClass) testBitgetBody(ch chan any) any {
 		}(this)
 
 	}
-	Assert(IsEqual(GetValue(reqHeaders, "X-CHANNEL-API-CODE"), id), "bitget - id: " + id + " not in headers.")
+	Assert(IsEqual(GetValue(reqHeaders, "X-CHANNEL-API-CODE"), id), "bitget - id: "+id+" not in headers.")
 	if !EvalTruthy(IsSync()) {
 
 		retRes292912 := (<-Close(exchange))
@@ -3991,7 +4116,7 @@ func (this *testMainClass) testMexcBody(ch chan any) any {
 	var exchange ccxt.ICoreExchange = this.InitOfflineExchange("mexc")
 	var reqHeaders any = map[string]any{}
 	var id string = "CCXT"
-	Assert(IsEqual(GetValue(exchange.GetOptions(), "broker"), id), "mexc - id: " + id + " not in options")
+	Assert(IsEqual(GetValue(exchange.GetOptions(), "broker"), id), "mexc - id: "+id+" not in options")
 
 	retRes29398 := (<-exchange.LoadMarketsAsync())
 	PanicOnError(retRes29398)
@@ -4005,7 +4130,12 @@ func (this *testMainClass) testMexcBody(ch chan any) any {
 					}
 					ret_ = func(this *testMainClass) any {
 						// catch block:
-						reqHeaders = func() any { if (!IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil)) { return exchange.GetLast_request_headers() }; return map[string]any{} }()
+						reqHeaders = func() any {
+							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+								return exchange.GetLast_request_headers()
+							}
+							return map[string]any{}
+						}()
 						return nil
 					}(this)
 				}
@@ -4018,7 +4148,7 @@ func (this *testMainClass) testMexcBody(ch chan any) any {
 		}(this)
 
 	}
-	Assert(IsEqual(GetValue(reqHeaders, "source"), id), "mexc - id: " + id + " not in headers.")
+	Assert(IsEqual(GetValue(reqHeaders, "source"), id), "mexc - id: "+id+" not in headers.")
 	if !EvalTruthy(IsSync()) {
 
 		retRes294712 := (<-Close(exchange))
@@ -4214,7 +4344,7 @@ func (this *testMainClass) testCoinexBody(ch chan any) any {
 	defer ReturnPanicError(ch)
 	var exchange ccxt.ICoreExchange = this.InitOfflineExchange("coinex")
 	var id string = "x-167673045"
-	Assert(IsEqual(GetValue(exchange.GetOptions(), "brokerId"), id), "coinex - id: " + id + " not in options")
+	Assert(IsEqual(GetValue(exchange.GetOptions(), "brokerId"), id), "coinex - id: "+id+" not in options")
 	var spotOrderRequest any = map[string]any{}
 
 	{
@@ -4262,7 +4392,7 @@ func (this *testMainClass) testBingxBody(ch chan any) any {
 	var exchange ccxt.ICoreExchange = this.InitOfflineExchange("bingx")
 	var reqHeaders any = map[string]any{}
 	var id string = "CCXT"
-	Assert(IsEqual(GetValue(exchange.GetOptions(), "broker"), id), "bingx - id: " + id + " not in options")
+	Assert(IsEqual(GetValue(exchange.GetOptions(), "broker"), id), "bingx - id: "+id+" not in options")
 
 	{
 		func(this *testMainClass) (ret_ any) {
@@ -4274,7 +4404,12 @@ func (this *testMainClass) testBingxBody(ch chan any) any {
 					ret_ = func(this *testMainClass) any {
 						// catch block:
 						// we expect an error here, we're only interested in the headers
-						reqHeaders = func() any { if (!IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil)) { return exchange.GetLast_request_headers() }; return map[string]any{} }()
+						reqHeaders = func() any {
+							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+								return exchange.GetLast_request_headers()
+							}
+							return map[string]any{}
+						}()
 						return nil
 					}(this)
 				}
@@ -4287,7 +4422,7 @@ func (this *testMainClass) testBingxBody(ch chan any) any {
 		}(this)
 
 	}
-	Assert(IsEqual(GetValue(reqHeaders, "X-SOURCE-KEY"), id), "bingx - id: " + id + " not in headers.")
+	Assert(IsEqual(GetValue(reqHeaders, "X-SOURCE-KEY"), id), "bingx - id: "+id+" not in headers.")
 	if !EvalTruthy(IsSync()) {
 
 		retRes304812 := (<-Close(exchange))
@@ -4544,7 +4679,7 @@ func (this *testMainClass) testWoofiProBody(ch chan any) any {
 
 	}
 	var brokerId any = GetValue(request, "order_tag")
-	Assert(IsEqual(brokerId, id), Add("woofipro - id: " + id + " different from  broker_id: ", brokerId))
+	Assert(IsEqual(brokerId, id), Add("woofipro - id: "+id+" different from  broker_id: ", brokerId))
 	if !EvalTruthy(IsSync()) {
 
 		retRes316012 := (<-Close(exchange))
@@ -4589,7 +4724,7 @@ func (this *testMainClass) testXTBody(ch chan any) any {
 
 	}
 	var spotMedia any = GetValue(spotOrderRequest, "media")
-	Assert(IsEqual(spotMedia, id), Add("xt - id: " + id + " different from swap tag: ", spotMedia))
+	Assert(IsEqual(spotMedia, id), Add("xt - id: "+id+" different from swap tag: ", spotMedia))
 	var swapOrderRequest any = map[string]any{}
 
 	{
@@ -4615,7 +4750,7 @@ func (this *testMainClass) testXTBody(ch chan any) any {
 
 	}
 	var swapMedia any = GetValue(swapOrderRequest, "clientMedia")
-	Assert(IsEqual(swapMedia, id), Add("xt - id: " + id + " different from swap tag: ", swapMedia))
+	Assert(IsEqual(swapMedia, id), Add("xt - id: "+id+" different from swap tag: ", swapMedia))
 	if !EvalTruthy(IsSync()) {
 
 		retRes318512 := (<-Close(exchange))
@@ -4668,7 +4803,7 @@ func (this *testMainClass) testParadexBody(ch chan any) any {
 	})
 	var reqHeaders any = map[string]any{}
 	var id string = "CCXT"
-	Assert(IsEqual(GetValue(exchange.GetOptions(), "broker"), id), "paradex - id: " + id + " not in options")
+	Assert(IsEqual(GetValue(exchange.GetOptions(), "broker"), id), "paradex - id: "+id+" not in options")
 
 	retRes32038 := (<-exchange.LoadMarketsAsync())
 	PanicOnError(retRes32038)
@@ -4682,7 +4817,12 @@ func (this *testMainClass) testParadexBody(ch chan any) any {
 					}
 					ret_ = func(this *testMainClass) any {
 						// catch block:
-						reqHeaders = func() any { if (!IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil)) { return exchange.GetLast_request_headers() }; return map[string]any{} }()
+						reqHeaders = func() any {
+							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+								return exchange.GetLast_request_headers()
+							}
+							return map[string]any{}
+						}()
 						return nil
 					}(this)
 				}
@@ -4695,7 +4835,7 @@ func (this *testMainClass) testParadexBody(ch chan any) any {
 		}(this)
 
 	}
-	Assert(IsEqual(GetValue(reqHeaders, "PARADEX-PARTNER"), id), "paradex - id: " + id + " not in headers")
+	Assert(IsEqual(GetValue(reqHeaders, "PARADEX-PARTNER"), id), "paradex - id: "+id+" not in headers")
 	if !EvalTruthy(IsSync()) {
 
 		retRes321112 := (<-Close(exchange))
@@ -4727,7 +4867,12 @@ func (this *testMainClass) testHashkeyBody(ch chan any) any {
 					ret_ = func(this *testMainClass) any {
 						// catch block:
 						// we expect an error here, we're only interested in the headers
-						reqHeaders = func() any { if (!IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil)) { return exchange.GetLast_request_headers() }; return map[string]any{} }()
+						reqHeaders = func() any {
+							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+								return exchange.GetLast_request_headers()
+							}
+							return map[string]any{}
+						}()
 						return nil
 					}(this)
 				}
@@ -4740,7 +4885,7 @@ func (this *testMainClass) testHashkeyBody(ch chan any) any {
 		}(this)
 
 	}
-	Assert(IsEqual(GetValue(reqHeaders, "INPUT-SOURCE"), id), "hashkey - id: " + id + " not in headers.")
+	Assert(IsEqual(GetValue(reqHeaders, "INPUT-SOURCE"), id), "hashkey - id: "+id+" not in headers.")
 	if !EvalTruthy(IsSync()) {
 
 		retRes322812 := (<-Close(exchange))
@@ -4784,7 +4929,7 @@ func (this *testMainClass) testCryptomusBody(ch chan any) any {
 
 	}
 	var tag string = "ccxt"
-	Assert(IsEqual(GetValue(request, "tag"), tag), "cryptomus - tag: " + tag + " not in request.")
+	Assert(IsEqual(GetValue(request, "tag"), tag), "cryptomus - tag: "+tag+" not in request.")
 	if !EvalTruthy(IsSync()) {
 
 		retRes324412 := (<-Close(exchange))
@@ -4809,7 +4954,7 @@ func (this *testMainClass) testDeriveBody(ch chan any) any {
 	}
 	var exchange ccxt.ICoreExchange = this.InitOfflineExchange("derive")
 	var id string = "0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749"
-	Assert(IsEqual(GetValue(exchange.GetOptions(), "id"), id), "derive - id: " + id + " not in options")
+	Assert(IsEqual(GetValue(exchange.GetOptions(), "id"), id), "derive - id: "+id+" not in options")
 	var request any = map[string]any{}
 
 	{
@@ -4841,7 +4986,7 @@ func (this *testMainClass) testDeriveBody(ch chan any) any {
 		}(this)
 
 	}
-	Assert(IsEqual(GetValue(request, "referral_code"), id), "derive - referral_code: " + id + " not in request.")
+	Assert(IsEqual(GetValue(request, "referral_code"), id), "derive - referral_code: "+id+" not in request.")
 	if !EvalTruthy(IsSync()) {
 
 		retRes327112 := (<-Close(exchange))
@@ -4895,7 +5040,7 @@ func (this *testMainClass) testModeTradeBody(ch chan any) any {
 
 	}
 	var brokerId any = GetValue(request, "order_tag")
-	Assert(IsEqual(brokerId, id), Add("modetrade - id: " + id + " different from  broker_id: ", brokerId))
+	Assert(IsEqual(brokerId, id), Add("modetrade - id: "+id+" different from  broker_id: ", brokerId))
 	if !EvalTruthy(IsSync()) {
 
 		retRes329312 := (<-Close(exchange))
@@ -4929,7 +5074,12 @@ func (this *testMainClass) testBackpackBody(ch chan any) any {
 					ret_ = func(this *testMainClass) any {
 						// catch block:
 						// we expect an error here, we're only interested in the headers
-						reqHeaders = func() any { if (!IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil)) { return exchange.GetLast_request_headers() }; return map[string]any{} }()
+						reqHeaders = func() any {
+							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+								return exchange.GetLast_request_headers()
+							}
+							return map[string]any{}
+						}()
 						return nil
 					}(this)
 				}
@@ -4942,7 +5092,7 @@ func (this *testMainClass) testBackpackBody(ch chan any) any {
 		}(this)
 
 	}
-	Assert(IsEqual(GetValue(reqHeaders, "X-Broker-Id"), id), "backpack - id: " + id + " not in headers.")
+	Assert(IsEqual(GetValue(reqHeaders, "X-Broker-Id"), id), "backpack - id: "+id+" not in headers.")
 	if !EvalTruthy(IsSync()) {
 
 		retRes331212 := (<-Close(exchange))
@@ -4974,7 +5124,12 @@ func (this *testMainClass) testToobitBody(ch chan any) any {
 					ret_ = func(this *testMainClass) any {
 						// catch block:
 						// we expect an error here, we're only interested in the headers
-						reqHeaders = func() any { if (!IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil)) { return exchange.GetLast_request_headers() }; return map[string]any{} }()
+						reqHeaders = func() any {
+							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+								return exchange.GetLast_request_headers()
+							}
+							return map[string]any{}
+						}()
 						return nil
 					}(this)
 				}
@@ -4987,7 +5142,7 @@ func (this *testMainClass) testToobitBody(ch chan any) any {
 		}(this)
 
 	}
-	Assert(IsEqual(GetValue(reqHeaders, "X-BB-API-PLATFORM"), id), "toobit - id: " + id + " not in headers.")
+	Assert(IsEqual(GetValue(reqHeaders, "X-BB-API-PLATFORM"), id), "toobit - id: "+id+" not in headers.")
 	if !EvalTruthy(IsSync()) {
 
 		retRes332912 := (<-Close(exchange))
@@ -5007,7 +5162,7 @@ func (this *testMainClass) testWeexBody(ch chan any) any {
 	defer ReturnPanicError(ch)
 	var exchange ccxt.ICoreExchange = this.InitOfflineExchange("weex")
 	var id string = "b-WEEX111125"
-	Assert(IsEqual(GetValue(exchange.GetOptions(), "partner"), id), "weex - id: " + id + " not in options")
+	Assert(IsEqual(GetValue(exchange.GetOptions(), "partner"), id), "weex - id: "+id+" not in options")
 	var request any = map[string]any{}
 
 	{
@@ -5083,7 +5238,12 @@ func (this *testMainClass) testFoxbitBody(ch chan any) any {
 					ret_ = func(this *testMainClass) any {
 						// catch block:
 						// we expect an error here, we're only interested in the headers
-						reqHeaders = func() any { if (!IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil)) { return exchange.GetLast_request_headers() }; return map[string]any{} }()
+						reqHeaders = func() any {
+							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+								return exchange.GetLast_request_headers()
+							}
+							return map[string]any{}
+						}()
 						return nil
 					}(this)
 				}
@@ -5096,7 +5256,7 @@ func (this *testMainClass) testFoxbitBody(ch chan any) any {
 		}(this)
 
 	}
-	Assert(IsEqual(GetValue(reqHeaders, "X-FB-CLIENT"), id), "foxbit - id: " + id + " not in headers.")
+	Assert(IsEqual(GetValue(reqHeaders, "X-FB-CLIENT"), id), "foxbit - id: "+id+" not in headers.")
 	var version any = exchange.GetCcxtVersion()
 	Assert(IsEqual(GetValue(reqHeaders, "X-FB-CLIENT-VERSION"), version), Add(Add("foxbit - version: ", version), " not in headers."))
 	if !EvalTruthy(IsSync()) {

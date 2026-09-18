@@ -635,7 +635,12 @@ func (this *Ndax) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	var message *string = this.SafeString(response, "msg")
 
 	ch <- map[string]any{
-		"status":  func() any { if (message != nil && *message == "PONG") { return "ok" }; return "error" }(),
+		"status": func() any {
+			if message != nil && *message == "PONG" {
+				return "ok"
+			}
+			return "error"
+		}(),
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
@@ -770,7 +775,12 @@ func (this *Ndax) ParseCurrency(rawCurrency any) any {
 	var id *string = this.SafeString(rawCurrency, "ProductId")
 	var code *string = this.SafeCurrencyCode(this.SafeString(rawCurrency, "Product"))
 	var ProductType *string = this.SafeString(rawCurrency, "ProductType")
-	var typeVar any = func() any { if (ProductType != nil && *ProductType == "NationalCurrency") { return "fiat" }; return "crypto" }()
+	var typeVar any = func() any {
+		if ProductType != nil && *ProductType == "NationalCurrency" {
+			return "fiat"
+		}
+		return "crypto"
+	}()
 	if ProductType != nil && *ProductType == "Unknown" {
 		// such currency is just a blanket entry
 		typeVar = "other"
@@ -978,7 +988,12 @@ func (this *Ndax) ParseOrderBook(orderbook any, symbol any, optionalArgs ...any)
 		}
 		var bidask any = this.ParseOrderBookBidAsk(level, priceKey, amountKey)
 		var levelSide *int64 = this.SafeInteger(level, 9)
-		var side any = func() any { if ((levelSide != nil) && (levelSide == nil || *levelSide != 0)) { return asksKey }; return bidsKey }()
+		var side any = func() any {
+			if (levelSide != nil) && (levelSide == nil || *levelSide != 0) {
+				return asksKey
+			}
+			return bidsKey
+		}()
 		retRes71312 := GetValue(result, side)
 		AppendToArray(&retRes71312, bidask)
 	}
@@ -1019,7 +1034,12 @@ func (this *Ndax) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 		PanicOnError(retRes73612)
 	}
 	var market any = this.Market(symbol)
-	limit = func() any { if (IsEqual(limit, nil)) { return 100 }; return limit }() // default 100
+	limit = func() any {
+		if IsEqual(limit, nil) {
+			return 100
+		}
+		return limit
+	}() // default 100
 	var request map[string]any = map[string]any{
 		"omsId":        omsId,
 		"InstrumentId": GetValue(market, "id"),
@@ -2035,7 +2055,12 @@ func (this *Ndax) createOrderBody(ch chan any, symbol any, typeVar any, side any
 	}
 	params = this.Omit(params, []any{"accountId", "AccountId", "clientOrderId", "ClientOrderId", "triggerPrice"})
 	var market any = this.Market(symbol)
-	var orderSide any = func() any { if (IsEqual(side, "buy")) { return 0 }; return 1 }()
+	var orderSide any = func() any {
+		if IsEqual(side, "buy") {
+			return 0
+		}
+		return 1
+	}()
 	var amountString any = this.AmountToPrecision(symbol, amount)
 	var request map[string]any = map[string]any{
 		"InstrumentId": this.ParseToInt(GetValue(market, "id")),
@@ -2043,8 +2068,13 @@ func (this *Ndax) createOrderBody(ch chan any, symbol any, typeVar any, side any
 		"AccountId":    accountId,
 		"TimeInForce":  1,
 		"Side":         orderSide,
-		"Quantity":     func() any { if (amountString == nil) { return nil }; return ParseFloat(amountString) }(),
-		"OrderType":    orderType,
+		"Quantity": func() any {
+			if amountString == nil {
+				return nil
+			}
+			return ParseFloat(amountString)
+		}(),
+		"OrderType": orderType,
 	}
 	// If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
 	if !IsEqual(price, nil) {
@@ -2117,7 +2147,12 @@ func (this *Ndax) editOrderBody(ch chan any, id any, symbol any, typeVar any, si
 	var clientOrderId *int64 = this.SafeInteger2(params, "ClientOrderId", "clientOrderId")
 	params = this.Omit(params, []any{"accountId", "AccountId", "clientOrderId", "ClientOrderId"})
 	var market any = this.Market(symbol)
-	var orderSide any = func() any { if (IsEqual(side, "buy")) { return 0 }; return 1 }()
+	var orderSide any = func() any {
+		if IsEqual(side, "buy") {
+			return 0
+		}
+		return 1
+	}()
 	var amountString any = this.AmountToPrecision(symbol, amount)
 	var request map[string]any = map[string]any{
 		"OrderIdToReplace": ParseInt(id),
@@ -2126,8 +2161,13 @@ func (this *Ndax) editOrderBody(ch chan any, id any, symbol any, typeVar any, si
 		"AccountId":        accountId,
 		"TimeInForce":      1,
 		"Side":             orderSide,
-		"Quantity":         func() any { if (amountString == nil) { return nil }; return ParseFloat(amountString) }(),
-		"OrderType":        this.SafeInteger(GetValue(this.Options, "orderTypes"), this.Capitalize(typeVar)),
+		"Quantity": func() any {
+			if amountString == nil {
+				return nil
+			}
+			return ParseFloat(amountString)
+		}(),
+		"OrderType": this.SafeInteger(GetValue(this.Options, "orderTypes"), this.Capitalize(typeVar)),
 	}
 	// If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
 	if !IsEqual(price, nil) {
@@ -3142,7 +3182,12 @@ func (this *Ndax) ParseTransactionStatusByType(optionalArgs ...any) *string {
 			"Confirmed2Fa":      "pending",
 		},
 	}
-	var statuses any = func() any { if (typeVar == nil) { return map[string]any{} }; return this.SafeValue(statusesByType, typeVar, map[string]any{}) }()
+	var statuses any = func() any {
+		if typeVar == nil {
+			return map[string]any{}
+		}
+		return this.SafeValue(statusesByType, typeVar, map[string]any{})
+	}()
 	if status == nil {
 		return nil
 	}
@@ -3323,7 +3368,7 @@ func (this *Ndax) withdrawBody(ch chan any, code any, amount any, address any, o
 	var templateTypes any = this.SafeValue(withdrawTemplateTypesResponse, "TemplateTypes", []any{})
 	var firstTemplateType any = this.SafeValue(templateTypes, 0)
 	if IsEqual(firstTemplateType, nil) {
-		panic(ExchangeError(Add(this.Id + " withdraw() could not find a withdraw template type for ", GetValue(currency, "code"))))
+		panic(ExchangeError(Add(this.Id+" withdraw() could not find a withdraw template type for ", GetValue(currency, "code"))))
 	}
 	var templateName *string = this.SafeString(firstTemplateType, "TemplateName")
 	var withdrawTemplateRequest map[string]any = map[string]any{
@@ -3346,7 +3391,7 @@ func (this *Ndax) withdrawBody(ch chan any, code any, amount any, address any, o
 	//
 	var template *string = this.SafeString(withdrawTemplateResponse, "Template")
 	if template == nil {
-		panic(ExchangeError(Add(this.Id + " withdraw() could not find a withdraw template for ", GetValue(currency, "code"))))
+		panic(ExchangeError(Add(this.Id+" withdraw() could not find a withdraw template for ", GetValue(currency, "code"))))
 	}
 	var withdrawTemplate any = JsonParse(template)
 	AddElementToObject(withdrawTemplate, "ExternalAddress", address)
@@ -3407,7 +3452,7 @@ func (this *Ndax) Sign(path any, optionalArgs ...any) any {
 			}
 		}
 		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, "?" + this.Urlencode(query))
+			url = Add(url, "?"+this.Urlencode(query))
 		}
 	} else if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
@@ -3432,7 +3477,7 @@ func (this *Ndax) Sign(path any, optionalArgs ...any) any {
 			body = this.Json(query)
 		} else {
 			if len(ObjectKeys(query)) > 0 {
-				url = Add(url, "?" + this.Urlencode(query))
+				url = Add(url, "?"+this.Urlencode(query))
 			}
 		}
 	}
@@ -3445,7 +3490,7 @@ func (this *Ndax) Sign(path any, optionalArgs ...any) any {
 }
 func (this *Ndax) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
 	if IsEqual(code, 404) {
-		panic(AuthenticationError(Add(this.Id + " ", body)))
+		panic(AuthenticationError(Add(this.Id+" ", body)))
 	}
 	if IsEqual(response, nil) {
 		return nil
@@ -3456,7 +3501,7 @@ func (this *Ndax) HandleErrors(code any, reason any, url any, method any, header
 	//
 	var message *string = this.SafeString(response, "errormsg")
 	if (message != nil) && (message == nil || *message != "") {
-		var feedback any = Add(this.Id + " ", body)
+		var feedback any = Add(this.Id+" ", body)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
 		panic(ExchangeError(feedback))

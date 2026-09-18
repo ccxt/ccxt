@@ -834,7 +834,12 @@ func (this *Foxbit) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	var defaultLimit int = 20
 	var request map[string]any = map[string]any{
 		"market": GetValue(market, "id"),
-		"depth":  func() any { if (IsEqual(limit, nil)) { return defaultLimit }; return limit }(),
+		"depth": func() any {
+			if IsEqual(limit, nil) {
+				return defaultLimit
+			}
+			return limit
+		}(),
 	}
 
 	response := (<-this.V3PublicGetMarketsMarketOrderbook(this.Extend(request, params)))
@@ -2614,13 +2619,13 @@ func (this *Foxbit) Sign(path any, optionalArgs ...any) any {
 		var paramKeysLength int = len(paramKeys)
 		if paramKeysLength > 0 {
 			query = this.Urlencode(params)
-			url = Add(url, "?" + query)
+			url = Add(url, "?"+query)
 		}
 		for i := 0; i < len(paramKeys); i++ {
 			var key string = GetValue(paramKeys, i).(string)
 			var value *string = this.SafeString(params, key)
 			if value != nil {
-				signatureQuery = Add(signatureQuery, Add(key + "=", value))
+				signatureQuery = Add(signatureQuery, Add(key+"=", value))
 			}
 			if IsLessThan(i, Subtract(paramKeysLength, 1)) {
 				signatureQuery = Add(signatureQuery, "&")
@@ -2669,7 +2674,7 @@ func (this *Foxbit) HandleErrors(httpCode any, reason any, url any, method any, 
 		}
 	}
 	if !IsEqual(error, nil) {
-		var feedback any = Add(Add(Add(this.Id + " ", message), " details: "), detailsString)
+		var feedback any = Add(Add(Add(this.Id+" ", message), " details: "), detailsString)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], detailsString, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)

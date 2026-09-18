@@ -1317,7 +1317,7 @@ func (this *Coincheck) Sign(path any, optionalArgs ...any) any {
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsEqual(api, "public") {
 		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, "?" + this.Urlencode(query))
+			url = Add(url, "?"+this.Urlencode(query))
 		}
 	} else {
 		this.CheckRequiredCredentials()
@@ -1325,7 +1325,7 @@ func (this *Coincheck) Sign(path any, optionalArgs ...any) any {
 		var queryString any = ""
 		if IsEqual(method, "GET") {
 			if len(ObjectKeys(query)) > 0 {
-				url = Add(url, "?" + this.Urlencode(this.Keysort(query)))
+				url = Add(url, "?"+this.Urlencode(this.Keysort(query)))
 			}
 		} else {
 			if len(ObjectKeys(query)) > 0 {
@@ -1359,10 +1359,10 @@ func (this *Coincheck) HandleErrors(httpCode any, reason any, url any, method an
 	var success *bool = this.SafeBool(response, "success", true)
 	if success == nil || *success != true {
 		var error *string = this.SafeString(response, "error")
-		var feedback any = Add(this.Id + " ", this.Json(response))
+		var feedback any = Add(this.Id+" ", this.Json(response))
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], error, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
-		panic(ExchangeError(Add(this.Id + " ", this.Json(response))))
+		panic(ExchangeError(Add(this.Id+" ", this.Json(response))))
 	}
 	return nil
 }

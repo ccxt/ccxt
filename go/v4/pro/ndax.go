@@ -72,7 +72,7 @@ func (this *Ndax) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 	}
 	var market any = this.Market(symbol)
 	var name string = "SubscribeLevel1"
-	var messageHash any = ccxt.Add(name + ":", ccxt.GetValue(market, "id"))
+	var messageHash any = ccxt.Add(name+":", ccxt.GetValue(market, "id"))
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var requestId any = this.RequestId()
 	var payload map[string]any = map[string]any{
@@ -126,7 +126,7 @@ func (this *Ndax) HandleTicker(client any, message any) {
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 	}
 	var name string = "SubscribeLevel1"
-	var messageHash any = ccxt.Add(name + ":", ccxt.GetValue(market, "id"))
+	var messageHash any = ccxt.Add(name+":", ccxt.GetValue(market, "id"))
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 }
 
@@ -164,7 +164,7 @@ func (this *Ndax) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
 	var name string = "SubscribeTrades"
-	var messageHash any = ccxt.Add(name + ":", ccxt.GetValue(market, "id"))
+	var messageHash any = ccxt.Add(name+":", ccxt.GetValue(market, "id"))
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var requestId any = this.RequestId()
 	var payload map[string]any = map[string]any{
@@ -215,7 +215,12 @@ func (this *Ndax) HandleTrades(client any, message any) {
 	for i := 0; i < ccxt.GetArrayLength(payload); i++ {
 		var trade any = this.ParseTrade(ccxt.GetValue(payload, i))
 		var symbol any = ccxt.GetValue(trade, "symbol")
-		var tradesArray any = func() any { if (symbol == nil) { return nil }; return this.SafeValue(this.Trades, symbol) }()
+		var tradesArray any = func() any {
+			if symbol == nil {
+				return nil
+			}
+			return this.SafeValue(this.Trades, symbol)
+		}()
 		if ccxt.IsEqual(tradesArray, nil) {
 			var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 			tradesArray = ccxt.NewArrayCache(limit)
@@ -232,7 +237,7 @@ func (this *Ndax) HandleTrades(client any, message any) {
 	for i := 0; i < len(symbols); i++ {
 		var symbol string = ccxt.GetValue(symbols, i).(string)
 		var market any = this.Market(symbol)
-		var messageHash any = ccxt.Add(name + ":", ccxt.GetValue(market, "id"))
+		var messageHash any = ccxt.Add(name+":", ccxt.GetValue(market, "id"))
 		var tradesArray any = this.SafeValue(this.Trades, symbol)
 		client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
 	}
@@ -275,7 +280,7 @@ func (this *Ndax) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
 	var name string = "SubscribeTicker"
-	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add(name + ":", timeframe), ":"), ccxt.GetValue(market, "id"))
+	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add(name+":", timeframe), ":"), ccxt.GetValue(market, "id"))
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var requestId any = this.RequestId()
 	var payload map[string]any = map[string]any{
@@ -431,10 +436,15 @@ func (this *Ndax) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
 	var name string = "SubscribeLevel2"
-	var messageHash any = ccxt.Add(name + ":", ccxt.GetValue(market, "id"))
+	var messageHash any = ccxt.Add(name+":", ccxt.GetValue(market, "id"))
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var requestId any = this.RequestId()
-	limit = func() any { if (ccxt.IsEqual(limit, nil)) { return 100 }; return limit }()
+	limit = func() any {
+		if ccxt.IsEqual(limit, nil) {
+			return 100
+		}
+		return limit
+	}()
 	var payload map[string]any = map[string]any{
 		"OMSId":        omsId,
 		"InstrumentId": this.SafeInteger(market, "id"),
@@ -507,16 +517,36 @@ func (this *Ndax) HandleOrderBook(client any, message any) {
 			timestamp = ccxt.DerefScalar(this.SafeInteger(bidask, 2))
 		} else {
 			var newTimestamp *int64 = this.SafeInteger(bidask, 2)
-			var currentTimestampValue any = func() any { if (ccxt.IsEqual(timestamp, nil)) { return 0 }; return timestamp }()
-			var newTimestampValue any = func() any { if (newTimestamp == nil) { return 0 }; return newTimestamp }()
+			var currentTimestampValue any = func() any {
+				if ccxt.IsEqual(timestamp, nil) {
+					return 0
+				}
+				return timestamp
+			}()
+			var newTimestampValue any = func() any {
+				if newTimestamp == nil {
+					return 0
+				}
+				return newTimestamp
+			}()
 			timestamp = ccxt.MathMax(currentTimestampValue, newTimestampValue)
 		}
 		if ccxt.IsEqual(nonce, nil) {
 			nonce = ccxt.DerefScalar(this.SafeInteger(bidask, 0))
 		} else {
 			var newNonce *int64 = this.SafeInteger(bidask, 0)
-			var currentNonceValue any = func() any { if (ccxt.IsEqual(nonce, nil)) { return 0 }; return nonce }()
-			var newNonceValue any = func() any { if (newNonce == nil) { return 0 }; return newNonce }()
+			var currentNonceValue any = func() any {
+				if ccxt.IsEqual(nonce, nil) {
+					return 0
+				}
+				return nonce
+			}()
+			var newNonceValue any = func() any {
+				if newNonce == nil {
+					return 0
+				}
+				return newNonce
+			}()
 			nonce = ccxt.MathMax(currentNonceValue, newNonceValue)
 		}
 		// 0 new, 1 update, 2 remove
@@ -525,7 +555,12 @@ func (this *Ndax) HandleOrderBook(client any, message any) {
 		var amount *float64 = this.SafeFloat(bidask, 8)
 		var side *int64 = this.SafeInteger(bidask, 9)
 		// 0 buy, 1 sell, 2 short reserved for future use, 3 unknown
-		var orderbookSide any = func() any { if (side != nil && *side == 0) { return ccxt.GetValue(orderbook, "bids") }; return ccxt.GetValue(orderbook, "asks") }()
+		var orderbookSide any = func() any {
+			if side != nil && *side == 0 {
+				return ccxt.GetValue(orderbook, "bids")
+			}
+			return ccxt.GetValue(orderbook, "asks")
+		}()
 		// 0 new, 1 update, 2 remove
 		if typeVar != nil && *typeVar == 0 {
 			orderbookSide.(ccxt.IOrderBookSide).Store(price, amount)
@@ -539,7 +574,7 @@ func (this *Ndax) HandleOrderBook(client any, message any) {
 	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
 	var name string = "SubscribeLevel2"
-	var messageHash any = ccxt.Add(name + ":", marketId)
+	var messageHash any = ccxt.Add(name+":", marketId)
 	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
@@ -590,7 +625,12 @@ func (this *Ndax) HandleSubscriptionStatus(client any, message any) {
 	//
 	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).GetSubscriptions(), "id")
 	var id *int64 = this.SafeInteger(message, "i")
-	var subscription any = func() any { if (id == nil) { return nil }; return this.SafeValue(subscriptionsById, id) }()
+	var subscription any = func() any {
+		if id == nil {
+			return nil
+		}
+		return this.SafeValue(subscriptionsById, id)
+	}()
 	if !ccxt.IsEqual(subscription, nil) {
 		var method any = this.SafeValue(subscription, "method")
 		if !ccxt.IsEqual(method, nil) {
@@ -637,7 +677,12 @@ func (this *Ndax) HandleMessage(client any, message any) {
 		"TickerDataUpdateEvent": this.HandleOHLCV,
 	}
 	var event *string = this.SafeString(message, "n")
-	var method any = func() any { if (event == nil) { return nil }; return this.SafeValue(methods, event) }()
+	var method any = func() any {
+		if event == nil {
+			return nil
+		}
+		return this.SafeValue(methods, event)
+	}()
 	if !ccxt.IsEqual(method, nil) {
 		ccxt.CallDynamically(method, client, message)
 	}

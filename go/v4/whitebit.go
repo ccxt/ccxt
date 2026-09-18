@@ -799,7 +799,12 @@ func (this *Whitebit) ParseMarket(market any) any {
 	var id *string = this.SafeString(market, "name")
 	var baseId *string = this.SafeString(market, "stock")
 	var quoteId any = DerefScalar(this.SafeString(market, "money"))
-	quoteId = func() any { if (IsEqual(quoteId, "PERP")) { return "USDT" }; return quoteId }()
+	quoteId = func() any {
+		if IsEqual(quoteId, "PERP") {
+			return "USDT"
+		}
+		return quoteId
+	}()
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var active any = this.SafeValue(market, "tradesEnabled")
@@ -832,27 +837,32 @@ func (this *Whitebit) ParseMarket(market any) any {
 	var maker *string = Precise.StringDiv(makerFeeRate, "100")
 	var isSpot bool = !swap
 	return this.SafeMarketStructure(map[string]any{
-		"id":             id,
-		"symbol":         symbol,
-		"base":           base,
-		"quote":          quote,
-		"settle":         settle,
-		"baseId":         baseId,
-		"quoteId":        quoteId,
-		"settleId":       settleId,
-		"type":           typeVar,
-		"spot":           isSpot,
-		"margin":         margin,
-		"swap":           swap,
-		"future":         false,
-		"option":         false,
-		"active":         active,
-		"contract":       contract,
-		"linear":         linear,
-		"inverse":        inverse,
-		"taker":          this.ParseNumber(taker),
-		"maker":          this.ParseNumber(maker),
-		"contractSize":   func() any { if isSpot { return nil }; return this.ParseNumber("1") }(),
+		"id":       id,
+		"symbol":   symbol,
+		"base":     base,
+		"quote":    quote,
+		"settle":   settle,
+		"baseId":   baseId,
+		"quoteId":  quoteId,
+		"settleId": settleId,
+		"type":     typeVar,
+		"spot":     isSpot,
+		"margin":   margin,
+		"swap":     swap,
+		"future":   false,
+		"option":   false,
+		"active":   active,
+		"contract": contract,
+		"linear":   linear,
+		"inverse":  inverse,
+		"taker":    this.ParseNumber(taker),
+		"maker":    this.ParseNumber(maker),
+		"contractSize": func() any {
+			if isSpot {
+				return nil
+			}
+			return this.ParseNumber("1")
+		}(),
 		"expiry":         nil,
 		"expiryDatetime": nil,
 		"strike":         nil,
@@ -1016,16 +1026,21 @@ func (this *Whitebit) ParseCurrency(rawCurrency any) any {
 		}
 	}
 	return this.SafeCurrencyStructure(map[string]any{
-		"id":        id,
-		"code":      code,
-		"info":      rawCurrency,
-		"name":      nil,
-		"active":    nil,
-		"deposit":   this.SafeBool(rawCurrency, "can_deposit"),
-		"withdraw":  this.SafeBool(rawCurrency, "can_withdraw"),
-		"fee":       nil,
-		"networks":  networks,
-		"type":      func() any { if hasProvider { return "fiat" }; return "crypto" }(),
+		"id":       id,
+		"code":     code,
+		"info":     rawCurrency,
+		"name":     nil,
+		"active":   nil,
+		"deposit":  this.SafeBool(rawCurrency, "can_deposit"),
+		"withdraw": this.SafeBool(rawCurrency, "can_withdraw"),
+		"fee":      nil,
+		"networks": networks,
+		"type": func() any {
+			if hasProvider {
+				return "fiat"
+			}
+			return "crypto"
+		}(),
 		"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(rawCurrency, "currency_precision"))),
 		"limits": map[string]any{
 			"amount": map[string]any{
@@ -1267,12 +1282,22 @@ func (this *Whitebit) ParseDepositWithdrawFees(response any, optionalArgs ...any
 			var withdrawFee *float64 = this.SafeNumber(withdraw, "fixed")
 			var depositFee *float64 = this.SafeNumber(deposit, "fixed")
 			var withdrawResult map[string]any = map[string]any{
-				"fee":        withdrawFee,
-				"percentage": func() any { if (withdrawFee != nil) { return false }; return nil }(),
+				"fee": withdrawFee,
+				"percentage": func() any {
+					if withdrawFee != nil {
+						return false
+					}
+					return nil
+				}(),
 			}
 			var depositResult map[string]any = map[string]any{
-				"fee":        depositFee,
-				"percentage": func() any { if (depositFee != nil) { return false }; return nil }(),
+				"fee": depositFee,
+				"percentage": func() any {
+					if depositFee != nil {
+						return false
+					}
+					return nil
+				}(),
 			}
 			if networkId != nil {
 				var networkLength int = GetLength(networkId)
@@ -1972,7 +1997,7 @@ func (this *Whitebit) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 
 		}
 	}
-	panic(OrderNotFound(Add(this.Id + " fetchOrder() order not found: ", id)))
+	panic(OrderNotFound(Add(this.Id+" fetchOrder() order not found: ", id)))
 }
 
 /**
@@ -2389,7 +2414,12 @@ func (this *Whitebit) ParseTrade(trade any, optionalArgs ...any) any {
 	var role *int64 = this.SafeInteger(trade, "role")
 	var takerOrMaker any = nil
 	if role != nil {
-		takerOrMaker = func() any { if (role != nil && *role == 1) { return "maker" }; return "taker" }()
+		takerOrMaker = func() any {
+			if role != nil && *role == 1 {
+				return "maker"
+			}
+			return "taker"
+		}()
 	}
 	var fee any = nil
 	var feeCost *string = this.SafeString(trade, "fee")
@@ -2531,7 +2561,12 @@ func (this *Whitebit) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	var status *string = this.SafeString(response, 0)
 
 	ch <- map[string]any{
-		"status":  func() any { if (status != nil && *status == "pong") { return "ok" }; return status }(),
+		"status": func() any {
+			if status != nil && *status == "pong" {
+				return "ok"
+			}
+			return status
+		}(),
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
@@ -2702,7 +2737,7 @@ func (this *Whitebit) createOrderBody(ch chan any, symbol any, typeVar any, side
 	var isStopOrder bool = (triggerPrice != nil)
 	var timeInForce *string = this.SafeStringUpper(params, "timeInForce")
 	if (timeInForce != nil) && (timeInForce == nil || *timeInForce != "GTC") && (timeInForce == nil || *timeInForce != "IOC") && (timeInForce == nil || *timeInForce != "PO") {
-		panic(NotSupported(Add(Add(this.Id + " createOrder() does not support timeInForce ", timeInForce), ", only GTC, IOC and PO are allowed")))
+		panic(NotSupported(Add(Add(this.Id+" createOrder() does not support timeInForce ", timeInForce), ", only GTC, IOC and PO are allowed")))
 	}
 	var postOnly bool = this.IsPostOnly(isMarketOrder, false, params)
 	var ioc bool = (timeInForce != nil && *timeInForce == "IOC")
@@ -2983,7 +3018,7 @@ func (this *Whitebit) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 	} else if IsEqual(typeVar, "swap") {
 		AppendToArray(&requestType, "futures")
 	} else {
-		panic(NotSupported(Add(Add(this.Id + " cancelAllOrders() does not support ", typeVar), " type")))
+		panic(NotSupported(Add(Add(this.Id+" cancelAllOrders() does not support ", typeVar), " type")))
 	}
 	request["type"] = requestType
 
@@ -4170,24 +4205,39 @@ func (this *Whitebit) ParseTransaction(transaction any, optionalArgs ...any) any
 	var status *string = this.SafeString(transaction, "status")
 	var method *string = this.SafeString(transaction, "method")
 	return map[string]any{
-		"id":          this.SafeString(transaction, "uniqueId"),
-		"txid":        this.SafeString(transaction, "transactionId"),
-		"timestamp":   timestamp,
-		"datetime":    this.Iso8601(timestamp),
-		"network":     this.SafeString(transaction, "network"),
-		"addressFrom": func() any { if (method != nil && *method == "1") { return address }; return nil }(),
-		"address":     address,
-		"addressTo":   func() any { if (method != nil && *method == "2") { return address }; return nil }(),
-		"amount":      this.SafeNumber(transaction, "amount"),
-		"type":        func() any { if (method != nil && *method == "1") { return "deposit" }; return "withdrawal" }(),
-		"currency":    this.SafeCurrencyCode(currencyId, currency),
-		"status":      this.ParseTransactionStatus(status),
-		"updated":     nil,
-		"tagFrom":     nil,
-		"tag":         this.SafeString(transaction, "memo"),
-		"tagTo":       nil,
-		"comment":     this.SafeString(transaction, "description"),
-		"internal":    nil,
+		"id":        this.SafeString(transaction, "uniqueId"),
+		"txid":      this.SafeString(transaction, "transactionId"),
+		"timestamp": timestamp,
+		"datetime":  this.Iso8601(timestamp),
+		"network":   this.SafeString(transaction, "network"),
+		"addressFrom": func() any {
+			if method != nil && *method == "1" {
+				return address
+			}
+			return nil
+		}(),
+		"address": address,
+		"addressTo": func() any {
+			if method != nil && *method == "2" {
+				return address
+			}
+			return nil
+		}(),
+		"amount": this.SafeNumber(transaction, "amount"),
+		"type": func() any {
+			if method != nil && *method == "1" {
+				return "deposit"
+			}
+			return "withdrawal"
+		}(),
+		"currency": this.SafeCurrencyCode(currencyId, currency),
+		"status":   this.ParseTransactionStatus(status),
+		"updated":  nil,
+		"tagFrom":  nil,
+		"tag":      this.SafeString(transaction, "memo"),
+		"tagTo":    nil,
+		"comment":  this.SafeString(transaction, "description"),
+		"internal": nil,
 		"fee": map[string]any{
 			"cost":     this.SafeNumber(transaction, "fee"),
 			"currency": this.SafeCurrencyCode(currencyId, currency),
@@ -5533,19 +5583,19 @@ func (this *Whitebit) Sign(path any, optionalArgs ...any) any {
 	if IsEqual(headers, nil) {
 		headers = map[string]any{}
 	}
-	AddElementToObject(headers, "User-Agent", Add("ccxt/" + this.Id + "-", this.Version))
+	AddElementToObject(headers, "User-Agent", Add("ccxt/"+this.Id+"-", this.Version))
 	var pathWithParams any = Add("/", this.ImplodeParams(path, params))
 	var url any = Add(GetValue(GetValue(GetValue(this.Urls, "api"), version), accessibility), pathWithParams)
 	if IsEqual(accessibility, "public") {
 		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, "?" + this.Urlencode(query))
+			url = Add(url, "?"+this.Urlencode(query))
 		}
 	}
 	if IsEqual(accessibility, "private") {
 		this.CheckRequiredCredentials()
 		var nonce string = ToString(this.Nonce())
 		var secret string = this.Encode(this.Secret)
-		var request any = Add(Add("/" + "api" + "/", version), pathWithParams)
+		var request any = Add(Add("/"+"api"+"/", version), pathWithParams)
 		var nonceWindowrequestParamsVariable []any = this.HandleOptionAndParams(params, "sign", "nonceWindow", false)
 		nonceWindow := GetValue(nonceWindowrequestParamsVariable, 0)
 		requestParams := GetValue(nonceWindowrequestParamsVariable, 1)
@@ -5572,7 +5622,7 @@ func (this *Whitebit) Sign(path any, optionalArgs ...any) any {
 }
 func (this *Whitebit) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
 	if (IsEqual(code, 418)) || (IsEqual(code, 429)) {
-		panic(DDoSProtection(Add(Add(Add(this.Id + " " + ToString(code) + " ", reason), " "), body)))
+		panic(DDoSProtection(Add(Add(Add(this.Id+" "+ToString(code)+" ", reason), " "), body)))
 	}
 	if IsEqual(code, 404) {
 		panic(ExchangeError(this.Id + " " + ToString(code) + " endpoint not found"))
@@ -5589,7 +5639,7 @@ func (this *Whitebit) HandleErrors(code any, reason any, url any, method any, he
 		var codeNew *int64 = this.SafeInteger(response, "code")
 		var hasErrorStatus bool = (status != nil) && (status == nil || *status != "200") && !IsEqual(errors, nil)
 		if hasErrorStatus || (codeNew != nil) {
-			var feedback any = Add(this.Id + " ", body)
+			var feedback any = Add(this.Id+" ", body)
 			var errorInfo any = message
 			if hasErrorStatus {
 				errorInfo = status
@@ -5601,7 +5651,12 @@ func (this *Whitebit) HandleErrors(code any, reason any, url any, method any, he
 					var errorKey any = GetValue(errorKeys, 0)
 					var errorMessageArray any = this.SafeList(errorObject, errorKey, []any{})
 					var errorMessageLength int = GetArrayLength(errorMessageArray)
-					errorInfo = func() any { if (errorMessageLength > 0) { return GetValue(errorMessageArray, 0) }; return body }()
+					errorInfo = func() any {
+						if errorMessageLength > 0 {
+							return GetValue(errorMessageArray, 0)
+						}
+						return body
+					}()
 				}
 			}
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorInfo, feedback)
@@ -5619,9 +5674,14 @@ func (this *Whitebit) HandleErrors(code any, reason any, url any, method any, he
 				var errorKey any = GetValue(errKeys, 0)
 				var errorMessageArray any = this.SafeList(errMsg, errorKey, []any{})
 				var errorMessageLength int = GetArrayLength(errorMessageArray)
-				errorInfo = func() any { if (errorMessageLength > 0) { return GetValue(errorMessageArray, 0) }; return body }()
+				errorInfo = func() any {
+					if errorMessageLength > 0 {
+						return GetValue(errorMessageArray, 0)
+					}
+					return body
+				}()
 			}
-			var feedback any = Add(this.Id + " ", body)
+			var feedback any = Add(this.Id+" ", body)
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorInfo, feedback)
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
 			panic(ExchangeError(feedback))

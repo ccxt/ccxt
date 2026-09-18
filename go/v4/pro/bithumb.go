@@ -111,7 +111,12 @@ func (this *Bithumb) watchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	generation = ccxt.GetValue(generationparamsVariable, 0)
 	params = ccxt.GetValue(generationparamsVariable, 1)
 	var isGenerationTwo bool = (ccxt.IsEqual(generation, 2))
-	var url any = func() any { if isGenerationTwo { return ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "publicGen2") }; return ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public") }()
+	var url any = func() any {
+		if isGenerationTwo {
+			return ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "publicGen2")
+		}
+		return ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
+	}()
 	var market any = this.Market(symbol)
 	var messageHash any = ccxt.Add("ticker:", ccxt.GetValue(market, "symbol"))
 	var tickTypes *string = this.SafeString(params, "tickTypes", "24H")
@@ -177,7 +182,12 @@ func (this *Bithumb) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	params = ccxt.GetValue(generationparamsVariable, 1)
 	var isGenerationTwo bool = (ccxt.IsEqual(generation, 2))
 	symbols = this.MarketSymbols(symbols, nil, false, true, true)
-	var symbolsLength any = func() any { if (ccxt.IsEqual(symbols, nil)) { return 0 }; return ccxt.GetArrayLength(symbols) }()
+	var symbolsLength any = func() any {
+		if ccxt.IsEqual(symbols, nil) {
+			return 0
+		}
+		return ccxt.GetArrayLength(symbols)
+	}()
 	if isGenerationTwo && (ccxt.IsEqual(symbolsLength, 0)) {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchTickers() requires symbols for the generation 2 API"))
 	}
@@ -185,7 +195,12 @@ func (this *Bithumb) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		symbols = this.Symbols
 	}
 	var symbolsLengthDefined int = ccxt.GetArrayLength(symbols)
-	var url any = func() any { if isGenerationTwo { return ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "publicGen2") }; return ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public") }()
+	var url any = func() any {
+		if isGenerationTwo {
+			return ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "publicGen2")
+		}
+		return ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
+	}()
 	var streamMarketIds any = []any{}
 	var messageHashes any = []any{}
 	for i := 0; i < symbolsLengthDefined; i++ {
@@ -454,10 +469,15 @@ func (this *Bithumb) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	generation = ccxt.GetValue(generationparamsVariable, 0)
 	params = ccxt.GetValue(generationparamsVariable, 1)
 	var isGenerationTwo bool = (ccxt.IsEqual(generation, 2))
-	var url any = func() any { if isGenerationTwo { return ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "publicGen2") }; return ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public") }()
+	var url any = func() any {
+		if isGenerationTwo {
+			return ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "publicGen2")
+		}
+		return ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
+	}()
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
-	var messageHash any = ccxt.Add("orderbook" + ":", symbol)
+	var messageHash any = ccxt.Add("orderbook"+":", symbol)
 	var request any = map[string]any{
 		"type":    "orderbookdepth",
 		"symbols": []any{ccxt.Add(ccxt.Add(ccxt.GetValue(market, "base"), "_"), ccxt.GetValue(market, "quote"))},
@@ -549,7 +569,7 @@ func (this *Bithumb) HandleOrderBook(client any, message any) {
 		this.HandleDeltas(legacyOrderbook, list)
 		ccxt.AddElementToObject(legacyOrderbook, "timestamp", legacyTimestamp)
 		ccxt.AddElementToObject(legacyOrderbook, "datetime", this.Iso8601(legacyTimestamp))
-		var legacyMessageHash any = ccxt.Add("orderbook" + ":", legacySymbol)
+		var legacyMessageHash any = ccxt.Add("orderbook"+":", legacySymbol)
 		client.(ccxt.ClientInterface).Resolve(legacyOrderbook, legacyMessageHash)
 		return
 	}
@@ -593,7 +613,7 @@ func (this *Bithumb) HandleOrderBook(client any, message any) {
 	}
 	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
-	var messageHash any = ccxt.Add("orderbook" + ":", symbol)
+	var messageHash any = ccxt.Add("orderbook"+":", symbol)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *Bithumb) HandleDelta(orderbook any, delta any) {
@@ -607,7 +627,12 @@ func (this *Bithumb) HandleDelta(orderbook any, delta any) {
 	//    }
 	//
 	var sideId *string = this.SafeString(delta, "orderType")
-	var side any = func() any { if (sideId != nil && *sideId == "bid") { return "bids" }; return "asks" }()
+	var side any = func() any {
+		if sideId != nil && *sideId == "bid" {
+			return "bids"
+		}
+		return "asks"
+	}()
 	var bidAsk any = this.ParseOrderBookBidAsk(delta, "price", "quantity")
 	var orderbookSide any = ccxt.GetValue(orderbook, side)
 	orderbookSide.(ccxt.IOrderBookSide).StoreArray(bidAsk)
@@ -655,7 +680,12 @@ func (this *Bithumb) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	generation = ccxt.GetValue(generationparamsVariable, 0)
 	params = ccxt.GetValue(generationparamsVariable, 1)
 	var isGenerationTwo bool = (ccxt.IsEqual(generation, 2))
-	var url any = func() any { if isGenerationTwo { return ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "publicGen2") }; return ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public") }()
+	var url any = func() any {
+		if isGenerationTwo {
+			return ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "publicGen2")
+		}
+		return ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
+	}()
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
 	var messageHash any = ccxt.Add("trade:", symbol)
@@ -752,7 +782,7 @@ func (this *Bithumb) HandleTrades(client any, message any) {
 		}
 		var trades any = ccxt.GetValue(this.Trades, symbol)
 		trades.(ccxt.Appender).Append(parsed)
-		var messageHash any = ccxt.Add("trade" + ":", symbol)
+		var messageHash any = ccxt.Add("trade"+":", symbol)
 		client.(ccxt.ClientInterface).Resolve(trades, messageHash)
 	}
 }
@@ -806,14 +836,19 @@ func (this *Bithumb) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var timestamp any = this.ParseToInt(this.Parse8601(datetime)) - 32400000
 	var sideId *string = this.SafeString(trade, "buySellGb")
 	return this.SafeTrade(map[string]any{
-		"id":           nil,
-		"info":         trade,
-		"timestamp":    timestamp,
-		"datetime":     this.Iso8601(timestamp),
-		"symbol":       this.SafeSymbol(marketId, market, "_"),
-		"order":        nil,
-		"type":         nil,
-		"side":         func() any { if (sideId != nil && *sideId == "1") { return "buy" }; return "sell" }(),
+		"id":        nil,
+		"info":      trade,
+		"timestamp": timestamp,
+		"datetime":  this.Iso8601(timestamp),
+		"symbol":    this.SafeSymbol(marketId, market, "_"),
+		"order":     nil,
+		"type":      nil,
+		"side": func() any {
+			if sideId != nil && *sideId == "1" {
+				return "buy"
+			}
+			return "sell"
+		}(),
 		"takerOrMaker": nil,
 		"price":        this.SafeString(trade, "contPrice"),
 		"amount":       this.SafeString(trade, "contQty"),
@@ -838,7 +873,7 @@ func (this *Bithumb) HandleErrorMessage(client any, message any) any {
 		} else {
 			addedMessage = ""
 		}
-		client.(ccxt.ClientInterface).Reject(ccxt.ExchangeError(ccxt.Add(ccxt.Add(this.Id + " websocket error ", errorName), addedMessage)))
+		client.(ccxt.ClientInterface).Reject(ccxt.ExchangeError(ccxt.Add(ccxt.Add(this.Id+" websocket error ", errorName), addedMessage)))
 		return false
 	}
 	if !(ccxt.InOp(message, "status")) {
@@ -867,7 +902,7 @@ func (this *Bithumb) HandleErrorMessage(client any, message any) any {
 			}
 			if errorCode == nil || *errorCode != "0000" {
 				var msg *string = this.SafeString(message, "resmsg")
-				panic(ccxt.ExchangeError(ccxt.Add(this.Id + " ", msg)))
+				panic(ccxt.ExchangeError(ccxt.Add(this.Id+" ", msg)))
 			}
 			return true
 
@@ -1129,7 +1164,7 @@ func (this *Bithumb) HandleOrders(client any, message any) {
 	var cachedOrders any = this.Orders
 	cachedOrders.(ccxt.Appender).Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(cachedOrders, messageHash)
-	var symbolSpecificMessageHash any = ccxt.Add(messageHash + ":", symbol)
+	var symbolSpecificMessageHash any = ccxt.Add(messageHash+":", symbol)
 	client.(ccxt.ClientInterface).Resolve(cachedOrders, symbolSpecificMessageHash)
 }
 func (this *Bithumb) ParseWsOrder(order any, optionalArgs ...any) any {
@@ -1165,7 +1200,12 @@ func (this *Bithumb) ParseWsOrder(order any, optionalArgs ...any) any {
 	var sideId *string = this.SafeString(order, "ask_bid")
 	var side any = this.SafeStringLower(order, "side")
 	if sideId != nil {
-		side = func() any { if (sideId != nil && *sideId == "BID") { return ("buy") }; return ("sell") }()
+		side = func() any {
+			if sideId != nil && *sideId == "BID" {
+				return ("buy")
+			}
+			return ("sell")
+		}()
 	}
 	var typeId *string = this.SafeString(order, "order_type")
 	var typeVar any = nil

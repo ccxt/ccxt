@@ -295,7 +295,7 @@ func (this *Upbit) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 	if !ccxt.IsEqual(timeframe, "1s") {
-		panic(ccxt.NotSupported(ccxt.Add(ccxt.Add(this.Id + " watchOHLCV does not support", timeframe), " candle.")))
+		panic(ccxt.NotSupported(ccxt.Add(ccxt.Add(this.Id+" watchOHLCV does not support", timeframe), " candle.")))
 	}
 	var timeFrameOHLCV any = ccxt.Add("candle.", timeframe)
 
@@ -794,8 +794,18 @@ func (this *Upbit) HandleOrder(client any, message any) {
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var cachedOrders any = this.Orders
-	var orders any = func() any { if (symbol == nil) { return map[string]any{} }; return this.SafeValue(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol, map[string]any{}) }()
-	var order any = func() any { if (orderId == nil) { return nil }; return this.SafeValue(orders, orderId) }()
+	var orders any = func() any {
+		if symbol == nil {
+			return map[string]any{}
+		}
+		return this.SafeValue(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol, map[string]any{})
+	}()
+	var order any = func() any {
+		if orderId == nil {
+			return nil
+		}
+		return this.SafeValue(orders, orderId)
+	}()
 	if !ccxt.IsEqual(order, nil) {
 		var fee any = this.SafeValue(order, "fee")
 		if !ccxt.IsEqual(fee, nil) {
@@ -895,7 +905,12 @@ func (this *Upbit) HandleMessage(client any, message any) {
 		"candle.1s": this.HandleOHLCV,
 	}
 	var methodName *string = this.SafeString(message, "type")
-	var method any = func() any { if (methodName == nil) { return nil }; return this.SafeValue(methods, methodName) }()
+	var method any = func() any {
+		if methodName == nil {
+			return nil
+		}
+		return this.SafeValue(methods, methodName)
+	}()
 	if !ccxt.IsEqual(method, nil) {
 		ccxt.CallDynamically(method, client, message)
 	}

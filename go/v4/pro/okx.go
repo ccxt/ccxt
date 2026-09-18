@@ -111,7 +111,12 @@ func (this *Okx) GetUrl(channel any, optionalArgs ...any) any {
 		panic(ccxt.ArgumentsRequired(this.Id + " getUrl() requires a channel argument"))
 	}
 	var isSandbox any = ccxt.GetValue(this.Options, "sandboxMode")
-	var sandboxSuffix any = func() any { if (isSandbox == true) { return "?brokerId=9999" }; return "" }()
+	var sandboxSuffix any = func() any {
+		if isSandbox == true {
+			return "?brokerId=9999"
+		}
+		return ""
+	}()
 	var isBusiness bool = (ccxt.IsEqual(access, "business"))
 	var isPublic bool = (ccxt.IsEqual(access, "public"))
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
@@ -523,7 +528,7 @@ func (this *Okx) watchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	var messageHashes any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
-		ccxt.AppendToArray(&messageHashes, ccxt.Add(channel + ":", symbol))
+		ccxt.AppendToArray(&messageHashes, ccxt.Add(channel+":", symbol))
 		var marketId any = this.MarketId(symbol)
 		var topic map[string]any = map[string]any{
 			"channel": channel,
@@ -581,7 +586,7 @@ func (this *Okx) HandleFundingRate(client any, message any) {
 		if symbol != nil {
 			ccxt.AddElementToObject(this.FundingRates, symbol, fundingRate)
 		}
-		client.(ccxt.ClientInterface).Resolve(fundingRate, ccxt.Add("funding-rate" + ":", ccxt.GetValue(fundingRate, "symbol")))
+		client.(ccxt.ClientInterface).Resolve(fundingRate, ccxt.Add("funding-rate"+":", ccxt.GetValue(fundingRate, "symbol")))
 	}
 }
 
@@ -1058,7 +1063,7 @@ func (this *Okx) watchLiquidationsForSymbolsBody(ch chan any, symbols any, optio
 	if !ccxt.IsEqual(symbols, nil) {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 			var symbol any = ccxt.GetValue(symbols, i)
-			ccxt.AppendToArray(&messageHashes, ccxt.Add(messageHash + "::", symbol))
+			ccxt.AppendToArray(&messageHashes, ccxt.Add(messageHash+"::", symbol))
 		}
 	} else {
 		ccxt.AppendToArray(&messageHashes, messageHash)
@@ -1174,7 +1179,12 @@ func (this *Okx) watchMyLiquidationsForSymbolsBody(ch chan any, symbols any, opt
 	}
 	var isTrigger any = this.SafeValue2(params, "stop", "trigger", false)
 	params = this.Omit(params, []any{"stop", "trigger"})
-	var accessType any = func() any { if (isTrigger == true) { return "business" }; return "private" }()
+	var accessType any = func() any {
+		if isTrigger == true {
+			return "business"
+		}
+		return "private"
+	}()
 
 	retRes8838 := (<-this.AuthenticateAsync(map[string]any{
 		"access": accessType,
@@ -1186,7 +1196,7 @@ func (this *Okx) watchMyLiquidationsForSymbolsBody(ch chan any, symbols any, opt
 	if !ccxt.IsEqual(symbols, nil) {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 			var symbol any = ccxt.GetValue(symbols, i)
-			ccxt.AppendToArray(&messageHashes, ccxt.Add(messageHash + "::", symbol))
+			ccxt.AppendToArray(&messageHashes, ccxt.Add(messageHash+"::", symbol))
 		}
 	} else {
 		ccxt.AppendToArray(&messageHashes, messageHash)
@@ -2222,18 +2232,23 @@ func (this *Okx) OrderToTrade(order any, optionalArgs ...any) any {
 	var feeMarketId *string = this.SafeString(info, "fillFeeCcy")
 	var isTaker bool = ccxt.IsEqual(this.SafeString(info, "execType", ""), "T")
 	return this.SafeTrade(map[string]any{
-		"info":         info,
-		"timestamp":    timestamp,
-		"datetime":     this.Iso8601(timestamp),
-		"symbol":       this.SafeString(order, "symbol"),
-		"id":           this.SafeString(info, "tradeId"),
-		"order":        this.SafeString(order, "id"),
-		"type":         this.SafeString(order, "type"),
-		"takerOrMaker": func() any { if (isTaker) { return "taker" }; return "maker" }(),
-		"side":         this.SafeString(order, "side"),
-		"price":        this.SafeNumber(info, "fillPx"),
-		"amount":       this.SafeNumber(info, "fillSz"),
-		"cost":         this.SafeNumber(order, "cost"),
+		"info":      info,
+		"timestamp": timestamp,
+		"datetime":  this.Iso8601(timestamp),
+		"symbol":    this.SafeString(order, "symbol"),
+		"id":        this.SafeString(info, "tradeId"),
+		"order":     this.SafeString(order, "id"),
+		"type":      this.SafeString(order, "type"),
+		"takerOrMaker": func() any {
+			if isTaker {
+				return "taker"
+			}
+			return "maker"
+		}(),
+		"side":   this.SafeString(order, "side"),
+		"price":  this.SafeNumber(info, "fillPx"),
+		"amount": this.SafeNumber(info, "fillSz"),
+		"cost":   this.SafeNumber(order, "cost"),
 		"fee": map[string]any{
 			"cost":     this.SafeNumber(info, "fillFee"),
 			"currency": this.SafeCurrencyCode(feeMarketId),
@@ -2283,13 +2298,23 @@ func (this *Okx) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		retRes179912 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes179912)
 	}
-	var access any = func() any { if (isTrigger != nil && *isTrigger == true) { return "business" }; return "private" }()
+	var access any = func() any {
+		if isTrigger != nil && *isTrigger == true {
+			return "business"
+		}
+		return "private"
+	}()
 
 	retRes18028 := (<-this.AuthenticateAsync(map[string]any{
 		"access": access,
 	}))
 	ccxt.PanicOnError(retRes18028)
-	var channel any = func() any { if (isTrigger != nil && *isTrigger == true) { return "orders-algo" }; return "orders" }()
+	var channel any = func() any {
+		if isTrigger != nil && *isTrigger == true {
+			return "orders-algo"
+		}
+		return "orders"
+	}()
 	var messageHash any = ccxt.Add(channel, "::myTrades")
 	var market any = nil
 	if symbol != nil {
@@ -2390,7 +2415,12 @@ func (this *Okx) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	if ccxt.EvalTruthy(this.NewUpdates) {
 
-		ch <- func() any { if (ccxt.IsEqual(newPositions, nil)) { return []any{} }; return newPositions }()
+		ch <- func() any {
+			if ccxt.IsEqual(newPositions, nil) {
+				return []any{}
+			}
+			return newPositions
+		}()
 		return nil
 	}
 
@@ -2537,7 +2567,12 @@ func (this *Okx) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		retRes199812 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes199812)
 	}
-	var accessType any = func() any { if (isTrigger == true) { return "business" }; return "private" }()
+	var accessType any = func() any {
+		if isTrigger == true {
+			return "business"
+		}
+		return "private"
+	}()
 
 	retRes20018 := (<-this.AuthenticateAsync(map[string]any{
 		"access": accessType,
@@ -2568,7 +2603,12 @@ func (this *Okx) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"instType": uppercaseType,
 	}
-	var channel any = func() any { if (isTrigger == true) { return "orders-algo" }; return "orders" }()
+	var channel any = func() any {
+		if isTrigger == true {
+			return "orders-algo"
+		}
+		return "orders"
+	}()
 
 	orders := (<-this.SubscribeAsync("private", channel, channel, symbol, this.Extend(request, params)))
 	ccxt.PanicOnError(orders)
@@ -2645,7 +2685,12 @@ func (this *Okx) HandleOrders(client any, message any) {
 			this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 			this.TriggerOrders = ccxt.NewArrayCacheBySymbolById(limit)
 		}
-		var stored any = func() any { if (channel != nil && *channel == "orders-algo") { return this.TriggerOrders }; return this.Orders }()
+		var stored any = func() any {
+			if channel != nil && *channel == "orders-algo" {
+				return this.TriggerOrders
+			}
+			return this.Orders
+		}()
 		var marketIds any = []any{}
 		var parsed any = this.ParseOrders(orders)
 		for i := 0; i < ccxt.GetArrayLength(parsed); i++ {
@@ -3183,7 +3228,7 @@ func (this *Okx) HandleErrorMessage(client any, message any) any {
 			}()
 			// try block:
 			if ((errorCode != nil) && (errorCode == nil || *errorCode != "")) && (errorCode == nil || *errorCode != "0") {
-				var feedback any = ccxt.Add(this.Id + " ", this.Json(message))
+				var feedback any = ccxt.Add(this.Id+" ", this.Json(message))
 				if errorCode == nil || *errorCode != "1" {
 					this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 				}

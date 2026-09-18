@@ -937,7 +937,12 @@ func (this *Cryptomus) createOrderBody(ch chan any, symbol any, typeVar any, sid
 					cost = Precise.StringMul(amountToString, priceToString)
 				}
 			} else {
-				cost = func() any { if ((cost != nil) && (!IsEqual(cost, ""))) { return cost }; return amountToString }()
+				cost = func() any {
+					if (cost != nil) && (!IsEqual(cost, "")) {
+						return cost
+					}
+					return amountToString
+				}()
 			}
 			request["value"] = cost
 		} else {
@@ -948,7 +953,7 @@ func (this *Cryptomus) createOrderBody(ch chan any, symbol any, typeVar any, sid
 		PanicOnError(response)
 	} else if IsEqual(typeVar, "limit") {
 		if IsEqual(price, nil) {
-			panic(ArgumentsRequired(Add(Add(this.Id + " createOrder() requires a price parameter for a ", typeVar), " order")))
+			panic(ArgumentsRequired(Add(Add(this.Id+" createOrder() requires a price parameter for a ", typeVar), " order")))
 		}
 		request["quantity"] = amountToString
 		request["price"] = price
@@ -1455,7 +1460,7 @@ func (this *Cryptomus) Sign(path any, optionalArgs ...any) any {
 		} else {
 			var query string = this.Urlencode(params)
 			if GetLength(query) != 0 {
-				url = Add(url, "?" + query)
+				url = Add(url, "?"+query)
 			}
 		}
 		var jsonParamsBase64 string = this.StringToBase64(jsonParams)
@@ -1465,7 +1470,7 @@ func (this *Cryptomus) Sign(path any, optionalArgs ...any) any {
 	} else {
 		var query string = this.Urlencode(params)
 		if GetLength(query) != 0 {
-			url = Add(url, "?" + query)
+			url = Add(url, "?"+query)
 		}
 	}
 	return map[string]any{
@@ -1481,7 +1486,7 @@ func (this *Cryptomus) HandleErrors(httpCode any, reason any, url any, method an
 	}
 	if InOp(response, "code") {
 		var code *string = this.SafeString(response, "code")
-		var feedback any = Add(this.Id + " ", body)
+		var feedback any = Add(this.Id+" ", body)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
 		panic(ExchangeError(feedback))
 	} else if InOp(response, "message") {
@@ -1489,7 +1494,7 @@ func (this *Cryptomus) HandleErrors(httpCode any, reason any, url any, method an
 		//      {"message":"Minimum amount 15 USDT","state":1}
 		//
 		var message *string = this.SafeString(response, "message")
-		var feedback any = Add(this.Id + " ", body)
+		var feedback any = Add(this.Id+" ", body)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		panic(ExchangeError(feedback))

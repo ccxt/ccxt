@@ -1084,16 +1084,31 @@ func (this *Cryptocom) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var option bool = (inst_type != nil && *inst_type == "WARRANT")
 		var baseId *string = this.SafeString(market, "base_ccy")
 		var quoteId *string = this.SafeString(market, "quote_ccy")
-		var settleId any = func() any { if spot { return nil }; return quoteId }()
+		var settleId any = func() any {
+			if spot {
+				return nil
+			}
+			return quoteId
+		}()
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
-		var settle any = func() any { if spot { return nil }; return this.SafeCurrencyCode(settleId) }()
+		var settle any = func() any {
+			if spot {
+				return nil
+			}
+			return this.SafeCurrencyCode(settleId)
+		}()
 		var optionType *string = this.SafeStringLower(market, "put_call")
 		var strike *string = this.SafeString(market, "strike")
 		var marginBuyEnabled *bool = this.SafeBool(market, "margin_buy_enabled")
 		var marginSellEnabled *bool = this.SafeBool(market, "margin_sell_enabled")
 		var expiryString any = this.OmitZero(this.SafeString(market, "expiry_timestamp_ms"))
-		var expiry any = func() any { if (expiryString != nil) { return ParseInt(expiryString) }; return nil }()
+		var expiry any = func() any {
+			if expiryString != nil {
+				return ParseInt(expiryString)
+			}
+			return nil
+		}()
 		var symbol any = Add(Add(base, "/"), quote)
 		var typeVar any = nil
 		var contract any = nil
@@ -1110,12 +1125,27 @@ func (this *Cryptocom) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			contract = true
 		} else if inst_type != nil && *inst_type == "WARRANT" {
 			typeVar = "option"
-			var symbolOptionType any = func() any { if (optionType != nil && *optionType == "call") { return "C" }; return "P" }()
+			var symbolOptionType any = func() any {
+				if optionType != nil && *optionType == "call" {
+					return "C"
+				}
+				return "P"
+			}()
 			symbol = Add(Add(Add(Add(Add(Add(Add(Add(symbol, ":"), quote), "-"), this.Yymmdd(expiry)), "-"), strike), "-"), symbolOptionType)
 			contract = true
 		}
-		var isLinear any = func() any { if (contract == true) { return true }; return nil }()
-		var isInverse any = func() any { if (contract == true) { return false }; return nil }()
+		var isLinear any = func() any {
+			if contract == true {
+				return true
+			}
+			return nil
+		}()
+		var isInverse any = func() any {
+			if contract == true {
+				return false
+			}
+			return nil
+		}()
 		AppendToArray(&result, map[string]any{
 			"id":             this.SafeString(market, "symbol"),
 			"symbol":         symbol,
@@ -3096,8 +3126,13 @@ func (this *Cryptocom) ParseTicker(ticker any, optionalArgs ...any) any {
 		"percentage":    this.SafeString(ticker, "c"),
 		"average":       nil,
 		"baseVolume":    this.SafeString(ticker, "v"),
-		"quoteVolume":   func() any { if (GetValue(market, "quote") == "USD") { return this.SafeString(ticker, "vv") }; return nil }(),
-		"info":          ticker,
+		"quoteVolume": func() any {
+			if GetValue(market, "quote") == "USD" {
+				return this.SafeString(ticker, "vv")
+			}
+			return nil
+		}(),
+		"info": ticker,
 	}, market)
 }
 func (this *Cryptocom) ParseTrade(trade any, optionalArgs ...any) any {
@@ -4280,13 +4315,18 @@ func (this *Cryptocom) ParsePosition(position any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(position, "update_timestamp_ms")
 	var amount *string = this.SafeString(position, "quantity")
 	return this.SafePosition(map[string]any{
-		"info":                        position,
-		"id":                          nil,
-		"symbol":                      symbol,
-		"timestamp":                   timestamp,
-		"datetime":                    this.Iso8601(timestamp),
-		"hedged":                      nil,
-		"side":                        func() any { if Precise.StringGt(amount, "0") { return "long" }; return "short" }(),
+		"info":      position,
+		"id":        nil,
+		"symbol":    symbol,
+		"timestamp": timestamp,
+		"datetime":  this.Iso8601(timestamp),
+		"hedged":    nil,
+		"side": func() any {
+			if Precise.StringGt(amount, "0") {
+				return "long"
+			}
+			return "short"
+		}(),
 		"contracts":                   this.ParseNumber(Precise.StringAbs(amount)),
 		"contractSize":                GetValue(market, "contractSize"),
 		"entryPrice":                  nil,
@@ -4522,8 +4562,18 @@ func (this *Cryptocom) ParseTradingFees(response any) any {
 		var symbol any = GetValue(this.Symbols, i)
 		var market any = this.Market(symbol)
 		var isSwap any = GetValue(market, "swap")
-		var takerFeeKey any = func() any { if (isSwap == true) { return "effective_deriv_taker_rate_bps" }; return "effective_spot_taker_rate_bps" }()
-		var makerFeeKey any = func() any { if (isSwap == true) { return "effective_deriv_maker_rate_bps" }; return "effective_spot_maker_rate_bps" }()
+		var takerFeeKey any = func() any {
+			if isSwap == true {
+				return "effective_deriv_taker_rate_bps"
+			}
+			return "effective_spot_taker_rate_bps"
+		}()
+		var makerFeeKey any = func() any {
+			if isSwap == true {
+				return "effective_deriv_maker_rate_bps"
+			}
+			return "effective_spot_maker_rate_bps"
+		}()
 		var tradingFee map[string]any = map[string]any{
 			"info":       response,
 			"symbol":     symbol,
@@ -4574,7 +4624,7 @@ func (this *Cryptocom) Sign(path any, optionalArgs ...any) any {
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if access != nil && *access == "public" {
 		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, "?" + this.Urlencode(query))
+			url = Add(url, "?"+this.Urlencode(query))
 		}
 	} else {
 		this.CheckRequiredCredentials()
@@ -4617,9 +4667,9 @@ func (this *Cryptocom) Sign(path any, optionalArgs ...any) any {
 func (this *Cryptocom) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
 	var errorCode *string = this.SafeString(response, "code")
 	if errorCode == nil || *errorCode != "0" {
-		var feedback any = Add(this.Id + " ", body)
+		var feedback any = Add(this.Id+" ", body)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
-		panic(ExchangeError(Add(this.Id + " ", body)))
+		panic(ExchangeError(Add(this.Id+" ", body)))
 	}
 	return nil
 }

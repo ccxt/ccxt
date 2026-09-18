@@ -383,7 +383,12 @@ func (this *Bittrade) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
 	// only supports a limit of 150 at this time
-	limit = func() any { if (ccxt.IsEqual(limit, nil)) { return 150 }; return limit }()
+	limit = func() any {
+		if ccxt.IsEqual(limit, nil) {
+			return 150
+		}
+		return limit
+	}()
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("market.", ccxt.GetValue(market, "id")), ".mbp."), ccxt.ToString(limit))
 	var api *string = this.SafeString(this.Options, "api", "api")
 	var hostname map[string]any = map[string]any{

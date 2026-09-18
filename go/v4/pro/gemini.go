@@ -493,7 +493,12 @@ func (this *Gemini) HandleOrderBook(client any, message any) {
 		var delta any = ccxt.GetValue(changes, i)
 		var price *float64 = this.SafeNumber(delta, 1)
 		var size *float64 = this.SafeNumber(delta, 2)
-		var side any = func() any { if (ccxt.IsEqual(ccxt.GetValue(delta, 0), "buy")) { return "bids" }; return "asks" }()
+		var side any = func() any {
+			if ccxt.IsEqual(ccxt.GetValue(delta, 0), "buy") {
+				return "bids"
+			}
+			return "asks"
+		}()
 		var bookside any = ccxt.GetValue(orderbook, side)
 		bookside.(ccxt.IOrderBookSide).Store(price, size)
 		ccxt.AddElementToObject(orderbook, side, bookside)
@@ -1085,7 +1090,12 @@ func (this *Gemini) authenticateBody(ch chan any, optionalArgs ...any) any {
 	var startIndex int = ccxt.GetArrayLength(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 	var urlParamsIndex int = ccxt.GetIndexOf(url, "?")
 	var urlLength int = ccxt.GetLength(url)
-	var endIndex any = func() any { if (urlParamsIndex >= 0) { return urlParamsIndex }; return urlLength }()
+	var endIndex any = func() any {
+		if urlParamsIndex >= 0 {
+			return urlParamsIndex
+		}
+		return urlLength
+	}()
 	var request string = ccxt.Slice(url, startIndex, endIndex)
 	var payload map[string]any = map[string]any{
 		"request": request,

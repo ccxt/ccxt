@@ -661,7 +661,7 @@ func (this *Lighter) handleAccountIndexBody(ch chan any, params any, methodName1
 			walletAddress = this.EthGetAddressFromPrivateKey(this.PrivateKey)
 		}
 		if (walletAddress == nil) || (IsEqual(walletAddress, "")) {
-			panic(ArgumentsRequired(Add(Add(Add(Add(Add(Add(this.Id + " ", methodName1), "() requires an "), optionName1), "/"), optionName2), " parameter or walletAddress to fetch accountIndex. Alternatively set privateKey in credentials to enable automatic walletAddress detection.")))
+			panic(ArgumentsRequired(Add(Add(Add(Add(Add(Add(this.Id+" ", methodName1), "() requires an "), optionName1), "/"), optionName2), " parameter or walletAddress to fetch accountIndex. Alternatively set privateKey in credentials to enable automatic walletAddress detection.")))
 		}
 
 		res := (<-this.PublicGetAccountsByL1Address(map[string]any{
@@ -695,7 +695,7 @@ func (this *Lighter) handleAccountIndexBody(ch chan any, params any, methodName1
 		if IsArray(subAccounts) {
 			var account any = this.SafeDict(subAccounts, 0)
 			if IsEqual(account, nil) {
-				panic(ArgumentsRequired(Add(Add(Add(Add(Add(Add(this.Id + " ", methodName1), "() requires an "), optionName1), " or "), optionName2), " parameter")))
+				panic(ArgumentsRequired(Add(Add(Add(Add(Add(Add(this.Id+" ", methodName1), "() requires an "), optionName1), " or "), optionName2), " parameter")))
 			}
 			accountIndex = GetValue(account, "index")
 			AddElementToObject(this.Options, "accountIndex", accountIndex)
@@ -982,7 +982,12 @@ func (this *Lighter) changeApiKeyBody(ch chan any, optionalArgs ...any) any {
 func (this *Lighter) SetSandboxMode(enable any) {
 	this.Exchange.SetSandboxMode(enable)
 	AddElementToObject(this.Options, "sandboxMode", enable)
-	AddElementToObject(this.Options, "chainId", func() any { if EvalTruthy(enable) { return 300 }; return 304 }())
+	AddElementToObject(this.Options, "chainId", func() any {
+		if EvalTruthy(enable) {
+			return 300
+		}
+		return 304
+	}())
 }
 func (this *Lighter) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	price := GetArg(optionalArgs, 0, nil)
@@ -1114,7 +1119,12 @@ func (this *Lighter) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	request["order_expiry"] = orderExpiry
 	request["order_type"] = orderTypeNum
 	request["time_in_force"] = timeInForceNum
-	request["reduce_only"] = func() any { if (reduceOnly != nil && *reduceOnly == true) { return 1 }; return 0 }()
+	request["reduce_only"] = func() any {
+		if reduceOnly != nil && *reduceOnly == true {
+			return 1
+		}
+		return 0
+	}()
 	request["client_order_index"] = clientOrderId
 	request["base_amount"] = this.ParseToInt(Precise.StringMul(amountStr, amountScale))
 	request["avg_execution_price"] = this.ParseToInt(Precise.StringMul(priceStr, priceScale))
@@ -1460,7 +1470,12 @@ func (this *Lighter) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	var status *string = this.SafeString(response, "status")
 
 	ch <- map[string]any{
-		"status":  func() any { if (status != nil && *status == "200") { return "ok" }; return "error" }(),
+		"status": func() any {
+			if status != nil && *status == "200" {
+				return "ok"
+			}
+			return "error"
+		}(),
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
@@ -1611,13 +1626,23 @@ func (this *Lighter) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var market any = GetValue(markets, i)
 		var id *string = this.SafeString(market, "market_id")
 		var typeVar any = DerefScalar(this.SafeString(market, "market_type"))
-		typeVar = func() any { if (IsEqual(typeVar, "perp")) { return "swap" }; return typeVar }()
+		typeVar = func() any {
+			if IsEqual(typeVar, "perp") {
+				return "swap"
+			}
+			return typeVar
+		}()
 		var baseId any = DerefScalar(this.SafeString(market, "symbol"))
 		if (baseId != nil) && (GetIndexOf(baseId, "/") != OpNeg(1)) {
 			baseId = GetValue(Split(baseId, "/"), 0)
 		}
 		var quoteId string = "USDC"
-		var settleId any = func() any { if (IsEqual(typeVar, "swap")) { return "USDC" }; return nil }()
+		var settleId any = func() any {
+			if IsEqual(typeVar, "swap") {
+				return "USDC"
+			}
+			return nil
+		}()
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
 		var settle *string = this.SafeCurrencyCode(settleId)
@@ -1627,28 +1652,48 @@ func (this *Lighter) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		}
 		var amountDecimals *string = this.SafeString2(market, "size_decimals", "supported_size_decimals")
 		var priceDecimals *string = this.SafeString2(market, "price_decimals", "supported_price_decimals")
-		var amountPrecision any = func() any { if (amountDecimals == nil) { return nil }; return this.ParseNumber(this.ParsePrecision(amountDecimals)) }()
-		var pricePrecision any = func() any { if (priceDecimals == nil) { return nil }; return this.ParseNumber(this.ParsePrecision(priceDecimals)) }()
+		var amountPrecision any = func() any {
+			if amountDecimals == nil {
+				return nil
+			}
+			return this.ParseNumber(this.ParsePrecision(amountDecimals))
+		}()
+		var pricePrecision any = func() any {
+			if priceDecimals == nil {
+				return nil
+			}
+			return this.ParseNumber(this.ParsePrecision(priceDecimals))
+		}()
 		var quoteMultiplier *float64 = this.SafeNumber(market, "quote_multiplier")
 		AppendToArray(&result, map[string]any{
-			"id":             id,
-			"symbol":         symbol,
-			"base":           base,
-			"quote":          quote,
-			"settle":         settle,
-			"baseId":         baseId,
-			"quoteId":        quoteId,
-			"settleId":       settleId,
-			"type":           typeVar,
-			"spot":           (IsEqual(typeVar, "spot")),
-			"margin":         false,
-			"swap":           (IsEqual(typeVar, "swap")),
-			"future":         false,
-			"option":         false,
-			"active":         IsEqual(this.SafeString(market, "status"), "active"),
-			"contract":       (IsEqual(typeVar, "swap")),
-			"linear":         func() any { if (IsEqual(typeVar, "swap")) { return true }; return nil }(),
-			"inverse":        func() any { if (IsEqual(typeVar, "swap")) { return false }; return nil }(),
+			"id":       id,
+			"symbol":   symbol,
+			"base":     base,
+			"quote":    quote,
+			"settle":   settle,
+			"baseId":   baseId,
+			"quoteId":  quoteId,
+			"settleId": settleId,
+			"type":     typeVar,
+			"spot":     (IsEqual(typeVar, "spot")),
+			"margin":   false,
+			"swap":     (IsEqual(typeVar, "swap")),
+			"future":   false,
+			"option":   false,
+			"active":   IsEqual(this.SafeString(market, "status"), "active"),
+			"contract": (IsEqual(typeVar, "swap")),
+			"linear": func() any {
+				if IsEqual(typeVar, "swap") {
+					return true
+				}
+				return nil
+			}(),
+			"inverse": func() any {
+				if IsEqual(typeVar, "swap") {
+					return false
+				}
+				return nil
+			}(),
 			"taker":          this.SafeNumber(market, "taker_fee"),
 			"maker":          this.SafeNumber(market, "maker_fee"),
 			"contractSize":   quoteMultiplier,
@@ -2147,7 +2192,12 @@ func (this *Lighter) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 			endTs = now
 		}
 	} else {
-		endTs = func() any { if (until != nil) { return until }; return now }()
+		endTs = func() any {
+			if until != nil {
+				return until
+			}
+			return now
+		}()
 		var defaultLimit int = 100
 		if !IsEqual(limit, nil) {
 			startTs = Subtract(endTs, Multiply(Multiply(this.ParseTimeframe(timeframe), 1000), limit))
@@ -2556,12 +2606,22 @@ func (this *Lighter) ParsePosition(position any, optionalArgs ...any) any {
 	var sign *int64 = this.SafeInteger(position, "sign")
 	var side any = nil
 	if sign != nil {
-		side = func() any { if (sign != nil && *sign == 1) { return "long" }; return "short" }()
+		side = func() any {
+			if sign != nil && *sign == 1 {
+				return "long"
+			}
+			return "short"
+		}()
 	}
 	var marginModeId *int64 = this.SafeInteger(position, "margin_mode")
 	var marginMode any = nil
 	if marginModeId != nil {
-		marginMode = func() any { if (marginModeId != nil && *marginModeId == 0) { return "cross" }; return "isolated" }()
+		marginMode = func() any {
+			if marginModeId != nil && *marginModeId == 0 {
+				return "cross"
+			}
+			return "isolated"
+		}()
 	}
 	var imfStr *string = this.SafeString(position, "initial_margin_fraction")
 	var leverage any = nil
@@ -2698,8 +2758,13 @@ func (this *Lighter) ParseAccount(account any) any {
 	//
 	var accountType *string = this.SafeString(account, "account_type")
 	return map[string]any{
-		"id":   this.SafeString(account, "account_index"),
-		"type": func() any { if (accountType != nil && *accountType == "0") { return "main" }; return "subaccount" }(),
+		"id": this.SafeString(account, "account_index"),
+		"type": func() any {
+			if accountType != nil && *accountType == "0" {
+				return "main"
+			}
+			return "subaccount"
+		}(),
 		"code": nil,
 		"info": account,
 	}
@@ -2970,7 +3035,12 @@ func (this *Lighter) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var side any = nil
 	if isAsk != nil {
-		side = func() any { if EvalTruthy(isAsk) { return "sell" }; return "buy" }()
+		side = func() any {
+			if EvalTruthy(isAsk) {
+				return "sell"
+			}
+			return "buy"
+		}()
 	}
 	var typeVar any = DerefScalar(this.SafeString(order, "type"))
 	if typeVar == nil {
@@ -3157,8 +3227,18 @@ func (this *Lighter) transferBody(ch chan any, code any, amount any, fromAccount
 	} else {
 		panic(ExchangeError(this.Id + " transfer() only supports USDC and ETH transfers"))
 	}
-	var fromRouteType any = func() any { if (IsEqual(fromAccount, "perp")) { return 0 }; return 1 }() // 0: perp, 1: spot
-	var toRouteType any = func() any { if (IsEqual(toAccount, "perp")) { return 0 }; return 1 }()
+	var fromRouteType any = func() any {
+		if IsEqual(fromAccount, "perp") {
+			return 0
+		}
+		return 1
+	}() // 0: perp, 1: spot
+	var toRouteType any = func() any {
+		if IsEqual(toAccount, "perp") {
+			return 0
+		}
+		return 1
+	}()
 	var memo *string = this.SafeString(params, "memo", "0x000000000000000000000000000000")
 	params = this.Omit(params, []any{"memo"})
 
@@ -3851,8 +3931,18 @@ func (this *Lighter) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	var takerOrMaker any = nil
 	if (side != nil) && (isMakerAsk != nil) {
-		var isMaker any = func() any { if (IsEqual(side, "sell")) { return isMakerAsk }; return !(isMakerAsk != nil && *isMakerAsk) }()
-		takerOrMaker = func() any { if EvalTruthy(isMaker) { return "maker" }; return "taker" }()
+		var isMaker any = func() any {
+			if IsEqual(side, "sell") {
+				return isMakerAsk
+			}
+			return !(isMakerAsk != nil && *isMakerAsk)
+		}()
+		takerOrMaker = func() any {
+			if EvalTruthy(isMaker) {
+				return "maker"
+			}
+			return "taker"
+		}()
 	}
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
@@ -3995,10 +4085,15 @@ func (this *Lighter) modifyLeverageAndMarginModeBody(ch chan any, leverage any, 
 	var signRaw map[string]any = map[string]any{
 		"market_index":            this.ParseToInt(GetValue(market, "id")),
 		"initial_margin_fraction": this.ParseToInt(Divide(10000, leverage)),
-		"margin_mode":             func() any { if (IsEqual(marginMode, "cross")) { return 0 }; return 1 }(),
-		"nonce":                   nonce,
-		"api_key_index":           apiKeyIndex,
-		"account_index":           accountIndex,
+		"margin_mode": func() any {
+			if IsEqual(marginMode, "cross") {
+				return 0
+			}
+			return 1
+		}(),
+		"nonce":         nonce,
+		"api_key_index": apiKeyIndex,
+		"account_index": accountIndex,
 	}
 	txTypetxInfoVariable := this.LighterSignUpdateLeverage(signer, this.Extend(signRaw, params))
 	txType := GetValue(txTypetxInfoVariable, 0)
@@ -4031,7 +4126,7 @@ func (this *Lighter) signAndCancelOrderBody(ch chan any, method any, id any, opt
 		PanicOnError(retRes315112)
 	}
 	if symbol == nil {
-		panic(ArgumentsRequired(Add(Add(this.Id + " ", method), " requires a symbol argument")))
+		panic(ArgumentsRequired(Add(Add(this.Id+" ", method), " requires a symbol argument")))
 	}
 	var apiKeyIndex any = nil
 	apiKeyIndexparamsVariable := this.HandleApiKeyIndex(params, method, "apiKeyIndex", "api_key_index")
@@ -4063,7 +4158,7 @@ func (this *Lighter) signAndCancelOrderBody(ch chan any, method any, id any, opt
 	} else if id != nil {
 		signRaw["order_index"] = this.ParseToInt(id)
 	} else {
-		panic(ArgumentsRequired(Add(Add(this.Id + " ", method), " requires order id or client order id")))
+		panic(ArgumentsRequired(Add(Add(this.Id+" ", method), " requires order id or client order id")))
 	}
 	txTypetxInfoVariable := this.LighterSignCancelOrder(signer, this.Extend(signRaw, params))
 	txType := GetValue(txTypetxInfoVariable, 0)
@@ -4439,7 +4534,7 @@ func (this *Lighter) Sign(path any, optionalArgs ...any) any {
 			}
 			body = params
 		} else {
-			url = Add(url, "?" + this.Rawencode(params))
+			url = Add(url, "?"+this.Rawencode(params))
 		}
 	}
 	return map[string]any{
@@ -4462,7 +4557,7 @@ func (this *Lighter) HandleErrors(httpCode any, reason any, url any, method any,
 	var code *string = this.SafeString(response, "code")
 	var message *string = this.SafeString(response, "msg")
 	if (code != nil) && (code == nil || *code != "0") && (code == nil || *code != "200") {
-		var feedback any = Add(this.Id + " ", body)
+		var feedback any = Add(this.Id+" ", body)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
 		panic(ExchangeError(feedback))

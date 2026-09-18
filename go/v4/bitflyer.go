@@ -315,7 +315,7 @@ func (this *Bitflyer) ParseExpiryDate(expiry any) any {
 		"DEC": "12",
 	}
 	var month *string = this.SafeString(months, monthName)
-	return this.Parse8601(Add(Add(Add(Add(year + "-", month), "-"), day), "T00:00:00Z"))
+	return this.Parse8601(Add(Add(Add(Add(year+"-", month), "-"), day), "T00:00:00Z"))
 }
 func (this *Bitflyer) SafeMarket(optionalArgs ...any) any {
 	// Bitflyer has a different type of conflict in markets, because
@@ -448,24 +448,34 @@ func (this *Bitflyer) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			}
 		}
 		AppendToArray(&result, map[string]any{
-			"id":             id,
-			"symbol":         symbol,
-			"base":           base,
-			"quote":          quote,
-			"settle":         settle,
-			"baseId":         baseId,
-			"quoteId":        quoteId,
-			"settleId":       nil,
-			"type":           typeVar,
-			"spot":           spot,
-			"margin":         false,
-			"swap":           swap,
-			"future":         future,
-			"option":         false,
-			"active":         true,
-			"contract":       contract,
-			"linear":         func() any { if spot { return nil }; return true }(),
-			"inverse":        func() any { if spot { return nil }; return false }(),
+			"id":       id,
+			"symbol":   symbol,
+			"base":     base,
+			"quote":    quote,
+			"settle":   settle,
+			"baseId":   baseId,
+			"quoteId":  quoteId,
+			"settleId": nil,
+			"type":     typeVar,
+			"spot":     spot,
+			"margin":   false,
+			"swap":     swap,
+			"future":   future,
+			"option":   false,
+			"active":   true,
+			"contract": contract,
+			"linear": func() any {
+				if spot {
+					return nil
+				}
+				return true
+			}(),
+			"inverse": func() any {
+				if spot {
+					return nil
+				}
+				return false
+			}(),
 			"taker":          taker,
 			"maker":          maker,
 			"contractSize":   nil,
@@ -1162,7 +1172,7 @@ func (this *Bitflyer) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 		ch <- GetValue(ordersById, id)
 		return nil
 	}
-	panic(OrderNotFound(Add(this.Id + " No order found with id ", id)))
+	panic(OrderNotFound(Add(this.Id+" No order found with id ", id)))
 }
 
 /**
@@ -1318,7 +1328,7 @@ func (this *Bitflyer) withdrawBody(ch chan any, code any, amount any, address an
 		PanicOnError(retRes98012)
 	}
 	if (!IsEqual(code, "JPY")) && (!IsEqual(code, "USD")) && (!IsEqual(code, "EUR")) {
-		panic(ExchangeError(Add(Add(this.Id + " allows withdrawing JPY, USD, EUR only, ", code), " is not supported")))
+		panic(ExchangeError(Add(Add(this.Id+" allows withdrawing JPY, USD, EUR only, ", code), " is not supported")))
 	}
 	var currency any = this.Currency(code)
 	var request map[string]any = map[string]any{
@@ -1654,7 +1664,7 @@ func (this *Bitflyer) Sign(path any, optionalArgs ...any) any {
 	request = Add(request, path)
 	if IsEqual(method, "GET") {
 		if len(ObjectKeys(params)) > 0 {
-			request = Add(request, "?" + this.Urlencode(params))
+			request = Add(request, "?"+this.Urlencode(params))
 		}
 	}
 	var baseUrl any = this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), "rest"))
@@ -1688,7 +1698,7 @@ func (this *Bitflyer) HandleErrors(code any, reason any, url any, method any, he
 	if IsEqual(response, nil) {
 		return nil // fallback to the default error handler
 	}
-	var feedback any = Add(this.Id + " ", body)
+	var feedback any = Add(this.Id+" ", body)
 	// i.e. {"status":-2,"error_message":"Under maintenance","data":null}
 	var errorMessage *string = this.SafeString(response, "error_message")
 	var statusCode *int64 = this.SafeInteger(response, "status")

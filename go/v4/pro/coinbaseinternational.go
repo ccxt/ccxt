@@ -912,7 +912,12 @@ func (this *Coinbaseinternational) HandleOrderBook(client any, message any) {
 }
 func (this *Coinbaseinternational) HandleDelta(orderbook any, delta any) {
 	var rawSide *string = this.SafeStringLower(delta, 0)
-	var side any = func() any { if (rawSide != nil && *rawSide == "buy") { return "bids" }; return "asks" }()
+	var side any = func() any {
+		if rawSide != nil && *rawSide == "buy" {
+			return "bids"
+		}
+		return "asks"
+	}()
 	var price *float64 = this.SafeFloat(delta, 1)
 	var amount *float64 = this.SafeFloat(delta, 2)
 	var bookside any = ccxt.GetValue(orderbook, side)
@@ -1009,7 +1014,7 @@ func (this *Coinbaseinternational) HandleErrorMessage(client any, message any) a
 				}
 			}()
 			// try block:
-			var feedback any = ccxt.Add(ccxt.Add(this.Id + " ", errMsg), reason)
+			var feedback any = ccxt.Add(ccxt.Add(this.Id+" ", errMsg), reason)
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], reason, feedback)
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], reason, feedback)
 			panic(ccxt.ExchangeError(feedback))

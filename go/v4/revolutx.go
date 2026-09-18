@@ -233,12 +233,12 @@ func (this *Revolutx) Sign(path any, optionalArgs ...any) any {
 		if IsEqual(method, "GET") {
 			if queryLength > 0 {
 				queryString = this.Urlencode(query)
-				url = Add(url, "?" + queryString)
+				url = Add(url, "?"+queryString)
 			}
 		} else if IsEqual(method, "DELETE") {
 			if queryLength > 0 {
 				queryString = this.Urlencode(query)
-				url = Add(url, "?" + queryString)
+				url = Add(url, "?"+queryString)
 			}
 		} else {
 			body = this.Json(query)
@@ -248,7 +248,7 @@ func (this *Revolutx) Sign(path any, optionalArgs ...any) any {
 		if body != nil {
 			bodyString = body
 		}
-		var message any = Add(Add(Add(timestamp + ToUpper(method), requestPath), queryString), bodyString)
+		var message any = Add(Add(Add(timestamp+ToUpper(method), requestPath), queryString), bodyString)
 		var signature string = Eddsa(this.Encode(message), this.PrivateKey, ed25519)
 		headers = map[string]any{
 			"X-Revx-API-Key":   this.ApiKey,
@@ -262,7 +262,7 @@ func (this *Revolutx) Sign(path any, optionalArgs ...any) any {
 		if IsEqual(method, "GET") {
 			if queryLength > 0 {
 				queryString = this.Urlencode(query)
-				url = Add(url, "?" + queryString)
+				url = Add(url, "?"+queryString)
 			}
 		} else {
 			body = this.Json(query)
@@ -430,8 +430,18 @@ func (this *Revolutx) ParseCurrency(currency any) any {
 	var status *string = this.SafeString(currency, "status")
 	var active bool = (status != nil && *status == "active")
 	var assetType *string = this.SafeString(currency, "asset_type")
-	var typeVar any = func() any { if (assetType != nil && *assetType == "crypto") { return "crypto" }; return "fiat" }()
-	var precision any = func() any { if (scale != nil) { return MathPow(10, OpNeg(scale)) }; return nil }()
+	var typeVar any = func() any {
+		if assetType != nil && *assetType == "crypto" {
+			return "crypto"
+		}
+		return "fiat"
+	}()
+	var precision any = func() any {
+		if scale != nil {
+			return MathPow(10, OpNeg(scale))
+		}
+		return nil
+	}()
 	return map[string]any{
 		"info":      currency,
 		"id":        id,
@@ -685,7 +695,7 @@ func (this *Revolutx) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 	PanicOnError(tickers)
 	var ticker any = this.SafeDict(tickers, symbol)
 	if IsEqual(ticker, nil) {
-		panic(ExchangeError(Add(this.Id + " fetchTicker() could not find ticker for symbol ", symbol)))
+		panic(ExchangeError(Add(this.Id+" fetchTicker() could not find ticker for symbol ", symbol)))
 	}
 
 	ch <- ticker
@@ -995,7 +1005,12 @@ func (this *Revolutx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	//         { "currency": "USD", "available": "50000.00", "reserved": "1000.00", "total": "51000.00", "staked": "32.00000000" }
 	//     ]
 	//
-	var data any = func() any { if IsArray(response) { return response }; return this.SafeList(response, "data", []any{}) }()
+	var data any = func() any {
+		if IsArray(response) {
+			return response
+		}
+		return this.SafeList(response, "data", []any{})
+	}()
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
@@ -1012,7 +1027,12 @@ func (this *Revolutx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		var staked *string = this.SafeString(balance, "staked")
 		var used any = reserved
 		if staked != nil {
-			used = func() any { if (reserved == nil) { return staked }; return Precise.StringAdd(reserved, staked) }()
+			used = func() any {
+				if reserved == nil {
+					return staked
+				}
+				return Precise.StringAdd(reserved, staked)
+			}()
 		}
 		AddElementToObject(account, "used", used)
 		AddElementToObject(account, "total", this.SafeString(balance, "total"))
@@ -1190,7 +1210,7 @@ func (this *Revolutx) createOrderBody(ch chan any, symbol any, typeVar any, side
 		}
 		orderConfiguration["market"] = marketConfig
 	} else {
-		panic(InvalidOrder(Add(this.Id + " createOrder() does not support order type ", typeVar)))
+		panic(InvalidOrder(Add(this.Id+" createOrder() does not support order type ", typeVar)))
 	}
 	var request map[string]any = map[string]any{
 		"client_order_id":     clientOrderId,
@@ -1209,7 +1229,12 @@ func (this *Revolutx) createOrderBody(ch chan any, symbol any, typeVar any, side
 	//     }
 	//
 	var data any = this.SafeValue(response, "data", map[string]any{})
-	var orderData any = func() any { if IsArray(data) { return this.SafeDict(data, 0, map[string]any{}) }; return this.SafeDict(response, "data", map[string]any{}) }()
+	var orderData any = func() any {
+		if IsArray(data) {
+			return this.SafeDict(data, 0, map[string]any{})
+		}
+		return this.SafeDict(response, "data", map[string]any{})
+	}()
 	var venueOrderId *string = this.SafeString(orderData, "venue_order_id")
 	var state *string = this.SafeString(orderData, "state")
 	var order any = this.ParseOrder(this.Extend(orderData, map[string]any{
@@ -1489,7 +1514,12 @@ func (this *Revolutx) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	} else if !IsEqual(since, nil) {
 		var now int64 = this.Milliseconds()
 		var defaultEnd any = Add(since, thirtyDays)
-		request["end_date"] = func() any { if (IsLessThan(defaultEnd, now)) { return defaultEnd }; return now }()
+		request["end_date"] = func() any {
+			if IsLessThan(defaultEnd, now) {
+				return defaultEnd
+			}
+			return now
+		}()
 	}
 	if !IsEqual(limit, nil) {
 		request["limit"] = limit
@@ -1577,7 +1607,12 @@ func (this *Revolutx) ParseMyTrade(trade any, optionalArgs ...any) any {
 	var side *string = this.SafeStringLower(trade, "s")
 	var timestamp *int64 = this.SafeInteger2(trade, "tdt", "pdt")
 	var isMaker *bool = this.SafeBool(trade, "im", false)
-	var takerOrMaker any = func() any { if (isMaker != nil && *isMaker) { return "maker" }; return "taker" }()
+	var takerOrMaker any = func() any {
+		if isMaker != nil && *isMaker {
+			return "maker"
+		}
+		return "taker"
+	}()
 	var cost any = nil
 	if (price != nil) && (amount != nil) {
 		cost = Multiply(price, amount)
@@ -1654,7 +1689,12 @@ func (this *Revolutx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	} else if !IsEqual(since, nil) {
 		var now int64 = this.Milliseconds()
 		var defaultEnd any = Add(since, thirtyDays)
-		request["end_date"] = func() any { if (IsLessThan(defaultEnd, now)) { return defaultEnd }; return now }()
+		request["end_date"] = func() any {
+			if IsLessThan(defaultEnd, now) {
+				return defaultEnd
+			}
+			return now
+		}()
 	}
 	if !IsEqual(limit, nil) {
 		request["limit"] = limit
@@ -1759,7 +1799,12 @@ func (this *Revolutx) editOrderBody(ch chan any, id any, symbol any, typeVar any
 	//     }
 	//
 	var data any = this.SafeValue(response, "data", map[string]any{})
-	var orderData any = func() any { if IsArray(data) { return this.SafeDict(data, 0, map[string]any{}) }; return this.SafeDict(response, "data", map[string]any{}) }()
+	var orderData any = func() any {
+		if IsArray(data) {
+			return this.SafeDict(data, 0, map[string]any{})
+		}
+		return this.SafeDict(response, "data", map[string]any{})
+	}()
 	var newVenueOrderId *string = this.SafeString(orderData, "venue_order_id")
 	var state *string = this.SafeString(orderData, "state")
 	var order any = this.ParseOrder(this.Extend(orderData, map[string]any{
@@ -1778,7 +1823,7 @@ func (this *Revolutx) HandleErrors(code any, reason any, url any, method any, he
 		if IsEqual(response, nil) {
 			return nil
 		}
-		var feedback any = Add(this.Id + " ", body)
+		var feedback any = Add(this.Id+" ", body)
 		var errorMessage any = nil
 		if IsObject(response) {
 			errorMessage = DerefScalar(this.SafeString2(response, "message", "error"))

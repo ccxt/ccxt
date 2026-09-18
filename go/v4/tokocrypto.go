@@ -1181,13 +1181,23 @@ func (this *Tokocrypto) ParseTrade(trade any, optionalArgs ...any) any {
 	var buyerMaker any = this.SafeValue2(trade, "m", "isBuyerMaker")
 	var takerOrMaker any = nil
 	if !IsEqual(buyerMaker, nil) {
-		side = func() any { if (buyerMaker == true) { return "sell" }; return "buy" }() // this is reversed intentionally
+		side = func() any {
+			if buyerMaker == true {
+				return "sell"
+			}
+			return "buy"
+		}() // this is reversed intentionally
 		takerOrMaker = "taker"
 	} else if InOp(trade, "side") {
 		side = this.SafeStringLower(trade, "side")
 	} else {
 		if InOp(trade, "isBuyer") {
-			side = func() any { if (IsEqual(GetValue(trade, "isBuyer"), true)) { return "buy" }; return "sell" }() // this is a true side
+			side = func() any {
+				if IsEqual(GetValue(trade, "isBuyer"), true) {
+					return "buy"
+				}
+				return "sell"
+			}() // this is a true side
 		}
 	}
 	var fee any = nil
@@ -1198,10 +1208,20 @@ func (this *Tokocrypto) ParseTrade(trade any, optionalArgs ...any) any {
 		}
 	}
 	if InOp(trade, "isMaker") {
-		takerOrMaker = func() any { if (IsEqual(GetValue(trade, "isMaker"), true)) { return "maker" }; return "taker" }()
+		takerOrMaker = func() any {
+			if IsEqual(GetValue(trade, "isMaker"), true) {
+				return "maker"
+			}
+			return "taker"
+		}()
 	}
 	if InOp(trade, "maker") {
-		takerOrMaker = func() any { if (IsEqual(GetValue(trade, "maker"), true)) { return "maker" }; return "taker" }()
+		takerOrMaker = func() any {
+			if IsEqual(GetValue(trade, "maker"), true) {
+				return "maker"
+			}
+			return "taker"
+		}()
 	}
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
@@ -1545,7 +1565,7 @@ func (this *Tokocrypto) fetchTickerBody(ch chan any, symbol any, optionalArgs ..
 	}
 	var market any = this.Market(symbol)
 	if EvalTruthy(this.IsNativeMarket(market)) {
-		panic(NotSupported(Add(Add(this.Id + " fetchTicker() does not support ", symbol), " yet, the venue serves 24hr ticker statistics only for its binance backed markets")))
+		panic(NotSupported(Add(Add(this.Id+" fetchTicker() does not support ", symbol), " yet, the venue serves 24hr ticker statistics only for its binance backed markets")))
 	}
 	var request map[string]any = map[string]any{
 		"symbol": this.GetMarketIdByType(market),
@@ -1680,7 +1700,12 @@ func (this *Tokocrypto) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	var price *string = this.SafeString(params, "price")
 	var until *int64 = this.SafeInteger(params, "until")
 	params = this.Omit(params, []any{"price", "until"})
-	limit = func() any { if (IsEqual(limit, nil)) { return defaultLimit }; return mathMin(limit, maxLimit) }()
+	limit = func() any {
+		if IsEqual(limit, nil) {
+			return defaultLimit
+		}
+		return mathMin(limit, maxLimit)
+	}()
 	var request map[string]any = map[string]any{
 		"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
 		"limit":    limit,
@@ -2082,9 +2107,9 @@ func (this *Tokocrypto) createOrderBody(ch chan any, symbol any, typeVar any, si
 	var validOrderTypes any = this.SafeValue(GetValue(market, "info"), "orderTypes")
 	if !this.InArray(uppercaseType, validOrderTypes) {
 		if initialUppercaseType != uppercaseType {
-			panic(InvalidOrder(Add(Add(Add(Add(this.Id + " triggerPrice parameter is not allowed for ", symbol), " "), typeVar), " orders")))
+			panic(InvalidOrder(Add(Add(Add(Add(this.Id+" triggerPrice parameter is not allowed for ", symbol), " "), typeVar), " orders")))
 		} else {
-			panic(InvalidOrder(Add(Add(Add(Add(this.Id + " ", typeVar), " is not a valid order type for the "), symbol), " market")))
+			panic(InvalidOrder(Add(Add(Add(Add(this.Id+" ", typeVar), " is not a valid order type for the "), symbol), " market")))
 		}
 	}
 	var reverseOrderTypeMapping map[string]any = map[string]any{
@@ -2180,13 +2205,13 @@ func (this *Tokocrypto) createOrderBody(ch chan any, symbol any, typeVar any, si
 	}
 	if priceIsRequired {
 		if IsEqual(price, nil) {
-			panic(InvalidOrder(Add(Add(this.Id + " createOrder() requires a price argument for a ", typeVar), " order")))
+			panic(InvalidOrder(Add(Add(this.Id+" createOrder() requires a price argument for a ", typeVar), " order")))
 		}
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
 	if triggerPriceIsRequired {
 		if IsEqual(triggerPrice, nil) {
-			panic(InvalidOrder(Add(Add(this.Id + " createOrder() requires a triggerPrice extra param for a ", typeVar), " order")))
+			panic(InvalidOrder(Add(Add(this.Id+" createOrder() requires a triggerPrice extra param for a ", typeVar), " order")))
 		} else {
 			request["stopPrice"] = this.PriceToPrecision(symbol, triggerPrice)
 		}
@@ -3057,7 +3082,7 @@ func (this *Tokocrypto) Sign(path any, optionalArgs ...any) any {
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	if !(InOp(GetValue(GetValue(this.Urls, "api"), "rest"), api)) {
-		panic(NotSupported(Add(Add(this.Id + " does not have a testnet/sandbox URL for ", api), " endpoints")))
+		panic(NotSupported(Add(Add(this.Id+" does not have a testnet/sandbox URL for ", api), " endpoints")))
 	}
 	var url any = GetValue(GetValue(GetValue(this.Urls, "api"), "rest"), api)
 	url = Add(url, Add("/", path))
@@ -3100,7 +3125,7 @@ func (this *Tokocrypto) Sign(path any, optionalArgs ...any) any {
 			query = this.Urlencode(extendedParams)
 		}
 		var signature string = this.Hmac(this.Encode(query), this.Encode(this.Secret), sha256)
-		query = Add(query, "&" + "signature=" + signature)
+		query = Add(query, "&"+"signature="+signature)
 		headers = map[string]any{
 			"X-MBX-APIKEY": this.ApiKey,
 		}
@@ -3112,7 +3137,7 @@ func (this *Tokocrypto) Sign(path any, optionalArgs ...any) any {
 		}
 	} else {
 		if len(ObjectKeys(params)) > 0 {
-			url = Add(url, "?" + this.Urlencode(params))
+			url = Add(url, "?"+this.Urlencode(params))
 		}
 	}
 	return map[string]any{
@@ -3124,20 +3149,20 @@ func (this *Tokocrypto) Sign(path any, optionalArgs ...any) any {
 }
 func (this *Tokocrypto) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
 	if (IsEqual(code, 418)) || (IsEqual(code, 429)) {
-		panic(DDoSProtection(Add(Add(Add(this.Id + " " + ToString(code) + " ", reason), " "), body)))
+		panic(DDoSProtection(Add(Add(Add(this.Id+" "+ToString(code)+" ", reason), " "), body)))
 	}
 	// error response in a form: { "code": -1013, "msg": "Invalid quantity." }
 	// following block contains legacy checks against message patterns in "msg" property
 	// will switch "code" checks eventually, when we know all of them
 	if IsGreaterThanOrEqual(code, 400) {
 		if GetIndexOf(body, "Price * QTY is zero or less") >= 0 {
-			panic(InvalidOrder(Add(this.Id + " order cost = amount * price is zero or less ", body)))
+			panic(InvalidOrder(Add(this.Id+" order cost = amount * price is zero or less ", body)))
 		}
 		if GetIndexOf(body, "LOT_SIZE") >= 0 {
-			panic(InvalidOrder(Add(this.Id + " order amount should be evenly divisible by lot size ", body)))
+			panic(InvalidOrder(Add(this.Id+" order amount should be evenly divisible by lot size ", body)))
 		}
 		if GetIndexOf(body, "PRICE_FILTER") >= 0 {
-			panic(InvalidOrder(Add(this.Id + " order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use this.priceToPrecision (symbol, amount) ", body)))
+			panic(InvalidOrder(Add(this.Id+" order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use this.priceToPrecision (symbol, amount) ", body)))
 		}
 	}
 	if IsEqual(response, nil) {
@@ -3179,8 +3204,8 @@ func (this *Tokocrypto) HandleErrors(code any, reason any, url any, method any, 
 	}
 	var message *string = this.SafeString(response, "msg")
 	if message != nil {
-		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, Add(this.Id + " ", message))
-		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, Add(this.Id + " ", message))
+		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, Add(this.Id+" ", message))
+		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, Add(this.Id+" ", message))
 	}
 	// checks against error codes
 	var error *string = this.SafeString(response, "code")
@@ -3194,9 +3219,9 @@ func (this *Tokocrypto) HandleErrors(code any, reason any, url any, method any, 
 		// despite that their message is very confusing, it is raised by Binance
 		// on a temporary ban, the API key is valid, but disabled for a while
 		if (error != nil && *error == "-2015") && (IsEqual(GetValue(this.Options, "hasAlreadyAuthenticatedSuccessfully"), true)) {
-			panic(DDoSProtection(Add(this.Id + " ", body)))
+			panic(DDoSProtection(Add(this.Id+" ", body)))
 		}
-		var feedback any = Add(this.Id + " ", body)
+		var feedback any = Add(this.Id+" ", body)
 		if message != nil && *message == "No need to change margin type." {
 			panic(MarginModeAlreadySet(feedback))
 		}
@@ -3204,7 +3229,7 @@ func (this *Tokocrypto) HandleErrors(code any, reason any, url any, method any, 
 		panic(ExchangeError(feedback))
 	}
 	if success == nil || *success != true {
-		panic(ExchangeError(Add(this.Id + " ", body)))
+		panic(ExchangeError(Add(this.Id+" ", body)))
 	}
 	return nil
 }

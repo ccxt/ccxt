@@ -689,7 +689,12 @@ func (this *Deepcoin) ParseMarket(market any) any {
 	var isLinear any = nil
 	if swap {
 		isLinear = (quoteId == nil || *quoteId != "USD")
-		settleId = func() any { if EvalTruthy(isLinear) { return quoteId }; return baseId }()
+		settleId = func() any {
+			if EvalTruthy(isLinear) {
+				return quoteId
+			}
+			return baseId
+		}()
 		settle = DerefScalar(this.SafeCurrencyCode(settleId))
 		symbol = Add(Add(symbol, ":"), settle)
 	}
@@ -701,27 +706,37 @@ func (this *Deepcoin) ParseMarket(market any) any {
 	var maxAmount any = this.ParseNumber(Precise.StringMax(maxMarketSize, maxLimitSize))
 	var state *string = this.SafeString(market, "state")
 	var isMargin bool = spot && (Precise.StringGt(maxLeverage, "1"))
-	var isInverse any = func() any { if swap { return (isLinear != true) }; return nil }()
+	var isInverse any = func() any {
+		if swap {
+			return (isLinear != true)
+		}
+		return nil
+	}()
 	return this.Extend(fees, map[string]any{
-		"id":             id,
-		"symbol":         symbol,
-		"base":           base,
-		"quote":          quote,
-		"settle":         settle,
-		"baseId":         baseId,
-		"quoteId":        quoteId,
-		"settleId":       settleId,
-		"type":           typeVar,
-		"spot":           spot,
-		"margin":         isMargin,
-		"swap":           swap,
-		"future":         false,
-		"option":         false,
-		"active":         (state != nil && *state == "live"),
-		"contract":       swap,
-		"linear":         isLinear,
-		"inverse":        isInverse,
-		"contractSize":   func() any { if swap { return this.SafeNumber(market, "ctVal") }; return nil }(),
+		"id":       id,
+		"symbol":   symbol,
+		"base":     base,
+		"quote":    quote,
+		"settle":   settle,
+		"baseId":   baseId,
+		"quoteId":  quoteId,
+		"settleId": settleId,
+		"type":     typeVar,
+		"spot":     spot,
+		"margin":   isMargin,
+		"swap":     swap,
+		"future":   false,
+		"option":   false,
+		"active":   (state != nil && *state == "live"),
+		"contract": swap,
+		"linear":   isLinear,
+		"inverse":  isInverse,
+		"contractSize": func() any {
+			if swap {
+				return this.SafeNumber(market, "ctVal")
+			}
+			return nil
+		}(),
 		"expiry":         nil,
 		"expiryDatetime": nil,
 		"strike":         nil,
@@ -906,7 +921,12 @@ func (this *Deepcoin) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 			// the exchange do not have a since param for this endpoint
 			// we calculate until (after) for correct pagination
 			var duration any = this.ParseTimeframe(timeframe)
-			var numberOfCandles any = func() any { if (IsEqual(limit, nil)) { return maxLimit }; return limit }()
+			var numberOfCandles any = func() any {
+				if IsEqual(limit, nil) {
+					return maxLimit
+				}
+				return limit
+			}()
 			var endTime any = Add(since, Multiply((Multiply(duration, numberOfCandles)), 1000))
 			if until != nil {
 				endTime = mathMin(endTime, until)
@@ -1582,7 +1602,12 @@ func (this *Deepcoin) fetchDepositAddressBody(ch chan any, code any, optionalArg
 	var network any = DerefScalar(this.SafeString(params, "network"))
 	var defaultNetworks any = this.SafeDict(this.Options, "defaultNetworks", map[string]any{})
 	var defaultNetwork *string = this.SafeString(defaultNetworks, code)
-	network = func() any { if ((network != nil) && (!IsEqual(network, ""))) { return network }; return defaultNetwork }()
+	network = func() any {
+		if (network != nil) && (!IsEqual(network, "")) {
+			return network
+		}
+		return defaultNetwork
+	}()
 	if network != nil {
 		params = this.Omit(params, "network")
 	}
@@ -1745,7 +1770,12 @@ func (this *Deepcoin) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(item, "ts")
 	var change *string = this.SafeString(item, "balChg")
 	var amount *string = Precise.StringAbs(change)
-	var direction any = func() any { if Precise.StringLt(change, "0") { return "out" }; return "in" }()
+	var direction any = func() any {
+		if Precise.StringLt(change, "0") {
+			return "out"
+		}
+		return "in"
+	}()
 	var currencyId *string = this.SafeString(item, "ccy")
 	currency = this.SafeCurrency(currencyId, currency)
 	var typeVar *string = this.SafeString(item, "type")
@@ -1805,7 +1835,12 @@ func (this *Deepcoin) transferBody(ch chan any, code any, amount any, fromAccoun
 	var userIdparamsVariable []any = this.HandleOptionAndParams(params, "transfer", "userId")
 	userId = GetValue(userIdparamsVariable, 0)
 	params = GetValue(userIdparamsVariable, 1)
-	userId = func() any { if ((userId != nil) && (!IsEqual(userId, ""))) { return userId }; return this.SafeString(params, "uid") }()
+	userId = func() any {
+		if (userId != nil) && (!IsEqual(userId, "")) {
+			return userId
+		}
+		return this.SafeString(params, "uid")
+	}()
 	if userId == nil {
 		panic(ArgumentsRequired(this.Id + " transfer() requires a userId parameter"))
 	}
@@ -2425,7 +2460,7 @@ func (this *Deepcoin) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...an
 	var data any = this.SafeList(response, "data", []any{})
 	var length int = GetArrayLength(data)
 	if length == 0 {
-		panic(OrderNotFound(Add(this.Id + " fetchOpenOrder() could not find order id ", id)))
+		panic(OrderNotFound(Add(this.Id+" fetchOpenOrder() could not find order id ", id)))
 	}
 	var entry any = this.SafeDict(data, 0, map[string]any{})
 
@@ -2504,7 +2539,7 @@ func (this *Deepcoin) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs
 	var response any = nil
 	if trigger != nil && *trigger == true {
 		if !IsEqual(methodName, "fetchCanceledAndClosedOrders") {
-			panic(BadRequest(Add(Add(this.Id + " ", methodName), "() does not support trigger orders")))
+			panic(BadRequest(Add(Add(this.Id+" ", methodName), "() does not support trigger orders")))
 		}
 		if IsEqual(market, nil) {
 			panic(ArgumentsRequired(this.Id + " fetchCanceledAndClosedOrders() requires a symbol argument for trigger orders"))
@@ -2930,7 +2965,12 @@ func (this *Deepcoin) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 	var mergedparamsVariable []any = this.HandleOptionAndParams(params, "cancelAllOrders", "merged", merged)
 	merged = GetValue(mergedparamsVariable, 0)
 	params = GetValue(mergedparamsVariable, 1)
-	var isMergedMode any = func() any { if EvalTruthy(merged) { return 1 }; return 0 }()
+	var isMergedMode any = func() any {
+		if EvalTruthy(merged) {
+			return 1
+		}
+		return 0
+	}()
 	var request map[string]any = map[string]any{
 		"InstrumentID":  GetValue(market, "id"),
 		"ProductGroup":  productGroup,
@@ -3002,10 +3042,20 @@ func (this *Deepcoin) editOrderBody(ch chan any, id any, symbol any, typeVar any
 			panic(BadRequest(this.Id + " editOrder() with stopLossPrice or takeProfitPrice cannot have price or amount. Either use stopLossPrice/takeProfitPrice or price/amount to edit order."))
 		}
 		if stopLossPrice != nil {
-			request["slTriggerPx"] = func() any { if (!IsEqual(symbol, "")) { return this.PriceToPrecision(symbol, stopLossPrice) }; return this.NumberToString(stopLossPrice) }()
+			request["slTriggerPx"] = func() any {
+				if !IsEqual(symbol, "") {
+					return this.PriceToPrecision(symbol, stopLossPrice)
+				}
+				return this.NumberToString(stopLossPrice)
+			}()
 		}
 		if takeProfitPrice != nil {
-			request["tpTriggerPx"] = func() any { if (!IsEqual(symbol, "")) { return this.PriceToPrecision(symbol, takeProfitPrice) }; return this.NumberToString(takeProfitPrice) }()
+			request["tpTriggerPx"] = func() any {
+				if !IsEqual(symbol, "") {
+					return this.PriceToPrecision(symbol, takeProfitPrice)
+				}
+				return this.NumberToString(takeProfitPrice)
+			}()
 		}
 		params = this.Omit(params, []any{"stopLossPrice", "takeProfitPrice"})
 
@@ -3195,8 +3245,13 @@ func (this *Deepcoin) ParseOrder(order any, optionalArgs ...any) any {
 		"trades":              nil,
 		"fee":                 fee,
 		"reduceOnly":          nil,
-		"postOnly":            func() any { if ((orderType != nil) && (orderType == nil || *orderType != "")) { return (orderType != nil && *orderType == "post_only") }; return nil }(),
-		"info":                order,
+		"postOnly": func() any {
+			if (orderType != nil) && (orderType == nil || *orderType != "") {
+				return (orderType != nil && *orderType == "post_only")
+			}
+			return nil
+		}(),
+		"info": order,
 	}, market)
 }
 func (this *Deepcoin) ParseOrderStatus(status any) *string {
@@ -3961,7 +4016,7 @@ func (this *Deepcoin) Sign(path any, optionalArgs ...any) any {
 	if IsEqual(method, "GET") {
 		var query string = this.Urlencode(params)
 		if GetLength(query) > 0 {
-			requestPath = Add(requestPath, "?" + query)
+			requestPath = Add(requestPath, "?"+query)
 		}
 	}
 	var url any = Add(Add(GetValue(GetValue(this.Urls, "api"), api), "/"), requestPath)
@@ -4008,7 +4063,7 @@ func (this *Deepcoin) HandleErrors(code any, reason any, url any, method any, he
 			errorCode = this.SafeString(entry, "errorCode")
 		}
 	}
-	var feedback any = Add(this.Id + " ", body)
+	var feedback any = Add(this.Id+" ", body)
 	if (sCode == nil) && (errorCode != nil) {
 		sCode = errorCode
 	}

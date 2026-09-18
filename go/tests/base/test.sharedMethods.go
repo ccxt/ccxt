@@ -7,9 +7,24 @@ import "github.com/ccxt/ccxt/go/v4"
 
 func LogTemplate(exchange ccxt.ICoreExchange, method any, entry any) any {
 	// there are cases when exchange is undefined (eg. base tests)
-	var id any = func() any { if (!IsEqual(exchange, nil)) { return exchange.GetId() }; return "undefined" }()
-	var methodString any = func() any { if (method != nil) { return method }; return "undefined" }()
-	var entryString any = func() any { if (!IsEqual(exchange, nil) && !IsEqual(entry, nil)) { return exchange.Json(entry) }; return "" }()
+	var id any = func() any {
+		if !IsEqual(exchange, nil) {
+			return exchange.GetId()
+		}
+		return "undefined"
+	}()
+	var methodString any = func() any {
+		if method != nil {
+			return method
+		}
+		return "undefined"
+	}()
+	var entryString any = func() any {
+		if !IsEqual(exchange, nil) && !IsEqual(entry, nil) {
+			return exchange.Json(entry)
+		}
+		return ""
+	}()
 	return Add(Add(Add(Add(Add(Add(" <<< ", id), " "), methodString), " ::: "), entryString), " >>> ")
 }
 func IsTemporaryFailure(e any) any {
@@ -64,7 +79,7 @@ func AssertStructure(exchange ccxt.ICoreExchange, skippedProperties any, method 
 		Assert(IsArray(entry), Add("entry is not an array", logText))
 		var realLength int = GetArrayLength(entry)
 		var expectedLength int = GetArrayLength(format)
-		Assert((realLength == expectedLength), Add("entry length is not equal to expected length of " + ToString(expectedLength), logText))
+		Assert((realLength == expectedLength), Add("entry length is not equal to expected length of "+ToString(expectedLength), logText))
 		for i := 0; i < GetArrayLength(format); i++ {
 			var emptyAllowedForThisKey bool = (IsEqual(emptyAllowedFor, nil)) || EvalTruthy(exchange.InArray(i, emptyAllowedFor))
 			var value any = GetValue(entry, i)
@@ -74,10 +89,10 @@ func AssertStructure(exchange ccxt.ICoreExchange, skippedProperties any, method 
 			if (emptyAllowedForThisKey && (IsEqual(value, nil))) || (InOp(skippedProperties, i)) {
 				continue
 			}
-			Assert(!IsEqual(value, nil), Add(ToString(i) + " index is expected to have a value", logText))
+			Assert(!IsEqual(value, nil), Add(ToString(i)+" index is expected to have a value", logText))
 			// because of other langs, this is needed for arrays
 			var typeAssertion any = AssertType(exchange, map[string]any{}, entry, i, format)
-			Assert((typeAssertion == true), Add(ToString(i) + " index does not have an expected type ", logText))
+			Assert((typeAssertion == true), Add(ToString(i)+" index does not have an expected type ", logText))
 		}
 	} else {
 		Assert(exchange.IsDictionary(entry), Add("entry is not a dict", logText))
@@ -135,10 +150,10 @@ func AssertTimestamp(exchange ccxt.ICoreExchange, skippedProperties any, method 
 	if !IsEqual(ts, nil) {
 		Assert(IsNumber(ts), Add("timestamp is not numeric", logText))
 		Assert(IsInt(ts), Add("timestamp should be an integer", logText))
-		var minTs int = 1230940800000                                                                                               // 03 Jan 2009 - first block
-		var maxTs int = 2147483648000                                                                                               // 19 Jan 2038 - max int
-		Assert(IsGreaterThan(ts, minTs), Add("timestamp is impossible to be before " + ToString(minTs) + " (03.01.2009)", logText)) // 03 Jan 2009 - first block
-		Assert(IsLessThan(ts, maxTs), Add("timestamp more than " + ToString(maxTs) + " (19.01.2038)", logText))                     // 19 Jan 2038 - int32 overflows // 7258118400000  -> Jan 1 2200
+		var minTs int = 1230940800000                                                                                           // 03 Jan 2009 - first block
+		var maxTs int = 2147483648000                                                                                           // 19 Jan 2038 - max int
+		Assert(IsGreaterThan(ts, minTs), Add("timestamp is impossible to be before "+ToString(minTs)+" (03.01.2009)", logText)) // 03 Jan 2009 - first block
+		Assert(IsLessThan(ts, maxTs), Add("timestamp more than "+ToString(maxTs)+" (19.01.2038)", logText))                     // 19 Jan 2038 - int32 overflows // 7258118400000  -> Jan 1 2200
 		if !IsEqual(nowToCheck, nil) {
 			var maxMsOffset int = 60000 // 1 min
 			Assert(IsLessThan(ts, Add(nowToCheck, maxMsOffset)), Add(Add(Add(Add(Add("returned item timestamp (", exchange.Iso8601(ts)), ") is ahead of the current time ("), exchange.Iso8601(nowToCheck)), ")"), logText))
@@ -373,8 +388,18 @@ func AssertTimestampOrder(exchange ccxt.ICoreExchange, method any, codeOrSymbol 
 			var currentTs any = GetValue(GetValue(items, Subtract(i, 1)), "timestamp")
 			var nextTs any = GetValue(GetValue(items, i), "timestamp")
 			if !IsEqual(currentTs, nil) && !IsEqual(nextTs, nil) {
-				var ascendingOrDescending any = func() any { if EvalTruthy(ascending) { return "ascending" }; return "descending" }()
-				var comparison any = func() any { if EvalTruthy(ascending) { return (IsLessThanOrEqual(currentTs, nextTs)) }; return (IsGreaterThanOrEqual(currentTs, nextTs)) }()
+				var ascendingOrDescending any = func() any {
+					if EvalTruthy(ascending) {
+						return "ascending"
+					}
+					return "descending"
+				}()
+				var comparison any = func() any {
+					if EvalTruthy(ascending) {
+						return (IsLessThanOrEqual(currentTs, nextTs))
+					}
+					return (IsGreaterThanOrEqual(currentTs, nextTs))
+				}()
 				Assert(comparison, Add(Add(Add(Add(Add(Add(Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), StringValue(codeOrSymbol)), " must return a "), ascendingOrDescending), " sorted array of items by timestamp, but "), ToString(currentTs)), " is opposite with its next "), ToString(nextTs)), " "), exchange.Json(items)))
 			}
 		}
@@ -553,7 +578,12 @@ func AssertOrderState(exchange ccxt.ICoreExchange, skippedProperties any, method
 	var nonstrictOpen bool = (statusOpen || statusUndefined) && ((!filledDefined || !amountDefined) || ccxt.Precise.StringLt(filled, amount))
 	// check
 	if AssertedStatus == "open" {
-		condition = func() any { if EvalTruthy(strictCheck) { return strictOpen }; return nonstrictOpen }()
+		condition = func() any {
+			if EvalTruthy(strictCheck) {
+				return strictOpen
+			}
+			return nonstrictOpen
+		}()
 		Assert(condition, msg)
 		return
 	}
@@ -566,7 +596,12 @@ func AssertOrderState(exchange ccxt.ICoreExchange, skippedProperties any, method
 	var closedNonStrict bool = (statusClosed || statusUndefined) && ((!filledDefined || !amountDefined) || ccxt.Precise.StringEq(filled, amount))
 	// check
 	if AssertedStatus == "closed" {
-		condition = func() any { if EvalTruthy(strictCheck) { return closedStrict }; return closedNonStrict }()
+		condition = func() any {
+			if EvalTruthy(strictCheck) {
+				return closedStrict
+			}
+			return closedNonStrict
+		}()
 		Assert(condition, msg)
 		return
 	}
@@ -579,7 +614,12 @@ func AssertOrderState(exchange ccxt.ICoreExchange, skippedProperties any, method
 	var canceledNonStrict bool = (statusClanceled || statusUndefined) && ((!filledDefined || !amountDefined) || ccxt.Precise.StringLt(filled, amount))
 	// check
 	if AssertedStatus == "canceled" {
-		condition = func() any { if EvalTruthy(strictCheck) { return canceledStrict }; return canceledNonStrict }()
+		condition = func() any {
+			if EvalTruthy(strictCheck) {
+				return canceledStrict
+			}
+			return canceledNonStrict
+		}()
 		Assert(condition, msg)
 		return
 	}
@@ -587,7 +627,12 @@ func AssertOrderState(exchange ccxt.ICoreExchange, skippedProperties any, method
 	// ### CLOSED_or_CANCELED STATUS
 	//
 	if AssertedStatus == "closed_or_canceled" {
-		condition = func() any { if EvalTruthy(strictCheck) { return (closedStrict || canceledStrict) }; return (closedNonStrict || canceledNonStrict) }()
+		condition = func() any {
+			if EvalTruthy(strictCheck) {
+				return (closedStrict || canceledStrict)
+			}
+			return (closedNonStrict || canceledNonStrict)
+		}()
 		Assert(condition, msg)
 		return
 	}

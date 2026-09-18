@@ -380,7 +380,7 @@ func (this *Hashkey) HandleTrades(client any, message any) {
 			stored.(ccxt.Appender).Append(parsed)
 		}
 	}
-	var messageHash any = ccxt.Add("trades" + ":", symbol)
+	var messageHash any = ccxt.Add("trades"+":", symbol)
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 
@@ -562,7 +562,7 @@ func (this *Hashkey) HandleOrder(client any, message any) {
 	var messageHash string = "orders"
 	client.(ccxt.ClientInterface).Resolve(orders, messageHash)
 	var symbol any = ccxt.GetValue(parsed, "symbol")
-	var symbolSpecificMessageHash any = ccxt.Add(messageHash + ":", symbol)
+	var symbolSpecificMessageHash any = ccxt.Add(messageHash+":", symbol)
 	client.(ccxt.ClientInterface).Resolve(orders, symbolSpecificMessageHash)
 }
 func (this *Hashkey) ParseWsOrder(order any, optionalArgs ...any) any {
@@ -696,7 +696,7 @@ func (this *Hashkey) HandleMyTrade(client any, message any, optionalArgs ...any)
 	var messageHash string = "myTrades"
 	client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
 	var symbol any = ccxt.GetValue(parsed, "symbol")
-	var symbolSpecificMessageHash any = ccxt.Add(messageHash + ":", symbol)
+	var symbolSpecificMessageHash any = ccxt.Add(messageHash+":", symbol)
 	client.(ccxt.ClientInterface).Resolve(tradesArray, symbolSpecificMessageHash)
 }
 func (this *Hashkey) ParseWsTrade(trade any, optionalArgs ...any) any {
@@ -738,9 +738,19 @@ func (this *Hashkey) ParseWsTrade(trade any, optionalArgs ...any) any {
 	if isBuyerMaker != nil {
 		if isPublicTrade {
 			takerOrMaker = "taker"
-			side = func() any { if (isBuyerMaker != nil && *isBuyerMaker) { return "sell" }; return "buy" }()
+			side = func() any {
+				if isBuyerMaker != nil && *isBuyerMaker {
+					return "sell"
+				}
+				return "buy"
+			}()
 		} else {
-			takerOrMaker = func() any { if (isBuyerMaker != nil && *isBuyerMaker) { return "maker" }; return "taker" }()
+			takerOrMaker = func() any {
+				if isBuyerMaker != nil && *isBuyerMaker {
+					return "maker"
+				}
+				return "taker"
+			}()
 			side = this.SafeStringLower(trade, "S")
 		}
 	}
@@ -804,7 +814,7 @@ func (this *Hashkey) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	} else {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 			var symbol any = ccxt.GetValue(symbols, i)
-			ccxt.AppendToArray(&messageHashes, ccxt.Add(messageHash + ":", symbol))
+			ccxt.AppendToArray(&messageHashes, ccxt.Add(messageHash+":", symbol))
 		}
 	}
 	var url any = this.GetPrivateUrl(listenKey)
@@ -851,7 +861,7 @@ func (this *Hashkey) HandlePosition(client any, message any) {
 	var messageHash string = "positions"
 	client.(ccxt.ClientInterface).Resolve(parsed, messageHash)
 	var symbol any = ccxt.GetValue(parsed, "symbol")
-	client.(ccxt.ClientInterface).Resolve(parsed, ccxt.Add(messageHash + ":", symbol))
+	client.(ccxt.ClientInterface).Resolve(parsed, ccxt.Add(messageHash+":", symbol))
 }
 func (this *Hashkey) ParseWsPosition(position any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
@@ -1005,7 +1015,12 @@ func (this *Hashkey) HandleBalance(client any, message any) {
 	var data any = this.SafeList(message, "B", []any{})
 	var balanceUpdate any = this.SafeDict(data, 0)
 	var isSpot bool = (event != nil && *event == "outboundAccountInfo")
-	var typeVar any = func() any { if isSpot { return "spot" }; return "swap" }()
+	var typeVar any = func() any {
+		if isSpot {
+			return "spot"
+		}
+		return "swap"
+	}()
 	if !(ccxt.InOp(this.Balance, typeVar)) {
 		ccxt.AddElementToObject(this.Balance, typeVar, map[string]any{})
 	}

@@ -1018,8 +1018,13 @@ func (this *Coinbase) ParseAccount(account any) any {
 	var typeV2 *string = this.SafeString(account, "type")
 	var parts []string = Split(typeV3, " ")
 	return map[string]any{
-		"id":   this.SafeString2(account, "id", "uuid"),
-		"type": func() any { if (active != nil) { return this.SafeStringLower(parts, 1) }; return typeV2 }(),
+		"id": this.SafeString2(account, "id", "uuid"),
+		"type": func() any {
+			if active != nil {
+				return this.SafeStringLower(parts, 1)
+			}
+			return typeV2
+		}(),
 		"code": this.SafeCurrencyCode(currencyId),
 		"info": account,
 	}
@@ -1059,7 +1064,7 @@ func (this *Coinbase) createDepositAddressBody(ch chan any, code any, optionalAr
 		}
 	}
 	if accountId == nil {
-		panic(ExchangeError(Add(Add(this.Id + " createDepositAddress() could not find the account with matching currency code ", code), ", specify an `account_id` extra param to target specific wallet")))
+		panic(ExchangeError(Add(Add(this.Id+" createDepositAddress() could not find the account with matching currency code ", code), ", specify an `account_id` extra param to target specific wallet")))
 	}
 	var request map[string]any = map[string]any{
 		"account_id": accountId,
@@ -1568,7 +1573,12 @@ func (this *Coinbase) ParseTransaction(transaction any, optionalArgs ...any) any
 	var status any = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
 	if status == nil {
 		var committed *bool = this.SafeBool(transaction, "committed")
-		status = func() any { if (committed != nil && *committed == true) { return "ok" }; return "pending" }()
+		status = func() any {
+			if committed != nil && *committed == true {
+				return "ok"
+			}
+			return "pending"
+		}()
 	}
 	var id *string = this.SafeString(transaction, "id")
 	var currencyId *string = this.SafeString(amountAndCurrencyObject, "currency")
@@ -1726,18 +1736,28 @@ func (this *Coinbase) ParseTrade(trade any, optionalArgs ...any) any {
 	var side *string = this.SafeStringLower2(trade, "resource", "side")
 	var takerOrMaker *string = this.SafeStringLower(trade, "liquidity_indicator")
 	return this.SafeTrade(map[string]any{
-		"info":         trade,
-		"id":           this.SafeString2(trade, "id", "trade_id"),
-		"order":        this.SafeString(trade, "order_id"),
-		"timestamp":    this.Parse8601(datetime),
-		"datetime":     datetime,
-		"symbol":       symbol,
-		"type":         nil,
-		"side":         func() any { if (side != nil && *side == "unknown_order_side") { return nil }; return side }(),
-		"takerOrMaker": func() any { if (takerOrMaker != nil && *takerOrMaker == "unknown_liquidity_indicator") { return nil }; return takerOrMaker }(),
-		"price":        priceString,
-		"amount":       amountString,
-		"cost":         cost,
+		"info":      trade,
+		"id":        this.SafeString2(trade, "id", "trade_id"),
+		"order":     this.SafeString(trade, "order_id"),
+		"timestamp": this.Parse8601(datetime),
+		"datetime":  datetime,
+		"symbol":    symbol,
+		"type":      nil,
+		"side": func() any {
+			if side != nil && *side == "unknown_order_side" {
+				return nil
+			}
+			return side
+		}(),
+		"takerOrMaker": func() any {
+			if takerOrMaker != nil && *takerOrMaker == "unknown_liquidity_indicator" {
+				return nil
+			}
+			return takerOrMaker
+		}(),
+		"price":  priceString,
+		"amount": amountString,
+		"cost":   cost,
 		"fee": map[string]any{
 			"cost":     feeCost,
 			"currency": this.SafeCurrencyCode(feeCurrencyId),
@@ -1809,7 +1829,12 @@ func (this *Coinbase) fetchMarketsV2Body(ch chan any, optionalArgs ...any) any {
 	for i := 0; i < len(baseIds); i++ {
 		var baseId string = GetValue(baseIds, i).(string)
 		var base *string = this.SafeCurrencyCode(baseId)
-		var typeVar any = func() any { if (func() bool { _, ok := dataById[baseId]; return ok }()) { return "fiat" }; return "crypto" }()
+		var typeVar any = func() any {
+			if func() bool { _, ok := dataById[baseId]; return ok }() {
+				return "fiat"
+			}
+			return "crypto"
+		}()
 		// https://github.com/ccxt/ccxt/issues/6066
 		if IsEqual(typeVar, "crypto") {
 			for j := 0; j < GetArrayLength(data); j++ {
@@ -1817,7 +1842,7 @@ func (this *Coinbase) fetchMarketsV2Body(ch chan any, optionalArgs ...any) any {
 				var quoteId *string = this.SafeString(quoteCurrency, "id")
 				var quote *string = this.SafeCurrencyCode(quoteId)
 				AppendToArray(&result, this.SafeMarketStructure(map[string]any{
-					"id":             Add(baseId + "-", quoteId),
+					"id":             Add(baseId+"-", quoteId),
 					"symbol":         Add(Add(base, "/"), quote),
 					"base":           base,
 					"quote":          quote,
@@ -2116,8 +2141,18 @@ func (this *Coinbase) ParseSpotMarket(market any, feeTier any) any {
 	var stablePairs any = this.SafeList(this.Options, "stablePairs", []any{})
 	var defaultTakerFee *float64 = this.SafeNumber(this.Fees["trading"], "taker")
 	var defaultMakerFee *float64 = this.SafeNumber(this.Fees["trading"], "maker")
-	var takerFee any = func() any { if this.InArray(id, stablePairs) { return 0.00001 }; return this.SafeNumber(feeTier, "taker_fee_rate", defaultTakerFee) }()
-	var makerFee any = func() any { if this.InArray(id, stablePairs) { return 0 }; return this.SafeNumber(feeTier, "maker_fee_rate", defaultMakerFee) }()
+	var takerFee any = func() any {
+		if this.InArray(id, stablePairs) {
+			return 0.00001
+		}
+		return this.SafeNumber(feeTier, "taker_fee_rate", defaultTakerFee)
+	}()
+	var makerFee any = func() any {
+		if this.InArray(id, stablePairs) {
+			return 0
+		}
+		return this.SafeNumber(feeTier, "maker_fee_rate", defaultMakerFee)
+	}()
 	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
 		"symbol":         Add(Add(base, "/"), quote),
@@ -2312,8 +2347,18 @@ func (this *Coinbase) ParseContractMarket(market any, feeTier any) any {
 	}
 	var takerFeeRate *float64 = this.SafeNumber(feeTier, "taker_fee_rate")
 	var makerFeeRate *float64 = this.SafeNumber(feeTier, "maker_fee_rate")
-	var taker any = func() any { if ((takerFeeRate != nil) && (takerFeeRate == nil || *takerFeeRate != 0)) { return takerFeeRate }; return this.ParseNumber("0.06") }()
-	var maker any = func() any { if ((makerFeeRate != nil) && (makerFeeRate == nil || *makerFeeRate != 0)) { return makerFeeRate }; return this.ParseNumber("0.04") }()
+	var taker any = func() any {
+		if (takerFeeRate != nil) && (takerFeeRate == nil || *takerFeeRate != 0) {
+			return takerFeeRate
+		}
+		return this.ParseNumber("0.06")
+	}()
+	var maker any = func() any {
+		if (makerFeeRate != nil) && (makerFeeRate == nil || *makerFeeRate != 0) {
+			return makerFeeRate
+		}
+		return this.ParseNumber("0.04")
+	}()
 	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
 		"symbol":         symbol,
@@ -2497,7 +2542,12 @@ func (this *Coinbase) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 		if code != nil {
 			AddElementToObject(GetValue(this.Options, "networksById"), code, ToLower(name))
 		}
-		var typeVar any = func() any { if (assetId != nil) { return "crypto" }; return "fiat" }()
+		var typeVar any = func() any {
+			if assetId != nil {
+				return "crypto"
+			}
+			return "fiat"
+		}()
 		if code != nil {
 			AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]any{
 				"info":      currency,
@@ -2634,7 +2684,7 @@ func (this *Coinbase) fetchTickersV2Body(ch chan any, optionalArgs ...any) any {
 	var delimiter string = "-"
 	for i := 0; i < len(baseIds); i++ {
 		var baseId string = GetValue(baseIds, i).(string)
-		var marketId any = Add(baseId + delimiter, quoteId)
+		var marketId any = Add(baseId+delimiter, quoteId)
 		var market any = this.SafeMarket(marketId, nil, delimiter)
 		var symbol any = GetValue(market, "symbol")
 		AddElementToObject(result, symbol, this.ParseTicker(GetValue(rates, baseId), market))
@@ -2670,7 +2720,12 @@ func (this *Coinbase) fetchTickersV3Body(ch chan any, optionalArgs ...any) any {
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	if (marketType != nil) && (!IsEqual(marketType, "default")) {
-		request["product_type"] = func() any { if (IsEqual(marketType, "swap")) { return "FUTURE" }; return "SPOT" }()
+		request["product_type"] = func() any {
+			if IsEqual(marketType, "swap") {
+				return "FUTURE"
+			}
+			return "SPOT"
+		}()
 	}
 	var response any = nil
 	var usePrivate any = false
@@ -3686,7 +3741,7 @@ func (this *Coinbase) prepareAccountRequestWithCurrencyCodeBody(ch chan any, opt
 		accountId = (<-this.FindAccountIdAsync(code, params))
 		PanicOnError(accountId)
 		if accountId == nil {
-			panic(ExchangeError(Add(Add(this.Id + " prepareAccountRequestWithCurrencyCode() could not find account id for ", code), ". You might try to generate the deposit address in the website for that coin first.")))
+			panic(ExchangeError(Add(Add(this.Id+" prepareAccountRequestWithCurrencyCode() could not find account id for ", code), ". You might try to generate the deposit address in the website for that coin first.")))
 		}
 	}
 	var request map[string]any = map[string]any{
@@ -3807,13 +3862,23 @@ func (this *Coinbase) createOrderBody(ch chan any, symbol any, typeVar any, side
 	var isStopLoss bool = (stopLossPrice != nil)
 	var isTakeProfit bool = (takeProfitPrice != nil)
 	var timeInForce *string = this.SafeString(params, "timeInForce")
-	var postOnly any = func() any { if (timeInForce != nil && *timeInForce == "PO") { return true }; return this.SafeBool2(params, "postOnly", "post_only", false) }()
+	var postOnly any = func() any {
+		if timeInForce != nil && *timeInForce == "PO" {
+			return true
+		}
+		return this.SafeBool2(params, "postOnly", "post_only", false)
+	}()
 	var endTime *string = this.SafeString(params, "end_time")
 	var stopDirection any = DerefScalar(this.SafeString(params, "stop_direction"))
 	if IsEqual(typeVar, "limit") {
 		if isStop {
 			if stopDirection == nil {
-				stopDirection = func() any { if (IsEqual(side, "buy")) { return "STOP_DIRECTION_STOP_DOWN" }; return "STOP_DIRECTION_STOP_UP" }()
+				stopDirection = func() any {
+					if IsEqual(side, "buy") {
+						return "STOP_DIRECTION_STOP_DOWN"
+					}
+					return "STOP_DIRECTION_STOP_UP"
+				}()
 			}
 			if (timeInForce != nil && *timeInForce == "GTD") || (endTime != nil) {
 				if endTime == nil {
@@ -3842,12 +3907,22 @@ func (this *Coinbase) createOrderBody(ch chan any, symbol any, typeVar any, side
 			var tpslPrice any = nil
 			if isStopLoss {
 				if stopDirection == nil {
-					stopDirection = func() any { if (IsEqual(side, "buy")) { return "STOP_DIRECTION_STOP_UP" }; return "STOP_DIRECTION_STOP_DOWN" }()
+					stopDirection = func() any {
+						if IsEqual(side, "buy") {
+							return "STOP_DIRECTION_STOP_UP"
+						}
+						return "STOP_DIRECTION_STOP_DOWN"
+					}()
 				}
 				tpslPrice = this.PriceToPrecision(symbol, stopLossPrice)
 			} else {
 				if stopDirection == nil {
-					stopDirection = func() any { if (IsEqual(side, "buy")) { return "STOP_DIRECTION_STOP_DOWN" }; return "STOP_DIRECTION_STOP_UP" }()
+					stopDirection = func() any {
+						if IsEqual(side, "buy") {
+							return "STOP_DIRECTION_STOP_DOWN"
+						}
+						return "STOP_DIRECTION_STOP_UP"
+					}()
 				}
 				tpslPrice = this.PriceToPrecision(symbol, takeProfitPrice)
 			}
@@ -4106,7 +4181,12 @@ func (this *Coinbase) ParseOrder(order any, optionalArgs ...any) any {
 		amount = DerefScalar(this.SafeString(target, "base_size"))
 		postOnly = this.SafeBool(target, "post_only")
 	} else if isStop {
-		var stopTarget any = func() any { if (!IsEqual(stopLimitGTC, nil)) { return stopLimitGTC }; return stopLimitGTD }()
+		var stopTarget any = func() any {
+			if !IsEqual(stopLimitGTC, nil) {
+				return stopLimitGTC
+			}
+			return stopLimitGTD
+		}()
 		price = DerefScalar(this.SafeString(stopTarget, "limit_price"))
 		amount = DerefScalar(this.SafeString(stopTarget, "base_size"))
 		postOnly = this.SafeBool(stopTarget, "post_only")
@@ -4824,7 +4904,12 @@ func (this *Coinbase) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		PanicOnError(retRes391212)
 	}
 	var maxLimit int = 300
-	limit = func() any { if (IsEqual(limit, nil)) { return maxLimit }; return mathMin(limit, maxLimit) }()
+	limit = func() any {
+		if IsEqual(limit, nil) {
+			return maxLimit
+		}
+		return mathMin(limit, maxLimit)
+	}()
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
@@ -5291,7 +5376,7 @@ func (this *Coinbase) withdrawBody(ch chan any, code any, amount any, address an
 		accountId = (<-this.FindAccountIdAsync(code, params))
 		PanicOnError(accountId)
 		if accountId == nil {
-			panic(ExchangeError(Add(this.Id + " withdraw() could not find account id for ", code)))
+			panic(ExchangeError(Add(this.Id+" withdraw() could not find account id for ", code)))
 		}
 		request["account_id"] = accountId
 	} else {
@@ -5572,7 +5657,7 @@ func (this *Coinbase) depositBody(ch chan any, code any, amount any, id any, opt
 		accountId = (<-this.FindAccountIdAsync(code, params))
 		PanicOnError(accountId)
 		if accountId == nil {
-			panic(ExchangeError(Add(this.Id + " deposit() could not find account id for ", code)))
+			panic(ExchangeError(Add(this.Id+" deposit() could not find account id for ", code)))
 		}
 	}
 	var request map[string]any = map[string]any{
@@ -5666,7 +5751,7 @@ func (this *Coinbase) fetchDepositBody(ch chan any, id any, optionalArgs ...any)
 		accountId = (<-this.FindAccountIdAsync(code, params))
 		PanicOnError(accountId)
 		if accountId == nil {
-			panic(ExchangeError(Add(this.Id + " fetchDeposit() could not find account id for ", code)))
+			panic(ExchangeError(Add(this.Id+" fetchDeposit() could not find account id for ", code)))
 		}
 	}
 	var request map[string]any = map[string]any{
@@ -6347,11 +6432,21 @@ func (this *Coinbase) ParsePosition(position any, optionalArgs ...any) any {
 	var rawMargin *string = this.SafeString(position, "margin_type")
 	var marginMode any = nil
 	if rawMargin != nil {
-		marginMode = func() any { if (rawMargin != nil && *rawMargin == "MARGIN_TYPE_CROSS") { return "cross" }; return "isolated" }()
+		marginMode = func() any {
+			if rawMargin != nil && *rawMargin == "MARGIN_TYPE_CROSS" {
+				return "cross"
+			}
+			return "isolated"
+		}()
 	}
 	var notionalObject any = this.SafeDict(position, "position_notional", map[string]any{})
 	var positionSide *string = this.SafeString(position, "position_side")
-	var side any = func() any { if (positionSide != nil && *positionSide == "POSITION_SIDE_LONG") { return "long" }; return "short" }()
+	var side any = func() any {
+		if positionSide != nil && *positionSide == "POSITION_SIDE_LONG" {
+			return "long"
+		}
+		return "short"
+	}()
 	var unrealizedPNLObject any = this.SafeDict(position, "unrealized_pnl", map[string]any{})
 	var liquidationPriceObject any = this.SafeDict(position, "liquidation_price", map[string]any{})
 	var liquidationPrice *float64 = this.SafeNumber(liquidationPriceObject, "value")
@@ -6418,7 +6513,12 @@ func (this *Coinbase) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
 	var isSpot bool = (IsEqual(typeVar, "spot"))
-	var productType any = func() any { if isSpot { return "SPOT" }; return "FUTURE" }()
+	var productType any = func() any {
+		if isSpot {
+			return "SPOT"
+		}
+		return "FUTURE"
+	}()
 	var request map[string]any = map[string]any{
 		"product_type": productType,
 	}
@@ -6525,9 +6625,14 @@ func (this *Coinbase) ParsePortfolioDetails(portfolioData any) any {
 		var averageEntryPriceDict any = this.SafeDict(position, "average_entry_price", map[string]any{})
 		var averageEntryPriceStr *string = this.SafeString(averageEntryPriceDict, "value", "0")
 		var positionData map[string]any = map[string]any{
-			"currency":                     currencyCode,
-			"available_balance":            availableBalance,
-			"hold_amount":                  func() any { if IsGreaterThan(holdAmount, 0) { return holdAmount }; return 0 }(),
+			"currency":          currencyCode,
+			"available_balance": availableBalance,
+			"hold_amount": func() any {
+				if IsGreaterThan(holdAmount, 0) {
+					return holdAmount
+				}
+				return 0
+			}(),
 			"wallet_name":                  portfolioName,
 			"account_id":                   portfolioUuid,
 			"account_uuid":                 this.SafeString(position, "account_uuid", ""),
@@ -6573,8 +6678,18 @@ func (this *Coinbase) CreateAuthToken(seconds any, optionalArgs ...any) any {
 	}
 	// eddsa {"sub":"d2efa49a-369c-43d7-a60e-ae26e28853c2","iss":"cdp","aud":["cdp_service"],"uris":["GET api.coinbase.com/api/v3/brokerage/transaction_summary"]}
 	var nonce string = this.RandomBytes(16)
-	var aud any = func() any { if EvalTruthy(useEddsa) { return "cdp_service" }; return "retail_rest_api_proxy" }()
-	var iss any = func() any { if EvalTruthy(useEddsa) { return "cdp" }; return "coinbase-cloud" }()
+	var aud any = func() any {
+		if EvalTruthy(useEddsa) {
+			return "cdp_service"
+		}
+		return "retail_rest_api_proxy"
+	}()
+	var iss any = func() any {
+		if EvalTruthy(useEddsa) {
+			return "cdp"
+		}
+		return "coinbase-cloud"
+	}()
 	var request map[string]any = map[string]any{
 		"aud": []any{aud},
 		"iss": iss,
@@ -6624,13 +6739,18 @@ func (this *Coinbase) Sign(path any, optionalArgs ...any) any {
 	var version any = GetValue(api, 0)
 	var signed bool = IsEqual(GetValue(api, 1), "private")
 	var isV3 bool = (IsEqual(version, "v3"))
-	var pathPart any = func() any { if (isV3) { return "api/v3" }; return "v2" }()
+	var pathPart any = func() any {
+		if isV3 {
+			return "api/v3"
+		}
+		return "v2"
+	}()
 	var fullPath any = Add(Add(Add("/", pathPart), "/"), this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var savedPath any = fullPath
 	if IsEqual(method, "GET") {
 		if len(ObjectKeys(query)) > 0 {
-			fullPath = Add(fullPath, "?" + this.UrlencodeWithArrayRepeat(query))
+			fullPath = Add(fullPath, "?"+this.UrlencodeWithArrayRepeat(query))
 		}
 	}
 	var url any = Add(GetValue(GetValue(this.Urls, "api"), "rest"), fullPath)
@@ -6653,7 +6773,7 @@ func (this *Coinbase) Sign(path any, optionalArgs ...any) any {
 			} else {
 				if !isV3 {
 					if len(ObjectKeys(query)) > 0 {
-						payload = Add(payload, "?" + this.Urlencode(query))
+						payload = Add(payload, "?"+this.Urlencode(query))
 					}
 				}
 			}
@@ -6726,7 +6846,7 @@ func (this *Coinbase) HandleErrors(code any, reason any, url any, method any, he
 	if IsEqual(response, nil) {
 		return nil // fallback to default error handler
 	}
-	var feedback any = Add(this.Id + " ", body)
+	var feedback any = Add(this.Id+" ", body)
 	//
 	//    {"error": "invalid_request", "error_description": "The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed."}
 	//
@@ -6791,7 +6911,7 @@ func (this *Coinbase) HandleErrors(code any, reason any, url any, method any, he
 	}
 	var advancedTrade any = GetValue(this.Options, "advanced")
 	if !(InOp(response, "data")) && (advancedTrade != true) {
-		panic(ExchangeError(Add(this.Id + " failed due to a malformed response ", this.Json(response))))
+		panic(ExchangeError(Add(this.Id+" failed due to a malformed response ", this.Json(response))))
 	}
 	return nil
 }

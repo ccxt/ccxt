@@ -21,5 +21,5 @@ func TestIo() {
 	assert(exchange.WriteFile(filePath, fileContent), ccxt.Add("can not write file ", filePath))
 	assert(exchange.ExistsFile(filePath), ccxt.Add("file does not exist: ", filePath))
 	var readContent any = exchange.ReadFile(filePath)
-	assert(ccxt.IsEqual(readContent, fileContent), ccxt.Add("file content mismatch. Expected: " + fileContent + ", got: ", readContent))
+	assert(ccxt.IsEqual(readContent, fileContent), ccxt.Add("file content mismatch. Expected: "+fileContent+", got: ", readContent))
 }

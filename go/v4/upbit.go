@@ -2949,7 +2949,7 @@ func (this *Upbit) createDepositAddressBody(ch chan any, code any, optionalArgs 
 	//
 	var message *string = this.SafeString(response, "message")
 	if message != nil {
-		panic(AddressPending(Add(Add(this.Id + " is generating ", code), " deposit address, call fetchDepositAddress or createDepositAddress one more time later to retrieve the generated address")))
+		panic(AddressPending(Add(Add(this.Id+" is generating ", code), " deposit address, call fetchDepositAddress or createDepositAddress one more time later to retrieve the generated address")))
 	}
 
 	ch <- this.ParseDepositAddress(response)
@@ -3056,7 +3056,7 @@ func (this *Upbit) Sign(path any, optionalArgs ...any) any {
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if !IsEqual(method, "POST") {
 		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, "?" + this.Urlencode(query))
+			url = Add(url, "?"+this.Urlencode(query))
 		}
 	}
 	if IsEqual(api, "private") {
@@ -3082,7 +3082,7 @@ func (this *Upbit) Sign(path any, optionalArgs ...any) any {
 			request["query_hash_alg"] = "SHA512"
 		}
 		var token string = Jwt(request, this.Encode(this.Secret), sha256)
-		AddElementToObject(headers, "Authorization", "Bearer " + token)
+		AddElementToObject(headers, "Authorization", "Bearer "+token)
 	}
 	return map[string]any{
 		"url":     url,
@@ -3110,7 +3110,7 @@ func (this *Upbit) HandleErrors(httpCode any, reason any, url any, method any, h
 	if !IsEqual(error, nil) {
 		var message *string = this.SafeString(error, "message")
 		var name *string = this.SafeString(error, "name")
-		var feedback any = Add(this.Id + " ", body)
+		var feedback any = Add(this.Id+" ", body)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], name, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)

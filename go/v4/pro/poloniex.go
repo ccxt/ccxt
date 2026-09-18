@@ -110,7 +110,7 @@ func (this *Poloniex) authenticateBody(ch chan any, optionalArgs ...any) any {
 	var future any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	if ccxt.IsEqual(future, nil) {
 		var accessPath string = "/ws"
-		var requestString any = ccxt.Add("GET\n" + accessPath + "\nsignTimestamp=", timestamp)
+		var requestString any = ccxt.Add("GET\n"+accessPath+"\nsignTimestamp=", timestamp)
 		var signature string = this.Hmac(this.Encode(requestString), this.Encode(this.Secret), ccxt.Sha256, "base64")
 		var request map[string]any = map[string]any{
 			"event":   "subscribe",
@@ -177,7 +177,12 @@ func (this *Poloniex) subscribeBody(ch chan any, name any, messageHash any, isPr
 	_ = symbols
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var publicOrPrivate any = func() any { if ccxt.EvalTruthy(isPrivate) { return "private" }; return "public" }()
+	var publicOrPrivate any = func() any {
+		if ccxt.EvalTruthy(isPrivate) {
+			return "private"
+		}
+		return "public"
+	}()
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), publicOrPrivate)
 	var subscribe map[string]any = map[string]any{
 		"event":   "subscribe",
@@ -192,7 +197,12 @@ func (this *Poloniex) subscribeBody(ch chan any, name any, messageHash any, isPr
 		}
 		messageHash = ccxt.Add(ccxt.Add(messageHash, "::"), ccxt.Join(symbols, ","))
 		var ids any = this.MarketIds(symbols)
-		marketIds = func() any { if (ccxt.IsEqual(ids, nil)) { return []any{} }; return ids }()
+		marketIds = func() any {
+			if ccxt.IsEqual(ids, nil) {
+				return []any{}
+			}
+			return ids
+		}()
 	}
 	if !ccxt.IsEqual(name, "balances") {
 		subscribe["symbols"] = marketIds
@@ -504,7 +514,7 @@ func (this *Poloniex) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	var timeframes any = this.SafeValue(this.Options, "timeframes", map[string]any{})
 	var channel *string = this.SafeString(timeframes, timeframe, timeframe)
 	if channel == nil {
-		panic(ccxt.BadRequest(ccxt.Add(this.Id + " watchOHLCV cannot take a timeframe of ", timeframe)))
+		panic(ccxt.BadRequest(ccxt.Add(this.Id+" watchOHLCV cannot take a timeframe of ", timeframe)))
 	}
 
 	ohlcv := (<-this.SubscribeAsync(channel, channel, false, []any{symbol}, params))
@@ -666,7 +676,7 @@ func (this *Poloniex) watchTradesForSymbolsBody(ch chan any, symbols any, option
 	var messageHashes any = []any{}
 	if !ccxt.IsEqual(symbols, nil) {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-			ccxt.AppendToArray(&messageHashes, ccxt.Add(name + "::", ccxt.GetValue(symbols, i)))
+			ccxt.AppendToArray(&messageHashes, ccxt.Add(name+"::", ccxt.GetValue(symbols, i)))
 		}
 	}
 
@@ -761,7 +771,12 @@ func (this *Poloniex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		symbol = this.Symbol(symbol)
 	}
-	var symbols any = func() any { if (symbol == nil) { return nil }; return []any{symbol} }()
+	var symbols any = func() any {
+		if symbol == nil {
+			return nil
+		}
+		return []any{symbol}
+	}()
 
 	orders := (<-this.SubscribeAsync(name, name, true, symbols, params))
 	ccxt.PanicOnError(orders)
@@ -813,7 +828,12 @@ func (this *Poloniex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		symbol = this.Symbol(symbol)
 	}
-	var symbols any = func() any { if (symbol == nil) { return nil }; return []any{symbol} }()
+	var symbols any = func() any {
+		if symbol == nil {
+			return nil
+		}
+		return []any{symbol}
+	}()
 
 	trades := (<-this.SubscribeAsync(name, messageHash, true, symbols, params))
 	ccxt.PanicOnError(trades)
@@ -910,7 +930,12 @@ func (this *Poloniex) HandleOHLCV(client any, message any) any {
 	var messageHash any = ccxt.Add(ccxt.Add(channel, "::"), symbol)
 	var parsed any = this.ParseWsOHLCV(data, market)
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any{}))
-	var stored any = func() any { if (timeframe == nil) { return nil }; return this.SafeValue(this.SafeValue(this.Ohlcvs, symbol), timeframe) }()
+	var stored any = func() any {
+		if timeframe == nil {
+			return nil
+		}
+		return this.SafeValue(this.SafeValue(this.Ohlcvs, symbol), timeframe)
+	}()
 	if symbol != nil {
 		if ccxt.IsEqual(stored, nil) {
 			var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -950,8 +975,13 @@ func (this *Poloniex) HandleTrade(client any, message any) any {
 			var trade any = this.ParseWsTrade(item)
 			var symbol any = ccxt.GetValue(trade, "symbol")
 			var typeVar string = "trades"
-			var messageHash any = ccxt.Add(typeVar + "::", symbol)
-			var tradesArray any = func() any { if (symbol == nil) { return nil }; return this.SafeValue(this.Trades, symbol) }()
+			var messageHash any = ccxt.Add(typeVar+"::", symbol)
+			var tradesArray any = func() any {
+				if symbol == nil {
+					return nil
+				}
+				return this.SafeValue(this.Trades, symbol)
+			}()
 			if ccxt.IsEqual(tradesArray, nil) {
 				var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 				tradesArray = ccxt.NewArrayCache(tradesLimit)
@@ -1409,7 +1439,7 @@ func (this *Poloniex) HandleOrderBook(client any, message any) {
 		var market any = this.SafeMarket(marketId)
 		var symbol any = ccxt.GetValue(market, "symbol")
 		var name string = "book_lv2"
-		var messageHash any = ccxt.Add(name + "::", symbol)
+		var messageHash any = ccxt.Add(name+"::", symbol)
 		var subscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash, map[string]any{})
 		var limit *int64 = this.SafeInteger(subscription, "limit")
 		var timestamp *int64 = this.SafeInteger(item, "ts")
@@ -1518,7 +1548,7 @@ func (this *Poloniex) HandleMyTrades(client any, parsedTrade any) {
 	var trades any = this.MyTrades
 	trades.(ccxt.Appender).Append(parsedTrade)
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
-	var symbolMessageHash any = ccxt.Add(messageHash + ":", symbol)
+	var symbolMessageHash any = ccxt.Add(messageHash+":", symbol)
 	client.(ccxt.ClientInterface).Resolve(trades, symbolMessageHash)
 }
 func (this *Poloniex) HandlePong(client any) {
@@ -1559,7 +1589,12 @@ func (this *Poloniex) HandleMessage(client any, message any) {
 		"cancelAllOrders":   this.HandleOrderRequest,
 		"auth":              this.HandleAuthenticate,
 	}
-	var method any = func() any { if (typeVar == nil) { return nil }; return this.SafeValue(methods, typeVar) }()
+	var method any = func() any {
+		if typeVar == nil {
+			return nil
+		}
+		return this.SafeValue(methods, typeVar)
+	}()
 	if typeVar != nil && *typeVar == "auth" {
 		this.HandleAuthenticate(client, message)
 	} else if typeVar == nil {
@@ -1635,7 +1670,7 @@ func (this *Poloniex) HandleErrorMessage(client any, message any) any {
 				// try block:
 				var error *string = this.SafeString(first, "message")
 				var code *string = this.SafeString(first, "code")
-				var feedback any = ccxt.Add(this.Id + " ", this.Json(message))
+				var feedback any = ccxt.Add(this.Id+" ", this.Json(message))
 				this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
 				this.ThrowBroadlyMatchedException(this.Exceptions["broad"], error, feedback)
 				panic(ccxt.ExchangeError(feedback))
@@ -1664,7 +1699,7 @@ func (this *Poloniex) HandleAuthenticate(client any, message any) any {
 	if success == true {
 		client.(ccxt.ClientInterface).Resolve(message, messageHash)
 	} else {
-		error := ccxt.AuthenticationError(ccxt.Add(this.Id + " ", this.Json(message)))
+		error := ccxt.AuthenticationError(ccxt.Add(this.Id+" ", this.Json(message)))
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
 		if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
 			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)

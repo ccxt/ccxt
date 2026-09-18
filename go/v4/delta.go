@@ -450,7 +450,12 @@ func (this *Delta) CreateExpiredOptionMarket(symbol any) any {
 	var strike *string = this.SafeString(optionParts, 2)
 	var datetime any = this.ConvertExpireDate(expiry)
 	var timestamp *int64 = this.Parse8601(datetime)
-	var optionTypeUnified any = func() any { if (IsEqual(optionType, "C")) { return "call" }; return "put" }()
+	var optionTypeUnified any = func() any {
+		if IsEqual(optionType, "C") {
+			return "call"
+		}
+		return "put"
+	}()
 	return this.SafeMarketStructure(map[string]any{
 		"id":             Add(Add(Add(Add(Add(Add(optionType, "-"), base), "-"), strike), "-"), expiry),
 		"symbol":         Add(Add(Add(Add(Add(Add(Add(Add(Add(Add(base, "/"), quote), ":"), settle), "-"), expiry), "-"), strike), "-"), optionType),
@@ -615,7 +620,12 @@ func (this *Delta) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	//
 	var result any = this.SafeDict(response, "result", map[string]any{})
 	var underMaintenance *string = this.SafeString(result, "under_maintenance")
-	var status any = func() any { if (underMaintenance != nil && *underMaintenance == "true") { return "maintenance" }; return "ok" }()
+	var status any = func() any {
+		if underMaintenance != nil && *underMaintenance == "true" {
+			return "maintenance"
+		}
+		return "ok"
+	}()
 	var updated *int64 = this.SafeIntegerProduct(result, "server_time", 0.001, this.Milliseconds())
 
 	ch <- map[string]any{
@@ -1071,28 +1081,43 @@ func (this *Delta) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		}
 		var state *string = this.SafeString(market, "state")
 		AppendToArray(&result, this.SafeMarketStructure(map[string]any{
-			"id":             id,
-			"numericId":      numericId,
-			"symbol":         symbol,
-			"base":           base,
-			"quote":          quote,
-			"settle":         settle,
-			"baseId":         baseId,
-			"quoteId":        quoteId,
-			"settleId":       settleId,
-			"type":           typeVar,
-			"spot":           spot,
-			"margin":         false,
-			"swap":           swap,
-			"future":         future,
-			"option":         option,
-			"active":         (state != nil && *state == "live"),
-			"contract":       !spot,
-			"linear":         func() any { if spot { return nil }; return linear }(),
-			"inverse":        func() any { if spot { return nil }; return !linear }(),
-			"taker":          this.SafeNumber(market, "taker_commission_rate"),
-			"maker":          this.SafeNumber(market, "maker_commission_rate"),
-			"contractSize":   func() any { if spot { return nil }; return contractSize }(),
+			"id":        id,
+			"numericId": numericId,
+			"symbol":    symbol,
+			"base":      base,
+			"quote":     quote,
+			"settle":    settle,
+			"baseId":    baseId,
+			"quoteId":   quoteId,
+			"settleId":  settleId,
+			"type":      typeVar,
+			"spot":      spot,
+			"margin":    false,
+			"swap":      swap,
+			"future":    future,
+			"option":    option,
+			"active":    (state != nil && *state == "live"),
+			"contract":  !spot,
+			"linear": func() any {
+				if spot {
+					return nil
+				}
+				return linear
+			}(),
+			"inverse": func() any {
+				if spot {
+					return nil
+				}
+				return !linear
+			}(),
+			"taker": this.SafeNumber(market, "taker_commission_rate"),
+			"maker": this.SafeNumber(market, "maker_commission_rate"),
+			"contractSize": func() any {
+				if spot {
+					return nil
+				}
+				return contractSize
+			}(),
 			"expiry":         expiry,
 			"expiryDatetime": this.Iso8601(expiry),
 			"strike":         this.ParseNumber(strike),
@@ -1256,7 +1281,12 @@ func (this *Delta) ParseTicker(ticker any, optionalArgs ...any) any {
 	var turnoverSymbol *string = this.SafeStringUpper(ticker, "turnover_symbol")
 	var quoteId *string = this.SafeStringUpper(market, "quoteId")
 	var baseDenominated bool = (turnoverSymbol != nil) && (quoteId != nil) && (turnoverSymbol != quoteId && (turnoverSymbol == nil || quoteId == nil || *turnoverSymbol != *quoteId))
-	var quoteVolume any = func() any { if baseDenominated { return this.SafeNumber(ticker, "turnover_usd") }; return this.SafeNumber(ticker, "turnover") }()
+	var quoteVolume any = func() any {
+		if baseDenominated {
+			return this.SafeNumber(ticker, "turnover_usd")
+		}
+		return this.SafeNumber(ticker, "turnover")
+	}()
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
@@ -1887,14 +1917,24 @@ func (this *Delta) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 		"resolution": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	var duration any = this.ParseTimeframe(timeframe)
-	limit = func() any { if (!IsEqual(limit, nil) && !IsEqual(limit, nil) && (!IsEqual(limit, 0))) { return limit }; return 2000 }() // max 2000
+	limit = func() any {
+		if !IsEqual(limit, nil) && !IsEqual(limit, nil) && (!IsEqual(limit, 0)) {
+			return limit
+		}
+		return 2000
+	}() // max 2000
 	var until any = this.SafeIntegerProduct(params, "until", 0.001)
 	var untilIsDefined bool = (!IsEqual(until, nil))
 	if untilIsDefined {
 		until = this.ParseToInt(until)
 	}
 	if IsEqual(since, nil) {
-		var end any = func() any { if untilIsDefined { return until }; return this.Seconds() }()
+		var end any = func() any {
+			if untilIsDefined {
+				return until
+			}
+			return this.Seconds()
+		}()
 		request["end"] = end
 		if IsEqual(end, nil) {
 			panic(ExchangeError(this.Id + " fetchOHLCV() missing end"))
@@ -1903,7 +1943,12 @@ func (this *Delta) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	} else {
 		var start int64 = this.ParseToInt(Divide(since, 1000))
 		request["start"] = start
-		request["end"] = func() any { if untilIsDefined { return until }; return this.Sum(start, Multiply(limit, duration)) }()
+		request["end"] = func() any {
+			if untilIsDefined {
+				return until
+			}
+			return this.Sum(start, Multiply(limit, duration))
+		}()
 	}
 	var price *string = this.SafeString(params, "price")
 	if price != nil && *price == "mark" {
@@ -1942,7 +1987,12 @@ func (this *Delta) ParseBalance(response any) any {
 		var balance any = GetValue(balances, i)
 		var currencyId *string = this.SafeString(balance, "asset_id")
 		var currency any = this.SafeDict(currenciesByNumericId, currencyId)
-		var code any = func() any { if (IsEqual(currency, nil)) { return currencyId }; return GetValue(currency, "code") }()
+		var code any = func() any {
+			if IsEqual(currency, nil) {
+				return currencyId
+			}
+			return GetValue(currency, "code")
+		}()
 		var account any = this.Account()
 		AddElementToObject(account, "total", this.SafeString(balance, "balance"))
 		AddElementToObject(account, "free", this.SafeString(balance, "available_balance"))
@@ -2253,7 +2303,12 @@ func (this *Delta) ParseOrder(order any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(order, "product_id")
 	var marketsByNumericId any = this.SafeDict(this.Options, "marketsByNumericId", map[string]any{})
 	market = this.SafeValue(marketsByNumericId, marketId, market)
-	var symbol any = func() any { if (IsEqual(market, nil)) { return marketId }; return GetValue(market, "symbol") }()
+	var symbol any = func() any {
+		if IsEqual(market, nil) {
+			return marketId
+		}
+		return GetValue(market, "symbol")
+	}()
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "state"))
 	var side *string = this.SafeString(order, "side")
 	var typeVar any = DerefScalar(this.SafeString(order, "order_type"))
@@ -3013,7 +3068,12 @@ func (this *Delta) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var currencyId *string = this.SafeString(item, "asset_id")
 	var currenciesByNumericId any = this.SafeDict(this.Options, "currenciesByNumericId")
 	currency = this.SafeValue(currenciesByNumericId, currencyId, currency)
-	var code any = func() any { if (IsEqual(currency, nil)) { return nil }; return GetValue(currency, "code") }()
+	var code any = func() any {
+		if IsEqual(currency, nil) {
+			return nil
+		}
+		return GetValue(currency, "code")
+	}()
 	var amount *string = this.SafeString(item, "amount")
 	var timestamp *int64 = this.Parse8601(this.SafeString(item, "created_at"))
 	var after *string = this.SafeString(item, "balance")
@@ -4870,7 +4930,7 @@ func (this *Delta) Sign(path any, optionalArgs ...any) any {
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsEqual(api, "public") {
 		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, "?" + this.Urlencode(query))
+			url = Add(url, "?"+this.Urlencode(query))
 		}
 	} else if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
@@ -4911,7 +4971,7 @@ func (this *Delta) HandleErrors(code any, reason any, url any, method any, heade
 	var error any = this.SafeDict(response, "error", map[string]any{})
 	var errorCode *string = this.SafeString(error, "code")
 	if errorCode != nil {
-		var feedback any = Add(this.Id + " ", body)
+		var feedback any = Add(this.Id+" ", body)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errorCode, feedback)
 		panic(ExchangeError(feedback))

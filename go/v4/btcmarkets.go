@@ -1118,7 +1118,12 @@ func (this *Btcmarkets) ParseTrade(trade any, optionalArgs ...any) any {
 	var timestamp *int64 = this.Parse8601(this.SafeString(trade, "timestamp"))
 	var marketId *string = this.SafeString(trade, "marketId")
 	market = this.SafeMarket(marketId, market, "-")
-	var feeCurrencyCode any = func() any { if (GetValue(market, "quote") == "AUD") { return GetValue(market, "quote") }; return GetValue(market, "base") }()
+	var feeCurrencyCode any = func() any {
+		if GetValue(market, "quote") == "AUD" {
+			return GetValue(market, "quote")
+		}
+		return GetValue(market, "base")
+	}()
 	var side any = DerefScalar(this.SafeString(trade, "side"))
 	if IsEqual(side, "Bid") {
 		side = "buy"
@@ -1239,7 +1244,12 @@ func (this *Btcmarkets) createOrderBody(ch chan any, symbol any, typeVar any, si
 	var request map[string]any = map[string]any{
 		"marketId": GetValue(market, "id"),
 		"amount":   this.AmountToPrecision(symbol, amount),
-		"side":     func() any { if (IsEqual(side, "buy")) { return "Bid" }; return "Ask" }(),
+		"side": func() any {
+			if IsEqual(side, "buy") {
+				return "Bid"
+			}
+			return "Ask"
+		}(),
 	}
 	var lowercaseType string = ToLower(typeVar)
 	var orderTypes any = this.SafeValue(this.Options, "orderTypes", map[string]any{
@@ -1264,7 +1274,7 @@ func (this *Btcmarkets) createOrderBody(ch chan any, symbol any, typeVar any, si
 	}
 	if priceIsRequired {
 		if IsEqual(price, nil) {
-			panic(ArgumentsRequired(Add(Add(this.Id + " createOrder() requires a price argument for a ", typeVar), "order")))
+			panic(ArgumentsRequired(Add(Add(this.Id+" createOrder() requires a price argument for a ", typeVar), "order")))
 		} else {
 			request["price"] = this.PriceToPrecision(symbol, price)
 		}
@@ -1273,7 +1283,7 @@ func (this *Btcmarkets) createOrderBody(ch chan any, symbol any, typeVar any, si
 		var triggerPrice *float64 = this.SafeNumber(params, "triggerPrice")
 		params = this.Omit(params, "triggerPrice")
 		if triggerPrice == nil {
-			panic(ArgumentsRequired(Add(Add(this.Id + " createOrder() requires a triggerPrice parameter for a ", typeVar), "order")))
+			panic(ArgumentsRequired(Add(Add(this.Id+" createOrder() requires a triggerPrice parameter for a ", typeVar), "order")))
 		} else {
 			request["triggerPrice"] = this.PriceToPrecision(symbol, triggerPrice)
 		}
@@ -1872,7 +1882,7 @@ func (this *Btcmarkets) Sign(path any, optionalArgs ...any) any {
 		var auth any = Add(Add(method, request), nonce)
 		if (IsEqual(method, "GET")) || (IsEqual(method, "DELETE")) {
 			if len(ObjectKeys(query)) > 0 {
-				request = Add(request, "?" + this.Urlencode(query))
+				request = Add(request, "?"+this.Urlencode(query))
 			}
 		} else {
 			body = this.Json(query)
@@ -1889,7 +1899,7 @@ func (this *Btcmarkets) Sign(path any, optionalArgs ...any) any {
 		}
 	} else if IsEqual(api, "public") {
 		if len(ObjectKeys(query)) > 0 {
-			request = Add(request, "?" + this.Urlencode(query))
+			request = Add(request, "?"+this.Urlencode(query))
 		}
 	}
 	var url any = Add(GetValue(GetValue(this.Urls, "api"), api), request)
@@ -1911,7 +1921,7 @@ func (this *Btcmarkets) HandleErrors(code any, reason any, url any, method any, 
 	var errorCode *string = this.SafeString(response, "code")
 	var message *string = this.SafeString(response, "message")
 	if errorCode != nil {
-		var feedback any = Add(this.Id + " ", body)
+		var feedback any = Add(this.Id+" ", body)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)

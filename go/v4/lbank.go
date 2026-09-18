@@ -926,7 +926,12 @@ func (this *Lbank) ParseTicker(ticker any, optionalArgs ...any) any {
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var tickerData any = this.SafeValue(ticker, "ticker", map[string]any{})
 	market = this.SafeMarket(marketId, market)
-	var data any = func() any { if (IsEqual(GetValue(market, "contract"), true)) { return ticker }; return tickerData }()
+	var data any = func() any {
+		if IsEqual(GetValue(market, "contract"), true) {
+			return ticker
+		}
+		return tickerData
+	}()
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
@@ -1313,7 +1318,12 @@ func (this *Lbank) ParseTrade(trade any, optionalArgs ...any) any {
 	var fee any = nil
 	var feeCost *string = this.SafeString(trade, "tradeFee")
 	if feeCost != nil {
-		var feeCurr any = func() any { if (side != nil && *side == "buy") { return this.SafeString(market, "base") }; return this.SafeString(market, "quote") }()
+		var feeCurr any = func() any {
+			if side != nil && *side == "buy" {
+				return this.SafeString(market, "base")
+			}
+			return this.SafeString(market, "quote")
+		}()
 		fee = map[string]any{
 			"cost":     feeCost,
 			"currency": feeCurr,
@@ -1866,7 +1876,12 @@ func (this *Lbank) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	//        "code": 0
 	//    }
 	//
-	var balanceResponse any = func() any { if (IsEqual(response, nil)) { return map[string]any{} }; return response }()
+	var balanceResponse any = func() any {
+		if IsEqual(response, nil) {
+			return map[string]any{}
+		}
+		return response
+	}()
 	var balanceResult any = this.ParseBalance(balanceResponse)
 	if IsEqual(balanceResult, nil) {
 		panic(NullResponse(this.Id + " fetchBalance() returned empty response"))
@@ -3810,7 +3825,7 @@ func (this *Lbank) Sign(path any, optionalArgs ...any) any {
 	}
 	if IsEqual(GetValue(api, 1), "public") {
 		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, "?" + this.Urlencode(this.Keysort(query)))
+			url = Add(url, "?"+this.Urlencode(this.Keysort(query)))
 		}
 	} else {
 		this.CheckRequiredCredentials()
@@ -3876,7 +3891,7 @@ func (this *Lbank) ConvertSecretToPem(secret any) any {
 	for i := 0; IsLessThan(i, numLines); i++ {
 		var start any = Multiply(i, lineLength)
 		var end any = this.Sum(start, lineLength)
-		pem = Add(pem, Slice(this.Secret, start, end) + "\n") // eslint-disable-line
+		pem = Add(pem, Slice(this.Secret, start, end)+"\n") // eslint-disable-line
 	}
 	return Add(pem, "-----END PRIVATE KEY-----")
 }
