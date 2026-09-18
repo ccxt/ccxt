@@ -716,8 +716,8 @@ export default class gate extends gateRest {
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
         orderbook['nonce'] = this.safeInteger (delta, 'u');
-        const bids = this.safeValue (delta, 'b', []);
-        const asks = this.safeValue (delta, 'a', []);
+        const bids = this.safeList (delta, 'b', []);
+        const asks = this.safeList (delta, 'a', []);
         const storedBids = orderbook['bids'];
         const storedAsks = orderbook['asks'];
         this.handleBidAsks (storedBids, bids);

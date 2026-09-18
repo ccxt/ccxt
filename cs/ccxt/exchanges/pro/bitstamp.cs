@@ -206,8 +206,8 @@ public partial class bitstamp : ccxt.bitstamp
         ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
         ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(delta, "microtimestamp");
-        object bids = this.safeValue(delta, "bids", new List<object>() {});
-        object asks = this.safeValue(delta, "asks", new List<object>() {});
+        List<object> bids = this.safeList(delta, "bids", new List<object>() {});
+        List<object> asks = this.safeList(delta, "asks", new List<object>() {});
         object storedBids = getValue(orderbook, "bids");
         object storedAsks = getValue(orderbook, "asks");
         this.handleBidAsks(storedBids, bids);

@@ -394,7 +394,7 @@ export default class onetrading extends onetradingRest {
             const snapshot = this.parseOrderBook (message, symbol, timestamp, 'bids', 'asks');
             orderbook.reset (snapshot);
         } else if (type === 'ORDER_BOOK_UPDATE') {
-            const changes = this.safeValue (message, 'changes', []);
+            const changes = this.safeList (message, 'changes', []);
             this.handleDeltas (orderbook, changes);
         } else {
             throw new NotSupported (this.id + ' watchOrderBook() did not recognize message type ' + type);

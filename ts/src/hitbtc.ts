@@ -3541,7 +3541,7 @@ export default class hitbtc extends Exchange {
         //         "positions": null
         //     }
         //
-        const currencies = this.safeValue (data, 'currencies', []);
+        const currencies = this.safeList (data, 'currencies', []);
         const currencyInfo = this.safeValue (currencies, 0);
         const datetime = this.safeString (data, 'updated_at');
         return {

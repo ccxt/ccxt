@@ -482,7 +482,7 @@ public partial class bitso : Exchange
         //     }
         string? operation = this.safeString(item, "operation");
         string? type = this.parseLedgerEntryType(operation);
-        object balanceUpdates = this.safeValue(item, "balance_updates", new List<object>() {});
+        List<object> balanceUpdates = this.safeList(item, "balance_updates", new List<object>() {});
         object firstBalance = this.safeValue(balanceUpdates, 0, new Dictionary<string, object>() {});
         string? direction = null;
         Dictionary<string, object> fee = null;
@@ -1652,7 +1652,7 @@ public partial class bitso : Exchange
         //         }]
         //     }
         //
-        object transactions = this.safeValue(response, "payload", new List<object>() {});
+        List<object> transactions = this.safeList(response, "payload", new List<object>() {});
         IDictionary<string, object> first = this.safeDict(transactions, 0, new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(first));
     }
@@ -2066,7 +2066,7 @@ public partial class bitso : Exchange
         //         ]
         //     }
         //
-        object payload = this.safeValue(response, "payload", new List<object>() {});
+        List<object> payload = this.safeList(response, "payload", new List<object>() {});
         IDictionary<string, object> first = this.safeDict(payload, 0);
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(first, currency));
     }

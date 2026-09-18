@@ -2309,7 +2309,7 @@ public partial class htx : Exchange
         //         "success":true
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        List<object> data = this.safeList(response, "data", new List<object>() {});
         object first = this.safeValue(data, 0, new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToTradingFeeInterface(this.parseTradingFee(first, market));
     }
@@ -7001,7 +7001,7 @@ public partial class htx : Exchange
             } else
             {
                 object batchData = this.safeValue(response, "data", new Dictionary<string, object>() {});
-                object success = this.safeValue(batchData, "success", new List<object>() {});
+                List<object> success = this.safeList(batchData, "success", new List<object>() {});
                 object errors = this.safeValue(batchData, "errors", new List<object>() {});
                 result = this.arrayConcat(success, errors);
             }
@@ -7751,7 +7751,7 @@ public partial class htx : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        List<object> data = this.safeList(response, "data", new List<object>() {});
         object parsed = this.parseDepositAddresses(data, new List<object>() {GetValue(currency, "code")}, false);
         return ccxt.BaseExchange.ToDepositAddresses(this.indexBy(parsed, "network"));
     }
@@ -7807,7 +7807,7 @@ public partial class htx : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        List<object> data = this.safeList(response, "data", new List<object>() {});
         object allAddresses = this.parseDepositAddresses(data, new List<object>() {GetValue(currency, "code")}, false);
         List<object> addresses = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(allAddresses)); postFixIncrement(ref i))
@@ -8512,7 +8512,7 @@ public partial class htx : Exchange
         //
         string? marketId = this.safeString(info, "symbol");
         string? symbol = this.safeSymbol(marketId, market);
-        object currencies = this.safeValue(info, "currencies", new List<object>() {});
+        List<object> currencies = this.safeList(info, "currencies", new List<object>() {});
         object baseData = this.safeValue(currencies, 0);
         object quoteData = this.safeValue(currencies, 1);
         string? baseId = this.safeString(baseData, "currency");
@@ -10429,7 +10429,7 @@ public partial class htx : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "Data", new List<object>() {});
+        List<object> data = this.safeList(response, "Data", new List<object>() {});
         object loan = this.safeValue(data, 0);
         Dictionary<string, object> transaction = this.parseMarginLoan(loan, currency);
         return ((Dictionary<string, object>)((object)(this.extend(transaction, new Dictionary<string, object>() {
@@ -10474,7 +10474,7 @@ public partial class htx : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "Data", new List<object>() {});
+        List<object> data = this.safeList(response, "Data", new List<object>() {});
         object loan = this.safeValue(data, 0);
         Dictionary<string, object> transaction = this.parseMarginLoan(loan, currency);
         return ((Dictionary<string, object>)((object)(this.extend(transaction, new Dictionary<string, object>() {

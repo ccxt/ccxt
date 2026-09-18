@@ -808,8 +808,8 @@ public partial class gate : ccxt.gate
         ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
         ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(delta, "u");
-        object bids = this.safeValue(delta, "b", new List<object>() {});
-        object asks = this.safeValue(delta, "a", new List<object>() {});
+        List<object> bids = this.safeList(delta, "b", new List<object>() {});
+        List<object> asks = this.safeList(delta, "a", new List<object>() {});
         object storedBids = getValue(orderbook, "bids");
         object storedAsks = getValue(orderbook, "asks");
         this.handleBidAsks(storedBids, bids);

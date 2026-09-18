@@ -3169,11 +3169,11 @@ public partial class gate : Exchange
             { "currency", GetValue(currency, "id") },
         };
         Dictionary<string, object> response = await this.privateWalletGetDepositAddress(this.extend(request, parameters));
-        object addresses = this.safeValue(response, "multichain_addresses");
+        List<object> addresses = ((List<object>)this.safeValue(response, "multichain_addresses"));
         string? currencyId = this.safeString(response, "currency");
         codeVar = ((string)this.safeCurrencyCode(currencyId));
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(addresses)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, addresses?.Count ?? 0); postFixIncrement(ref i))
         {
             object entry = getValue(addresses, i);
             //
@@ -3225,7 +3225,7 @@ public partial class gate : Exchange
             { "currency", GetValue(currency, "id") },
         };
         Dictionary<string, object> response = await this.privateWalletGetDepositAddress(this.extend(request, parameters));
-        object chains = this.safeValue(response, "multichain_addresses", new List<object>() {});
+        List<object> chains = this.safeList(response, "multichain_addresses", new List<object>() {});
         string? currencyId = this.safeString(response, "currency");
         currency = this.safeCurrency(currencyId, currency);
         object parsed = this.parseDepositAddresses(chains, null, false);

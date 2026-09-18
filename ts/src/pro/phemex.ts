@@ -491,7 +491,7 @@ export default class phemex extends phemexRest {
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const candles = this.safeValue2 (message, 'kline', 'kline_p', []);
-        const first = this.safeValue (candles, 0, []);
+        const first = this.safeList (candles, 0, []);
         const interval = this.safeString (first, 1);
         const timeframe = this.findTimeframe (interval);
         if (timeframe !== undefined) {
@@ -1178,7 +1178,7 @@ export default class phemex extends phemexRest {
         const parsedOrders: List = [];
         if (('closed' in message) || ('fills' in message) || ('open' in message)) {
             const closed = this.safeValue (message, 'closed', []);
-            const open = this.safeValue (message, 'open', []);
+            const open = this.safeList (message, 'open', []);
             const orders = this.arrayConcat (open, closed);
             const ordersLength = orders.length;
             if (ordersLength === 0) {

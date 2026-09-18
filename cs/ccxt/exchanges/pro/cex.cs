@@ -439,7 +439,7 @@ public partial class cex : ccxt.cex
         //        "priceChangePercentage": "0.23",
         //        "pair": ["BTC", "USDT"]
         //    }
-        object pair = this.safeValue(ticker, "pair", new List<object>() {});
+        List<object> pair = this.safeList(ticker, "pair", new List<object>() {});
         string? baseId = this.safeString(ticker, "symbol1");
         if ((baseId == null))
         {
@@ -1157,8 +1157,8 @@ public partial class cex : ccxt.cex
             return;
         }
         Int64? timestamp = this.safeInteger(data, "time");
-        object asks = this.safeValue(data, "asks", new List<object>() {});
-        object bids = this.safeValue(data, "bids", new List<object>() {});
+        List<object> asks = this.safeList(data, "asks", new List<object>() {});
+        List<object> bids = this.safeList(data, "bids", new List<object>() {});
         this.handleDeltas(getValue(storedOrderBook, "asks"), asks);
         this.handleDeltas(getValue(storedOrderBook, "bids"), bids);
         ((IDictionary<string,object>)storedOrderBook)["timestamp"] = timestamp;

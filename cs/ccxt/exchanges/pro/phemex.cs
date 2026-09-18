@@ -520,7 +520,7 @@ public partial class phemex : ccxt.phemex
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)GetValue(market, "symbol"));
         object candles = this.safeValue2(message, "kline", "kline_p", new List<object>() {});
-        object first = this.safeValue(candles, 0, new List<object>() {});
+        List<object> first = this.safeList(candles, 0, new List<object>() {});
         string? interval = this.safeString(first, 1);
         string? timeframe = this.findTimeframe(interval);
         if ((timeframe != null))
@@ -1270,7 +1270,7 @@ public partial class phemex : ccxt.phemex
         if ((inOp(message, "closed")) || (inOp(message, "fills")) || (inOp(message, "open")))
         {
             object closed = this.safeValue(message, "closed", new List<object>() {});
-            object open = this.safeValue(message, "open", new List<object>() {});
+            List<object> open = this.safeList(message, "open", new List<object>() {});
             List<object> orders = this.arrayConcat(open, closed);
             int ordersLength = orders?.Count ?? 0;
             if ((ordersLength == 0))

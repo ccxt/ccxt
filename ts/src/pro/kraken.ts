@@ -935,7 +935,7 @@ export default class kraken extends krakenRest {
         const first = this.safeDict (data, 0, {});
         const symbol = this.safeString (first, 'symbol') as string;
         const a = this.safeList (first, 'asks', []);
-        const b = this.safeValue (first, 'bids', []);
+        const b = this.safeList (first, 'bids', []);
         const c = this.safeInteger (first, 'checksum');
         const messageHash = this.getMessageHash ('orderbook', undefined, symbol);
         let orderbook: Ob | undefined = undefined;

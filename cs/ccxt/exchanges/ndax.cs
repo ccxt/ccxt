@@ -2967,7 +2967,7 @@ public partial class ndax : Exchange
         //         ]
         //     }
         //
-        object templateTypes = this.safeValue(withdrawTemplateTypesResponse, "TemplateTypes", new List<object>() {});
+        List<object> templateTypes = this.safeList(withdrawTemplateTypesResponse, "TemplateTypes", new List<object>() {});
         object firstTemplateType = this.safeValue(templateTypes, 0);
         if ((firstTemplateType == null))
         {

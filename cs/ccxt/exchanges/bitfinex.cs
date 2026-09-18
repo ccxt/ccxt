@@ -1410,7 +1410,7 @@ public partial class bitfinex : Exchange
         //   "info": [ 'USTF0', [], [], [], [ "USTF0", "UST" ] ],
         object info = this.safeValue(currency, "info");
         string? transferId = this.safeString(info, 0);
-        object underlying = this.safeValue(info, 4, new List<object>() {});
+        List<object> underlying = this.safeList(info, 4, new List<object>() {});
         object currencyId = null;
         if (isEqual(type, "derivatives"))
         {
@@ -2911,7 +2911,7 @@ public partial class bitfinex : Exchange
         //         "success", // TEXT Text of the notification
         //     ]
         //
-        object result = this.safeValue(response, 4, new List<object>() {});
+        List<object> result = this.safeList(response, 4, new List<object>() {});
         string? poolAddress = this.safeString(result, 5);
         string? address = ((poolAddress == null)) ? this.safeString(result, 4) : poolAddress;
         string? tag = ((poolAddress == null)) ? null : this.safeString(result, 4);
@@ -3006,7 +3006,7 @@ public partial class bitfinex : Exchange
         string? comment = null;
         if ((transactionLength == 8))
         {
-            object data = this.safeValue(transaction, 4, new List<object>() {});
+            List<object> data = this.safeList(transaction, 4, new List<object>() {});
             timestamp = this.safeInteger(transaction, 0);
             if (!isEqual(currency, null))
             {
@@ -3173,9 +3173,9 @@ public partial class bitfinex : Exchange
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         IDictionary<string, object> fiat = this.safeDict(this.options, "fiat", new Dictionary<string, object>() {});
-        object feeData = this.safeValue(response, 4, new List<object>() {});
-        object makerData = this.safeValue(feeData, 0, new List<object>() {});
-        object takerData = this.safeValue(feeData, 1, new List<object>() {});
+        List<object> feeData = this.safeList(response, 4, new List<object>() {});
+        List<object> makerData = this.safeList(feeData, 0, new List<object>() {});
+        List<object> takerData = this.safeList(feeData, 1, new List<object>() {});
         double? makerFee = this.safeNumber(makerData, 0);
         double? makerFeeFiat = this.safeNumber(makerData, 2);
         double? makerFeeDeriv = this.safeNumber(makerData, 5);

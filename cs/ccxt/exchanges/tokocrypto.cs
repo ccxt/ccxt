@@ -2202,7 +2202,7 @@ public partial class tokocrypto : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        List<object> list = ((List<object>)this.safeValue(data, "list", new List<object>() {}));
+        List<object> list = this.safeList(data, "list", new List<object>() {});
         IDictionary<string, object> rawOrder = this.safeDict(list, 0, new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToOrder(this.parseOrder(rawOrder));
     }

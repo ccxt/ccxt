@@ -1856,7 +1856,7 @@ public partial class hollaex : Exchange
         //         ]
         //     }
         //
-        List<object> data = ((List<object>)this.safeValue(response, "data", new List<object>() {}));
+        List<object> data = this.safeList(response, "data", new List<object>() {});
         IDictionary<string, object> transaction = this.safeDict(data, 0, new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(transaction, currency));
     }

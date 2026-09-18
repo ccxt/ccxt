@@ -839,8 +839,8 @@ public partial class htx : ccxt.htx
         bool nonSpotCondition = (isEqual(GetValue(market, "contract"), true)) && (!isEqual(version, null)) && (isEqual(subtract(version, 1), getValue(orderbook, "nonce")));
         if (((spotConditon == true)) || ((nonSpotCondition == true)))
         {
-            object asks = this.safeValue(tick, "asks", new List<object>() {});
-            object bids = this.safeValue(tick, "bids", new List<object>() {});
+            List<object> asks = this.safeList(tick, "asks", new List<object>() {});
+            List<object> bids = this.safeList(tick, "bids", new List<object>() {});
             this.handleDeltas(getValue(orderbook, "asks"), asks);
             this.handleDeltas(getValue(orderbook, "bids"), bids);
             ((IDictionary<string,object>)orderbook)["nonce"] = ((spotConditon == true)) ? seqNum : version;

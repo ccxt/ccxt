@@ -497,7 +497,7 @@ public partial class bitteam : Exchange
         //     }
         //
         IDictionary<string, object> result = ((IDictionary<string, object>)this.safeValue(response, "result", new Dictionary<string, object>() {}));
-        object markets = this.safeValue(result, "pairs", new List<object>() {});
+        List<object> markets = this.safeList(result, "pairs", new List<object>() {});
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(markets));
     }
 
@@ -2513,7 +2513,7 @@ public partial class bitteam : Exchange
         string? networkId = this.safeString(transaction, "blockChain");
         if ((networkId == null))
         {
-            object links = this.safeValue(currencyObject, "links", new List<object>() {});
+            List<object> links = this.safeList(currencyObject, "links", new List<object>() {});
             object blockChain = this.safeValue(links, 0, new Dictionary<string, object>() {});
             networkId = this.safeString(blockChain, "blockChain");
         }

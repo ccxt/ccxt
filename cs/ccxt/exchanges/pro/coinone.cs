@@ -123,8 +123,8 @@ public partial class coinone : ccxt.coinone
             (orderbook as IOrderBook).reset();
         }
         ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
-        object asks = this.safeValue(data, "asks", new List<object>() {});
-        object bids = this.safeValue(data, "bids", new List<object>() {});
+        List<object> asks = this.safeList(data, "asks", new List<object>() {});
+        List<object> bids = this.safeList(data, "bids", new List<object>() {});
         this.handleDeltas(getValue(orderbook, "asks"), asks);
         this.handleDeltas(getValue(orderbook, "bids"), bids);
         ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;

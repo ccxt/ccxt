@@ -213,7 +213,7 @@ export default class whitebit extends whitebitRest {
         //     "id":null
         //  }
         //
-        const params = this.safeValue (message, 'params', []);
+        const params = this.safeList (message, 'params', []);
         const isSnapshot = this.safeValue (params, 0);
         const marketId = this.safeString (params, 2);
         const market = this.safeMarket (marketId);
@@ -231,8 +231,8 @@ export default class whitebit extends whitebitRest {
             const snapshot = this.parseOrderBook (data, symbol);
             orderbook.reset (snapshot);
         } else {
-            const asks = this.safeValue (data, 'asks', []);
-            const bids = this.safeValue (data, 'bids', []);
+            const asks = this.safeList (data, 'asks', []);
+            const bids = this.safeList (data, 'bids', []);
             this.handleDeltas (orderbook['asks'], asks);
             this.handleDeltas (orderbook['bids'], bids);
         }
@@ -326,7 +326,7 @@ export default class whitebit extends whitebitRest {
         //       "id": null
         //   }
         //
-        const tickers = this.safeValue (message, 'params', []);
+        const tickers = this.safeList (message, 'params', []);
         const marketId = this.safeString (tickers, 0);
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
@@ -408,7 +408,7 @@ export default class whitebit extends whitebitRest {
         //        ]
         //    }
         //
-        const params = this.safeValue (message, 'params', []);
+        const params = this.safeList (message, 'params', []);
         const marketId = this.safeString (params, 0);
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
@@ -611,7 +611,7 @@ export default class whitebit extends whitebitRest {
         //     "id": null
         // }
         //
-        const params = this.safeValue (message, 'params', []);
+        const params = this.safeList (message, 'params', []);
         const data = this.safeValue (params, 1);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);

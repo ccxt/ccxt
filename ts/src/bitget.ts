@@ -2280,7 +2280,7 @@ export default class bitget extends Exchange {
             const baseId = this.safeString (market, 'baseCoin');
             const quote = this.safeCurrencyCode (quoteId);
             const base = this.safeCurrencyCode (baseId);
-            const supportMarginCoins = this.safeValue (market, 'supportMarginCoins', []);
+            const supportMarginCoins = this.safeList (market, 'supportMarginCoins', []);
             let settleId: Str = undefined;
             if (this.inArray (baseId, supportMarginCoins)) {
                 settleId = baseId;
@@ -6186,7 +6186,7 @@ export default class bitget extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const failure = this.safeValue (data, 'failureList', []);
-        const orderInfo = this.safeValue (data, 'successList', []);
+        const orderInfo = this.safeList (data, 'successList', []);
         const both = this.arrayConcat (orderInfo, failure);
         return this.parseOrders (both, market);
     }
@@ -6577,7 +6577,7 @@ export default class bitget extends Exchange {
         const data = this.safeValue (response, 'data', {});
         let order: Dict = {};
         if (isContractTriggerEndpoint) {
-            const orderInfo = this.safeValue (data, 'successList', []);
+            const orderInfo = this.safeList (data, 'successList', []);
             order = this.safeDict (orderInfo, 0, {});
         } else {
             if ((uta === true) && (trigger === true)) {
@@ -10630,7 +10630,7 @@ export default class bitget extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (response, 'requestTime');
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const first = this.safeDict (data, 0, {});
         first['timestamp'] = timestamp;
         return this.parseIsolatedBorrowRate (first, market);
@@ -10755,7 +10755,7 @@ export default class bitget extends Exchange {
             //         ]
             //     }
             //
-            const data = this.safeValue (response, 'data', []);
+            const data = this.safeList (response, 'data', []);
             result = this.safeDict (data, 0, {});
         }
         const timestamp = this.safeInteger (response, 'requestTime');

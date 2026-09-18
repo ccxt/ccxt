@@ -837,7 +837,7 @@ export default class lbank extends Exchange {
         //         "ts": :1692064276872
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const first = this.safeDict (data, 0, {});
         return this.parseTicker (first, market);
     }

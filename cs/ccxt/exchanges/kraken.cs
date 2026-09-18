@@ -1196,17 +1196,17 @@ public partial class kraken : Exchange
         //     }
         //
         string? symbol = this.safeSymbol(null, market);
-        object v = this.safeValue(ticker, "v", new List<object>() {});
+        List<object> v = this.safeList(ticker, "v", new List<object>() {});
         string? baseVolume = this.safeString(v, 1);
-        object p = this.safeValue(ticker, "p", new List<object>() {});
+        List<object> p = this.safeList(ticker, "p", new List<object>() {});
         string? vwap = this.safeString(p, 1);
         string? quoteVolume = Precise.stringMul(baseVolume, vwap);
-        object c = this.safeValue(ticker, "c", new List<object>() {});
+        List<object> c = this.safeList(ticker, "c", new List<object>() {});
         string? last = this.safeString(c, 0);
-        object high = this.safeValue(ticker, "h", new List<object>() {});
-        object low = this.safeValue(ticker, "l", new List<object>() {});
-        object bid = this.safeValue(ticker, "b", new List<object>() {});
-        object ask = this.safeValue(ticker, "a", new List<object>() {});
+        List<object> high = this.safeList(ticker, "h", new List<object>() {});
+        List<object> low = this.safeList(ticker, "l", new List<object>() {});
+        List<object> bid = this.safeList(ticker, "b", new List<object>() {});
+        List<object> ask = this.safeList(ticker, "a", new List<object>() {});
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", null },
@@ -3767,7 +3767,7 @@ public partial class kraken : Exchange
         //         ]
         //     }
         //
-        object result = this.safeValue(response, "result", new List<object>() {});
+        List<object> result = this.safeList(response, "result", new List<object>() {});
         object firstResult = this.safeValue(result, 0, new Dictionary<string, object>() {});
         if ((firstResult == null))
         {

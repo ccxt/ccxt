@@ -1146,7 +1146,7 @@ public partial class cryptocom : ccxt.cryptocom
         //
         // each account is connected to a different endpoint
         // and has exactly one subscriptionhash which is the account type
-        List<object> data = ((List<object>)this.safeValue(message, "data", new List<object>() {}));
+        List<object> data = this.safeList(message, "data", new List<object>() {});
         object firstData = this.safeValue(data, 0, new Dictionary<string, object>() {});
         List<object> rawPositions = this.safeList(firstData, "positions", new List<object>() {});
         if (isEqual(this.positions, null))

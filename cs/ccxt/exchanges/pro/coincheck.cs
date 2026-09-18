@@ -166,7 +166,7 @@ public partial class coincheck : ccxt.coincheck
         //         ]
         //     ]
         //
-        object first = this.safeValue(message, 0, new List<object>() {});
+        List<object> first = this.safeList(message, 0, new List<object>() {});
         string? symbol = this.symbol(this.safeString(first, 2));
         object stored = this.safeValue(this.trades, symbol);
         if ((stored == null))

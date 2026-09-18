@@ -1594,8 +1594,8 @@ public partial class okx : ccxt.okx
         //         "seqId": 123457
         //     }
         //
-        object asks = this.safeValue(message, "asks", new List<object>() {});
-        object bids = this.safeValue(message, "bids", new List<object>() {});
+        List<object> asks = this.safeList(message, "asks", new List<object>() {});
+        List<object> bids = this.safeList(message, "bids", new List<object>() {});
         object storedAsks = getValue(orderbook, "asks");
         object storedBids = getValue(orderbook, "bids");
         this.handleDeltas(storedAsks, asks);

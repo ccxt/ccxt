@@ -257,8 +257,8 @@ public partial class bitfinex : ccxt.bitfinex
         //       ]
         //   ]
         //
-        object data = this.safeValue(message, 1, new List<object>() {});
-        object ohlcvs = new List<object>() {};
+        List<object> data = this.safeList(message, 1, new List<object>() {});
+        List<object> ohlcvs = new List<object>() {};
         object first = this.safeValue(data, 0);
         if (((first is IList<object>) || (first.GetType().IsGenericType && first.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
@@ -288,7 +288,7 @@ public partial class bitfinex : ccxt.bitfinex
             stored = new ArrayCacheByTimestamp(limit);
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
         }
-        int ohlcvsLength = getArrayLength(ohlcvs);
+        int ohlcvsLength = ohlcvs.Count;
         for (object i = 0; isLessThan(i, ohlcvsLength); postFixIncrement(ref i))
         {
             object ohlcv = getValue(ohlcvs, subtract(subtract(ohlcvsLength, i), 1));

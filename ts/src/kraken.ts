@@ -1078,17 +1078,17 @@ export default class kraken extends Exchange {
         //     }
         //
         const symbol = this.safeSymbol (undefined, market);
-        const v = this.safeValue (ticker, 'v', []);
+        const v = this.safeList (ticker, 'v', []);
         const baseVolume = this.safeString (v, 1);
-        const p = this.safeValue (ticker, 'p', []);
+        const p = this.safeList (ticker, 'p', []);
         const vwap = this.safeString (p, 1);
         const quoteVolume = Precise.stringMul (baseVolume, vwap);
-        const c = this.safeValue (ticker, 'c', []);
+        const c = this.safeList (ticker, 'c', []);
         const last = this.safeString (c, 0);
-        const high = this.safeValue (ticker, 'h', []);
-        const low = this.safeValue (ticker, 'l', []);
-        const bid = this.safeValue (ticker, 'b', []);
-        const ask = this.safeValue (ticker, 'a', []);
+        const high = this.safeList (ticker, 'h', []);
+        const low = this.safeList (ticker, 'l', []);
+        const bid = this.safeList (ticker, 'b', []);
+        const ask = this.safeList (ticker, 'a', []);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': undefined,
@@ -3391,7 +3391,7 @@ export default class kraken extends Exchange {
         //         ]
         //     }
         //
-        const result = this.safeValue (response, 'result', []);
+        const result = this.safeList (response, 'result', []);
         const firstResult = this.safeValue (result, 0, {});
         if (firstResult === undefined) {
             throw new InvalidAddress (this.id + ' privatePostDepositAddresses() returned no addresses for ' + code);

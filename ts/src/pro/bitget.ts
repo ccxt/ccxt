@@ -380,7 +380,7 @@ export default class bitget extends bitgetRest {
         //     }
         //
         const arg = this.safeValue (message, 'arg', {});
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         const ticker = this.safeValue (data, 0, {});
         const utaTimestamp = this.safeInteger (message, 'ts');
         const timestamp = this.safeInteger (ticker, 'ts', utaTimestamp);
@@ -477,7 +477,7 @@ export default class bitget extends bitgetRest {
 
     parseWsBidAsk (message: any, market: Market = undefined) {
         const arg = this.safeValue (message, 'arg', {});
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeList (message, 'data', []);
         const ticker = this.safeValue (data, 0, {});
         const utaTimestamp = this.safeInteger (message, 'ts');
         const timestamp = this.safeInteger (ticker, 'ts', utaTimestamp);
@@ -1977,7 +1977,7 @@ export default class bitget extends bitgetRest {
         const timestamp = this.safeInteger2 (order, 'cTime', 'createdTime');
         const symbol = market['symbol'];
         const rawStatus = this.safeString2 (order, 'status', 'orderStatus');
-        const orderFee = this.safeValue (order, 'feeDetail', []);
+        const orderFee = this.safeList (order, 'feeDetail', []);
         const fee = this.safeValue (orderFee, 0);
         const feeAmount = this.safeString (fee, 'fee');
         let feeObject: Fee = undefined;
