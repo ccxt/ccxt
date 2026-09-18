@@ -1938,7 +1938,7 @@ func (this *Mexc) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 		request["limit"] = limit
 	}
 	var orderbook any = nil
-	if IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") == true {
 
 		response := (<-this.SpotPublicGetDepth(this.Extend(request, params)))
 		PanicOnError(response)
@@ -1958,7 +1958,7 @@ func (this *Mexc) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 		var spotTimestamp *int64 = this.SafeInteger(response, "timestamp")
 		orderbook = this.ParseOrderBook(response, symbol, spotTimestamp)
 		AddElementToObject(orderbook, "nonce", this.SafeInteger(response, "lastUpdateId"))
-	} else if IsEqual(GetValue(market, "swap"), true) {
+	} else if GetValue(market, "swap") == true {
 
 		response := (<-this.ContractPublicGetDepthSymbol(this.Extend(request, params)))
 		PanicOnError(response)
@@ -2047,7 +2047,7 @@ func (this *Mexc) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 		request["limit"] = limit
 	}
 	var trades any = []any{}
-	if IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") == true {
 		var until *int64 = this.SafeInteger2(params, "endTime", "until")
 		if !IsEqual(since, nil) {
 			request["startTime"] = since
@@ -2079,7 +2079,7 @@ func (this *Mexc) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 		} else {
 			panic(NotSupported(this.Id + " fetchTrades() not support this method"))
 		}
-	} else if IsEqual(GetValue(market, "swap"), true) {
+	} else if GetValue(market, "swap") == true {
 
 		response := (<-this.ContractPublicGetDealsSymbol(this.Extend(request, params)))
 		PanicOnError(response)
@@ -2314,7 +2314,7 @@ func (this *Mexc) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	}
 	var market any = this.Market(symbol)
 	var maxLimit any = func() any {
-		if IsEqual(GetValue(market, "spot"), true) {
+		if GetValue(market, "spot") == true {
 			return 500
 		}
 		return 2000
@@ -2351,7 +2351,7 @@ func (this *Mexc) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		}()
 		start = Subtract(until, (Multiply(usedLimit, duration)))
 	}
-	if IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") == true {
 		if !IsEqual(start, nil) {
 			request["startTime"] = start
 			if until == nil {
@@ -2385,7 +2385,7 @@ func (this *Mexc) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		//     ]
 		//
 		candles = this.ToArray(response)
-	} else if IsEqual(GetValue(market, "swap"), true) {
+	} else if GetValue(market, "swap") == true {
 		if !IsEqual(since, nil) {
 			request["start"] = this.ParseToInt(Divide(since, 1000))
 		}
@@ -2801,7 +2801,7 @@ func (this *Mexc) createMarketBuyOrderWithCostBody(ch chan any, symbol any, cost
 		PanicOnError(retRes230512)
 	}
 	var market any = this.Market(symbol)
-	if !IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") != true {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports spot orders only"))
 	}
 	var req map[string]any = map[string]any{
@@ -2840,7 +2840,7 @@ func (this *Mexc) createMarketSellOrderWithCostBody(ch chan any, symbol any, cos
 		PanicOnError(retRes232912)
 	}
 	var market any = this.Market(symbol)
-	if !IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") != true {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports spot orders only"))
 	}
 	var req map[string]any = map[string]any{
@@ -2901,7 +2901,7 @@ func (this *Mexc) createOrderBody(ch chan any, symbol any, typeVar any, side any
 	marginModequeryVariable := this.HandleMarginModeAndParams("createOrder", params)
 	marginMode := GetValue(marginModequeryVariable, 0)
 	query := GetValue(marginModequeryVariable, 1)
-	if IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") == true {
 
 		retRes237519 := (<-this.CreateSpotOrderAsync(market, typeVar, side, amount, price, marginMode, query))
 		PanicOnError(retRes237519)
@@ -3266,7 +3266,7 @@ func (this *Mexc) createOrdersBody(ch chan any, orders any, optionalArgs ...any)
 		var rawOrder any = GetValue(orders, i)
 		var marketId *string = this.SafeString(rawOrder, "symbol")
 		var market any = this.Market(marketId)
-		if !IsEqual(GetValue(market, "spot"), true) {
+		if GetValue(market, "spot") != true {
 			panic(NotSupported(this.Id + " createOrders() is only supported for spot markets"))
 		}
 		if symbol == nil {
@@ -3356,7 +3356,7 @@ func (this *Mexc) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 		"symbol": GetValue(market, "id"),
 	}
 	var data any = map[string]any{}
-	if IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") == true {
 		var clientOrderId *string = this.SafeString(params, "clientOrderId")
 		if clientOrderId != nil {
 			params = this.Omit(params, "clientOrderId")
@@ -3379,7 +3379,7 @@ func (this *Mexc) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 			data = (<-this.SpotPrivateGetOrder(this.Extend(request, query)))
 			PanicOnError(data)
 		}
-	} else if IsEqual(GetValue(market, "swap"), true) {
+	} else if GetValue(market, "swap") == true {
 		request["order_id"] = id
 
 		response := (<-this.ContractPrivateGetOrderGetOrderId(this.Extend(request, params)))
@@ -4648,7 +4648,7 @@ func (this *Mexc) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...a
 		PanicOnError(retRes385712)
 	}
 	var market any = this.Market(symbol)
-	if !IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") != true {
 		panic(BadRequest(this.Id + " fetchTradingFee() supports spot markets only"))
 	}
 	var request map[string]any = map[string]any{
@@ -7576,7 +7576,7 @@ func (this *Mexc) setMarginModeBody(ch chan any, marginMode any, optionalArgs ..
 		PanicOnError(retRes624812)
 	}
 	var market any = this.Market(symbol)
-	if IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") == true {
 		panic(BadSymbol(this.Id + " setMarginMode() supports contract markets only"))
 	}
 	var marginModeLower string = ToLower(marginMode)

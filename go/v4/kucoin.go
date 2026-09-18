@@ -3855,7 +3855,7 @@ func (this *Kucoin) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 		var data any = this.SafeDict(response, "data", map[string]any{})
 		var resultList any = this.SafeList(data, "list", []any{})
 		result = this.SafeDict(resultList, 0, map[string]any{})
-	} else if IsEqual(GetValue(market, "contract"), true) {
+	} else if GetValue(market, "contract") == true {
 
 		response = (<-this.FuturesPublicGetTicker(this.Extend(request, params)))
 		PanicOnError(response)
@@ -3945,7 +3945,7 @@ func (this *Kucoin) fetchMarkPriceBody(ch chan any, symbol any, optionalArgs ...
 		"symbol": GetValue(market, "id"),
 	}
 	var response any = nil
-	if IsEqual(GetValue(market, "contract"), true) {
+	if GetValue(market, "contract") == true {
 
 		response = (<-this.FuturesPublicGetMarkPriceSymbolCurrent(this.Extend(request, params)))
 		PanicOnError(response)
@@ -4039,7 +4039,7 @@ func (this *Kucoin) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		PanicOnError(retRes335119)
 		ch <- retRes335119
 		return nil
-	} else if IsEqual(GetValue(market, "contract"), true) {
+	} else if GetValue(market, "contract") == true {
 
 		retRes335319 := (<-this.FetchContractOHLCVAsync(symbol, timeframe, since, limit, params))
 		PanicOnError(retRes335319)
@@ -4918,13 +4918,13 @@ func (this *Kucoin) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		PanicOnError(retRes401119)
 		ch <- retRes401119
 		return nil
-	} else if IsEqual(GetValue(market, "spot"), true) {
+	} else if GetValue(market, "spot") == true {
 
 		retRes401319 := (<-this.CreateSpotOrderAsync(symbol, typeVar, side, amount, price, params))
 		PanicOnError(retRes401319)
 		ch <- retRes401319
 		return nil
-	} else if IsEqual(GetValue(market, "contract"), true) {
+	} else if GetValue(market, "contract") == true {
 
 		retRes401519 := (<-this.CreateContractOrderAsync(symbol, typeVar, side, amount, price, params))
 		PanicOnError(retRes401519)
@@ -5833,9 +5833,9 @@ func (this *Kucoin) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 			panic(ArgumentsRequired(this.Id + " createOrders() requires a symbol for each order"))
 		}
 		var market any = this.Market(symbol)
-		if IsEqual(GetValue(market, "spot"), true) {
+		if GetValue(market, "spot") == true {
 			isSpot = true
-		} else if IsEqual(GetValue(market, "contract"), true) {
+		} else if GetValue(market, "contract") == true {
 			isContract = true
 		}
 	}
@@ -7957,7 +7957,7 @@ func (this *Kucoin) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var marketId *string = this.SafeString(order, "symbol")
 	market = this.SafeMarket(marketId, market)
-	if (!IsEqual(market, nil)) && (IsEqual(GetValue(market, "contract"), true)) {
+	if (!IsEqual(market, nil)) && (GetValue(market, "contract") == true) {
 		return this.ParseContractOrder(order, market)
 	} else {
 		return this.ParseSpotOrder(order, market)
@@ -8044,7 +8044,7 @@ func (this *Kucoin) ParseContractOrder(order any, optionalArgs ...any) any {
 	var average *string = this.SafeString(order, "avgDealPrice")
 	if (average == nil) && Precise.StringGt(filled, "0") {
 		var contractSize *string = this.SafeString(market, "contractSize")
-		if IsEqual(GetValue(market, "linear"), true) {
+		if GetValue(market, "linear") == true {
 			average = Precise.StringDiv(cost, Precise.StringMul(contractSize, filled))
 		} else {
 			average = Precise.StringDiv(Precise.StringMul(contractSize, filled), cost)
@@ -9089,7 +9089,7 @@ func (this *Kucoin) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	var marketId *string = this.SafeString(trade, "symbol")
 	market = this.SafeMarket(marketId, market)
-	if (IsEqual(market, nil)) || (IsEqual(GetValue(market, "spot"), true)) {
+	if (IsEqual(market, nil)) || (GetValue(market, "spot") == true) {
 		return this.ParseSpotOrUtaTrade(trade, market)
 	} else {
 		return this.ParseContractTrade(trade, market)
@@ -9467,7 +9467,7 @@ func (this *Kucoin) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ..
 	var response any = nil
 	var entry any = nil
 	if EvalTruthy(uta) {
-		if IsEqual(GetValue(market, "spot"), true) {
+		if GetValue(market, "spot") == true {
 			request["tradeType"] = "SPOT"
 		} else {
 			request["tradeType"] = "FUTURES"
@@ -9494,7 +9494,7 @@ func (this *Kucoin) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ..
 		var data any = this.SafeDict(response, "data", map[string]any{})
 		var dataList any = this.SafeList(data, "list", []any{})
 		entry = this.SafeDict(dataList, 0)
-	} else if IsEqual(GetValue(market, "spot"), true) {
+	} else if GetValue(market, "spot") == true {
 		request["symbols"] = GetValue(market, "id")
 
 		response = (<-this.PrivateGetTradeFees(this.Extend(request, params)))
@@ -12354,7 +12354,7 @@ func (this *Kucoin) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...a
 		PanicOnError(retRes988312)
 	}
 	var market any = this.Market(symbol)
-	if !IsEqual(GetValue(market, "contract"), true) {
+	if GetValue(market, "contract") != true {
 		panic(NotSupported(this.Id + " fetchLeverage() supports contract markets only"))
 	}
 	var request map[string]any = map[string]any{
@@ -12424,7 +12424,7 @@ func (this *Kucoin) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 			panic(ArgumentsRequired(this.Id + " setLeverage requires a symbol argument for contract markets"))
 		}
 		market = this.Market(symbol)
-		if IsEqual(GetValue(market, "contract"), true) {
+		if GetValue(market, "contract") == true {
 
 			retRes993823 := (<-this.SetContractLeverageAsync(leverage, symbol, params))
 			PanicOnError(retRes993823)
@@ -14053,7 +14053,7 @@ func (this *Kucoin) setMarginModeBody(ch chan any, marginMode any, optionalArgs 
 		PanicOnError(retRes1127312)
 	}
 	var market any = this.Market(symbol)
-	if !IsEqual(GetValue(market, "contract"), true) {
+	if GetValue(market, "contract") != true {
 		panic(NotSupported(this.Id + " setMarginMode() supports contract markets only"))
 	}
 	var request map[string]any = map[string]any{
@@ -14247,7 +14247,7 @@ func (this *Kucoin) fetchMarketLeverageTiersBody(ch chan any, symbol any, option
 		PanicOnError(retRes1139612)
 	}
 	var market any = this.Market(symbol)
-	if !IsEqual(GetValue(market, "contract"), true) {
+	if GetValue(market, "contract") != true {
 		panic(BadRequest(this.Id + " fetchMarketLeverageTiers() supports contract markets only"))
 	}
 	var uta any = false

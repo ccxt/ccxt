@@ -267,7 +267,7 @@ func (this *Kucoin) subscribePublicUtaBody(ch chan any, messageHash any, channel
 	var requestId string = ccxt.ToString(this.RequestId())
 	var market any = this.Market(symbol)
 	var urlType any = func() any {
-		if ccxt.IsEqual(ccxt.GetValue(market, "contract"), true) {
+		if ccxt.GetValue(market, "contract") == true {
 			return "futures"
 		}
 		return "spot"
@@ -2696,7 +2696,7 @@ func (this *Kucoin) ParseWsOrder(order any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger2(order, "orderTime", "createdAt")
 	var marketId *string = this.SafeString(order, "symbol")
 	market = this.SafeMarket(marketId, market)
-	if ccxt.IsEqual(ccxt.GetValue(market, "contract"), true) {
+	if ccxt.GetValue(market, "contract") == true {
 		timestamp = this.SafeIntegerProduct(order, "orderTime", 0.000001)
 	}
 	var triggerPrice *string = this.SafeString(order, "stopPrice")

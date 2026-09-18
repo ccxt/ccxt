@@ -899,7 +899,7 @@ func (this *Bitget) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
 	var volumeIndex int = 5
-	if (!ccxt.IsEqual(market, nil)) && (ccxt.IsEqual(ccxt.GetValue(market, "inverse"), true)) {
+	if (!ccxt.IsEqual(market, nil)) && (ccxt.GetValue(market, "inverse") == true) {
 		volumeIndex = 6
 	}
 	return []any{this.SafeInteger2(ohlcv, "start", 0), this.SafeNumber2(ohlcv, "open", 1), this.SafeNumber2(ohlcv, "high", 2), this.SafeNumber2(ohlcv, "low", 3), this.SafeNumber2(ohlcv, "close", 4), this.SafeNumber2(ohlcv, "volume", volumeIndex)}

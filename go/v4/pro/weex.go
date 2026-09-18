@@ -1305,7 +1305,7 @@ func (this *Weex) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols, nil, false, true)
 	var firstMarket any = this.GetMarketFromSymbols(symbols)
-	if ccxt.IsEqual(ccxt.GetValue(firstMarket, "contract"), true) {
+	if ccxt.GetValue(firstMarket, "contract") == true {
 		panic(ccxt.NotSupported(this.Id + " watchBidsAsks is supported for spot markets only"))
 	}
 	var messageHashes any = []any{}
@@ -1361,7 +1361,7 @@ func (this *Weex) unWatchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols, nil, false, true)
 	var firstMarket any = this.GetMarketFromSymbols(symbols)
-	if ccxt.IsEqual(ccxt.GetValue(firstMarket, "contract"), true) {
+	if ccxt.GetValue(firstMarket, "contract") == true {
 		panic(ccxt.NotSupported(this.Id + " unWatchBidsAsks is supported for spot markets only"))
 	}
 	var subHashes any = []any{}
@@ -1621,7 +1621,7 @@ func (this *Weex) HandleMyTrades(client any, message any) {
 	var messageHash string = "myTrades"
 	var symbolKeys []string = ccxt.ObjectKeys(symbols)
 	var market any = this.GetMarketFromSymbols(symbolKeys)
-	if ccxt.IsEqual(ccxt.GetValue(market, "contract"), true) {
+	if ccxt.GetValue(market, "contract") == true {
 		messageHash = "myContractTrades"
 	}
 	for j := 0; j < len(symbolKeys); j++ {
@@ -1879,7 +1879,7 @@ func (this *Weex) HandleOrders(client any, message any) {
 	var messageHash string = "orders"
 	var symbolKeys []string = ccxt.ObjectKeys(symbols)
 	var market any = this.GetMarketFromSymbols(symbolKeys)
-	if ccxt.IsEqual(ccxt.GetValue(market, "contract"), true) {
+	if ccxt.GetValue(market, "contract") == true {
 		messageHash = "contractOrders"
 	}
 	for i := 0; i < len(symbolKeys); i++ {

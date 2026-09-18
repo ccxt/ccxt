@@ -1145,7 +1145,7 @@ func (this *Btse) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	retRes9618 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes9618)
 	var market any = this.Market(symbol)
-	if !IsEqual(GetValue(market, "contract"), true) {
+	if GetValue(market, "contract") != true {
 		panic(BadRequest(this.Id + " fetchFundingRateHistory() supports contract markets only"))
 	}
 	var period any = nil
@@ -1482,7 +1482,7 @@ func (this *Btse) fetchMarketLeverageTiersBody(ch chan any, symbol any, optional
 	retRes12568 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes12568)
 	var market any = this.Market(symbol)
-	if !IsEqual(GetValue(market, "contract"), true) {
+	if GetValue(market, "contract") != true {
 		panic(BadRequest(this.Id + " fetchMarketLeverageTiers() supports contract markets only"))
 	}
 
@@ -1611,7 +1611,7 @@ func (this *Btse) ParseTicker(ticker any, optionalArgs ...any) any {
 	market = this.SafeMarket(marketId, market)
 	var last *string = this.SafeString(ticker, "lastPrice")
 	var baseVolume *string = this.SafeString(ticker, "amount")
-	if (baseVolume != nil) && (!IsEqual(market, nil)) && (IsEqual(GetValue(market, "contract"), true)) {
+	if (baseVolume != nil) && (!IsEqual(market, nil)) && (GetValue(market, "contract") == true) {
 		// for contract markets the amount field is denominated in contracts, verified live -
 		// scaling by contractSize converts it into base currency units
 		var contractSizeString *string = this.NumberToString(GetValue(market, "contractSize"))
@@ -1669,7 +1669,7 @@ func (this *Btse) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs ..
 	retRes13978 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes13978)
 	var market any = this.Market(symbol)
-	if IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") == true {
 		panic(BadRequest(Add(this.Id+" fetchOpenInterest() symbol does not support market ", symbol)))
 	}
 	var request map[string]any = map[string]any{
@@ -1771,7 +1771,7 @@ func (this *Btse) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...
 	retRes14668 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes14668)
 	var market any = this.Market(symbol)
-	if IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") == true {
 		panic(BadRequest(this.Id + " fetchFundingRate() symbol does not support spot markets"))
 	}
 	var request map[string]any = map[string]any{
@@ -2336,7 +2336,7 @@ func (this *Btse) createOrderBody(ch chan any, symbol any, typeVar any, side any
 	retRes19168 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes19168)
 	var market any = this.Market(symbol)
-	if IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") == true {
 
 		retRes191919 := (<-this.CreateSpotOrderAsync(symbol, typeVar, side, amount, price, params))
 		PanicOnError(retRes191919)
@@ -2947,7 +2947,7 @@ func (this *Btse) editOrderBody(ch chan any, id any, symbol any, typeVar any, si
 		panic(ArgumentsRequired(this.Id + " editOrder() requires an amount argument, a price argument or a triggerPrice parameter"))
 	}
 	var response any = nil
-	if IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") == true {
 		request["symbol"] = GetValue(market, "id")
 
 		response = (<-this.PrivatePutSpotApiV4TradeOrders(this.Extend(request, params)))
@@ -3020,7 +3020,7 @@ func (this *Btse) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 		request["orderId"] = id
 	}
 	var response any = nil
-	if IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") == true {
 		request["symbol"] = GetValue(market, "id")
 
 		response = (<-this.PrivateDeleteSpotApiV4TradeOrders(this.Extend(request, params)))
@@ -3953,7 +3953,7 @@ func (this *Btse) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...a
 		"symbol": GetValue(market, "id"),
 	}
 	var response any = nil
-	if IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") == true {
 
 		response = (<-this.PrivateGetSpotApiV4TradeFees(this.Extend(request, params)))
 		PanicOnError(response)

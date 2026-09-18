@@ -650,7 +650,7 @@ func (this *Gemini) helperForWatchMultipleConstructBody(ch chan any, itemHashNam
 	}
 	symbols = this.MarketSymbols(symbols, nil, false, true, true)
 	var firstMarket any = this.Market(ccxt.GetValue(symbols, 0))
-	if (!ccxt.IsEqual(ccxt.GetValue(firstMarket, "spot"), true)) && (!ccxt.IsEqual(ccxt.GetValue(firstMarket, "linear"), true)) {
+	if (ccxt.GetValue(firstMarket, "spot") != true) && (ccxt.GetValue(firstMarket, "linear") != true) {
 		panic(ccxt.NotSupported(this.Id + " watchMultiple supports only spot or linear-swap symbols"))
 	}
 	var messageHashes any = []any{}

@@ -1668,7 +1668,7 @@ func (this *Woo) createMarketBuyOrderWithCostBody(ch chan any, symbol any, cost 
 		PanicOnError(retRes127812)
 	}
 	var market any = this.Market(symbol)
-	if !IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") != true {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports spot orders only"))
 	}
 
@@ -1704,7 +1704,7 @@ func (this *Woo) createMarketSellOrderWithCostBody(ch chan any, symbol any, cost
 		PanicOnError(retRes129912)
 	}
 	var market any = this.Market(symbol)
-	if !IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") != true {
 		panic(NotSupported(this.Id + " createMarketSellOrderWithCost() supports spot orders only"))
 	}
 
@@ -1908,7 +1908,7 @@ func (this *Woo) createOrderBody(ch chan any, symbol any, typeVar any, side any,
 		var cost *string = this.SafeStringN(params, []any{"cost", "order_amount", "orderAmount"})
 		params = this.Omit(params, []any{"cost", "order_amount", "orderAmount"})
 		var isPriceProvided bool = !IsEqual(price, nil)
-		if (IsEqual(GetValue(market, "spot"), true)) && (isPriceProvided || (cost != nil)) {
+		if (GetValue(market, "spot") == true) && (isPriceProvided || (cost != nil)) {
 			var quoteAmount any = nil
 			if cost != nil {
 				quoteAmount = this.CostToPrecision(symbol, cost)
@@ -2890,7 +2890,7 @@ func (this *Woo) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) a
 		PanicOnError(retRes239612)
 	}
 	var market any = this.Market(symbol)
-	if !IsEqual(GetValue(market, "swap"), true) {
+	if GetValue(market, "swap") != true {
 		panic(NotSupported(this.Id + " fetchTicker() supports swap markets only, there is no spot ticker endpoint"))
 	}
 	var request map[string]any = map[string]any{
@@ -2973,7 +2973,7 @@ func (this *Woo) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			// type" apart from a malformed request, marketSymbols still enforces that the
 			// rest of the list matches
 			var firstMarket any = this.Market(GetValue(symbols, 0))
-			if !IsEqual(GetValue(firstMarket, "swap"), true) {
+			if GetValue(firstMarket, "swap") != true {
 				panic(NotSupported(this.Id + " fetchTickers() supports swap markets only"))
 			}
 		}
@@ -4917,11 +4917,11 @@ func (this *Woo) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any)
 	}
 	var market any = this.Market(symbol)
 	var response any = nil
-	if IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") == true {
 
 		response = (<-this.V3PrivateGetAccountInfo(params))
 		PanicOnError(response)
-	} else if IsEqual(GetValue(market, "swap"), true) {
+	} else if GetValue(market, "swap") == true {
 		var request map[string]any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}

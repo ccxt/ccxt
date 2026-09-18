@@ -1176,7 +1176,7 @@ func (this *Bigone) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	}
 	var market any = this.Market(symbol)
 	var response any = nil
-	if IsEqual(GetValue(market, "contract"), true) {
+	if GetValue(market, "contract") == true {
 		var request map[string]any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
@@ -1459,7 +1459,7 @@ func (this *Bigone) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		PanicOnError(retRes129112)
 	}
 	var market any = this.Market(symbol)
-	if IsEqual(GetValue(market, "contract"), true) {
+	if GetValue(market, "contract") == true {
 		panic(NotSupported(this.Id + " fetchTrades () can only fetch trades for spot markets"))
 	}
 	var request map[string]any = map[string]any{
@@ -1545,7 +1545,7 @@ func (this *Bigone) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		PanicOnError(retRes136212)
 	}
 	var market any = this.Market(symbol)
-	if IsEqual(GetValue(market, "contract"), true) {
+	if GetValue(market, "contract") == true {
 		panic(NotSupported(this.Id + " fetchOHLCV () can only fetch ohlcvs for spot markets"))
 	}
 	var until *int64 = this.SafeInteger(params, "until")
@@ -1791,7 +1791,7 @@ func (this *Bigone) createMarketBuyOrderWithCostBody(ch chan any, symbol any, co
 		PanicOnError(retRes157212)
 	}
 	var market any = this.Market(symbol)
-	if !IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") != true {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports spot orders only"))
 	}
 	AddElementToObject(params, "createMarketBuyOrderRequiresPrice", false)

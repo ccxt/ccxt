@@ -354,7 +354,7 @@ func (this *Hyperliquid) watchOrderBookBody(ch chan any, symbol any, optionalArg
 		"subscription": map[string]any{
 			"type": "l2Book",
 			"coin": func() any {
-				if ccxt.IsEqual(ccxt.GetValue(market, "swap"), true) {
+				if ccxt.GetValue(market, "swap") == true {
 					return ccxt.GetValue(market, "baseName")
 				}
 				return ccxt.GetValue(market, "id")
@@ -406,7 +406,7 @@ func (this *Hyperliquid) unWatchOrderBookBody(ch chan any, symbol any, optionalA
 		"subscription": map[string]any{
 			"type": "l2Book",
 			"coin": func() any {
-				if ccxt.IsEqual(ccxt.GetValue(market, "swap"), true) {
+				if ccxt.GetValue(market, "swap") == true {
 					return ccxt.GetValue(market, "baseName")
 				}
 				return ccxt.GetValue(market, "id")
@@ -505,7 +505,7 @@ func (this *Hyperliquid) watchTickerBody(ch chan any, symbol any, optionalArgs .
 		"subscription": map[string]any{
 			"type": "activeAssetCtx",
 			"coin": func() any {
-				if ccxt.IsEqual(ccxt.GetValue(market, "swap"), true) {
+				if ccxt.GetValue(market, "swap") == true {
 					return ccxt.GetValue(market, "baseName")
 				}
 				return ccxt.GetValue(market, "id")
@@ -553,7 +553,7 @@ func (this *Hyperliquid) unWatchTickerBody(ch chan any, symbol any, optionalArgs
 		"subscription": map[string]any{
 			"type": "activeAssetCtx",
 			"coin": func() any {
-				if ccxt.IsEqual(ccxt.GetValue(market, "swap"), true) {
+				if ccxt.GetValue(market, "swap") == true {
 					return ccxt.GetValue(market, "baseName")
 				}
 				return ccxt.GetValue(market, "id")
@@ -966,7 +966,7 @@ func (this *Hyperliquid) watchTradesBody(ch chan any, symbol any, optionalArgs .
 		"subscription": map[string]any{
 			"type": "trades",
 			"coin": func() any {
-				if ccxt.IsEqual(ccxt.GetValue(market, "swap"), true) {
+				if ccxt.GetValue(market, "swap") == true {
 					return ccxt.GetValue(market, "baseName")
 				}
 				return ccxt.GetValue(market, "id")
@@ -1019,7 +1019,7 @@ func (this *Hyperliquid) unWatchTradesBody(ch chan any, symbol any, optionalArgs
 		"subscription": map[string]any{
 			"type": "trades",
 			"coin": func() any {
-				if ccxt.IsEqual(ccxt.GetValue(market, "swap"), true) {
+				if ccxt.GetValue(market, "swap") == true {
 					return ccxt.GetValue(market, "baseName")
 				}
 				return ccxt.GetValue(market, "id")
@@ -1189,7 +1189,7 @@ func (this *Hyperliquid) watchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 		"subscription": map[string]any{
 			"type": "candle",
 			"coin": func() any {
-				if ccxt.IsEqual(ccxt.GetValue(market, "swap"), true) {
+				if ccxt.GetValue(market, "swap") == true {
 					return ccxt.GetValue(market, "baseName")
 				}
 				return ccxt.GetValue(market, "id")
@@ -1245,7 +1245,7 @@ func (this *Hyperliquid) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs 
 		"subscription": map[string]any{
 			"type": "candle",
 			"coin": func() any {
-				if ccxt.IsEqual(ccxt.GetValue(market, "swap"), true) {
+				if ccxt.GetValue(market, "swap") == true {
 					return ccxt.GetValue(market, "baseName")
 				}
 				return ccxt.GetValue(market, "id")

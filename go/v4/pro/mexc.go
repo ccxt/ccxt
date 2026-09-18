@@ -115,7 +115,7 @@ func (this *Mexc) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 	}
 	var market any = this.Market(symbol)
 	var messageHash any = ccxt.Add("ticker:", ccxt.GetValue(market, "symbol"))
-	if ccxt.IsEqual(ccxt.GetValue(market, "spot"), true) {
+	if ccxt.GetValue(market, "spot") == true {
 		var channel any = ccxt.Add("spot@public.aggre.bookTicker.v3.api.pb@100ms@", ccxt.GetValue(market, "id"))
 
 		retRes10219 := (<-this.WatchSpotPublicAsync(channel, messageHash, params))
@@ -209,7 +209,7 @@ func (this *Mexc) HandleTicker(client any, message any) {
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var ticker any = nil
-	if ccxt.IsEqual(ccxt.GetValue(market, "spot"), true) {
+	if ccxt.GetValue(market, "spot") == true {
 		ticker = this.ParseWsTicker(rawTicker, market)
 		ccxt.AddElementToObject(ticker, "timestamp", timestamp)
 		ccxt.AddElementToObject(ticker, "datetime", this.Iso8601(timestamp))
@@ -708,7 +708,7 @@ func (this *Mexc) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	var timeframeId *string = this.SafeString(timeframes, timeframe)
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("candles:", symbol), ":"), timeframe)
 	var ohlcv any = nil
-	if ccxt.IsEqual(ccxt.GetValue(market, "spot"), true) {
+	if ccxt.GetValue(market, "spot") == true {
 		var channel any = ccxt.Add(ccxt.Add(ccxt.Add("spot@public.kline.v3.api.pb@", ccxt.GetValue(market, "id")), "@"), timeframeId)
 
 		ohlcv = (<-this.WatchSpotPublicAsync(channel, messageHash, params))
@@ -918,7 +918,7 @@ func (this *Mexc) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	symbol = ccxt.GetValue(market, "symbol")
 	var messageHash any = ccxt.Add("orderbook:", symbol)
 	var orderbook any = nil
-	if ccxt.IsEqual(ccxt.GetValue(market, "spot"), true) {
+	if ccxt.GetValue(market, "spot") == true {
 		var frequency any = nil
 		var frequencyparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "frequency", "100ms")
 		frequency = ccxt.GetValue(frequencyparamsVariable, 0)
@@ -1164,7 +1164,7 @@ func (this *Mexc) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	symbol = ccxt.GetValue(market, "symbol")
 	var messageHash any = ccxt.Add("trades:", symbol)
 	var trades any = nil
-	if ccxt.IsEqual(ccxt.GetValue(market, "spot"), true) {
+	if ccxt.GetValue(market, "spot") == true {
 		var channel any = ccxt.Add("spot@public.aggre.deals.v3.api.pb@100ms@", ccxt.GetValue(market, "id"))
 
 		trades = (<-this.WatchSpotPublicAsync(channel, messageHash, params))
@@ -1254,7 +1254,7 @@ func (this *Mexc) HandleTrades(client any, message any) {
 	}
 	for j := 0; j < ccxt.GetArrayLength(trades); j++ {
 		var parsedTrade any = nil
-		if ccxt.IsEqual(ccxt.GetValue(market, "spot"), true) {
+		if ccxt.GetValue(market, "spot") == true {
 			parsedTrade = this.ParseWsTrade(ccxt.GetValue(trades, j), market)
 		} else {
 			parsedTrade = this.ParseTrade(ccxt.GetValue(trades, j), market)
@@ -1371,7 +1371,7 @@ func (this *Mexc) HandleMyTrade(client any, message any, optionalArgs ...any) {
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var trade any = nil
-	if ccxt.IsEqual(ccxt.GetValue(market, "spot"), true) {
+	if ccxt.GetValue(market, "spot") == true {
 		trade = this.ParseWsTrade(data, market)
 	} else if !ccxt.IsEqual(data, nil) {
 		trade = this.ParseTrade(data, market)
@@ -1628,7 +1628,7 @@ func (this *Mexc) HandleOrder(client any, message any) {
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var parsed any = nil
-	if ccxt.IsEqual(ccxt.GetValue(market, "spot"), true) {
+	if ccxt.GetValue(market, "spot") == true {
 		parsed = this.ParseWsOrder(data, market)
 		var sendTime *int64 = this.SafeInteger(message, "sendTime")
 		if sendTime != nil {
@@ -2038,7 +2038,7 @@ func (this *Mexc) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	var messageHash any = ccxt.Add("unsubscribe:ticker:", ccxt.GetValue(market, "symbol"))
 	var url any = nil
 	var channel any = nil
-	if ccxt.IsEqual(ccxt.GetValue(market, "spot"), true) {
+	if ccxt.GetValue(market, "spot") == true {
 		channel = ccxt.Add("spot@public.aggre.bookTicker.v3.api.pb@100ms@", ccxt.GetValue(market, "id"))
 		url = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "spot")
 		ccxt.AddElementToObject(params, "unsubscribed", true)
@@ -2207,7 +2207,7 @@ func (this *Mexc) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	var timeframeId *string = this.SafeString(timeframes, timeframe)
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe:candles:", symbol), ":"), timeframe)
 	var url any = nil
-	if ccxt.IsEqual(ccxt.GetValue(market, "spot"), true) {
+	if ccxt.GetValue(market, "spot") == true {
 		url = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "spot")
 		var channel any = ccxt.Add(ccxt.Add(ccxt.Add("spot@public.kline.v3.api.pb@", ccxt.GetValue(market, "id")), "@"), timeframeId)
 		ccxt.AddElementToObject(params, "unsubscribed", true)
@@ -2255,7 +2255,7 @@ func (this *Mexc) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	symbol = ccxt.GetValue(market, "symbol")
 	var messageHash any = ccxt.Add("unsubscribe:orderbook:", symbol)
 	var url any = nil
-	if ccxt.IsEqual(ccxt.GetValue(market, "spot"), true) {
+	if ccxt.GetValue(market, "spot") == true {
 		url = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "spot")
 		var frequency any = nil
 		var frequencyparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "frequency", "100ms")
@@ -2306,7 +2306,7 @@ func (this *Mexc) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	symbol = ccxt.GetValue(market, "symbol")
 	var messageHash any = ccxt.Add("unsubscribe:trades:", symbol)
 	var url any = nil
-	if ccxt.IsEqual(ccxt.GetValue(market, "spot"), true) {
+	if ccxt.GetValue(market, "spot") == true {
 		url = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "spot")
 		var channel any = ccxt.Add("spot@public.aggre.deals.v3.api.pb@100ms@", ccxt.GetValue(market, "id"))
 		ccxt.AddElementToObject(params, "unsubscribed", true)

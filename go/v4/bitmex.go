@@ -871,7 +871,7 @@ func (this *Bitmex) AmountToPrecision(symbol any, amount any) any {
 	symbol = DerefScalar(this.SafeSymbol(symbol))
 	var market any = this.Market(symbol)
 	var oldPrecision any = this.SafeValue(this.Options, "oldPrecision")
-	if (IsEqual(GetValue(market, "spot"), true)) && (oldPrecision != true) {
+	if (GetValue(market, "spot") == true) && (oldPrecision != true) {
 		amount = this.ConvertFromRealAmount(GetValue(market, "base"), amount)
 	}
 	return this.Exchange.AmountToPrecision(symbol, amount)
@@ -888,7 +888,7 @@ func (this *Bitmex) ConvertFromRawQuantity(symbol any, rawQuantity any, optional
 		return this.ParseNumber(rawQuantity)
 	}
 	var market any = this.Market(symbol)
-	if IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") == true {
 		return this.ParseNumber(this.ConvertToRealAmount(this.SafeString(market, currencySide), rawQuantity))
 	}
 	return this.ParseNumber(rawQuantity)
@@ -2755,7 +2755,7 @@ func (this *Bitmex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	var capitalizeOrderType any = orderType
 	var reduceOnly any = this.SafeValue(params, "reduceOnly")
 	if !IsEqual(reduceOnly, nil) {
-		if (!IsEqual(GetValue(market, "swap"), true)) && (!IsEqual(GetValue(market, "future"), true)) {
+		if (GetValue(market, "swap") != true) && (GetValue(market, "future") != true) {
 			panic(InvalidOrder(Add(Add(this.Id+" createOrder() does not support reduceOnly for ", GetValue(market, "type")), " orders, reduceOnly orders are supported for swap and future markets only")))
 		}
 	}

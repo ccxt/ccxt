@@ -2788,9 +2788,9 @@ func (this *Gate) PrepareRequest(optionalArgs ...any) any {
 	_ = params
 	var request map[string]any = map[string]any{}
 	if !IsEqual(market, nil) {
-		if IsEqual(GetValue(market, "contract"), true) {
+		if GetValue(market, "contract") == true {
 			request["contract"] = GetValue(market, "id")
-			if !IsEqual(GetValue(market, "option"), true) {
+			if GetValue(market, "option") != true {
 				request["settle"] = GetValue(market, "settleId")
 			}
 		} else {
@@ -3075,7 +3075,7 @@ func (this *Gate) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...
 		PanicOnError(retRes214712)
 	}
 	var market any = this.Market(symbol)
-	if !IsEqual(GetValue(market, "swap"), true) {
+	if GetValue(market, "swap") != true {
 		panic(BadSymbol(this.Id + " fetchFundingRate() supports swap contracts only"))
 	}
 	requestqueryVariable := this.PrepareRequest(market, nil, params)
@@ -3970,7 +3970,7 @@ func (this *Gate) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	request := GetValue(requestqueryVariable, 0)
 	query := GetValue(requestqueryVariable, 1)
 	if !IsEqual(limit, nil) {
-		if IsEqual(GetValue(market, "spot"), true) {
+		if GetValue(market, "spot") == true {
 			limit = mathMin(limit, 1000)
 		} else {
 			limit = mathMin(limit, 300)
@@ -3979,19 +3979,19 @@ func (this *Gate) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	AddElementToObject(request, "with_id", true)
 	var response any = nil
-	if (IsEqual(GetValue(market, "spot"), true)) || (IsEqual(GetValue(market, "margin"), true)) {
+	if (GetValue(market, "spot") == true) || (GetValue(market, "margin") == true) {
 
 		response = (<-this.PublicSpotGetOrderBook(this.Extend(request, query)))
 		PanicOnError(response)
-	} else if IsEqual(GetValue(market, "swap"), true) {
+	} else if GetValue(market, "swap") == true {
 
 		response = (<-this.PublicFuturesGetSettleOrderBook(this.Extend(request, query)))
 		PanicOnError(response)
-	} else if IsEqual(GetValue(market, "future"), true) {
+	} else if GetValue(market, "future") == true {
 
 		response = (<-this.PublicDeliveryGetSettleOrderBook(this.Extend(request, query)))
 		PanicOnError(response)
-	} else if IsEqual(GetValue(market, "option"), true) {
+	} else if GetValue(market, "option") == true {
 
 		response = (<-this.PublicOptionsGetOrderBook(this.Extend(request, query)))
 		PanicOnError(response)
@@ -4066,17 +4066,17 @@ func (this *Gate) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	if IsEqual(timestamp, nil) {
 		panic(ExchangeError(this.Id + " method() missing timestamp"))
 	}
-	if !IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") != true {
 		timestamp = Multiply(timestamp, 1000)
 	}
 	var priceKey any = func() any {
-		if IsEqual(GetValue(market, "spot"), true) {
+		if GetValue(market, "spot") == true {
 			return 0
 		}
 		return "p"
 	}()
 	var amountKey any = func() any {
-		if IsEqual(GetValue(market, "spot"), true) {
+		if GetValue(market, "spot") == true {
 			return 1
 		}
 		return "s"
@@ -4121,19 +4121,19 @@ func (this *Gate) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 	request := GetValue(requestqueryVariable, 0)
 	query := GetValue(requestqueryVariable, 1)
 	var response any = nil
-	if (IsEqual(GetValue(market, "spot"), true)) || (IsEqual(GetValue(market, "margin"), true)) {
+	if (GetValue(market, "spot") == true) || (GetValue(market, "margin") == true) {
 
 		response = (<-this.PublicSpotGetTickers(this.Extend(request, query)))
 		PanicOnError(response)
-	} else if IsEqual(GetValue(market, "swap"), true) {
+	} else if GetValue(market, "swap") == true {
 
 		response = (<-this.PublicFuturesGetSettleTickers(this.Extend(request, query)))
 		PanicOnError(response)
-	} else if IsEqual(GetValue(market, "future"), true) {
+	} else if GetValue(market, "future") == true {
 
 		response = (<-this.PublicDeliveryGetSettleTickers(this.Extend(request, query)))
 		PanicOnError(response)
-	} else if IsEqual(GetValue(market, "option"), true) {
+	} else if GetValue(market, "option") == true {
 		var marketId any = GetValue(market, "id")
 		var optionParts []string = Split(marketId, "-")
 		AddElementToObject(request, "underlying", this.SafeString(optionParts, 0))
@@ -4144,7 +4144,7 @@ func (this *Gate) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 		panic(NotSupported(this.Id + " fetchTicker() not support this market type"))
 	}
 	var ticker any = nil
-	if IsEqual(GetValue(market, "option"), true) {
+	if GetValue(market, "option") == true {
 		for i := 0; i < GetArrayLength(response); i++ {
 			var entry any = GetValue(response, i)
 			if IsEqual(GetValue(entry, "name"), GetValue(market, "id")) {
@@ -4745,7 +4745,7 @@ func (this *Gate) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		ch <- retRes348219
 		return nil
 	}
-	if IsEqual(GetValue(market, "option"), true) {
+	if GetValue(market, "option") == true {
 
 		retRes348519 := (<-this.FetchOptionOHLCVAsync(symbol, timeframe, since, limit, params))
 		PanicOnError(retRes348519)
@@ -4759,7 +4759,7 @@ func (this *Gate) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	params = GetValue(requestparamsVariable, 1)
 	AddElementToObject(request, "interval", this.SafeString(this.Timeframes, timeframe, timeframe))
 	var maxLimit any = func() any {
-		if IsEqual(GetValue(market, "contract"), true) {
+		if GetValue(market, "contract") == true {
 			return 1999
 		}
 		return 1000
@@ -4794,18 +4794,18 @@ func (this *Gate) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		AddElementToObject(request, "limit", limit)
 	}
 	var response any = []any{}
-	if IsEqual(GetValue(market, "contract"), true) {
+	if GetValue(market, "contract") == true {
 		var isMark bool = (price != nil && *price == "mark")
 		var isIndex bool = (price != nil && *price == "index")
 		if isMark || isIndex {
 			AddElementToObject(request, "contract", Add(Add(price, "_"), GetValue(market, "id")))
 			params = this.Omit(params, "price")
 		}
-		if IsEqual(GetValue(market, "future"), true) {
+		if GetValue(market, "future") == true {
 
 			response = (<-this.PublicDeliveryGetSettleCandlesticks(this.Extend(request, params)))
 			PanicOnError(response)
-		} else if IsEqual(GetValue(market, "swap"), true) {
+		} else if GetValue(market, "swap") == true {
 
 			response = (<-this.PublicFuturesGetSettleCandlesticks(this.Extend(request, params)))
 			PanicOnError(response)
@@ -4904,7 +4904,7 @@ func (this *Gate) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 		return nil
 	}
 	var market any = this.Market(symbol)
-	if !IsEqual(GetValue(market, "swap"), true) {
+	if GetValue(market, "swap") != true {
 		panic(BadSymbol(this.Id + " fetchFundingRateHistory() supports swap contracts only"))
 	}
 	var request any = map[string]any{}
@@ -5062,7 +5062,7 @@ func (this *Gate) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	if !IsEqual(limit, nil) {
 		AddElementToObject(request, "limit", mathMin(limit, 1000)) // default 100, max 1000
 	}
-	if !IsEqual(since, nil) && (IsEqual(GetValue(market, "contract"), true)) {
+	if !IsEqual(since, nil) && (GetValue(market, "contract") == true) {
 		AddElementToObject(request, "from", this.ParseToInt(Divide(since, 1000)))
 	}
 	var response any = nil
@@ -5070,11 +5070,11 @@ func (this *Gate) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 
 		response = (<-this.PublicSpotGetTrades(this.Extend(request, query)))
 		PanicOnError(response)
-	} else if IsEqual(GetValue(market, "swap"), true) {
+	} else if GetValue(market, "swap") == true {
 
 		response = (<-this.PublicFuturesGetSettleTrades(this.Extend(request, query)))
 		PanicOnError(response)
-	} else if IsEqual(GetValue(market, "future"), true) {
+	} else if GetValue(market, "future") == true {
 
 		response = (<-this.PublicDeliveryGetSettleTrades(this.Extend(request, query)))
 		PanicOnError(response)
@@ -5982,7 +5982,7 @@ func (this *Gate) createOrderBody(ch chan any, symbol any, typeVar any, side any
 	var nonTriggerOrder bool = !isTpsl && (IsEqual(trigger, nil))
 	var orderRequest any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 	var response any = nil
-	if (IsEqual(GetValue(market, "spot"), true)) || (IsEqual(GetValue(market, "margin"), true)) {
+	if (GetValue(market, "spot") == true) || (GetValue(market, "margin") == true) {
 		if nonTriggerOrder {
 
 			response = (<-this.PrivateSpotPostOrders(orderRequest))
@@ -5992,7 +5992,7 @@ func (this *Gate) createOrderBody(ch chan any, symbol any, typeVar any, side any
 			response = (<-this.PrivateSpotPostPriceOrders(orderRequest))
 			PanicOnError(response)
 		}
-	} else if IsEqual(GetValue(market, "swap"), true) {
+	} else if GetValue(market, "swap") == true {
 		if nonTriggerOrder {
 
 			response = (<-this.PrivateFuturesPostSettleOrders(orderRequest))
@@ -6002,7 +6002,7 @@ func (this *Gate) createOrderBody(ch chan any, symbol any, typeVar any, side any
 			response = (<-this.PrivateFuturesPostSettlePriceOrders(orderRequest))
 			PanicOnError(response)
 		}
-	} else if IsEqual(GetValue(market, "future"), true) {
+	} else if GetValue(market, "future") == true {
 		if nonTriggerOrder {
 
 			response = (<-this.PrivateDeliveryPostSettleOrders(orderRequest))
@@ -6117,7 +6117,7 @@ func (this *Gate) CreateOrdersRequest(orders any, optionalArgs ...any) any {
 	}
 	var symbols any = this.MarketSymbols(orderSymbols, nil, false, true, true)
 	var market any = this.Market(GetValue(symbols, 0))
-	if (IsEqual(GetValue(market, "future"), true)) || (IsEqual(GetValue(market, "option"), true)) {
+	if (GetValue(market, "future") == true) || (GetValue(market, "option") == true) {
 		panic(NotSupported(this.Id + " createOrders() does not support futures or options markets"))
 	}
 	return ordersRequests
@@ -6155,11 +6155,11 @@ func (this *Gate) createOrdersBody(ch chan any, orders any, optionalArgs ...any)
 	var firstOrder any = GetValue(orders, 0)
 	var market any = this.Market(GetValue(firstOrder, "symbol"))
 	var response any = nil
-	if IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") == true {
 
 		response = (<-this.PrivateSpotPostBatchOrders(ordersRequests))
 		PanicOnError(response)
-	} else if IsEqual(GetValue(market, "swap"), true) {
+	} else if GetValue(market, "swap") == true {
 
 		response = (<-this.PrivateFuturesPostSettleBatchOrders(ordersRequests))
 		PanicOnError(response)
@@ -6248,7 +6248,7 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 				"contract": GetValue(market, "id"),
 				"size":     amount,
 			}
-			if !IsEqual(GetValue(market, "option"), true) {
+			if GetValue(market, "option") != true {
 				AddElementToObject(request, "settle", GetValue(market, "settleId")) // filled in prepareRequest above
 			}
 			if isMarketOrder {
@@ -6333,7 +6333,7 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 			}
 		}
 	} else {
-		if IsEqual(GetValue(market, "option"), true) {
+		if GetValue(market, "option") == true {
 			panic(NotSupported(this.Id + " createOrder() conditional option orders are not supported"))
 		}
 		if contract == true {
@@ -6486,7 +6486,7 @@ func (this *Gate) createMarketBuyOrderWithCostBody(ch chan any, symbol any, cost
 	retRes48738 := (<-this.LoadUnifiedStatusAsync())
 	PanicOnError(retRes48738)
 	var market any = this.Market(symbol)
-	if !IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") != true {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports spot orders only"))
 	}
 	params = this.Extend(params, map[string]any{
@@ -6530,7 +6530,7 @@ func (this *Gate) EditOrderRequest(id any, symbol any, typeVar any, side any, op
 		"account":       account,
 	}
 	if !IsEqual(amount, nil) {
-		if IsEqual(GetValue(market, "spot"), true) {
+		if GetValue(market, "spot") == true {
 			request["amount"] = this.AmountToPrecision(symbol, amount)
 		} else {
 			if IsEqual(side, "sell") {
@@ -6543,7 +6543,7 @@ func (this *Gate) EditOrderRequest(id any, symbol any, typeVar any, side any, op
 	if !IsEqual(price, nil) {
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
-	if !IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") != true {
 		request["settle"] = GetValue(market, "settleId")
 	}
 	return this.Extend(request, params)
@@ -6590,7 +6590,7 @@ func (this *Gate) editOrderBody(ch chan any, id any, symbol any, typeVar any, si
 	var market any = this.Market(symbol)
 	var extendedRequest any = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, params)
 	var response any = nil
-	if IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") == true {
 
 		response = (<-this.PrivateSpotPatchOrdersOrderId(extendedRequest))
 		PanicOnError(response)
@@ -7903,7 +7903,7 @@ func (this *Gate) cancelOrdersForSymbolsBody(ch chan any, orders any, optionalAr
 		var order any = GetValue(orders, i)
 		var symbol *string = this.SafeString(order, "symbol")
 		var market any = this.Market(symbol)
-		if !IsEqual(GetValue(market, "spot"), true) {
+		if GetValue(market, "spot") != true {
 			panic(NotSupported(this.Id + " cancelOrdersForSymbols() supports only spot markets"))
 		}
 		var id *string = this.SafeString(order, "id")
@@ -8213,11 +8213,11 @@ func (this *Gate) setLeverageBody(ch chan any, leverage any, optionalArgs ...any
 		AddElementToObject(request, "leverage", stringifiedMargin)
 	}
 	var response any = nil
-	if IsEqual(GetValue(market, "swap"), true) {
+	if GetValue(market, "swap") == true {
 
 		response = (<-this.PrivateFuturesPostSettlePositionsContractLeverage(this.Extend(request, query)))
 		PanicOnError(response)
-	} else if IsEqual(GetValue(market, "future"), true) {
+	} else if GetValue(market, "future") == true {
 
 		response = (<-this.PrivateDeliveryPostSettlePositionsContractLeverage(this.Extend(request, query)))
 		PanicOnError(response)
@@ -8429,7 +8429,7 @@ func (this *Gate) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any
 		PanicOnError(retRes640312)
 	}
 	var market any = this.Market(symbol)
-	if !IsEqual(GetValue(market, "contract"), true) {
+	if GetValue(market, "contract") != true {
 		panic(BadRequest(this.Id + " fetchPosition() supports contract markets only"))
 	}
 	var request any = map[string]any{}
@@ -8438,11 +8438,11 @@ func (this *Gate) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any
 	params = GetValue(requestparamsVariable, 1)
 	var extendedRequest map[string]any = this.Extend(request, params)
 	var response any = nil
-	if IsEqual(GetValue(market, "swap"), true) {
+	if GetValue(market, "swap") == true {
 
 		response = (<-this.PrivateFuturesGetSettlePositionsContract(extendedRequest))
 		PanicOnError(response)
-	} else if IsEqual(GetValue(market, "future"), true) {
+	} else if GetValue(market, "future") == true {
 
 		response = (<-this.PrivateDeliveryGetSettlePositionsContract(extendedRequest))
 		PanicOnError(response)
@@ -9464,11 +9464,11 @@ func (this *Gate) modifyMarginHelperBody(ch chan any, symbol any, amount any, op
 	query := GetValue(requestqueryVariable, 1)
 	AddElementToObject(request, "change", this.NumberToString(amount))
 	var response any = nil
-	if IsEqual(GetValue(market, "swap"), true) {
+	if GetValue(market, "swap") == true {
 
 		response = (<-this.PrivateFuturesPostSettlePositionsContractMargin(this.Extend(request, query)))
 		PanicOnError(response)
-	} else if IsEqual(GetValue(market, "future"), true) {
+	} else if GetValue(market, "future") == true {
 
 		response = (<-this.PrivateDeliveryPostSettlePositionsContractMargin(this.Extend(request, query)))
 		PanicOnError(response)
@@ -9628,7 +9628,7 @@ func (this *Gate) fetchOpenInterestHistoryBody(ch chan any, symbol any, optional
 		return nil
 	}
 	var market any = this.Market(symbol)
-	if !IsEqual(GetValue(market, "swap"), true) {
+	if GetValue(market, "swap") != true {
 		panic(BadRequest(this.Id + " fetchOpenInterest() supports swap markets only"))
 	}
 	var request map[string]any = map[string]any{
@@ -10400,7 +10400,7 @@ func (this *Gate) fetchLiquidationsBody(ch chan any, symbol any, optionalArgs ..
 		PanicOnError(retRes796712)
 	}
 	var market any = this.Market(symbol)
-	if !IsEqual(GetValue(market, "swap"), true) {
+	if GetValue(market, "swap") != true {
 		panic(NotSupported(this.Id + " fetchLiquidations() supports swap markets only"))
 	}
 	var request any = map[string]any{
@@ -10478,25 +10478,25 @@ func (this *Gate) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) any 
 		"contract": GetValue(market, "id"),
 	}
 	var response any = nil
-	if (IsEqual(GetValue(market, "swap"), true)) || (IsEqual(GetValue(market, "future"), true)) {
+	if (GetValue(market, "swap") == true) || (GetValue(market, "future") == true) {
 		if !IsEqual(limit, nil) {
 			request["limit"] = limit
 		}
 		request["settle"] = GetValue(market, "settleId")
-	} else if IsEqual(GetValue(market, "option"), true) {
+	} else if GetValue(market, "option") == true {
 		var marketId any = GetValue(market, "id")
 		var optionParts []string = Split(marketId, "-")
 		request["underlying"] = this.SafeString(optionParts, 0)
 	}
-	if IsEqual(GetValue(market, "swap"), true) {
+	if GetValue(market, "swap") == true {
 
 		response = (<-this.PrivateFuturesGetSettleLiquidates(this.Extend(request, params)))
 		PanicOnError(response)
-	} else if IsEqual(GetValue(market, "future"), true) {
+	} else if GetValue(market, "future") == true {
 
 		response = (<-this.PrivateDeliveryGetSettleLiquidates(this.Extend(request, params)))
 		PanicOnError(response)
-	} else if IsEqual(GetValue(market, "option"), true) {
+	} else if GetValue(market, "option") == true {
 
 		response = (<-this.PrivateOptionsGetPositionClose(this.Extend(request, params)))
 		PanicOnError(response)

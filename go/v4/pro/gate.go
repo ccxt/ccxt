@@ -239,7 +239,7 @@ func (this *Gate) createOrdersWsBody(ch chan any, orders any, optionalArgs ...an
 	var request any = this.CreateOrdersRequest(orders, params)
 	var firstOrder any = ccxt.GetValue(orders, 0)
 	var market any = this.Market(ccxt.GetValue(firstOrder, "symbol"))
-	if !ccxt.IsEqual(ccxt.GetValue(market, "swap"), true) {
+	if ccxt.GetValue(market, "swap") != true {
 		panic(ccxt.NotSupported(this.Id + " createOrdersWs is not supported for swap markets"))
 	}
 	// todo add swap support
@@ -599,7 +599,7 @@ func (this *Gate) fetchOrdersByStatusWsBody(ch chan any, status any, optionalArg
 	if symbol != nil {
 		market = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
-		if !ccxt.IsEqual(ccxt.GetValue(market, "swap"), true) {
+		if ccxt.GetValue(market, "swap") != true {
 			panic(ccxt.NotSupported(this.Id + " fetchOrdersByStatusWs is only supported by swap markets. Use rest API for other markets"))
 		}
 	}
@@ -659,7 +659,7 @@ func (this *Gate) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	var marketId any = ccxt.GetValue(market, "id")
 	var url any = this.GetUrlByMarket(market)
 	var isEuUrl bool = (ccxt.GetIndexOf(url, "gateeu") >= 0)
-	var isNonEuSpot bool = (ccxt.IsEqual(ccxt.GetValue(market, "spot"), true)) && !isEuUrl
+	var isNonEuSpot bool = (ccxt.GetValue(market, "spot") == true) && !isEuUrl
 	var intervalDefault any = func() any {
 		if isNonEuSpot {
 			return "50"
@@ -673,7 +673,7 @@ func (this *Gate) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	var messageHash any = ccxt.Add("orderbook"+":", symbol)
 	if ccxt.IsEqual(limit, nil) {
 		limit = func() any {
-			if ccxt.IsEqual(ccxt.GetValue(market, "spot"), true) {
+			if ccxt.GetValue(market, "spot") == true {
 				return 50
 			}
 			return 100
@@ -687,7 +687,7 @@ func (this *Gate) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	if isEuUrl {
 		channel = "spot.order_book_update"
 		payload = []any{marketId, interval}
-	} else if ccxt.IsEqual(ccxt.GetValue(market, "spot"), true) {
+	} else if ccxt.GetValue(market, "spot") == true {
 		channel = "spot.obu"
 		var finalInterval any = interval
 		if ccxt.IsEqual(limit, 400) {
@@ -740,7 +740,7 @@ func (this *Gate) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	symbol = ccxt.GetValue(market, "symbol")
 	var marketId any = ccxt.GetValue(market, "id")
 	var isEuUrl bool = (ccxt.GetIndexOf(url, "gateeu") >= 0)
-	var isNonEuSpot bool = (ccxt.IsEqual(ccxt.GetValue(market, "spot"), true)) && !isEuUrl
+	var isNonEuSpot bool = (ccxt.GetValue(market, "spot") == true) && !isEuUrl
 	var intervalDefault any = func() any {
 		if isNonEuSpot {
 			return "50"
@@ -755,7 +755,7 @@ func (this *Gate) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	var limit any = ccxt.DerefScalar(this.SafeInteger(params, "limit"))
 	if ccxt.IsEqual(limit, nil) {
 		limit = func() any {
-			if ccxt.IsEqual(ccxt.GetValue(market, "spot"), true) {
+			if ccxt.GetValue(market, "spot") == true {
 				return 50
 			}
 			return 100
@@ -769,7 +769,7 @@ func (this *Gate) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	if isEuUrl {
 		channel = "spot.order_book_update"
 		payload = []any{marketId, interval}
-	} else if ccxt.IsEqual(ccxt.GetValue(market, "spot"), true) {
+	} else if ccxt.GetValue(market, "spot") == true {
 		channel = "spot.obu"
 		var finalInterval any = interval
 		if ccxt.IsEqual(limit, 400) {
@@ -2843,9 +2843,9 @@ func (this *Gate) GetTypeByMarket(market any) any {
 	if ccxt.IsEqual(market, nil) {
 		return nil
 	}
-	if ccxt.IsEqual(ccxt.GetValue(market, "spot"), true) {
+	if ccxt.GetValue(market, "spot") == true {
 		return "spot"
-	} else if ccxt.IsEqual(ccxt.GetValue(market, "option"), true) {
+	} else if ccxt.GetValue(market, "option") == true {
 		return "options"
 	} else {
 		return "futures"

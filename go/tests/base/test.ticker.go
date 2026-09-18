@@ -71,12 +71,12 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	}
 	// temp todo: skip inactive markets for now, as they sometimes have weird values and causing issues:
 	if !(InOp(skippedProperties, "checkInactiveMarkets")) {
-		if !IsEqual(market, nil) && IsEqual(GetValue(market, "active"), false) {
+		if !IsEqual(market, nil) && (GetValue(market, "active") == false) {
 			return
 		}
 	}
 	if InOp(skippedProperties, "skipNonActiveMarkets") {
-		if IsEqual(market, nil) || (!IsEqual(GetValue(market, "active"), true)) {
+		if IsEqual(market, nil) || (GetValue(market, "active") != true) {
 			return
 		}
 	}

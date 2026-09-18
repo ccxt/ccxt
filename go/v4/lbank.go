@@ -927,7 +927,7 @@ func (this *Lbank) ParseTicker(ticker any, optionalArgs ...any) any {
 	var tickerData any = this.SafeValue(ticker, "ticker", map[string]any{})
 	market = this.SafeMarket(marketId, market)
 	var data any = func() any {
-		if IsEqual(GetValue(market, "contract"), true) {
+		if GetValue(market, "contract") == true {
 			return ticker
 		}
 		return tickerData
@@ -981,7 +981,7 @@ func (this *Lbank) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 		PanicOnError(retRes80712)
 	}
 	var market any = this.Market(symbol)
-	if IsEqual(GetValue(market, "swap"), true) {
+	if GetValue(market, "swap") == true {
 
 		responseForSwap := (<-this.FetchTickersAsync([]any{GetValue(market, "symbol")}, params))
 		PanicOnError(responseForSwap)
@@ -1227,7 +1227,7 @@ func (this *Lbank) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 	//
 	var orderbook any = this.SafeValue(response, "data", map[string]any{})
 	var timestamp int64 = this.Milliseconds()
-	if IsEqual(GetValue(market, "swap"), true) {
+	if GetValue(market, "swap") == true {
 
 		ch <- this.ParseOrderBook(orderbook, GetValue(market, "symbol"), timestamp, "bids", "asks", "price", "volume")
 		return nil
@@ -2008,7 +2008,7 @@ func (this *Lbank) createMarketBuyOrderWithCostBody(ch chan any, symbol any, cos
 		PanicOnError(retRes164212)
 	}
 	var market any = this.Market(symbol)
-	if !IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") != true {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports spot orders only"))
 	}
 	AddElementToObject(params, "createMarketBuyOrderRequiresPrice", false)

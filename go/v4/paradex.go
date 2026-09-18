@@ -1551,7 +1551,7 @@ func (this *Paradex) ParseFundingRate(contract any, optionalArgs ...any) any {
 	// option row carries an empty funding_rate and a period of zero. left
 	// without a symbol, parseFundingRates drops the row
 	var rate *string = this.SafeString(contract, "funding_rate")
-	var funds bool = (IsEqual(GetValue(market, "swap"), true)) && (rate != nil) && (rate == nil || *rate != "")
+	var funds bool = (GetValue(market, "swap") == true) && (rate != nil) && (rate == nil || *rate != "")
 	// the funding period belongs to the market and is not always eight hours:
 	// fetchMarkets documents one on twenty four. funding accrues each second
 	// against an index, and this rate is the amount for a whole period
@@ -1833,7 +1833,7 @@ func (this *Paradex) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs
 		PanicOnError(retRes134212)
 	}
 	var market any = this.Market(symbol)
-	if !IsEqual(GetValue(market, "contract"), true) {
+	if GetValue(market, "contract") != true {
 		panic(BadRequest(this.Id + " fetchOpenInterest() supports contract markets only"))
 	}
 	var request map[string]any = map[string]any{

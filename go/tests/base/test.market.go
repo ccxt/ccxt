@@ -76,7 +76,7 @@ func TestMarket(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	var inverse any = GetValue(market, "inverse")
 	var quanto any = ccxt.DerefScalar(exchange.SafeBool(market, "quanto")) // todo: unify
 	var isQuanto bool = (quanto != nil) && EvalTruthy(quanto)
-	var isInactiveMarket bool = IsEqual(GetValue(market, "active"), false)
+	var isInactiveMarket bool = (GetValue(market, "active") == false)
 	//
 	var emptyAllowedFor any = []any{"margin"}
 	if contract != true {
@@ -191,11 +191,11 @@ func TestMarket(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 		Assert((IsEqual(GetValue(market, "settle"), nil)) && (IsEqual(GetValue(market, "settleId"), nil)), Add("\"settle\" must be undefined when \"contract\" is false", logText))
 	}
 	// future, swap and option should be mutually exclusive
-	if IsEqual(GetValue(market, "future"), true) {
-		Assert((!IsEqual(GetValue(market, "swap"), true)) && (!IsEqual(GetValue(market, "option"), true)) && (isIndex != true), Add("market swap and option must be false when \"future\" is true", logText))
-	} else if IsEqual(GetValue(market, "swap"), true) {
+	if GetValue(market, "future") == true {
+		Assert((GetValue(market, "swap") != true) && (GetValue(market, "option") != true) && (isIndex != true), Add("market swap and option must be false when \"future\" is true", logText))
+	} else if GetValue(market, "swap") == true {
 		Assert((future != true) && (option != true), Add("market future and option must be false when \"swap\" is true", logText))
-	} else if IsEqual(GetValue(market, "option"), true) {
+	} else if GetValue(market, "option") == true {
 		Assert((future != true) && (swap != true), Add("market future and swap must be false when \"option\" is true", logText))
 	}
 	// check specific fields for options & futures

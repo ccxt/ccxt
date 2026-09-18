@@ -1721,7 +1721,7 @@ func (this *Bingx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	}
 	var market any = this.Market(symbol)
 	var maxLimit any = func() any {
-		if IsEqual(GetValue(market, "inverse"), true) {
+		if GetValue(market, "inverse") == true {
 			return 1000
 		}
 		return 1440
@@ -1757,12 +1757,12 @@ func (this *Bingx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	if until != nil {
 		params = this.Omit(params, []any{"until"})
 		request["endTime"] = until
-	} else if (IsEqual(GetValue(market, "inverse"), true)) && (!IsEqual(since, nil)) {
+	} else if (GetValue(market, "inverse") == true) && (!IsEqual(since, nil)) {
 		var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
 		request["endTime"] = this.Sum(since, Multiply(duration, requestLimit))
 	}
 	var response any = nil
-	if IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") == true {
 		// bingx spot klines are anchored to UTC+8 by default, unlike the swap klines and other exchanges
 		// the timeZone request parameter aligns the candle boundaries to UTC, live-verified for the spot endpoint
 		var timeZone any = nil
@@ -1776,7 +1776,7 @@ func (this *Bingx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 		response = (<-this.SpotV1PublicGetMarketKline(this.Extend(request, params)))
 		PanicOnError(response)
 	} else {
-		if IsEqual(GetValue(market, "inverse"), true) {
+		if GetValue(market, "inverse") == true {
 
 			response = (<-this.CswapV1PublicGetMarketKlines(this.Extend(request, params)))
 			PanicOnError(response)
@@ -1911,7 +1911,7 @@ func (this *Bingx) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 		PanicOnError(retRes136812)
 	}
 	var market any = this.Market(symbol)
-	if IsEqual(GetValue(market, "inverse"), true) {
+	if GetValue(market, "inverse") == true {
 		panic(NotSupported(this.Id + " fetchTrades() is not supported for inverse swap markets"))
 	}
 	var request map[string]any = map[string]any{
@@ -2144,13 +2144,13 @@ func (this *Bingx) ParseTrade(trade any, optionalArgs ...any) any {
 		}()
 	}
 	var amount *string = this.SafeStringN(trade, []any{"qty", "amount", "q"})
-	if (!IsEqual(market, nil)) && (IsEqual(GetValue(market, "swap"), true)) && (InOp(trade, "volume")) {
+	if (!IsEqual(market, nil)) && (GetValue(market, "swap") == true) && (InOp(trade, "volume")) {
 		// Linear volume is the base quantity (contractSize 1); inverse volume is the contract count.
 		// safeTrade applies contractSize when calculating inverse cost.
 		amount = this.SafeString(trade, "volume")
 	}
 	var price *string = this.SafeStringN(trade, []any{"price", "p", "tradePrice"})
-	if (!IsEqual(market, nil)) && (IsEqual(GetValue(market, "linear"), true)) && (IsEqual(this.SafeString(trade, "x"), "TRADE")) {
+	if (!IsEqual(market, nil)) && (GetValue(market, "linear") == true) && (IsEqual(this.SafeString(trade, "x"), "TRADE")) {
 		var lastAmount *string = this.SafeString(trade, "l")
 		var lastPrice *string = this.SafeString(trade, "L")
 		if (lastAmount != nil) && (lastPrice != nil) {
@@ -2229,7 +2229,7 @@ func (this *Bingx) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 		response = (<-this.SpotV1PublicGetMarketDepth(this.Extend(request, params)))
 		PanicOnError(response)
 	} else {
-		if IsEqual(GetValue(market, "inverse"), true) {
+		if GetValue(market, "inverse") == true {
 
 			response = (<-this.CswapV1PublicGetMarketDepth(this.Extend(request, params)))
 			PanicOnError(response)
@@ -2353,7 +2353,7 @@ func (this *Bingx) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ..
 		"symbol": GetValue(market, "id"),
 	}
 	var response any = nil
-	if IsEqual(GetValue(market, "inverse"), true) {
+	if GetValue(market, "inverse") == true {
 
 		response = (<-this.CswapV1PublicGetMarketPremiumIndex(this.Extend(request, params)))
 		PanicOnError(response)
@@ -2379,7 +2379,7 @@ func (this *Bingx) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ..
 	//    }
 	//
 	var data any = nil
-	if IsEqual(GetValue(market, "inverse"), true) {
+	if GetValue(market, "inverse") == true {
 		var dataList any = this.SafeList(response, "data", []any{})
 		data = this.SafeDict(dataList, 0, map[string]any{})
 	} else {
@@ -2521,7 +2521,7 @@ func (this *Bingx) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any)
 		PanicOnError(retRes186512)
 	}
 	var market any = this.Market(symbol)
-	if IsEqual(GetValue(market, "inverse"), true) {
+	if GetValue(market, "inverse") == true {
 		panic(NotSupported(this.Id + " fetchFundingRateHistory() is not supported for inverse swap markets"))
 	}
 	var paginate any = false
@@ -2633,7 +2633,7 @@ func (this *Bingx) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any
 	params = GetValue(subTypeparamsVariable, 1)
 	var isInverse any = func() any {
 		if !IsEqual(market, nil) {
-			return (IsEqual(GetValue(market, "inverse"), true))
+			return (GetValue(market, "inverse") == true)
 		}
 		return (IsEqual(subType, "inverse"))
 	}()
@@ -2750,7 +2750,7 @@ func (this *Bingx) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs .
 		"symbol": GetValue(market, "id"),
 	}
 	var response any = nil
-	if IsEqual(GetValue(market, "inverse"), true) {
+	if GetValue(market, "inverse") == true {
 
 		response = (<-this.CswapV1PublicGetMarketOpenInterest(this.Extend(request, params)))
 		PanicOnError(response)
@@ -2788,7 +2788,7 @@ func (this *Bingx) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs .
 	//     }
 	//
 	var result any = map[string]any{}
-	if IsEqual(GetValue(market, "inverse"), true) {
+	if GetValue(market, "inverse") == true {
 		var data any = this.SafeList(response, "data", []any{})
 		result = this.SafeDict(data, 0, map[string]any{})
 	} else {
@@ -2879,12 +2879,12 @@ func (this *Bingx) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 		"symbol": GetValue(market, "id"),
 	}
 	var response any = nil
-	if IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") == true {
 
 		response = (<-this.SpotV1PublicGetTicker24hr(this.Extend(request, params)))
 		PanicOnError(response)
 	} else {
-		if IsEqual(GetValue(market, "inverse"), true) {
+		if GetValue(market, "inverse") == true {
 
 			response = (<-this.CswapV1PublicGetMarketTicker(this.Extend(request, params)))
 			PanicOnError(response)
@@ -3507,7 +3507,7 @@ func (this *Bingx) fetchPositionHistoryBody(ch chan any, symbol any, optionalArg
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 	var response any = nil
-	if IsEqual(GetValue(market, "linear"), true) {
+	if GetValue(market, "linear") == true {
 
 		response = (<-this.SwapV1PrivateGetTradePositionHistory(this.Extend(request, params)))
 		PanicOnError(response)
@@ -3644,14 +3644,14 @@ func (this *Bingx) fetchPositionBody(ch chan any, symbol any, optionalArgs ...an
 		PanicOnError(retRes290212)
 	}
 	var market any = this.Market(symbol)
-	if !IsEqual(GetValue(market, "swap"), true) {
+	if GetValue(market, "swap") != true {
 		panic(BadRequest(this.Id + " fetchPosition() supports swap markets only"))
 	}
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 	var response any = nil
-	if IsEqual(GetValue(market, "inverse"), true) {
+	if GetValue(market, "inverse") == true {
 
 		response = (<-this.CswapV1PrivateGetUserPositions(this.Extend(request, params)))
 		PanicOnError(response)
@@ -3903,7 +3903,7 @@ func (this *Bingx) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 	 */
 	var market any = this.Market(symbol)
 	var cost *string = this.SafeString2(params, "cost", "quoteOrderQty")
-	if (IsEqual(GetValue(market, "contract"), true)) && (cost != nil) {
+	if (GetValue(market, "contract") == true) && (cost != nil) {
 		panic(NotSupported(this.Id + " createOrder() with cost or quoteOrderQty is not supported for contract markets"))
 	}
 	var postOnly any = nil
@@ -4092,7 +4092,7 @@ func (this *Bingx) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 				}
 				var slQuantity *string = this.SafeString(stopLossDict, "quantity", stringifiedAmount)
 				var slQuantityRequest any = this.ParseToNumeric(slQuantity)
-				if !IsEqual(GetValue(market, "inverse"), true) {
+				if GetValue(market, "inverse") != true {
 					slQuantityRequest = this.ParseToNumeric(this.AmountToPrecision(symbol, slQuantity))
 				}
 				slRequest["quantity"] = slQuantityRequest
@@ -4113,7 +4113,7 @@ func (this *Bingx) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 				}
 				var tkQuantity *string = this.SafeString(takeProfitDict, "quantity", stringifiedAmount)
 				var tkQuantityRequest any = this.ParseToNumeric(tkQuantity)
-				if !IsEqual(GetValue(market, "inverse"), true) {
+				if GetValue(market, "inverse") != true {
 					tkQuantityRequest = this.ParseToNumeric(this.AmountToPrecision(symbol, tkQuantity))
 				}
 				tpRequest["quantity"] = tkQuantityRequest
@@ -4146,7 +4146,7 @@ func (this *Bingx) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 		var closePosition *bool = this.SafeBool(params, "closePosition", false)
 		if closePosition == nil || *closePosition != true {
 			var amountReq any = amount
-			if !IsEqual(GetValue(market, "inverse"), true) {
+			if GetValue(market, "inverse") != true {
 				amountReq = this.ParseToNumeric(this.AmountToPrecision(symbol, amount))
 			}
 			request["quantity"] = amountReq // precision not available for inverse contracts
@@ -4210,18 +4210,18 @@ func (this *Bingx) createOrderBody(ch chan any, symbol any, typeVar any, side an
 	}
 	var market any = this.Market(symbol)
 	var test *bool = this.SafeBool(params, "test", false)
-	if (test != nil && *test) && ((!IsEqual(GetValue(market, "swap"), true)) || (IsEqual(GetValue(market, "inverse"), true))) {
+	if (test != nil && *test) && ((GetValue(market, "swap") != true) || (GetValue(market, "inverse") == true)) {
 		panic(NotSupported(this.Id + " createOrder() only supports test orders for linear swap markets"))
 	}
 	params = this.Omit(params, "test")
 	var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 	var response any = nil
-	if IsEqual(GetValue(market, "swap"), true) {
+	if GetValue(market, "swap") == true {
 		if test != nil && *test == true {
 
 			response = (<-this.SwapV2PrivatePostTradeOrderTest(request))
 			PanicOnError(response)
-		} else if IsEqual(GetValue(market, "inverse"), true) {
+		} else if GetValue(market, "inverse") == true {
 
 			response = (<-this.CswapV1PrivatePostTradeOrder(request))
 			PanicOnError(response)
@@ -4313,8 +4313,8 @@ func (this *Bingx) createOrderBody(ch chan any, symbol any, typeVar any, side an
 	}
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	var result any = map[string]any{}
-	if IsEqual(GetValue(market, "swap"), true) {
-		if IsEqual(GetValue(market, "inverse"), true) {
+	if GetValue(market, "swap") == true {
+		if GetValue(market, "inverse") == true {
 			result = response
 		} else {
 			result = this.SafeDict(data, "order", data)
@@ -4382,12 +4382,12 @@ func (this *Bingx) createOrdersBody(ch chan any, orders any, optionalArgs ...any
 	var symbols any = this.MarketSymbols(marketIds, nil, false, true, true)
 	var symbolsLength int = GetArrayLength(symbols)
 	var market any = this.Market(GetValue(symbols, 0))
-	if IsEqual(GetValue(market, "inverse"), true) {
+	if GetValue(market, "inverse") == true {
 		panic(NotSupported(this.Id + " createOrders() is not supported for inverse swap markets"))
 	}
 	var request map[string]any = map[string]any{}
 	var response any = nil
-	if IsEqual(GetValue(market, "swap"), true) {
+	if GetValue(market, "swap") == true {
 		if symbolsLength > 5 {
 			panic(InvalidOrder(this.Id + " createOrders() can not create more than 5 orders at once for swap markets"))
 		}
@@ -4794,7 +4794,7 @@ func (this *Bingx) ParseOrder(order any, optionalArgs ...any) any {
 	var feeCurrencyCode any = DerefScalar(this.SafeString2(order, "feeAsset", "N"))
 	var feeCost *string = this.SafeStringN(order, []any{"fee", "commission", "n"})
 	if IsEqual(feeCurrencyCode, nil) {
-		if IsEqual(GetValue(market, "spot"), true) {
+		if GetValue(market, "spot") == true {
 			if side != nil && *side == "buy" {
 				feeCurrencyCode = GetValue(market, "base")
 			} else {
@@ -4802,7 +4802,7 @@ func (this *Bingx) ParseOrder(order any, optionalArgs ...any) any {
 			}
 		} else {
 			feeCurrencyCode = func() any {
-				if IsEqual(GetValue(market, "inverse"), true) {
+				if GetValue(market, "inverse") == true {
 					return GetValue(market, "settle")
 				}
 				return GetValue(market, "quote")
@@ -5179,7 +5179,7 @@ func (this *Bingx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) a
 		PanicOnError(retRes442712)
 	}
 	var market any = this.Market(symbol)
-	if IsEqual(GetValue(market, "inverse"), true) {
+	if GetValue(market, "inverse") == true {
 		panic(NotSupported(this.Id + " cancelOrders() is not supported for inverse swap markets"))
 	}
 	var request map[string]any = map[string]any{
@@ -5199,7 +5199,7 @@ func (this *Bingx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) a
 		AppendToArray(&parsedIds, stringId)
 	}
 	var response any = nil
-	if IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") == true {
 		var spotReqKey any = func() any {
 			if areClientOrderIds {
 				return "clientOrderIDs"
@@ -6782,7 +6782,7 @@ func (this *Bingx) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...an
 		"symbol": GetValue(market, "id"),
 	}
 	var response any = nil
-	if IsEqual(GetValue(market, "inverse"), true) {
+	if GetValue(market, "inverse") == true {
 
 		response = (<-this.CswapV1PrivateGetTradeLeverage(this.Extend(request, params)))
 		PanicOnError(response)
@@ -6878,7 +6878,7 @@ func (this *Bingx) setLeverageBody(ch chan any, leverage any, optionalArgs ...an
 		"side":     side,
 		"leverage": leverage,
 	}
-	if IsEqual(GetValue(market, "inverse"), true) {
+	if GetValue(market, "inverse") == true {
 
 		retRes603319 := (<-this.CswapV1PrivatePostTradeLeverage(this.Extend(request, params)))
 		PanicOnError(retRes603319)
@@ -6955,29 +6955,29 @@ func (this *Bingx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		var now int64 = this.Milliseconds()
 		if !IsEqual(since, nil) {
 			var startTimeReq any = func() any {
-				if IsEqual(GetValue(market, "spot"), true) {
+				if GetValue(market, "spot") == true {
 					return "startTime"
 				}
 				return "startTs"
 			}()
 			AddElementToObject(request, startTimeReq, since)
-		} else if IsEqual(GetValue(market, "swap"), true) {
+		} else if GetValue(market, "swap") == true {
 			request["startTs"] = Subtract(now, Multiply(Multiply(Multiply(Multiply(30, 24), 60), 60), 1000)) // 30 days for swap
 		}
 		var until *int64 = this.SafeInteger(params, "until")
 		params = this.Omit(params, "until")
 		if until != nil {
 			var endTimeReq any = func() any {
-				if IsEqual(GetValue(market, "spot"), true) {
+				if GetValue(market, "spot") == true {
 					return "endTime"
 				}
 				return "endTs"
 			}()
 			AddElementToObject(request, endTimeReq, until)
-		} else if IsEqual(GetValue(market, "swap"), true) {
+		} else if GetValue(market, "swap") == true {
 			request["endTs"] = now
 		}
-		if IsEqual(GetValue(market, "spot"), true) {
+		if GetValue(market, "spot") == true {
 			if !IsEqual(limit, nil) {
 				request["limit"] = limit // default 500, maximum 1000
 			}
@@ -7397,7 +7397,7 @@ func (this *Bingx) closePositionBody(ch chan any, symbol any, optionalArgs ...an
 	var request map[string]any = map[string]any{}
 	var response any = nil
 	if positionId != nil {
-		if (!IsEqual(GetValue(market, "swap"), true)) || (IsEqual(GetValue(market, "inverse"), true)) {
+		if (GetValue(market, "swap") != true) || (GetValue(market, "inverse") == true) {
 			panic(NotSupported(this.Id + " closePosition() with a positionId is only supported for linear swap markets"))
 		}
 
@@ -7405,7 +7405,7 @@ func (this *Bingx) closePositionBody(ch chan any, symbol any, optionalArgs ...an
 		PanicOnError(response)
 	} else {
 		request["symbol"] = GetValue(market, "id")
-		if IsEqual(GetValue(market, "inverse"), true) {
+		if GetValue(market, "inverse") == true {
 
 			response = (<-this.CswapV1PrivatePostTradeCloseAllPositions(this.Extend(request, params)))
 			PanicOnError(response)
@@ -7518,7 +7518,7 @@ func (this *Bingx) fetchPositionModeBody(ch chan any, optionalArgs ...any) any {
 	subTypeparamsVariable := this.HandleSubTypeAndParams("fetchPositionMode", market, params)
 	subType = GetValue(subTypeparamsVariable, 0)
 	params = GetValue(subTypeparamsVariable, 1)
-	if (IsEqual(subType, "inverse")) || ((!IsEqual(market, nil)) && (IsEqual(GetValue(market, "inverse"), true))) {
+	if (IsEqual(subType, "inverse")) || ((!IsEqual(market, nil)) && (GetValue(market, "inverse") == true)) {
 		panic(NotSupported(this.Id + " fetchPositionMode() is not supported for inverse swap markets"))
 	}
 
@@ -7577,7 +7577,7 @@ func (this *Bingx) setPositionModeBody(ch chan any, hedged any, optionalArgs ...
 	subTypeparamsVariable := this.HandleSubTypeAndParams("setPositionMode", market, params)
 	subType = GetValue(subTypeparamsVariable, 0)
 	params = GetValue(subTypeparamsVariable, 1)
-	if (IsEqual(subType, "inverse")) || ((!IsEqual(market, nil)) && (IsEqual(GetValue(market, "inverse"), true))) {
+	if (IsEqual(subType, "inverse")) || ((!IsEqual(market, nil)) && (GetValue(market, "inverse") == true)) {
 		panic(NotSupported(this.Id + " setPositionMode() is not supported for inverse swap markets"))
 	}
 	var dualSidePosition string
@@ -7655,14 +7655,14 @@ func (this *Bingx) editOrderBody(ch chan any, id any, symbol any, typeVar any, s
 		PanicOnError(retRes675712)
 	}
 	var market any = this.Market(symbol)
-	if IsEqual(GetValue(market, "inverse"), true) {
+	if GetValue(market, "inverse") == true {
 		panic(NotSupported(this.Id + " editOrder() is not supported for inverse swap markets"))
 	}
 	var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 	AddElementToObject(request, "cancelOrderId", id)
 	AddElementToObject(request, "cancelReplaceMode", "STOP_ON_FAILURE")
 	var response any = nil
-	if IsEqual(GetValue(market, "swap"), true) {
+	if GetValue(market, "swap") == true {
 
 		response = (<-this.SwapV1PrivatePostTradeCancelReplace(request))
 		PanicOnError(response)
@@ -7775,7 +7775,7 @@ func (this *Bingx) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...
 	}
 	var response any = nil
 	var commission any = map[string]any{}
-	if IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") == true {
 
 		response = (<-this.SpotV1PrivateGetUserCommissionRate(this.Extend(request, params)))
 		PanicOnError(response)
@@ -7792,7 +7792,7 @@ func (this *Bingx) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...
 		//
 		commission = this.SafeDict(response, "data", map[string]any{})
 	} else {
-		if IsEqual(GetValue(market, "inverse"), true) {
+		if GetValue(market, "inverse") == true {
 
 			response = (<-this.CswapV1PrivateGetUserCommissionRate(params))
 			PanicOnError(response)
@@ -7921,10 +7921,10 @@ func (this *Bingx) fetchMarketLeverageTiersBody(ch chan any, symbol any, optiona
 		PanicOnError(retRes706812)
 	}
 	var market any = this.Market(symbol)
-	if !IsEqual(GetValue(market, "swap"), true) {
+	if GetValue(market, "swap") != true {
 		panic(BadRequest(this.Id + " fetchMarketLeverageTiers() supports swap markets only"))
 	}
-	if IsEqual(GetValue(market, "inverse"), true) {
+	if GetValue(market, "inverse") == true {
 		panic(NotSupported(this.Id + " fetchMarketLeverageTiers() is not supported for inverse swap markets"))
 	}
 	var request map[string]any = map[string]any{

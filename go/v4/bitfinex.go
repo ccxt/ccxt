@@ -2275,7 +2275,7 @@ func (this *Bitfinex) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	marginModeparamsVariable := this.HandleMarginModeAndParams("createOrder", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
 	params = GetValue(marginModeparamsVariable, 1)
-	if (IsEqual(GetValue(market, "spot"), true)) && (marginMode == nil) {
+	if (GetValue(market, "spot") == true) && (marginMode == nil) {
 		// The EXCHANGE prefix is only required for non margin spot markets
 		orderType = Add("EXCHANGE ", orderType)
 	}
@@ -3505,7 +3505,7 @@ func (this *Bitfinex) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
 		if InOp(fiat, GetValue(market, "quote")) {
 			fee["maker"] = makerFeeFiat
 			fee["taker"] = takerFeeFiat
-		} else if IsEqual(GetValue(market, "contract"), true) {
+		} else if GetValue(market, "contract") == true {
 			fee["maker"] = makerFeeDeriv
 			fee["taker"] = takerFeeDeriv
 		} else {
@@ -4866,7 +4866,7 @@ func (this *Bitfinex) setMarginBody(ch chan any, symbol any, amount any, optiona
 		PanicOnError(retRes385912)
 	}
 	var market any = this.Market(symbol)
-	if !IsEqual(GetValue(market, "swap"), true) {
+	if GetValue(market, "swap") != true {
 		panic(NotSupported(this.Id + " setMargin() only support swap markets"))
 	}
 	var request map[string]any = map[string]any{

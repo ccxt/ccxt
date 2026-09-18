@@ -2407,7 +2407,7 @@ func (this *Nado) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...
 	retRes18468 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes18468)
 	var market any = this.Market(symbol)
-	if !IsEqual(GetValue(market, "swap"), true) {
+	if GetValue(market, "swap") != true {
 		panic(BadSymbol(this.Id + " fetchFundingRate() supports swap contracts only"))
 	}
 	var tickerId *string = this.SafeString(GetValue(market, "info"), "ticker_id")
@@ -2481,7 +2481,7 @@ func (this *Nado) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 	retRes18998 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes18998)
 	var market any = this.Market(symbol)
-	if !IsEqual(GetValue(market, "swap"), true) {
+	if GetValue(market, "swap") != true {
 		panic(BadSymbol(this.Id + " fetchFundingHistory() supports swap contracts only"))
 	}
 	var subaccount any = nil
@@ -2618,7 +2618,7 @@ func (this *Nado) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs ..
 	retRes19998 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes19998)
 	var market any = this.Market(symbol)
-	if !IsEqual(GetValue(market, "swap"), true) {
+	if GetValue(market, "swap") != true {
 		panic(BadSymbol(this.Id + " fetchOpenInterest() supports swap contracts only"))
 	}
 	var tickerId *string = this.SafeString(GetValue(market, "info"), "ticker_id")

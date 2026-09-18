@@ -3443,7 +3443,7 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan any, symbol any, ty
 	var market any = this.Market(symbol)
 	var uppercaseType string = ToUpper(typeVar)
 	var uppercaseSide string = ToUpper(side)
-	if (IsEqual(GetValue(market, "spot"), true)) && (uppercaseType != "LIMIT") {
+	if (GetValue(market, "spot") == true) && (uppercaseType != "LIMIT") {
 		panic(BadRequest(this.Id + " createOrder() supports limit orders for spot markets only"))
 	}
 	if !this.InArray(uppercaseType, []any{"LIMIT", "MARKET", "CONDITIONAL", "TPSL"}) {

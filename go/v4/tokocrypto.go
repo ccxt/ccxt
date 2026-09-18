@@ -2189,7 +2189,7 @@ func (this *Tokocrypto) createOrderBody(ch chan any, symbol any, typeVar any, si
 	} else if (uppercaseType == "STOP_LOSS") || (uppercaseType == "TAKE_PROFIT") {
 		triggerPriceIsRequired = true
 		quantityIsRequired = true
-		if (IsEqual(GetValue(market, "linear"), true)) || (IsEqual(GetValue(market, "inverse"), true)) {
+		if (GetValue(market, "linear") == true) || (GetValue(market, "inverse") == true) {
 			priceIsRequired = true
 		}
 	} else if (uppercaseType == "STOP_LOSS_LIMIT") || (uppercaseType == "TAKE_PROFIT_LIMIT") {

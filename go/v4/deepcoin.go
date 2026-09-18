@@ -775,7 +775,7 @@ func (this *Deepcoin) SetMarkets(markets any, optionalArgs ...any) any {
 	for i := 0; i < len(symbols); i++ {
 		var symbol string = GetValue(symbols, i).(string)
 		var market any = GetValue(result, symbol)
-		if (!IsEqual(market, nil)) && (IsEqual(GetValue(market, "swap"), true)) {
+		if (!IsEqual(market, nil)) && (GetValue(market, "swap") == true) {
 			var additionalId any = Add(this.SafeString(market, "baseId", ""), this.SafeString(market, "quoteId", ""))
 			if !IsEqual(this.Markets_by_id, nil) {
 				AddElementToObject(this.Markets_by_id, additionalId, []any{market}) // some endpoints return swap market id as base+quote
@@ -1055,7 +1055,7 @@ func (this *Deepcoin) ParseTicker(ticker any, optionalArgs ...any) any {
 	var open *string = this.SafeString(ticker, "open24h")
 	var quoteVolume any = DerefScalar(this.SafeString(ticker, "volCcy24h"))
 	var baseVolume any = DerefScalar(this.SafeString(ticker, "vol24h"))
-	if (IsEqual(GetValue(market, "swap"), true)) && (IsEqual(GetValue(market, "inverse"), true)) {
+	if (GetValue(market, "swap") == true) && (GetValue(market, "inverse") == true) {
 		var temp any = baseVolume
 		baseVolume = quoteVolume
 		quoteVolume = temp
@@ -2015,7 +2015,7 @@ func (this *Deepcoin) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	var isTriggerOrder bool = (triggerPrice != nil)
 	var cost *string = this.SafeString(params, "cost")
 	if cost != nil {
-		if (!IsEqual(GetValue(market, "spot"), true)) || (triggerPrice != nil) {
+		if (GetValue(market, "spot") != true) || (triggerPrice != nil) {
 			panic(BadRequest(this.Id + " createOrder() accepts a cost parameter for spot non-trigger market orders only"))
 		}
 	}
@@ -2093,7 +2093,7 @@ func (this *Deepcoin) CreateRegularOrderRequest(symbol any, typeVar any, side an
 	} else if !isMarketOrder {
 		panic(BadRequest(this.Id + " createOrder() requires a price argument for limit orders"))
 	}
-	if IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") == true {
 		var cost *string = this.SafeString(params, "cost")
 		if cost != nil {
 			if !isMarketOrder {
@@ -2202,7 +2202,7 @@ func (this *Deepcoin) CreateTriggerOrderRequest(symbol any, typeVar any, side an
 	params = this.Omit(params, "reduceOnly")
 	request["isCrossMargin"] = isCrossMargin
 	request["tdMode"] = marginMode
-	if IsEqual(GetValue(market, "swap"), true) {
+	if GetValue(market, "swap") == true {
 		if reduceOnly != nil && *reduceOnly == true {
 			if IsEqual(side, "buy") {
 				request["posSide"] = "short"
@@ -2949,7 +2949,7 @@ func (this *Deepcoin) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 		panic(ArgumentsRequired(this.Id + " cancelAllOrders() requires a symbol argument"))
 	}
 	var market any = this.Market(symbol)
-	if IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") == true {
 		panic(NotSupported(this.Id + " cancelAllOrders() is not supported for spot markets"))
 	}
 	var productGroup any = this.GetProductGroupFromMarket(market)
@@ -3028,7 +3028,7 @@ func (this *Deepcoin) editOrderBody(ch chan any, id any, symbol any, typeVar any
 	var market any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		if IsEqual(GetValue(market, "spot"), true) {
+		if GetValue(market, "spot") == true {
 			panic(NotSupported(this.Id + " editOrder() is not supported for spot markets"))
 		}
 		symbol = GetValue(market, "symbol")
@@ -3115,7 +3115,7 @@ func (this *Deepcoin) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
 	var market any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		if IsEqual(GetValue(market, "spot"), true) {
+		if GetValue(market, "spot") == true {
 			panic(NotSupported(this.Id + " cancelOrders() is not supported for spot markets"))
 		}
 	}
@@ -3630,7 +3630,7 @@ func (this *Deepcoin) fetchFundingRateBody(ch chan any, symbol any, optionalArgs
 		PanicOnError(retRes281212)
 	}
 	var market any = this.Market(symbol)
-	if !IsEqual(GetValue(market, "swap"), true) {
+	if GetValue(market, "swap") != true {
 		panic(ExchangeError(this.Id + " fetchFundingRate() is only valid for swap markets"))
 	}
 	var request map[string]any = map[string]any{

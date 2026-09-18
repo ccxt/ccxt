@@ -1684,7 +1684,7 @@ func (this *Toobit) ParseTicker(ticker any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(ticker, "t")
 	var last *string = this.SafeString(ticker, "c")
 	var baseVolume *string = this.SafeString(ticker, "v")
-	if (IsEqual(GetValue(market, "contract"), true)) && (!IsEqual(GetValue(market, "contractSize"), nil)) {
+	if (GetValue(market, "contract") == true) && (!IsEqual(GetValue(market, "contractSize"), nil)) {
 		// 'v' counts contracts, and a ticker reports base volume
 		baseVolume = Precise.StringMul(baseVolume, this.NumberToString(GetValue(market, "contractSize")))
 	}
@@ -2126,7 +2126,7 @@ func (this *Toobit) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	var market any = this.Market(symbol)
 	var request any = map[string]any{}
 	var response any = map[string]any{}
-	if IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") == true {
 		requestparamsVariable := this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 		request = GetValue(requestparamsVariable, 0)
 		params = GetValue(requestparamsVariable, 1)
@@ -2658,7 +2658,7 @@ func (this *Toobit) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 	}
 	var market any = this.Market(symbol)
 	var response any = map[string]any{}
-	if IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") == true {
 
 		response = (<-this.PrivateGetApiV1SpotOrder(this.Extend(request, params)))
 		PanicOnError(response)

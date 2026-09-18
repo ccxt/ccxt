@@ -4154,7 +4154,7 @@ func (this *Hitbtc) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs 
 		PanicOnError(retRes335212)
 	}
 	var market any = this.Market(symbol)
-	if !IsEqual(GetValue(market, "swap"), true) {
+	if GetValue(market, "swap") != true {
 		panic(BadSymbol(this.Id + " fetchOpenInterest() supports swap contracts only"))
 	}
 	var request map[string]any = map[string]any{
@@ -4208,7 +4208,7 @@ func (this *Hitbtc) fetchFundingRateBody(ch chan any, symbol any, optionalArgs .
 		PanicOnError(retRes339112)
 	}
 	var market any = this.Market(symbol)
-	if !IsEqual(GetValue(market, "swap"), true) {
+	if GetValue(market, "swap") != true {
 		panic(BadSymbol(this.Id + " fetchFundingRate() supports swap contracts only"))
 	}
 	var request map[string]any = map[string]any{
@@ -4294,7 +4294,7 @@ func (this *Hitbtc) modifyMarginHelperBody(ch chan any, symbol any, amount any, 
 	}
 	var market any = this.Market(symbol)
 	var leverage *string = this.SafeString(params, "leverage")
-	if IsEqual(GetValue(market, "swap"), true) {
+	if GetValue(market, "swap") == true {
 		if leverage == nil {
 			panic(ArgumentsRequired(this.Id + " modifyMarginHelper() requires a leverage parameter for swap markets"))
 		}

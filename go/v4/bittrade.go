@@ -2157,7 +2157,7 @@ func (this *Bittrade) createMarketBuyOrderWithCostBody(ch chan any, symbol any, 
 		PanicOnError(retRes156012)
 	}
 	var market any = this.Market(symbol)
-	if !IsEqual(GetValue(market, "spot"), true) {
+	if GetValue(market, "spot") != true {
 		panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() supports spot orders only"))
 	}
 	AddElementToObject(params, "createMarketBuyOrderRequiresPrice", false)
