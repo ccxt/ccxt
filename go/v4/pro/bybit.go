@@ -1076,7 +1076,7 @@ func (this *Bybit) HandleOHLCV(client any, message any) {
 		return
 	}
 	var marketId *string = this.SafeString(topicParts, ccxt.Subtract(topicLength, 1))
-	var isSpot bool = ccxt.IsGreaterThan(ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "spot"), -1)
+	var isSpot bool = (ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "spot") > -1)
 	var marketType any = func() any {
 		if isSpot {
 			return "spot"

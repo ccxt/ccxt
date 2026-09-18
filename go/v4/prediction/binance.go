@@ -1315,7 +1315,7 @@ func (this *Binance) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var page any = ccxt.Subtract(this.SafeInteger(params, pageKey, 1), 1)
 	var request map[string]any = map[string]any{}
 	var offSet *int64 = this.SafeInteger(params, "offset", ccxt.Multiply(page, maxEntriesPerRequest))
-	if ccxt.IsGreaterThan(offSet, 0) {
+	if offSet != nil && *offSet > 0 {
 		request["offset"] = offSet
 	}
 	var outcomeObj any = nil
@@ -1429,7 +1429,7 @@ func (this *Binance) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var page any = ccxt.Subtract(this.SafeInteger(params, pageKey, 1), 1)
 	var request map[string]any = map[string]any{}
 	var offSet *int64 = this.SafeInteger(params, "offset", ccxt.Multiply(page, maxEntriesPerRequest))
-	if ccxt.IsGreaterThan(offSet, 0) {
+	if offSet != nil && *offSet > 0 {
 		request["offset"] = offSet
 	}
 	var outcomeObj any = nil
@@ -1767,7 +1767,7 @@ func (this *Binance) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		"status": "FILLED",
 	}
 	var offSet *int64 = this.SafeInteger(params, "offset", ccxt.Multiply(page, maxEntriesPerRequest))
-	if ccxt.IsGreaterThan(offSet, 0) {
+	if offSet != nil && *offSet > 0 {
 		request["offset"] = offSet
 	}
 	var outcomeObj any = nil
@@ -2055,7 +2055,7 @@ func (this *Binance) PriceToPrecision(outcome any, price any) any {
 	var market any = this.Market(outcome)
 	var prec *float64 = this.SafeNumber(this.SafeDict(market, "precision", map[string]any{}), "price", 0.0001)
 	var decimals int = 4
-	if (prec != nil) && (ccxt.IsGreaterThan(prec, 0)) {
+	if (prec != nil) && (*prec > 0) {
 		decimals = this.PrecisionFromString(this.NumberToString(prec))
 	}
 	return this.DecimalToPrecision(price, ccxt.ROUND, decimals, ccxt.DECIMAL_PLACES, this.PaddingMode)
@@ -2064,7 +2064,7 @@ func (this *Binance) AmountToPrecision(outcome any, amount any) any {
 	var market any = this.Market(outcome)
 	var prec *float64 = this.SafeNumber(this.SafeDict(market, "precision", map[string]any{}), "amount", 0.01)
 	var decimals int = 2
-	if (prec != nil) && (ccxt.IsGreaterThan(prec, 0)) {
+	if (prec != nil) && (*prec > 0) {
 		decimals = this.PrecisionFromString(this.NumberToString(prec))
 	}
 	// amounts truncate so a rounded-up value can never exceed the caller's balance

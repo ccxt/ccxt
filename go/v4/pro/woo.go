@@ -329,7 +329,7 @@ func (this *Woo) HandleOrderBook(client any, message any) {
 					if ts == nil {
 						return
 					}
-					if ccxt.IsGreaterThan(ts, timestamp) {
+					if ts != nil && (timestamp == nil || *ts > *timestamp) {
 						this.HandleOrderBookMessage(client, message, orderbook)
 						client.(ccxt.ClientInterface).Resolve(orderbook, topic)
 					}
@@ -1773,7 +1773,7 @@ func (this *Woo) loadPositionsSnapshotBody(ch chan any, client any, messageHash 
 	for i := 0; i < ccxt.GetArrayLength(positions); i++ {
 		var position any = ccxt.GetValue(positions, i)
 		var contracts *float64 = this.SafeNumber(position, "contracts", 0)
-		if (contracts != nil) && (ccxt.IsGreaterThan(contracts, 0)) {
+		if (contracts != nil) && (*contracts > 0) {
 			cache.(ccxt.Appender).Append(position)
 		}
 	}

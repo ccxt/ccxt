@@ -7474,7 +7474,7 @@ func (this *Xt) Sign(path any, optionalArgs ...any) any {
 			if IsEqual(body, nil) {
 				panic(NullResponse(this.Id + " sign() returned empty body"))
 			}
-			if IsGreaterThan(GetIndexOf(payload, "future"), -1) {
+			if GetIndexOf(payload, "future") > -1 {
 				AddElementToObject(body, "clientMedia", id)
 				if IsEqual(body, nil) {
 					panic(NullResponse(this.Id + " sign() returned empty body"))

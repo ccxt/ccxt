@@ -200,7 +200,7 @@ func (this *Xt) GetCacheIndex(orderbook any, cache any) any {
 	for i := 0; i < ccxt.GetArrayLength(cache); i++ {
 		var delta any = ccxt.GetValue(cache, i)
 		var deltaNonce *int64 = this.SafeInteger2(delta, "i", "u")
-		if (deltaNonce != nil) && (nonce != nil) && (ccxt.IsGreaterThanOrEqual(deltaNonce, nonce)) {
+		if (deltaNonce != nil) && (nonce != nil) && (*deltaNonce >= *nonce) {
 			return i
 		}
 	}
@@ -1167,7 +1167,7 @@ func (this *Xt) loadPositionsSnapshotBody(ch chan any, client any, messageHash a
 	for i := 0; i < ccxt.GetArrayLength(positions); i++ {
 		var position any = ccxt.GetValue(positions, i)
 		var contracts *float64 = this.SafeNumber(position, "contracts", 0)
-		if (contracts != nil) && (ccxt.IsGreaterThan(contracts, 0)) {
+		if (contracts != nil) && (*contracts > 0) {
 			cache.(ccxt.Appender).Append(position)
 		}
 	}

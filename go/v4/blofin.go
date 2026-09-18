@@ -2615,7 +2615,7 @@ func (this *Blofin) ChainIdToNetworkCode(chainId any) any {
 	if chainId == nil {
 		return nil
 	}
-	if IsGreaterThan(GetIndexOf(chainId, "("), -1) {
+	if GetIndexOf(chainId, "(") > -1 {
 		// php-safe suffix extraction: split instead of index arithmetic,
 		// because a stored strpos result and a two-argument slice do not
 		// survive the php conversion (false-vs-int compare; length arg)

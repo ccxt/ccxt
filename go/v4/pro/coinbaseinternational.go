@@ -1043,7 +1043,7 @@ func (this *Coinbaseinternational) HandleMessage(client any, message any) {
 		var errorMessage *string = this.SafeString(message, "message")
 		panic(ccxt.ExchangeError(errorMessage))
 	}
-	if ccxt.IsGreaterThan(ccxt.GetIndexOf(channel, "CANDLES"), -1) {
+	if ccxt.GetIndexOf(channel, "CANDLES") > -1 {
 		this.HandleOHLCV(client, message)
 	}
 	var method any = this.SafeValue(methods, channel)

@@ -889,7 +889,7 @@ func (this *Coinbaseexchange) HandleOrder(client any, message any) {
 			}
 			var previousInfo any = this.SafeValue(previousOrder, "info", map[string]any{})
 			var previousSequence *int64 = this.SafeInteger(previousInfo, "sequence")
-			if (previousSequence == nil) || (ccxt.IsGreaterThan(sequence, previousSequence)) {
+			if (previousSequence == nil) || (sequence != nil && (previousSequence == nil || *sequence > *previousSequence)) {
 				if typeVar != nil && *typeVar == "match" {
 					var trade any = this.ParseWsTrade(message)
 					if ccxt.IsEqual(ccxt.GetValue(previousOrder, "trades"), nil) {

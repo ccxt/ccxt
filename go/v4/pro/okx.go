@@ -120,7 +120,7 @@ func (this *Okx) GetUrl(channel any, optionalArgs ...any) any {
 	var isBusiness bool = (ccxt.IsEqual(access, "business"))
 	var isPublic bool = (ccxt.IsEqual(access, "public"))
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	if isBusiness || (ccxt.IsGreaterThan(ccxt.GetIndexOf(channel, "candle"), -1)) || (ccxt.IsEqual(channel, "orders-algo")) {
+	if isBusiness || (ccxt.GetIndexOf(channel, "candle") > -1) || (ccxt.IsEqual(channel, "orders-algo")) {
 		return ccxt.Add(ccxt.Add(url, "/business"), sandboxSuffix)
 	} else if isPublic {
 		return ccxt.Add(ccxt.Add(url, "/public"), sandboxSuffix)
@@ -1763,7 +1763,7 @@ func (this *Okx) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, option
 	if limit != nil {
 		if limit != nil && *limit == 1 {
 			depth = "bbo-tbt"
-		} else if ccxt.IsGreaterThan(limit, 1) && ccxt.IsLessThanOrEqual(limit, 5) {
+		} else if (*limit > 1) && (*limit <= 5) {
 			depth = "books5"
 		} else if limit != nil && *limit == 50 {
 			depth = "books50-l2-tbt" // Make sure you have VIP4 and above
@@ -3417,7 +3417,7 @@ func (this *Okx) HandleUnsubscription(client any, message any) {
 		this.HandleUnSubscriptionTrades(client, symbol, channel)
 	} else if ccxt.StartsWith(channel, "bbo") || ccxt.StartsWith(channel, "book") {
 		this.HandleUnsubscriptionOrderBook(client, symbol, channel)
-	} else if ccxt.IsGreaterThan(ccxt.GetIndexOf(channel, "tickers"), -1) {
+	} else if ccxt.GetIndexOf(channel, "tickers") > -1 {
 		this.HandleUnsubscriptionTicker(client, symbol, channel)
 	} else if ccxt.StartsWith(channel, "candle") {
 		this.HandleUnsubscriptionOHLCV(client, symbol, channel)

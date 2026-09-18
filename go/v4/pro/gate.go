@@ -844,7 +844,7 @@ func (this *Gate) HandleNewSpotOrderBook(client any, message any) {
 	} else {
 		var nonce *int64 = this.SafeInteger(orderbook, "nonce")
 		var deltaStart *int64 = this.SafeInteger(result, "u")
-		if (nonce == nil) || ((deltaStart != nil) && (ccxt.IsGreaterThanOrEqual(nonce, deltaStart))) {
+		if (nonce == nil) || ((deltaStart != nil) && (nonce != nil && *nonce >= *deltaStart)) {
 			return
 		}
 		this.HandleDelta(orderbook, result)
@@ -947,7 +947,7 @@ func (this *Gate) HandleOrderBook(client any, message any) {
 		}
 		ccxt.AppendToArray(storedOrderBook.(ccxt.OrderBookInterface).GetCache(), delta)
 		return
-	} else if (deltaEnd != nil) && (ccxt.IsGreaterThanOrEqual(nonce, deltaEnd)) {
+	} else if (deltaEnd != nil) && (nonce != nil && *nonce >= *deltaEnd) {
 		return
 	} else if (deltaStart != nil) && (ccxt.IsGreaterThanOrEqual(nonce, ccxt.Subtract(deltaStart, 1))) {
 		this.HandleDelta(storedOrderBook, delta)
@@ -966,14 +966,14 @@ func (this *Gate) GetCacheIndex(orderBook any, cache any) any {
 	var nonce *int64 = this.SafeInteger(orderBook, "nonce")
 	var firstDelta any = ccxt.GetValue(cache, 0)
 	var firstDeltaStart *int64 = this.SafeInteger(firstDelta, "U")
-	if (nonce != nil) && (firstDeltaStart != nil) && (ccxt.IsLessThan(nonce, firstDeltaStart)) {
+	if (nonce != nil) && (firstDeltaStart != nil) && (*nonce < *firstDeltaStart) {
 		return ccxt.OpNeg(1)
 	}
 	for i := 0; i < ccxt.GetArrayLength(cache); i++ {
 		var delta any = ccxt.GetValue(cache, i)
 		var deltaStart *int64 = this.SafeInteger(delta, "U")
 		var deltaEnd *int64 = this.SafeInteger(delta, "u")
-		if (nonce != nil) && (deltaStart != nil) && (deltaEnd != nil) && (ccxt.IsGreaterThanOrEqual(nonce, ccxt.Subtract(deltaStart, 1))) && (ccxt.IsLessThan(nonce, deltaEnd)) {
+		if (nonce != nil) && (deltaStart != nil) && (deltaEnd != nil) && (ccxt.IsGreaterThanOrEqual(nonce, ccxt.Subtract(deltaStart, 1))) && (*nonce < *deltaEnd) {
 			return i
 		}
 	}
@@ -1972,7 +1972,7 @@ func (this *Gate) loadPositionsSnapshotBody(ch chan any, client any, messageHash
 	for i := 0; i < ccxt.GetArrayLength(positions); i++ {
 		var position any = ccxt.GetValue(positions, i)
 		var contracts *float64 = this.SafeNumber(position, "contracts", 0)
-		if (contracts != nil) && (ccxt.IsGreaterThan(contracts, 0)) {
+		if (contracts != nil) && (*contracts > 0) {
 			cache.(ccxt.Appender).Append(position)
 		}
 	}

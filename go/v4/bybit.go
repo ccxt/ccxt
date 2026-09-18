@@ -2423,7 +2423,7 @@ func (this *Bybit) CreateExpiredOptionMarket(symbol any) any {
 	var symbolBase []string = Split(symbol, "/")
 	var base any = nil
 	var expiry any = nil
-	if IsGreaterThan(GetIndexOf(symbol, "/"), -1) {
+	if GetIndexOf(symbol, "/") > -1 {
 		base = DerefScalar(this.SafeString(symbolBase, 0))
 		expiry = DerefScalar(this.SafeString(optionParts, 1))
 		var symbolQuoteAndSettle *string = this.SafeString(symbolBase, 1)
@@ -2528,7 +2528,7 @@ func (this *Bybit) SafeMarket(optionalArgs ...any) any {
 	_ = delimiter
 	marketType := GetArg(optionalArgs, 3, nil)
 	_ = marketType
-	var isOption bool = (marketId != nil) && ((IsGreaterThan(GetIndexOf(marketId, "-C"), -1)) || (IsGreaterThan(GetIndexOf(marketId, "-P"), -1)))
+	var isOption bool = (marketId != nil) && ((GetIndexOf(marketId, "-C") > -1) || (GetIndexOf(marketId, "-P") > -1))
 	if isOption && ((IsEqual(this.Markets_by_id, nil)) || !(InOp(this.Markets_by_id, marketId))) {
 		// handle expired option contracts
 		return this.CreateExpiredOptionMarket(marketId)
@@ -4940,7 +4940,7 @@ func (this *Bybit) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var isFunding bool = (IsEqual(lowercaseRawType, "fund")) || (IsEqual(lowercaseRawType, "funding"))
 	if isUnifiedAccount {
 		var unifiedMarginStatus *int64 = this.SafeInteger(this.Options, "unifiedMarginStatus", 6)
-		if IsLessThan(unifiedMarginStatus, 5) {
+		if unifiedMarginStatus == nil || *unifiedMarginStatus < 5 {
 			// it's not uta.20 where inverse are unified
 			if isInverse {
 				typeVar = "contract"
@@ -5918,7 +5918,7 @@ func (this *Bybit) createOrdersBody(ch chan any, orders any, optionalArgs ...any
 	categoryparamsVariable := this.GetBybitType("createOrders", market, params)
 	category = GetValue(categoryparamsVariable, 0)
 	params = GetValue(categoryparamsVariable, 1)
-	if (IsEqual(category, "inverse")) && (IsLessThan(unifiedMarginStatus, 5)) {
+	if (IsEqual(category, "inverse")) && (unifiedMarginStatus == nil || *unifiedMarginStatus < 5) {
 		panic(NotSupported(this.Id + " createOrders does not allow inverse orders for non UTA2.0 account"))
 	}
 	var request map[string]any = map[string]any{
@@ -6196,7 +6196,7 @@ func (this *Bybit) editOrdersBody(ch chan any, orders any, optionalArgs ...any) 
 	categoryparamsVariable := this.GetBybitType("editOrders", market, params)
 	category = GetValue(categoryparamsVariable, 0)
 	params = GetValue(categoryparamsVariable, 1)
-	if (IsEqual(category, "inverse")) && (IsLessThan(unifiedMarginStatus, 5)) {
+	if (IsEqual(category, "inverse")) && (unifiedMarginStatus == nil || *unifiedMarginStatus < 5) {
 		panic(NotSupported(this.Id + " editOrders does not allow inverse orders for non UTA2.0 account"))
 	}
 	var request map[string]any = map[string]any{
@@ -8257,7 +8257,7 @@ func (this *Bybit) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var response any = nil
 	if IsEqual(GetValue(enableUnified, 1), true) {
 		var unifiedMarginStatus *int64 = this.SafeInteger(this.Options, "unifiedMarginStatus", 5) // 3/4 uta 1.0, 5/6 uta 2.0
-		if (IsEqual(subType, "inverse")) && (IsLessThan(unifiedMarginStatus, 5)) {
+		if (IsEqual(subType, "inverse")) && (unifiedMarginStatus == nil || *unifiedMarginStatus < 5) {
 
 			response = (<-this.PrivateGetV5AccountContractTransactionLog(this.Extend(request, params)))
 			PanicOnError(response)
@@ -12899,7 +12899,7 @@ func (this *Bybit) Sign(path any, optionalArgs ...any) any {
 				url = Add(url, "?"+queryEncoded)
 			}
 			var signature any = nil
-			if IsGreaterThan(GetIndexOf(this.Secret, "PRIVATE KEY"), -1) {
+			if GetIndexOf(this.Secret, "PRIVATE KEY") > -1 {
 				signature = Rsa(authFull, this.Secret, sha256)
 			} else {
 				signature = this.Hmac(this.Encode(authFull), this.Encode(this.Secret), sha256)
@@ -12914,7 +12914,7 @@ func (this *Bybit) Sign(path any, optionalArgs ...any) any {
 			var sortedQuery map[string]any = this.Keysort(query)
 			var auth string = this.Rawencode(sortedQuery, true)
 			var signature any = nil
-			if IsGreaterThan(GetIndexOf(this.Secret, "PRIVATE KEY"), -1) {
+			if GetIndexOf(this.Secret, "PRIVATE KEY") > -1 {
 				signature = Rsa(auth, this.Secret, sha256)
 			} else {
 				signature = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
@@ -12996,7 +12996,7 @@ func (this *Bybit) HandleErrors(httpCode any, reason any, url any, method any, h
 		} else {
 			feedback = Add(this.Id+" ", body)
 		}
-		if IsGreaterThan(GetIndexOf(body, "Withdraw address chain or destination tag are not equal"), -1) {
+		if GetIndexOf(body, "Withdraw address chain or destination tag are not equal") > -1 {
 			feedback = Add(feedback, "; You might also need to ensure the address is whitelisted")
 		}
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)

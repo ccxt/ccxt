@@ -709,7 +709,7 @@ func (this *Apex) HandleOHLCV(client any, message any) {
 	var timeframeId *string = this.SafeString(topicParts, 1)
 	var timeframe any = this.FindTimeframe(timeframeId)
 	var marketId *string = this.SafeString(topicParts, ccxt.Subtract(topicLength, 1))
-	var isSpot bool = ccxt.IsGreaterThan(ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "spot"), -1)
+	var isSpot bool = (ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "spot") > -1)
 	var marketType any = func() any {
 		if isSpot {
 			return "spot"

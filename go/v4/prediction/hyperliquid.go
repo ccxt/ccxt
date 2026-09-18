@@ -218,7 +218,7 @@ func (this *Hyperliquid) ParseOutcomeDescription(description any) any {
 	for i := 0; i < len(parts); i++ {
 		var part string = ccxt.GetValue(parts, i).(string)
 		var colonIndex int = ccxt.GetIndexOf(part, ":")
-		if ccxt.IsGreaterThan(colonIndex, -1) {
+		if colonIndex > -1 {
 			var key string = ccxt.Slice(part, 0, colonIndex)
 			var value string = ccxt.Slice(part, colonIndex+1, nil)
 			result[key] = value
@@ -1355,7 +1355,7 @@ func (this *Hyperliquid) ParseOutcomeInputSideHint(outcomeInput any) any {
 		return nil
 	}
 	var colonIndex int = ccxt.GetIndexOf(outcomeInput, ":")
-	if ccxt.IsGreaterThan(colonIndex, -1) && ccxt.IsLessThan(colonIndex, ccxt.Subtract(ccxt.GetLength(outcomeInput), 1)) {
+	if (colonIndex > -1) && ccxt.IsLessThan(colonIndex, ccxt.Subtract(ccxt.GetLength(outcomeInput), 1)) {
 		var side string = ccxt.ToUpper(ccxt.Slice(outcomeInput, colonIndex+1, nil))
 		if (side == "YES") || (side == "NO") {
 			return side
@@ -1898,7 +1898,7 @@ func (this *Hyperliquid) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 			} else {
 				var existingTs *int64 = this.SafeInteger(ccxt.GetValue(deduped, oid), "statusTimestamp")
 				var currentTs *int64 = this.SafeInteger(raw, "statusTimestamp")
-				if (currentTs != nil) && ((existingTs == nil) || ccxt.IsGreaterThan(currentTs, existingTs)) {
+				if (currentTs != nil) && ((existingTs == nil) || (*currentTs > *existingTs)) {
 					ccxt.AddElementToObject(deduped, oid, raw)
 				}
 			}
@@ -2556,7 +2556,7 @@ func (this *Hyperliquid) AmountToPrecision(outcome any, amount any) any {
 	if prec == nil {
 		panic(ccxt.ExchangeError(this.Id + " amountToPrecision() missing prec"))
 	}
-	if ccxt.IsGreaterThan(prec, 0) {
+	if prec != nil && *prec > 0 {
 		decimals = this.PrecisionFromString(this.NumberToString(prec))
 	}
 	return this.DecimalToPrecision(amount, 1, decimals, 2, this.PaddingMode)
@@ -2568,7 +2568,7 @@ func (this *Hyperliquid) PriceToPrecision(outcome any, price any) any {
 	if prec == nil {
 		panic(ccxt.ExchangeError(this.Id + " priceToPrecision() missing prec"))
 	}
-	if ccxt.IsGreaterThan(prec, 0) {
+	if prec != nil && *prec > 0 {
 		decimals = this.PrecisionFromString(this.NumberToString(prec))
 	}
 	return this.DecimalToPrecision(price, 1, decimals, 2, this.PaddingMode)

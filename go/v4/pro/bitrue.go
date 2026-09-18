@@ -967,13 +967,13 @@ func (this *Bitrue) pongBody(ch chan any, client any, message any) any {
 func (this *Bitrue) HandleMessage(client any, message any) {
 	if ccxt.InOp(message, "channel") {
 		var channel *string = this.SafeString(message, "channel")
-		if ccxt.IsGreaterThan(ccxt.GetIndexOf(channel, "_depth_step"), -1) {
+		if ccxt.GetIndexOf(channel, "_depth_step") > -1 {
 			this.HandleOrderBook(client, message)
-		} else if ccxt.IsGreaterThan(ccxt.GetIndexOf(channel, "_trade_ticker"), -1) {
+		} else if ccxt.GetIndexOf(channel, "_trade_ticker") > -1 {
 			this.HandleTrades(client, message)
-		} else if ccxt.IsGreaterThan(ccxt.GetIndexOf(channel, "_kline_"), -1) {
+		} else if ccxt.GetIndexOf(channel, "_kline_") > -1 {
 			this.HandleOHLCV(client, message)
-		} else if ccxt.IsGreaterThan(ccxt.GetIndexOf(channel, "_ticker"), -1) {
+		} else if ccxt.GetIndexOf(channel, "_ticker") > -1 {
 			this.HandleTicker(client, message)
 		}
 	} else if ccxt.InOp(message, "ping") {

@@ -1765,7 +1765,7 @@ func (this *Myriad) ToOrderbookWei(value any) any {
 	if scaled == nil {
 		panic(ccxt.ExchangeError(this.Id + " toOrderbookWei() missing scaled"))
 	}
-	if ccxt.IsGreaterThan(dotIndex, -1) {
+	if dotIndex > -1 {
 		return ccxt.Slice(scaled, 0, dotIndex)
 	}
 	return scaled
@@ -2739,7 +2739,7 @@ func (this *Myriad) HexToDecimalString(hexValue any) any {
 	var result any = "0"
 	for i := 0; i < n; i++ {
 		var v int = ccxt.GetIndexOf(digits, ccxt.GetValue(chars, i))
-		if ccxt.IsGreaterThan(v, -1) {
+		if v > -1 {
 			var mul *string = ccxt.Precise.StringMul(result, "16")
 			var digit *string = this.NumberToString(v)
 			result = ccxt.Precise.StringAdd(mul, digit)
@@ -3973,7 +3973,7 @@ func (this *Myriad) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 		rawMarkets = this.SafeList(responses, 0, []any{})
 		rawQuestions = this.SafeList(responses, 1, []any{})
 	} else if eventId != nil {
-		if ccxt.IsGreaterThan(ccxt.GetIndexOf(eventId, ":"), -1) {
+		if ccxt.GetIndexOf(eventId, ":") > -1 {
 
 			rawMarket := (<-this.FetchRawMarketByIdAsync(eventId, rest))
 			ccxt.PanicOnError(rawMarket)

@@ -2404,7 +2404,7 @@ func (this *Okx) CreateExpiredOptionMarket(symbol any) any {
 	var optionParts []string = Split(symbol, "-")
 	var symbolBase []string = Split(symbol, "/")
 	var base any = nil
-	if IsGreaterThan(GetIndexOf(symbol, "/"), -1) {
+	if GetIndexOf(symbol, "/") > -1 {
 		base = DerefScalar(this.SafeString(symbolBase, 0))
 	} else {
 		base = DerefScalar(this.SafeString(optionParts, 0))
@@ -9273,7 +9273,7 @@ func (this *Okx) setMarginModeBody(ch chan any, marginMode any, optionalArgs ...
 	}
 	var market any = this.Market(symbol)
 	var lever *int64 = this.SafeInteger2(params, "lever", "leverage")
-	if (lever == nil) || (IsLessThan(lever, 1)) || (IsGreaterThan(lever, 125)) {
+	if (lever == nil) || (*lever < 1) || (lever != nil && *lever > 125) {
 		panic(BadRequest(this.Id + " setMarginMode() params[\"lever\"] should be between 1 and 125"))
 	}
 	params = this.Omit(params, []any{"leverage"})

@@ -1354,7 +1354,7 @@ func (this *Cryptocom) loadPositionsSnapshotBody(ch chan any, client any, messag
 	for i := 0; i < ccxt.GetArrayLength(positions); i++ {
 		var position any = ccxt.GetValue(positions, i)
 		var contracts *float64 = this.SafeNumber(position, "contracts", 0)
-		if (contracts != nil) && (ccxt.IsGreaterThan(contracts, 0)) {
+		if (contracts != nil) && (*contracts > 0) {
 			cache.(ccxt.Appender).Append(position)
 		}
 	}
@@ -1927,7 +1927,7 @@ func (this *Cryptocom) HandleSubscribe(client any, message any) {
 	}
 	var result any = this.SafeValue2(message, "result", "info")
 	var channel *string = this.SafeString(result, "channel")
-	if (channel != nil) && ccxt.IsGreaterThan(ccxt.GetIndexOf(channel, "user.trade"), -1) {
+	if (channel != nil) && (ccxt.GetIndexOf(channel, "user.trade") > -1) {
 		// channel might be user.trade.BTC_USDT
 		this.HandleTrades(client, result)
 	}

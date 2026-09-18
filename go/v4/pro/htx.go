@@ -729,7 +729,7 @@ func (this *Htx) HandleOrderBookSnapshot(client any, message any, subscription a
 			var snapshotLimit *int64 = this.SafeInteger(subscription, "limit")
 			var snapshotOrderBook ccxt.OrderBookInterface = this.OrderBook(snapshot, snapshotLimit)
 			client.(ccxt.ClientInterface).Resolve(snapshotOrderBook, id)
-			if (sequence == nil) || (ccxt.IsLessThan(nonce, sequence)) {
+			if (sequence == nil) || (sequence != nil && (nonce == nil || *nonce < *sequence)) {
 				var maxAttempts any = this.HandleOption("watchOrderBook", "maxRetries", 3)
 				var numAttempts any = ccxt.DerefScalar(this.SafeInteger(subscription, "numAttempts", 0))
 				// retry to synchronize if we have not reached maxAttempts yet

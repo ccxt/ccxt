@@ -2508,7 +2508,7 @@ func (this *Bithumb) ParseOrder(order any, optionalArgs ...any) any {
 	var datetime *string = this.SafeString(order, "created_at")
 	var timestamp any = nil
 	if datetime != nil {
-		if IsGreaterThan(GetIndexOf(datetime, "+09:00"), -1) {
+		if GetIndexOf(datetime, "+09:00") > -1 {
 			var normalized string = Replace(datetime, "+09:00", "Z")
 			var normalizedTimestamp *int64 = this.Parse8601(normalized)
 			if normalizedTimestamp != nil {
@@ -3242,7 +3242,7 @@ func (this *Bithumb) ParseTransaction(transaction any, optionalArgs ...any) any 
 	currency = this.SafeCurrency(currencyId, currency)
 	var datetime *string = this.SafeString(transaction, "created_at")
 	var timestamp any = DerefScalar(this.Parse8601(datetime))
-	if (datetime != nil) && (IsGreaterThan(GetIndexOf(datetime, "+09:00"), -1)) {
+	if (datetime != nil) && (GetIndexOf(datetime, "+09:00") > -1) {
 		var normalized string = Replace(datetime, "+09:00", "Z")
 		var normalizedTimestamp *int64 = this.Parse8601(normalized)
 		if normalizedTimestamp != nil {
@@ -3874,7 +3874,7 @@ func (this *Bithumb) FixCommaNumber(numberStr any) any {
 		return nil
 	}
 	var finalNumberStr any = numberStr
-	for IsGreaterThan(GetIndexOf(finalNumberStr, ","), -1) {
+	for GetIndexOf(finalNumberStr, ",") > -1 {
 		finalNumberStr = Replace(finalNumberStr, ",", "")
 	}
 	return finalNumberStr

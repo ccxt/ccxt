@@ -434,7 +434,7 @@ func (this *Delta) CreateExpiredOptionMarket(symbol any) any {
 	var base any = nil
 	var expiry any = nil
 	var optionType any = nil
-	if IsGreaterThan(GetIndexOf(symbol, "/"), -1) {
+	if GetIndexOf(symbol, "/") > -1 {
 		base = DerefScalar(this.SafeString(symbolBase, 0))
 		expiry = DerefScalar(this.SafeString(optionParts, 1))
 		optionType = DerefScalar(this.SafeString(optionParts, 3))

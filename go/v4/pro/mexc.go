@@ -968,7 +968,7 @@ func (this *Mexc) GetCacheIndex(orderbook any, cache any) any {
 		if deltaNonce == nil {
 			continue
 		}
-		if ccxt.IsGreaterThanOrEqual(deltaNonce, nonce) {
+		if nonce == nil || (deltaNonce != nil && *deltaNonce >= *nonce) {
 			return i
 		}
 	}
@@ -1115,7 +1115,7 @@ func (this *Mexc) HandleBooksideDelta(bookside any, bidasks any) {
 func (this *Mexc) HandleDelta(orderbook any, delta any) {
 	var existingNonce *int64 = this.SafeInteger(orderbook, "nonce")
 	var deltaNonce *int64 = this.SafeIntegerN(delta, []any{"r", "version", "fromVersion"})
-	if (deltaNonce != nil) && (existingNonce != nil) && (ccxt.IsLessThan(deltaNonce, existingNonce)) {
+	if (deltaNonce != nil) && (existingNonce != nil) && (*deltaNonce < *existingNonce) {
 		// even when doing < comparison, this happens: https://app.travis-ci.com/github/ccxt/ccxt/builds/269234741#L1809
 		// so, we just skip old updates
 		return
@@ -2511,7 +2511,7 @@ func (this *Mexc) HandleSubscriptionStatus(client any, message any) {
 	var msg *string = this.SafeString(message, "msg", "")
 	if msg != nil && *msg == "PONG" {
 		this.HandlePong(client, message)
-	} else if ccxt.IsGreaterThan(ccxt.GetIndexOf(msg, "@"), -1) {
+	} else if ccxt.GetIndexOf(msg, "@") > -1 {
 		var parts []string = ccxt.Split(msg, "@")
 		var channel *string = this.SafeString(parts, 1)
 		var methods map[string]any = map[string]any{

@@ -1086,7 +1086,7 @@ func (this *Polymarket) ParseEventToMarkets(event any) any {
 				// that is only closed-for-trading (not yet UMA-resolved) still has fractional
 				// prices — don't report a fractional mid as a final settleFraction; leave the
 				// outcome-level fields undefined until a decisive price exists
-				if ccxt.IsGreaterThanOrEqual(outcomePrice, 0.99) {
+				if *outcomePrice >= 0.99 {
 					winnerRaw = true
 					settleFractionRaw = 1
 					resolvedOutcome = outcomeHandle

@@ -223,7 +223,7 @@ func (this *Binance) RequestId(url any) any {
 	return newValue
 }
 func (this *Binance) IsSpotUrl(client any) any {
-	return (ccxt.IsGreaterThan(ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "/stream"), -1)) || (ccxt.IsGreaterThan(ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "demo-stream"), -1))
+	return (ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "/stream") > -1) || (ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "demo-stream") > -1)
 }
 func (this *Binance) Stream(typeVar any, subscriptionHash any, optionalArgs ...any) any {
 	numSubscriptions := ccxt.GetArg(optionalArgs, 0, 1)
@@ -1352,7 +1352,7 @@ func (this *Binance) HandleOrderBook(client any, message any) {
 				if pu == nil {
 					// spot
 					// 4. Drop any event where u is <= lastUpdateId in the snapshot
-					if ccxt.IsGreaterThan(u, nonce) {
+					if u != nil && (nonce == nil || *u > *nonce) {
 						var timestamp *int64 = this.SafeInteger(orderbook, "timestamp")
 						var conditional any = nil
 						if timestamp == nil {
@@ -1377,10 +1377,10 @@ func (this *Binance) HandleOrderBook(client any, message any) {
 				} else {
 					// future
 					// 4. Drop any event where u is < lastUpdateId in the snapshot
-					if ccxt.IsGreaterThanOrEqual(u, nonce) {
+					if nonce == nil || (u != nil && *u >= *nonce) {
 						// 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
 						// 6. While listening to the stream, each new event's pu should be equal to the previous event's u, otherwise initialize the process from step 3
-						if (ccxt.IsLessThanOrEqual(U, nonce)) || (pu == nonce || (pu != nil && nonce != nil && *pu == *nonce)) {
+						if (U == nil || (nonce != nil && *U <= *nonce)) || (pu == nonce || (pu != nil && nonce != nil && *pu == *nonce)) {
 							this.HandleOrderBookMessage(client, message, orderbook)
 							if ccxt.IsLessThanOrEqual(nonce, this.SafeInteger(orderbook, "nonce", 0)) {
 								client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
@@ -3529,7 +3529,7 @@ func (this *Binance) SignParams(optionalArgs ...any) any {
 	extendedParams = this.Keysort(extendedParams)
 	var query string = this.Rawencode(extendedParams)
 	var signature string
-	if ccxt.IsGreaterThan(ccxt.GetIndexOf(this.Secret, "PRIVATE KEY"), -1) {
+	if ccxt.GetIndexOf(this.Secret, "PRIVATE KEY") > -1 {
 		if ccxt.GetLength(this.Secret) > 120 {
 			signature = ccxt.Rsa(query, this.Secret, ccxt.Sha256)
 		} else {
@@ -6329,7 +6329,7 @@ func (this *Binance) loadPositionsSnapshotBody(ch chan any, client any, messageH
 	for i := 0; i < ccxt.GetArrayLength(positions); i++ {
 		var position any = ccxt.GetValue(positions, i)
 		var contracts *float64 = this.SafeNumber(position, "contracts", 0)
-		if (contracts != nil) && (ccxt.IsGreaterThan(contracts, 0)) {
+		if (contracts != nil) && (*contracts > 0) {
 			cache.(ccxt.Appender).Append(position)
 		}
 	}

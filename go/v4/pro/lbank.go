@@ -1249,7 +1249,7 @@ func (this *Lbank) authenticateBody(ch chan any, optionalArgs ...any) any {
 				})
 			} else {
 				var expires *int64 = this.SafeInteger(authenticated, "expires", 0)
-				if ccxt.IsLessThan(expires, now) {
+				if expires == nil || *expires < now {
 					var request map[string]any = map[string]any{
 						"subscribeKey": ccxt.GetValue(authenticated, "key"),
 					}

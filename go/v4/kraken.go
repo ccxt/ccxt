@@ -2128,7 +2128,7 @@ func (this *Kraken) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	}
 	var orderRequest any = this.OrderRequest("createOrder", symbol, typeVar, request, amount, price, params)
 	var flags *string = this.SafeString(GetValue(orderRequest, 0), "oflags", "")
-	var isUsingCost bool = IsGreaterThan(GetIndexOf(flags, "viqc"), -1)
+	var isUsingCost bool = (GetIndexOf(flags, "viqc") > -1)
 
 	response := (<-this.PrivatePostAddOrder(this.Extend(GetValue(orderRequest, 0), GetValue(orderRequest, 1))))
 	PanicOnError(response)
@@ -2477,7 +2477,7 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) any {
 		price = DerefScalar(this.SafeString2(order, "limitprice", "price", price))
 	}
 	var flags *string = this.SafeString(order, "oflags", "")
-	var isPostOnly any = IsGreaterThan(GetIndexOf(flags, "post"), -1)
+	var isPostOnly any = (GetIndexOf(flags, "post") > -1)
 	var average *float64 = this.SafeNumber(order, "price")
 	if !IsEqual(market, nil) {
 		symbol = GetValue(market, "symbol")
@@ -2606,7 +2606,7 @@ func (this *Kraken) OrderRequest(method any, symbol any, typeVar any, request an
 	var cost *string = this.SafeString(params, "cost")
 	var flags *string = this.SafeString(params, "oflags")
 	params = this.Omit(params, []any{"cost", "oflags"})
-	var isViqcOrder bool = (flags != nil) && (IsGreaterThan(GetIndexOf(flags, "viqc"), -1)) // volume in quote currency
+	var isViqcOrder bool = (flags != nil) && (GetIndexOf(flags, "viqc") > -1) // volume in quote currency
 	if isMarketOrder && ((cost != nil) || isViqcOrder) {
 		if (cost == nil) && (!IsEqual(amount, nil)) {
 			AddElementToObject(request, "volume", this.CostToPrecision(symbol, this.NumberToString(amount)))

@@ -13527,7 +13527,7 @@ func (this *Kucoin) ParsePosition(position any, optionalArgs ...any) any {
 				side = "short"
 			}
 		} else if typeVar != nil {
-			if IsGreaterThan(GetIndexOf(typeVar, "long"), -1) {
+			if GetIndexOf(typeVar, "long") > -1 {
 				side = "long"
 			} else {
 				side = "short"

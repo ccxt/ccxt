@@ -265,7 +265,7 @@ func (this *Bitstamp) GetCacheIndex(orderbook any, deltas any) any {
 		return ccxt.OpNeg(1)
 	}
 	var nonce *int64 = this.SafeInteger(orderbook, "nonce")
-	if (nonce == nil) || (ccxt.IsLessThan(nonce, firstElementNonce)) {
+	if (nonce == nil) || (firstElementNonce != nil && (nonce == nil || *nonce < *firstElementNonce)) {
 		return ccxt.OpNeg(1)
 	}
 	for i := 0; i < ccxt.GetArrayLength(deltas); i++ {
@@ -988,7 +988,7 @@ func (this *Bitstamp) HandleSubscriptionStatus(client any, message any) {
 	if channel == nil {
 		return
 	}
-	if ccxt.IsGreaterThan(ccxt.GetIndexOf(channel, "order_book"), -1) {
+	if ccxt.GetIndexOf(channel, "order_book") > -1 {
 		this.HandleOrderBookSubscription(client, message)
 	}
 }
@@ -1102,7 +1102,7 @@ func (this *Bitstamp) HandleSubject(client any, message any) {
 	var keys []string = ccxt.ObjectKeys(methods)
 	for i := 0; i < len(keys); i++ {
 		var key string = ccxt.GetValue(keys, i).(string)
-		if ccxt.IsGreaterThan(ccxt.GetIndexOf(channel, key), -1) {
+		if ccxt.GetIndexOf(channel, key) > -1 {
 			var method any = methods[key]
 			ccxt.CallDynamically(method, client, message)
 		}
@@ -1181,7 +1181,7 @@ func (this *Bitstamp) authenticateBody(ch chan any, optionalArgs ...any) any {
 	this.CheckRequiredCredentials()
 	var time int64 = this.Milliseconds()
 	var expiresIn *int64 = this.SafeInteger(this.Options, "expiresIn")
-	if (expiresIn == nil) || (ccxt.IsGreaterThan(time, expiresIn)) {
+	if (expiresIn == nil) || (time > *expiresIn) {
 		// single-flight leader election on a never-dialed client, see
 		// https://github.com/ccxt/ccxt/issues/29393: the websocket token is
 		// minted by a private REST call and cached in this.options, so N

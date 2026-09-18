@@ -1951,7 +1951,7 @@ func (this *testMainClass) RemoveHostnamefromUrl(url any) any {
 	for i := 0; i < len(urlParts); i++ {
 		if i > 2 {
 			var current string = GetValue(urlParts, i).(string)
-			if IsGreaterThan(GetIndexOf(current, "?"), -1) {
+			if GetIndexOf(current, "?") > -1 {
 				// handle urls like this: /v1/account/accounts?AccessK
 				var currentParts []string = Split(current, "?")
 				res = Add(res, "/")

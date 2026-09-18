@@ -4837,11 +4837,11 @@ func (this *Bingx) ParseOrder(order any, optionalArgs ...any) any {
 	var stopPrice any = this.OmitZero(this.SafeString2(order, "StopPrice", "stopPrice"))
 	var triggerPrice any = stopPrice
 	if stopPrice != nil {
-		if (IsGreaterThan(GetIndexOf(rawType, "stop"), -1)) && (stopLossPrice == nil) {
+		if (GetIndexOf(rawType, "stop") > -1) && (stopLossPrice == nil) {
 			stopLossPrice = stopPrice
 			triggerPrice = nil
 		}
-		if (IsGreaterThan(GetIndexOf(rawType, "take"), -1)) && (takeProfitPrice == nil) {
+		if (GetIndexOf(rawType, "take") > -1) && (takeProfitPrice == nil) {
 			takeProfitPrice = stopPrice
 			triggerPrice = nil
 		}

@@ -884,7 +884,7 @@ func (this *Extended) HandleTrades(client any, message any) {
 	}
 	var previousNonce *int64 = this.SafeInteger(subscription, "nonce")
 	var nonce *int64 = this.SafeInteger(message, "seq")
-	if (previousNonce != nil) && (nonce != nil) && (ccxt.IsLessThanOrEqual(nonce, previousNonce)) {
+	if (previousNonce != nil) && (nonce != nil) && (*nonce <= *previousNonce) {
 		return
 	}
 	ccxt.AddElementToObject(subscription, "nonce", nonce)
@@ -1008,7 +1008,7 @@ func (this *Extended) HandleOHLCV(client any, message any) {
 	}
 	var previousNonce *int64 = this.SafeInteger(subscription, "nonce")
 	var nonce *int64 = this.SafeInteger(message, "seq")
-	if (previousNonce != nil) && (nonce != nil) && (ccxt.IsLessThanOrEqual(nonce, previousNonce)) {
+	if (previousNonce != nil) && (nonce != nil) && (*nonce <= *previousNonce) {
 		return
 	}
 	ccxt.AddElementToObject(subscription, "nonce", nonce)

@@ -2057,7 +2057,7 @@ func (this *Gate) CreateExpiredOptionMarket(symbol any) any {
 	var marketIdBase []string = Split(symbol, "_")
 	var base any = nil
 	var expiry any = DerefScalar(this.SafeString(optionParts, 1))
-	if IsGreaterThan(GetIndexOf(symbol, "/"), -1) {
+	if GetIndexOf(symbol, "/") > -1 {
 		base = DerefScalar(this.SafeString(symbolBase, 0))
 	} else {
 		base = DerefScalar(this.SafeString(marketIdBase, 0))
@@ -2126,7 +2126,7 @@ func (this *Gate) SafeMarket(optionalArgs ...any) any {
 	_ = delimiter
 	marketType := GetArg(optionalArgs, 3, nil)
 	_ = marketType
-	var isOption bool = (marketId != nil) && ((IsGreaterThan(GetIndexOf(marketId, "-C"), -1)) || (IsGreaterThan(GetIndexOf(marketId, "-P"), -1)))
+	var isOption bool = (marketId != nil) && ((GetIndexOf(marketId, "-C") > -1) || (GetIndexOf(marketId, "-P") > -1))
 	if isOption && ((IsEqual(this.Markets_by_id, nil)) || !(InOp(this.Markets_by_id, marketId))) {
 		// handle expired option contracts
 		return this.CreateExpiredOptionMarket(marketId)
@@ -6378,7 +6378,7 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 					triggerOrderPrice = this.PriceToPrecision(symbol, takeProfitPrice)
 				}
 				var priceType *int64 = this.SafeInteger(params, "price_type", 0)
-				if IsLessThan(priceType, 0) || IsGreaterThan(priceType, 2) {
+				if (priceType == nil || *priceType < 0) || (priceType != nil && *priceType > 2) {
 					panic(BadRequest(this.Id + " createOrder () price_type should be 0 latest deal price, 1 mark price, 2 index price"))
 				}
 				params = this.Omit(params, []any{"price_type"})
@@ -9339,7 +9339,7 @@ func (this *Gate) Sign(path any, optionalArgs ...any) any {
 	var authentication any = GetValue(api, 0) // public, private
 	var typeVar any = GetValue(api, 1)        // spot, margin, future, delivery
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var containsSettle bool = IsGreaterThan(GetIndexOf(path, "settle"), -1)
+	var containsSettle bool = (GetIndexOf(path, "settle") > -1)
 	if containsSettle && (IsEqual(EndsWith(path, "batch_cancel_orders"), true)) {
 		// special case where we need to extract the settle from the path
 		// but the body is an array of strings
