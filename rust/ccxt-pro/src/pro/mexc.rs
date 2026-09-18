@@ -1606,7 +1606,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return;
         }
         let mut trades: Value = self.myTrades.clone();
-        if is_equal(&trades, &Value::Null) {
+        if (trades == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             trades = ArrayCacheBySymbolById::new(limit.clone());
             self.myTrades = trades.clone();
@@ -1848,7 +1848,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return;
         }
         let mut orders: Value = self.orders.clone();
-        if is_equal(&orders, &Value::Null) {
+        if (orders == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
             orders = ArrayCacheBySymbolById::new(limit.clone());
             self.orders = orders.clone();

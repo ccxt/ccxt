@@ -2496,7 +2496,7 @@ impl BitvavoCore {
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("order:".to_string()), symbol));
         let mut order: Value = self.parse_order(message.clone(), &[market.clone()]);
-        if is_equal(&self.orders, &Value::Null) {
+        if (self.orders.clone() == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
             self.orders = ArrayCacheBySymbolById::new(limit.clone());
         }
@@ -2526,7 +2526,7 @@ impl BitvavoCore {
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("myTrades:".to_string()), symbol));
         let mut trade: Value = self.parse_trade(message.clone(), &[market.clone()]);
-        if is_equal(&self.myTrades, &Value::Null) {
+        if (self.myTrades.clone() == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             self.myTrades = ArrayCache::new(limit.clone());
         }

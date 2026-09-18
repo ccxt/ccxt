@@ -1010,7 +1010,7 @@ impl CexCore {
             m
         })]);
         let mut stored: Value = self.myTrades.clone();
-        if is_equal(&stored, &Value::Null) {
+        if (stored == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             stored = ArrayCacheBySymbolById::new(limit.clone());
             self.myTrades = stored.clone();
@@ -1179,7 +1179,7 @@ impl CexCore {
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
         let mut market: Value = self.safe_market(&[symbol.clone()]);
         remains = self.currency_from_precision(base.clone(), remains.clone());
-        if is_equal(&self.orders, &Value::Null) {
+        if (self.orders.clone() == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
             self.orders = ArrayCacheBySymbolById::new(limit.clone());
         }
@@ -1377,7 +1377,7 @@ impl CexCore {
         let mut symbol: Value = self.safe_string_k(message.clone(), "oid", &[]); // symbol is set as requestId in watchOrders
         let mut rawOrders: Value = self.safe_list_k(message, "data", &[Value::List(vec![])]);
         let mut myOrders: Value = self.orders.clone();
-        if is_equal(&myOrders, &Value::Null) {
+        if (myOrders == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
             myOrders = ArrayCacheBySymbolById::new(limit.clone());
         }

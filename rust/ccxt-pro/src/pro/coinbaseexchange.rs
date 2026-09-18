@@ -827,7 +827,7 @@ impl CoinbaseexchangeCore {
             let mut type_var: Value = Value::Str("myTrades".to_string());
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", type_var, Value::Str(":".to_string()))), marketId));
             let mut tradesArray: Value = self.myTrades.clone();
-            if is_equal(&tradesArray, &Value::Null) {
+            if (tradesArray == Value::Null) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "myTradesLimit", &[Value::Int(1000)]);
                 tradesArray = ArrayCacheBySymbolById::new(limit.clone());
                 self.myTrades = tradesArray.clone();
@@ -1025,7 +1025,7 @@ impl CoinbaseexchangeCore {
         //     }
         //
         let mut currentOrders: Value = self.orders.clone();
-        if is_equal(&currentOrders, &Value::Null) {
+        if (currentOrders == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
             currentOrders = ArrayCacheBySymbolById::new(limit.clone());
             self.orders = currentOrders.clone();
@@ -1039,7 +1039,7 @@ impl CoinbaseexchangeCore {
             let mut makerOrderId: Value = self.safe_string_k(message.clone(), "maker_order_id", &[]);
             let mut takerOrderId: Value = self.safe_string_k(message.clone(), "taker_order_id", &[]);
             let mut orders: Value = self.orders.clone();
-            if is_equal(&orders, &Value::Null) {
+            if (orders == Value::Null) {
                 return;
             }
             let mut previousOrders: Value = self.safe_value(orders.hashmap(), symbol.clone(), &[Value::Map({
@@ -1129,7 +1129,7 @@ impl CoinbaseexchangeCore {
                         }
                         }
                         // update the newUpdates count
-                        if is_equal(&orders, &Value::Null) {
+                        if (orders == Value::Null) {
                             return;
                         }
                         orders.append(previousOrder.clone());

@@ -2341,7 +2341,7 @@ impl BitgetCore {
                 marketType = Value::Str("contract".to_string());
             }
         }
-        if is_equal(&self.orders, &Value::Null) {
+        if (self.orders.clone() == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
             self.orders = ArrayCacheBySymbolById::new(limit.clone());
             self.triggerOrders = ArrayCacheBySymbolById::new(limit.clone());
@@ -2857,7 +2857,7 @@ impl BitgetCore {
         //         "ts": 1733904123981
         //     }
         //
-        if is_equal(&self.myTrades, &Value::Null) {
+        if (self.myTrades.clone() == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             self.myTrades = ArrayCache::new(limit.clone());
         }

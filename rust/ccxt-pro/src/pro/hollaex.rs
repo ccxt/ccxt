@@ -364,7 +364,7 @@ impl HollaexCore {
             add_element_to_object(&mut self.orderbooks, &symbol, orderbook.clone());
         }  else {
             orderbook = get_value(&self.orderbooks, &symbol);
-            if is_equal(&orderbook, &Value::Null) {
+            if (orderbook == Value::Null) {
                 return;
             }
             orderbook.reset(snapshot.clone());
@@ -516,7 +516,7 @@ impl HollaexCore {
         if is_equal(&dataLength, &Value::Int(0)) {
             return;
         }
-        if is_equal(&self.myTrades, &Value::Null) {
+        if (self.myTrades.clone() == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             self.myTrades = ArrayCache::new(limit.clone());
         }
@@ -663,7 +663,7 @@ impl HollaexCore {
         if is_equal(&dataLength, &Value::Int(0)) {
             return;
         }
-        if is_equal(&self.orders, &Value::Null) {
+        if (self.orders.clone() == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
             self.orders = ArrayCacheBySymbolById::new(limit.clone());
         }

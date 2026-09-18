@@ -1248,7 +1248,7 @@ impl LighterCore {
         if (idsLength == 0.0) {
             return Value::Bool(false);
         }
-        if is_equal(&self.myTrades, &Value::Null) {
+        if (self.myTrades.clone() == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             self.myTrades = ArrayCache::new(limit.clone());
         }
@@ -1961,7 +1961,7 @@ impl LighterCore {
         if (idsLength == 0.0) {
             return Value::Bool(false);
         }
-        if is_equal(&self.orders, &Value::Null) {
+        if (self.orders.clone() == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
             self.orders = ArrayCache::new(limit.clone());
         }

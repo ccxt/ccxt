@@ -1413,7 +1413,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut orders: Value = self.safe_list_k(message, "data", &[Value::List(vec![])]);
         let mut ordersLength: Value = Value::Int(orders.len() as i64);
         if ordersLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-            if is_equal(&self.orders, &Value::Null) {
+            if (self.orders.clone() == Value::Null) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
                 self.orders = ArrayCacheBySymbolById::new(limit.clone());
             }

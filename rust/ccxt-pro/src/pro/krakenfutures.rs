@@ -1188,7 +1188,7 @@ impl KrakenfuturesCore {
         //     }
         //
         let mut orders: Value = self.orders.clone();
-        if is_equal(&orders, &Value::Null) {
+        if (orders == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[]);
             orders = ArrayCacheBySymbolById::new(limit.clone());
             self.orders = orders.clone();
@@ -2050,7 +2050,7 @@ impl KrakenfuturesCore {
         //
         let mut trades: Value = self.safe_list_k(message, "fills", &[Value::List(vec![])]);
         let mut stored: Value = self.myTrades.clone();
-        if is_equal(&stored, &Value::Null) {
+        if (stored == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             stored = ArrayCacheBySymbolById::new(limit.clone());
             self.myTrades = stored.clone();

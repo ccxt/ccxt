@@ -1282,7 +1282,7 @@ impl PoloniexCore {
         //
         let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
         let mut orders: Value = self.orders.clone();
-        if is_equal(&orders, &Value::Null) {
+        if (orders == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[]);
             orders = ArrayCacheBySymbolById::new(limit.clone());
             self.orders = orders.clone();
@@ -1733,7 +1733,7 @@ impl PoloniexCore {
         // emulated using the orders' stream
         let mut messageHash: Value = Value::Str("myTrades".to_string());
         let mut symbol: Value = crate::value::get_value_k(&parsedTrade, "symbol");
-        if is_equal(&self.myTrades, &Value::Null) {
+        if (self.myTrades.clone() == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             self.myTrades = ArrayCacheBySymbolById::new(limit.clone());
         }

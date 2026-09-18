@@ -4786,7 +4786,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             let mut myLegsLength: Value = Value::Int(myLegs.len() as i64);
             if myLegsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-                if is_equal(&self.myTrades, &Value::Null) {
+                if (self.myTrades.clone() == Value::Null) {
                     let mut myTradesLimit: Value = self.safe_integer_k(self.options.clone(), "myTradesLimit", &[Value::Int(1000)]);
                     self.myTrades = ArrayCacheByOutcomeById::new(myTradesLimit.clone());
                 }
@@ -5031,7 +5031,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn handle_order(&mut self, mut client: Value, mut data: Value) {
-        if is_equal(&self.orders, &Value::Null) {
+        if (self.orders.clone() == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
             self.orders = ArrayCacheByOutcomeById::new(limit.clone());
         }

@@ -2139,7 +2139,7 @@ impl OkxCore {
         if (prevSeqId != Value::Null) && (prevSeqId.as_f64() != Value::Int(-1).as_f64()) && !is_equal(&nonce, &prevSeqId) {
             error = Value::from(crate::exchange_errors::invalid_nonce(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook received invalid nonce".to_string()))));
         }
-        if !is_equal(&error, &Value::Null) {
+        if (error != Value::Null) {
             remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash);
             if (symbol != Value::Null) {
                 remove(&mut self.orderbooks, &symbol);
@@ -2917,7 +2917,7 @@ impl OkxCore {
         let mut ordersLength: Value = Value::Int(orders.len() as i64);
         if ordersLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
-            if is_equal(&self.orders, &Value::Null) {
+            if (self.orders.clone() == Value::Null) {
                 self.orders = ArrayCacheBySymbolById::new(limit.clone());
                 self.triggerOrders = ArrayCacheBySymbolById::new(limit.clone());
             }
@@ -3027,7 +3027,7 @@ impl OkxCore {
         if (tradesLength.as_f64() == Some(0.0)) {
             return;
         }
-        if is_equal(&self.myTrades, &Value::Null) {
+        if (self.myTrades.clone() == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             self.myTrades = ArrayCacheBySymbolById::new(limit.clone());
         }

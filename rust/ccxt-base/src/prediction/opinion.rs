@@ -2949,7 +2949,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("trades".to_string(), Value::List(vec![]));
     m
 }), &[outcomeObj.clone()]);
-        if is_equal(&self.orders, &Value::Null) {
+        if (self.orders.clone() == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
             self.orders = ArrayCacheByOutcomeById::new(limit.clone());
         }
@@ -3046,7 +3046,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
     m
 }), &[outcomeObj.clone()]);
-        if is_equal(&self.myTrades, &Value::Null) {
+        if (self.myTrades.clone() == Value::Null) {
             let mut myTradesLimit: Value = self.safe_integer_k(self.options.clone(), "myTradesLimit", &[Value::Int(1000)]);
             self.myTrades = ArrayCacheByOutcomeById::new(myTradesLimit.clone());
         }

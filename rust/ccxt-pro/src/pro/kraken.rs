@@ -1731,7 +1731,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut allTrades: Value = self.safe_list_k(message, "data", &[Value::List(vec![])]);
         let mut allTradesLength: Value = Value::Int(allTrades.len() as i64);
         if allTradesLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-            if is_equal(&self.myTrades, &Value::Null) {
+            if (self.myTrades.clone() == Value::Null) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
                 self.myTrades = ArrayCache::new(limit.clone());
             }
@@ -1898,7 +1898,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut allOrdersLength: Value = Value::Int(allOrders.len() as i64);
         if allOrdersLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
-            if is_equal(&self.orders, &Value::Null) {
+            if (self.orders.clone() == Value::Null) {
                 self.orders = ArrayCacheBySymbolById::new(limit.clone());
             }
             let mut stored: Value = self.orders.clone();

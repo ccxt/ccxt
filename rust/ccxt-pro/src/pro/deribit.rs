@@ -921,7 +921,7 @@ impl DeribitCore {
         let mut channel: Value = self.safe_string_k(params.clone(), "channel", &[Value::Str("".to_string())]);
         let mut trades: Value = self.safe_value_k(params, "data", &[Value::List(vec![])]);
         let mut cachedTrades: Value = self.myTrades.clone();
-        if is_equal(&cachedTrades, &Value::Null) {
+        if (cachedTrades == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             cachedTrades = ArrayCacheBySymbolById::new(limit.clone());
         }
@@ -1229,7 +1229,7 @@ impl DeribitCore {
         //         }
         //     }
         //
-        if is_equal(&self.orders, &Value::Null) {
+        if (self.orders.clone() == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
             self.orders = ArrayCacheBySymbolById::new(limit.clone());
         }

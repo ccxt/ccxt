@@ -1419,7 +1419,7 @@ impl HitbtcCore {
         //        ]
         //    }
         //
-        if is_equal(&self.orders, &Value::Null) {
+        if (self.orders.clone() == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[]);
             self.orders = ArrayCacheBySymbolById::new(limit.clone());
         }
@@ -1444,7 +1444,7 @@ impl HitbtcCore {
 
     pub fn handle_order_helper(&self, mut client: Value, mut message: Value, mut order: Value) {
         let mut orders: Value = self.orders.clone();
-        if is_equal(&orders, &Value::Null) {
+        if (orders == Value::Null) {
             return;
         }
         let mut marketId: Value = self.safe_string_lower2(order.clone(), Value::Str("instrument".to_string()), Value::Str("symbol".to_string()), &[]);
