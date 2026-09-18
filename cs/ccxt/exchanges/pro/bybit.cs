@@ -451,7 +451,7 @@ public partial class bybit : ccxt.bybit
         string topic = ((string)this.safeString(options, "name", "tickers"));
         IList<object> marketIds = this.marketIds(symbols);
         List<object> topics = new List<object>() {};
-        for (int i = 0; i < getArrayLength(marketIds); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(marketIds); i++)
         {
             object marketId = getValue(marketIds, i);
             ((IList<object>)topics).Add(add((topic + "."), marketId));
@@ -491,7 +491,7 @@ public partial class bybit : ccxt.bybit
         List<object> subMessageHashes = new List<object>() {};
         IList<object> marketIds = this.marketIds(symbols);
         List<object> topics = new List<object>() {};
-        for (int i = 0; i < getArrayLength(marketIds); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(marketIds); i++)
         {
             object marketId = getValue(marketIds, i);
             object symbol = getValue(symbols, i);
@@ -693,7 +693,7 @@ public partial class bybit : ccxt.bybit
         parameters = this.cleanParams(parameters);
         IList<object> marketIds = this.marketIds(symbols);
         List<object> topics = new List<object>() {};
-        for (int i = 0; i < getArrayLength(marketIds); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(marketIds); i++)
         {
             object marketId = getValue(marketIds, i);
             string topic = add("orderbook.1.", marketId);
@@ -775,7 +775,7 @@ public partial class bybit : ccxt.bybit
         object url = await this.getUrlByMarketType(firstSymbol, false, "watchOHLCVForSymbols", parameters);
         List<object> rawHashes = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (int i = 0; i < getArrayLength(symbolsAndTimeframes); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbolsAndTimeframes); i++)
         {
             object data = getValue(symbolsAndTimeframes, i);
             Dictionary<string, object> market = this.market(getValue(data, 0));
@@ -821,7 +821,7 @@ public partial class bybit : ccxt.bybit
         List<object> rawHashes = new List<object>() {};
         List<object> subMessageHashes = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (int i = 0; i < getArrayLength(symbolsAndTimeframes); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbolsAndTimeframes); i++)
         {
             object data = getValue(symbolsAndTimeframes, i);
             Dictionary<string, object> market = this.market(getValue(data, 0));
@@ -908,7 +908,7 @@ public partial class bybit : ccxt.bybit
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)timeframe] = new ArrayCacheByTimestamp(limit);
         }
         object stored = getValue(getValue(this.ohlcvs, symbol), timeframe);
-        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); i++)
         {
             object parsed = this.parseWsOHLCV(getValue(data, i), market);
             callDynamically(stored, "append", new object[] {parsed});
@@ -1005,7 +1005,7 @@ public partial class bybit : ccxt.bybit
         }
         List<object> topics = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); i++)
         {
             object symbol = getValue(symbols, i);
             object marketId = this.marketId(symbol);
@@ -1050,7 +1050,7 @@ public partial class bybit : ccxt.bybit
         List<object> subMessageHashes = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         List<object> topics = new List<object>() {};
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); i++)
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
@@ -1166,7 +1166,7 @@ public partial class bybit : ccxt.bybit
 
     public override void handleDeltas(object bookside, object deltas)
     {
-        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(deltas)); i++)
         {
             this.handleDelta(bookside, getValue(deltas, i));
         }
@@ -1218,7 +1218,7 @@ public partial class bybit : ccxt.bybit
         object url = await this.getUrlByMarketType(getValue(symbols, 0), false, "watchTrades", parameters);
         List<object> topics = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); i++)
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
@@ -1258,7 +1258,7 @@ public partial class bybit : ccxt.bybit
         List<object> messageHashes = new List<object>() {};
         List<object> topics = new List<object>() {};
         List<object> subMessageHashes = new List<object>() {};
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); i++)
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
@@ -1323,7 +1323,7 @@ public partial class bybit : ccxt.bybit
             stored = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
-        for (int j = 0; isLessThan(j, getArrayLength(trades)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(trades)); j++)
         {
             Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsTrade(getValue(trades, j), market));
             callDynamically(stored, "append", new object[] {parsed});
@@ -1640,7 +1640,7 @@ public partial class bybit : ccxt.bybit
         {
             execTypes = execTypeOption;
         }
-        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); i++)
         {
             object rawTrade = getValue(data, i);
             object parsed = null;
@@ -1670,7 +1670,7 @@ public partial class bybit : ccxt.bybit
             callDynamically(trades, "append", new object[] {parsed});
         }
         List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
-        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; i++)
         {
             string currentMessageHash = add("myTrades:", getValue(keys, i));
             (client as WebSocketClient).resolve(trades, currentMessageHash);
@@ -1762,10 +1762,10 @@ public partial class bybit : ccxt.bybit
         List<object> promises = await promiseAll(fetchFunctions);
         this.positions = new ArrayCacheBySymbolBySide();
         object cache = this.positions;
-        for (int i = 0; i < getArrayLength(promises); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(promises); i++)
         {
             object positions = getValue(promises, i);
-            for (int ii = 0; ii < getArrayLength(positions); postFixIncrement(ref ii))
+            for (int ii = 0; ii < getArrayLength(positions); ii++)
             {
                 object position = getValue(positions, ii);
                 callDynamically(cache, "append", new object[] {position});
@@ -1828,7 +1828,7 @@ public partial class bybit : ccxt.bybit
         object cache = this.positions;
         List<object> newPositions = new List<object>() {};
         List<object> rawPositions = this.safeList(message, "data", new List<object>() {});
-        for (int i = 0; i < rawPositions.Count; postFixIncrement(ref i))
+        for (int i = 0; i < rawPositions.Count; i++)
         {
             object rawPosition = getValue(rawPositions, i);
             Dictionary<string, object> position = this.parsePosition(rawPosition);
@@ -1852,7 +1852,7 @@ public partial class bybit : ccxt.bybit
             }
         }
         List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, "positions::");
-        for (int i = 0; i < getArrayLength(messageHashes); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(messageHashes); i++)
         {
             object messageHash = getValue(messageHashes, i);
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
@@ -1968,7 +1968,7 @@ public partial class bybit : ccxt.bybit
         if (((getValue(message, "data") is IList<object>) || (getValue(message, "data").GetType().IsGenericType && getValue(message, "data").GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             List<object> rawLiquidations = this.safeList(message, "data", new List<object>() {});
-            for (int i = 0; i < rawLiquidations.Count; postFixIncrement(ref i))
+            for (int i = 0; i < rawLiquidations.Count; i++)
             {
                 object rawLiquidation = getValue(rawLiquidations, i);
                 string? marketId = this.safeString(rawLiquidation, "s");
@@ -2246,7 +2246,7 @@ public partial class bybit : ccxt.bybit
             rawOrders = this.safeValue(rawOrders, "result", rawOrders);
         }
         Dictionary<string, object> symbols = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(rawOrders); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(rawOrders); i++)
         {
             Dictionary<string, object> parsed = this.parseOrder(getValue(rawOrders, i));
             // if (isSpot) {
@@ -2263,7 +2263,7 @@ public partial class bybit : ccxt.bybit
             callDynamically(orders, "append", new object[] {parsed});
         }
         List<object> symbolsArray = new List<object>(((IDictionary<string,object>)symbols).Keys);
-        for (int i = 0; i < symbolsArray.Count; postFixIncrement(ref i))
+        for (int i = 0; i < symbolsArray.Count; i++)
         {
             string currentMessageHash = add("orders:", getValue(symbolsArray, i));
             (client as WebSocketClient).resolve(orders, currentMessageHash);
@@ -2506,7 +2506,7 @@ public partial class bybit : ccxt.bybit
         {
             account = "spot";
             List<object> data = this.safeList(message, "data", new List<object>() {});
-            for (int i = 0; i < data.Count; postFixIncrement(ref i))
+            for (int i = 0; i < data.Count; i++)
             {
                 object B = this.safeValue(getValue(data, i), "B", new List<object>() {});
                 rawBalances = this.arrayConcat(rawBalances, B);
@@ -2516,7 +2516,7 @@ public partial class bybit : ccxt.bybit
         if (isEqual(topic, "wallet"))
         {
             object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
-            for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(data)); i++)
             {
                 object result = this.safeValue(data, 0, new Dictionary<string, object>() {});
                 account = this.safeStringLower(result, "accountType");
@@ -2524,7 +2524,7 @@ public partial class bybit : ccxt.bybit
             }
             info = data;
         }
-        for (int i = 0; i < getArrayLength(rawBalances); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(rawBalances); i++)
         {
             this.parseWsBalance(getValue(rawBalances, i), account);
         }
@@ -2629,7 +2629,7 @@ public partial class bybit : ccxt.bybit
         int messageHashesLength = getArrayLength(messageHashes);
         if ((topicsLength == messageHashesLength))
         {
-            for (int i = 0; isLessThan(i, topicsLength); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, topicsLength); i++)
             {
                 object messageHash = getValue(messageHashes, i);
                 if (!(inOp(((WebSocketClient)client).subscriptions, messageHash)))
@@ -2644,17 +2644,17 @@ public partial class bybit : ccxt.bybit
             // does not resend already-subscribed topics.
             Dictionary<string, object> subscribedTopics = new Dictionary<string, object>() {};
             List<object> subscriptionHashes = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);
-            for (int i = 0; i < subscriptionHashes.Count; postFixIncrement(ref i))
+            for (int i = 0; i < subscriptionHashes.Count; i++)
             {
                 IDictionary<string, object> existing = this.safeDict(((WebSocketClient)client).subscriptions, getValue(subscriptionHashes, i), new Dictionary<string, object>() {});
                 List<object> recordedTopics = this.safeList(existing, "topics", new List<object>() {});
                 int recordedLength = recordedTopics.Count;
-                for (int j = 0; j < recordedLength; postFixIncrement(ref j))
+                for (int j = 0; j < recordedLength; j++)
                 {
                     ((IDictionary<string,object>)subscribedTopics)[(string)getValue(recordedTopics, j)] = true;
                 }
             }
-            for (int i = 0; isLessThan(i, topicsLength); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, topicsLength); i++)
             {
                 object topic = getValue(topics, i);
                 if (!(inOp(subscribedTopics, topic)))
@@ -2807,7 +2807,7 @@ public partial class bybit : ccxt.bybit
             if ((reqId != null))
             {
                 List<object> keys = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);
-                for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+                for (int i = 0; i < keys.Count; i++)
                 {
                     string? messageHash = ((string)getValue(keys, i));
                     if (!(inOp(((WebSocketClient)client).subscriptions, messageHash)))
@@ -2927,7 +2927,7 @@ public partial class bybit : ccxt.bybit
             return;
         }
         List<object> keys = new List<object>(((IDictionary<string,object>)methods).Keys);
-        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)getValue(keys, i));
             if (getIndexOf(topic, key) >= 0)
@@ -3055,7 +3055,7 @@ public partial class bybit : ccxt.bybit
         // }
         string? reqId = this.safeString(message, "req_id");
         List<object> keys = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);
-        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; i++)
         {
             string? messageHash = ((string)getValue(keys, i));
             if (!(inOp(((WebSocketClient)client).subscriptions, messageHash)))
@@ -3072,7 +3072,7 @@ public partial class bybit : ccxt.bybit
                 }
                 List<object> messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
                 List<object> subMessageHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});
-                for (int j = 0; j < messageHashes.Count; postFixIncrement(ref j))
+                for (int j = 0; j < messageHashes.Count; j++)
                 {
                     object unsubHash = getValue(messageHashes, j);
                     object subHash = getValue(subMessageHashes, j);

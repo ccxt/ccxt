@@ -501,7 +501,7 @@ public partial class extended : Exchange
             return null;
         }
         List<object> keys = new List<object>(((IDictionary<string,object>)input).Keys);
-        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)getValue(keys, i));
             object item = getValue(input, key);
@@ -944,7 +944,7 @@ public partial class extended : Exchange
         if (!isEqual(symbols, null))
         {
             List<object> marketIds = new List<object>() {};
-            for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(symbols); i++)
             {
                 Dictionary<string, object> market = this.market(getValue(symbols, i));
                 ((IList<object>)marketIds).Add(getValue(market, "id"));
@@ -971,7 +971,7 @@ public partial class extended : Exchange
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
         Dictionary<string, object> tickers = new Dictionary<string, object>() {};
-        for (int i = 0; i < data.Count; postFixIncrement(ref i))
+        for (int i = 0; i < data.Count; i++)
         {
             object marketData = getValue(data, i);
             string? marketId = this.safeString(marketData, "name");
@@ -1209,7 +1209,7 @@ public partial class extended : Exchange
         string? cursor = this.safeString(pagination, "cursor");
         List<object> result = new List<object>() {};
         int dataLength = data.Count;
-        for (int i = 0; i < dataLength; postFixIncrement(ref i))
+        for (int i = 0; i < dataLength; i++)
         {
             object entry = getValue(data, i);
             if (((cursor != null)) && (isEqual(i, (dataLength - 1))))
@@ -1292,7 +1292,7 @@ public partial class extended : Exchange
         string? cursor = this.safeString(pagination, "cursor");
         List<object> result = new List<object>() {};
         int dataLength = data.Count;
-        for (int i = 0; i < dataLength; postFixIncrement(ref i))
+        for (int i = 0; i < dataLength; i++)
         {
             object entry = getValue(data, i);
             if (((cursor != null)) && (isEqual(i, (dataLength - 1))))
@@ -1341,7 +1341,7 @@ public partial class extended : Exchange
     public virtual object parseFundingHistories(object histories, object market = null, object since = null, object limit = null)
     {
         List<object> result = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(histories)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(histories)); i++)
         {
             ((IList<object>)result).Add(this.parseFundingHistory(getValue(histories, i), market));
         }
@@ -1576,7 +1576,7 @@ public partial class extended : Exchange
         string? cursor = this.safeString(pagination, "cursor");
         List<object> result = new List<object>() {};
         int dataLength = data.Count;
-        for (int i = 0; i < dataLength; postFixIncrement(ref i))
+        for (int i = 0; i < dataLength; i++)
         {
             object entry = getValue(data, i);
             if (((cursor != null)) && (isEqual(i, (dataLength - 1))))
@@ -1747,7 +1747,7 @@ public partial class extended : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); i++)
         {
             IDictionary<string, object> balance = this.safeDict(response, i, new Dictionary<string, object>() {});
             string? currencyId = this.safeString(balance, "asset");
@@ -1893,7 +1893,7 @@ public partial class extended : Exchange
         string? cursor = this.safeString(pagination, "cursor");
         List<object> result = new List<object>() {};
         int dataLength = data.Count;
-        for (int i = 0; i < dataLength; postFixIncrement(ref i))
+        for (int i = 0; i < dataLength; i++)
         {
             object entry = getValue(data, i);
             if (((cursor != null)) && (isEqual(i, (dataLength - 1))))
@@ -2022,7 +2022,7 @@ public partial class extended : Exchange
         string? cursor = this.safeString(pagination, "cursor");
         List<object> result = new List<object>() {};
         int dataLength = data.Count;
-        for (int i = 0; i < dataLength; postFixIncrement(ref i))
+        for (int i = 0; i < dataLength; i++)
         {
             object entry = getValue(data, i);
             if (((cursor != null)) && (isEqual(i, (dataLength - 1))))
@@ -2170,7 +2170,7 @@ public partial class extended : Exchange
         string? cursor = this.safeString(pagination, "cursor");
         List<object> result = new List<object>() {};
         int dataLength = data.Count;
-        for (int i = 0; i < dataLength; postFixIncrement(ref i))
+        for (int i = 0; i < dataLength; i++)
         {
             object entry = getValue(data, i);
             if (((cursor != null)) && (isEqual(i, (dataLength - 1))))
@@ -2458,7 +2458,7 @@ public partial class extended : Exchange
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; i < data.Count; postFixIncrement(ref i))
+        for (int i = 0; i < data.Count; i++)
         {
             IDictionary<string, object> fee = this.safeDict(data, i, new Dictionary<string, object>() {});
             object parsed = this.parseTradingFee(fee);
@@ -2716,7 +2716,7 @@ public partial class extended : Exchange
         string? cursor = this.safeString(pagination, "cursor");
         List<object> result = new List<object>() {};
         int dataLength = data.Count;
-        for (int i = 0; i < dataLength; postFixIncrement(ref i))
+        for (int i = 0; i < dataLength; i++)
         {
             object entry = getValue(data, i);
             if (((cursor != null)) && (isEqual(i, (dataLength - 1))))
@@ -3658,7 +3658,7 @@ public partial class extended : Exchange
         string? cursor = this.safeString(pagination, "cursor");
         List<object> result = new List<object>() {};
         int dataLength = data.Count;
-        for (int i = 0; i < dataLength; postFixIncrement(ref i))
+        for (int i = 0; i < dataLength; i++)
         {
             object entry = getValue(data, i);
             if (((cursor != null)) && (isEqual(i, (dataLength - 1))))

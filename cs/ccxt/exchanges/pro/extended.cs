@@ -146,7 +146,7 @@ public partial class extended : ccxt.extended
 
     public override void handleDeltas(object bookside, object deltas)
     {
-        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(deltas)); i++)
         {
             this.handleDelta(bookside, getValue(deltas, i));
         }
@@ -282,7 +282,7 @@ public partial class extended : ccxt.extended
             }
         }
         List<object> spotBalances = this.safeList(data, "spotBalances", new List<object>() {});
-        for (int i = 0; i < spotBalances.Count; postFixIncrement(ref i))
+        for (int i = 0; i < spotBalances.Count; i++)
         {
             IDictionary<string, object> spotBalance = this.safeDict(spotBalances, i, new Dictionary<string, object>() {});
             string? currencyId = this.safeString(spotBalance, "asset");
@@ -382,7 +382,7 @@ public partial class extended : ccxt.extended
         {
             return;
         }
-        for (int i = 0; i < rawTrades.Count; postFixIncrement(ref i))
+        for (int i = 0; i < rawTrades.Count; i++)
         {
             Dictionary<string, object> trade = this.parseTrade(getValue(rawTrades, i));
             string? symbol = this.safeString(trade, "symbol");
@@ -390,14 +390,14 @@ public partial class extended : ccxt.extended
             callDynamically(stored, "append", new object[] {trade});
         }
         List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
-        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; i++)
         {
             string messageHash = add("myTrades:", getValue(keys, i));
             (client as WebSocketClient).resolve(stored, messageHash);
         }
         (client as WebSocketClient).resolve(stored, "myTrades");
         List<object> subscriptions = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);
-        for (int i = 0; i < subscriptions.Count; postFixIncrement(ref i))
+        for (int i = 0; i < subscriptions.Count; i++)
         {
             string? messageHash = ((string)getValue(subscriptions, i));
             if ((getIndexOf(messageHash, "myTrades:") == 0))
@@ -480,7 +480,7 @@ public partial class extended : ccxt.extended
         {
             return;
         }
-        for (int i = 0; i < rawPositions.Count; postFixIncrement(ref i))
+        for (int i = 0; i < rawPositions.Count; i++)
         {
             object rawPosition = getValue(rawPositions, i);
             string? marketId = this.safeString(rawPosition, "market");
@@ -493,7 +493,7 @@ public partial class extended : ccxt.extended
             callDynamically(stored, "append", new object[] {position});
         }
         List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, "positions::");
-        for (int i = 0; i < getArrayLength(messageHashes); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(messageHashes); i++)
         {
             object messageHash = getValue(messageHashes, i);
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
@@ -554,7 +554,7 @@ public partial class extended : ccxt.extended
         {
             return;
         }
-        for (int i = 0; i < getArrayLength((IList<object>)(rawOrders)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength((IList<object>)(rawOrders)); i++)
         {
             Dictionary<string, object> order = this.parseOrder(getValue((IList<object>)(rawOrders), i));
             string? symbol = this.safeString(order, "symbol");
@@ -562,14 +562,14 @@ public partial class extended : ccxt.extended
             callDynamically(orders, "append", new object[] {order});
         }
         List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
-        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; i++)
         {
             string messageHash = add("orders:", getValue(keys, i));
             (client as WebSocketClient).resolve(orders, messageHash);
         }
         (client as WebSocketClient).resolve(orders, "orders");
         List<object> subscriptions = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);
-        for (int i = 0; i < subscriptions.Count; postFixIncrement(ref i))
+        for (int i = 0; i < subscriptions.Count; i++)
         {
             string? messageHash = ((string)getValue(subscriptions, i));
             if ((getIndexOf(messageHash, "orders:") == 0))
@@ -806,7 +806,7 @@ public partial class extended : ccxt.extended
             return;
         }
         ((IDictionary<string,object>)subscription)["nonce"] = nonce;
-        for (int i = 0; i < data.Count; postFixIncrement(ref i))
+        for (int i = 0; i < data.Count; i++)
         {
             Dictionary<string, object> trade = this.parseTrade(getValue(data, i), market);
             callDynamically(stored, "append", new object[] {trade});
@@ -923,7 +923,7 @@ public partial class extended : ccxt.extended
         }
         ((IDictionary<string,object>)subscription)["nonce"] = nonce;
         List<object> data = this.safeList(message, "data", new List<object>() {});
-        for (int i = 0; i < data.Count; postFixIncrement(ref i))
+        for (int i = 0; i < data.Count; i++)
         {
             object parsed = this.parseOHLCV(getValue(data, i));
             callDynamically(stored, "append", new object[] {parsed});
@@ -934,7 +934,7 @@ public partial class extended : ccxt.extended
     public virtual object findSubscription(WebSocketClient client, object name)
     {
         List<object> keys = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);
-        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)getValue(keys, i));
             IDictionary<string, object> subscription = this.safeDict(((WebSocketClient)client).subscriptions, key);

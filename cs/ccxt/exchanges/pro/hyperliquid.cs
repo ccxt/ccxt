@@ -208,7 +208,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         IDictionary<string, object> data = this.safeDict(responseObj, "data", new Dictionary<string, object>() {});
         List<object> statuses = this.safeList(data, "statuses", new List<object>() {});
         List<object> orders = new List<object>() {};
-        for (int i = 0; i < statuses.Count; postFixIncrement(ref i))
+        for (int i = 0; i < statuses.Count; i++)
         {
             object status = getValue(statuses, i);
             ((IList<object>)orders).Add(this.safeOrder(new Dictionary<string, object>() {
@@ -616,7 +616,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         if ((mids != null))
         {
             List<object> keys = new List<object>(((IDictionary<string,object>)mids).Keys);
-            for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+            for (int i = 0; i < keys.Count; i++)
             {
                 string? name = ((string)getValue(keys, i));
                 object marketId = this.coinToMarketId(name);
@@ -724,7 +724,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         {
             return;
         }
-        for (int i = 0; i < data.Count; postFixIncrement(ref i))
+        for (int i = 0; i < data.Count; i++)
         {
             object rawTrade = getValue(data, i);
             Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsTrade(rawTrade));
@@ -733,7 +733,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             callDynamically(trades, "append", new object[] {parsed});
         }
         List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
-        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; i++)
         {
             string currentMessageHash = add("myTrades:", getValue(keys, i));
             (client as WebSocketClient).resolve(trades, currentMessageHash);
@@ -851,7 +851,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
         object trades = getValue(this.trades, symbol);
-        for (int i = 0; i < entry.Count; postFixIncrement(ref i))
+        for (int i = 0; i < entry.Count; i++)
         {
             IDictionary<string, object> data = this.safeDict(entry, i, new Dictionary<string, object>() {});
             Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsTrade(data));
@@ -1251,7 +1251,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             timestamp = this.safeInteger(clearinghouseState, "time");
             this.handlePositions(client as WebSocketClient, message);
         }
-        for (int i = 0; i < getArrayLength(rawBalances); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(rawBalances); i++)
         {
             this.parseWsBalance(getValue(rawBalances, i), account);
         }
@@ -1408,7 +1408,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         IDictionary<string, object> clearinghouseState = this.safeDict(data, "clearinghouseState", new Dictionary<string, object>() {});
         List<object> newPositions = new List<object>() {};
         List<object> rawPositions = this.safeList(clearinghouseState, "assetPositions", new List<object>() {});
-        for (int i = 0; i < rawPositions.Count; postFixIncrement(ref i))
+        for (int i = 0; i < rawPositions.Count; i++)
         {
             object rawPosition = getValue(rawPositions, i);
             Dictionary<string, object> position = this.parsePosition(rawPosition);
@@ -1417,7 +1417,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         }
         string baseMessageHash = "clearinghouseState::positions";
         List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, baseMessageHash);
-        for (int i = 0; i < getArrayLength(messageHashes); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(messageHashes); i++)
         {
             object messageHash = getValue(messageHashes, i);
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
@@ -1608,7 +1608,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         object stored = this.orders;
         string messageHash = "order";
         Dictionary<string, object> marketSymbols = new Dictionary<string, object>() {};
-        for (int i = 0; i < data.Count; postFixIncrement(ref i))
+        for (int i = 0; i < data.Count; i++)
         {
             object rawOrder = getValue(data, i);
             Dictionary<string, object> order = this.parseOrder(rawOrder);
@@ -1617,7 +1617,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             ((IDictionary<string,object>)marketSymbols)[(string)((string)symbol)] = true;
         }
         List<object> keys = new List<object>(((IDictionary<string,object>)marketSymbols).Keys);
-        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; i++)
         {
             string? symbol = ((string)getValue(keys, i));
             string innerMessageHash = ((messageHash + ":") + symbol);
@@ -1749,7 +1749,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         string messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client as WebSocketClient, subMessageHash, messageHash);
         List<object> symbols = new List<object>(((IDictionary<string,object>)this.tickers).Keys);
-        for (int i = 0; i < symbols.Count; postFixIncrement(ref i))
+        for (int i = 0; i < symbols.Count; i++)
         {
             ((IDictionary<string,object>)this.tickers).Remove((string)getValue(symbols, i));
         }
@@ -1966,7 +1966,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             return;
         }
         List<object> keys = new List<object>(((IDictionary<string,object>)methods).Keys);
-        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)getValue(keys, i));
             if (getIndexOf(topic, getValue(keys, i)) >= 0)

@@ -2103,7 +2103,7 @@ public partial class gate : Exchange
         List<object> rawPromises = new List<object>() {};
         IDictionary<string, object> fetchMarketsOptions = this.safeDict(this.options, "fetchMarkets");
         List<object> types = this.safeList(fetchMarketsOptions, "types", new List<object>() {"spot", "swap", "future", "option"});
-        for (int i = 0; i < types.Count; postFixIncrement(ref i))
+        for (int i = 0; i < types.Count; i++)
         {
             object marketType = getValue(types, i);
             if (isEqual(marketType, "spot"))
@@ -2174,7 +2174,7 @@ public partial class gate : Exchange
         //     ]
         //
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(spotMarketsResponse); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(spotMarketsResponse); i++)
         {
             IDictionary<string, object> spotMarket = this.safeDict(spotMarketsResponse, i, new Dictionary<string, object>() {});
             string? id = this.safeString(spotMarket, "id");
@@ -2259,14 +2259,14 @@ public partial class gate : Exchange
         {
             swapSettlementCurrencies = new List<object>() {"usdt"}; // gate sandbox only has usdt-margined swaps
         }
-        for (int c = 0; isLessThan(c, getArrayLength(swapSettlementCurrencies)); postFixIncrement(ref c))
+        for (int c = 0; isLessThan(c, getArrayLength(swapSettlementCurrencies)); c++)
         {
             object settleId = getValue(swapSettlementCurrencies, c);
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "settle", settleId },
             };
             List<object> response = await this.publicFuturesGetSettleContracts(this.extend(request, parameters));
-            for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(response); i++)
             {
                 IDictionary<string, object> contract = this.safeDict(response, i, new Dictionary<string, object>() {});
                 Dictionary<string, object> parsedMarket = this.parseContractMarket(contract, settleId);
@@ -2285,14 +2285,14 @@ public partial class gate : Exchange
         }
         List<object> result = new List<object>() {};
         object futureSettlementCurrencies = this.getSettlementCurrencies("future", "fetchMarkets");
-        for (int c = 0; isLessThan(c, getArrayLength(futureSettlementCurrencies)); postFixIncrement(ref c))
+        for (int c = 0; isLessThan(c, getArrayLength(futureSettlementCurrencies)); c++)
         {
             object settleId = getValue(futureSettlementCurrencies, c);
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "settle", settleId },
             };
             List<object> response = await this.publicDeliveryGetSettleContracts(this.extend(request, parameters));
-            for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(response); i++)
             {
                 IDictionary<string, object> contract = this.safeDict(response, i, new Dictionary<string, object>() {});
                 Dictionary<string, object> parsedMarket = this.parseContractMarket(contract, settleId);
@@ -2498,7 +2498,7 @@ public partial class gate : Exchange
         parameters ??= new Dictionary<string, object>();
         List<object> result = new List<object>() {};
         object underlyings = ccxt.BaseExchange.FromStringList(await this.FetchOptionUnderlyings());
-        for (int i = 0; i < getArrayLength(underlyings); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(underlyings); i++)
         {
             object underlying = getValue(underlyings, i);
             Dictionary<string, object> query = this.extend(new Dictionary<string, object>() {}, parameters);
@@ -2542,7 +2542,7 @@ public partial class gate : Exchange
             //        }
             //    ]
             //
-            for (int j = 0; j < getArrayLength(response); postFixIncrement(ref j))
+            for (int j = 0; j < getArrayLength(response); j++)
             {
                 IDictionary<string, object> market = this.safeDict(response, j, new Dictionary<string, object>() {});
                 string? id = this.safeString(market, "name");
@@ -2638,7 +2638,7 @@ public partial class gate : Exchange
         //    ]
         //
         List<object> underlyings = new List<object>() {};
-        for (int i = 0; i < getArrayLength(underlyingsResponse); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(underlyingsResponse); i++)
         {
             IDictionary<string, object> underlying = this.safeDict(underlyingsResponse, i, new Dictionary<string, object>() {});
             string? name = this.safeString(underlying, "name");
@@ -2879,7 +2879,7 @@ public partial class gate : Exchange
         string type = ((bool) isTrue(this.isLeveragedCurrency(currencyId))) ? "leveraged" : "crypto";
         List<object> chains = this.safeList(rawCurrency, "chains", new List<object>() {});
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
-        for (int j = 0; j < chains.Count; postFixIncrement(ref j))
+        for (int j = 0; j < chains.Count; j++)
         {
             object chain = getValue(chains, j);
             string? networkId = this.safeString(chain, "name");
@@ -3173,7 +3173,7 @@ public partial class gate : Exchange
         string? currencyId = this.safeString(response, "currency");
         codeVar = ((string)this.safeCurrencyCode(currencyId));
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(addresses)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(addresses)); i++)
         {
             object entry = getValue(addresses, i);
             //
@@ -3357,7 +3357,7 @@ public partial class gate : Exchange
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         List<object> symbols = this.symbols;
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); i++)
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
@@ -3435,7 +3435,7 @@ public partial class gate : Exchange
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         object withdrawFees = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(response); i++)
         {
             withdrawFees = new Dictionary<string, object>() {};
             IDictionary<string, object> entry = this.safeDict(response, i, new Dictionary<string, object>() {});
@@ -3452,7 +3452,7 @@ public partial class gate : Exchange
             } else
             {
                 List<object> networkIds = new List<object>(((IDictionary<string,object>)withdrawFixOnChains).Keys);
-                for (int j = 0; j < networkIds.Count; postFixIncrement(ref j))
+                for (int j = 0; j < networkIds.Count; j++)
                 {
                     string? networkId = ((string)getValue(networkIds, j));
                     object networkCode = this.networkIdToCode(networkId, code);
@@ -3545,7 +3545,7 @@ public partial class gate : Exchange
         if ((withdrawFixOnChains != null))
         {
             List<object> chainKeys = new List<object>(((IDictionary<string,object>)withdrawFixOnChains).Keys);
-            for (int i = 0; i < chainKeys.Count; postFixIncrement(ref i))
+            for (int i = 0; i < chainKeys.Count; i++)
             {
                 string? chainKey = ((string)getValue(chainKeys, i));
                 string? currencyId = this.safeString(fee, "currency");
@@ -3640,7 +3640,7 @@ public partial class gate : Exchange
     public virtual object parseFundingHistories(object response, object symbol, object since, object limit)
     {
         List<object> result = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); i++)
         {
             object entry = getValue(response, i);
             object funding = this.parseFundingHistory(entry);
@@ -3864,7 +3864,7 @@ public partial class gate : Exchange
         object ticker = null;
         if (isEqual(getValue(market, "option"), true))
         {
-            for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(response); i++)
             {
                 object entry = getValue(response, i);
                 if (isEqual(getValue(entry, "name"), getValue(market, "id")))
@@ -4362,7 +4362,7 @@ public partial class gate : Exchange
             // inject currency and create an artificial balance object
             // so it can follow the existent flow
             List<object> keys = new List<object>(((IDictionary<string,object>)balances).Keys);
-            for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+            for (int i = 0; i < keys.Count; i++)
             {
                 string? currencyId = ((string)getValue(keys, i));
                 object content = getValue(balances, currencyId);
@@ -4371,7 +4371,7 @@ public partial class gate : Exchange
             }
             data = flatBalances;
         }
-        for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(data); i++)
         {
             object entry = getValue(data, i);
             if (isolated)
@@ -4576,7 +4576,7 @@ public partial class gate : Exchange
         //     }
         //
         List<object> rates = new List<object>() {};
-        for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(response); i++)
         {
             IDictionary<string, object> entry = this.safeDict(response, i, new Dictionary<string, object>() {});
             Int64? timestamp = this.safeTimestamp(entry, "t");
@@ -5621,7 +5621,7 @@ public partial class gate : Exchange
         {
             throw new BadRequest ((string)(this.id + " createOrders() accepts a maximum of 10 orders at a time")) ;
         }
-        for (int i = 0; i < getArrayLength(orders); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(orders); i++)
         {
             object rawOrder = getValue(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
@@ -7016,7 +7016,7 @@ public partial class gate : Exchange
         if (openSpotOrders)
         {
             List<object> spotResult = new List<object>() {};
-            for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(response)); i++)
             {
                 IDictionary<string, object> responseEntry = this.safeDict(response, i, new Dictionary<string, object>() {});
                 object ordersInner = this.safeValue(responseEntry, "orders");
@@ -7222,7 +7222,7 @@ public partial class gate : Exchange
         if (isSpot)
         {
             List<object> ordersRequests = new List<object>() {};
-            for (int i = 0; i < getArrayLength(ids); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(ids); i++)
             {
                 object id = getValue(ids, i);
                 Dictionary<string, object> orderItem = new Dictionary<string, object>() {
@@ -7237,7 +7237,7 @@ public partial class gate : Exchange
             { "settle", settle },
         };
         List<object> finalList = new List<object>() {request}; // hacky but needs to be done here
-        for (int i = 0; i < getArrayLength(ids); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(ids); i++)
         {
             ((IList<object>)finalList).Add(getValue(ids, i));
         }
@@ -7265,7 +7265,7 @@ public partial class gate : Exchange
         }
         await this.loadUnifiedStatus();
         List<object> ordersRequests = new List<object>() {};
-        for (int i = 0; i < getArrayLength(orders); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(orders); i++)
         {
             object order = getValue(orders, i);
             string? symbol = this.safeString(order, "symbol");
@@ -8202,7 +8202,7 @@ public partial class gate : Exchange
         }
         object minNotional = 0;
         List<object> tiers = new List<object>() {};
-        for (int i = 0; i < getArrayLength(info); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(info); i++)
         {
             object item = getValue(info, i);
             double? maxNotional = this.safeNumber(item, "risk_limit");
@@ -8565,7 +8565,7 @@ public partial class gate : Exchange
             // remove the first element from params
             List<object> newParams = new List<object>() {};
             IList<object> anyParams = this.toArray(parameters);
-            for (int i = 1; i < getArrayLength(anyParams); postFixIncrement(ref i))
+            for (int i = 1; i < getArrayLength(anyParams); i++)
             {
                 ((IList<object>)newParams).Add(getValue(parameters, i));
             }
@@ -9127,7 +9127,7 @@ public partial class gate : Exchange
         //     ]
         //
         List<object> result = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(settlements)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(settlements)); i++)
         {
             ((IList<object>)result).Add(this.parseSettlement(getValue(settlements, i), market));
         }
@@ -9466,7 +9466,7 @@ public partial class gate : Exchange
         //    ]
         //
         List<object> underlyings = new List<object>() {};
-        for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(response); i++)
         {
             IDictionary<string, object> underlying = this.safeDict(response, i, new Dictionary<string, object>() {});
             string? name = this.safeString(underlying, "name");
@@ -9760,7 +9760,7 @@ public partial class gate : Exchange
         //     ]
         //
         string? marketId = ((string)getValue(market, "id"));
-        for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(response); i++)
         {
             IDictionary<string, object> entry = this.safeDict(response, i, new Dictionary<string, object>() {});
             string? entryMarketId = this.safeString(entry, "name");

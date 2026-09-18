@@ -403,7 +403,7 @@ public partial class indodax : Exchange
         //
         List<object> result = new List<object>() {};
         IList<object> rawMarkets = this.toArray(response);
-        for (int i = 0; i < getArrayLength(rawMarkets); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(rawMarkets); i++)
         {
             object market = getValue(rawMarkets, i);
             string? id = this.safeString(market, "id");
@@ -481,7 +481,7 @@ public partial class indodax : Exchange
             { "datetime", this.iso8601(timestamp) },
         };
         List<object> currencyIds = new List<object>(((IDictionary<string,object>)free).Keys);
-        for (int i = 0; i < currencyIds.Count; postFixIncrement(ref i))
+        for (int i = 0; i < currencyIds.Count; i++)
         {
             string? currencyId = ((string)getValue(currencyIds, i));
             string? code = this.safeCurrencyCode(currencyId);
@@ -688,7 +688,7 @@ public partial class indodax : Exchange
         IDictionary<string, object> tickers = this.safeDict(response, "tickers", new Dictionary<string, object>() {});
         List<object> keys = new List<object>(((IDictionary<string,object>)tickers).Keys);
         Dictionary<string, object> parsedTickers = new Dictionary<string, object>() {};
-        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)getValue(keys, i));
             object rawTicker = getValue(tickers, key);
@@ -1012,7 +1012,7 @@ public partial class indodax : Exchange
         // { success: 1, return: { orders: { marketid: [ ... objects ] }}} if all orders are fetched
         List<object> marketIds = new List<object>(((IDictionary<string,object>)rawOrders).Keys);
         List<object> exchangeOrders = new List<object>() {};
-        for (int i = 0; i < marketIds.Count; postFixIncrement(ref i))
+        for (int i = 0; i < marketIds.Count; i++)
         {
             string? marketId = ((string)getValue(marketIds, i));
             object marketOrders = getValue(rawOrders, marketId);
@@ -1357,13 +1357,13 @@ public partial class indodax : Exchange
         if (isEqual(code, null))
         {
             List<object> keys = new List<object>(((IDictionary<string,object>)withdraw).Keys);
-            for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+            for (int i = 0; i < keys.Count; i++)
             {
                 object key = getValue(keys, i);
                 transactions = this.arrayConcat(transactions, getValue(withdraw, key));
             }
             keys = new List<object>(((IDictionary<string,object>)deposit).Keys);
-            for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+            for (int i = 0; i < keys.Count; i++)
             {
                 object key = getValue(keys, i);
                 transactions = this.arrayConcat(transactions, getValue(deposit, key));
@@ -1586,7 +1586,7 @@ public partial class indodax : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", data },
         };
-        for (int i = 0; i < addressKeys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < addressKeys.Count; i++)
         {
             string? marketId = ((string)getValue(addressKeys, i));
             string? code = this.safeCurrencyCode(marketId);
@@ -1610,7 +1610,7 @@ public partial class indodax : Exchange
                             throw new ExchangeError ((string)(this.id + " fetchDepositAddresses() missing networkId")) ;
                         }
                         List<object> networkIds = ((string)networkId).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
-                        for (int j = 0; j < networkIds.Count; postFixIncrement(ref j))
+                        for (int j = 0; j < networkIds.Count; j++)
                         {
                             object _netIdTmp = this.networkIdToCode(getValue(networkIds, j), code);
                             if ((_netIdTmp != null))

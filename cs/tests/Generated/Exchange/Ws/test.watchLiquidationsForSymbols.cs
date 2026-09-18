@@ -39,7 +39,7 @@ public partial class testMainClass : BaseTest
                 object m3 = (add(add(add(add(add(exchange.id, " "), method), "() returned "), getArrayLength(response)), " liquidations"));
                 Console.WriteLine(m3);
                 // log.noLocate (asTable (response))
-                for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
+                for (int i = 0; i < getArrayLength(response); i++)
                 {
                     testLiquidation(exchange, skippedProperties, method, getValue(response, i), symbol);
                 }

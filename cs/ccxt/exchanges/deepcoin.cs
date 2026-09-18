@@ -553,12 +553,12 @@ public partial class deepcoin : Exchange
         }
         List<object> promises = new List<object>() {};
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(types); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(types); i++)
         {
             ((IList<object>)promises).Add(this.FetchMarketsByType(getValue(types, i), parameters));
         }
         promises = await promiseAll(promises);
-        for (int i = 0; i < getArrayLength(promises); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(promises); i++)
         {
             result = this.arrayConcat(result, getValue(promises, i));
         }
@@ -735,7 +735,7 @@ public partial class deepcoin : Exchange
     {
         object result = base.setMarkets(markets, currencies);
         List<object> symbols = new List<object>(((IDictionary<string,object>)result).Keys);
-        for (int i = 0; i < symbols.Count; postFixIncrement(ref i))
+        for (int i = 0; i < symbols.Count; i++)
         {
             string? symbol = ((string)getValue(symbols, i));
             object market = getValue(result, symbol);
@@ -1182,7 +1182,7 @@ public partial class deepcoin : Exchange
             { "datetime", null },
         };
         List<object> balances = this.safeList(response, "data", new List<object>() {});
-        for (int i = 0; i < getArrayLength(balances); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(balances); i++)
         {
             object balance = getValue(balances, i);
             string? symbol = this.safeString(balance, "ccy");
@@ -1465,7 +1465,7 @@ public partial class deepcoin : Exchange
         object address = this.safeDict(addressess, 0, new Dictionary<string, object>() {});
         if (((network != null)) && (length > 1))
         {
-            for (int i = 0; i < length; postFixIncrement(ref i))
+            for (int i = 0; i < length; i++)
             {
                 object entry = getValue(addressess, i);
                 if (isEqual(getValue(entry, "network"), network))
@@ -3608,7 +3608,7 @@ public partial class deepcoin : Exchange
         List<object> errorList = this.safeList(data, "errorList");
         if ((errorList != null))
         {
-            for (int i = 0; i < errorList.Count; postFixIncrement(ref i))
+            for (int i = 0; i < errorList.Count; i++)
             {
                 IDictionary<string, object> entry = this.safeDict(errorList, i, new Dictionary<string, object>() {});
                 errorCode = this.safeString(entry, "errorCode");

@@ -911,7 +911,7 @@ public partial class toobit : Exchange
         //
         List<object> coins = this.safeList(response, "coins", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; i < coins.Count; postFixIncrement(ref i))
+        for (int i = 0; i < coins.Count; i++)
         {
             object coin = getValue(coins, i);
             Dictionary<string, object> parsed = this.parseCurrency(coin);
@@ -930,7 +930,7 @@ public partial class toobit : Exchange
         string? code = this.safeCurrencyCode(id);
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         List<object> rawNetworks = this.safeList(rawCurrency, "chainTypes", new List<object>() {});
-        for (int j = 0; j < rawNetworks.Count; postFixIncrement(ref j))
+        for (int j = 0; j < rawNetworks.Count; j++)
         {
             object rawNetwork = getValue(rawNetworks, j);
             string? networkId = this.safeString(rawNetwork, "chainType");
@@ -1137,7 +1137,7 @@ public partial class toobit : Exchange
         List<object> contracts = this.safeList(response, "contracts", new List<object>() {});
         List<object> all = this.arrayConcat(symbols, contracts);
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(all); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(all); i++)
         {
             object market = getValue(all, i);
             Dictionary<string, object> parsed = this.parseMarket(market);
@@ -1707,7 +1707,7 @@ public partial class toobit : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         List<object> results = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(tickers)); i++)
         {
             Dictionary<string, object> parsedTicker = this.parseBidAskCustom(getValue(tickers, i));
             Dictionary<string, object> ticker = this.extend(parsedTicker, parameters);
@@ -1908,7 +1908,7 @@ public partial class toobit : Exchange
             { "datetime", null },
         };
         List<object> balances = this.safeList(response, "balances", response);
-        for (int i = 0; i < balances.Count; postFixIncrement(ref i))
+        for (int i = 0; i < balances.Count; i++)
         {
             object balance = getValue(balances, i);
             string? code = this.safeCurrencyCode(this.safeString(balance, "asset"));
@@ -2639,7 +2639,7 @@ public partial class toobit : Exchange
         {
             responseList = response;
         }
-        for (int i = 0; i < getArrayLength(responseList); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(responseList); i++)
         {
             ((IList<object>)ordersList).Add(new Dictionary<string, object>() {
                 { "result", getValue(responseList, i) },

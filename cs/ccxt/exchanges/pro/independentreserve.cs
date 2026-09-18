@@ -241,14 +241,14 @@ public partial class independentreserve : ccxt.independentreserve
             int asksLength = getArrayLength(storedAsks);
             int bidsLength = getArrayLength(storedBids);
             object payload = "";
-            for (int i = 0; i < 10; postFixIncrement(ref i))
+            for (int i = 0; i < 10; i++)
             {
                 if (i < bidsLength)
                 {
                     payload = add(add(payload, this.valueToChecksum(getValue(getValue(storedBids, i), 0))), this.valueToChecksum(getValue(getValue(storedBids, i), 1)));
                 }
             }
-            for (int i = 0; i < 10; postFixIncrement(ref i))
+            for (int i = 0; i < 10; i++)
             {
                 if (i < asksLength)
                 {
@@ -293,7 +293,7 @@ public partial class independentreserve : ccxt.independentreserve
 
     public override void handleDeltas(object bookside, object deltas)
     {
-        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(deltas)); i++)
         {
             this.handleDelta(bookside, getValue(deltas, i));
         }

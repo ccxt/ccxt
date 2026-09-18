@@ -100,7 +100,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         symbols = this.marketSymbols(symbols);
         List<object> messageHashes = new List<object>() {};
         List<object> productIds = new List<object>() {};
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); i++)
         {
             object symbol = getValue(symbols, i);
             market = this.market(symbol);
@@ -397,7 +397,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         symbols = this.marketSymbols(symbols);
         IList<object> marketIds = this.marketIds(symbols);
         List<object> messageHashes = new List<object>() {};
-        for (int i = 0; i < symbolsLength; postFixIncrement(ref i))
+        for (int i = 0; i < symbolsLength; i++)
         {
             object marketId = getValue(marketIds, i);
             ((IList<object>)messageHashes).Add(add((name + ":"), marketId));
@@ -756,7 +756,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                         string? totalCost = "0";
                         string? totalAmount = "0";
                         object trades = getValue(previousOrder, "trades");
-                        for (int i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
+                        for (int i = 0; isLessThan(i, getArrayLength(trades)); i++)
                         {
                             object tradeEntry = getValue(trades, i);
                             totalCost = this.safeString(tradeEntry, "cost", "0");
@@ -799,7 +799,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                         Dictionary<string, object> order = ((Dictionary<string, object>)this.parseWsOrder(info));
                         List<object> keys = new List<object>(((IDictionary<string,object>)order).Keys);
                         // update the reference
-                        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+                        for (int i = 0; i < keys.Count; i++)
                         {
                             string? key = ((string)getValue(keys, i));
                             if (!isEqual(getValue(order, key), null))
@@ -977,7 +977,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
 
     public override void handleDeltas(object bookside, object deltas)
     {
-        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(deltas)); i++)
         {
             this.handleDelta(bookside, getValue(deltas, i));
         }
@@ -1037,7 +1037,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                 { "sell", "asks" },
                 { "buy", "bids" },
             };
-            for (int i = 0; i < changes.Count; postFixIncrement(ref i))
+            for (int i = 0; i < changes.Count; i++)
             {
                 object change = getValue(changes, i);
                 string? key = this.safeString(change, 0);

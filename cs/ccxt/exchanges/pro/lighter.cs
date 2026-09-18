@@ -135,7 +135,7 @@ public partial class lighter : ccxt.lighter
 
     public override void handleDeltas(object bookside, object deltas)
     {
-        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(deltas)); i++)
         {
             this.handleDelta(bookside, getValue(deltas, i));
         }
@@ -318,7 +318,7 @@ public partial class lighter : ccxt.lighter
         if ((channel == "market_stats:all"))
         {
             List<object> marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
-            for (int i = 0; i < marketIds.Count; postFixIncrement(ref i))
+            for (int i = 0; i < marketIds.Count; i++)
             {
                 string? marketId = ((string)getValue(marketIds, i));
                 Dictionary<string, object> market = this.safeMarket(marketId);
@@ -423,7 +423,7 @@ public partial class lighter : ccxt.lighter
             ((IList<object>)messageHashes).Add(this.getMessageHash("ticker"));
         } else
         {
-            for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(symbols); i++)
             {
                 object symbol = getValue(symbols, i);
                 ((IList<object>)messageHashes).Add(this.getMessageHash("ticker", symbol));
@@ -840,7 +840,7 @@ public partial class lighter : ccxt.lighter
         }
         object stored = this.myTrades;
         string? messageHash = ((string)this.getMessageHash("myTrades"));
-        for (int i = 0; i < marketIds.Count; postFixIncrement(ref i))
+        for (int i = 0; i < marketIds.Count; i++)
         {
             string? marketId = ((string)getValue(marketIds, i));
             Dictionary<string, object> market = this.safeMarket(marketId);
@@ -1185,7 +1185,7 @@ public partial class lighter : ccxt.lighter
         {
             IDictionary<string, object> assets = this.safeDict(message, "assets", new Dictionary<string, object>() {});
             List<object> assetIds = new List<object>(((IDictionary<string,object>)assets).Keys);
-            for (int i = 0; i < assetIds.Count; postFixIncrement(ref i))
+            for (int i = 0; i < assetIds.Count; i++)
             {
                 string? assetId = ((string)getValue(assetIds, i));
                 object asset = getValue(assets, assetId);
@@ -1470,12 +1470,12 @@ public partial class lighter : ccxt.lighter
         }
         object stored = this.orders;
         string? messageHash = ((string)this.getMessageHash("orders"));
-        for (int i = 0; i < marketIds.Count; postFixIncrement(ref i))
+        for (int i = 0; i < marketIds.Count; i++)
         {
             string? marketId = ((string)getValue(marketIds, i));
             Dictionary<string, object> market = this.safeMarket(marketId);
             List<object> orders = this.safeList(data, marketId, new List<object>() {});
-            for (int j = 0; j < orders.Count; postFixIncrement(ref j))
+            for (int j = 0; j < orders.Count; j++)
             {
                 Dictionary<string, object> order = this.parseOrder(getValue(orders, j), market);
                 callDynamically(stored, "append", new object[] {order});
@@ -1520,7 +1520,7 @@ public partial class lighter : ccxt.lighter
             if ((id != null))
             {
                 List<object> subscriptionKeys = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);
-                for (int i = 0; i < subscriptionKeys.Count; postFixIncrement(ref i))
+                for (int i = 0; i < subscriptionKeys.Count; i++)
                 {
                     string? subscriptionHash = ((string)getValue(subscriptionKeys, i));
                     string? subscriptionId = this.safeString(getValue(((WebSocketClient)client).subscriptions, subscriptionHash), "id");
@@ -1684,7 +1684,7 @@ public partial class lighter : ccxt.lighter
             // considers subscribed, and its "30003 Already Subscribed" frame carries no id,
             // so handleErrorMessage rejects every future on the socket
             List<object> subscriptionHashes = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);
-            for (int i = 0; i < subscriptionHashes.Count; postFixIncrement(ref i))
+            for (int i = 0; i < subscriptionHashes.Count; i++)
             {
                 string? subscriptionHash = ((string)getValue(subscriptionHashes, i));
                 if (((string)subscriptionHash).StartsWith(((string)"ticker")))

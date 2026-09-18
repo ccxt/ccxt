@@ -428,7 +428,7 @@ public partial class coinone : ccxt.coinone
                 return;
             }
             List<object> keys = new List<object>(((IDictionary<string,object>)methods).Keys);
-            for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+            for (int i = 0; i < keys.Count; i++)
             {
                 string? key = ((string)getValue(keys, i));
                 if (getIndexOf(topic, getValue(keys, i)) >= 0)

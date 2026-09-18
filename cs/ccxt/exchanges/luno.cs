@@ -517,7 +517,7 @@ public partial class luno : Exchange
         string? id = this.safeString(getValue(rawCurrency, 0), "native_currency"); // first item is guaranteed
         string? code = this.safeCurrencyCode(id);
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(rawCurrency); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(rawCurrency); i++)
         {
             object networkEntry = getValue(rawCurrency, i);
             string? networkId = this.safeString(networkEntry, "name");
@@ -604,7 +604,7 @@ public partial class luno : Exchange
         //
         List<object> result = new List<object>() {};
         List<object> markets = this.safeList(response, "markets", new List<object>() {});
-        for (int i = 0; i < markets.Count; postFixIncrement(ref i))
+        for (int i = 0; i < markets.Count; i++)
         {
             object market = getValue(markets, i);
             string? id = this.safeString(market, "market_id");
@@ -712,7 +712,7 @@ public partial class luno : Exchange
         Dictionary<string, object> response = await this.privateGetBalance(parameters);
         List<object> wallets = this.safeList(response, "balance", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (int i = 0; i < wallets.Count; postFixIncrement(ref i))
+        for (int i = 0; i < wallets.Count; i++)
         {
             object account = getValue(wallets, i);
             string? accountId = this.safeString(account, "account_id");
@@ -736,7 +736,7 @@ public partial class luno : Exchange
             { "timestamp", null },
             { "datetime", null },
         };
-        for (int i = 0; i < wallets.Count; postFixIncrement(ref i))
+        for (int i = 0; i < wallets.Count; i++)
         {
             object wallet = getValue(wallets, i);
             string? currencyId = this.safeString(wallet, "asset");
@@ -1070,7 +1070,7 @@ public partial class luno : Exchange
         Dictionary<string, object> tickers = this.indexBy(rawTickers, "pair");
         List<object> ids = new List<object>(((IDictionary<string,object>)tickers).Keys);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; i < ids.Count; postFixIncrement(ref i))
+        for (int i = 0; i < ids.Count; i++)
         {
             string? id = ((string)getValue(ids, i));
             Dictionary<string, object> market = this.safeMarket(id);

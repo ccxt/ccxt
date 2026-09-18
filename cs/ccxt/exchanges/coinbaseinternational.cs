@@ -463,7 +463,7 @@ public partial class coinbaseinternational : Exchange
             return new List<object>() {defaultPortfolio, parameters};
         }
         object accounts = ccxt.BaseExchange.FromAccountList(await this.FetchAccounts());
-        for (int i = 0; i < getArrayLength(accounts); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(accounts); i++)
         {
             object account = getValue(accounts, i);
             IDictionary<string, object> info = this.safeDict(account, "info", new Dictionary<string, object>() {});
@@ -1025,7 +1025,7 @@ public partial class coinbaseinternational : Exchange
     public virtual object findDefaultNetwork(object networks)
     {
         IList<object> networksArray = this.toArray(networks);
-        for (int i = 0; i < getArrayLength(networksArray); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(networksArray); i++)
         {
             object info = getValue(getValue(networksArray, i), "info");
             bool? is_default = this.safeBool(info, "is_default", false);
@@ -1076,7 +1076,7 @@ public partial class coinbaseinternational : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(networks)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(networks)); i++)
         {
             Dictionary<string, object> network = this.extend(this.parseNetwork(getValue(networks, i)), parameters);
             ((IDictionary<string,object>)result)[(string)getValue(network, "network")] = network;
@@ -1830,7 +1830,7 @@ public partial class coinbaseinternational : Exchange
         {
             rows = instruments;
         }
-        for (int i = 0; i < getArrayLength(rows); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(rows); i++)
         {
             object instrument = getValue(rows, i);
             string? marketId = this.safeString(instrument, "symbol");
@@ -1975,7 +1975,7 @@ public partial class coinbaseinternational : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); i++)
         {
             object rawBalance = getValue(response, i);
             string? currencyId = this.safeString(rawBalance, "asset_name");

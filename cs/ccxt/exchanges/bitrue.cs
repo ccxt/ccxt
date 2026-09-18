@@ -848,7 +848,7 @@ public partial class bitrue : Exchange
         string? code = this.safeCurrencyCode(id);
         List<object> networkDetails = this.safeList(rawCurrency, "chainDetail", new List<object>() {});
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
-        for (int j = 0; j < networkDetails.Count; postFixIncrement(ref j))
+        for (int j = 0; j < networkDetails.Count; j++)
         {
             object entry = getValue(networkDetails, j);
             string? networkId = this.safeString(entry, "chain");
@@ -920,7 +920,7 @@ public partial class bitrue : Exchange
             // for backward-compatibility
             types = this.safeList(this.options, "fetchMarkets", defaultTypes);
         }
-        for (int i = 0; i < getArrayLength(types); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(types); i++)
         {
             object marketType = getValue(types, i);
             if (isEqual(marketType, "spot"))
@@ -1184,7 +1184,7 @@ public partial class bitrue : Exchange
         };
         Int64? timestamp = this.safeInteger(response, "updateTime");
         List<object> balances = this.safeList2(response, "balances", "account", new List<object>() {});
-        for (int i = 0; i < balances.Count; postFixIncrement(ref i))
+        for (int i = 0; i < balances.Count; i++)
         {
             object balance = getValue(balances, i);
             string? currencyId = this.safeString2(balance, "asset", "marginCoin");
@@ -1802,7 +1802,7 @@ public partial class bitrue : Exchange
         // the market ids do not have an underscore, so it has to be removed
         // https://github.com/ccxt/ccxt/issues/13856
         Dictionary<string, object> tickers = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(data); i++)
         {
             IDictionary<string, object> ticker = this.safeDict(data, i, new Dictionary<string, object>() {});
             // skip entries without a symbol: an undefined market id would become a null
@@ -3181,7 +3181,7 @@ public partial class bitrue : Exchange
         };
         if ((chainDetailLength != 0))
         {
-            for (int i = 0; i < chainDetailLength; postFixIncrement(ref i))
+            for (int i = 0; i < chainDetailLength; i++)
             {
                 object chainDetail = getValue(chainDetails, i);
                 string? networkId = this.safeString(chainDetail, "chain");
@@ -3691,7 +3691,7 @@ public partial class bitrue : Exchange
         {
             object limit = getValue(parameters, "limit");
             List<object> byLimit = this.safeList(config, "byLimit", new List<object>() {});
-            for (int i = 0; i < byLimit.Count; postFixIncrement(ref i))
+            for (int i = 0; i < byLimit.Count; i++)
             {
                 object entry = getValue(byLimit, i);
                 if (isLessThanOrEqual(limit, getValue(entry, 0)))

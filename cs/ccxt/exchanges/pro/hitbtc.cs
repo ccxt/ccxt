@@ -135,7 +135,7 @@ public partial class hitbtc : ccxt.hitbtc
         List<object> messageHashes = new List<object>() {};
         if (!isEqual(symbols, null) && !isBatch)
         {
-            for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(symbols); i++)
             {
                 ((IList<object>)messageHashes).Add(add(add(messageHashPrefix, "::"), getValue(symbols, i)));
             }
@@ -277,7 +277,7 @@ public partial class hitbtc : ccxt.hitbtc
         IDictionary<string, object> data = this.safeDict2(message, "snapshot", "update", new Dictionary<string, object>() {});
         string type = ((bool) ((snapshot != null) && (snapshot != null))) ? "snapshot" : "update";
         List<object> marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
-        for (int i = 0; i < marketIds.Count; postFixIncrement(ref i))
+        for (int i = 0; i < marketIds.Count; i++)
         {
             string? marketId = ((string)getValue(marketIds, i));
             Dictionary<string, object> market = this.safeMarket(marketId);
@@ -322,7 +322,7 @@ public partial class hitbtc : ccxt.hitbtc
 
     public override void handleDeltas(object bookside, object deltas)
     {
-        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(deltas)); i++)
         {
             this.handleDelta(bookside, getValue(deltas, i));
         }
@@ -381,7 +381,7 @@ public partial class hitbtc : ccxt.hitbtc
             ((IList<object>)marketIds).Add("*");
         } else
         {
-            for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(symbols); i++)
             {
                 object marketId = this.marketId(getValue(symbols, i));
                 if ((marketId != null))
@@ -452,7 +452,7 @@ public partial class hitbtc : ccxt.hitbtc
         List<object> marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
         List<object> result = new List<object>() {};
         string topic = "tickers";
-        for (int i = 0; i < marketIds.Count; postFixIncrement(ref i))
+        for (int i = 0; i < marketIds.Count; i++)
         {
             string? marketId = ((string)getValue(marketIds, i));
             Dictionary<string, object> market = this.safeMarket(marketId);
@@ -589,7 +589,7 @@ public partial class hitbtc : ccxt.hitbtc
         List<object> marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
         List<object> result = new List<object>() {};
         string topic = "bidask";
-        for (int i = 0; i < marketIds.Count; postFixIncrement(ref i))
+        for (int i = 0; i < marketIds.Count; i++)
         {
             string? marketId = ((string)getValue(marketIds, i));
             Dictionary<string, object> market = this.safeMarket(marketId);
@@ -700,7 +700,7 @@ public partial class hitbtc : ccxt.hitbtc
         //
         IDictionary<string, object> data = this.safeDict2(message, "snapshot", "update", new Dictionary<string, object>() {});
         List<object> marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
-        for (int i = 0; i < marketIds.Count; postFixIncrement(ref i))
+        for (int i = 0; i < marketIds.Count; i++)
         {
             string? marketId = ((string)getValue(marketIds, i));
             Dictionary<string, object> market = this.safeMarket(marketId);
@@ -713,7 +713,7 @@ public partial class hitbtc : ccxt.hitbtc
                 ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
             }
             object trades = this.parseWsTrades(getValue(data, marketId), market);
-            for (int j = 0; j < getArrayLength(trades); postFixIncrement(ref j))
+            for (int j = 0; j < getArrayLength(trades); j++)
             {
                 callDynamically(stored, "append", new object[] {getValue(trades, j)});
             }
@@ -728,7 +728,7 @@ public partial class hitbtc : ccxt.hitbtc
         parameters ??= new Dictionary<string, object>();
         IList<object> tradesArray = this.toArray(trades);
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(tradesArray); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(tradesArray); i++)
         {
             Dictionary<string, object> trade = this.extend(this.parseWsTrade(getValue(tradesArray, i), market), parameters);
             ((IList<object>)result).Add(trade);
@@ -850,7 +850,7 @@ public partial class hitbtc : ccxt.hitbtc
         {
             return message;
         }
-        for (int i = 0; i < marketIds.Count; postFixIncrement(ref i))
+        for (int i = 0; i < marketIds.Count; i++)
         {
             string? marketId = ((string)getValue(marketIds, i));
             Dictionary<string, object> market = this.safeMarket(marketId);
@@ -864,7 +864,7 @@ public partial class hitbtc : ccxt.hitbtc
                 ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)timeframe] = stored;
             }
             List<object> ohlcvs = this.parseWsOHLCVs(getValue(data, marketId), market);
-            for (int j = 0; j < getArrayLength(ohlcvs); postFixIncrement(ref j))
+            for (int j = 0; j < getArrayLength(ohlcvs); j++)
             {
                 callDynamically(stored, "append", new object[] {getValue(ohlcvs, j)});
             }
@@ -1005,7 +1005,7 @@ public partial class hitbtc : ccxt.hitbtc
         object data = this.safeValue(message, "params", new List<object>() {});
         if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(data); i++)
             {
                 object order = getValue(data, i);
                 this.handleOrderHelper(client as WebSocketClient, message, order);
@@ -1457,7 +1457,7 @@ public partial class hitbtc : ccxt.hitbtc
         if (((result is IList<object>) || (result.GetType().IsGenericType && result.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             List<object> parsedOrders = new List<object>() {};
-            for (int i = 0; i < getArrayLength(result); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(result); i++)
             {
                 Dictionary<string, object> parsedOrder = ((Dictionary<string, object>)this.parseWsOrder(getValue(result, i)));
                 ((IList<object>)parsedOrders).Add(parsedOrder);

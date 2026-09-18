@@ -1330,7 +1330,7 @@ public partial class derive : Exchange
         parameters ??= new Dictionary<string, object>();
         IList<object> tradesArray = this.toArray(trades);
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(tradesArray); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(tradesArray); i++)
         {
             object rawTrade = getValue(tradesArray, i);
             bool isFetchTrades = !(inOp(rawTrade, "order_id"));
@@ -1453,7 +1453,7 @@ public partial class derive : Exchange
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> data = this.safeList(result, "funding_rate_history", new List<object>() {});
         List<object> rates = new List<object>() {};
-        for (int i = 0; i < data.Count; postFixIncrement(ref i))
+        for (int i = 0; i < data.Count; i++)
         {
             object entry = getValue(data, i);
             Int64? timestamp = this.safeInteger(entry, "timestamp");
@@ -2991,11 +2991,11 @@ public partial class derive : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); i++)
         {
             object subaccount = getValue(response, i);
             List<object> collaterals = this.safeList(subaccount, "collaterals", new List<object>() {});
-            for (int j = 0; j < collaterals.Count; postFixIncrement(ref j))
+            for (int j = 0; j < collaterals.Count; j++)
             {
                 object balance = getValue(collaterals, j);
                 string? code = this.safeCurrencyCode(this.safeString(balance, "currency"));

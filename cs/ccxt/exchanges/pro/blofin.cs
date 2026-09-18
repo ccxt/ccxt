@@ -144,7 +144,7 @@ public partial class blofin : ccxt.blofin
         {
             return;
         }
-        for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(data); i++)
         {
             object rawTrade = getValue(data, i);
             Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsTrade(rawTrade));
@@ -334,7 +334,7 @@ public partial class blofin : ccxt.blofin
         IDictionary<string, object> arg = this.safeDict(message, "arg");
         object channelName = this.safeString(arg, "channel");
         List<object> data = this.safeList(message, "data");
-        for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(data); i++)
         {
             Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsTicker(getValue(data, i)));
             object symbol = getValue(ticker, "symbol");
@@ -376,7 +376,7 @@ public partial class blofin : ccxt.blofin
         object url = getValue(getValue(getValue((getValue(this.urls, "api")), "ws"), marketType), "public");
         List<object> messageHashes = new List<object>() {};
         List<object> args = new List<object>() {};
-        for (int i = 0; i < getArrayLength(symbolsList); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbolsList); i++)
         {
             Dictionary<string, object> market = this.market(getValue(symbolsList, i));
             ((IList<object>)messageHashes).Add(add("bidask:", getValue(market, "symbol")));
@@ -399,7 +399,7 @@ public partial class blofin : ccxt.blofin
     public virtual void handleBidAsk(WebSocketClient client, object message)
     {
         List<object> data = this.safeList(message, "data");
-        for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(data); i++)
         {
             Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsBidAsk(getValue(data, i)));
             object symbol = getValue(ticker, "symbol");
@@ -514,7 +514,7 @@ public partial class blofin : ccxt.blofin
             stored = new ArrayCacheByTimestamp(limit);
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)unifiedTimeframe] = stored;
         }
-        for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(data); i++)
         {
             object candle = getValue(data, i);
             object parsed = this.parseOHLCV(candle, market);
@@ -659,7 +659,7 @@ public partial class blofin : ccxt.blofin
         IDictionary<string, object> arg = this.safeDict(message, "arg");
         object channelName = this.safeString(arg, "channel");
         List<object> data = this.safeList(message, "data");
-        for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(data); i++)
         {
             Dictionary<string, object> order = ((Dictionary<string, object>)this.parseWsOrder(getValue(data, i)));
             object symbol = getValue(order, "symbol");
@@ -721,7 +721,7 @@ public partial class blofin : ccxt.blofin
         object channelName = this.safeString(arg, "channel");
         List<object> data = this.safeList(message, "data");
         List<object> newPositions = new List<object>() {};
-        for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(data); i++)
         {
             Dictionary<string, object> position = ((Dictionary<string, object>)this.parseWsPosition(getValue(data, i)));
             ((IList<object>)newPositions).Add(position);
@@ -831,7 +831,7 @@ public partial class blofin : ccxt.blofin
         int symbolsLength = getArrayLength(symbols);
         if (isGreaterThan(symbolsLength, 0))
         {
-            for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(symbols)); i++)
             {
                 object current = getValue(symbols, i);
                 IDictionary<string, object> market = null;

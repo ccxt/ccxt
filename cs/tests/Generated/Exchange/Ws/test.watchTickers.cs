@@ -64,7 +64,7 @@ public partial class testMainClass : BaseTest
                     checkedSymbol = getValue(argSymbols, 0);
                 }
                 testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol);
-                for (int i = 0; i < values.Count; postFixIncrement(ref i))
+                for (int i = 0; i < values.Count; i++)
                 {
                     object ticker = getValue(values, i);
                     try

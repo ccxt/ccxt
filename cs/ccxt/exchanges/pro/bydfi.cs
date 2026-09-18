@@ -216,7 +216,7 @@ public partial class bydfi : ccxt.bydfi
             ((IList<object>)channels).Add("!ticker@arr");
         } else
         {
-            for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(symbols); i++)
             {
                 object symbol = getValue(symbols, i);
                 object marketId = this.marketId(symbol);
@@ -255,7 +255,7 @@ public partial class bydfi : ccxt.bydfi
             // we need to unsubscribe from all ticker channels
             List<object> subHashes = this.getMessageHashesForTickersUnsubscription();
             ((IDictionary<string,object>)subscription)["subHashIsPrefix"] = true;
-            for (int i = 0; i < getArrayLength(subHashes); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(subHashes); i++)
             {
                 string? subHash = this.safeString(subHashes, i);
                 if ((subHash != null))
@@ -274,7 +274,7 @@ public partial class bydfi : ccxt.bydfi
             ((IList<object>)channels).Add("!ticker@arr");
         } else
         {
-            for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(symbols); i++)
             {
                 object symbol = getValue(symbols, i);
                 object marketId = this.marketId(symbol);
@@ -296,7 +296,7 @@ public partial class bydfi : ccxt.bydfi
         IDictionary<string, object> subscriptions = ((WebSocketClient)client).subscriptions;
         List<object> messageHashes = new List<object>() {};
         List<object> keys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
-        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)getValue(keys, i));
             if ((getIndexOf(key, "ticker::") == 0))
@@ -390,7 +390,7 @@ public partial class bydfi : ccxt.bydfi
         await this.loadMarkets();
         List<object> channels = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (int i = 0; i < getArrayLength(symbolsAndTimeframes); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbolsAndTimeframes); i++)
         {
             object symbolAndTimeframe = getValue(symbolsAndTimeframes, i);
             string? marketId = this.safeString(symbolAndTimeframe, 0);
@@ -433,7 +433,7 @@ public partial class bydfi : ccxt.bydfi
         await this.loadMarkets();
         List<object> channels = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (int i = 0; i < getArrayLength(symbolsAndTimeframes); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbolsAndTimeframes); i++)
         {
             object symbolAndTimeframe = getValue(symbolsAndTimeframes, i);
             string? marketId = this.safeString(symbolAndTimeframe, 0);
@@ -556,7 +556,7 @@ public partial class bydfi : ccxt.bydfi
         }
         List<object> channels = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); i++)
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
@@ -600,7 +600,7 @@ public partial class bydfi : ccxt.bydfi
         }
         List<object> channels = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); i++)
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
@@ -691,7 +691,7 @@ public partial class bydfi : ccxt.bydfi
             ((IList<object>)messageHashes).Add("orders");
         } else
         {
-            for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(symbols); i++)
             {
                 object symbol = getValue(symbols, i);
                 ((IList<object>)messageHashes).Add(add("orders::", symbol));
@@ -850,7 +850,7 @@ public partial class bydfi : ccxt.bydfi
             ((IList<object>)messageHashes).Add(messageHash);
         } else
         {
-            for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(symbols); i++)
             {
                 object symbol = getValue(symbols, i);
                 ((IList<object>)messageHashes).Add(add((messageHash + "::"), symbol));
@@ -1103,7 +1103,7 @@ public partial class bydfi : ccxt.bydfi
                 { "timestamp", timestamp },
                 { "datetime", this.iso8601(timestamp) },
             };
-            for (int i = 0; i < balances.Count; postFixIncrement(ref i))
+            for (int i = 0; i < balances.Count; i++)
             {
                 object balance = getValue(balances, i);
                 string? currencyId = this.safeString(balance, "a");
@@ -1145,7 +1145,7 @@ public partial class bydfi : ccxt.bydfi
     {
         List<object> messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
         bool? subHashIsPrefix = this.safeBool(subscription, "subHashIsPrefix", false);
-        for (int i = 0; i < messageHashes.Count; postFixIncrement(ref i))
+        for (int i = 0; i < messageHashes.Count; i++)
         {
             object unsubHash = getValue(messageHashes, i);
             string subHash = ((string)unsubHash).Replace((string)"unsubscribe::", (string)"");

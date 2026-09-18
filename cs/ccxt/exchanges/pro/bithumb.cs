@@ -150,7 +150,7 @@ public partial class bithumb : ccxt.bithumb
         object url = ((bool) isGenerationTwo) ? getValue(getValue(getValue(this.urls, "api"), "ws"), "publicGen2") : getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
         List<object> streamMarketIds = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (int i = 0; i < symbolsLengthDefined; postFixIncrement(ref i))
+        for (int i = 0; i < symbolsLengthDefined; i++)
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
@@ -539,7 +539,7 @@ public partial class bithumb : ccxt.bithumb
         object bids = getValue(orderbook, "bids");
         object asks = getValue(orderbook, "asks");
         List<object> units = this.safeList(message, "orderbook_units", new List<object>() {});
-        for (int i = 0; i < units.Count; postFixIncrement(ref i))
+        for (int i = 0; i < units.Count; i++)
         {
             object entry = getValue(units, i);
             double? bidPrice = this.safeNumber(entry, "bid_price");
@@ -591,7 +591,7 @@ public partial class bithumb : ccxt.bithumb
 
     public override void handleDeltas(object orderbook, object deltas)
     {
-        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(deltas)); i++)
         {
             this.handleDelta(orderbook, getValue(deltas, i));
         }
@@ -700,7 +700,7 @@ public partial class bithumb : ccxt.bithumb
         {
             rawTrades = new List<object>() {message};
         }
-        for (int i = 0; i < getArrayLength(rawTrades); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(rawTrades); i++)
         {
             object rawTrade = getValue(rawTrades, i);
             string? marketId = this.safeString2(rawTrade, "symbol", "code");
@@ -904,7 +904,7 @@ public partial class bithumb : ccxt.bithumb
         {
             this.balance = new Dictionary<string, object>() {};
         }
-        for (int i = 0; i < assets.Count; postFixIncrement(ref i))
+        for (int i = 0; i < assets.Count; i++)
         {
             object asset = getValue(assets, i);
             string? currencyId = this.safeString(asset, "currency");
@@ -948,7 +948,7 @@ public partial class bithumb : ccxt.bithumb
     { "ticket", "ccxt" },
 }};
         List<object> keys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
-        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; i++)
         {
             ((IList<object>)request).Add(getValue(subscriptions, getValue(keys, i)));
         }

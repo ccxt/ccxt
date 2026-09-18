@@ -345,7 +345,7 @@ public partial class bit2c : Exchange
             { "datetime", null },
         };
         List<object> codes = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
-        for (int i = 0; i < codes.Count; postFixIncrement(ref i))
+        for (int i = 0; i < codes.Count; i++)
         {
             string? code = ((string)getValue(codes, i));
             Dictionary<string, object> account = this.account();
@@ -455,7 +455,7 @@ public partial class bit2c : Exchange
         List<object> rawAsks = this.safeList(orderbook, "asks", new List<object>() {});
         List<object> bids = new List<object>() {};
         List<object> asks = new List<object>() {};
-        for (int i = 0; i < rawBids.Count; postFixIncrement(ref i))
+        for (int i = 0; i < rawBids.Count; i++)
         {
             object bidRow = getValue(rawBids, i);
             string? bidAmount = this.safeString(bidRow, 1);
@@ -464,7 +464,7 @@ public partial class bit2c : Exchange
                 ((IList<object>)bids).Add(bidRow);
             }
         }
-        for (int i = 0; i < rawAsks.Count; postFixIncrement(ref i))
+        for (int i = 0; i < rawAsks.Count; i++)
         {
             object askRow = getValue(rawAsks, i);
             string? askAmount = this.safeString(askRow, 1);
@@ -630,7 +630,7 @@ public partial class bit2c : Exchange
         IDictionary<string, object> fees = this.safeDict(response, "Fees", new Dictionary<string, object>() {});
         List<object> keys = new List<object>(((IDictionary<string,object>)fees).Keys);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; i++)
         {
             string? marketId = ((string)getValue(keys, i));
             string? symbol = this.safeSymbol(marketId);
@@ -1005,7 +1005,7 @@ public partial class bit2c : Exchange
     {
         object newString = "";
         List<object> strParts = ((string)str).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
-        for (int i = 0; isLessThan(i, getArrayLength(strParts)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(strParts)); i++)
         {
             newString = add(newString, getValue(strParts, i));
         }

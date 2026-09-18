@@ -1065,7 +1065,7 @@ public partial class alpaca : Exchange
             {
                 // the endpoint answers with a server-sized page plus a next_page_token regardless of the requested limit
                 string? pageToken = this.safeString(response, "next_page_token");
-                for (int i = 1; isLessThan(i, paginationCalls); postFixIncrement(ref i))
+                for (int i = 1; isLessThan(i, paginationCalls); i++)
                 {
                     int ohlcvsLength = getArrayLength(ohlcvs);
                     if (((pageToken == null)) || ((!isEqual(limit, null)) && (isGreaterThanOrEqual(ohlcvsLength, limit))))
@@ -1243,7 +1243,7 @@ public partial class alpaca : Exchange
         List<object> results = new List<object>() {};
         IDictionary<string, object> snapshots = this.safeDict(response, "snapshots", new Dictionary<string, object>() {});
         List<object> marketIds = new List<object>(((IDictionary<string,object>)snapshots).Keys);
-        for (int i = 0; i < marketIds.Count; postFixIncrement(ref i))
+        for (int i = 0; i < marketIds.Count; i++)
         {
             string? marketId = ((string)getValue(marketIds, i));
             Dictionary<string, object> market = this.safeMarket(marketId);
@@ -2161,7 +2161,7 @@ public partial class alpaca : Exchange
             {
                 ledger = activities;
             }
-            for (int i = 0; i < getArrayLength(ledger); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(ledger); i++)
             {
                 object entry = getValue(ledger, i);
                 string? activityType = this.safeString(entry, "activity_type");
@@ -2199,7 +2199,7 @@ public partial class alpaca : Exchange
         {
             transfers = response;
         }
-        for (int i = 0; i < getArrayLength(transfers); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(transfers); i++)
         {
             object entry = getValue(transfers, i);
             string? direction = this.safeString(entry, "direction");
@@ -2521,7 +2521,7 @@ public partial class alpaca : Exchange
             ((IDictionary<string,object>)cashAccount)["total"] = Precise.stringSub(equity, positionsValue); // equity minus the positions market value equals cash plus open-order holds; stringSub degrades to undefined when either field is absent and safeBalance then derives the total from free
             ((IDictionary<string,object>)result)[(string)code] = cashAccount;
         }
-        for (int i = 0; i < positions.Count; postFixIncrement(ref i))
+        for (int i = 0; i < positions.Count; i++)
         {
             object position = getValue(positions, i);
             string? positionSymbol = this.safeString(position, "symbol");

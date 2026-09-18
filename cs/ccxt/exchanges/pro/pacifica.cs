@@ -303,7 +303,7 @@ public partial class pacifica : ccxt.pacifica
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> results = this.safeList(data, "results", new List<object>() {});
         List<object> ordersToReturn = new List<object>() {};
-        for (int i = 0; i < results.Count; postFixIncrement(ref i))
+        for (int i = 0; i < results.Count; i++)
         {
             object order = getValue(results, i);
             string? error = this.safeString(order, "error");
@@ -780,7 +780,7 @@ public partial class pacifica : ccxt.pacifica
         //
         List<object> parsedTickers = new List<object>() {};
         List<object> data = this.safeList(message, "data", new List<object>() {});
-        for (int i = 0; i < data.Count; postFixIncrement(ref i))
+        for (int i = 0; i < data.Count; i++)
         {
             object info = getValue(data, i);
             string? marketId = this.safeString(info, "symbol");
@@ -839,7 +839,7 @@ public partial class pacifica : ccxt.pacifica
         {
             return;
         }
-        for (int i = 0; i < data.Count; postFixIncrement(ref i))
+        for (int i = 0; i < data.Count; i++)
         {
             object rawTrade = getValue(data, i);
             Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsTrade(rawTrade));
@@ -851,7 +851,7 @@ public partial class pacifica : ccxt.pacifica
             callDynamically(trades, "append", new object[] {parsed});
         }
         List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
-        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; i++)
         {
             string currentMessageHash = add("myTrades:", getValue(keys, i));
             (client as WebSocketClient).resolve(trades, currentMessageHash);
@@ -968,7 +968,7 @@ public partial class pacifica : ccxt.pacifica
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
         object trades = getValue(this.trades, symbol);
-        for (int i = 0; i < entry.Count; postFixIncrement(ref i))
+        for (int i = 0; i < entry.Count; i++)
         {
             IDictionary<string, object> data = this.safeDict(entry, i, new Dictionary<string, object>() {});
             Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsTrade(data));
@@ -1334,7 +1334,7 @@ public partial class pacifica : ccxt.pacifica
         object stored = this.orders;
         string messageHash = "order";
         Dictionary<string, object> marketSymbols = new Dictionary<string, object>() {};
-        for (int i = 0; i < data.Count; postFixIncrement(ref i))
+        for (int i = 0; i < data.Count; i++)
         {
             object rawOrder = getValue(data, i);
             Dictionary<string, object> order = this.parseOrder(rawOrder);
@@ -1346,7 +1346,7 @@ public partial class pacifica : ccxt.pacifica
             }
         }
         List<object> keys = new List<object>(((IDictionary<string,object>)marketSymbols).Keys);
-        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; i++)
         {
             string? symbol = ((string)getValue(keys, i));
             string innerMessageHash = ((messageHash + ":") + symbol);
@@ -1414,7 +1414,7 @@ public partial class pacifica : ccxt.pacifica
         string messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client as WebSocketClient, subMessageHash, messageHash);
         List<object> symbols = new List<object>(((IDictionary<string,object>)this.tickers).Keys);
-        for (int i = 0; i < symbols.Count; postFixIncrement(ref i))
+        for (int i = 0; i < symbols.Count; i++)
         {
             ((IDictionary<string,object>)this.tickers).Remove((string)getValue(symbols, i));
         }
@@ -1558,7 +1558,7 @@ public partial class pacifica : ccxt.pacifica
             return;
         }
         List<object> keys = new List<object>(((IDictionary<string,object>)methods).Keys);
-        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)getValue(keys, i));
             if (getIndexOf(topic, getValue(keys, i)) >= 0)

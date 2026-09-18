@@ -97,7 +97,7 @@ public partial class apex : ccxt.apex
         object url = this.getWsPublicUrl();
         List<object> topics = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); i++)
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
@@ -246,7 +246,7 @@ public partial class apex : ccxt.apex
         object url = this.getWsPublicUrl();
         List<object> topics = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); i++)
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
@@ -274,7 +274,7 @@ public partial class apex : ccxt.apex
         var client = this.client(url);
         List<object> newTopics = new List<object>() {};
         object newTopicsCount = 0;
-        for (int i = 0; isLessThan(i, getArrayLength(topics)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(topics)); i++)
         {
             if (!(inOp(((WebSocketClient)client).subscriptions, getValue(messageHashes, i))))
             {
@@ -395,7 +395,7 @@ public partial class apex : ccxt.apex
 
     public override void handleDeltas(object bookside, object deltas)
     {
-        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(deltas)); i++)
         {
             this.handleDelta(bookside, getValue(deltas, i));
         }
@@ -447,7 +447,7 @@ public partial class apex : ccxt.apex
         List<object> messageHashes = new List<object>() {};
         object url = this.getWsPublicUrl();
         List<object> topics = new List<object>() {};
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); i++)
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
@@ -561,7 +561,7 @@ public partial class apex : ccxt.apex
         object url = this.getWsPublicUrl();
         List<object> rawHashes = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (int i = 0; i < getArrayLength(symbolsAndTimeframes); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbolsAndTimeframes); i++)
         {
             object data = getValue(symbolsAndTimeframes, i);
             object symbolString = this.safeString(data, 0);
@@ -629,7 +629,7 @@ public partial class apex : ccxt.apex
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)((string)timeframe)] = new ArrayCacheByTimestamp(limit);
         }
         object stored = getValue(getValue(this.ohlcvs, symbol), ((string)timeframe));
-        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); i++)
         {
             object parsed = this.parseWsOHLCV(getValue(data, i));
             callDynamically(stored, "append", new object[] {parsed});
@@ -803,7 +803,7 @@ public partial class apex : ccxt.apex
         }
         object trades = this.myTrades;
         Dictionary<string, object> symbols = new Dictionary<string, object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(lists)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(lists)); i++)
         {
             object rawTrade = getValue(lists, i);
             Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsTrade(rawTrade));
@@ -812,7 +812,7 @@ public partial class apex : ccxt.apex
             callDynamically(trades, "append", new object[] {parsed});
         }
         List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
-        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; i++)
         {
             string currentMessageHash = add("myTrades:", getValue(keys, i));
             (client as WebSocketClient).resolve(trades, currentMessageHash);
@@ -860,7 +860,7 @@ public partial class apex : ccxt.apex
         }
         object orders = this.orders;
         Dictionary<string, object> symbols = new Dictionary<string, object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(lists)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(lists)); i++)
         {
             Dictionary<string, object> parsed = this.parseOrder(getValue(lists, i));
             object symbol = getValue(parsed, "symbol");
@@ -868,7 +868,7 @@ public partial class apex : ccxt.apex
             callDynamically(orders, "append", new object[] {parsed});
         }
         List<object> symbolsArray = new List<object>(((IDictionary<string,object>)symbols).Keys);
-        for (int i = 0; i < symbolsArray.Count; postFixIncrement(ref i))
+        for (int i = 0; i < symbolsArray.Count; i++)
         {
             string currentMessageHash = add("orders:", getValue(symbolsArray, i));
             (client as WebSocketClient).resolve(orders, currentMessageHash);
@@ -898,10 +898,10 @@ public partial class apex : ccxt.apex
         List<object> promises = await promiseAll(fetchFunctions);
         this.positions = new ArrayCacheBySymbolBySide();
         object cache = this.positions;
-        for (int i = 0; i < getArrayLength(promises); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(promises); i++)
         {
             object positions = getValue(promises, i);
-            for (int ii = 0; ii < getArrayLength(positions); postFixIncrement(ref ii))
+            for (int ii = 0; ii < getArrayLength(positions); ii++)
             {
                 object position = getValue(positions, ii);
                 callDynamically(cache, "append", new object[] {position});
@@ -946,7 +946,7 @@ public partial class apex : ccxt.apex
         }
         object cache = this.positions;
         List<object> newPositions = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(lists)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(lists)); i++)
         {
             object rawPosition = getValue(lists, i);
             Dictionary<string, object> position = this.parsePosition(rawPosition);
@@ -970,7 +970,7 @@ public partial class apex : ccxt.apex
             }
         }
         List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, "positions::");
-        for (int i = 0; i < getArrayLength(messageHashes); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(messageHashes); i++)
         {
             object messageHash = getValue(messageHashes, i);
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
@@ -1155,7 +1155,7 @@ public partial class apex : ccxt.apex
             return;
         }
         List<object> keys = new List<object>(((IDictionary<string,object>)methods).Keys);
-        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)getValue(keys, i));
             if (getIndexOf(topic, getValue(keys, i)) >= 0)

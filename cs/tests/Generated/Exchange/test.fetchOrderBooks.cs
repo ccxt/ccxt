@@ -17,7 +17,7 @@ public partial class testMainClass : BaseTest
         testSharedMethods.assertDictionaryResponse(exchange, method, orderBooks);
         List<object> orderBookKeys = new List<object>(((IDictionary<string,object>)orderBooks).Keys);
         assert(orderBookKeys.Count > 0, add(add(add(exchange.id, " "), method), " returned 0 length data"));
-        for (int i = 0; i < orderBookKeys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < orderBookKeys.Count; i++)
         {
             string? symbolInner = ((string)getValue(orderBookKeys, i));
             testOrderBook(exchange, skippedProperties, method, getValue(orderBooks, symbolInner), symbolInner);

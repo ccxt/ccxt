@@ -1155,7 +1155,7 @@ public partial class deribit : Exchange
             //     }
             //
             List<object> currenciesResult = this.safeList(currenciesResponse, "result", new List<object>() {});
-            for (int i = 0; i < currenciesResult.Count; postFixIncrement(ref i))
+            for (int i = 0; i < currenciesResult.Count; i++)
             {
                 string? currencyId = this.safeString(getValue(currenciesResult, i), "currency");
                 Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1238,10 +1238,10 @@ public partial class deribit : Exchange
                 ((IList<object>)instrumentsResponses).Add(instrumentsResponse);
             }
         }
-        for (int i = 0; i < getArrayLength(instrumentsResponses); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(instrumentsResponses); i++)
         {
             List<object> instrumentsResult = this.safeList(getValue(instrumentsResponses, i), "result", new List<object>() {});
-            for (int k = 0; k < instrumentsResult.Count; postFixIncrement(ref k))
+            for (int k = 0; k < instrumentsResult.Count; k++)
             {
                 object market = getValue(instrumentsResult, k);
                 string? kind = this.safeString(market, "kind");
@@ -1387,7 +1387,7 @@ public partial class deribit : Exchange
         {
             summaries = new List<object>() {balance};
         }
-        for (int i = 0; i < getArrayLength(summaries); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(summaries); i++)
         {
             object data = getValue(summaries, i);
             string? currencyId = this.safeString(data, "currency");
@@ -1720,7 +1720,7 @@ public partial class deribit : Exchange
         parameters = this.omit(parameters, new List<object>() {"code"});
         if (!isEqual(symbols, null))
         {
-            for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(symbols); i++)
             {
                 Dictionary<string, object> market = this.market(getValue(symbols, i));
                 if ((code != null) && !isEqual(code, getValue(market, "base")))
@@ -1793,7 +1793,7 @@ public partial class deribit : Exchange
         //
         List<object> result = this.safeList(response, "result", new List<object>() {});
         Dictionary<string, object> tickers = new Dictionary<string, object>() {};
-        for (int i = 0; i < result.Count; postFixIncrement(ref i))
+        for (int i = 0; i < result.Count; i++)
         {
             Dictionary<string, object> ticker = this.parseTicker(getValue(result, i));
             object symbol = getValue(ticker, "symbol");
@@ -2143,7 +2143,7 @@ public partial class deribit : Exchange
         Dictionary<string, object> perpetualFee = new Dictionary<string, object>() {};
         Dictionary<string, object> futureFee = new Dictionary<string, object>() {};
         Dictionary<string, object> optionFee = new Dictionary<string, object>() {};
-        for (int i = 0; i < fees.Count; postFixIncrement(ref i))
+        for (int i = 0; i < fees.Count; i++)
         {
             object fee = getValue(fees, i);
             string? instrumentType = this.safeString(fee, "instrument_type");
@@ -2172,7 +2172,7 @@ public partial class deribit : Exchange
         }
         Dictionary<string, object> parsedFees = new Dictionary<string, object>() {};
         List<object> symbols = this.symbols;
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); i++)
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
@@ -3440,7 +3440,7 @@ public partial class deribit : Exchange
         //
         List<object> volatilityResult = this.safeList(volatility, "result", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (int i = 0; i < volatilityResult.Count; postFixIncrement(ref i))
+        for (int i = 0; i < volatilityResult.Count; i++)
         {
             Int64? timestamp = this.safeInteger(getValue(volatilityResult, i), 0);
             double? volatilityObj = this.safeNumber(getValue(volatilityResult, i), 1);
@@ -3864,7 +3864,7 @@ public partial class deribit : Exchange
         //
         List<object> rates = new List<object>() {};
         List<object> result = this.safeList(response, "result", new List<object>() {});
-        for (int i = 0; i < result.Count; postFixIncrement(ref i))
+        for (int i = 0; i < result.Count; i++)
         {
             object fr = getValue(result, i);
             object rate = this.parseFundingRate(fr, market);

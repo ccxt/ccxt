@@ -1030,7 +1030,7 @@ public partial class woofipro : Exchange
         IDictionary<string, object> chainData = this.safeDict(chainResponse, "data", new Dictionary<string, object>() {});
         List<object> chainRows = this.safeList(chainData, "rows", new List<object>() {});
         Dictionary<string, object> indexedChains = this.indexBy(chainRows, "chain_id");
-        for (int i = 0; i < tokenRows.Count; postFixIncrement(ref i))
+        for (int i = 0; i < tokenRows.Count; i++)
         {
             object token = getValue(tokenRows, i);
             Dictionary<string, object> parsed = this.parseCurrency(new Dictionary<string, object>() {
@@ -1054,7 +1054,7 @@ public partial class woofipro : Exchange
         string? code = this.safeCurrencyCode(currencyId);
         IDictionary<string, object> indexedChains = this.safeDict(rawCurrency, "_indexedChains", new Dictionary<string, object>() {});
         Dictionary<string, object> resultingNetworks = new Dictionary<string, object>() {};
-        for (int j = 0; j < networks.Count; postFixIncrement(ref j))
+        for (int j = 0; j < networks.Count; j++)
         {
             object networkEntry = getValue(networks, j);
             string? networkId = this.safeString(networkEntry, "chain_id");
@@ -1537,7 +1537,7 @@ public partial class woofipro : Exchange
         List<object> rows = this.safeList(data, "rows", new List<object>() {});
         Int64? timestamp = this.safeInteger(response, "timestamp");
         List<object> result = new List<object>() {};
-        for (int i = 0; i < rows.Count; postFixIncrement(ref i))
+        for (int i = 0; i < rows.Count; i++)
         {
             object row = getValue(rows, i);
             string? marketId = this.safeString(row, "symbol", "");
@@ -1661,7 +1661,7 @@ public partial class woofipro : Exchange
         List<object> rows = this.safeList(data, "rows", new List<object>() {});
         Int64? timestamp = this.safeInteger(response, "timestamp");
         List<object> result = new List<object>() {};
-        for (int i = 0; i < rows.Count; postFixIncrement(ref i))
+        for (int i = 0; i < rows.Count; i++)
         {
             object row = getValue(rows, i);
             string? marketId = this.safeString(row, "symbol", "");
@@ -1743,7 +1743,7 @@ public partial class woofipro : Exchange
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> result = this.safeList(data, "rows", new List<object>() {});
         List<object> rates = new List<object>() {};
-        for (int i = 0; i < result.Count; postFixIncrement(ref i))
+        for (int i = 0; i < result.Count; i++)
         {
             object entry = getValue(result, i);
             string? marketId = this.safeString(entry, "symbol");
@@ -1919,7 +1919,7 @@ public partial class woofipro : Exchange
         string? taker = this.safeString(data, "futures_taker_fee_rate");
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         List<object> symbols = this.symbols;
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); i++)
         {
             object symbol = getValue(symbols, i);
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
@@ -2400,7 +2400,7 @@ public partial class woofipro : Exchange
             await this.loadMarkets();
         }
         List<object> ordersRequests = new List<object>() {};
-        for (int i = 0; i < getArrayLength(orders); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(orders); i++)
         {
             object rawOrder = getValue(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
@@ -3135,7 +3135,7 @@ public partial class woofipro : Exchange
             { "info", response },
         };
         List<object> balances = this.safeList(response, "holding", new List<object>() {});
-        for (int i = 0; i < balances.Count; postFixIncrement(ref i))
+        for (int i = 0; i < balances.Count; i++)
         {
             object balance = getValue(balances, i);
             string? code = this.safeCurrencyCode(this.safeString(balance, "token"));
@@ -4087,7 +4087,7 @@ public partial class woofipro : Exchange
                     if (isEqual(path, "batch-order"))
                     {
                         List<object> ordersList = this.safeList(parameters, "orders", new List<object>() {});
-                        for (int i = 0; i < ordersList.Count; postFixIncrement(ref i))
+                        for (int i = 0; i < ordersList.Count; i++)
                         {
                             ((IDictionary<string,object>)getValue(getValue(parameters, "orders"), i))["order_tag"] = brokerId;
                         }

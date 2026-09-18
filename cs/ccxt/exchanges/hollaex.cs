@@ -411,7 +411,7 @@ public partial class hollaex : Exchange
         IDictionary<string, object> pairs = this.safeDict(response, "pairs", new Dictionary<string, object>() {});
         List<object> keys = new List<object>(((IDictionary<string,object>)pairs).Keys);
         List<object> result = new List<object>() {};
-        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)getValue(keys, i));
             object market = getValue(pairs, key);
@@ -565,7 +565,7 @@ public partial class hollaex : Exchange
         IDictionary<string, object> rawNetworks = this.safeDict(rawCurrency, "withdrawal_fees", new Dictionary<string, object>() {});
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         List<object> networkIds = new List<object>(((IDictionary<string,object>)rawNetworks).Keys);
-        for (int j = 0; j < networkIds.Count; postFixIncrement(ref j))
+        for (int j = 0; j < networkIds.Count; j++)
         {
             string? networkId = ((string)getValue(networkIds, j));
             IDictionary<string, object> networkEntry = this.safeDict(rawNetworks, networkId);
@@ -636,7 +636,7 @@ public partial class hollaex : Exchange
         Dictionary<string, object> response = await this.publicGetOrderbooks(parameters);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         List<object> marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
-        for (int i = 0; i < marketIds.Count; postFixIncrement(ref i))
+        for (int i = 0; i < marketIds.Count; i++)
         {
             string? marketId = ((string)getValue(marketIds, i));
             IDictionary<string, object> orderbook = this.safeDict(response, marketId, new Dictionary<string, object>() {});
@@ -769,7 +769,7 @@ public partial class hollaex : Exchange
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         List<object> keys = new List<object>(((IDictionary<string,object>)tickers).Keys);
-        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)getValue(keys, i));
             object ticker = getValue(tickers, key);
@@ -987,7 +987,7 @@ public partial class hollaex : Exchange
         object makerFees = this.safeValue(fees, "maker", new Dictionary<string, object>() {});
         object takerFees = this.safeValue(fees, "taker", new Dictionary<string, object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; i < this.symbols.Count; postFixIncrement(ref i))
+        for (int i = 0; i < this.symbols.Count; i++)
         {
             object symbol = getValue(this.symbols, i);
             Dictionary<string, object> market = this.market(symbol);
@@ -1103,7 +1103,7 @@ public partial class hollaex : Exchange
             throw new ExchangeError ((string)(this.id + " currencies not loaded")) ;
         }
         List<object> currencyIds = new List<object>(((IDictionary<string,object>)currenciesById).Keys);
-        for (int i = 0; i < currencyIds.Count; postFixIncrement(ref i))
+        for (int i = 0; i < currencyIds.Count; i++)
         {
             object currencyId = getValue(currencyIds, i);
             string? code = this.safeCurrencyCode(currencyId);
@@ -2140,7 +2140,7 @@ public partial class hollaex : Exchange
         {
             List<object> keys = new List<object>(((IDictionary<string,object>)withdrawalFees).Keys);
             int keysLength = keys.Count;
-            for (int i = 0; i < keysLength; postFixIncrement(ref i))
+            for (int i = 0; i < keysLength; i++)
             {
                 string? key = ((string)getValue(keys, i));
                 object value = getValue(withdrawalFees, key);

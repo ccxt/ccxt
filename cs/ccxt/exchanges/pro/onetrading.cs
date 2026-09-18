@@ -220,7 +220,7 @@ public partial class onetrading : ccxt.onetrading
         //
         List<object> tickers = this.safeList(message, "ticker_updates", new List<object>() {});
         string? datetime = this.safeString(message, "time");
-        for (int i = 0; i < tickers.Count; postFixIncrement(ref i))
+        for (int i = 0; i < tickers.Count; i++)
         {
             object ticker = getValue(tickers, i);
             string? marketId = this.safeString(ticker, "instrument");
@@ -452,7 +452,7 @@ public partial class onetrading : ccxt.onetrading
         //       [ 'SELL', "0.053698", "0" ]
         //    ]
         //
-        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(deltas)); i++)
         {
             this.handleDelta(orderbook, getValue(deltas, i));
         }
@@ -772,14 +772,14 @@ public partial class onetrading : ccxt.onetrading
             return;
         }
         object orders = this.orders;
-        for (int i = 0; i < rawOrders.Count; postFixIncrement(ref i))
+        for (int i = 0; i < rawOrders.Count; i++)
         {
             Dictionary<string, object> order = this.parseOrder(getValue(rawOrders, i));
             string? symbol = this.safeString(order, "symbol", "");
             callDynamically(orders, "append", new object[] {order});
             (client as WebSocketClient).resolve(this.orders, ("orders:" + symbol));
             List<object> rawTrades = this.safeList(getValue(rawOrders, i), "trades", new List<object>() {});
-            for (int ii = 0; ii < rawTrades.Count; postFixIncrement(ref ii))
+            for (int ii = 0; ii < rawTrades.Count; ii++)
             {
                 Dictionary<string, object> trade = this.parseTrade(getValue(rawTrades, ii));
                 symbol = this.safeString(trade, "symbol", symbol);
@@ -1059,7 +1059,7 @@ public partial class onetrading : ccxt.onetrading
         (client as WebSocketClient).resolve(this.orders, "orders");
         // update balance
         List<object> balanceKeys = new List<object>() {"locked", "unlocked", "spent", "spent_on_fees", "credited", "deducted"};
-        for (int i = 0; i < getArrayLength(balanceKeys); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(balanceKeys); i++)
         {
             object newBalance = this.safeValue(update, getValue(balanceKeys, i));
             if ((newBalance != null))
@@ -1181,10 +1181,10 @@ public partial class onetrading : ccxt.onetrading
         }
         List<object> properties = new List<object>() {};
         List<object> marketIds = new List<object>(((IDictionary<string,object>)subscription).Keys);
-        for (int i = 0; i < marketIds.Count; postFixIncrement(ref i))
+        for (int i = 0; i < marketIds.Count; i++)
         {
             List<object> marketIdtimeframes = new List<object>(((IDictionary<string,object>)getValue(subscription, getValue(marketIds, i))).Keys);
-            for (int ii = 0; ii < marketIdtimeframes.Count; postFixIncrement(ref ii))
+            for (int ii = 0; ii < marketIdtimeframes.Count; ii++)
             {
                 object marketTimeframeId = this.safeValue(timeframes, timeframeVar);
                 Dictionary<string, object> property = new Dictionary<string, object>() {
@@ -1279,7 +1279,7 @@ public partial class onetrading : ccxt.onetrading
             throw new ArgumentsRequired ((string)(this.id + " findTimeframe() timeframes is required")) ;
         }
         List<object> keys = new List<object>(((IDictionary<string,object>)timeframes).Keys);
-        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)getValue(keys, i));
             if (isEqual(getValue(getValue(timeframes, key), "unit"), getValue(timeframe, "unit")) && isEqual(getValue(getValue(timeframes, key), "period"), getValue(timeframe, "period")))
@@ -1433,7 +1433,7 @@ public partial class onetrading : ccxt.onetrading
             subscription = this.safeValue(((WebSocketClient)client).subscriptions, subscriptionHash);
             if ((subscription != null))
             {
-                for (int i = 0; i < getArrayLength(marketIds); postFixIncrement(ref i))
+                for (int i = 0; i < getArrayLength(marketIds); i++)
                 {
                     object marketId = getValue(marketIds, i);
                     bool? marketSubscribed = this.safeBool(subscription, marketId, false);
@@ -1448,7 +1448,7 @@ public partial class onetrading : ccxt.onetrading
                 subscription = new Dictionary<string, object>() {};
             }
         }
-        for (int i = 0; i < getArrayLength(marketIds); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(marketIds); i++)
         {
             object marketId = getValue(marketIds, i);
             ((IDictionary<string,object>)subscription)[(string)marketId] = true;

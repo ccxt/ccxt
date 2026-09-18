@@ -984,7 +984,7 @@ public partial class modetrade : Exchange
         string? code = this.safeCurrencyCode(currencyId);
         string? minPrecision = null;
         Dictionary<string, object> resultingNetworks = new Dictionary<string, object>() {};
-        for (int j = 0; j < networks.Count; postFixIncrement(ref j))
+        for (int j = 0; j < networks.Count; j++)
         {
             object network = getValue(networks, j);
             // TODO: transform chain id to human readable name
@@ -1388,7 +1388,7 @@ public partial class modetrade : Exchange
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> result = this.safeList(data, "rows", new List<object>() {});
         List<object> rates = new List<object>() {};
-        for (int i = 0; i < result.Count; postFixIncrement(ref i))
+        for (int i = 0; i < result.Count; i++)
         {
             object entry = getValue(result, i);
             string? marketId = this.safeString(entry, "symbol");
@@ -1566,7 +1566,7 @@ public partial class modetrade : Exchange
         List<object> symbols = this.symbols;
         if ((symbols != null))
         {
-            for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(symbols); i++)
             {
                 object symbol = getValue(symbols, i);
                 ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
@@ -2063,7 +2063,7 @@ public partial class modetrade : Exchange
             await this.loadMarkets();
         }
         List<object> ordersRequests = new List<object>() {};
-        for (int i = 0; i < getArrayLength(orders); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(orders); i++)
         {
             object rawOrder = getValue(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
@@ -2799,7 +2799,7 @@ public partial class modetrade : Exchange
             { "info", response },
         };
         List<object> balances = this.safeList(response, "holding", new List<object>() {});
-        for (int i = 0; i < balances.Count; postFixIncrement(ref i))
+        for (int i = 0; i < balances.Count; i++)
         {
             object balance = getValue(balances, i);
             string? code = this.safeCurrencyCode(this.safeString(balance, "token"));
@@ -3545,7 +3545,7 @@ public partial class modetrade : Exchange
                     if (isEqual(path, "batch-order"))
                     {
                         List<object> ordersList = this.safeList(parameters, "orders", new List<object>() {});
-                        for (int i = 0; i < ordersList.Count; postFixIncrement(ref i))
+                        for (int i = 0; i < ordersList.Count; i++)
                         {
                             ((IDictionary<string,object>)getValue(getValue(parameters, "orders"), i))["order_tag"] = brokerId;
                         }

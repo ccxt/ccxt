@@ -99,7 +99,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             IList<object> parsedSymbols = this.marketSymbols(symbols);
             IList<object> marketIds = this.marketIds(parsedSymbols);
             productIds = marketIds;
-            for (int i = 0; i < getArrayLength(parsedSymbols); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(parsedSymbols); i++)
             {
                 ((IList<object>)messageHashes).Add(add(add(name, "::"), getValue(parsedSymbols, i)));
             }
@@ -163,7 +163,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         }
         List<object> messageHashes = new List<object>() {};
         List<object> productIds = new List<object>() {};
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); i++)
         {
             object marketId = this.marketId(getValue(symbols, i));
             string? symbol = this.symbol(marketId);
@@ -264,7 +264,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     {
         List<object> symbols = this.symbols;
         List<object> output = new List<object>() {};
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); i++)
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
@@ -562,7 +562,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         }
         object stored = getValue(getValue(this.ohlcvs, symbol), ((string)timeframe));
         List<object> data = this.safeList(message, "candles", new List<object>() {});
-        for (int i = 0; i < data.Count; postFixIncrement(ref i))
+        for (int i = 0; i < data.Count; i++)
         {
             object tick = getValue(data, i);
             object parsed = this.parseOHLCV(tick, market);
@@ -791,7 +791,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
 
     public override void handleDeltas(object orderbook, object deltas)
     {
-        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(deltas)); i++)
         {
             this.handleDelta(orderbook, getValue(deltas, i));
         }

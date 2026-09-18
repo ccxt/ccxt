@@ -1339,7 +1339,7 @@ public partial class phemex : Exchange
         Dictionary<string, object> v1ProductsById = this.indexBy(v1ProductsData, "symbol");
         Dictionary<string, object> currenciesByCode = this.indexBy(currencies, "currency");
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(products); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(products); i++)
         {
             object market = getValue(products, i);
             string? type = this.safeStringLower(market, "type");
@@ -1469,12 +1469,12 @@ public partial class phemex : Exchange
             { "nonce", null },
         };
         List<object> sides = new List<object>() {bidsKey, asksKey};
-        for (int i = 0; i < getArrayLength(sides); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(sides); i++)
         {
             object side = getValue(sides, i);
             List<object> orders = new List<object>() {};
             object bidasks = this.safeValue(orderbook, side);
-            for (int k = 0; isLessThan(k, getArrayLength(bidasks)); postFixIncrement(ref k))
+            for (int k = 0; isLessThan(k, getArrayLength(bidasks)); k++)
             {
                 ((IList<object>)orders).Add(this.customParseBidAsk(getValue(bidasks, k), priceKey, amountKey, market));
             }
@@ -2387,7 +2387,7 @@ public partial class phemex : Exchange
             { "info", response },
         };
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        for (int i = 0; i < data.Count; postFixIncrement(ref i))
+        for (int i = 0; i < data.Count; i++)
         {
             object balance = getValue(data, i);
             string? currencyId = this.safeString(balance, "currency");
@@ -4510,7 +4510,7 @@ public partial class phemex : Exchange
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         List<object> positions = this.safeList(data, "positions", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (int i = 0; i < positions.Count; postFixIncrement(ref i))
+        for (int i = 0; i < positions.Count; i++)
         {
             object position = getValue(positions, i);
             ((IList<object>)result).Add(this.parsePosition(position));
@@ -4832,7 +4832,7 @@ public partial class phemex : Exchange
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         List<object> rows = this.safeList(data, "rows", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (int i = 0; i < rows.Count; postFixIncrement(ref i))
+        for (int i = 0; i < rows.Count; i++)
         {
             object entry = getValue(rows, i);
             Int64? timestamp = this.safeInteger(entry, "createTime");
@@ -5287,7 +5287,7 @@ public partial class phemex : Exchange
         object riskLimits = (getValue(getValue(market, "info"), "riskLimits"));
         List<object> tiers = new List<object>() {};
         object minNotional = 0;
-        for (int i = 0; isLessThan(i, getArrayLength(riskLimits)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(riskLimits)); i++)
         {
             object tier = getValue(riskLimits, i);
             Int64? maxNotional = this.safeInteger(tier, "limit");
@@ -5741,7 +5741,7 @@ public partial class phemex : Exchange
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object rates = this.safeValue(data, "rows");
         List<object> result = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(rates)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rates)); i++)
         {
             object item = getValue(rates, i);
             Int64? timestamp = this.safeInteger(item, "fundingTime");
@@ -6251,7 +6251,7 @@ public partial class phemex : Exchange
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         List<object> ranks = this.safeList(data, "positions", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (int i = 0; i < ranks.Count; postFixIncrement(ref i))
+        for (int i = 0; i < ranks.Count; i++)
         {
             object rank = getValue(ranks, i);
             ((IList<object>)result).Add(this.parseADLRank(rank));

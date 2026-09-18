@@ -180,7 +180,7 @@ public partial class p2b : ccxt.p2b
         parameters = ((IList<object>)nameparametersVariable)[1];
         List<object> messageHashes = new List<object>() {};
         List<object> args = new List<object>() {};
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); i++)
         {
             Dictionary<string, object> market = this.market(getValue(symbols, i));
             ((IList<object>)messageHashes).Add(add(add(name, "::"), getValue(market, "symbol")));
@@ -236,7 +236,7 @@ public partial class p2b : ccxt.p2b
         List<object> messageHashes = new List<object>() {};
         if (!isEqual(symbols, null))
         {
-            for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(symbols); i++)
             {
                 ((IList<object>)messageHashes).Add(add("deals::", getValue(symbols, i)));
             }
@@ -372,7 +372,7 @@ public partial class p2b : ccxt.p2b
             tradesArray = new ArrayCache(tradesLimit);
             ((IDictionary<string,object>)this.trades)[(string)((string)symbol)] = tradesArray;
         }
-        for (int i = 0; i < getArrayLength((IList<object>)(trades)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength((IList<object>)(trades)); i++)
         {
             object item = getValue((IList<object>)(trades), i);
             Dictionary<string, object> trade = this.parseTrade(item, market);
@@ -491,7 +491,7 @@ public partial class p2b : ccxt.p2b
         }
         if ((bids != null))
         {
-            for (int i = 0; i < bids.Count; postFixIncrement(ref i))
+            for (int i = 0; i < bids.Count; i++)
             {
                 object bid = this.safeValue(bids, i);
                 double? price = this.safeNumber(bid, 0);
@@ -502,7 +502,7 @@ public partial class p2b : ccxt.p2b
         }
         if ((asks != null))
         {
-            for (int i = 0; i < asks.Count; postFixIncrement(ref i))
+            for (int i = 0; i < asks.Count; i++)
             {
                 object ask = this.safeValue(asks, i);
                 double? price = this.safeNumber(ask, 0);

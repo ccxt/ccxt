@@ -661,7 +661,7 @@ public partial class upbit : Exchange
             { "timestamp", null },
             { "datetime", null },
         };
-        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); i++)
         {
             object balance = getValue(response, i);
             string? currencyId = this.safeString(balance, "currency");
@@ -778,7 +778,7 @@ public partial class upbit : Exchange
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         IList<object> orderbooks = this.toArray(response);
-        for (int i = 0; i < getArrayLength(orderbooks); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(orderbooks); i++)
         {
             object orderbook = getValue(orderbooks, i);
             string? marketId = this.safeString(orderbook, "market");
@@ -899,7 +899,7 @@ public partial class upbit : Exchange
             // ticker/all returns every market of the requested quote currencies with a single request
             List<object> quoteIds = new List<object>() {};
             List<object> marketSymbols = this.symbols;
-            for (int i = 0; i < getArrayLength(marketSymbols); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(marketSymbols); i++)
             {
                 Dictionary<string, object> market = this.market(getValue(marketSymbols, i));
                 string? quoteId = ((string)getValue(market, "quoteId"));
@@ -910,7 +910,7 @@ public partial class upbit : Exchange
             }
             object sortedQuoteIds = this.sort(quoteIds); // market iteration order differs per language
             object quoteCurrencies = "";
-            for (int i = 0; isLessThan(i, getArrayLength(sortedQuoteIds)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(sortedQuoteIds)); i++)
             {
                 if (!isEqual(quoteCurrencies, ""))
                 {
@@ -927,7 +927,7 @@ public partial class upbit : Exchange
             IList<object> ids = this.marketIds(symbols);
             List<object> promises = new List<object>() {};
             List<object> queries = this.idsQueryStrings(ids, 4000); // the url is limited to about 8000 characters once the commas are percent-encoded
-            for (int i = 0; i < getArrayLength(queries); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(queries); i++)
             {
                 object idsQuery = getValue(queries, i);
                 ((IList<object>)promises).Add(this.publicGetTicker(this.extend(new Dictionary<string, object>() {
@@ -976,7 +976,7 @@ public partial class upbit : Exchange
         }
         object idsString = "";
         List<object> queries = new List<object>() {};
-        for (int i = 0; i < getArrayLength(ids); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(ids); i++)
         {
             object id = getValue(ids, i);
             if (!isEqual(idsString, ""))
@@ -1227,7 +1227,7 @@ public partial class upbit : Exchange
         }
         object fetchMarketResponse = ccxt.BaseExchange.FromMarketInterfaceList(await this.FetchMarkets(parameters));
         Dictionary<string, object> response = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(fetchMarketResponse); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(fetchMarketResponse); i++)
         {
             Dictionary<string, object> element = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)element)["maker"] = this.safeNumber(getValue(fetchMarketResponse, i), "maker");
@@ -2148,7 +2148,7 @@ public partial class upbit : Exchange
                 feeCost = "0";
             }
             cost = "0";
-            for (int i = 0; i < numTrades; postFixIncrement(ref i))
+            for (int i = 0; i < numTrades; i++)
             {
                 object trade = getValue(trades, i);
                 cost = Precise.stringAdd(cost, this.safeString(trade, "cost"));

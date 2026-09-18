@@ -185,7 +185,7 @@ public partial class hollaex : ccxt.hollaex
         }
         object data = this.safeValue(message, "data", new List<object>() {});
         IList<object> parsedTrades = this.parseTrades(data, market);
-        for (int j = 0; j < getArrayLength(parsedTrades); postFixIncrement(ref j))
+        for (int j = 0; j < getArrayLength(parsedTrades); j++)
         {
             callDynamically(stored, "append", new object[] {getValue(parsedTrades, j)});
         }
@@ -270,7 +270,7 @@ public partial class hollaex : ccxt.hollaex
         }
         object stored = this.myTrades;
         Dictionary<string, object> marketIds = new Dictionary<string, object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(rawTrades)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawTrades)); i++)
         {
             object trade = getValue(rawTrades, i);
             Dictionary<string, object> parsed = this.parseTrade(trade);
@@ -286,7 +286,7 @@ public partial class hollaex : ccxt.hollaex
         // non-symbol specific
         (client as WebSocketClient).resolve(this.myTrades, channel);
         List<object> keys = new List<object>(((IDictionary<string,object>)marketIds).Keys);
-        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; i++)
         {
             string? marketId = ((string)getValue(keys, i));
             object messageHash = add(add(channel, ":"), marketId);
@@ -412,7 +412,7 @@ public partial class hollaex : ccxt.hollaex
             rawOrders = data;
         }
         Dictionary<string, object> marketIds = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(rawOrders); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(rawOrders); i++)
         {
             object order = getValue(rawOrders, i);
             Dictionary<string, object> parsed = this.parseOrder(order);
@@ -428,7 +428,7 @@ public partial class hollaex : ccxt.hollaex
         // non-symbol specific
         (client as WebSocketClient).resolve(this.orders, channel);
         List<object> keys = new List<object>(((IDictionary<string,object>)marketIds).Keys);
-        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; i++)
         {
             string? marketId = ((string)getValue(keys, i));
             object messageHash = add(add(channel, ":"), marketId);
@@ -476,7 +476,7 @@ public partial class hollaex : ccxt.hollaex
         ((IDictionary<string,object>)this.balance)["info"] = data;
         ((IDictionary<string,object>)this.balance)["timestamp"] = timestamp;
         ((IDictionary<string,object>)this.balance)["datetime"] = this.iso8601(timestamp);
-        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)getValue(keys, i));
             List<object> parts = ((string)key).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();

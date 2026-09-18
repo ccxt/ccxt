@@ -1024,7 +1024,7 @@ public partial class pacifica : Exchange
         ((IDictionary<string,object>)usdcAccount)["used"] = this.safeString(data, "total_margin_used");
         ((IDictionary<string,object>)result)["USDC"] = usdcAccount;
         List<object> spotBalances = this.safeList(data, "spot_balances", new List<object>() {});
-        for (int i = 0; i < spotBalances.Count; postFixIncrement(ref i))
+        for (int i = 0; i < spotBalances.Count; i++)
         {
             object balance = getValue(spotBalances, i);
             string? currencyId = this.safeString(balance, "symbol");
@@ -1185,7 +1185,7 @@ public partial class pacifica : Exchange
             return new Dictionary<string, object>() {};
         }
         Dictionary<string, object> settingsBySymbol = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(settings); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(settings); i++)
         {
             object marketId = getValue(getValue(settings, i), "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
@@ -2010,7 +2010,7 @@ public partial class pacifica : Exchange
         parameters ??= new Dictionary<string, object>();
         List<object> actions = new List<object>() {};
         Int64 timestamp = this.milliseconds(); // unified sequence
-        for (int i = 0; i < getArrayLength(orders); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(orders); i++)
         {
             object order = getValue(orders, i);
             string? symbol = this.safeString(order, "symbol");
@@ -2076,7 +2076,7 @@ public partial class pacifica : Exchange
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> results = this.safeList(data, "results", new List<object>() {});
         List<object> ordersToReturn = new List<object>() {};
-        for (int i = 0; i < results.Count; postFixIncrement(ref i))
+        for (int i = 0; i < results.Count; i++)
         {
             object order = getValue(results, i);
             string? error = this.safeString(order, "error");
@@ -2148,7 +2148,7 @@ public partial class pacifica : Exchange
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> results = this.safeList(data, "results", new List<object>() {});
         List<object> ordersToReturn = new List<object>() {};
-        for (int i = 0; i < results.Count; postFixIncrement(ref i))
+        for (int i = 0; i < results.Count; i++)
         {
             object order = getValue(results, i);
             string? error = this.safeString(order, "error");
@@ -2174,7 +2174,7 @@ public partial class pacifica : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         List<object> actions = new List<object>() {};
-        for (int i = 0; i < getArrayLength(ids); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(ids); i++)
         {
             object id = getValue(ids, i);
             Dictionary<string, object> request = this.cancelOrderRequest(id, symbol, parameters);
@@ -2186,7 +2186,7 @@ public partial class pacifica : Exchange
         }
         List<object> clientOrderIds = this.safeList(parameters, "clientOrderIds", new List<object>() {});
         parameters = this.omit(parameters, "clientOrderIds");
-        for (int i = 0; i < clientOrderIds.Count; postFixIncrement(ref i))
+        for (int i = 0; i < clientOrderIds.Count; i++)
         {
             object cloid = getValue(clientOrderIds, i);
             Dictionary<string, object> cloidParams = new Dictionary<string, object>() {
@@ -2475,7 +2475,7 @@ public partial class pacifica : Exchange
         //
         object data = this.addPaginationCursorToResult(response);
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(data); i++)
         {
             object entry = getValue(data, i);
             Int64? timestamp = this.safeInteger(entry, "created_at");
@@ -2532,7 +2532,7 @@ public partial class pacifica : Exchange
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; i < data.Count; postFixIncrement(ref i))
+        for (int i = 0; i < data.Count; i++)
         {
             object info = getValue(data, i);
             Dictionary<string, object> ticker = this.parseTicker(info);
@@ -3139,7 +3139,7 @@ public partial class pacifica : Exchange
         // }
         List<object> data = this.safeList(response, "data", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (int i = 0; i < data.Count; postFixIncrement(ref i))
+        for (int i = 0; i < data.Count; i++)
         {
             ((IList<object>)result).Add(this.parsePosition(getValue(data, i), null));
         }
@@ -4049,7 +4049,7 @@ public partial class pacifica : Exchange
             Dictionary<string, object> result = new Dictionary<string, object>() {};
             List<object> keys = new List<object>(((IDictionary<string,object>)value).Keys);
             object sortedKeys = this.sort(keys);
-            for (int i = 0; isLessThan(i, getArrayLength(sortedKeys)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(sortedKeys)); i++)
             {
                 object key = getValue(sortedKeys, i);
                 ((IDictionary<string,object>)result)[(string)key] = this.sortJsonKeys(getValue(value, key));
@@ -4058,7 +4058,7 @@ public partial class pacifica : Exchange
         } else if (((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             List<object> result = new List<object>() {};
-            for (int i = 0; i < getArrayLength(value); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(value); i++)
             {
                 ((IList<object>)result).Add(this.sortJsonKeys(getValue(value, i)));
             }

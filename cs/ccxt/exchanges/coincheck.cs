@@ -350,7 +350,7 @@ public partial class coincheck : Exchange
             { "info", response },
         };
         List<object> codes = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
-        for (int i = 0; i < codes.Count; postFixIncrement(ref i))
+        for (int i = 0; i < codes.Count; i++)
         {
             string? code = ((string)getValue(codes, i));
             Dictionary<string, object> currency = this.currency(((string)code));
@@ -398,7 +398,7 @@ public partial class coincheck : Exchange
         List<object> exchangeStatuses = this.safeList(response, "exchange_status", new List<object>() {});
         string status = "ok";
         Int64? updated = null;
-        for (int i = 0; i < exchangeStatuses.Count; postFixIncrement(ref i))
+        for (int i = 0; i < exchangeStatuses.Count; i++)
         {
             object exchangeStatus = getValue(exchangeStatuses, i);
             string? rawStatus = this.safeString(exchangeStatus, "status");
@@ -461,7 +461,7 @@ public partial class coincheck : Exchange
         object rawOrders = this.safeValue(response, "orders", new List<object>() {});
         IList<object> parsedOrders = this.parseOrders(rawOrders, market, since, limit);
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(parsedOrders); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(parsedOrders); i++)
         {
             ((IList<object>)result).Add(this.extend(getValue(parsedOrders, i), new Dictionary<string, object>() {
                 { "status", "open" },
@@ -844,7 +844,7 @@ public partial class coincheck : Exchange
         {
             return ccxt.BaseExchange.ToTradingFees(result);
         }
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); i++)
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);

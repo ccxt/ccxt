@@ -1235,7 +1235,7 @@ public partial class coinex : Exchange
         List<object> chains = this.safeList(coin, "chains", new List<object>() {});
         string? code = this.safeCurrencyCode(currencyId);
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
-        for (int j = 0; j < chains.Count; postFixIncrement(ref j))
+        for (int j = 0; j < chains.Count; j++)
         {
             object chain = getValue(chains, j);
             string? networkId = this.safeString(chain, "chain");
@@ -1349,7 +1349,7 @@ public partial class coinex : Exchange
         //
         List<object> markets = this.safeList(response, "data", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (int i = 0; i < markets.Count; postFixIncrement(ref i))
+        for (int i = 0; i < markets.Count; i++)
         {
             object market = getValue(markets, i);
             string? id = this.safeString(market, "market");
@@ -1439,7 +1439,7 @@ public partial class coinex : Exchange
         //
         List<object> markets = this.safeList(response, "data", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (int i = 0; i < markets.Count; postFixIncrement(ref i))
+        for (int i = 0; i < markets.Count; i++)
         {
             object entry = getValue(markets, i);
             object fees = this.fees;
@@ -2013,7 +2013,7 @@ public partial class coinex : Exchange
         }
         List<object> data = this.safeList(response, "data", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; i < data.Count; postFixIncrement(ref i))
+        for (int i = 0; i < data.Count; i++)
         {
             object entry = getValue(data, i);
             string? marketId = this.safeString(entry, "market");
@@ -2161,7 +2161,7 @@ public partial class coinex : Exchange
             { "info", response },
         };
         List<object> balances = this.safeList(response, "data", new List<object>() {});
-        for (int i = 0; i < balances.Count; postFixIncrement(ref i))
+        for (int i = 0; i < balances.Count; i++)
         {
             object entry = getValue(balances, i);
             IDictionary<string, object> free = this.safeDict(entry, "available", new Dictionary<string, object>() {});
@@ -2209,7 +2209,7 @@ public partial class coinex : Exchange
             { "info", response },
         };
         List<object> balances = this.safeList(response, "data", new List<object>() {});
-        for (int i = 0; i < balances.Count; postFixIncrement(ref i))
+        for (int i = 0; i < balances.Count; i++)
         {
             object entry = getValue(balances, i);
             string? currencyId = this.safeString(entry, "ccy");
@@ -2253,7 +2253,7 @@ public partial class coinex : Exchange
             { "info", response },
         };
         List<object> balances = this.safeList(response, "data", new List<object>() {});
-        for (int i = 0; i < balances.Count; postFixIncrement(ref i))
+        for (int i = 0; i < balances.Count; i++)
         {
             object entry = getValue(balances, i);
             string? currencyId = this.safeString(entry, "ccy");
@@ -2294,7 +2294,7 @@ public partial class coinex : Exchange
             { "info", response },
         };
         List<object> balances = this.safeList(response, "data", new List<object>() {});
-        for (int i = 0; i < balances.Count; postFixIncrement(ref i))
+        for (int i = 0; i < balances.Count; i++)
         {
             object entry = getValue(balances, i);
             string? currencyId = this.safeString(entry, "ccy");
@@ -2910,7 +2910,7 @@ public partial class coinex : Exchange
         object reduceOnly = false;
         bool isTriggerOrder = false;
         bool isStopLossOrTakeProfitTrigger = false;
-        for (int i = 0; i < getArrayLength(orders); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(orders); i++)
         {
             object rawOrder = getValue(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
@@ -2980,7 +2980,7 @@ public partial class coinex : Exchange
         }
         List<object> data = this.safeList(response, "data", new List<object>() {});
         List<object> results = new List<object>() {};
-        for (int i = 0; i < data.Count; postFixIncrement(ref i))
+        for (int i = 0; i < data.Count; i++)
         {
             object entry = getValue(data, i);
             string? status = null;
@@ -3044,7 +3044,7 @@ public partial class coinex : Exchange
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         Dictionary<string, object> response = null;
         List<object> requestIds = new List<object>() {};
-        for (int i = 0; i < getArrayLength(ids); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(ids); i++)
         {
             ((IList<object>)requestIds).Add(parseInt(getValue(ids, i)));
         }
@@ -3077,7 +3077,7 @@ public partial class coinex : Exchange
         }
         List<object> data = this.safeList(response, "data", new List<object>() {});
         List<object> results = new List<object>() {};
-        for (int i = 0; i < data.Count; postFixIncrement(ref i))
+        for (int i = 0; i < data.Count; i++)
         {
             object entry = getValue(data, i);
             IDictionary<string, object> item = this.safeDict(entry, "data", new Dictionary<string, object>() {});
@@ -3194,7 +3194,7 @@ public partial class coinex : Exchange
         }
         List<object> ordersRequests = new List<object>() {};
         IList<object> orderSymbols = new List<object>() {};
-        for (int i = 0; i < getArrayLength(orders); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(orders); i++)
         {
             object rawOrder = getValue(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
@@ -3250,7 +3250,7 @@ public partial class coinex : Exchange
         }
         List<object> data = this.safeList(response, "data", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (int i = 0; i < data.Count; postFixIncrement(ref i))
+        for (int i = 0; i < data.Count; i++)
         {
             object entry = getValue(data, i);
             string? code = this.safeString(entry, "code");
@@ -3594,7 +3594,7 @@ public partial class coinex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object openOrders = ccxt.BaseExchange.FromOrderList(await this.FetchOrdersByStatus("pending", symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters));
-        for (int i = 0; i < getArrayLength(openOrders); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(openOrders); i++)
         {
             ((IDictionary<string,object>)getValue(openOrders, i))["status"] = "open";
         }
@@ -3903,7 +3903,7 @@ public partial class coinex : Exchange
         //
         List<object> position = this.safeList(response, "data", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (int i = 0; i < position.Count; postFixIncrement(ref i))
+        for (int i = 0; i < position.Count; i++)
         {
             ((IList<object>)result).Add(this.parsePosition(getValue(position, i), market));
         }
@@ -4205,7 +4205,7 @@ public partial class coinex : Exchange
         List<object> tiers = new List<object>() {};
         List<object> brackets = this.safeList(info, "level", new List<object>() {});
         object minNotional = 0;
-        for (int i = 0; i < brackets.Count; postFixIncrement(ref i))
+        for (int i = 0; i < brackets.Count; i++)
         {
             object tier = getValue(brackets, i);
             string? marketId = this.safeString(info, "market");
@@ -4462,7 +4462,7 @@ public partial class coinex : Exchange
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (int i = 0; i < data.Count; postFixIncrement(ref i))
+        for (int i = 0; i < data.Count; i++)
         {
             object entry = getValue(data, i);
             Int64? timestamp = this.safeInteger(entry, "created_at");
@@ -4811,7 +4811,7 @@ public partial class coinex : Exchange
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
         List<object> rates = new List<object>() {};
-        for (int i = 0; i < data.Count; postFixIncrement(ref i))
+        for (int i = 0; i < data.Count; i++)
         {
             object entry = getValue(data, i);
             string? marketId = this.safeString(entry, "market");
@@ -5650,7 +5650,7 @@ public partial class coinex : Exchange
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; i < data.Count; postFixIncrement(ref i))
+        for (int i = 0; i < data.Count; i++)
         {
             object item = getValue(data, i);
             IDictionary<string, object> asset = this.safeDict(item, "asset", new Dictionary<string, object>() {});
@@ -5716,7 +5716,7 @@ public partial class coinex : Exchange
         };
         List<object> chains = this.safeList(fee, "chains", new List<object>() {});
         IDictionary<string, object> asset = this.safeDict(fee, "asset", new Dictionary<string, object>() {});
-        for (int i = 0; i < chains.Count; postFixIncrement(ref i))
+        for (int i = 0; i < chains.Count; i++)
         {
             object entry = getValue(chains, i);
             bool? isWithdrawEnabled = this.safeBool(entry, "withdraw_enabled");

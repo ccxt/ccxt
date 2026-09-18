@@ -14,7 +14,7 @@ public partial class testMainClass : BaseTest
         testSharedMethods.assertDictionaryResponse(exchange, method, marginModes, symbol);
         List<object> marginModeKeys = new List<object>(((IDictionary<string,object>)marginModes).Keys);
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, marginModes, symbol);
-        for (int i = 0; i < marginModeKeys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < marginModeKeys.Count; i++)
         {
             object marginMode = getValue(marginModes, getValue(marginModeKeys, i));
             testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, marginMode, symbol);

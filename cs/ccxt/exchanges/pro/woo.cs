@@ -319,7 +319,7 @@ public partial class woo : ccxt.woo
             ccxt.pro.IOrderBook orderbook = this.safeOrderBook(this.orderbooks, symbol);
             (orderbook as IOrderBook).reset(snapshot);
             object messages = (orderbook as ccxt.pro.OrderBook).cache;
-            for (int i = 0; isLessThan(i, getArrayLength(messages)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(messages)); i++)
             {
                 object messageItem = getValue(messages, i);
                 Int64? ts = this.safeInteger(messageItem, "ts");
@@ -370,7 +370,7 @@ public partial class woo : ccxt.woo
 
     public override void handleDeltas(object bookside, object deltas)
     {
-        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(deltas)); i++)
         {
             this.handleDelta(bookside, getValue(deltas, i));
         }
@@ -586,7 +586,7 @@ public partial class woo : ccxt.woo
         object data = this.safeValue(message, "data");
         Int64? timestamp = this.safeInteger(message, "ts");
         List<object> result = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); i++)
         {
             string? marketId = this.safeString(getValue(data, i), "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
@@ -677,7 +677,7 @@ public partial class woo : ccxt.woo
         List<object> data = this.safeList(message, "data", new List<object>() {});
         Int64? timestamp = this.safeInteger(message, "ts");
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; i < data.Count; postFixIncrement(ref i))
+        for (int i = 0; i < data.Count; i++)
         {
             IDictionary<string, object> ticker = this.safeDict(data, i);
             if ((ticker == null))
@@ -1325,7 +1325,7 @@ public partial class woo : ccxt.woo
         if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             // algoexecutionreportv2
-            for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(data); i++)
             {
                 object order = getValue(data, i);
                 string? tradeId = ((string)this.omitZero(this.safeString(data, "tradeId")));
@@ -1457,7 +1457,7 @@ public partial class woo : ccxt.woo
             {
                 throw new ArgumentsRequired ((string)(this.id + " watchPositions() symbols is required")) ;
             }
-            for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(symbols); i++)
             {
                 if (isEqual(symbols, null))
                 {
@@ -1514,7 +1514,7 @@ public partial class woo : ccxt.woo
         object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions());
         this.positions = new ArrayCacheBySymbolBySide();
         object cache = this.positions;
-        for (int i = 0; i < getArrayLength(positions); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(positions); i++)
         {
             object position = getValue(positions, i);
             double? contracts = this.safeNumber(position, "contracts", 0);
@@ -1568,7 +1568,7 @@ public partial class woo : ccxt.woo
         }
         object cache = this.positions;
         List<object> newPositions = new List<object>() {};
-        for (int i = 0; i < postitionsIds.Count; postFixIncrement(ref i))
+        for (int i = 0; i < postitionsIds.Count; i++)
         {
             string? marketId = ((string)getValue(postitionsIds, i));
             Dictionary<string, object> market = this.safeMarket(marketId);
@@ -1644,7 +1644,7 @@ public partial class woo : ccxt.woo
         ((IDictionary<string,object>)this.balance)["info"] = data;
         ((IDictionary<string,object>)this.balance)["timestamp"] = ts;
         ((IDictionary<string,object>)this.balance)["datetime"] = this.iso8601(ts);
-        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)getValue(keys, i));
             object value = getValue(balances, key);
@@ -1777,7 +1777,7 @@ public partial class woo : ccxt.woo
         IDictionary<string, object> subscription = this.safeDict(((WebSocketClient)client).subscriptions, unsubscribeHash, new Dictionary<string, object>() {});
         List<object> subMessageHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});
         List<object> unsubMessageHashes = this.safeList(subscription, "unsubMessageHashes", new List<object>() {});
-        for (int i = 0; i < subMessageHashes.Count; postFixIncrement(ref i))
+        for (int i = 0; i < subMessageHashes.Count; i++)
         {
             object subHash = getValue(subMessageHashes, i);
             object unsubHash = getValue(unsubMessageHashes, i);

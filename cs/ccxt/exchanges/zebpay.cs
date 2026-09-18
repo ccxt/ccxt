@@ -425,7 +425,7 @@ public partial class zebpay : Exchange
         IDictionary<string, object> fetchMarketsOptions = this.safeDict(this.options, "fetchMarkets");
         List<object> defaultMarkets = new List<object>() {"spot", "swap"};
         List<object> types = this.safeList(fetchMarketsOptions, "types", defaultMarkets);
-        for (int i = 0; i < types.Count; postFixIncrement(ref i))
+        for (int i = 0; i < types.Count; i++)
         {
             object type = getValue(types, i);
             if (isEqual(type, "spot"))
@@ -505,7 +505,7 @@ public partial class zebpay : Exchange
         string? minDepositString = null;
         object deposit = false;
         object withdraw = false;
-        for (int j = 0; j < chains.Count; postFixIncrement(ref j))
+        for (int j = 0; j < chains.Count; j++)
         {
             object chain = getValue(chains, j);
             string? networkId = this.safeString(chain, "chainId");
@@ -684,7 +684,7 @@ public partial class zebpay : Exchange
         //
         List<object> fees = this.safeList(response, "data", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; i < fees.Count; postFixIncrement(ref i))
+        for (int i = 0; i < fees.Count; i++)
         {
             object fee = this.parseTradingFee(getValue(fees, i));
             object symbol = getValue(fee, "symbol");
@@ -1878,7 +1878,7 @@ public partial class zebpay : Exchange
         List<object> result = new List<object>() {};
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> markets = this.safeList(data, "symbols", new List<object>() {});
-        for (int i = 0; i < markets.Count; postFixIncrement(ref i))
+        for (int i = 0; i < markets.Count; i++)
         {
             object market = getValue(markets, i);
             string? id = this.safeString(market, "symbol");
@@ -1960,7 +1960,7 @@ public partial class zebpay : Exchange
         List<object> result = new List<object>() {};
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> markets = this.safeList(data, "symbols", new List<object>() {});
-        for (int i = 0; i < markets.Count; postFixIncrement(ref i))
+        for (int i = 0; i < markets.Count; i++)
         {
             object market = getValue(markets, i);
             string? id = this.safeString(market, "symbol");
@@ -2014,7 +2014,7 @@ public partial class zebpay : Exchange
             { "datetime", null },
         };
         List<object> currencyList = this.safeList(response, "data", new List<object>() {});
-        for (int i = 0; i < currencyList.Count; postFixIncrement(ref i))
+        for (int i = 0; i < currencyList.Count; i++)
         {
             object entry = getValue(currencyList, i);
             Dictionary<string, object> account = this.account();

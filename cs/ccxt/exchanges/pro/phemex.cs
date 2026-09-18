@@ -305,12 +305,12 @@ public partial class phemex : ccxt.phemex
         } else if (inOp(message, "data"))
         {
             List<object> data = this.safeList(message, "data", new List<object>() {});
-            for (int i = 0; i < data.Count; postFixIncrement(ref i))
+            for (int i = 0; i < data.Count; i++)
             {
                 ((IList<object>)tickers).Add(this.parsePerpetualTicker(getValue(data, i)));
             }
         }
-        for (int i = 0; i < getArrayLength(tickers); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(tickers); i++)
         {
             object ticker = getValue(tickers, i);
             object symbol = getValue(ticker, "symbol");
@@ -396,7 +396,7 @@ public partial class phemex : ccxt.phemex
         //    ]
         //
         ((IDictionary<string,object>)this.balance)["info"] = message;
-        for (int i = 0; isLessThan(i, getArrayLength(message)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(message)); i++)
         {
             object balance = getValue(message, i);
             string? currencyId = this.safeString(balance, "currency");
@@ -476,7 +476,7 @@ public partial class phemex : ccxt.phemex
         }
         object trades = this.safeValue2(message, "trades", "trades_p", new List<object>() {});
         IList<object> parsed = this.parseTrades(trades, market);
-        for (int i = 0; i < getArrayLength(parsed); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(parsed); i++)
         {
             callDynamically(stored, "append", new object[] {getValue(parsed, i)});
         }
@@ -535,7 +535,7 @@ public partial class phemex : ccxt.phemex
                 stored = new ArrayCacheByTimestamp(limit);
                 ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)timeframe] = stored;
             }
-            for (int i = 0; i < getArrayLength(ohlcvs); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(ohlcvs); i++)
             {
                 object candle = getValue(ohlcvs, i);
                 callDynamically(stored, "append", new object[] {candle});
@@ -618,7 +618,7 @@ public partial class phemex : ccxt.phemex
         Int64 requestId = ((Int64)this.requestId());
         string subscriptionHash = (name + ".subscribe");
         List<object> messageHashes = new List<object>() {};
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); i++)
         {
             ((IList<object>)messageHashes).Add(add("ticker:", getValue(symbols, i)));
         }
@@ -782,7 +782,7 @@ public partial class phemex : ccxt.phemex
 
     public virtual void customHandleDeltas(object bookside, object deltas, object market = null)
     {
-        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(deltas)); i++)
         {
             this.customHandleDelta(bookside, getValue(deltas, i), market);
         }
@@ -1027,7 +1027,7 @@ public partial class phemex : ccxt.phemex
         }
         Dictionary<string, object> marketIds = new Dictionary<string, object>() {};
         object type = null;
-        for (int i = 0; isLessThan(i, getArrayLength(message)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(message)); i++)
         {
             object rawTrade = getValue(message, i);
             string? marketId = this.safeString(rawTrade, "symbol");
@@ -1045,7 +1045,7 @@ public partial class phemex : ccxt.phemex
             }
         }
         List<object> keys = new List<object>(((IDictionary<string,object>)marketIds).Keys);
-        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; i++)
         {
             string? market = ((string)getValue(keys, i));
             string hash = ((channel + ":") + market);
@@ -1278,7 +1278,7 @@ public partial class phemex : ccxt.phemex
                 return;
             }
             trades = this.safeList(message, "fills", new List<object>() {});
-            for (int i = 0; i < getArrayLength(orders); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(orders); i++)
             {
                 object rawOrder = getValue(orders, i);
                 Dictionary<string, object> parsedOrder = this.parseOrder(rawOrder);
@@ -1291,7 +1291,7 @@ public partial class phemex : ccxt.phemex
             {
                 return;
             }
-            for (int i = 0; isLessThan(i, getArrayLength(message)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(message)); i++)
             {
                 object update = getValue(message, i);
                 string? action = this.safeString(update, "action");
@@ -1313,7 +1313,7 @@ public partial class phemex : ccxt.phemex
         }
         object type = null;
         object stored = this.orders;
-        for (int i = 0; i < getArrayLength(parsedOrders); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(parsedOrders); i++)
         {
             object parsed = getValue(parsedOrders, i);
             callDynamically(stored, "append", new object[] {parsed});
@@ -1327,7 +1327,7 @@ public partial class phemex : ccxt.phemex
             ((IDictionary<string,object>)marketIds)[(string)symbol] = true;
         }
         List<object> keys = new List<object>(((IDictionary<string,object>)marketIds).Keys);
-        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; i++)
         {
             string currentMessageHash = add(("orders" + ":"), getValue(keys, i));
             (client as WebSocketClient).resolve(this.orders, currentMessageHash);

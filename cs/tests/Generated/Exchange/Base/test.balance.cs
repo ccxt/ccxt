@@ -30,7 +30,7 @@ public partial class testMainClass : BaseTest
         int freeLength = codesFree.Count;
         int usedLength = codesUsed.Count;
         assert(((codesLength == freeLength)) || ((codesLength == usedLength)), add("free and total and used codes have different lengths", logText));
-        for (int i = 0; i < getArrayLength(allCodes); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(allCodes); i++)
         {
             object code = getValue(allCodes, i);
             // testSharedMethods.assertCurrencyCode (exchange, skippedProperties, method, entry, code);

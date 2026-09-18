@@ -38,7 +38,7 @@ public partial class testMainClass : BaseTest
             if (((success == true)) && ((response != null)))
             {
                 assert(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(logText, "must return an array. "), exchange.json(response)));
-                for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
+                for (int i = 0; i < getArrayLength(response); i++)
                 {
                     object trade = getValue(response, i);
                     object symbol = getValue(trade, "symbol");

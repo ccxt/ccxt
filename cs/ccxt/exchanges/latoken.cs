@@ -522,7 +522,7 @@ public partial class latoken : Exchange
         Dictionary<string, object> currenciesById = this.indexBy(currencies, "id");
         List<object> result = new List<object>() {};
         IList<object> rawMarkets = this.toArray(response);
-        for (int i = 0; i < getArrayLength(rawMarkets); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(rawMarkets); i++)
         {
             object market = getValue(rawMarkets, i);
             string? id = this.safeString(market, "id");
@@ -726,7 +726,7 @@ public partial class latoken : Exchange
         string? accountType = this.safeString(types, type, type);
         Dictionary<string, object> balancesByType = this.groupBy(response, "type");
         List<object> balances = this.safeList(balancesByType, accountType, new List<object>() {});
-        for (int i = 0; i < balances.Count; postFixIncrement(ref i))
+        for (int i = 0; i < balances.Count; i++)
         {
             object balance = getValue(balances, i);
             string? currencyId = this.safeString(balance, "currency");
@@ -810,7 +810,7 @@ public partial class latoken : Exchange
         List<object> rawBids = this.safeList(response, "bid", new List<object>() {});
         List<object> asks = new List<object>() {};
         List<object> bids = new List<object>() {};
-        for (int i = 0; i < rawAsks.Count; postFixIncrement(ref i))
+        for (int i = 0; i < rawAsks.Count; i++)
         {
             object askEntry = getValue(rawAsks, i);
             string? askQuantity = this.safeString(askEntry, "quantity");
@@ -819,7 +819,7 @@ public partial class latoken : Exchange
                 ((IList<object>)asks).Add(askEntry);
             }
         }
-        for (int i = 0; i < rawBids.Count; postFixIncrement(ref i))
+        for (int i = 0; i < rawBids.Count; i++)
         {
             object bidEntry = getValue(rawBids, i);
             string? bidQuantity = this.safeString(bidEntry, "quantity");

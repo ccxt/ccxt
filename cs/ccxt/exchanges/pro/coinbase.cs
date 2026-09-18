@@ -198,7 +198,7 @@ public partial class coinbase : ccxt.coinbase
         List<object> productIds = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
         symbols = this.marketSymbols(symbols, null, false);
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); i++)
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
@@ -247,7 +247,7 @@ public partial class coinbase : ccxt.coinbase
         List<object> watchMessageHashes = new List<object>() {};
         List<object> unWatchMessageHashes = new List<object>() {};
         symbols = this.marketSymbols(symbols, null, false);
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); i++)
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
@@ -504,11 +504,11 @@ public partial class coinbase : ccxt.coinbase
         string? datetime = this.safeString(message, "timestamp");
         Int64? timestamp = this.parse8601(datetime);
         List<object> newTickers = new List<object>() {};
-        for (int i = 0; i < events.Count; postFixIncrement(ref i))
+        for (int i = 0; i < events.Count; i++)
         {
             object tickersObj = getValue(events, i);
             List<object> tickers = this.safeList(tickersObj, "tickers", new List<object>() {});
-            for (int j = 0; j < tickers.Count; postFixIncrement(ref j))
+            for (int j = 0; j < tickers.Count; j++)
             {
                 object ticker = getValue(tickers, j);
                 string? wsMarketId = this.safeString(ticker, "product_id");
@@ -838,7 +838,7 @@ public partial class coinbase : ccxt.coinbase
             tradesArray = new ArrayCacheBySymbolById(tradesLimit);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArray;
         }
-        for (int i = 0; i < events.Count; postFixIncrement(ref i))
+        for (int i = 0; i < events.Count; i++)
         {
             object currentEvent = getValue(events, i);
             List<object> currentTrades = this.safeList(currentEvent, "trades");
@@ -899,7 +899,7 @@ public partial class coinbase : ccxt.coinbase
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
         }
-        for (int i = 0; i < events.Count; postFixIncrement(ref i))
+        for (int i = 0; i < events.Count; i++)
         {
             object eventVar = getValue(events, i);
             List<object> responseOrders = this.safeList(eventVar, "orders");
@@ -907,7 +907,7 @@ public partial class coinbase : ccxt.coinbase
             {
                 continue;
             }
-            for (int j = 0; j < responseOrders.Count; postFixIncrement(ref j))
+            for (int j = 0; j < responseOrders.Count; j++)
             {
                 object responseOrder = getValue(responseOrders, j);
                 Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsOrder(responseOrder));
@@ -923,7 +923,7 @@ public partial class coinbase : ccxt.coinbase
                 callDynamically(cachedOrders, "append", new object[] {parsed});
             }
         }
-        for (int i = 0; i < getArrayLength(marketIds); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(marketIds); i++)
         {
             string? marketId = ((string)getValue(marketIds, i));
             string? symbol = this.safeSymbol(marketId);
@@ -988,7 +988,7 @@ public partial class coinbase : ccxt.coinbase
 
     public virtual void handleOrderBookHelper(object orderbook, object updates)
     {
-        for (int i = 0; isLessThan(i, getArrayLength(updates)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(updates)); i++)
         {
             object trade = getValue(updates, i);
             string? sideId = this.safeString(trade, "side");
@@ -1036,7 +1036,7 @@ public partial class coinbase : ccxt.coinbase
             return;
         }
         string? datetime = this.safeString(message, "timestamp");
-        for (int i = 0; i < events.Count; postFixIncrement(ref i))
+        for (int i = 0; i < events.Count; i++)
         {
             object eventVar = getValue(events, i);
             List<object> updates = this.safeList(eventVar, "updates", new List<object>() {});
@@ -1107,7 +1107,7 @@ public partial class coinbase : ccxt.coinbase
             IDictionary<string, object> unSubObject = this.safeDict(this.options, "unSubscription", new Dictionary<string, object>() {});
             List<object> messageHashes = this.safeList(unSubObject, "messageHashes", new List<object>() {});
             List<object> subMessageHashes = this.safeList(unSubObject, "subMessageHashes", new List<object>() {});
-            for (int i = 0; i < messageHashes.Count; postFixIncrement(ref i))
+            for (int i = 0; i < messageHashes.Count; i++)
             {
                 object messageHash = getValue(messageHashes, i);
                 object subHash = getValue(subMessageHashes, i);

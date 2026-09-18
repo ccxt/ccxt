@@ -216,7 +216,7 @@ public partial class bitstamp : ccxt.bitstamp
 
     public virtual void handleBidAsks(object bookSide, object bidAsks)
     {
-        for (int i = 0; isLessThan(i, getArrayLength(bidAsks)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(bidAsks)); i++)
         {
             List<object> bidAsk = this.parseOrderBookBidAsk(getValue(bidAsks, i));
             (bookSide as IOrderBookSide).storeArray(bidAsk);
@@ -237,7 +237,7 @@ public partial class bitstamp : ccxt.bitstamp
         {
             return -1;
         }
-        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(deltas)); i++)
         {
             object delta = getValue(deltas, i);
             Int64? deltaNonce = this.safeInteger(delta, "microtimestamp");
@@ -938,7 +938,7 @@ public partial class bitstamp : ccxt.bitstamp
     public virtual object pruneCachedBySymbols(object newCache, object cache, object symbols)
     {
         IList<object> entries = this.toArray(cache);
-        for (int i = 0; i < getArrayLength(entries); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(entries); i++)
         {
             object entry = getValue(entries, i);
             string? entrySymbol = this.safeString(entry, "symbol");
@@ -1002,7 +1002,7 @@ public partial class bitstamp : ccxt.bitstamp
             { "private-my_trades", this.handleMyTrades },
         };
         List<object> keys = new List<object>(((IDictionary<string,object>)methods).Keys);
-        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)getValue(keys, i));
             if (getIndexOf(channel, key) > -1)

@@ -753,7 +753,7 @@ public partial class bitmex : Exchange
         string? scale = this.safeString(currency, "scale");
         string? precisionString = this.parsePrecision(scale);
         double? precision = this.parseNumber(precisionString);
-        for (int j = 0; j < chains.Count; postFixIncrement(ref j))
+        for (int j = 0; j < chains.Count; j++)
         {
             object chain = getValue(chains, j);
             string? networkId = this.safeString(chain, "asset");
@@ -1286,7 +1286,7 @@ public partial class bitmex : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); i++)
         {
             object balance = getValue(response, i);
             string? currencyId = this.safeString(balance, "currency");
@@ -1408,7 +1408,7 @@ public partial class bitmex : Exchange
             { "nonce", null },
         };
         IList<object> orders = this.toArray(response);
-        for (int i = 0; i < getArrayLength(orders); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(orders); i++)
         {
             object order = getValue(orders, i);
             string side = ((bool) (isEqual(getValue(order, "side"), "Sell"))) ? "asks" : "bids";
@@ -2030,7 +2030,7 @@ public partial class bitmex : Exchange
         // same response as under "fetchMarkets"
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         IList<object> rawTickers = this.toArray(response);
-        for (int i = 0; i < getArrayLength(rawTickers); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(rawTickers); i++)
         {
             Dictionary<string, object> ticker = this.parseTicker(getValue(rawTickers, i));
             string? symbol = this.safeString(ticker, "symbol");
@@ -2185,7 +2185,7 @@ public partial class bitmex : Exchange
             // bitmex returns the candle's close timestamp - https://github.com/ccxt/ccxt/issues/4446
             // we can emulate the open timestamp by shifting all the timestamps one place
             // so the previous close becomes the current open, and we drop the first candle
-            for (int i = 0; i < getArrayLength(result); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(result); i++)
             {
                 ((List<object>)getValue(result, i))[Convert.ToInt32(0)] = subtract(this.parseToInt(getValue(getValue(result, i), 0)), duration);
             }
@@ -3285,7 +3285,7 @@ public partial class bitmex : Exchange
         // same response as under "fetchMarkets"
         List<object> filteredResponse = new List<object>() {};
         IList<object> rawItems = this.toArray(response);
-        for (int i = 0; i < getArrayLength(rawItems); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(rawItems); i++)
         {
             object item = getValue(rawItems, i);
             string? marketId = this.safeString(item, "symbol");
@@ -3596,7 +3596,7 @@ public partial class bitmex : Exchange
         {
             string? scale = this.safeString(fee, "scale");
             string? precision = this.parsePrecision(scale);
-            for (int i = 0; i < networksLength; postFixIncrement(ref i))
+            for (int i = 0; i < networksLength; i++)
             {
                 object network = getValue(networks, i);
                 string? networkId = this.safeString(network, "asset");
@@ -4182,7 +4182,7 @@ public partial class bitmex : Exchange
     public virtual object parseSettlements(object settlements, object market = null, object since = null, object limit = null)
     {
         List<object> result = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(settlements)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(settlements)); i++)
         {
             ((IList<object>)result).Add(this.parseSettlement(getValue(settlements, i), market));
         }

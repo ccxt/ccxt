@@ -691,7 +691,7 @@ public partial class backpack : Exchange
         string? code = this.safeCurrencyCode(currencyId);
         List<object> networks = this.safeList(rawCurrency, "tokens", new List<object>() {});
         Dictionary<string, object> parsedNetworks = new Dictionary<string, object>() {};
-        for (int j = 0; j < networks.Count; postFixIncrement(ref j))
+        for (int j = 0; j < networks.Count; j++)
         {
             object network = getValue(networks, j);
             string? networkId = this.safeString(network, "blockchain");
@@ -1360,7 +1360,7 @@ public partial class backpack : Exchange
         //
         List<object> rates = new List<object>() {};
         IList<object> rawRates = this.toArray(response);
-        for (int i = 0; i < getArrayLength(rawRates); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(rawRates); i++)
         {
             object rate = getValue(rawRates, i);
             string? datetime = this.safeString(rate, "intervalEndTimestamp");
@@ -1627,7 +1627,7 @@ public partial class backpack : Exchange
         //
         List<object> balanceKeys = new List<object>(((IDictionary<string,object>)response).Keys);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; i < balanceKeys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < balanceKeys.Count; i++)
         {
             string? id = ((string)getValue(balanceKeys, i));
             string? code = this.safeCurrencyCode(id);
@@ -2026,7 +2026,7 @@ public partial class backpack : Exchange
             await this.loadMarkets();
         }
         List<object> ordersRequests = new List<object>() {};
-        for (int i = 0; i < getArrayLength(orders); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(orders); i++)
         {
             object rawOrder = getValue(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
@@ -2725,7 +2725,7 @@ public partial class backpack : Exchange
     public virtual string generateBatchPayload(object parameters, object ts, object recvWindow, object instruction)
     {
         string payload = "";
-        for (int i = 0; isLessThan(i, getArrayLength(parameters)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(parameters)); i++)
         {
             IDictionary<string, object> order = this.safeDict(parameters, i, new Dictionary<string, object>() {});
             Dictionary<string, object> sortedOrder = this.keysort(order);

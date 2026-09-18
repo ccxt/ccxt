@@ -780,7 +780,7 @@ public partial class bitfinex : ccxt.bitfinex
             if (isRaw)
             {
                 object deltas = getValue(message, 1);
-                for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(deltas)); i++)
                 {
                     object delta = getValue(deltas, i);
                     object delta2 = getValue(delta, 2);
@@ -794,7 +794,7 @@ public partial class bitfinex : ccxt.bitfinex
             } else
             {
                 object deltas = getValue(message, 1);
-                for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(deltas)); i++)
                 {
                     object delta = getValue(deltas, i);
                     object amount = this.safeNumber(delta, 2);
@@ -864,7 +864,7 @@ public partial class bitfinex : ccxt.bitfinex
         bool isRaw = ((prec == "R0"));
         int idToCheck = ((bool) isRaw) ? 2 : 0;
         // pepperoni pizza from bitfinex
-        for (int i = 0; i < depth; postFixIncrement(ref i))
+        for (int i = 0; i < depth; i++)
         {
             object bid = this.safeValue(bids, i);
             object ask = this.safeValue(asks, i);
@@ -991,7 +991,7 @@ public partial class bitfinex : ccxt.bitfinex
             data = new List<object> {this.safeValue(message, 2)};
         }
         Dictionary<string, object> updatedTypes = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(data); i++)
         {
             object rawBalance = getValue(data, i);
             string? currencyId = this.safeString(rawBalance, 1);
@@ -1008,7 +1008,7 @@ public partial class bitfinex : ccxt.bitfinex
             ((IDictionary<string,object>)updatedTypes)[(string)((string)balanceType)] = true;
         }
         List<object> updatesKeys = new List<object>(((IDictionary<string,object>)updatedTypes).Keys);
-        for (int i = 0; i < updatesKeys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < updatesKeys.Count; i++)
         {
             string? type = ((string)getValue(updatesKeys, i));
             string messageHash = ("balance:" + type);
@@ -1069,7 +1069,7 @@ public partial class bitfinex : ccxt.bitfinex
         ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)unSubChannel);
         List<object> messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
         List<object> subMessageHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});
-        for (int i = 0; i < messageHashes.Count; postFixIncrement(ref i))
+        for (int i = 0; i < messageHashes.Count; i++)
         {
             object messageHash = getValue(messageHashes, i);
             object subHash = getValue(subMessageHashes, i);
@@ -1267,7 +1267,7 @@ public partial class bitfinex : ccxt.bitfinex
             {
                 return;
             }
-            for (int i = 0; i < data.Count; postFixIncrement(ref i))
+            for (int i = 0; i < data.Count; i++)
             {
                 object value = getValue(data, i);
                 Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsOrder(value));
@@ -1285,7 +1285,7 @@ public partial class bitfinex : ccxt.bitfinex
         string name = "orders";
         (client as WebSocketClient).resolve(this.orders, name);
         List<object> keys = new List<object>(((IDictionary<string,object>)symbolIds).Keys);
-        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; i++)
         {
             string? symbol = ((string)getValue(keys, i));
             Dictionary<string, object> market = this.market(symbol);

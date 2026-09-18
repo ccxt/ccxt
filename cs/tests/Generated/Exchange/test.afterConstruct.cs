@@ -42,7 +42,7 @@ public partial class testMainClass : BaseTest
             List<object> networkCodes = new List<object>(((IDictionary<string,object>)getValue(exchange.options, "networks")).Keys);
             // 3) ensure that the same network-id is not assigned to multiple networkCodes
             List<object> collectedNetworkIds = new List<object>() {};
-            for (int i = 0; i < networkCodes.Count; postFixIncrement(ref i))
+            for (int i = 0; i < networkCodes.Count; i++)
             {
                 string? networkCode = ((string)getValue(networkCodes, i));
                 object networkId = getValue(getValue(exchange.options, "networks"), networkCode);
@@ -54,14 +54,14 @@ public partial class testMainClass : BaseTest
             }
             // 4) ensure that there are no same networkCode with different case (uppercase/lowercase)
             List<object> collectedNetworkCodes = new List<object>() {};
-            for (int i = 0; i < networkCodes.Count; postFixIncrement(ref i))
+            for (int i = 0; i < networkCodes.Count; i++)
             {
                 string networkCodeLower = ((string)(getValue(networkCodes, i))).ToLower();
                 assert(!isTrue(exchange.inArray(networkCodeLower, collectedNetworkCodes)), (add("exchange.options[\"networks\"] contains multiple networkCodes with the same networkCode \"", getValue(networkCodes, i)) + "\" in different uppercase/lowercase format"));
                 ((IList<object>)collectedNetworkCodes).Add(networkCodeLower);
             }
             // 5) test networkCodeToId & networkIdToCode
-            for (int i = 0; i < networkCodes.Count; postFixIncrement(ref i))
+            for (int i = 0; i < networkCodes.Count; i++)
             {
                 string? networkCode = ((string)getValue(networkCodes, i));
                 object networkId = getValue(getValue(exchange.options, "networks"), networkCode);
