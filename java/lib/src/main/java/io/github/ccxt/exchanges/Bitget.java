@@ -14692,7 +14692,7 @@ final Object finalMinNotional = minNotional;
         //     {"order_id":"513468410013679613","client_oid":null,"symbol":"ethusd","result":false,"err_code":"order_no_exist_error","err_msg":"订单不存在！"}
         //
         String message = this.safeString2(response, "err_msg", "msg");
-        Object feedback = ((this.id + " ") + body);
+        String feedback = ((this.id + " ") + body);
         Boolean nonEmptyMessage = ((!java.util.Objects.equals(message, null)) && (!java.util.Objects.equals(message, "")) && (!java.util.Objects.equals(message, "success")));
         if (Helpers.isTrue(nonEmptyMessage))
         {
@@ -14707,7 +14707,7 @@ final Object finalMinNotional = minNotional;
         }
         if (Helpers.isTrue(nonZeroErrorCode) || Helpers.isTrue(nonEmptyMessage))
         {
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         return null;
     }

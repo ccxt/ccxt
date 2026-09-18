@@ -4468,7 +4468,7 @@ public class Binance extends BinanceApi
                     var base = ((List<Object>) basequoteVariable).get(0);
                     var quote = ((List<Object>) basequoteVariable).get(1);
                     Object settle = (((java.util.Objects.equals(quote, "USD")))) ? base : quote;
-                    Object futuresSymbol = ((symbol + ":") + settle);
+                    String futuresSymbol = ((symbol + ":") + settle);
                     if ((!java.util.Objects.equals(this.markets, null)) && (((Map<?, ?>)this.markets).containsKey(futuresSymbol)))
                     {
                         return Helpers.GetValue(this.markets, futuresSymbol);
@@ -10040,7 +10040,7 @@ public class Binance extends BinanceApi
                 }
                 if (java.util.Objects.equals(since, null))
                 {
-                    Object oneWeek = ((((7L * 24L) * 60L) * 60L) * 1000L);
+                    Long oneWeek = ((((7L * 24L) * 60L) * 60L) * 1000L);
                     ((Map<String, Object>)request).put("startTime", Helpers.subtract(until, oneWeek));
                 }
             }
@@ -11450,7 +11450,7 @@ public class Binance extends BinanceApi
                 // The time between startTime and endTime cannot be longer than 7 days.
                 // The parameter fromId cannot be sent with startTime or endTime.
                 Long currentTimestamp = this.milliseconds();
-                Object oneWeek = ((((7L * 24L) * 60L) * 60L) * 1000L);
+                Long oneWeek = ((((7L * 24L) * 60L) * 60L) * 1000L);
                 if (Helpers.isGreaterThanOrEqual((Helpers.subtract(currentTimestamp, startTime)), oneWeek))
                 {
                     if ((java.util.Objects.equals(endTime, null)) && (java.util.Objects.equals(this.safeBool(market, "linear"), true)))
@@ -11503,7 +11503,7 @@ public class Binance extends BinanceApi
                     }
                     if (java.util.Objects.equals(since, null))
                     {
-                        Object oneWeek = ((((7L * 24L) * 60L) * 60L) * 1000L);
+                        Long oneWeek = ((((7L * 24L) * 60L) * 60L) * 1000L);
                         ((Map<String, Object>)request).put("startTime", Helpers.subtract(endTime, oneWeek));
                     }
                     response = (this.sapiGetEquityTradeHistory(this.extend(request, parameters))).join();
@@ -16433,14 +16433,14 @@ final Object finalMarket = market;
             {
                 throw new DDoSProtection(((this.id + " ") + body)) ;
             }
-            Object feedback = ((this.id + " ") + body);
+            String feedback = ((this.id + " ") + body);
             if (java.util.Objects.equals(message, "No need to change margin type."))
             {
-                throw new MarginModeAlreadySet((String)feedback) ;
+                throw new MarginModeAlreadySet(feedback) ;
             }
             this.throwExactlyMatchedException(this.getExceptionsByUrl(url, "exact"), error, feedback);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), error, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         if (!java.util.Objects.equals(success, true))
         {
