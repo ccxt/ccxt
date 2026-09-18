@@ -1063,7 +1063,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             method = this.safeValue(methods, channelName);
             if ((java.util.Objects.equals(method, null)) && (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(channelName, "candle"), 0)))
             {
-                method = Helpers.GetValue(methods, "candle");
+                method = methods.get("candle");
             }
         }
         if (!java.util.Objects.equals(method, null))

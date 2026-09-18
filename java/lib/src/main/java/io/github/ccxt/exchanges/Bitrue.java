@@ -3398,7 +3398,7 @@ public class Bitrue extends BitrueApi
                 Object networkCode = this.networkIdToCode(networkId, currencyCode);
                 if (!java.util.Objects.equals(networkCode, null))
                 {
-                    Helpers.addElementToObject(Helpers.GetValue(result, "networks"), networkCode, new HashMap<String, Object>() {{
+                    Helpers.addElementToObject(result.get("networks"), networkCode, new HashMap<String, Object>() {{
     put( "deposit", new HashMap<String, Object>() {{
         put( "fee", null );
         put( "percentage", null );
@@ -3411,8 +3411,8 @@ public class Bitrue extends BitrueApi
                 }
                 if (Helpers.isEqual(chainDetailLength, 1))
                 {
-                    Helpers.addElementToObject(Helpers.GetValue(result, "withdraw"), "fee", this.safeNumber(chainDetail, "withdrawFee"));
-                    Helpers.addElementToObject(Helpers.GetValue(result, "withdraw"), "percentage", false);
+                    Helpers.addElementToObject(result.get("withdraw"), "fee", this.safeNumber(chainDetail, "withdrawFee"));
+                    Helpers.addElementToObject(result.get("withdraw"), "percentage", false);
                 }
             }
         }

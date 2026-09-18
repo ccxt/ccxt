@@ -971,22 +971,22 @@ public class Tokocrypto extends TokocryptoApi
                 if (((Map<?, ?>)filtersByType).containsKey("PRICE_FILTER"))
                 {
                     Object filter = this.safeDict(filtersByType, "PRICE_FILTER", new HashMap<String, Object>() {{}});
-                    Helpers.addElementToObject(Helpers.GetValue(entry, "precision"), "price", this.safeNumber(filter, "tickSize"));
+                    Helpers.addElementToObject(entry.get("precision"), "price", this.safeNumber(filter, "tickSize"));
                     // PRICE_FILTER reports zero values for maxPrice
                     // since they updated filter types in November 2018
                     // https://github.com/ccxt/ccxt/issues/4286
                     // therefore limits['price']['max'] doesn't have any meaningful value except undefined
-                    Helpers.addElementToObject(Helpers.GetValue(entry, "limits"), "price", new HashMap<String, Object>() {{
+                    Helpers.addElementToObject(entry.get("limits"), "price", new HashMap<String, Object>() {{
         put( "min", Tokocrypto.this.safeNumber(filter, "minPrice") );
         put( "max", Tokocrypto.this.safeNumber(filter, "maxPrice") );
     }});
-                    Helpers.addElementToObject(Helpers.GetValue(entry, "precision"), "price", ((Map<String, Object>)filter).get("tickSize"));
+                    Helpers.addElementToObject(entry.get("precision"), "price", ((Map<String, Object>)filter).get("tickSize"));
                 }
                 if (((Map<?, ?>)filtersByType).containsKey("LOT_SIZE"))
                 {
                     Object filter = this.safeValue(filtersByType, "LOT_SIZE", new HashMap<String, Object>() {{}});
-                    Helpers.addElementToObject(Helpers.GetValue(entry, "precision"), "amount", this.safeNumber(filter, "stepSize"));
-                    Helpers.addElementToObject(Helpers.GetValue(entry, "limits"), "amount", new HashMap<String, Object>() {{
+                    Helpers.addElementToObject(entry.get("precision"), "amount", this.safeNumber(filter, "stepSize"));
+                    Helpers.addElementToObject(entry.get("limits"), "amount", new HashMap<String, Object>() {{
         put( "min", Tokocrypto.this.safeNumber(filter, "minQty") );
         put( "max", Tokocrypto.this.safeNumber(filter, "maxQty") );
     }});
@@ -994,7 +994,7 @@ public class Tokocrypto extends TokocryptoApi
                 if (((Map<?, ?>)filtersByType).containsKey("MARKET_LOT_SIZE"))
                 {
                     Object filter = this.safeValue(filtersByType, "MARKET_LOT_SIZE", new HashMap<String, Object>() {{}});
-                    Helpers.addElementToObject(Helpers.GetValue(entry, "limits"), "market", new HashMap<String, Object>() {{
+                    Helpers.addElementToObject(entry.get("limits"), "market", new HashMap<String, Object>() {{
         put( "min", Tokocrypto.this.safeNumber(filter, "minQty") );
         put( "max", Tokocrypto.this.safeNumber(filter, "maxQty") );
     }});
@@ -1002,7 +1002,7 @@ public class Tokocrypto extends TokocryptoApi
                 if (((Map<?, ?>)filtersByType).containsKey("MIN_NOTIONAL"))
                 {
                     Object filter = this.safeValue(filtersByType, "MIN_NOTIONAL", new HashMap<String, Object>() {{}});
-                    Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(entry, "limits"), "cost"), "min", this.safeNumber2(filter, "minNotional", "notional"));
+                    Helpers.addElementToObject(Helpers.GetValue(entry.get("limits"), "cost"), "min", this.safeNumber2(filter, "minNotional", "notional"));
                 }
                 ((List<Object>)result).add(entry);
             }

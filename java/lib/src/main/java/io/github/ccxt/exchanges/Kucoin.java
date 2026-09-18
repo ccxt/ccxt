@@ -3223,7 +3223,7 @@ public class Kucoin extends KucoinApi
                 Object networkCodeNew = this.networkIdToCode(chainId, this.safeString(currency, "code"));
                 if (!java.util.Objects.equals(networkCodeNew, null))
                 {
-                    Helpers.addElementToObject(Helpers.GetValue(resultNew, "networks"), networkCodeNew, new HashMap<String, Object>() {{
+                    Helpers.addElementToObject(resultNew.get("networks"), networkCodeNew, new HashMap<String, Object>() {{
     put( "withdraw", new HashMap<String, Object>() {{
         put( "fee", Kucoin.this.safeNumber2(chain, "withdrawalMinFee", "withdrawMinFee") );
         put( "percentage", false );
@@ -3256,7 +3256,7 @@ public class Kucoin extends KucoinApi
         Object networkCode = this.networkIdToCode(networkId, ((Map<String, Object>)currency).get("code"));
         if (!java.util.Objects.equals(networkCode, null))
         {
-            Helpers.addElementToObject(Helpers.GetValue(result, "networks"), networkCode, new HashMap<String, Object>() {{
+            Helpers.addElementToObject(result.get("networks"), networkCode, new HashMap<String, Object>() {{
     put( "withdraw", minWithdrawFee );
     put( "deposit", new HashMap<String, Object>() {{
         put( "fee", null );

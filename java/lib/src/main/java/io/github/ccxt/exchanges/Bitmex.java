@@ -3891,7 +3891,7 @@ public class Bitmex extends BitmexApi
                 Object withdrawalFee = this.parseNumber(Precise.stringMul(withdrawalFeeId, precision));
                 if (!java.util.Objects.equals(networkCode, null))
                 {
-                    Helpers.addElementToObject(Helpers.GetValue(result, "networks"), networkCode, new HashMap<String, Object>() {{
+                    Helpers.addElementToObject(result.get("networks"), networkCode, new HashMap<String, Object>() {{
     put( "deposit", new HashMap<String, Object>() {{
         put( "fee", null );
         put( "percentage", null );
@@ -3904,8 +3904,8 @@ public class Bitmex extends BitmexApi
                 }
                 if (Helpers.isEqual(networksLength, 1))
                 {
-                    Helpers.addElementToObject(Helpers.GetValue(result, "withdraw"), "fee", withdrawalFee);
-                    Helpers.addElementToObject(Helpers.GetValue(result, "withdraw"), "percentage", false);
+                    Helpers.addElementToObject(result.get("withdraw"), "fee", withdrawalFee);
+                    Helpers.addElementToObject(result.get("withdraw"), "percentage", false);
                 }
             }
         }

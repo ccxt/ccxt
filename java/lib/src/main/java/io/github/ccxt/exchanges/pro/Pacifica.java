@@ -1766,7 +1766,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             put( "id", requestId );
             put( "params", new HashMap<String, Object>() {{}} );
         }};
-        Helpers.addElementToObject(Helpers.GetValue(payload, "params"), operationType, request);
+        Helpers.addElementToObject(payload.get("params"), operationType, request);
         return payload;
     }
 

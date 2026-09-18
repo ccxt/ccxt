@@ -2693,7 +2693,7 @@ public class Grvt extends GrvtApi
                 final Object finalSelectedType = selectedType;
                 final Object finalSelectedPrice = selectedPrice;
                 final Object finalParameters = parameters;
-                Helpers.addElementToObject(Helpers.GetValue(orderRequest, "metadata"), "trigger", new HashMap<String, Object>() {{
+                Helpers.addElementToObject(orderRequest.get("metadata"), "trigger", new HashMap<String, Object>() {{
         put( "trigger_type", finalSelectedType );
         put( "tpsl", new HashMap<String, Object>() {{
             put( "trigger_by", triggerPriceType );

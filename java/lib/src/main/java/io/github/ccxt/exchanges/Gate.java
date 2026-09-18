@@ -3733,7 +3733,7 @@ public class Gate extends GateApi
                 if (!java.util.Objects.equals(networkCode, null))
                 {
                     final Object finalWithdrawFixOnChains = withdrawFixOnChains;
-                    Helpers.addElementToObject(Helpers.GetValue(result, "networks"), networkCode, new HashMap<String, Object>() {{
+                    Helpers.addElementToObject(result.get("networks"), networkCode, new HashMap<String, Object>() {{
     put( "withdraw", new HashMap<String, Object>() {{
         put( "fee", Gate.this.parseNumber(Helpers.GetValue(finalWithdrawFixOnChains, chainKey)) );
         put( "percentage", false );
