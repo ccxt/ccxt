@@ -383,6 +383,15 @@ inline bool operator== (const char* a, const InternedKey& b) noexcept {
 // dict — insertion-ordered string-keyed map with O(1) lookup
 // ---------------------------------------------------------------------------
 
+// 12-byte packed probe-table slot: 25% smaller than pair<size_t, size_t>
+// (the markets dict's resident index is ~10MB — this trims ~2.5MB).
+// Unaligned 64-bit loads are effectively free on x86/ARM64 for this access
+// pattern (one probe per lookup, cache-resident).
+struct __attribute__ ((packed)) indexSlot {
+    std::uint64_t h;
+    std::uint32_t e;
+};
+
 class OrderedMap {
 public:
     using entry = std::pair<InternedKey, any>;
@@ -406,7 +415,7 @@ public:
     // load factor <= 0.5. Node-free: one contiguous allocation per dict, no
     // per-key malloc, no pointer chasing. indexDirty: setNew() appends without
     // maintaining the table; the first lookup rebuilds it.
-    std::vector<std::pair<std::size_t, std::size_t>> index;
+    std::vector<indexSlot> index;
     mutable bool indexDirty = false;
 
     bool linearMode () const { return this->entries.size () <= LINEAR_THRESHOLD; }
@@ -419,11 +428,11 @@ public:
         const std::size_t mask = this->index.size () - 1;
         std::size_t i = h & mask;
         for (;;) {
-            const std::pair<std::size_t, std::size_t>& slot = this->index[i];
-            if (slot.first == EMPTY_HASH) return NPOS;
-            if (slot.first != TOMB_HASH && slot.first == h
-                && this->entries[slot.second].first == key) {
-                return slot.second;
+            const indexSlot& slot = this->index[i];
+            if (slot.h == EMPTY_HASH) return NPOS;
+            if (slot.h != TOMB_HASH && slot.h == h
+                && this->entries[slot.e].first == key) {
+                return slot.e;
             }
             i = (i + 1) & mask;
         }
@@ -539,14 +548,16 @@ private:
     void insertSlot (std::size_t h, std::size_t e) {
         const std::size_t mask = this->index.size () - 1;
         std::size_t i = h & mask;
-        while (this->index[i].first != EMPTY_HASH && this->index[i].first != TOMB_HASH) {
+        while (this->index[i].h != EMPTY_HASH && this->index[i].h != TOMB_HASH) {
             i = (i + 1) & mask;
         }
-        this->index[i] = { h, e };   // reuses tombstones
+        this->index[i] = { static_cast<std::uint64_t> (h), static_cast<std::uint32_t> (e) };
+        // reuses tombstones
     }
 
     void buildIndex () {
-        this->index.assign (slotCount (this->entries.size ()), { EMPTY_HASH, 0 });
+        this->index.assign (slotCount (this->entries.size ()),
+                            { static_cast<std::uint64_t> (EMPTY_HASH), 0 });
         const std::size_t n = this->entries.size ();
         for (std::size_t e = 0; e < n; e++) {
             this->insertSlot (std::hash<std::string_view> {} (this->entries[e].first.view ()), e);
