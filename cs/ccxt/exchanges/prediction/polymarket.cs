@@ -1027,17 +1027,17 @@ public partial class polymarket : PredictionExchange
             int? parsedOutcomesLength = null;
             if ((parsedOutcomes != null))
             {
-                parsedOutcomesLength = getArrayLength((IList<object>)(parsedOutcomes));
+                parsedOutcomesLength = (((IList<object>)(parsedOutcomes))?.Count ?? 0);
             }
             int? parsedTokenIdsLength = null;
             if ((parsedTokenIds != null))
             {
-                parsedTokenIdsLength = getArrayLength((IList<object>)(parsedTokenIds));
+                parsedTokenIdsLength = (((IList<object>)(parsedTokenIds))?.Count ?? 0);
             }
             int? parsedPricesLength = null;
             if ((parsedPrices != null))
             {
-                parsedPricesLength = getArrayLength((IList<object>)(parsedPrices));
+                parsedPricesLength = (((IList<object>)(parsedPrices))?.Count ?? 0);
             }
             if (((parsedOutcomes != null)) && (!isEqual(parsedOutcomesLength, null)))
             {

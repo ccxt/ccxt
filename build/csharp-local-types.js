@@ -6792,6 +6792,71 @@ function installCsharpElementAccessCastSkips (csharp) {
     csharp._elementAccessCastSkipsPatched = true;
 }
 
+// ===== the printer's native `.length` (getArrayLength -> Count/Length) =====
+//
+// `x.length` prints `getArrayLength(x)`. Once the declaration the printer emits for x carries a
+// C# collection / string type, the receiver's own member IS the measurement the helper makes
+// (`(x?.Count ?? 0)` is its null -> 0 branch), and the ast printer asks this hook for that type
+// (src/csharpTranspiler.ts #csharpLengthReceiverType). The post-print pass nativeListHelperCalls
+// (build/csharpTranspiler.ts) already rewrites every site it can name in the tiers it scans
+// (exchange trees, base methods, prediction), so this hook answers ONLY for the receivers that
+// pass cannot see: the generated TEST tiers are transpiled without it. A receiver outside those
+// tiers keeps the helper here and the pass converts it, so the emitted text of the scanned tiers
+// is unchanged. The answer is the type the PRINTED declaration carries (getCSharpLocalType),
+// which is what makes the member read compile; the printer still filters it to the types that
+// carry Count/Length.
+const CSHARP_POST_PASS_TIER = /(?:^|\/)ts\/src\//;
+const CSHARP_TEST_TIER = /(?:^|\/)ts\/src\/(?:pro\/|prediction\/)?test\//;
+
+function lengthReceiverType (csharp, node) {
+    if (node?.kind !== ts.SyntaxKind.Identifier) {
+        return undefined; // only a local read has a declaration this hook can name
+    }
+    const fileName = (node.getSourceFile?.()?.fileName ?? '').replace (/\\/g, '/');
+    if ((fileName === '') || isPostPassTier (fileName)) {
+        return undefined; // the post-print pass owns this site
+    }
+    const reference = resolveReference (csharp, node);
+    if (reference?.kind !== ts.SyntaxKind.VariableDeclaration) {
+        return undefined;
+    }
+    const type = printedLocalType (csharp, reference);
+    return (typeof type === 'string') ? type : undefined;
+}
+
+// the type the emitted declaration carries: the printer's own answer is final, and when the
+// printer printed the `object` token the classifier's rewrite (installCsharpLocalTypes) is what
+// the line actually carries -- the same pair the wrapper's prefix test decides on
+function printedLocalType (csharp, reference) {
+    if (typeof csharp.getCSharpLocalType !== 'function') {
+        return undefined;
+    }
+    const printerType = csharp.getCSharpLocalType (reference);
+    if (printerType !== csharp.VAR_TOKEN) {
+        return printerType;
+    }
+    if (reference.initializer?.kind === ts.SyntaxKind.AwaitExpression) {
+        return undefined; // the wrapper keeps `object` when the printed value is not the awaited call
+    }
+    const info = csharpLocalDeclaration (csharp, reference);
+    return (info === undefined) ? undefined : info.type;
+}
+
+// the post-print pass scans the by-path tiers (ts/src/<id>.ts, ts/src/pro/..., ts/src/base/...,
+// ts/src/prediction/...); the generated tests are transpiled by-content (the in-memory dummy
+// file name) or from ts/src/**/test/, and never reach it
+function isPostPassTier (fileName) {
+    return CSHARP_POST_PASS_TIER.test (fileName) && !CSHARP_TEST_TIER.test (fileName);
+}
+
+function installCsharpNativeLengths (csharp) {
+    if (csharp._nativeLengthsPatched) {
+        return;
+    }
+    csharp.csharpLengthReceiverType = (node) => lengthReceiverType (csharp, node);
+    csharp._nativeLengthsPatched = true;
+}
+
 // ===== S22: dictionary index-write cast elision =====
 //
 // `((IDictionary<string,object>)x)["k"] = v` — the interface cast the printer wraps around every
@@ -6967,6 +7032,7 @@ export function installCsharpLocalTypes (transpiler) {
     installRedundantAddCasts (csharp);
     installCsharpListCastSkips (csharp);
     installCsharpElementAccessCastSkips (csharp);
+    installCsharpNativeLengths (csharp);
     installDestructuredCasts (csharp);
     installProvenStringCastDrops (csharp);
     // the printer's destructuring holder (csharpDestructuringTempType): the ccxt proof for the

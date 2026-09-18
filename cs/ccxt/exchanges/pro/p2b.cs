@@ -372,7 +372,7 @@ public partial class p2b : ccxt.p2b
             tradesArray = new ArrayCache(tradesLimit);
             ((IDictionary<string,object>)this.trades)[(string)((string)symbol)] = tradesArray;
         }
-        for (int i = 0; isLessThan(i, getArrayLength((IList<object>)(trades))); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, (((IList<object>)(trades))?.Count ?? 0)); postFixIncrement(ref i))
         {
             object item = getValue((IList<object>)(trades), i);
             Dictionary<string, object> trade = this.parseTrade(item, market);

@@ -131,12 +131,12 @@ public partial class testMainClass
         {
             List<object> testFileNames = new List<object>(((IDictionary<string,object>)this.testFiles).Keys);
             List<object> possibleMethodNames = ((string)methodArgv).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>(); // i.e. `test.ts binance fetchBalance,fetchDeposits`
-            if (isGreaterThanOrEqual(getArrayLength(possibleMethodNames), 1))
+            if (isGreaterThanOrEqual((possibleMethodNames?.Count ?? 0), 1))
             {
                 for (int i = 0; isLessThan(i, testFileNames.Count); postFixIncrement(ref i))
                 {
                     string? testFileName = ((string)getValue(testFileNames, i));
-                    for (int j = 0; isLessThan(j, getArrayLength(possibleMethodNames)); postFixIncrement(ref j))
+                    for (int j = 0; isLessThan(j, (possibleMethodNames?.Count ?? 0)); postFixIncrement(ref j))
                     {
                         string? methodName = ((string)getValue(possibleMethodNames, j));
                         methodName = methodName.Replace((string)"()", (string)"");
@@ -353,7 +353,7 @@ public partial class testMainClass
         object finalSkips = new Dictionary<string, object>() {};
         // check the exact method (i.e. `fetchTrades`) and language-specific (i.e. `fetchTrades.php`)
         List<object> methodNames = new List<object>() {methodName, add(add(methodName, "."), this.ext)};
-        for (int i = 0; isLessThan(i, getArrayLength(methodNames)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, (methodNames?.Count ?? 0)); postFixIncrement(ref i))
         {
             object mName = getValue(methodNames, i);
             if (inOp(this.skippedMethods, mName))
@@ -619,7 +619,7 @@ public partial class testMainClass
             }
         }
         string testPrefixString = isTrue(isPublicTest) ? "PUBLIC_TESTS" : "PRIVATE_TESTS";
-        if (getArrayLength(failedMethods) > 0)
+        if ((failedMethods?.Count ?? 0) > 0)
         {
             string errorsString = String.Join(", ", ((IList<object>)failedMethods).ToArray());
             dump("[TEST_FAILURE]", exchange.id, testPrefixString, add("Failed methods : ", errorsString));
@@ -722,7 +722,7 @@ public partial class testMainClass
         // if symbols wasn't found from above hardcoded list, then try to locate any symbol which has our target hardcoded 'base' code
         if ((symbol == null))
         {
-            for (int i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, (codes?.Count ?? 0)); postFixIncrement(ref i))
             {
                 string? currentCode = ((string)getValue(codes, i));
                 object marketsArrayForCurrentCode = exchange.filterBy(currentTypeMarkets, "base", currentCode);
@@ -1130,7 +1130,7 @@ public partial class testMainClass
                 {
                     ((IList<object>)scopesToTest).Add(getValue(extraScopes, si));
                 }
-                int scopesToTestLength = getArrayLength(scopesToTest);
+                int scopesToTestLength = (scopesToTest?.Count ?? 0);
                 for (int sj = 0; isLessThan(sj, scopesToTestLength); postFixIncrement(ref sj))
                 {
                     object scope = getValue(scopesToTest, sj);
@@ -2575,7 +2575,7 @@ public partial class testMainClass
                     ((IList<object>)eventMarkets).Add(evMarket);
                 }
             }
-            if (getArrayLength(eventMarkets) > 0)
+            if ((eventMarkets?.Count ?? 0) > 0)
             {
                 exchange.setMarkets(eventMarkets);
             }

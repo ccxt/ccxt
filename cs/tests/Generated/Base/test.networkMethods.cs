@@ -120,10 +120,10 @@ public partial class BaseTest
             object defaultNetworkCodeReplacements = getValue(exchange.options, "defaultNetworkCodeReplacements");
             List<object> allNetworkCodes = new List<object>() {"ETH", "ERC20", "TRON", "TRX", "TRC20", "SOL", "BSC", "BEP20", "ARBITRUM", "AVAXC", "POL", "BASE", "SUI", "OPTIMISM", "OP", "NEAR", "CRO", "CRONOS", "BTC", "APT", "SCR", "KAVA", "TON", "Cardano", "ADA", "HECO", "HT", "MNT", "ALGO", "RUNE", "OSMO", "CELO", "HBAR", "FTM", "zkSync", "EraZK", "KLAY", "ACA", "STX", "XTZ", "NEO", "METIS"};
             List<object> allCurrencyCodes = new List<object>() {"Bitcoin", "BTC", "Ethereum", "ETH", "Tether", "USDT", "BNB", "BNB", "XRP", "XRP", "USDC", "USDC", "Solana", "SOL", "TRON", "TRX", "Dogecoin", "DOGE", "Hyperliquid", "HYPE", "Bitcoin Cash", "BCH", "Cardano", "ADA", "LEO", "Chainlink", "LINK", "Ethena", "USDe", "USDe", "Monero", "XMR", "Stellar", "XLM", "Dai", "DAI", "Litecoin", "LTC", "PayPal", "USD", "PYUSD", "Hedera", "HBAR", "Avalanche", "AVAX", "Zcash", "ZEC", "Bittensor", "TAO", "Sui", "SUI", "Shiba Inu", "SHIB", "Cronos", "CRO", "Toncoin", "TON", "WLFI", "Tether", "Gold", "XAUt", "", "PAX", "Gold", "PAXG", "Mantle", "MNT", "Uniswap", "UNI", "Polkadot", "DOT", "USDG", "OKB", "OKB", "Aster", "ASTER", "Aave", "AAVE", "NEAR", "NEAR", "Ripple", "USD", "RLUSD", "Polygon", "POL"};
-            for (int i = 0; isLessThan(i, getArrayLength(allNetworkCodes)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, (allNetworkCodes?.Count ?? 0)); postFixIncrement(ref i))
             {
                 string? randomNetworkCode = ((string)getValue(allNetworkCodes, i));
-                for (int j = 0; isLessThan(j, getArrayLength(allCurrencyCodes)); postFixIncrement(ref j))
+                for (int j = 0; isLessThan(j, (allCurrencyCodes?.Count ?? 0)); postFixIncrement(ref j))
                 {
                     string? randomCurrencyCode = ((string)getValue(allCurrencyCodes, j));
                     string? result = exchange.networkIdToCode(randomNetworkCode, randomCurrencyCode);
