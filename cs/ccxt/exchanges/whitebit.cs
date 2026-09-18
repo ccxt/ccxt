@@ -780,7 +780,7 @@ public partial class whitebit : Exchange
     {
         string? id = this.safeString(market, "name");
         string? baseId = this.safeString(market, "stock");
-        object quoteId = this.safeString(market, "money");
+        string? quoteId = this.safeString(market, "money");
         quoteId = ((bool) (isEqual(quoteId, "PERP"))) ? "USDT" : quoteId;
         object bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
@@ -789,7 +789,7 @@ public partial class whitebit : Exchange
         string? typeId = this.safeString(market, "type");
         object type = null;
         string? settle = null;
-        object settleId = null;
+        string? settleId = null;
         object symbol = add(add(bs, "/"), quote);
         bool swap = ((typeId == "futures")) || ((typeId == "tradfiFutures"));
         bool margin = (isEqual(isCollateral, true)) && !swap;

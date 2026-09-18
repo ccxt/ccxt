@@ -1466,7 +1466,7 @@ public partial class lighter : Exchange
         {
             object market = getValue(markets, i);
             string? id = this.safeString(market, "market_id");
-            object type = this.safeString(market, "market_type");
+            string? type = this.safeString(market, "market_type");
             type = ((bool) (isEqual(type, "perp"))) ? "swap" : type;
             object baseId = this.safeString(market, "symbol");
             if ((baseId != null) && (getIndexOf(baseId, "/") != -1))

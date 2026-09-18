@@ -1776,7 +1776,7 @@ public partial class woofipro : Exchange
         //
         string? marketId = this.safeString(income, "symbol");
         string? symbol = this.safeSymbol(marketId, market);
-        object amount = this.safeString(income, "funding_fee");
+        string? amount = this.safeString(income, "funding_fee");
         string? code = this.safeCurrencyCode("USDC");
         Int64? timestamp = this.safeInteger(income, "updated_time");
         double? rate = this.safeNumber(income, "funding_rate");
