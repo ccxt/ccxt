@@ -9726,7 +9726,7 @@ func (this *Binance) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	params = GetValue(stockparamsVariable, 1)
 	if symbol != nil {
 		market = this.Market(symbol)
-		stock = DerefScalar(this.SafeBool(market, "stock", false))
+		stock = this.SafeBool(market, "stock", false)
 		if !IsEqual(stock, true) {
 			request["symbol"] = GetValue(market, "id")
 		}
@@ -9897,7 +9897,7 @@ func (this *Binance) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(stockparamsVariable, 1)
 	if symbol != nil {
 		market = this.Market(symbol)
-		stock = DerefScalar(this.SafeBool(market, "stock", false))
+		stock = this.SafeBool(market, "stock", false)
 		request["symbol"] = GetValue(market, "id")
 	} else if !EvalTruthy(stock) {
 		panic(ArgumentsRequired(this.Id + " fetchOrders() requires a symbol argument"))
@@ -10295,7 +10295,7 @@ func (this *Binance) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(stockparamsVariable, 1)
 	if symbol != nil {
 		market = this.Market(symbol)
-		stock = DerefScalar(this.SafeBool(market, "stock", false))
+		stock = this.SafeBool(market, "stock", false)
 		if !IsEqual(stock, true) {
 			request["symbol"] = GetValue(market, "id")
 		}
@@ -10697,7 +10697,7 @@ func (this *Binance) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 	params = GetValue(stockparamsVariable, 1)
 	if symbol != nil {
 		market = this.Market(symbol)
-		stock = DerefScalar(this.SafeBool(market, "stock", false))
+		stock = this.SafeBool(market, "stock", false)
 	} else if !EvalTruthy(stock) {
 		panic(ArgumentsRequired(this.Id + " fetchClosedOrders() requires a symbol argument"))
 	}
@@ -10761,7 +10761,7 @@ func (this *Binance) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) a
 	params = GetValue(stockparamsVariable, 1)
 	if symbol != nil {
 		market = this.Market(symbol)
-		stock = DerefScalar(this.SafeBool(market, "stock", false))
+		stock = this.SafeBool(market, "stock", false)
 	} else if !EvalTruthy(stock) {
 		panic(ArgumentsRequired(this.Id + " fetchCanceledOrders() requires a symbol argument"))
 	}
@@ -10825,7 +10825,7 @@ func (this *Binance) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs 
 	params = GetValue(stockparamsVariable, 1)
 	if symbol != nil {
 		market = this.Market(symbol)
-		stock = DerefScalar(this.SafeBool(market, "stock", false))
+		stock = this.SafeBool(market, "stock", false)
 	} else if !EvalTruthy(stock) {
 		panic(ArgumentsRequired(this.Id + " fetchCanceledAndClosedOrders() requires a symbol argument"))
 	}
@@ -10894,7 +10894,7 @@ func (this *Binance) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	params = GetValue(stockparamsVariable, 1)
 	if symbol != nil {
 		market = this.Market(symbol)
-		stock = DerefScalar(this.SafeBool(market, "stock", false))
+		stock = this.SafeBool(market, "stock", false)
 		if !IsEqual(stock, true) {
 			request["symbol"] = GetValue(market, "id")
 		}
@@ -11073,7 +11073,7 @@ func (this *Binance) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(stockparamsVariable, 1)
 	if symbol != nil {
 		market = this.Market(symbol)
-		stock = DerefScalar(this.SafeBool(market, "stock", false))
+		stock = this.SafeBool(market, "stock", false)
 		if !IsEqual(stock, true) {
 			request["symbol"] = GetValue(market, "id")
 		}
@@ -11399,7 +11399,7 @@ func (this *Binance) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(stockparamsVariable, 1)
 	if symbol != nil {
 		market = this.Market(symbol)
-		stock = DerefScalar(this.SafeBool(market, "stock", false))
+		stock = this.SafeBool(market, "stock", false)
 		request["symbol"] = GetValue(market, "id")
 	}
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
@@ -13933,7 +13933,7 @@ func (this *Binance) ParseAccountPosition(position any, optionalArgs ...any) any
 	if IsEqual(timestamp, 0) {
 		timestamp = nil
 	}
-	var isolated any = DerefScalar(this.SafeBool(position, "isolated"))
+	var isolated any = this.SafeBool(position, "isolated")
 	if IsEqual(isolated, nil) {
 		var isolatedMarginRaw *string = this.SafeString(position, "isolatedMargin")
 		isolated = !Precise.StringEq(isolatedMarginRaw, "0")
@@ -14771,7 +14771,7 @@ func (this *Binance) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		var options any = this.SafeDict(this.Options, "fetchPositions")
 		if IsEqual(options, nil) {
 			// if undefined, for backward compatibility, check if it is a string
-			defaultMethod = DerefScalar(this.SafeString(this.Options, "fetchPositions", "positionRisk"))
+			defaultMethod = this.SafeString(this.Options, "fetchPositions", "positionRisk")
 		} else {
 			// if it is a dict, then it doesn't seem to have any 'method', so set default value
 			defaultMethod = "positionRisk"

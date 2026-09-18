@@ -9509,10 +9509,10 @@ func (this *Bitget) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 			}
 			return defaultType
 		}()
-		typeVar = DerefScalar(this.SafeString(params, "type", marketType))
+		typeVar = this.SafeString(params, "type", marketType)
 	} else {
 		var defaultType *string = this.SafeString2(this.Options, "fetchOpenOrders", "defaultType", "spot")
-		typeVar = DerefScalar(this.SafeString(params, "type", defaultType))
+		typeVar = this.SafeString(params, "type", defaultType)
 	}
 	var paginate any = false
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenOrders", "paginate")
