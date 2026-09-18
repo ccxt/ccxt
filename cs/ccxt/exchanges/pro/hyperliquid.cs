@@ -1499,7 +1499,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         userAddress = this.safeString(userAddressResult, 0);
         parameters = this.safeDict(userAddressResult, 1, parameters);
         IDictionary<string, object> market = null;
-        object messageHash = "order";
+        string messageHash = "order";
         if (!isEqual(symbolVar, null))
         {
             market = this.market(symbolVar);

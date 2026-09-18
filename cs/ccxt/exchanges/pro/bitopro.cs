@@ -223,7 +223,7 @@ public partial class bitopro : ccxt.bitopro
         {
             await this.loadMarkets();
         }
-        object messageHash = "USER_TRADE";
+        string messageHash = "USER_TRADE";
         if (!isEqual(symbol, null))
         {
             Dictionary<string, object> market = this.market(symbol);

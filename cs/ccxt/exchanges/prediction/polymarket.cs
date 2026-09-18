@@ -751,14 +751,14 @@ public partial class polymarket : PredictionExchange
         string lower = ((string)tag).ToLower();
         string allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
         object chars = this.stringToCharsArray(lower);
-        object slug = "";
+        string slug = "";
         bool pendingSep = false;
         for (int i = 0; isLessThan(i, getArrayLength(chars)); postFixIncrement(ref i))
         {
             string? ch = ((string)getValue(chars, i));
             if (getIndexOf(allowed, ch) >= 0)
             {
-                if (pendingSep && (!isEqual(slug, "")))
+                if (pendingSep && (slug != ""))
                 {
                     slug = add(slug, "-");
                 }
@@ -769,12 +769,12 @@ public partial class polymarket : PredictionExchange
                 pendingSep = true;
             }
         }
-        if (isEqual(slug, ""))
+        if (slug == "")
         {
             // a tag with no alphanumerics at all — pass it through so gamma just returns no match
             return lower;
         }
-        return ((string?)((object)(slug)));
+        return slug;
     }
 
     /**
@@ -3424,7 +3424,7 @@ public partial class polymarket : PredictionExchange
         object addrChars = this.stringToCharsArray(cleaned);
         object hashChars = this.stringToCharsArray(hashHex);
         string upperNibbles = "89abcdef";
-        object result = "";
+        string result = "";
         for (int i = 0; isLessThan(i, getArrayLength(addrChars)); postFixIncrement(ref i))
         {
             string? ch = ((string)getValue(addrChars, i));

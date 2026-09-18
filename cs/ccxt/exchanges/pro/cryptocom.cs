@@ -532,7 +532,7 @@ public partial class cryptocom : ccxt.cryptocom
             market = this.market(symbolVar);
             symbolVar = GetValue(market, "symbol");
         }
-        object messageHash = "user.trade";
+        string messageHash = "user.trade";
         messageHash = ((market != null)) ? (add(add(messageHash, "."), GetValue(market, "id"))) : messageHash;
         object trades = await this.watchPrivateSubscribe(messageHash, parameters);
         if (isTrue(this.newUpdates))
@@ -957,7 +957,7 @@ public partial class cryptocom : ccxt.cryptocom
             market = this.market(symbolVar);
             symbolVar = GetValue(market, "symbol");
         }
-        object messageHash = "user.order";
+        string messageHash = "user.order";
         messageHash = ((market != null)) ? (add(add(messageHash, "."), GetValue(market, "id"))) : messageHash;
         object orders = await this.watchPrivateSubscribe(messageHash, parameters);
         if (isTrue(this.newUpdates))

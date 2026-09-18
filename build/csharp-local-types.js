@@ -4429,8 +4429,12 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
                         // local, so its type can only be proven against the declaration being
                         // checked (see the self-concat / self-omit sections).
                         const selfConcat = (csharpType === 'string') && (selfConcatWriteType (csharp, context, declaration, parent.right) === 'string');
+                        // U21: the same self-read shape where a sibling leaf is unnameable
+                        // but the left spine still selects add(string, …) (see
+                        // stringAccumulatorWriteType)
+                        const selfStringWrite = (csharpType === 'string') && isStringLiteralInit (declaration) && (stringAccumulatorWriteType (csharp, context, declaration, parent.right) === 'string');
                         const selfOmit = (csharpType === 'Dictionary<string, object>') && (selfOmitWriteType (csharp, context, declaration, parent.right) === 'Dictionary<string, object>');
-                        if (!selfConcat && !selfOmit) {
+                        if (!selfConcat && !selfStringWrite && !selfOmit) {
                             return false;
                         }
                     }
@@ -4656,6 +4660,108 @@ function selfConcatWriteType (csharp, context, declaration, value) {
     const state = { selfRead: false };
     const type = selfConcatNodeType (csharp, context, declaration, node, state);
     return (type === 'string' && state.selfRead) ? 'string' : undefined;
+}
+
+// ==== U21: the string accumulator WRITE proof for a string-literal initialiser ====
+//
+// `let x = 'lit'; … x = <write>` — the declaration's own box is the literal's non-null
+// `string`, so the join's running type is a non-null string; a later write that keeps the
+// box must hand back a string too. This family proves the write shapes the declaration
+// position already accepts (add with a string LEFT operand, a conditional over such values)
+// where the value reads the local being classified — the one read the initialiser-position
+// proof cannot resolve (classifyInProgress). The value's C# static type is decided by the
+// overload its own LEFT operand selects, so the emitted add(...) tree must be walked down
+// its left spine: a non-null string leaf there makes every enclosing add(string, …) return
+// a `string` (never null), which is exactly the type the declaration names.
+//
+//   x = x + ':' + symbol        add(add(x, ":"), symbol): the inner add's left is x
+//   x = cond ? 'a' + x : x      both arms are strings, so the conditional's natural type is
+//                               `string` (the same rule csharpTypeOfValue applies to a
+//                               declaration initialised with such a conditional)
+//
+// Only a NON-NULL string leaf qualifies: a null left operand is the one input where
+// add(string, …) hands back the RIGHT operand where add(object, object) returns null (see
+// the helper comment in Exchange.TranspileHelpers.cs), so a `string?` local / a
+// safeString* read / an `as string` cast must keep the local `object` — the same fence
+// stringPlusOperandIsProvablyString applies to a left-operand read of the local.
+function nonNullStringWriteLeaf (csharp, node) {
+    let current = node;
+    while (current?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        current = current.expression;
+    }
+    if (current === undefined) {
+        return false;
+    }
+    if (isStringLiteral (current)) {
+        return true;
+    }
+    switch (current.kind) {
+    case ts.SyntaxKind.Identifier: {
+        // only the non-nullable spelling: a `string?` local can hold null
+        return localIdentifierType (csharp, current) === 'string';
+    }
+    case ts.SyntaxKind.PropertyAccessExpression: {
+        if (current.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+            return false;
+        }
+        return CSHARP_LOCAL_THIS_MEMBER_TYPES[current.name?.escapedText] === 'string';
+    }
+    case ts.SyntaxKind.CallExpression: {
+        // `<recv>.toString ()`: a null receiver throws inside the call instead of handing
+        // back null (the printer maps the name to a non-null string)
+        const callee = current.expression;
+        if (callee?.kind === ts.SyntaxKind.PropertyAccessExpression && callee.name?.escapedText === 'toString') {
+            return true;
+        }
+        // a call the module's own return tables prove is statically a NON-NULL `string`
+        return callReturnType (csharp, current) === 'string';
+    }
+    }
+    return false;
+}
+
+// one node of the write value: a read of the local being classified (a non-null string per
+// the running type), or a `+` tree whose left spine ends in such a leaf (the tree's own
+// static type then is the leftmost add's `string`), or a conditional whose every arm is
+// provable the same way. `state.selfRead` records the read that makes this family
+// applicable at all — without one the initialiser-position rules already answer.
+function stringWriteNodeIsProvable (csharp, context, declaration, node, state) {
+    let current = node;
+    while (current?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        current = current.expression;
+    }
+    if (current === undefined) {
+        return false;
+    }
+    if (isSelfRead (csharp, current, declaration)) {
+        state.selfRead = true;
+        return true;
+    }
+    if (current.kind === ts.SyntaxKind.BinaryExpression) {
+        if (current.operatorToken.kind !== ts.SyntaxKind.PlusToken) {
+            return false;
+        }
+        return stringWriteNodeIsProvable (csharp, context, declaration, current.left, state);
+    }
+    if (current.kind === ts.SyntaxKind.ConditionalExpression) {
+        return stringWriteNodeIsProvable (csharp, context, declaration, current.whenTrue, state)
+            && stringWriteNodeIsProvable (csharp, context, declaration, current.whenFalse, state);
+    }
+    return nonNullStringWriteLeaf (csharp, current);
+}
+
+// the proven type of a later write of a string-literal-initialised declaration when the
+// value is a `+` tree / conditional over such a tree that reads the local: `string`
+// (non-null), or undefined (the declaration keeps `object`).
+function stringAccumulatorWriteType (csharp, context, declaration, value) {
+    if (!isStringLiteralInit (declaration)) {
+        return undefined;
+    }
+    const state = { selfRead: false };
+    if (!stringWriteNodeIsProvable (csharp, context, declaration, value, state) || !state.selfRead) {
+        return undefined;
+    }
+    return 'string';
 }
 
 // is `value` (already unwrapped of `(x)` parentheses) a non-nullable `string` local used
@@ -6395,6 +6501,13 @@ function typeFromValueOrWrites (csharp, scope, declaration, varName, initial, co
             // read of x inside the value has no C# type until this declaration decides
             // one, so the value is proven from the operands plus the running type.
             written = selfConcatWriteType (csharp, context, declaration, parent.right);
+        }
+        if (written === undefined && type === 'string' && !sawNull && isStringLiteralInit (declaration)) {
+            // U21: the same self-read shape with a sibling leaf the module cannot name
+            // (`x = x + ':' + symbol`), and the conditional over such values
+            // (`x = cond ? 'a' + x : x`) — the left spine's own static type decides the
+            // emitted add(...) chain, so the write keeps the literal's non-null string
+            written = stringAccumulatorWriteType (csharp, context, declaration, parent.right);
         }
         if (written === undefined && type === 'Dictionary<string, object>' && !sawNull) {
             // `x = this.omit (x, keys)` accumulator write: same self-read shape, proven

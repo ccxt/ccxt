@@ -2025,7 +2025,7 @@ public partial class htx : ccxt.htx
             Dictionary<string, object> currencyCode = ((currency != null)) ? this.currency(((string)currency)) : null;
             marginMode = this.safeString(parameters, "margin", "cross");
             parameters = this.omit(parameters, new List<object>() {"currency", "symbol", "margin"});
-            object prefix = "accounts";
+            string prefix = "accounts";
             messageHash = prefix;
             if (subType == "linear")
             {

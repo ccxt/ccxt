@@ -2068,7 +2068,7 @@ public partial class binance : PredictionExchange
         int failedOrdersLength = failedOrders.Count;
         if (isGreaterThan(failedOrdersLength, 0))
         {
-            object failedDetails = "";
+            string failedDetails = "";
             for (int i = 0; isLessThan(i, failedOrdersLength); postFixIncrement(ref i))
             {
                 object failedOrder = getValue(failedOrders, i);

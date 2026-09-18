@@ -2253,7 +2253,7 @@ public partial class hyperliquid : PredictionExchange
         object title = parentSymbol;
         if ((underlying != null))
         {
-            object titleSuffix = "";
+            string titleSuffix = "";
             if (((targetPrice != null)) && (targetPrice != ""))
             {
                 titleSuffix = add(add(titleSuffix, " ABOVE "), targetPrice);
