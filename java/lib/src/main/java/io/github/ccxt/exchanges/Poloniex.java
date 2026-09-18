@@ -3085,7 +3085,7 @@ public class Poloniex extends PoloniexApi
                 //        }
                 //    }
                 //
-                Object data = this.safeDict(responseRaw, "data", new HashMap<String, Object>() {{}});
+                Map<String, Object> data = (Map<String, Object>) this.safeDict(responseRaw, "data", new HashMap<String, Object>() {{}});
                 return this.parseBalance(data);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3202,7 +3202,7 @@ public class Poloniex extends PoloniexApi
                 //       "msg": "Success"
                 //    }
                 //
-                Object data = this.safeDict(responseRaw, "data", new HashMap<String, Object>() {{}});
+                Map<String, Object> data = (Map<String, Object>) this.safeDict(responseRaw, "data", new HashMap<String, Object>() {{}});
                 Long ts = this.safeInteger(data, "ts");
                 return this.parseOrderBook(data, symbol, ts);
             }
@@ -4163,7 +4163,7 @@ public class Poloniex extends PoloniexApi
             //        }
             //    }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String posMode = this.safeString(data, "posMode");
             Boolean hedged = java.util.Objects.equals(posMode, "HEDGE");
             return new HashMap<String, Object>() {{

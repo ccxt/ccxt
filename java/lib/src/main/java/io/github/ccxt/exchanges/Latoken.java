@@ -555,7 +555,7 @@ public class Latoken extends LatokenApi
             {
                 (this.loadTimeDifference()).join();
             }
-            Object currencies = this.safeDict(this.options, "cachedCurrencies", new HashMap<String, Object>() {{}});
+            Map<String, Object> currencies = (Map<String, Object>) this.safeDict(this.options, "cachedCurrencies", new HashMap<String, Object>() {{}});
             Map<String, Object> currenciesById = this.indexBy(currencies, "id");
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             List<Object> rawMarkets = this.toArray(response);
@@ -566,10 +566,10 @@ public class Latoken extends LatokenApi
                 // the exchange shows them inverted
                 String baseId = this.safeString(market, "baseCurrency");
                 String quoteId = this.safeString(market, "quoteCurrency");
-                Object baseCurrency = this.safeDict(currenciesById, baseId);
-                Object quoteCurrency = this.safeDict(currenciesById, quoteId);
-                Object baseCurrencyInfo = this.safeDict(baseCurrency, "info");
-                Object quoteCurrencyInfo = this.safeDict(quoteCurrency, "info");
+                Map<String, Object> baseCurrency = (Map<String, Object>) this.safeDict(currenciesById, baseId);
+                Map<String, Object> quoteCurrency = (Map<String, Object>) this.safeDict(currenciesById, quoteId);
+                Map<String, Object> baseCurrencyInfo = (Map<String, Object>) this.safeDict(baseCurrency, "info");
+                Map<String, Object> quoteCurrencyInfo = (Map<String, Object>) this.safeDict(quoteCurrency, "info");
                 if (!java.util.Objects.equals(baseCurrencyInfo, null) && !java.util.Objects.equals(quoteCurrencyInfo, null))
                 {
                     String base = this.safeCurrencyCode(this.safeString(baseCurrencyInfo, "tag"));

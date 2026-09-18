@@ -714,7 +714,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         //      "time_ms":1777275365214,
         //      "event":"update"
         //   }
-        Object result = this.safeDict(message, "result", new HashMap<String, Object>() {{}});
+        Map<String, Object> result = (Map<String, Object>) this.safeDict(message, "result", new HashMap<String, Object>() {{}});
         Object full = this.safeBool(result, "full", false);
         String marketIdWithPrefix = this.safeString(result, "s");
         if (java.util.Objects.equals(marketIdWithPrefix, null))
@@ -1101,7 +1101,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             results = this.safeList(message, "result", new ArrayList<Object>(Arrays.asList()));
         } else
         {
-            Object rawTicker = this.safeDict(message, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> rawTicker = (Map<String, Object>) this.safeDict(message, "result", new HashMap<String, Object>() {{}});
             results = new ArrayList<Object>(Arrays.asList(rawTicker));
         }
         Boolean isTicker = (java.util.Objects.equals(objectName, "ticker")); // whether ticker or bid-ask
@@ -1878,14 +1878,14 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             // Control when position is closed no side is returned
             if (java.util.Objects.equals(side, null))
             {
-                Object prevLongPosition = this.safeDict(cache, Helpers.add(symbol, "long"));
+                Map<String, Object> prevLongPosition = (Map<String, Object>) this.safeDict(cache, Helpers.add(symbol, "long"));
                 if (!java.util.Objects.equals(prevLongPosition, null))
                 {
                     Helpers.addElementToObject(position, "side", ((Map<String, Object>)prevLongPosition).get("side"));
                     ((List<Object>)newPositions).add(position);
                     Helpers.callDynamically(cache, "append", new Object[]{position});
                 }
-                Object prevShortPosition = this.safeDict(cache, Helpers.add(symbol, "short"));
+                Map<String, Object> prevShortPosition = (Map<String, Object>) this.safeDict(cache, Helpers.add(symbol, "short"));
                 if (!java.util.Objects.equals(prevShortPosition, null))
                 {
                     Helpers.addElementToObject(position, "side", ((Map<String, Object>)prevShortPosition).get("side"));
@@ -2377,8 +2377,8 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         //         "requestId": "cdb02a8c0b61086b2fe6f8fad2f98c54"
         //     }
         //
-        Object data = this.safeDict(message, "data");
-        Object errs = this.safeDict(data, "errs");
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data");
+        Map<String, Object> errs = (Map<String, Object>) this.safeDict(data, "errs");
         Object error = this.safeDict(message, "error", errs);
         String code = this.safeString2(error, "code", "label");
         String id = this.safeStringN(message, new ArrayList<Object>(Arrays.asList("id", "requestId", "request_id")));
@@ -2654,7 +2654,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         }
         if (!java.util.Objects.equals(requestId, null))
         {
-            Object data = this.safeDict(message, "data");
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data");
             // use safeValue as result may be Array or an Object
             Object result = this.safeValue(data, "result");
             Object ack = this.safeBool(message, "ack");

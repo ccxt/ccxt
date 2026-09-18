@@ -334,7 +334,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         //        "prev_sequence_number": "1061717"
         //    }
         //
-        Object data = this.safeDict(message, "feed", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "feed", new HashMap<String, Object>() {{}});
         String selector = this.safeString(message, "selector", "");
         Object parts = Helpers.split(selector, "@");
         String marketId = this.safeString(parts, 0);
@@ -452,7 +452,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         //        "prev_sequence_number": "0"
         //    }
         //
-        Object data = this.safeDict(message, "feed", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "feed", new HashMap<String, Object>() {{}});
         String selector = this.safeString(message, "selector", "");
         Object parts = Helpers.split(selector, "@");
         String marketId = this.safeString(parts, 0);
@@ -585,7 +585,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         //        "prev_sequence_number": "0"
         //    }
         //
-        Object data = this.safeDict(message, "feed", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "feed", new HashMap<String, Object>() {{}});
         String selector = this.safeString(message, "selector", "");
         Object parts = Helpers.split(selector, "@");
         String marketId = this.safeString(parts, 0);
@@ -736,7 +736,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         //        "prev_sequence_number": "0"
         //    }
         //
-        Object data = this.safeDict(message, "feed", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "feed", new HashMap<String, Object>() {{}});
         String selector = this.safeString(message, "selector", "");
         Object parts = Helpers.split(selector, "@");
         String marketId = this.safeString(parts, 0);
@@ -787,7 +787,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             this.checkRequiredCredentials();
             (this.signIn()).join();
-            Object wsOptions = this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
+            Map<String, Object> wsOptions = (Map<String, Object>) this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
             String authenticated = this.safeString(wsOptions, "token");
             if (java.util.Objects.equals(authenticated, null))
             {
@@ -907,7 +907,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         //        "prev_sequence_number": "0"
         //    }
         //
-        Object data = this.safeDict(message, "feed", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "feed", new HashMap<String, Object>() {{}});
         if (java.util.Objects.equals(this.myTrades, null))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -1016,7 +1016,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         {
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
-        Object data = this.safeDict(message, "feed");
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "feed");
         Object position = this.parseWsPosition(data);
         String symbol = this.safeString(position, "symbol");
         Helpers.callDynamically(this.positions, "append", new Object[]{position});
@@ -1151,7 +1151,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         //        "prev_sequence_number": "16"
         //    }
         //
-        Object data = this.safeDict(message, "feed");
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "feed");
         if (java.util.Objects.equals(this.orders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -1183,7 +1183,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         //        "method": "subscribe"
         //    }
         //
-        Object error = this.safeDict(response, "error");
+        Map<String, Object> error = (Map<String, Object>) this.safeDict(response, "error");
         String errorCode = this.safeString(error, "code");
         if (!java.util.Objects.equals(errorCode, null))
         {

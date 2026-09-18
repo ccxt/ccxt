@@ -1280,7 +1280,7 @@ public class Coinex extends CoinexApi
 
     public Object parseCurrency(Object coin)
     {
-        Object asset = this.safeDict(coin, "asset", new HashMap<String, Object>() {{}});
+        Map<String, Object> asset = (Map<String, Object>) this.safeDict(coin, "asset", new HashMap<String, Object>() {{}});
         String currencyId = this.safeString(asset, "ccy");
         Object chains = this.safeList(coin, "chains", new ArrayList<Object>(Arrays.asList()));
         String code = this.safeCurrencyCode(currencyId);
@@ -1732,7 +1732,7 @@ public class Coinex extends CoinexApi
             //     }
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object result = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseTicker(result, market);
         }).thenApply(Ticker::new);
 
@@ -1854,7 +1854,7 @@ public class Coinex extends CoinexApi
             //         "message": "OK"
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.safeInteger(data, "timestamp");
         }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
@@ -1901,8 +1901,8 @@ public class Coinex extends CoinexApi
             {
                 response = (this.v2PublicGetSpotDepth(this.extend(request, parameters))).join();
             }
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object depth = this.safeDict(data, "depth", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> depth = (Map<String, Object>) this.safeDict(data, "depth", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(depth, "updated_at");
             return this.parseOrderBook(depth, symbol, timestamp);
         }).thenApply(OrderBook::new);
@@ -2085,7 +2085,7 @@ public class Coinex extends CoinexApi
                 response = (this.v2PublicGetFuturesMarket(this.extend(request, parameters))).join();
             }
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object result = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseTradingFee(result, market);
         }).thenApply(TradingFeeInterface::new);
 
@@ -2288,10 +2288,10 @@ public class Coinex extends CoinexApi
             for (var i = 0; i < ((List<?>)balances).size(); i++)
             {
                 Object entry = Helpers.GetValue(balances, i);
-                Object free = this.safeDict(entry, "available", new HashMap<String, Object>() {{}});
-                Object used = this.safeDict(entry, "frozen", new HashMap<String, Object>() {{}});
-                Object loan = this.safeDict(entry, "repaid", new HashMap<String, Object>() {{}});
-                Object interest = this.safeDict(entry, "interest", new HashMap<String, Object>() {{}});
+                Map<String, Object> free = (Map<String, Object>) this.safeDict(entry, "available", new HashMap<String, Object>() {{}});
+                Map<String, Object> used = (Map<String, Object>) this.safeDict(entry, "frozen", new HashMap<String, Object>() {{}});
+                Map<String, Object> loan = (Map<String, Object>) this.safeDict(entry, "repaid", new HashMap<String, Object>() {{}});
+                Map<String, Object> interest = (Map<String, Object>) this.safeDict(entry, "interest", new HashMap<String, Object>() {{}});
                 Object baseAccount = this.account();
                 String baseCurrencyId = this.safeString(entry, "base_ccy");
                 String baseCurrencyCode = this.safeCurrencyCode(baseCurrencyId);
@@ -3044,7 +3044,7 @@ public class Coinex extends CoinexApi
                     }
                 }
             }
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
@@ -3162,7 +3162,7 @@ public class Coinex extends CoinexApi
                         status = "open";
                     }
                 }
-                Object innerData = this.safeDict(entry, "data", new HashMap<String, Object>() {{}});
+                Map<String, Object> innerData = (Map<String, Object>) this.safeDict(entry, "data", new HashMap<String, Object>() {{}});
                 Object order = null;
                 if ((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)) && !Helpers.isTrue(isTriggerOrder))
                 {
@@ -3253,7 +3253,7 @@ public class Coinex extends CoinexApi
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
                 Object entry = Helpers.GetValue(data, i);
-                Object item = this.safeDict(entry, "data", new HashMap<String, Object>() {{}});
+                Map<String, Object> item = (Map<String, Object>) this.safeDict(entry, "data", new HashMap<String, Object>() {{}});
                 Object order = this.parseOrder(item, market);
                 ((List<Object>)results).add(order);
             }
@@ -3351,7 +3351,7 @@ public class Coinex extends CoinexApi
                     response = (this.v2PrivatePostFuturesModifyOrder(this.extend(request, parameters))).join();
                 }
             }
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
@@ -3448,7 +3448,7 @@ public class Coinex extends CoinexApi
                     this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), code, feedback);
                     throw new ExchangeError((String)feedback) ;
                 }
-                Object item = this.safeDict(entry, "data", new HashMap<String, Object>() {{}});
+                Map<String, Object> item = (Map<String, Object>) this.safeDict(entry, "data", new HashMap<String, Object>() {{}});
                 Object order = this.parseOrder(item);
                 ((List<Object>)result).add(order);
             }
@@ -3674,7 +3674,7 @@ public class Coinex extends CoinexApi
             {
                 response = (this.v2PrivateGetSpotOrderStatus(this.extend(request, parameters))).join();
             }
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
@@ -3899,7 +3899,7 @@ public class Coinex extends CoinexApi
             //         "message": "OK"
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseDepositAddress(data, currency);
         }).thenApply(DepositAddress::new);
 
@@ -3949,7 +3949,7 @@ public class Coinex extends CoinexApi
             //         "message": "OK"
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseDepositAddress(data, currency);
         }).thenApply(DepositAddress::new);
 
@@ -4582,7 +4582,7 @@ final Object finalI = i;
             //         "message": "OK"
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String status = this.safeStringLower(response, "message");
             String type = (((java.util.Objects.equals(addOrReduce, "reduce")))) ? "reduce" : "add";
             return this.extend(this.parseMarginModification(data, market), new HashMap<String, Object>() {{
@@ -4846,7 +4846,7 @@ final Object finalI = i;
             //     }
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseFundingRate(first, market);
         }).thenApply(FundingRate::new);
 
@@ -5061,7 +5061,7 @@ final Object finalI = i;
             //         "message": "OK"
             //     }
             //
-            Object transaction = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> transaction = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseTransaction(transaction, currency);
         }).thenApply(Transaction::new);
 
@@ -5328,7 +5328,7 @@ final Object finalI = i;
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Object amountToPrecision = this.currencyToPrecision(code, amount);
-            Object accountsByType = this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
+            Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
             String toId = this.safeString(accountsByType, toAccount, toAccount);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -5718,7 +5718,7 @@ final Object finalI = i;
             //         "message": "OK"
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseIsolatedBorrowRate(data, market);
         }).thenApply(IsolatedBorrowRate::new);
 
@@ -5876,7 +5876,7 @@ final Object finalI = i;
             //         "message": "OK"
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object transaction = this.parseMarginLoan(data, currency);
             return this.extend(transaction, new HashMap<String, Object>() {{
                 put( "amount", amount );
@@ -5923,7 +5923,7 @@ final Object finalI = i;
             //         "message": "OK"
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object transaction = this.parseMarginLoan(data, currency);
             return this.extend(transaction, new HashMap<String, Object>() {{
                 put( "amount", amount );
@@ -6019,7 +6019,7 @@ final Object finalI = i;
             //         "message": "OK"
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseDepositWithdrawFee(data, currency);
         }).thenApply(DepositWithdrawFee::new);
 
@@ -6086,7 +6086,7 @@ final Object finalI = i;
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
                 Object item = Helpers.GetValue(data, i);
-                Object asset = this.safeDict(item, "asset", new HashMap<String, Object>() {{}});
+                Map<String, Object> asset = (Map<String, Object>) this.safeDict(item, "asset", new HashMap<String, Object>() {{}});
                 String currencyId = this.safeString(asset, "ccy");
                 if (java.util.Objects.equals(currencyId, null))
                 {
@@ -6151,7 +6151,7 @@ final Object finalI = i;
             put( "networks", new HashMap<String, Object>() {{}} );
         }};
         Object chains = this.safeList(fee, "chains", new ArrayList<Object>(Arrays.asList()));
-        Object asset = this.safeDict(fee, "asset", new HashMap<String, Object>() {{}});
+        Map<String, Object> asset = (Map<String, Object>) this.safeDict(fee, "asset", new HashMap<String, Object>() {{}});
         for (var i = 0; i < ((List<?>)chains).size(); i++)
         {
             Object entry = Helpers.GetValue(chains, i);
@@ -6232,7 +6232,7 @@ final Object finalI = i;
             //         "message": "OK"
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseLeverage(data, market);
         }).thenApply(Leverage::new);
 
@@ -6420,7 +6420,7 @@ final Object finalI = i;
             //         "message": "OK"
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
         }).thenApply(Order::new);
 

@@ -681,7 +681,7 @@ public class Bit2c extends Bit2cApi
             //         }
             //     }
             //
-            Object fees = this.safeDict(response, "Fees", new HashMap<String, Object>() {{}});
+            Map<String, Object> fees = (Map<String, Object>) this.safeDict(response, "Fees", new HashMap<String, Object>() {{}});
             Object keys = Helpers.objectKeys(fees);
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)keys).size(); i++)

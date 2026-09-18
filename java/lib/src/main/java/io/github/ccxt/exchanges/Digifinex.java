@@ -743,7 +743,7 @@ public class Digifinex extends DigifinexApi
     public Object parseCurrency(Object rawCurrency)
     {
         Object networkEntries = rawCurrency;
-        Object firstEntry = this.safeDict(networkEntries, 0, new HashMap<String, Object>() {{}}); // it must have at least one entry
+        Map<String, Object> firstEntry = (Map<String, Object>) this.safeDict(networkEntries, 0, new HashMap<String, Object>() {{}}); // it must have at least one entry
         String id = this.safeString(firstEntry, "currency");
         String code = this.safeCurrencyCode(id);
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
@@ -4223,7 +4223,7 @@ public class Digifinex extends DigifinexApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseFundingRate(data, market);
         }).thenApply(FundingRate::new);
 

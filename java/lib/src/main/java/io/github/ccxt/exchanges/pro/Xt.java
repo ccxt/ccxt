@@ -158,7 +158,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                         //        }
                         //    }
                         //
-                        Object result = this.safeDict(response, "result");
+                        Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result");
                         listenKey = this.safeString(result, "accessToken");
                     }
                     if (java.util.Objects.equals(listenKey, null))
@@ -403,7 +403,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object options = this.safeDict(this.options, "watchTicker");
+            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchTicker");
             String defaultMethod = this.safeString(options, "method", "ticker");
             String method = this.safeString(parameters, "method", defaultMethod);
             Object name = Helpers.add((method + "@"), ((Map<String, Object>)market).get("id"));
@@ -434,7 +434,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object options = this.safeDict(this.options, "unWatchTicker");
+            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "unWatchTicker");
             Object defaultMethod = this.safeString(options, "method", "ticker");
             String method = this.safeString(parameters, "method", defaultMethod);
             Object name = Helpers.add((method + "@"), ((Map<String, Object>)market).get("id"));
@@ -466,7 +466,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             {
                 (this.loadMarkets()).join();
             }
-            Object options = this.safeDict(this.options, "watchTickers");
+            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchTickers");
             String defaultMethod = this.safeString(options, "method", "tickers");
             Object name = this.safeString(parameters, "method", defaultMethod);
             Object market = null;
@@ -506,7 +506,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             {
                 (this.loadMarkets()).join();
             }
-            Object options = this.safeDict(this.options, "unWatchTickers");
+            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "unWatchTickers");
             String defaultMethod = this.safeString(options, "method", "tickers");
             Object name = this.safeString(parameters, "method", defaultMethod);
             if (!java.util.Objects.equals(symbols, null))
@@ -962,7 +962,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         //         }
         //     }
         //
-        Object data = this.safeDict(message, "data");
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data");
         String marketId = this.safeString(data, "s");
         if (!java.util.Objects.equals(marketId, null))
         {
@@ -1068,7 +1068,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
         Object cache = this.positions;
-        Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Object position = this.parsePosition(data);
         Helpers.callDynamically(cache, "append", new Object[]{position});
         Object messageHashes = this.findMessageHashes(client, "position::contract");
@@ -1149,7 +1149,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         //       }
         //    }
         //
-        Object data = this.safeDict(message, "data");
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data");
         String marketId = this.safeString(data, "s");
         if (!java.util.Objects.equals(marketId, null))
         {
@@ -1239,7 +1239,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         //    }
         //
         Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        Object firstTicker = this.safeDict(data, 0);
+        Map<String, Object> firstTicker = (Map<String, Object>) this.safeDict(data, 0);
         String spotTest = this.safeString2(firstTicker, "cv", "aq");
         String tradeType = (((!java.util.Objects.equals(spotTest, null)))) ? "spot" : "contract";
         List<Object> newTickers = new ArrayList<Object>(Arrays.asList());
@@ -1313,7 +1313,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         //        }
         //    }
         //
-        Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "s");
         if (!java.util.Objects.equals(marketId, null))
         {
@@ -1370,7 +1370,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         //        }
         //    }
         //
-        Object data = this.safeDict(message, "data");
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data");
         String marketId = this.safeStringLower(data, "s");
         if (!java.util.Objects.equals(marketId, null))
         {
@@ -1455,7 +1455,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         //        }
         //    }
         //
-        Object data = this.safeDict(message, "data");
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data");
         String marketId = this.safeString(data, "s");
         if (!java.util.Objects.equals(marketId, null))
         {
@@ -1474,7 +1474,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             Object messageHash = ((eventVar + "::") + tradeType);
             if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
             {
-                Object subscription = this.safeDict(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});
+                Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});
                 Long limit = this.safeInteger(subscription, "limit");
                 Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
             }
@@ -1714,7 +1714,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             this.orders = orders;
         }
-        Object order = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> order = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString2(order, "s", "symbol");
         if (!java.util.Objects.equals(marketId, null))
         {
@@ -1763,7 +1763,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         //        }
         //    }
         //
-        Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String currencyId = this.safeString2(data, "c", "coin");
         String code = this.safeCurrencyCode(currencyId);
         Object account = this.account();
@@ -1815,7 +1815,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         //        }
         //    }
         //
-        Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Object stored = this.myTrades;
         if (java.util.Objects.equals(stored, null))
         {
@@ -1860,7 +1860,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             Object method = (((java.util.Objects.equals(topic, null)))) ? null : this.safeValue(methods, topic);
             if (java.util.Objects.equals(topic, "trade"))
             {
-                Object data = this.safeDict(message, "data");
+                Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data");
                 if ((!java.util.Objects.equals(data, null)) && ((((Map<?, ?>)data).containsKey("oi")) || (((Map<?, ?>)data).containsKey("orderId"))))
                 {
                     method = "handleMyTrades";
@@ -1907,7 +1907,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         Object unsubscribe = false;
         if (!java.util.Objects.equals(id, null))
         {
-            Object subscription = this.safeDict(subscriptionsById, id, new HashMap<String, Object>() {{}});
+            Map<String, Object> subscription = (Map<String, Object>) this.safeDict(subscriptionsById, id, new HashMap<String, Object>() {{}});
             unsubscribe = this.safeBool(subscription, "unsubscribe", false);
             if (java.util.Objects.equals(unsubscribe, true))
             {

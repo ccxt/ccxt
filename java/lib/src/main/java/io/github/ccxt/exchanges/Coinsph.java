@@ -1115,7 +1115,7 @@ public class Coinsph extends CoinsphApi
                 ((Map<String, Object>)request).put("symbols", ids);
             }
             String defaultMethod = "publicGetOpenapiQuoteV1Ticker24hr";
-            Object options = this.safeDict(this.options, "fetchTickers", new HashMap<String, Object>() {{}});
+            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchTickers", new HashMap<String, Object>() {{}});
             String method = this.safeString(options, "method", defaultMethod);
             Object tickers = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(method, "publicGetOpenapiQuoteV1TickerPrice"))
@@ -1159,7 +1159,7 @@ public class Coinsph extends CoinsphApi
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
             String defaultMethod = "publicGetOpenapiQuoteV1Ticker24hr";
-            Object options = this.safeDict(this.options, "fetchTicker", new HashMap<String, Object>() {{}});
+            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchTicker", new HashMap<String, Object>() {{}});
             String method = this.safeString(options, "method", defaultMethod);
             Object ticker = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(method, "publicGetOpenapiQuoteV1TickerPrice"))
@@ -2279,7 +2279,7 @@ public class Coinsph extends CoinsphApi
             //       }
             //     ]
             //
-            Object tradingFee = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> tradingFee = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             return this.parseTradingFee(tradingFee, market);
         }).thenApply(TradingFeeInterface::new);
 

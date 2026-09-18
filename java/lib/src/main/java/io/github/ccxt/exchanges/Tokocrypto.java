@@ -970,7 +970,7 @@ public class Tokocrypto extends TokocryptoApi
                 }};
                 if (((Map<?, ?>)filtersByType).containsKey("PRICE_FILTER"))
                 {
-                    Object filter = this.safeDict(filtersByType, "PRICE_FILTER", new HashMap<String, Object>() {{}});
+                    Map<String, Object> filter = (Map<String, Object>) this.safeDict(filtersByType, "PRICE_FILTER", new HashMap<String, Object>() {{}});
                     Helpers.addElementToObject(Helpers.GetValue(entry, "precision"), "price", this.safeNumber(filter, "tickSize"));
                     // PRICE_FILTER reports zero values for maxPrice
                     // since they updated filter types in November 2018
@@ -1304,7 +1304,7 @@ public class Tokocrypto extends TokocryptoApi
                 //        "timestamp": 1787318052414
                 //    }
                 //
-                Object data = this.safeDict(responseInner, "data", new HashMap<String, Object>() {{}});
+                Map<String, Object> data = (Map<String, Object>) this.safeDict(responseInner, "data", new HashMap<String, Object>() {{}});
                 Object list = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
                 return this.parseTrades(list, market, since, limit);
             }
@@ -1507,7 +1507,7 @@ public class Tokocrypto extends TokocryptoApi
      */
     public Object isNativeMarket(Object market)
     {
-        Object marketInfo = this.safeDict(market, "info", new HashMap<String, Object>() {{}});
+        Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
         String symbolType = this.safeString(marketInfo, "type");
         // a market with an unknown symbol type falls back to the binance backed
         // host, the route that answers with data for every symbol type 1 market
@@ -1563,7 +1563,7 @@ public class Tokocrypto extends TokocryptoApi
             Object response = (this.binanceGetTicker24hr(this.extend(request, parameters))).join();
             if (Helpers.isTrue(Helpers.isArray(response)))
             {
-                Object firstTicker = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
+                Map<String, Object> firstTicker = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
                 return this.parseTicker(firstTicker, market);
             }
             return this.parseTicker(response, market);
@@ -1747,7 +1747,7 @@ public class Tokocrypto extends TokocryptoApi
                     data = dataList;
                 } else
                 {
-                    Object dataDict = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                    Map<String, Object> dataDict = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                     data = this.safeList(dataDict, "list", new ArrayList<Object>(Arrays.asList()));
                 }
             }
@@ -2254,7 +2254,7 @@ public class Tokocrypto extends TokocryptoApi
             //         "timestamp": 1662710994975
             //     }
             //
-            Object rawOrder = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(rawOrder, market);
         }).thenApply(Order::new);
 
@@ -2313,7 +2313,7 @@ public class Tokocrypto extends TokocryptoApi
             //
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
             Object list = this.safeValue(data, "list", new ArrayList<Object>(Arrays.asList()));
-            Object rawOrder = this.safeDict(list, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(list, 0, new HashMap<String, Object>() {{}});
             return this.parseOrder(rawOrder);
         }).thenApply(Order::new);
 
@@ -2504,7 +2504,7 @@ public class Tokocrypto extends TokocryptoApi
             //         "timestamp": 1662710683634
             //     }
             //
-            Object rawOrder = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(rawOrder);
         }).thenApply(Order::new);
 

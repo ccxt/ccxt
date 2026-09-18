@@ -883,7 +883,7 @@ public class Coinone extends CoinoneApi
             //     }
             //
             Object data = this.safeList(response, "tickers", new ArrayList<Object>(Arrays.asList()));
-            Object ticker = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> ticker = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseTicker(ticker, market);
         }).thenApply(Ticker::new);
 
@@ -1556,7 +1556,7 @@ public class Coinone extends CoinoneApi
             //         }
             //     }
             //
-            Object walletAddress = this.safeDict(response, "walletAddress", new HashMap<String, Object>() {{}});
+            Map<String, Object> walletAddress = (Map<String, Object>) this.safeDict(response, "walletAddress", new HashMap<String, Object>() {{}});
             Object keys = Helpers.objectKeys(walletAddress);
             Object result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)keys).size(); i++)

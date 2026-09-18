@@ -129,7 +129,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         //         "seq": 1
         //     }
         //
-        Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "m");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -140,7 +140,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
             Long defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
-            Object subscription = this.safeDict(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});
+            Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});
             Long limit = this.safeInteger(subscription, "limit", defaultLimit);
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
         }
@@ -204,7 +204,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
                 }};
                 this.extendExchangeOptions(defaultOptions);
                 Object originalOptions = Helpers.GetValue(((Map<String, Object>)this.options).get("ws"), "options");
-                Object originalHeaders = this.safeDict(originalOptions, "headers", new HashMap<String, Object>() {{}});
+                Map<String, Object> originalHeaders = (Map<String, Object>) this.safeDict(originalOptions, "headers", new HashMap<String, Object>() {{}});
                 Helpers.addElementToObject(Helpers.GetValue(this.options, "ws"), "options", this.extend(this.extend(new HashMap<String, Object>() {{}}, originalOptions), new HashMap<String, Object>() {{
         put( "headers", Extended.this.extend(Extended.this.extend(new HashMap<String, Object>() {{
             put( "User-Agent", ((Map<String, Object>)Extended.this.userAgents).get("chrome") );
@@ -316,11 +316,11 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         //         "seq": 1
         //     }
         //
-        Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", data );
         }};
-        Object balance = this.safeDict(data, "balance");
+        Map<String, Object> balance = (Map<String, Object>) this.safeDict(data, "balance");
         if (!java.util.Objects.equals(balance, null))
         {
             String currencyId = this.safeString(balance, "collateralName");
@@ -336,7 +336,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         Object spotBalances = this.safeList(data, "spotBalances", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)spotBalances).size(); i++)
         {
-            Object spotBalance = this.safeDict(spotBalances, i, new HashMap<String, Object>() {{}});
+            Map<String, Object> spotBalance = (Map<String, Object>) this.safeDict(spotBalances, i, new HashMap<String, Object>() {{}});
             String currencyId = this.safeString(spotBalance, "asset");
             String code = this.safeCurrencyCode(currencyId);
             if (!java.util.Objects.equals(code, null))
@@ -434,10 +434,10 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object stored = this.myTrades;
-        Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Object rawTrades = this.safeList(data, "trades", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> symbols = new HashMap<String, Object>() {{}};
-        Object first = this.safeDict(rawTrades, 0);
+        Map<String, Object> first = (Map<String, Object>) this.safeDict(rawTrades, 0);
         if (java.util.Objects.equals(first, null))
         {
             return;
@@ -541,10 +541,10 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
         Object stored = this.positions;
-        Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Object rawPositions = this.safeList(data, "positions", new ArrayList<Object>(Arrays.asList()));
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
-        Object first = this.safeDict(rawPositions, 0);
+        Map<String, Object> first = (Map<String, Object>) this.safeDict(rawPositions, 0);
         if (java.util.Objects.equals(first, null))
         {
             return;
@@ -615,10 +615,10 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object orders = this.orders;
-        Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Object rawOrders = this.safeList(data, "orders");
         Map<String, Object> symbols = new HashMap<String, Object>() {{}};
-        Object first = this.safeDict(rawOrders, 0);
+        Map<String, Object> first = (Map<String, Object>) this.safeDict(rawOrders, 0);
         if (java.util.Objects.equals(first, null))
         {
             return;
@@ -698,7 +698,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         //         "seq": 2
         //     }
         //
-        Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Object fundingRate = this.parseWsFundingRate(data, null, message);
         String symbol = this.safeString(fundingRate, "symbol");
         Helpers.addElementToObject(this.fundingRates, symbol, fundingRate);
@@ -789,7 +789,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         //         "seq": 1
         //     }
         //
-        Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "m");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -878,7 +878,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         //     }
         //
         Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        Object first = this.safeDict(data, 0);
+        Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0);
         if (java.util.Objects.equals(first, null))
         {
             return;
@@ -887,7 +887,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String messageHash = ("trades:" + symbol);
-        Object subscription = this.safeDict(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});
+        Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});
         Object stored = this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))
         {
@@ -1041,7 +1041,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);
-            Object subscription = this.safeDict(client.subscriptions, key);
+            Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, key);
             String subscriptionName = this.safeString(subscription, "name");
             if (java.util.Objects.equals(subscriptionName, name))
             {
@@ -1079,7 +1079,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         Object data = this.safeValue(message, "data");
         if (Helpers.isTrue(Helpers.isArray(data)))
         {
-            Object first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             String side = this.safeString(first, "S");
             if (!java.util.Objects.equals(side, null))
             {

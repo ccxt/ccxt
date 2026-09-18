@@ -1378,7 +1378,7 @@ public class Phemex extends PhemexApi
             //         ]
             //     }
             //
-            Object v2ProductsData = this.safeDict(v2Products, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> v2ProductsData = (Map<String, Object>) this.safeDict(v2Products, "data", new HashMap<String, Object>() {{}});
             Object products = this.safeList(v2ProductsData, "products", new ArrayList<Object>(Arrays.asList()));
             Object perpetualProductsV2 = this.safeList(v2ProductsData, "perpProductsV2", new ArrayList<Object>(Arrays.asList()));
             products = this.arrayConcat(products, perpetualProductsV2);
@@ -1397,15 +1397,15 @@ public class Phemex extends PhemexApi
                 if ((java.util.Objects.equals(type, "perpetual")) || (java.util.Objects.equals(type, "perpetualv2")) || (java.util.Objects.equals(type, "perpetualpilot")))
                 {
                     String id = this.safeString(market, "symbol");
-                    Object riskLimitValues = this.safeDict(riskLimitsById, id, new HashMap<String, Object>() {{}});
+                    Map<String, Object> riskLimitValues = (Map<String, Object>) this.safeDict(riskLimitsById, id, new HashMap<String, Object>() {{}});
                     market = this.extend(market, riskLimitValues);
-                    Object v1ProductsValues = this.safeDict(v1ProductsById, id, new HashMap<String, Object>() {{}});
+                    Map<String, Object> v1ProductsValues = (Map<String, Object>) this.safeDict(v1ProductsById, id, new HashMap<String, Object>() {{}});
                     market = this.extend(market, v1ProductsValues);
                     market = this.parseSwapMarket(market);
                 } else
                 {
                     String baseCurrency = this.safeString(market, "baseCurrency");
-                    Object currencyValues = this.safeDict(currenciesByCode, baseCurrency, new HashMap<String, Object>() {{}});
+                    Map<String, Object> currencyValues = (Map<String, Object>) this.safeDict(currenciesByCode, baseCurrency, new HashMap<String, Object>() {{}});
                     String valueScale = this.safeString(currencyValues, "valueScale", "8");
                     market = this.extend(market, new HashMap<String, Object>() {{
                         put( "valueScale", valueScale );
@@ -4289,9 +4289,9 @@ public class Phemex extends PhemexApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", ((Map<String, Object>)currency).get("id") );
             }};
-            Object defaultNetworks = this.safeDict(this.options, "defaultNetworks");
+            Map<String, Object> defaultNetworks = (Map<String, Object>) this.safeDict(this.options, "defaultNetworks");
             String defaultNetwork = this.safeStringUpper(defaultNetworks, code);
-            Object networks = this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
+            Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
             String network = this.safeStringUpper2(parameters, "network", "chainName", defaultNetwork);
             network = this.safeString(networks, network, network);
             if (java.util.Objects.equals(network, null))
@@ -6237,7 +6237,7 @@ final Object finalI = i;
             //        }
             //    }
             //
-            Object result = this.safeDict(response, "result");
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result");
             return this.parseOpenInterest(result, market);
         }).thenApply(OpenInterest::new);
 
@@ -6383,7 +6383,7 @@ final Object finalI = i;
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String fromCurrencyId = this.safeString(data, "fromCurrency");
             Map<String, Object> fromResult = (Map<String, Object>) this.safeCurrency(fromCurrencyId, fromCurrency);
             String toCurrencyId = this.safeString(data, "toCurrency");
@@ -6459,7 +6459,7 @@ final Object finalI = i;
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseConversions(rows, code, "fromCurrency", "toCurrency", since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Conversion::new).collect(Collectors.toList()));
@@ -6512,7 +6512,7 @@ final Object finalI = i;
         //
         Object fromCurrency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object toCurrency = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-        Object quoteArgs = this.safeDict(conversion, "quoteArgs", new HashMap<String, Object>() {{}});
+        Map<String, Object> quoteArgs = (Map<String, Object>) this.safeDict(conversion, "quoteArgs", new HashMap<String, Object>() {{}});
         Long requestTime = this.safeInteger(quoteArgs, "requestAt");
         Long timestamp = this.safeInteger(conversion, "createTime", requestTime);
         String fromCoin = this.safeString(conversion, "fromCurrency", this.safeString(fromCurrency, "code"));

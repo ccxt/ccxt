@@ -922,11 +922,11 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         //         ]
         //     }
         //
-        Object arg = this.safeDict(message, "arg", new HashMap<String, Object>() {{}});
+        Map<String, Object> arg = (Map<String, Object>) this.safeDict(message, "arg", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(arg, "instId");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        Object ticker = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+        Map<String, Object> ticker = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
         Object parsedTicker = this.parseWsBidAsk(ticker, market);
         Object symbol = ((Map<String, Object>)parsedTicker).get("symbol");
         if (!java.util.Objects.equals(symbol, null))
@@ -1250,7 +1250,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object posData = this.safeList(liquidation, "posData", new ArrayList<Object>(Arrays.asList()));
-        Object firstPosData = this.safeDict(posData, 0, new HashMap<String, Object>() {{}});
+        Map<String, Object> firstPosData = (Map<String, Object>) this.safeDict(posData, 0, new HashMap<String, Object>() {{}});
         String marketId = this.safeString(firstPosData, "instId");
         market = this.safeMarket(marketId, market);
         Long timestamp = this.safeInteger(firstPosData, "uTIme");
@@ -1292,7 +1292,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object details = this.safeList(liquidation, "details", new ArrayList<Object>(Arrays.asList()));
-        Object liquidationDetails = this.safeDict(details, 0, new HashMap<String, Object>() {{}});
+        Map<String, Object> liquidationDetails = (Map<String, Object>) this.safeDict(details, 0, new HashMap<String, Object>() {{}});
         String marketId = this.safeString(liquidation, "instId");
         market = this.safeMarket(marketId, market);
         Long timestamp = this.safeInteger(liquidationDetails, "ts");
@@ -1903,7 +1903,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         //         ]
         //     }
         //
-        Object arg = this.safeDict(message, "arg", new HashMap<String, Object>() {{}});
+        Map<String, Object> arg = (Map<String, Object>) this.safeDict(message, "arg", new HashMap<String, Object>() {{}});
         String channel = this.safeString(arg, "channel");
         String action = this.safeString(message, "action");
         Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
@@ -2796,7 +2796,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             this.handleErrors(1, "", client.url, ((String)method), new HashMap<String, Object>() {{}}, stringMsg, message, new HashMap<String, Object>() {{}}, new HashMap<String, Object>() {{}});
         }
         List<Object> orders = this.parseOrders(args, null, null);
-        Object first = this.safeDict(orders, 0, new HashMap<String, Object>() {{}});
+        Map<String, Object> first = (Map<String, Object>) this.safeDict(orders, 0, new HashMap<String, Object>() {{}});
         client.resolve(first, messageHash);
     }
 
@@ -3306,7 +3306,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         //     "connId": "a4d3ae55"
         // }
         // arg might be an array or list
-        Object arg = this.safeDict(message, "arg", new HashMap<String, Object>() {{}});
+        Map<String, Object> arg = (Map<String, Object>) this.safeDict(message, "arg", new HashMap<String, Object>() {{}});
         String channel = this.safeString(arg, "channel", "");
         String marketId = this.safeString(arg, "instId");
         String symbol = this.safeSymbol(marketId);

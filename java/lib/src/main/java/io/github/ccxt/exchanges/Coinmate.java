@@ -596,7 +596,7 @@ public class Coinmate extends CoinmateApi
 
     public Object parseBalance(Object response)
     {
-        Object balances = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> balances = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
@@ -666,7 +666,7 @@ public class Coinmate extends CoinmateApi
                 put( "groupByPriceLimit", "False" );
             }};
             Map<String, Object> response = (this.publicGetOrderBook(this.extend(request, parameters))).join();
-            Object orderbook = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> orderbook = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object timestamp = this.safeTimestamp(orderbook, "timestamp");
             return this.parseOrderBook(orderbook, ((Map<String, Object>)market).get("symbol"), timestamp, "bids", "asks", "price", "amount");
         }).thenApply(OrderBook::new);
@@ -761,7 +761,7 @@ public class Coinmate extends CoinmateApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object keys = Helpers.objectKeys(data);
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)keys).size(); i++)
@@ -986,7 +986,7 @@ public class Coinmate extends CoinmateApi
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Object withdrawOptions = this.safeValue(this.options, "withdraw", new HashMap<String, Object>() {{}});
-            Object methods = this.safeDict(withdrawOptions, "methods", new HashMap<String, Object>() {{}});
+            Map<String, Object> methods = (Map<String, Object>) this.safeDict(withdrawOptions, "methods", new HashMap<String, Object>() {{}});
             String method = this.safeString(methods, code);
             if (java.util.Objects.equals(method, null))
             {

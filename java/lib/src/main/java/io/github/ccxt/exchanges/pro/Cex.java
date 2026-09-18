@@ -134,7 +134,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         //     }
         //
         Object data = this.safeValue(message, "data", new HashMap<String, Object>() {{}});
-        Object freeBalance = this.safeDict(data, "balance", new HashMap<String, Object>() {{}});
+        Map<String, Object> freeBalance = (Map<String, Object>) this.safeDict(data, "balance", new HashMap<String, Object>() {{}});
         Object usedBalance = this.safeValue(data, "obalance", new HashMap<String, Object>() {{}});
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", data );

@@ -155,7 +155,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
         String marketId = this.safeString(message, "id");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
-        Object content = this.safeDict(message, "contents");
+        Map<String, Object> content = (Map<String, Object>) this.safeDict(message, "contents");
         Object rawTrades = this.safeList(content, "trades", new ArrayList<Object>(Arrays.asList()));
         Object stored = this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))
@@ -301,7 +301,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
         String marketId = this.safeString(message, "id");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
-        Object content = this.safeDict(message, "contents");
+        Map<String, Object> content = (Map<String, Object>) this.safeDict(message, "contents");
         Object orderbook = this.safeValue(this.orderbooks, symbol);
         if (java.util.Objects.equals(orderbook, null))
         {
@@ -472,7 +472,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
         String marketId = this.safeString(part, 0);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
-        Object content = this.safeDict(message, "contents");
+        Map<String, Object> content = (Map<String, Object>) this.safeDict(message, "contents");
         Object candles = this.safeList(content, "candles");
         String messageHash = ("ohlcv:" + symbol);
         Object ohlcv = this.safeDict(candles, 0, content);

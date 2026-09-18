@@ -643,7 +643,7 @@ public class Bitopro extends BitoproApi
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
             Map<String, Object> response = (this.publicGetTickersPair(this.extend(request, parameters))).join();
-            Object ticker = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> ticker = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             //
             //     {
             //         "data":{
@@ -930,7 +930,7 @@ public class Bitopro extends BitoproApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> response = (this.publicGetProvisioningLimitationsAndFees(parameters)).join();
-            Object tradingFeeRate = this.safeDict(response, "tradingFeeRate", new HashMap<String, Object>() {{}});
+            Map<String, Object> tradingFeeRate = (Map<String, Object>) this.safeDict(response, "tradingFeeRate", new HashMap<String, Object>() {{}});
             Object first = this.safeValue(tradingFeeRate, 0);
             //
             //     {
@@ -1516,7 +1516,7 @@ final Object finalJ = j;
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data");
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data");
             return this.parseCancelOrders(data);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -1553,7 +1553,7 @@ final Object finalJ = j;
             {
                 response = (this.privateDeleteOrdersAll(this.extend(request, parameters))).join();
             }
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             //
             //     {
             //         "data":{
@@ -2098,7 +2098,7 @@ final Object finalJ = j;
                 put( "currency", ((Map<String, Object>)currency).get("id") );
             }};
             Map<String, Object> response = (this.privateGetWalletWithdrawCurrencySerial(this.extend(request, parameters))).join();
-            Object result = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             //
             //     {
             //         "data":{
@@ -2155,7 +2155,7 @@ final Object finalJ = j;
             }};
             if (((Map<?, ?>)parameters).containsKey("network"))
             {
-                Object networks = this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
+                Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
                 String requestedNetwork = this.safeStringUpper(parameters, "network");
                 parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("network")));
                 String networkId = (((java.util.Objects.equals(requestedNetwork, null)))) ? null : this.safeString(networks, requestedNetwork);
@@ -2170,7 +2170,7 @@ final Object finalJ = j;
                 ((Map<String, Object>)request).put("message", tag);
             }
             Map<String, Object> response = (this.privatePostWalletWithdrawCurrency(this.extend(request, parameters))).join();
-            Object result = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             //
             //     {
             //         "data":{

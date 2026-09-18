@@ -1223,9 +1223,9 @@ public class Hashkey extends HashkeyApi
         }
         Object filtersList = this.safeList(market, "filters", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> filters = this.indexBy(filtersList, "filterType");
-        Object priceFilter = this.safeDict(filters, "PRICE_FILTER", new HashMap<String, Object>() {{}});
-        Object amountFilter = this.safeDict(filters, "LOT_SIZE", new HashMap<String, Object>() {{}});
-        Object costFilter = this.safeDict(filters, "MIN_NOTIONAL", new HashMap<String, Object>() {{}});
+        Map<String, Object> priceFilter = (Map<String, Object>) this.safeDict(filters, "PRICE_FILTER", new HashMap<String, Object>() {{}});
+        Map<String, Object> amountFilter = (Map<String, Object>) this.safeDict(filters, "LOT_SIZE", new HashMap<String, Object>() {{}});
+        Map<String, Object> costFilter = (Map<String, Object>) this.safeDict(filters, "MIN_NOTIONAL", new HashMap<String, Object>() {{}});
         Object minCostString = this.omitZero(this.safeString(costFilter, "min_notional"));
         String contractSizeString = this.safeString(market, "contractMultiplier");
         String amountPrecisionString = this.safeString(amountFilter, "stepSize");
@@ -1241,9 +1241,9 @@ public class Hashkey extends HashkeyApi
             Object riskLimits = this.safeList(market, "riskLimits");
             if (!java.util.Objects.equals(riskLimits, null))
             {
-                Object first = this.safeDict(riskLimits, 0);
+                Map<String, Object> first = (Map<String, Object>) this.safeDict(riskLimits, 0);
                 Object arrayLength = ((List<?>)riskLimits).size();
-                Object last = this.safeDict(riskLimits, Helpers.subtract(arrayLength, 1));
+                Map<String, Object> last = (Map<String, Object>) this.safeDict(riskLimits, Helpers.subtract(arrayLength, 1));
                 Object minInitialMargin = this.safeString(first, "initialMargin");
                 Object maxInitialMargin = this.safeString(last, "initialMargin");
                 if (Helpers.isTrue(Precise.stringGt(minInitialMargin, maxInitialMargin)))
@@ -1256,7 +1256,7 @@ public class Hashkey extends HashkeyApi
                 maxLeverage = this.parseToInt(Precise.stringDiv("1", minInitialMargin));
             }
         }
-        Object tradingFees = this.safeDict(this.fees, "trading");
+        Map<String, Object> tradingFees = (Map<String, Object>) this.safeDict(this.fees, "trading");
         Object fees = ((Helpers.isTrue(isSpot))) ? this.safeDict(tradingFees, "spot") : this.safeDict(tradingFees, "swap");
         final Object finalBase = base;
         final Object finalBaseId = baseId;
@@ -1721,7 +1721,7 @@ public class Hashkey extends HashkeyApi
         }
         String feeCost = this.safeString(trade, "commission");
         String feeCurrncyId = this.safeString(trade, "commissionAsset");
-        Object feeInfo = this.safeDict(trade, "fee");
+        Map<String, Object> feeInfo = (Map<String, Object>) this.safeDict(trade, "fee");
         Object fee = null;
         if (!java.util.Objects.equals(feeInfo, null))
         {
@@ -1899,7 +1899,7 @@ public class Hashkey extends HashkeyApi
             //         }
             //     ]
             //
-            Object ticker = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> ticker = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             return this.parseTicker(ticker, market);
         }).thenApply(Ticker::new);
 
@@ -2080,7 +2080,7 @@ public class Hashkey extends HashkeyApi
                 //         }
                 //     ]
                 //
-                Object balance = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
+                Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
                 return this.parseSwapBalance(balance);
             } else if (java.util.Objects.equals(marketType, "spot"))
             {
@@ -3317,7 +3317,7 @@ public class Hashkey extends HashkeyApi
                 String side = this.safeString(rawOrder, "side");
                 Double amount = this.safeNumber(rawOrder, "amount");
                 Double price = this.safeNumber(rawOrder, "price");
-                Object orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
+                Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
                 String clientOrderId = this.safeString(orderRequest, "clientOrderId");
                 if (java.util.Objects.equals(clientOrderId, null))
@@ -3347,8 +3347,8 @@ public class Hashkey extends HashkeyApi
             List<Object> responseOrders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)result).size(); i++)
             {
-                Object responseEntry = this.safeDict(result, i, new HashMap<String, Object>() {{}});
-                Object responseOrder = this.safeDict(responseEntry, "order", new HashMap<String, Object>() {{}});
+                Map<String, Object> responseEntry = (Map<String, Object>) this.safeDict(result, i, new HashMap<String, Object>() {{}});
+                Map<String, Object> responseOrder = (Map<String, Object>) this.safeDict(responseEntry, "order", new HashMap<String, Object>() {{}});
                 ((List<Object>)responseOrders).add(responseOrder);
             }
             return this.parseOrders(responseOrders);
@@ -4229,7 +4229,7 @@ public class Hashkey extends HashkeyApi
             //         { "symbol": "ETHUSDT-PERPETUAL", "rate": "0.0001", "nextSettleTime": "1722297600000" }
             //     ]
             //
-            Object rate = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> rate = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             return this.parseFundingRate(rate, market);
         }).thenApply(FundingRate::new);
 
@@ -5006,7 +5006,7 @@ final Object finalI = i;
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object fee = this.safeDict(data, i, new HashMap<String, Object>() {{}});
+                Map<String, Object> fee = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
                 Object parsedFee = this.parseTradingFee(fee);
                 Helpers.addElementToObject(result, ((String)((Map<String, Object>)parsedFee).get("symbol")), parsedFee);
             }
@@ -5146,7 +5146,7 @@ final Object finalI = i;
             Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList())); // for batch methods
             for (var i = 0; i < ((List<?>)result).size(); i++)
             {
-                Object entry = this.safeDict(result, i);
+                Map<String, Object> entry = (Map<String, Object>) this.safeDict(result, i);
                 Long entryCodeInteger = this.safeInteger(entry, "code");
                 if (!Helpers.isEqual(entryCodeInteger, 0))
                 {

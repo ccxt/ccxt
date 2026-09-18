@@ -913,7 +913,7 @@ public class Alpaca extends AlpacaApi
                 //        }
                 //    }
                 //
-                Object trades = this.safeDict(response, "trades", new HashMap<String, Object>() {{}});
+                Map<String, Object> trades = (Map<String, Object>) this.safeDict(response, "trades", new HashMap<String, Object>() {{}});
                 symbolTrades = this.safeList(trades, marketId, new ArrayList<Object>(Arrays.asList()));
             } else if (java.util.Objects.equals(method, "marketPublicGetV1beta3CryptoLocLatestTrades"))
             {
@@ -931,8 +931,8 @@ public class Alpaca extends AlpacaApi
                 //        }
                 //    }
                 //
-                Object trades = this.safeDict(response, "trades", new HashMap<String, Object>() {{}});
-                Object symbolTrade = this.safeDict(trades, marketId, new HashMap<String, Object>() {{}});
+                Map<String, Object> trades = (Map<String, Object>) this.safeDict(response, "trades", new HashMap<String, Object>() {{}});
+                Map<String, Object> symbolTrade = (Map<String, Object>) this.safeDict(trades, marketId, new HashMap<String, Object>() {{}});
                 symbolTrades = new ArrayList<Object>(Arrays.asList(symbolTrade));
             } else
             {
@@ -1015,7 +1015,7 @@ public class Alpaca extends AlpacaApi
             //       }
             //   }
             //
-            Object orderbooks = this.safeDict(response, "orderbooks", new HashMap<String, Object>() {{}});
+            Map<String, Object> orderbooks = (Map<String, Object>) this.safeDict(response, "orderbooks", new HashMap<String, Object>() {{}});
             Object rawOrderbook = this.safeDict(orderbooks, id, new HashMap<String, Object>() {{}});
             Long timestamp = this.parse8601(this.safeString(rawOrderbook, "t"));
             return this.parseOrderBook(rawOrderbook, ((Map<String, Object>)market).get("symbol"), timestamp, "b", "a", "p", "s");
@@ -1165,7 +1165,7 @@ public class Alpaca extends AlpacaApi
                 //     }
                 //
                 Object bars = this.safeDict(response, "bars", new HashMap<String, Object>() {{}});
-                Object bar = this.safeDict(bars, marketId, new HashMap<String, Object>() {{}});
+                Map<String, Object> bar = (Map<String, Object>) this.safeDict(bars, marketId, new HashMap<String, Object>() {{}});
                 ohlcvs = new ArrayList<Object>(Arrays.asList(bar));
             } else
             {
@@ -1312,17 +1312,17 @@ public class Alpaca extends AlpacaApi
             //     }
             //
             List<Object> results = new ArrayList<Object>(Arrays.asList());
-            Object snapshots = this.safeDict(response, "snapshots", new HashMap<String, Object>() {{}});
+            Map<String, Object> snapshots = (Map<String, Object>) this.safeDict(response, "snapshots", new HashMap<String, Object>() {{}});
             Object marketIds = Helpers.objectKeys(snapshots);
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-                Object entry = this.safeDict(snapshots, marketId);
-                Object dailyBar = this.safeDict(entry, "dailyBar", new HashMap<String, Object>() {{}});
-                Object prevDailyBar = this.safeDict(entry, "prevDailyBar", new HashMap<String, Object>() {{}});
-                Object latestQuote = this.safeDict(entry, "latestQuote", new HashMap<String, Object>() {{}});
-                Object latestTrade = this.safeDict(entry, "latestTrade", new HashMap<String, Object>() {{}});
+                Map<String, Object> entry = (Map<String, Object>) this.safeDict(snapshots, marketId);
+                Map<String, Object> dailyBar = (Map<String, Object>) this.safeDict(entry, "dailyBar", new HashMap<String, Object>() {{}});
+                Map<String, Object> prevDailyBar = (Map<String, Object>) this.safeDict(entry, "prevDailyBar", new HashMap<String, Object>() {{}});
+                Map<String, Object> latestQuote = (Map<String, Object>) this.safeDict(entry, "latestQuote", new HashMap<String, Object>() {{}});
+                Map<String, Object> latestTrade = (Map<String, Object>) this.safeDict(entry, "latestTrade", new HashMap<String, Object>() {{}});
                 String datetime = this.safeString(latestQuote, "t");
                 Object ticker = this.safeTicker(new HashMap<String, Object>() {{
                     put( "info", entry );
@@ -2728,7 +2728,7 @@ public class Alpaca extends AlpacaApi
         //         }
         //     ]
         //
-        Object account = this.safeDict(response, "account", new HashMap<String, Object>() {{}});
+        Map<String, Object> account = (Map<String, Object>) this.safeDict(response, "account", new HashMap<String, Object>() {{}});
         Object positions = this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );

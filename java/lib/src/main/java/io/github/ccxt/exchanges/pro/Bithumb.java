@@ -301,7 +301,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         //         "stream_type": "REALTIME"
         //     }
         //
-        Object content = this.safeDict(message, "content");
+        Map<String, Object> content = (Map<String, Object>) this.safeDict(message, "content");
         Boolean isGenerationTwo = (java.util.Objects.equals(content, null));
         Object tickerMessage = null;
         if (Helpers.isTrue(isGenerationTwo))
@@ -538,11 +538,11 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         //         "stream_type": "SNAPSHOT"
         //     }
         //
-        Object content = this.safeDict(message, "content");
+        Map<String, Object> content = (Map<String, Object>) this.safeDict(message, "content");
         if (!java.util.Objects.equals(content, null))
         {
             Object list = this.safeList(content, "list", new ArrayList<Object>(Arrays.asList()));
-            Object first = this.safeDict(list, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> first = (Map<String, Object>) this.safeDict(list, 0, new HashMap<String, Object>() {{}});
             String legacyMarketId = this.safeString(first, "symbol");
             if (java.util.Objects.equals(legacyMarketId, null))
             {
@@ -748,7 +748,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         //         "stream_type": "REALTIME"
         //     }
         //
-        Object content = this.safeDict(message, "content");
+        Map<String, Object> content = (Map<String, Object>) this.safeDict(message, "content");
         Object rawTrades = this.safeList(content, "list");
         if (java.util.Objects.equals(rawTrades, null))
         {
@@ -864,7 +864,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         //        "resmsg" : "Invalid Filter Syntax"
         //    }
         //
-        Object error = this.safeDict(message, "error");
+        Map<String, Object> error = (Map<String, Object>) this.safeDict(message, "error");
         if (!java.util.Objects.equals(error, null))
         {
             String errorName = this.safeString(error, "name", "Error");
@@ -1001,8 +1001,8 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
      */
     public Object buildGen2SubscriptionRequest(Object subscriptionType, Object subscription)
     {
-        Object wsOptions = this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
-        Object subscriptions = this.safeDict(wsOptions, "gen2Subscriptions", new HashMap<String, Object>() {{}});
+        Map<String, Object> wsOptions = (Map<String, Object>) this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
+        Map<String, Object> subscriptions = (Map<String, Object>) this.safeDict(wsOptions, "gen2Subscriptions", new HashMap<String, Object>() {{}});
         Helpers.addElementToObject(subscriptions, subscriptionType, subscription);
         ((Map<String, Object>)wsOptions).put("gen2Subscriptions", subscriptions);
         Helpers.addElementToObject(this.options, "ws", wsOptions);
@@ -1024,7 +1024,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             this.checkRequiredCredentials();
-            Object wsOptions = this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
+            Map<String, Object> wsOptions = (Map<String, Object>) this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
             String authenticated = this.safeString(wsOptions, "token");
             if (java.util.Objects.equals(authenticated, null))
             {

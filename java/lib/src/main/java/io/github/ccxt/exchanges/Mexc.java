@@ -3189,7 +3189,7 @@ public class Mexc extends MexcApi
             //
             // {"success":true,"code":0,"data":{"orderId":"814218083416790528","ts":1779795118533}}
             //
-            Object data = this.safeDict(response, "data");
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data");
             return this.safeOrder(new HashMap<String, Object>() {{
                 put( "id", Mexc.this.safeString(data, "orderId") );
                 put( "timestamp", Mexc.this.safeInteger(data, "ts") );
@@ -4568,7 +4568,7 @@ public class Mexc extends MexcApi
             //      "timestamp":1669109672717
             //  }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return new HashMap<String, Object>() {{
                 put( "info", data );
                 put( "symbol", symbol );
@@ -5690,7 +5690,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             {
                 // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
                 Object networkUnified = this.networkIdToCode(networkCode, code);
-                Object networks = this.safeDict(currency, "networks", new HashMap<String, Object>() {{}});
+                Map<String, Object> networks = (Map<String, Object>) this.safeDict(currency, "networks", new HashMap<String, Object>() {{}});
                 if ((!java.util.Objects.equals(networkUnified, null)) && (((Map<?, ?>)networks).containsKey(networkUnified)))
                 {
                     Object network = (((java.util.Objects.equals(networkUnified, null)))) ? new HashMap<String, Object>() {{}} : this.safeDict(networks, networkUnified, new HashMap<String, Object>() {{}});
@@ -5756,7 +5756,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
             Object networkId = null;
             Object networkUnified = this.networkIdToCode(networkCode, code);
-            Object networks = this.safeDict(currency, "networks", new HashMap<String, Object>() {{}});
+            Map<String, Object> networks = (Map<String, Object>) this.safeDict(currency, "networks", new HashMap<String, Object>() {{}});
             if ((!java.util.Objects.equals(networkUnified, null)) && (((Map<?, ?>)networks).containsKey(networkUnified)))
             {
                 Object network = (((java.util.Objects.equals(networkUnified, null)))) ? new HashMap<String, Object>() {{}} : this.safeDict(networks, networkUnified, new HashMap<String, Object>() {{}});
@@ -5808,7 +5808,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                 result = (((java.util.Objects.equals(netCode, null)))) ? null : this.safeDict(addressStructures, netCode);
             } else
             {
-                Object options = this.safeDict(this.options, "defaultNetworks");
+                Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "defaultNetworks");
                 String defaultNetworkForCurrency = this.safeString(options, code);
                 if (!java.util.Objects.equals(defaultNetworkForCurrency, null))
                 {
@@ -6395,7 +6395,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                 //         }
                 //     }
                 //
-                Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 return this.parseTransfer(data);
             } else if (java.util.Objects.equals(marketType, "swap"))
             {
@@ -6754,7 +6754,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                 //
                 return this.parseTransaction(responseForInternal, currency);
             }
-            Object networks = this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
+            Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
             Object network = this.safeString2(parameters, "network", "netWork"); // this line allows the user to specify either ERC20 or ETH
             network = this.safeString(networks, network, network); // handle ETH > ERC-20 alias
             network = this.networkCodeToId(network, ((Map<String, Object>)currency).get("code"));

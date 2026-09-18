@@ -770,8 +770,8 @@ public class Bigone extends BigoneApi
             for (var i = 0; i < ((List<?>)markets).size(); i++)
             {
                 Object market = Helpers.GetValue(markets, i);
-                Object baseAsset = this.safeDict(market, "base_asset", new HashMap<String, Object>() {{}});
-                Object quoteAsset = this.safeDict(market, "quote_asset", new HashMap<String, Object>() {{}});
+                Map<String, Object> baseAsset = (Map<String, Object>) this.safeDict(market, "base_asset", new HashMap<String, Object>() {{}});
+                Map<String, Object> quoteAsset = (Map<String, Object>) this.safeDict(market, "quote_asset", new HashMap<String, Object>() {{}});
                 String baseId = this.safeString(baseAsset, "symbol");
                 String quoteId = this.safeString(quoteAsset, "symbol");
                 String base = this.safeCurrencyCode(baseId);
@@ -949,8 +949,8 @@ public class Bigone extends BigoneApi
         String marketId = this.safeString2(ticker, "asset_pair_name", "symbol");
         String symbol = this.safeSymbol(marketId, market, "-", marketType);
         String close = this.safeString2(ticker, "close", "latestPrice");
-        Object bid = this.safeDict(ticker, "bid", new HashMap<String, Object>() {{}});
-        Object ask = this.safeDict(ticker, "ask", new HashMap<String, Object>() {{}});
+        Map<String, Object> bid = (Map<String, Object>) this.safeDict(ticker, "bid", new HashMap<String, Object>() {{}});
+        Map<String, Object> ask = (Map<String, Object>) this.safeDict(ticker, "ask", new HashMap<String, Object>() {{}});
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", null );
@@ -1023,7 +1023,7 @@ public class Bigone extends BigoneApi
                 //         }
                 //     }
                 //
-                Object ticker = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                Map<String, Object> ticker = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 return this.parseTicker(ticker, market);
             } else
             {
@@ -1137,7 +1137,7 @@ public class Bigone extends BigoneApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(data, "Timestamp");
             if (java.util.Objects.equals(timestamp, null))
             {
@@ -1229,7 +1229,7 @@ public class Bigone extends BigoneApi
                 //         }
                 //     }
                 //
-                Object orderbook = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                Map<String, Object> orderbook = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 return this.parseOrderBook(orderbook, ((Map<String, Object>)market).get("symbol"), null, "bids", "asks", "price", "quantity");
             }
         }).thenApply(OrderBook::new);
@@ -1939,7 +1939,7 @@ public class Bigone extends BigoneApi
             //        "updated_at":"2019-01-29T06:05:56Z"
             //    }
             //
-            Object order = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> order = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
@@ -1982,7 +1982,7 @@ public class Bigone extends BigoneApi
             //        "created_at":"2019-01-29T06:05:56Z",
             //        "updated_at":"2019-01-29T06:05:56Z"
             //    }
-            Object order = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> order = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(order);
         }).thenApply(Order::new);
 
@@ -2025,7 +2025,7 @@ public class Bigone extends BigoneApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object cancelled = this.safeList(data, "cancelled", new ArrayList<Object>(Arrays.asList()));
             Object failed = this.safeList(data, "failed", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
@@ -2077,7 +2077,7 @@ public class Bigone extends BigoneApi
                 put( "id", id );
             }};
             Map<String, Object> response = (this.privateGetOrdersId(this.extend(request, parameters))).join();
-            Object order = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> order = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(order);
         }).thenApply(Order::new);
 
@@ -2400,7 +2400,7 @@ public class Bigone extends BigoneApi
             }
             Map<String, Object> chainsIndexedById = this.indexBy(data, "chain");
             Object selectedNetworkId = this.selectNetworkIdFromRawNetworks(code, networkCode, chainsIndexedById);
-            Object addressObject = this.safeDict(chainsIndexedById, selectedNetworkId, new HashMap<String, Object>() {{}});
+            Map<String, Object> addressObject = (Map<String, Object>) this.safeDict(chainsIndexedById, selectedNetworkId, new HashMap<String, Object>() {{}});
             String address = this.safeString(addressObject, "value");
             String tag = this.safeString(addressObject, "memo");
             this.checkAddress(address);
@@ -2666,7 +2666,7 @@ public class Bigone extends BigoneApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
-            Object accountsByType = this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
+            Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
             String toId = this.safeString(accountsByType, toAccount, toAccount);
             String guid = this.safeString(parameters, "guid", this.uuid());
@@ -2685,7 +2685,7 @@ public class Bigone extends BigoneApi
             //     }
             //
             Object transfer = this.parseTransfer(response, currency);
-            Object transferOptions = this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
+            Map<String, Object> transferOptions = (Map<String, Object>) this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
             Object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
             if (java.util.Objects.equals(fillResponseFromRequest, true))
             {
@@ -2797,7 +2797,7 @@ public class Bigone extends BigoneApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseTransaction(data, currency);
         }).thenApply(Transaction::new);
 

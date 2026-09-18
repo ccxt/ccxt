@@ -236,7 +236,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
-        Object orderBook = this.safeDict(message, "Data", new HashMap<String, Object>() {{}});
+        Map<String, Object> orderBook = (Map<String, Object>) this.safeDict(message, "Data", new HashMap<String, Object>() {{}});
         String messageHash = Helpers.add((("orderbook:" + symbol) + ":"), depth);
         Object subscription = this.safeValue(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});
         Object receivedSnapshot = this.safeBool(subscription, "receivedSnapshot", false);

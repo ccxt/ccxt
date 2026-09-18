@@ -1121,7 +1121,7 @@ public class Bittrade extends BittradeApi
             //         }
             //     }
             //
-            Object tick = this.safeDict(response, "tick", new HashMap<String, Object>() {{}});
+            Map<String, Object> tick = (Map<String, Object>) this.safeDict(response, "tick", new HashMap<String, Object>() {{}});
             Object ticker = this.parseTicker(tick, market);
             Long timestamp = this.safeInteger(response, "ts");
             Helpers.addElementToObject(ticker, "timestamp", timestamp);
@@ -1769,7 +1769,7 @@ public class Bittrade extends BittradeApi
                 put( "id", id );
             }};
             Map<String, Object> response = (this.privateGetOrderOrdersId(this.extend(request, parameters))).join();
-            Object order = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> order = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(order);
         }).thenApply(Order::new);
 
@@ -2402,7 +2402,7 @@ public class Bittrade extends BittradeApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", data );
     }})));

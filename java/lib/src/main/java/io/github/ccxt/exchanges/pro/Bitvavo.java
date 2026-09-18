@@ -2219,7 +2219,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         //         }
         //     }
         //
-        Object subscriptions = this.safeDict(message, "subscriptions", new HashMap<String, Object>() {{}});
+        Map<String, Object> subscriptions = (Map<String, Object>) this.safeDict(message, "subscriptions", new HashMap<String, Object>() {{}});
         Map<String, Object> methods = new HashMap<String, Object>() {{
             put( "book", "handleOrderBookSubscriptions");
         }};

@@ -513,7 +513,7 @@ public class Indodax extends IndodaxApi
     public Object parseBalance(Object response)
     {
         Object balances = this.safeValue(response, "return", new HashMap<String, Object>() {{}});
-        Object free = this.safeDict(balances, "balance", new HashMap<String, Object>() {{}});
+        Map<String, Object> free = (Map<String, Object>) this.safeDict(balances, "balance", new HashMap<String, Object>() {{}});
         Object used = this.safeValue(balances, "balance_hold", new HashMap<String, Object>() {{}});
         Object timestamp = this.safeTimestamp(balances, "server_time");
         Map<String, Object> result = new HashMap<String, Object>() {{
@@ -704,7 +704,7 @@ public class Indodax extends IndodaxApi
             //         }
             //     }
             //
-            Object ticker = this.safeDict(response, "ticker", new HashMap<String, Object>() {{}});
+            Map<String, Object> ticker = (Map<String, Object>) this.safeDict(response, "ticker", new HashMap<String, Object>() {{}});
             return this.parseTicker(ticker, market);
         }).thenApply(Ticker::new);
 
@@ -747,7 +747,7 @@ public class Indodax extends IndodaxApi
             // }
             //
             Map<String, Object> response = (this.publicGetApiTickerAll(parameters)).join();
-            Object tickers = this.safeDict(response, "tickers", new HashMap<String, Object>() {{}});
+            Map<String, Object> tickers = (Map<String, Object>) this.safeDict(response, "tickers", new HashMap<String, Object>() {{}});
             Object keys = Helpers.objectKeys(tickers);
             Map<String, Object> parsedTickers = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)keys).size(); i++)
@@ -1052,7 +1052,7 @@ public class Indodax extends IndodaxApi
                 put( "order_id", id );
             }};
             Map<String, Object> response = (this.privatePostGetOrder(this.extend(request, parameters))).join();
-            Object orders = this.safeDict(response, "return", new HashMap<String, Object>() {{}});
+            Map<String, Object> orders = (Map<String, Object>) this.safeDict(response, "return", new HashMap<String, Object>() {{}});
             Object order = this.parseOrder(this.extend(new HashMap<String, Object>() {{
                 put( "id", id );
             }}, ((Map<String, Object>)orders).get("order")), market);
@@ -1094,7 +1094,7 @@ public class Indodax extends IndodaxApi
                 ((Map<String, Object>)request).put("pair", ((Map<String, Object>)market).get("id"));
             }
             Map<String, Object> response = (this.privatePostOpenOrders(this.extend(request, parameters))).join();
-            Object openOrdersResult = this.safeDict(response, "return", new HashMap<String, Object>() {{}});
+            Map<String, Object> openOrdersResult = (Map<String, Object>) this.safeDict(response, "return", new HashMap<String, Object>() {{}});
             Object rawOrders = ((Map<String, Object>)openOrdersResult).get("orders");
             // { success: 1, return: { orders: null }} if no orders
             if ((java.util.Objects.equals(rawOrders, null)) || (java.util.Objects.equals(rawOrders, null)))
@@ -1155,7 +1155,7 @@ public class Indodax extends IndodaxApi
                 put( "pair", ((Map<String, Object>)market).get("id") );
             }};
             Map<String, Object> response = (this.privatePostOrderHistory(this.extend(request, parameters))).join();
-            Object historyResult = this.safeDict(response, "return", new HashMap<String, Object>() {{}});
+            Map<String, Object> historyResult = (Map<String, Object>) this.safeDict(response, "return", new HashMap<String, Object>() {{}});
             Object orders = this.parseOrders(((Map<String, Object>)historyResult).get("orders"), market);
             orders = this.filterBy(orders, "status", "closed");
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
@@ -1396,7 +1396,7 @@ public class Indodax extends IndodaxApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "return", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "return", new HashMap<String, Object>() {{}});
             Object result = this.depositWithdrawFee(response);
             Helpers.addElementToObject(Helpers.GetValue(result, "withdraw"), "fee", this.safeNumber(data, "withdraw_fee"));
             Helpers.addElementToObject(Helpers.GetValue(result, "withdraw"), "percentage", false);
@@ -1497,8 +1497,8 @@ public class Indodax extends IndodaxApi
             //     }
             //
             Object data = this.safeValue(response, "return", new HashMap<String, Object>() {{}});
-            Object withdraw = this.safeDict(data, "withdraw", new HashMap<String, Object>() {{}});
-            Object deposit = this.safeDict(data, "deposit", new HashMap<String, Object>() {{}});
+            Map<String, Object> withdraw = (Map<String, Object>) this.safeDict(data, "withdraw", new HashMap<String, Object>() {{}});
+            Map<String, Object> deposit = (Map<String, Object>) this.safeDict(data, "deposit", new HashMap<String, Object>() {{}});
             Object transactions = new ArrayList<Object>(Arrays.asList());
             Object currency = null;
             if (java.util.Objects.equals(code, null))
@@ -1741,9 +1741,9 @@ public class Indodax extends IndodaxApi
             //        }
             //    }
             //
-            Object data = this.safeDict(response, "return");
-            Object addresses = this.safeDict(data, "address", new HashMap<String, Object>() {{}});
-            Object networks = this.safeDict(data, "network", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "return");
+            Map<String, Object> addresses = (Map<String, Object>) this.safeDict(data, "address", new HashMap<String, Object>() {{}});
+            Map<String, Object> networks = (Map<String, Object>) this.safeDict(data, "network", new HashMap<String, Object>() {{}});
             Object addressKeys = Helpers.objectKeys(addresses);
             Object result = new HashMap<String, Object>() {{
                 put( "info", data );

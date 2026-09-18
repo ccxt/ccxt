@@ -790,7 +790,7 @@ public class Coinspot extends CoinspotApi
             Map<String, Object> response = (this.publicGetLatest(parameters)).join();
             String id = this.safeString(market, "id", "");
             id = id.toLowerCase();
-            Object prices = this.safeDict(response, "prices", new HashMap<String, Object>() {{}});
+            Map<String, Object> prices = (Map<String, Object>) this.safeDict(response, "prices", new HashMap<String, Object>() {{}});
             //
             //     {
             //         "status":"ok",
@@ -803,7 +803,7 @@ public class Coinspot extends CoinspotApi
             //         }
             //     }
             //
-            Object ticker = this.safeDict(prices, id, new HashMap<String, Object>() {{}});
+            Map<String, Object> ticker = (Map<String, Object>) this.safeDict(prices, id, new HashMap<String, Object>() {{}});
             return this.parseTicker(ticker, market);
         }).thenApply(Ticker::new);
 
@@ -848,7 +848,7 @@ public class Coinspot extends CoinspotApi
             //    }
             //
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            Object prices = this.safeDict(response, "prices", new HashMap<String, Object>() {{}});
+            Map<String, Object> prices = (Map<String, Object>) this.safeDict(response, "prices", new HashMap<String, Object>() {{}});
             Object ids = Helpers.objectKeys(prices);
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {

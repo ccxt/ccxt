@@ -1547,7 +1547,7 @@ public class Blofin extends BlofinApi
             //    }
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object entry = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseFundingRate(entry, market);
         }).thenApply(FundingRate::new);
 
@@ -1600,7 +1600,7 @@ public class Blofin extends BlofinApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         Long timestamp = this.safeInteger(data, "ts");
         Object details = this.safeList(data, "details", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)details).size(); i++)
@@ -1705,7 +1705,7 @@ public class Blofin extends BlofinApi
             Object response = null;
             if (!java.util.Objects.equals(accountType, null) && !java.util.Objects.equals(accountType, "swap"))
             {
-                Object options = this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
+                Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
                 String parsedAccountType = this.safeString(options, accountType, accountType);
                 ((Map<String, Object>)request).put("accountType", parsedAccountType);
                 response = (this.privateGetAssetBalances(this.extend(request, parameters))).join();
@@ -1773,8 +1773,8 @@ public class Blofin extends BlofinApi
         {
             ((Map<String, Object>)request).put("type", "post_only");
         }
-        Object stopLoss = this.safeDict(parameters, "stopLoss");
-        Object takeProfit = this.safeDict(parameters, "takeProfit");
+        Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(parameters, "stopLoss");
+        Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(parameters, "takeProfit");
         parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLoss", "takeProfit", "hedged")));
         Boolean hasStopLoss = !java.util.Objects.equals(stopLoss, null);
         Boolean hasTakeProfit = !java.util.Objects.equals(takeProfit, null);
@@ -2218,7 +2218,7 @@ public class Blofin extends BlofinApi
                 String side = this.safeString(rawOrder, "side");
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
-                Object orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
+                Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Map<String, Object> extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
                 Object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
                 ((List<Object>)ordersRequests).add(orderRequest);
@@ -2515,17 +2515,17 @@ public class Blofin extends BlofinApi
         // the live venue identifies chains by display names; the suffix
         // family is built here as prefix + space + parenthesized suffix
         // because such literals are not transpiler-safe in source
-        Object networks = this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
+        Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
         String direct = this.safeString(networks, networkCode);
         if (!java.util.Objects.equals(direct, null))
         {
             return direct;
         }
-        Object prefixes = this.safeDict(this.options, "networkPrefixes", new HashMap<String, Object>() {{}});
+        Map<String, Object> prefixes = (Map<String, Object>) this.safeDict(this.options, "networkPrefixes", new HashMap<String, Object>() {{}});
         String prefix = this.safeString(prefixes, networkCode);
         if (!java.util.Objects.equals(prefix, null))
         {
-            Object suffixes = this.safeDict(this.options, "networkSuffixes", new HashMap<String, Object>() {{}});
+            Map<String, Object> suffixes = (Map<String, Object>) this.safeDict(this.options, "networkSuffixes", new HashMap<String, Object>() {{}});
             String suffix = this.safeString(suffixes, networkCode, networkCode);
             return ((((prefix + " ") + "(") + suffix) + ")");
         }
@@ -2551,7 +2551,7 @@ public class Blofin extends BlofinApi
             String tail = this.safeString(parts, 1, "");
             Object tailParts = Helpers.split(tail, ")");
             String suffix = this.safeString(tailParts, 0);
-            Object bySuffix = this.safeDict(this.options, "networkCodesBySuffix", new HashMap<String, Object>() {{}});
+            Map<String, Object> bySuffix = (Map<String, Object>) this.safeDict(this.options, "networkCodesBySuffix", new HashMap<String, Object>() {{}});
             return this.safeString(bySuffix, suffix, suffix);
         }
         // delegate the paren-free branch to the base resolver so the
@@ -2649,7 +2649,7 @@ public class Blofin extends BlofinApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             // the response carries only withdrawId + clientId, and this class's
             // parseTransaction reads every field from the payload - seed the
             // parsed structure from the request so the unified transaction
@@ -3027,7 +3027,7 @@ public class Blofin extends BlofinApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
-            Object accountsByType = this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
+            Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
             String toId = this.safeString(accountsByType, toAccount, toAccount);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3086,7 +3086,7 @@ public class Blofin extends BlofinApi
             }};
             Map<String, Object> response = (this.privateGetAccountPositions(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object position = this.safeDict(data, 0);
+            Map<String, Object> position = (Map<String, Object>) this.safeDict(data, 0);
             if (java.util.Objects.equals(position, null))
             {
                 throw new NullResponse((this.id + " fetchPosition() returned empty position")) ;
@@ -3798,7 +3798,7 @@ public class Blofin extends BlofinApi
             Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.privateGetAccountPositionMode(parameters)).join();
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String positionMode = this.safeString(data, "positionMode");
             //
             //     {
@@ -3978,7 +3978,7 @@ public class Blofin extends BlofinApi
         //  }
         //
         Object data = this.safeList(response, "data");
-        Object first = this.safeDict(data, 0);
+        Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0);
         String insideMsg = this.safeString(first, "msg");
         String insideCode = this.safeString(first, "code");
         if (!java.util.Objects.equals(insideCode, null) && !java.util.Objects.equals(insideCode, "0"))

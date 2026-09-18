@@ -419,7 +419,7 @@ public class P2b extends P2bApi
         String quoteId = this.safeString(market, "money");
         Object base = ((String)this.safeCurrencyCode(baseId));
         Object quote = ((String)this.safeCurrencyCode(quoteId));
-        Object limits = this.safeDict(market, "limits");
+        Map<String, Object> limits = (Map<String, Object>) this.safeDict(market, "limits");
         String maxAmount = this.safeString(limits, "max_amount");
         String maxPrice = this.safeString(limits, "max_price");
         final Object finalBase = base;

@@ -890,7 +890,7 @@ public class Grvt extends GrvtApi
             Boolean found = false;
             for (var i = 0; Helpers.isLessThan(i, length); i++)
             {
-                Object builderInfo = this.safeDict(approvedBuilder, i, new HashMap<String, Object>() {{}});
+                Map<String, Object> builderInfo = (Map<String, Object>) this.safeDict(approvedBuilder, i, new HashMap<String, Object>() {{}});
                 String builderAccountId = this.safeString(builderInfo, "builder_account_id");
                 if (java.util.Objects.equals(builderAccountId, this.safeString(this.options, "builder")))
                 {
@@ -923,7 +923,7 @@ public class Grvt extends GrvtApi
                     //     }
                     // }
                     //
-                    Object authResult = this.safeDict(authResponse, "result");
+                    Map<String, Object> authResult = (Map<String, Object>) this.safeDict(authResponse, "result");
                     Object ack = this.safeBool(authResult, "ack");
                     if (!java.util.Objects.equals(ack, true))
                     {
@@ -1227,7 +1227,7 @@ public class Grvt extends GrvtApi
             //        }
             //    }
             //
-            Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseTicker(result, market);
         }).thenApply(Ticker::new);
 
@@ -1343,7 +1343,7 @@ public class Grvt extends GrvtApi
             //        }
             //    }
             //
-            Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Long timestamp = this.parse8601(this.safeString(result, "event_time"));
             String marketId = this.safeString(result, "instrument");
             return this.parseOrderBook(result, this.safeSymbol(marketId), timestamp, "bids", "asks", "price", "size");
@@ -1781,7 +1781,7 @@ public class Grvt extends GrvtApi
             //        }
             //    }
             //
-            Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseBalance(result);
         }).thenApply(Balances::new);
 
@@ -2353,7 +2353,7 @@ public class Grvt extends GrvtApi
             //     }
             // }
             //
-            Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseTransfer(result, currency);
         }).thenApply(TransferEntry::new);
 
@@ -2456,7 +2456,7 @@ public class Grvt extends GrvtApi
             //     }
             //
             Object responses = (Helpers.promiseAll(promises)).join();
-            Object result1 = this.safeDict(Helpers.GetValue(responses, 0), "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result1 = (Map<String, Object>) this.safeDict(Helpers.GetValue(responses, 0), "result", new HashMap<String, Object>() {{}});
             String mainAccountId = this.safeString(result1, "main_account_id");
             Helpers.addElementToObject(this.options, "userMainAccountId", mainAccountId);
             if (Helpers.isTrue(accountIsUndefined))
@@ -2528,7 +2528,7 @@ public class Grvt extends GrvtApi
             //     }
             // }
             //
-            Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseTransaction(result, currency);
         }).thenApply(Transaction::new);
 
@@ -2777,7 +2777,7 @@ public class Grvt extends GrvtApi
             //        }
             //    }
             //
-            Object data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
@@ -3640,7 +3640,7 @@ public class Grvt extends GrvtApi
             //        }
             //    }
             //
-            Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseOrder(result);
         }).thenApply(Order::new);
 
@@ -3734,12 +3734,12 @@ public class Grvt extends GrvtApi
         String filled = null;
         String avgPrice = null;
         Object legs = this.safeList(order, "legs", new ArrayList<Object>(Arrays.asList()));
-        Object metadata = this.safeDict(order, "metadata", new HashMap<String, Object>() {{}});
-        Object stateObj = this.safeDict(order, "state", new HashMap<String, Object>() {{}});
+        Map<String, Object> metadata = (Map<String, Object>) this.safeDict(order, "metadata", new HashMap<String, Object>() {{}});
+        Map<String, Object> stateObj = (Map<String, Object>) this.safeDict(order, "state", new HashMap<String, Object>() {{}});
         Object filledAmounts = this.safeList(stateObj, "traded_size", new ArrayList<Object>(Arrays.asList()));
         Object avgPrices = this.safeList(stateObj, "avg_fill_price", new ArrayList<Object>(Arrays.asList()));
         Integer primaryOrderIndex = 0;
-        Object firstLeg = this.safeDict(legs, primaryOrderIndex);
+        Map<String, Object> firstLeg = (Map<String, Object>) this.safeDict(legs, primaryOrderIndex);
         if (!java.util.Objects.equals(firstLeg, null))
         {
             String marketId = this.safeString(firstLeg, "instrument");
@@ -3862,7 +3862,7 @@ public class Grvt extends GrvtApi
             //        }
             //    }
             //
-            Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseOrders(new ArrayList<Object>(Arrays.asList(result)));
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -3908,7 +3908,7 @@ public class Grvt extends GrvtApi
             //        }
             //    }
             //
-            Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             return this.parseOrder(result);
         }).thenApply(Order::new);
 

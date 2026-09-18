@@ -541,7 +541,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
     public Object parseWsBidAsk(Object ticker, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object data = this.safeDict(ticker, "d");
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(ticker, "d");
         String marketId = this.safeString(ticker, "s");
         market = this.safeMarket(marketId, market);
         String symbol = this.safeString(market, "symbol");
@@ -765,7 +765,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         if (Helpers.inOp(message, "publicSpotKline"))
         {
             symbol = this.symbol(this.safeString(message, "symbol"));
-            Object data = this.safeDict(message, "publicSpotKline", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "publicSpotKline", new HashMap<String, Object>() {{}});
             String timeframeId = this.safeString(data, "interval");
             timeframe = this.findTimeframe(timeframeId, ((Map<String, Object>)this.options).get("timeframes"));
             parsed = this.parseWsOHLCV(data, this.safeMarket(symbol));
@@ -1947,7 +1947,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         //         "ts": 1771069020506
         //     }
         //
-        Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Object fundingRate = this.parseFundingRate(data);
         Object symbol = ((Map<String, Object>)fundingRate).get("symbol");
         if (!java.util.Objects.equals(symbol, null))

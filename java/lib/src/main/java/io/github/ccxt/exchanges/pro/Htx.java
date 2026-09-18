@@ -189,7 +189,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
-            Object options = this.safeDict(this.options, "watchTicker", new HashMap<String, Object>() {{}});
+            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchTicker", new HashMap<String, Object>() {{}});
             String topic = this.safeString(options, "name", "market.{marketId}.detail");
             if (java.util.Objects.equals(topic, "market.{marketId}.ticker") && !java.util.Objects.equals(((Map<String, Object>)market).get("type"), "spot"))
             {
@@ -226,7 +226,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             }
             Object market = this.market(symbol);
             Object topic = "ticker";
-            Object options = this.safeDict(this.options, "watchTicker", new HashMap<String, Object>() {{}});
+            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchTicker", new HashMap<String, Object>() {{}});
             String channel = this.safeString(options, "name", "market.{marketId}.detail");
             if (java.util.Objects.equals(channel, "market.{marketId}.ticker") && !java.util.Objects.equals(((Map<String, Object>)market).get("type"), "spot"))
             {
@@ -358,7 +358,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             }
             Object market = this.market(symbol);
             Object topic = "trades";
-            Object options = this.safeDict(this.options, "watchTrades", new HashMap<String, Object>() {{}});
+            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchTrades", new HashMap<String, Object>() {{}});
             String channel = this.safeString(options, "name", "market.{marketId}.trade.detail");
             Object subMessageHash = this.implodeParams(channel, new HashMap<String, Object>() {{
                 put( "marketId", ((Map<String, Object>)market).get("id") );
@@ -569,7 +569,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             // which means whenever there is an order book change at that level, it pushes an update;
             // 150-levels/400-level incremental MBP feed is based on the gap
             // between two snapshots at 100ms interval.
-            Object options = this.safeDict(this.options, "watchOrderBook", new HashMap<String, Object>() {{}});
+            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchOrderBook", new HashMap<String, Object>() {{}});
             if (java.util.Objects.equals(limit, null))
             {
                 limit = this.safeInteger(options, "depth", 150);
@@ -624,7 +624,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             }
             Object market = this.market(symbol);
             Object topic = "orderbook";
-            Object options = this.safeDict(this.options, "watchOrderBook", new HashMap<String, Object>() {{}});
+            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchOrderBook", new HashMap<String, Object>() {{}});
             Long depth = this.safeInteger(options, "depth", 150);
             Object subMessageHash = null;
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
@@ -966,7 +966,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         //     }
         //
         String messageHash = this.safeString(message, "ch");
-        Object tick = this.safeDict(message, "tick");
+        Map<String, Object> tick = (Map<String, Object>) this.safeDict(message, "tick");
         String eventVar = this.safeString(tick, "event");
         String ch = this.safeString(message, "ch");
         if (java.util.Objects.equals(ch, null))
@@ -2365,7 +2365,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             }
             if (java.util.Objects.equals(topic, "account"))
             {
-                Object accountData = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+                Map<String, Object> accountData = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
                 Object details = this.safeList(accountData, "details", new ArrayList<Object>(Arrays.asList()));
                 Object detailsLength = ((List<?>)details).size();
                 for (var i = 0; Helpers.isLessThan(i, detailsLength); i++)
@@ -2519,7 +2519,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             return;
         }
         Map<String, Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
-        Object subscription = this.safeDict(subscriptionsById, id);
+        Map<String, Object> subscription = (Map<String, Object>) this.safeDict(subscriptionsById, id);
         if (!java.util.Objects.equals(subscription, null))
         {
             Object method = this.safeValue(subscription, "method");

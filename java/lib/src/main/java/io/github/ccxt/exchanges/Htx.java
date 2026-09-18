@@ -2221,7 +2221,7 @@ public class Htx extends HtxApi
                 //         }
                 //     }
                 //
-                Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 Long marketStatus = this.safeInteger(data, "marketStatus");
                 status = (((Helpers.isEqual(marketStatus, 1)))) ? "ok" : "maintenance";
                 eta = this.safeInteger(data, "haltEndTime");
@@ -2248,7 +2248,7 @@ public class Htx extends HtxApi
                 //         "ts": 1557714418033 // stale on the exchange side, do not trust as an update time
                 //     }
                 //
-                Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 String heartbeatKey = "heartbeat";
                 String etaKey = "estimated_recovery_time";
                 if (java.util.Objects.equals(subType, "linear"))
@@ -2942,7 +2942,7 @@ public class Htx extends HtxApi
         {
             Helpers.addElementToObject(this.options, "futureMarketIdsForSymbols", new HashMap<String, Object>() {{}});
         }
-        Object futureMarketIdsForSymbols = this.safeDict(this.options, "futureMarketIdsForSymbols", new HashMap<String, Object>() {{}});
+        Map<String, Object> futureMarketIdsForSymbols = (Map<String, Object>) this.safeDict(this.options, "futureMarketIdsForSymbols", new HashMap<String, Object>() {{}});
         if (((Map<?, ?>)futureMarketIdsForSymbols).containsKey(symbolOrMarketId))
         {
             return Helpers.GetValue(futureMarketIdsForSymbols, symbolOrMarketId);
@@ -4601,7 +4601,7 @@ public class Htx extends HtxApi
         {
             throw new ExchangeError((this.id + " networkCodeToId() - markets need to be loaded at first")) ;
         }
-        Object uniqueNetworkIds = this.safeDict(((Map<String, Object>)this.options).get("networkChainIdsByNames"), currencyCode, new HashMap<String, Object>() {{}});
+        Map<String, Object> uniqueNetworkIds = (Map<String, Object>) this.safeDict(((Map<String, Object>)this.options).get("networkChainIdsByNames"), currencyCode, new HashMap<String, Object>() {{}});
         if (((Map<?, ?>)uniqueNetworkIds).containsKey(networkCode))
         {
             return Helpers.GetValue(uniqueNetworkIds, networkCode);
@@ -6594,7 +6594,7 @@ public class Htx extends HtxApi
             String triggerPrice = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stop-price")));
             if (java.util.Objects.equals(triggerPrice, null))
             {
-                Object stopOrderTypes = this.safeDict(options, "stopOrderTypes", new HashMap<String, Object>() {{}});
+                Map<String, Object> stopOrderTypes = (Map<String, Object>) this.safeDict(options, "stopOrderTypes", new HashMap<String, Object>() {{}});
                 if (((Map<?, ?>)stopOrderTypes).containsKey(orderType))
                 {
                     throw new ArgumentsRequired((this.id + " createOrder() requires a triggerPrice for a trigger order")) ;
@@ -6688,7 +6688,7 @@ public class Htx extends HtxApi
             {
                 ((Map<String, Object>)request).put("amount", this.amountToPrecision(symbol, amount));
             }
-            Object limitOrderTypes = this.safeDict(options, "limitOrderTypes", new HashMap<String, Object>() {{}});
+            Map<String, Object> limitOrderTypes = (Map<String, Object>) this.safeDict(options, "limitOrderTypes", new HashMap<String, Object>() {{}});
             if (((Map<?, ?>)limitOrderTypes).containsKey(orderType))
             {
                 ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
@@ -6768,8 +6768,8 @@ public class Htx extends HtxApi
             {
                 ((Map<String, Object>)request).put("time_in_force", timeInForce.toLowerCase());
             }
-            Object stopLoss = this.safeDict(parameters, "stopLoss");
-            Object takeProfit = this.safeDict(parameters, "takeProfit");
+            Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(parameters, "stopLoss");
+            Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(parameters, "takeProfit");
             Double stopLossTriggerPriceAttached = this.safeNumber(stopLoss, "triggerPrice");
             Double stopLossOrderPrice = this.safeNumber(stopLoss, "price");
             String stopLossType = this.safeString(stopLoss, "type");
@@ -7812,7 +7812,7 @@ public class Htx extends HtxApi
             {
                 return this.parseCancelOrders(response);
             }
-            Object data = this.safeDict(response, "data");
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data");
             return this.parseCancelOrders(data);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -7965,7 +7965,7 @@ public class Htx extends HtxApi
                 //         }
                 //     }
                 //
-                Object data = this.safeDict(response, "data");
+                Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data");
                 return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", data );
     }})));
@@ -8038,7 +8038,7 @@ public class Htx extends HtxApi
                 {
                     return this.parseCancelOrders(response);
                 }
-                Object data = this.safeDict(response, "data");
+                Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data");
                 return this.parseCancelOrders(data);
             }
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -8656,7 +8656,7 @@ public class Htx extends HtxApi
         //     }
         //
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object accountsById = this.safeDict(this.options, "accountsById", new HashMap<String, Object>() {{}});
+        Map<String, Object> accountsById = (Map<String, Object>) this.safeDict(this.options, "accountsById", new HashMap<String, Object>() {{}});
         String id = this.safeString2(transfer, "transfer_id", "data");
         String currencyId = this.safeString(transfer, "currency");
         String code = this.safeCurrencyCode(currencyId, currency);
@@ -9686,11 +9686,11 @@ public class Htx extends HtxApi
             String code = this.safeString(response, "code");
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), code, feedback);
         }
-        Object data = this.safeDict(response, "data");
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data");
         Object errorsList = this.safeList(data, "errors");
         if (!java.util.Objects.equals(errorsList, null))
         {
-            Object first = this.safeDict(errorsList, 0);
+            Map<String, Object> first = (Map<String, Object>) this.safeDict(errorsList, 0);
             String errcode = this.safeString(first, "err_code");
             String errmessage = this.safeString(first, "err_msg");
             Object feedBack = ((this.id + " ") + body);
@@ -10218,7 +10218,7 @@ public class Htx extends HtxApi
             Object data = this.safeValue(response, "data");
             if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
             {
-                Object linearPosition = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+                Map<String, Object> linearPosition = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
                 return this.parsePosition(linearPosition, market);
             }
             Object account = null;
@@ -10801,7 +10801,7 @@ public class Htx extends HtxApi
             Long timestamp = this.safeInteger(response, "ts");
             if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
             {
-                Object result = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 return this.extend(this.parseOpenInterest(result, market), new HashMap<String, Object>() {{
                     put( "timestamp", timestamp );
                     put( "datetime", Htx.this.iso8601(timestamp) );
@@ -11744,7 +11744,7 @@ public class Htx extends HtxApi
             }
             if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
             {
-                Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 return this.parseOrder(data, market);
             }
             if (java.util.Objects.equals(response, null))

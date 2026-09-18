@@ -294,7 +294,7 @@ public class Btcbox extends BtcboxApi
             var response1 = ((List<Object>) response1response2Variable).get(0);
             var response2 = ((List<Object>) response1response2Variable).get(1);
             //
-            Object result2Data = this.safeDict(response2, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> result2Data = (Map<String, Object>) this.safeDict(response2, "data", new HashMap<String, Object>() {{}});
             Object marketIds = Helpers.objectKeys(response1);
             List<Object> markets = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
@@ -305,11 +305,11 @@ public class Btcbox extends BtcboxApi
                 String quote = this.safeString(symbolParts, 1, "");
                 Object quoteId = quote.toLowerCase();
                 Object id = baseCurr.toLowerCase();
-                Object res = this.safeDict(response1, marketId, new HashMap<String, Object>() {{}});
+                Map<String, Object> res = (Map<String, Object>) this.safeDict(response1, marketId, new HashMap<String, Object>() {{}});
                 Object symbol = ((baseCurr + "/") + quote);
                 Object fee = (((java.util.Objects.equals(id, "BTC")))) ? this.parseNumber("0.0005") : this.parseNumber("0.0010");
-                Object details = this.safeDict(result2Data, id, new HashMap<String, Object>() {{}});
-                Object tradeDetails = this.safeDict(details, "trade", new HashMap<String, Object>() {{}});
+                Map<String, Object> details = (Map<String, Object>) this.safeDict(result2Data, id, new HashMap<String, Object>() {{}});
+                Map<String, Object> tradeDetails = (Map<String, Object>) this.safeDict(details, "trade", new HashMap<String, Object>() {{}});
     final Object finalId = id;
                 final Object finalBaseCurr = baseCurr;
                             ((List<Object>)markets).add(this.safeMarketStructure(new HashMap<String, Object>() {{

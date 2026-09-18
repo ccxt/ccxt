@@ -1543,7 +1543,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         String marketId = this.safeString(data, "s");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
         Object symbol = ((Map<String, Object>)market).get("symbol");
-        Object kline = this.safeDict(data, "k");
+        Map<String, Object> kline = (Map<String, Object>) this.safeDict(data, "k");
         String timeframeId = this.safeString(kline, "i");
         Object timeframe = this.findTimeframe(timeframeId);
         if (java.util.Objects.equals(timeframe, null))
@@ -1582,9 +1582,9 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             Object type = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "spot";
             Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             Long time = this.milliseconds();
-            Object lastAuthenticatedTimeOptions = this.safeDict(this.options, "lastAuthenticatedTime", new HashMap<String, Object>() {{}});
+            Map<String, Object> lastAuthenticatedTimeOptions = (Map<String, Object>) this.safeDict(this.options, "lastAuthenticatedTime", new HashMap<String, Object>() {{}});
             Long lastAuthenticatedTime = this.safeInteger(lastAuthenticatedTimeOptions, type, 0);
-            Object listenKeyRefreshRateOptions = this.safeDict(this.options, "listenKeyRefreshRate", new HashMap<String, Object>() {{}});
+            Map<String, Object> listenKeyRefreshRateOptions = (Map<String, Object>) this.safeDict(this.options, "listenKeyRefreshRate", new HashMap<String, Object>() {{}});
             Long listenKeyRefreshRate = this.safeInteger(listenKeyRefreshRateOptions, type, 3600000); // 1 hour
             if (Helpers.isGreaterThan(Helpers.subtract(time, lastAuthenticatedTime), listenKeyRefreshRate))
             {
@@ -1656,7 +1656,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             String type = this.safeString(parameters, "type", "spot");
-            Object listenKeyOptions = this.safeDict(this.options, "listenKey", new HashMap<String, Object>() {{}});
+            Map<String, Object> listenKeyOptions = (Map<String, Object>) this.safeDict(this.options, "listenKey", new HashMap<String, Object>() {{}});
             String listenKey = this.safeString(listenKeyOptions, type);
             if (java.util.Objects.equals(listenKey, null))
             {
@@ -1686,7 +1686,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 return null;
             }
             // whether or not to schedule another listenKey keepAlive request
-            Object listenKeyRefreshOptions = this.safeDict(this.options, "listenKeyRefresh", new HashMap<String, Object>() {{}});
+            Map<String, Object> listenKeyRefreshOptions = (Map<String, Object>) this.safeDict(this.options, "listenKeyRefresh", new HashMap<String, Object>() {{}});
             Long listenKeyRefreshRate = this.safeInteger(listenKeyRefreshOptions, "listenKeyRefreshRate", 3600000);
             this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", parameters);
             return null;
@@ -1697,7 +1697,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
     public Object getPrivateUrl(Object... optionalArgs)
     {
         Object type = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "spot";
-        Object listenKeyOptions = this.safeDict(this.options, "listenKey", new HashMap<String, Object>() {{}});
+        Map<String, Object> listenKeyOptions = (Map<String, Object>) this.safeDict(this.options, "listenKey", new HashMap<String, Object>() {{}});
         String listenKey = this.safeString(listenKeyOptions, type);
         Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "private"), type), "/"), listenKey);
         return url;
@@ -1731,7 +1731,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             Object url = this.getPrivateUrl(type);
             Client client = this.client(url);
             this.setBalanceCache(client, type);
-            Object options = this.safeDict(this.options, "watchBalance");
+            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchBalance");
             Object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
             Object awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
             if ((java.util.Objects.equals(fetchBalanceSnapshot, true)) && (java.util.Objects.equals(awaitBalanceSnapshot, true)))
@@ -2028,7 +2028,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
         Object cache = this.positions;
-        Object data = this.safeDict(message, "a", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "a", new HashMap<String, Object>() {{}});
         Object rawPositions = this.safeList(data, "P", new ArrayList<Object>(Arrays.asList()));
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)rawPositions).size(); i++)

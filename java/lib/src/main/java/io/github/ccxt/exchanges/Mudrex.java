@@ -262,7 +262,7 @@ public class Mudrex extends MudrexApi
         Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
-        Object apiUrls = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+        Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
         String base = this.safeString(apiUrls, api);
         if (java.util.Objects.equals(base, null))
         {
@@ -346,7 +346,7 @@ public class Mudrex extends MudrexApi
         if (!java.util.Objects.equals(success, true))
         {
             Object errors = this.safeList(response, "errors", new ArrayList<Object>(Arrays.asList()));
-            Object first = this.safeDict(errors, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> first = (Map<String, Object>) this.safeDict(errors, 0, new HashMap<String, Object>() {{}});
             String text = this.safeString(first, "text", this.json(response));
             String errCode = this.safeString(first, "code");
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), text, ((this.id + " ") + text));
@@ -471,8 +471,8 @@ public class Mudrex extends MudrexApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object assetTicks = this.safeDict(data, "asset_ticks", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> assetTicks = (Map<String, Object>) this.safeDict(data, "asset_ticks", new HashMap<String, Object>() {{}});
             Object ohlcvs = this.safeList(assetTicks, ((String)assetPair).toLowerCase(), new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
@@ -532,7 +532,7 @@ public class Mudrex extends MudrexApi
                 put( "is_symbol", 1 );
             }};
             Map<String, Object> response = (this.privateGetFuturesAssetId(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseTicker(data, market);
         }).thenApply(Ticker::new);
 
@@ -820,7 +820,7 @@ public class Mudrex extends MudrexApi
 
     public Object parseBalance(Object response)
     {
-        Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         String currency = this.safeString(response, "currency", "USDT");
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
@@ -867,7 +867,7 @@ public class Mudrex extends MudrexApi
                 put( "is_symbol", 1 );
             }};
             Map<String, Object> response = (this.privateGetFuturesAssetIdLeverage(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return new HashMap<String, Object>() {{
                 put( "info", response );
                 put( "symbol", symbol );
@@ -1005,8 +1005,8 @@ public class Mudrex extends MudrexApi
                 put( "reduce_only", Mudrex.this.safeBool(finalParameters, "reduceOnly", false) );
             }};
             // mudrex only supports take-profit / stop-loss orders attached to the position-opening order
-            Object takeProfit = this.safeDict(parameters, "takeProfit");
-            Object stopLoss = this.safeDict(parameters, "stopLoss");
+            Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(parameters, "takeProfit");
+            Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(parameters, "stopLoss");
             if (!java.util.Objects.equals(takeProfit, null))
             {
                 ((Map<String, Object>)request).put("is_takeprofit", true);

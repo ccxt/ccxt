@@ -378,7 +378,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             }
             Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "common"), "/quote/ws/v1");
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
-            Object timeframes = this.safeDict(((Map<String, Object>)this.options).get("ws"), "timeframes", new HashMap<String, Object>() {{}});
+            Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(((Map<String, Object>)this.options).get("ws"), "timeframes", new HashMap<String, Object>() {{}});
             Object marketIds = new ArrayList<Object>(Arrays.asList());
             String selectedTimeframe = null;
             for (var i = 0; i < ((List<?>)symbolsAndTimeframes).size(); i++)
@@ -449,7 +449,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         String marketId = this.safeString(message, "symbol");
         Map<String, Object> market = (Map<String, Object>) this.market(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
-        Object parameters = this.safeDict(message, "params", new HashMap<String, Object>() {{}});
+        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         String timeframeId = this.safeString(parameters, "klineType");
         Object timeframe = this.findTimeframe(timeframeId);
         if (!(((Map<?, ?>)this.ohlcvs).containsKey(symbol)))

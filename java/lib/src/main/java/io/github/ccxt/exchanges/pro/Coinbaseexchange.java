@@ -887,8 +887,8 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                         if ((!java.util.Objects.equals(Helpers.GetValue(Helpers.GetValue(previousOrder, "fee"), "cost"), null)) && (!java.util.Objects.equals(this.safeNumber(((Map<String, Object>)trade).get("fee"), "cost"), null)))
                         {
                             Helpers.addElementToObject(Helpers.GetValue(previousOrder, "fee"), "cost", this.sum(Helpers.GetValue(Helpers.GetValue(previousOrder, "fee"), "cost"), this.safeNumber(((Map<String, Object>)trade).get("fee"), "cost")));
-                            Object previousOrderFee = this.safeDict(previousOrder, "fee");
-                            Object tradeFee = this.safeDict(trade, "fee");
+                            Map<String, Object> previousOrderFee = (Map<String, Object>) this.safeDict(previousOrder, "fee");
+                            Map<String, Object> tradeFee = (Map<String, Object>) this.safeDict(trade, "fee");
                             Helpers.addElementToObject(Helpers.GetValue(previousOrder, "fee"), "cost", this.parseNumber(Precise.stringAdd(this.safeString(previousOrderFee, "cost"), this.safeString(tradeFee, "cost"))));
                         }
                         // update the newUpdates count

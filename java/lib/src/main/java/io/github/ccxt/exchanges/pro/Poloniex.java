@@ -1586,7 +1586,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         String id = this.safeString(message, "id");
         String eventVar = this.safeString(message, "event");
         Object data = this.safeList(message, "data");
-        Object first = this.safeDict(data, 0);
+        Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0);
         String orderId = this.safeString(first, "orderId");
         if ((java.util.Objects.equals(eventVar, "error")) || (java.util.Objects.equals(orderId, "0")))
         {

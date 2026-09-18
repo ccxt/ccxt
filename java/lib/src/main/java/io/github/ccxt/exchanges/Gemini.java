@@ -998,7 +998,7 @@ public class Gemini extends GeminiApi
             //     ]
             //
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            Object options = this.safeDict(this.options, "fetchMarketsFromAPI", new HashMap<String, Object>() {{}});
+            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchMarketsFromAPI", new HashMap<String, Object>() {{}});
             Object brokenPairs = this.safeList(this.options, "brokenPairs", new ArrayList<Object>(Arrays.asList()));
             List<Object> marketIds = new ArrayList<Object>(Arrays.asList());
             List<Object> allMarketIds = new ArrayList<Object>(Arrays.asList());
@@ -1135,7 +1135,7 @@ public class Gemini extends GeminiApi
             Object marketIdUpper = ((String)((String)marketId)).toUpperCase();
             Boolean isPerp = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(marketIdUpper, "PERP"), 0));
             Object marketIdWithoutPerp = Helpers.replace(((String)marketIdUpper), "PERP", "");
-            Object conflictingMarkets = this.safeDict(this.options, "conflictingMarkets", new HashMap<String, Object>() {{}});
+            Map<String, Object> conflictingMarkets = (Map<String, Object>) this.safeDict(this.options, "conflictingMarkets", new HashMap<String, Object>() {{}});
             Object lowerCaseId = ((String)marketIdWithoutPerp).toLowerCase();
             if (((Map<?, ?>)conflictingMarkets).containsKey(lowerCaseId))
             {

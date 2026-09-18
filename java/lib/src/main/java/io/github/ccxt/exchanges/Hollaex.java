@@ -443,7 +443,7 @@ public class Hollaex extends HollaexApi
             //         "status": true
             //     }
             //
-            Object pairs = this.safeDict(response, "pairs", new HashMap<String, Object>() {{}});
+            Map<String, Object> pairs = (Map<String, Object>) this.safeDict(response, "pairs", new HashMap<String, Object>() {{}});
             Object keys = Helpers.objectKeys(pairs);
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
@@ -591,7 +591,7 @@ public class Hollaex extends HollaexApi
             //         "network":"https://api.hollaex.network"
             //     }
             //
-            Object coins = this.safeDict(response, "coins", new HashMap<String, Object>() {{}});
+            Map<String, Object> coins = (Map<String, Object>) this.safeDict(response, "coins", new HashMap<String, Object>() {{}});
             Object values = Helpers.objectValues(coins);
             return this.parseCurrencies(values);
         });
@@ -605,13 +605,13 @@ public class Hollaex extends HollaexApi
         Object withdrawalLimits = this.safeList(rawCurrency, "withdrawal_limits", new ArrayList<Object>(Arrays.asList()));
         String rawType = this.safeString(rawCurrency, "type");
         String type = (((java.util.Objects.equals(rawType, "blockchain")))) ? "crypto" : "other";
-        Object rawNetworks = this.safeDict(rawCurrency, "withdrawal_fees", new HashMap<String, Object>() {{}});
+        Map<String, Object> rawNetworks = (Map<String, Object>) this.safeDict(rawCurrency, "withdrawal_fees", new HashMap<String, Object>() {{}});
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         Object networkIds = Helpers.objectKeys(rawNetworks);
         for (var j = 0; j < ((List<?>)networkIds).size(); j++)
         {
             Object networkId = Helpers.GetValue(networkIds, j);
-            Object networkEntry = this.safeDict(rawNetworks, networkId);
+            Map<String, Object> networkEntry = (Map<String, Object>) this.safeDict(rawNetworks, networkId);
             Object networkCode = this.networkIdToCode(networkId, code);
             if (!java.util.Objects.equals(networkCode, null))
             {
@@ -688,7 +688,7 @@ public class Hollaex extends HollaexApi
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
-                Object orderbook = this.safeDict(response, marketId, new HashMap<String, Object>() {{}});
+                Map<String, Object> orderbook = (Map<String, Object>) this.safeDict(response, marketId, new HashMap<String, Object>() {{}});
                 String symbol = this.safeSymbol(marketId, null, "-");
                 Long timestamp = this.parse8601(this.safeString(orderbook, "timestamp"));
                 Helpers.addElementToObject(result, symbol, this.parseOrderBook(orderbook, symbol, timestamp));
@@ -2039,7 +2039,7 @@ public class Hollaex extends HollaexApi
             //     }
             //
             Object data = this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object transaction = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> transaction = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseTransaction(transaction, currency);
         });
 
@@ -2423,7 +2423,7 @@ public class Hollaex extends HollaexApi
             //         "network":"https://api.hollaex.network"
             //     }
             //
-            Object coins = this.safeDict(response, "coins", new HashMap<String, Object>() {{}});
+            Map<String, Object> coins = (Map<String, Object>) this.safeDict(response, "coins", new HashMap<String, Object>() {{}});
             return this.parseDepositWithdrawFees(coins, codes, "symbol");
         }).thenApply(DepositWithdrawFees::new);
 

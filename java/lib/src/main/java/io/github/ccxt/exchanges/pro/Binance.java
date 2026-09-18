@@ -1143,7 +1143,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         //    }
         //
         String messageHash = this.safeString(message, "id");
-        Object result = this.safeDict(message, "result");
+        Map<String, Object> result = (Map<String, Object>) this.safeDict(message, "result");
         Long timestamp = this.safeInteger(result, "T");
         Object orderbook = this.parseOrderBook(result, null, timestamp);
         Helpers.addElementToObject(orderbook, "nonce", this.safeInteger2(result, "lastUpdateId", "u"));
@@ -3496,7 +3496,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Object subscriptions = client.subscriptions;
         Object subscriptionsKeys = Helpers.objectKeys(subscriptions);
         Object accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
-        Object result = this.safeDict(message, "result", new HashMap<String, Object>() {{}});
+        Map<String, Object> result = (Map<String, Object>) this.safeDict(message, "result", new HashMap<String, Object>() {{}});
         Long subscriptionId = this.safeInteger(result, "subscriptionId");
         if (java.util.Objects.equals(subscriptionId, null))
         {
@@ -3527,7 +3527,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object marketType = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "margin";
             Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             Object url = Helpers.GetValue(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "ws-api"), "spot");
-            Object options = this.safeDict(this.options, marketType, new HashMap<String, Object>() {{}});
+            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, marketType, new HashMap<String, Object>() {{}});
             Long lastAuthenticatedTime = this.safeInteger(options, "lastAuthenticatedTime", 0);
             Long listenTokenRefreshRate = this.safeInteger(this.options, "listenTokenRefreshRate", 82800000); // 23 hours default
             Long time = this.milliseconds();
@@ -3638,7 +3638,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object type = this.safeString(parameters, "type", "margin");
-            Object options = this.safeDict(this.options, type, new HashMap<String, Object>() {{}});
+            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, type, new HashMap<String, Object>() {{}});
             String symbol = this.safeString(options, "symbol");
             Object isIsolated = this.safeBool(options, "isIsolated", false);
             Long validity = this.safeInteger(options, "validity");
@@ -3930,7 +3930,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             for (var i = 0; i < ((List<?>)clients).size(); i++)
             {
                 Client client = (Client)Helpers.GetValue(clients, i);
-                Object clientSubscriptions = this.safeDict(client, "subscriptions", new HashMap<String, Object>() {{}});
+                Map<String, Object> clientSubscriptions = (Map<String, Object>) this.safeDict(client, "subscriptions", new HashMap<String, Object>() {{}});
                 Object subscriptionKeys = Helpers.objectKeys(clientSubscriptions);
                 for (var j = 0; j < ((List<?>)subscriptionKeys).size(); j++)
                 {
@@ -4073,7 +4073,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         } else
         {
             // account.status
-            Object result = this.safeDict(message, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(message, "result", new HashMap<String, Object>() {{}});
             rawBalance = this.safeList(result, "assets", new ArrayList<Object>(Arrays.asList()));
         }
         Object parsedBalances = this.parseBalanceCustom(rawBalance);
@@ -4129,7 +4129,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         // swap
         //
         String messageHash = this.safeString(message, "id");
-        Object result = this.safeDict(message, "result", new HashMap<String, Object>() {{}});
+        Map<String, Object> result = (Map<String, Object>) this.safeDict(message, "result", new HashMap<String, Object>() {{}});
         Object parsedBalances = this.parseBalanceCustom(result);
         client.resolve(parsedBalances, messageHash);
     }
@@ -4338,7 +4338,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Client client = this.client(url);
             this.setBalanceCache(client, type, isPortfolioMargin);
             this.setPositionsCache(client, type, null, isPortfolioMargin);
-            Object options = this.safeDict(this.options, "watchBalance");
+            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchBalance");
             Object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
             Object awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
             if ((java.util.Objects.equals(fetchBalanceSnapshot, true)) && (java.util.Objects.equals(awaitBalanceSnapshot, true)))
@@ -4693,7 +4693,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         //    }
         //
         String messageHash = this.safeString(message, "id");
-        Object result = this.safeDict(message, "result", new HashMap<String, Object>() {{}});
+        Map<String, Object> result = (Map<String, Object>) this.safeDict(message, "result", new HashMap<String, Object>() {{}});
         Object order = this.parseOrder(result);
         client.resolve(order, messageHash);
     }
@@ -4910,8 +4910,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         //    }
         //
         String messageHash = this.safeString(message, "id");
-        Object result = this.safeDict(message, "result", new HashMap<String, Object>() {{}});
-        Object newSpotOrder = this.safeDict(result, "newOrderResponse");
+        Map<String, Object> result = (Map<String, Object>) this.safeDict(message, "result", new HashMap<String, Object>() {{}});
+        Map<String, Object> newSpotOrder = (Map<String, Object>) this.safeDict(result, "newOrderResponse");
         Object order = null;
         if (!java.util.Objects.equals(newSpotOrder, null))
         {
@@ -5337,7 +5337,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 (this.authenticate(this.extend(parameters, new HashMap<String, Object>() {{
                     put( "type", "stock" );
                 }}))).join();
-                Object stockOptions = this.safeDict(this.options, "stock", new HashMap<String, Object>() {{}});
+                Map<String, Object> stockOptions = (Map<String, Object>) this.safeDict(this.options, "stock", new HashMap<String, Object>() {{}});
                 String stockListenKey = this.safeString(stockOptions, "listenKey");
                 if (java.util.Objects.equals(stockListenKey, null))
                 {
@@ -5874,7 +5874,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Map<String, Object> tickers = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)rates).size(); i++)
         {
-            Object rate = this.safeDict(rates, i, new HashMap<String, Object>() {{}});
+            Map<String, Object> rate = (Map<String, Object>) this.safeDict(rates, i, new HashMap<String, Object>() {{}});
             String stockSymbol = this.safeString(rate, "s");
             Object symbol = this.getStockUnifiedSymbol(stockSymbol, "USDC");
             if (java.util.Objects.equals(symbol, null))
@@ -6233,7 +6233,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Helpers.addElementToObject(this.positions, accountType, new ArrayCache.ArrayCacheBySymbolBySide());
         }
         Object cache = Helpers.GetValue(this.positions, accountType);
-        Object data = this.safeDict(message, "a", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "a", new HashMap<String, Object>() {{}});
         Object rawPositions = this.safeList(data, "P", new ArrayList<Object>(Arrays.asList()));
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
@@ -6917,7 +6917,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         //
         String id = this.safeString(message, "id");
         Boolean rejected = false;
-        Object error = this.safeDict(message, "error", new HashMap<String, Object>() {{}});
+        Map<String, Object> error = (Map<String, Object>) this.safeDict(message, "error", new HashMap<String, Object>() {{}});
         Object code = this.safeInteger(error, "code");
         String msg = this.safeString(error, "msg");
         Object codeValue = (((java.util.Objects.equals(code, null)))) ? 0 : code;
@@ -6987,13 +6987,13 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             message = this.safeDict(message, "data", message);
         }
         // handle WebSocketAPI
-        Object eventMsg = this.safeDict(message, "event");
+        Map<String, Object> eventMsg = (Map<String, Object>) this.safeDict(message, "event");
         if (!java.util.Objects.equals(eventMsg, null))
         {
             message = eventMsg;
         }
         // handle combined stream wrapper payloads
-        Object eventData = this.safeDict(message, "data");
+        Map<String, Object> eventData = (Map<String, Object>) this.safeDict(message, "data");
         if (!java.util.Objects.equals(eventData, null))
         {
             message = eventData;

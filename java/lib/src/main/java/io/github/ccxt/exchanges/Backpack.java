@@ -919,12 +919,12 @@ public class Backpack extends BackpackApi
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
-        Object filters = this.safeDict(market, "filters", new HashMap<String, Object>() {{}});
-        Object priceFilter = this.safeDict(filters, "price", new HashMap<String, Object>() {{}});
+        Map<String, Object> filters = (Map<String, Object>) this.safeDict(market, "filters", new HashMap<String, Object>() {{}});
+        Map<String, Object> priceFilter = (Map<String, Object>) this.safeDict(filters, "price", new HashMap<String, Object>() {{}});
         Double maxPrice = this.safeNumber(priceFilter, "maxPrice");
         Double minPrice = this.safeNumber(priceFilter, "minPrice");
         Double pricePrecision = this.safeNumber(priceFilter, "tickSize");
-        Object quantityFilter = this.safeDict(filters, "quantity", new HashMap<String, Object>() {{}});
+        Map<String, Object> quantityFilter = (Map<String, Object>) this.safeDict(filters, "quantity", new HashMap<String, Object>() {{}});
         Double maxQuantity = this.safeNumber(quantityFilter, "maxQuantity");
         Double minQuantity = this.safeNumber(quantityFilter, "minQuantity");
         Double amountPrecision = this.safeNumber(quantityFilter, "stepSize");
@@ -1311,7 +1311,7 @@ public class Backpack extends BackpackApi
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
             List<Object> response = (this.publicGetApiV1MarkPrices(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             return this.parseFundingRate(data, market);
         }).thenApply(FundingRate::new);
 
@@ -1383,7 +1383,7 @@ public class Backpack extends BackpackApi
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
             List<Object> response = (this.publicGetApiV1OpenInterest(this.extend(request, parameters))).join();
-            Object interest = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> interest = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             return this.parseOpenInterest(interest, market);
         }).thenApply(OpenInterest::new);
 
@@ -2223,7 +2223,7 @@ public class Backpack extends BackpackApi
                 String side = this.safeString(rawOrder, "side");
                 Double amount = this.safeNumber(rawOrder, "amount");
                 Double price = this.safeNumber(rawOrder, "price");
-                Object orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
+                Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Map<String, Object> extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
                 Object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
                 ((List<Object>)ordersRequests).add(orderRequest);
@@ -2294,7 +2294,7 @@ public class Backpack extends BackpackApi
         {
             ((Map<String, Object>)parameters).put("postOnly", true);
         }
-        Object takeProfit = this.safeDict(parameters, "takeProfit");
+        Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(parameters, "takeProfit");
         if (!java.util.Objects.equals(takeProfit, null))
         {
             String takeProfitTriggerPrice = this.safeString(takeProfit, "triggerPrice");
@@ -2309,7 +2309,7 @@ public class Backpack extends BackpackApi
             }
             parameters = this.omit(parameters, "takeProfit");
         }
-        Object stopLoss = this.safeDict(parameters, "stopLoss");
+        Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(parameters, "stopLoss");
         if (!java.util.Objects.equals(stopLoss, null))
         {
             String stopLossTriggerPrice = this.safeString(stopLoss, "triggerPrice");
@@ -2924,8 +2924,8 @@ public class Backpack extends BackpackApi
             this.checkRequiredCredentials();
             Object ts = String.valueOf(this.nonce());
             String recvWindow = this.safeString2(this.options, "recvWindow", "X-Window", "5000");
-            Object optionInstructions = this.safeDict(this.options, "instructions", new HashMap<String, Object>() {{}});
-            Object optionPathInstructions = this.safeDict(optionInstructions, path, new HashMap<String, Object>() {{}});
+            Map<String, Object> optionInstructions = (Map<String, Object>) this.safeDict(this.options, "instructions", new HashMap<String, Object>() {{}});
+            Map<String, Object> optionPathInstructions = (Map<String, Object>) this.safeDict(optionInstructions, path, new HashMap<String, Object>() {{}});
             String instruction = this.safeString(optionPathInstructions, method, "");
             Object payload = "";
             if ((java.util.Objects.equals(path, "api/v1/orders")) && (java.util.Objects.equals(method, "POST")))
@@ -2982,7 +2982,7 @@ public class Backpack extends BackpackApi
         Object payload = "";
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(parameters)); i++)
         {
-            Object order = this.safeDict(parameters, i, new HashMap<String, Object>() {{}});
+            Map<String, Object> order = (Map<String, Object>) this.safeDict(parameters, i, new HashMap<String, Object>() {{}});
             Map<String, Object> sortedOrder = this.keysort(order);
             Object orderQuery = this.urlencode(sortedOrder);
             payload = (payload + (((Helpers.add("instruction=", instruction) + "&") + orderQuery) + "&"));

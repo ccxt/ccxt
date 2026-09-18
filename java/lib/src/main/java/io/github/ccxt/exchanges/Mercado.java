@@ -655,7 +655,7 @@ public class Mercado extends MercadoApi
     public Object parseBalance(Object response)
     {
         Object data = this.safeValue(response, "response_data", new HashMap<String, Object>() {{}});
-        Object balances = this.safeDict(data, "balance", new HashMap<String, Object>() {{}});
+        Map<String, Object> balances = (Map<String, Object>) this.safeDict(data, "balance", new HashMap<String, Object>() {{}});
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};

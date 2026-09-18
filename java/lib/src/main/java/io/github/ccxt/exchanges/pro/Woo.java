@@ -273,7 +273,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         //         }
         //     }
         //
-        Object data = this.safeDict(message, "data");
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data");
         String marketId = this.safeString(data, "symbol");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -409,7 +409,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
 
     public Object handleOrderBookMessage(Client client, Object message, Object orderbook)
     {
-        Object data = this.safeDict(message, "data");
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data");
         this.handleDeltas(Helpers.GetValue(orderbook, "asks"), this.safeValue(data, "asks", new ArrayList<Object>(Arrays.asList())));
         this.handleDeltas(Helpers.GetValue(orderbook, "bids"), this.safeValue(data, "bids", new ArrayList<Object>(Arrays.asList())));
         Long timestamp = this.safeInteger(message, "ts");
@@ -770,7 +770,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object ticker = this.safeDict(data, i);
+            Map<String, Object> ticker = (Map<String, Object>) this.safeDict(data, i);
             if (java.util.Objects.equals(ticker, null))
             {
                 continue;
@@ -1720,7 +1720,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         //    }
         //
         Object data = this.safeValue(message, "data", new HashMap<String, Object>() {{}});
-        Object rawPositions = this.safeDict(data, "positions", new HashMap<String, Object>() {{}});
+        Map<String, Object> rawPositions = (Map<String, Object>) this.safeDict(data, "positions", new HashMap<String, Object>() {{}});
         Object postitionsIds = Helpers.objectKeys(rawPositions);
         if (java.util.Objects.equals(this.positions, null))
         {
@@ -1878,7 +1878,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         //         }
         //     }
         //
-        Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Object fundingRate = this.parseFundingRate(data);
         Object symbol = ((Map<String, Object>)fundingRate).get("symbol");
         if (!java.util.Objects.equals(symbol, null))
@@ -1943,7 +1943,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         //
         String subscribeHash = this.safeString(message, "data");
         String unsubscribeHash = Helpers.add("unsubscribe::", subscribeHash);
-        Object subscription = this.safeDict(client.subscriptions, unsubscribeHash, new HashMap<String, Object>() {{}});
+        Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, unsubscribeHash, new HashMap<String, Object>() {{}});
         Object subMessageHashes = this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
         Object unsubMessageHashes = this.safeList(subscription, "unsubMessageHashes", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)subMessageHashes).size(); i++)
