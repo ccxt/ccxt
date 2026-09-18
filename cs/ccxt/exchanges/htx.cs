@@ -9076,7 +9076,7 @@ public partial class htx : Exchange
                     string id = ((string)this.safeString(options, "id", "AA03022abc"));
                     if (!isArrayParams)
                     {
-                        if ((isEqual(getIndexOf(pathString, "cancel"), -1)) && ((string)pathString).EndsWith(((string)"order")))
+                        if (((getIndexOf(pathString, "cancel") == -1)) && ((string)pathString).EndsWith(((string)"order")))
                         {
                             // swap order placement
                             string? channelCode = this.safeString(parameters, "channel_code");

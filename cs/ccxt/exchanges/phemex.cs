@@ -955,7 +955,7 @@ public partial class phemex : Exchange
         if ((settle == "USDT"))
         {
             contractSize = this.parseNumber("1");
-        } else if (!isEqual(getIndexOf(contractSizeString, " "), -1))
+        } else if ((getIndexOf(contractSizeString, " ") != -1))
         {
             // "1 USD"
             // "0.005 ETH"
