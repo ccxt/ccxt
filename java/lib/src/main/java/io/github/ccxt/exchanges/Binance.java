@@ -4770,11 +4770,11 @@ public class Binance extends BinanceApi
                 ((List<Object>)promises).add(this.sapiGetMarginAllPairs(parameters));
             }
             Object results = (Helpers.promiseAll(promises)).join();
-            Object responseCurrencies = Helpers.GetValue(results, 0);
+            Object responseCurrencies = (results == null || 0 >= ((List<?>)results).size() ? null : ((List<?>)results).get(0));
             Object marginablesById = null;
             if (java.util.Objects.equals(fetchMargins, true))
             {
-                Object responseMarginables = Helpers.GetValue(results, 1);
+                Object responseMarginables = (results == null || 1 >= ((List<?>)results).size() ? null : ((List<?>)results).get(1));
                 marginablesById = this.indexBy(responseMarginables, "assetName");
             }
             return this.parseCurrenciesCustom(responseCurrencies, marginablesById);
@@ -5880,7 +5880,7 @@ public class Binance extends BinanceApi
                     Object symbols = "";
                     if (Helpers.isTrue(Helpers.isArray(paramSymbols)))
                     {
-                        Object mid = this.marketId(Helpers.GetValue(paramSymbols, 0));
+                        Object mid = this.marketId((paramSymbols == null || 0 >= ((List<?>)paramSymbols).size() ? null : ((List<?>)paramSymbols).get(0)));
                         if (!java.util.Objects.equals(mid, null))
                         {
                             symbols = mid;
@@ -6573,7 +6573,7 @@ public class Binance extends BinanceApi
                 Object symbolsLength = ((List<?>)symbols).size();
                 if (Helpers.isEqual(symbolsLength, 1))
                 {
-                    ((Map<String, Object>)request).put("symbol", this.marketId(Helpers.GetValue(symbols, 0)));
+                    ((Map<String, Object>)request).put("symbol", this.marketId((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0))));
                 }
             }
             Object response = null;
@@ -8128,7 +8128,7 @@ public class Binance extends BinanceApi
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
             orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
-            Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(orderSymbols, 0));
+            Map<String, Object> market = (Map<String, Object>) this.market((orderSymbols == null || 0 >= ((List<?>)orderSymbols).size() ? null : ((List<?>)orderSymbols).get(0)));
             if ((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)) || (java.util.Objects.equals(((Map<String, Object>)market).get("option"), true)))
             {
                 throw new NotSupported((Helpers.add((this.id + " editOrders() does not support "), ((Map<String, Object>)market).get("type")) + " orders")) ;
@@ -8965,7 +8965,7 @@ public class Binance extends BinanceApi
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
             orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
-            Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(orderSymbols, 0));
+            Map<String, Object> market = (Map<String, Object>) this.market((orderSymbols == null || 0 >= ((List<?>)orderSymbols).size() ? null : ((List<?>)orderSymbols).get(0)));
             if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 throw new NotSupported((Helpers.add((this.id + " createOrders() does not support "), ((Map<String, Object>)market).get("type")) + " orders")) ;
@@ -14674,7 +14674,7 @@ final Object finalMarket = market;
                     {
                         throw new BadRequest((this.id + " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
                     }
-                    symbol = Helpers.GetValue(symbols, 0);
+                    symbol = (symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0));
                 } else
                 {
                     symbol = symbols;
@@ -16452,7 +16452,7 @@ final Object finalMarket = market;
             Object arrayLength = ((List<?>)response).size();
             if (Helpers.isEqual(arrayLength, 1))
             {
-                Object element = Helpers.GetValue(response, 0);
+                Object element = (response == null || 0 >= ((List<?>)response).size() ? null : ((List<?>)response).get(0));
                 String errorCode = this.safeString(element, "code");
                 if (!java.util.Objects.equals(errorCode, null))
                 {
@@ -17976,7 +17976,7 @@ final Object finalMarket = market;
                 Object symbolsLength = ((List<?>)symbols).size();
                 if (Helpers.isEqual(symbolsLength, 1))
                 {
-                    market = this.market(Helpers.GetValue(symbols, 0));
+                    market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                     ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
                 }
             }
@@ -18156,7 +18156,7 @@ final Object finalMarket = market;
             if (!java.util.Objects.equals(symbols, null))
             {
                 symbols = this.marketSymbols(symbols);
-                market = this.market(Helpers.GetValue(symbols, 0));
+                market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
             }
             Object subType = null;
             List<Object> subTypeparametersVariable = (List<Object>) this.handleSubTypeAndParams("fetchMarginMode", market, parameters);
@@ -18901,7 +18901,7 @@ final Object finalMarket = market;
             if (!java.util.Objects.equals(symbols, null))
             {
                 symbols = this.marketSymbols(symbols);
-                market = this.market(Helpers.GetValue(symbols, 0));
+                market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
             }
             String type = "swap";
             Object subType = null;
