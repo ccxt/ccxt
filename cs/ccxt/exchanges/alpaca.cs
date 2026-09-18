@@ -1243,7 +1243,7 @@ public partial class alpaca : Exchange
         //
         List<object> results = new List<object>() {};
         IDictionary<string, object> snapshots = this.safeDict(response, "snapshots", new Dictionary<string, object>() {});
-        List<object> marketIds = new List<object>(((IDictionary<string,object>)snapshots).Keys);
+        List<object> marketIds = new List<object>(snapshots.Keys);
         for (int i = 0; isLessThan(i, marketIds.Count); postFixIncrement(ref i))
         {
             string? marketId = ((string)getValue(marketIds, i));

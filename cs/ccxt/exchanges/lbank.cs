@@ -561,7 +561,7 @@ public partial class lbank : Exchange
         //
         List<object> currenciesData = this.safeList(response, "data", new List<object>() {});
         Dictionary<string, object> grouped = this.groupBy(currenciesData, "assetCode");
-        List<object> values = new List<object>(((IDictionary<string,object>)grouped).Values);
+        List<object> values = new List<object>(grouped.Values);
         return this.parseCurrencies(values);
     }
 
@@ -1498,7 +1498,7 @@ public partial class lbank : Exchange
         {
             object used = this.safeValue(data, "freeze", new Dictionary<string, object>() {});
             IDictionary<string, object> free = this.safeDict(data, "free", new Dictionary<string, object>() {});
-            List<object> currencies = new List<object>(((IDictionary<string,object>)free).Keys);
+            List<object> currencies = new List<object>(free.Keys);
             for (int i = 0; isLessThan(i, currencies.Count); postFixIncrement(ref i))
             {
                 string? currencyId = ((string)getValue(currencies, i));

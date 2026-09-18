@@ -483,7 +483,7 @@ public partial class cryptomus : Exchange
         //
         List<object> coins = this.safeList(response, "result");
         Dictionary<string, object> groupedById = this.groupBy(coins, "currency_code");
-        List<object> groupedArray = new List<object>(((IDictionary<string,object>)groupedById).Values);
+        List<object> groupedArray = new List<object>(groupedById.Values);
         return this.parseCurrencies(groupedArray);
     }
 

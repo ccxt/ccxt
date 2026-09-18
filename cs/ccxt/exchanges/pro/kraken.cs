@@ -1274,7 +1274,7 @@ public partial class kraken : ccxt.kraken
         };
         if (!isEqual(parameters, null))
         {
-            subscribe["params"] = this.deepExtend(((IDictionary<string,object>)subscribe)["params"], parameters);
+            subscribe["params"] = this.deepExtend(subscribe["params"], parameters);
         }
         object result = await this.watch(url, messageHash, subscribe, subscriptionHash);
         if (isTrue(this.newUpdates))
@@ -1356,7 +1356,7 @@ public partial class kraken : ccxt.kraken
             }
             string name = "myTrades";
             callDynamically(client, "resolve", new object[] {this.myTrades, name});
-            List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
+            List<object> keys = new List<object>(symbols.Keys);
             for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
             {
                 string messageHash = ((name + ":") + getValue(keys, i));
@@ -1504,7 +1504,7 @@ public partial class kraken : ccxt.kraken
                     IDictionary<string, object> symbolsByOrderId = this.safeDict(this.options, "symbolsByOrderId", new Dictionary<string, object>() {});
                     if (inOp(symbolsByOrderId, getValue(first, "id")))
                     {
-                        ((IDictionary<string,object>)symbolsByOrderId).Remove((string)getValue(first, "id"));
+                        symbolsByOrderId.Remove((string)getValue(first, "id"));
                     }
                 }
                 callDynamically(stored, "append", new object[] {newOrder});
@@ -1515,7 +1515,7 @@ public partial class kraken : ccxt.kraken
             }
             string name = "orders";
             callDynamically(client, "resolve", new object[] {this.orders, name});
-            List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
+            List<object> keys = new List<object>(symbols.Keys);
             for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
             {
                 string messageHash = ((name + ":") + getValue(keys, i));
@@ -1627,7 +1627,7 @@ public partial class kraken : ccxt.kraken
             } },
             { "req_id", this.requestId() },
         };
-        request["params"] = this.deepExtend(((IDictionary<string,object>)request)["params"], parameters);
+        request["params"] = this.deepExtend(request["params"], parameters);
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "publicV2");
         return await this.watchMultiple(url, messageHashes, request, messageHashes, subscriptionArgs);
     }

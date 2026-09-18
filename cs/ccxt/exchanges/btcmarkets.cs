@@ -1601,7 +1601,7 @@ public partial class btcmarkets : Exchange
             object auth = add(add(method, request), nonce);
             if ((isEqual(method, "GET")) || (isEqual(method, "DELETE")))
             {
-                if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
+                if ((new List<object>(query.Keys)).Count > 0)
                 {
                     request = add(request, ("?" + this.urlencode(query)));
                 }
@@ -1621,7 +1621,7 @@ public partial class btcmarkets : Exchange
             };
         } else if (isEqual(api, "public"))
         {
-            if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
+            if ((new List<object>(query.Keys)).Count > 0)
             {
                 request = add(request, ("?" + this.urlencode(query)));
             }

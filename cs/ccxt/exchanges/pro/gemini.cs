@@ -279,7 +279,7 @@ public partial class gemini : ccxt.gemini
                 callDynamically(stored, "append", new object[] {trade});
                 storesForSymbols[(string)symbol] = stored;
             }
-            List<object> symbols = new List<object>(((IDictionary<string,object>)storesForSymbols).Keys);
+            List<object> symbols = new List<object>(storesForSymbols.Keys);
             for (int i = 0; isLessThan(i, symbols.Count); postFixIncrement(ref i))
             {
                 string? symbol = ((string)getValue(symbols, i));

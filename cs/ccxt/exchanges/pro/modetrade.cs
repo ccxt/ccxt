@@ -1372,7 +1372,7 @@ public partial class modetrade : ccxt.modetrade
         //
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         IDictionary<string, object> balances = this.safeDict(data, "balances", new Dictionary<string, object>() {});
-        List<object> keys = new List<object>(((IDictionary<string,object>)balances).Keys);
+        List<object> keys = new List<object>(balances.Keys);
         Int64? ts = this.safeInteger(message, "ts");
         ((IDictionary<string,object>)this.balance)["info"] = data;
         ((IDictionary<string,object>)this.balance)["timestamp"] = ts;

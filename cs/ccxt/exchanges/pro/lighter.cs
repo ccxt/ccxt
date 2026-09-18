@@ -317,7 +317,7 @@ public partial class lighter : ccxt.lighter
         string? channel = this.safeString(message, "channel");
         if (channel == "market_stats:all")
         {
-            List<object> marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
+            List<object> marketIds = new List<object>(data.Keys);
             for (int i = 0; isLessThan(i, marketIds.Count); postFixIncrement(ref i))
             {
                 string? marketId = ((string)getValue(marketIds, i));
@@ -827,7 +827,7 @@ public partial class lighter : ccxt.lighter
         List<object> parts = channel.Split(new [] {":"}, StringSplitOptions.None).ToList<object>();
         string? accountIndex = ((string)getValue(parts, 1));
         IDictionary<string, object> data = this.safeDict(message, "trades", new Dictionary<string, object>() {});
-        List<object> marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
+        List<object> marketIds = new List<object>(data.Keys);
         int idsLength = marketIds.Count;
         if ((idsLength == 0))
         {
@@ -1184,7 +1184,7 @@ public partial class lighter : ccxt.lighter
         if (type == "spot")
         {
             IDictionary<string, object> assets = this.safeDict(message, "assets", new Dictionary<string, object>() {});
-            List<object> assetIds = new List<object>(((IDictionary<string,object>)assets).Keys);
+            List<object> assetIds = new List<object>(assets.Keys);
             for (int i = 0; isLessThan(i, assetIds.Count); postFixIncrement(ref i))
             {
                 string? assetId = ((string)getValue(assetIds, i));
@@ -1457,7 +1457,7 @@ public partial class lighter : ccxt.lighter
         //    }
         //
         IDictionary<string, object> data = this.safeDict(message, "orders", new Dictionary<string, object>() {});
-        List<object> marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
+        List<object> marketIds = new List<object>(data.Keys);
         int idsLength = marketIds.Count;
         if ((idsLength == 0))
         {

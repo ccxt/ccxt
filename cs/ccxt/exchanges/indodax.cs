@@ -480,7 +480,7 @@ public partial class indodax : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
         };
-        List<object> currencyIds = new List<object>(((IDictionary<string,object>)free).Keys);
+        List<object> currencyIds = new List<object>(free.Keys);
         for (int i = 0; isLessThan(i, currencyIds.Count); postFixIncrement(ref i))
         {
             string? currencyId = ((string)getValue(currencyIds, i));
@@ -686,7 +686,7 @@ public partial class indodax : Exchange
         //
         Dictionary<string, object> response = await this.publicGetApiTickerAll(parameters);
         IDictionary<string, object> tickers = this.safeDict(response, "tickers", new Dictionary<string, object>() {});
-        List<object> keys = new List<object>(((IDictionary<string,object>)tickers).Keys);
+        List<object> keys = new List<object>(tickers.Keys);
         Dictionary<string, object> parsedTickers = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
@@ -1356,13 +1356,13 @@ public partial class indodax : Exchange
         IDictionary<string, object> currency = null;
         if (isEqual(code, null))
         {
-            List<object> keys = new List<object>(((IDictionary<string,object>)withdraw).Keys);
+            List<object> keys = new List<object>(withdraw.Keys);
             for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
             {
                 object key = getValue(keys, i);
                 transactions = this.arrayConcat(transactions, getValue(withdraw, key));
             }
-            keys = new List<object>(((IDictionary<string,object>)deposit).Keys);
+            keys = new List<object>(deposit.Keys);
             for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
             {
                 object key = getValue(keys, i);
@@ -1582,7 +1582,7 @@ public partial class indodax : Exchange
         IDictionary<string, object> data = this.safeDict(response, "return");
         IDictionary<string, object> addresses = this.safeDict(data, "address", new Dictionary<string, object>() {});
         IDictionary<string, object> networks = this.safeDict(data, "network", new Dictionary<string, object>() {});
-        List<object> addressKeys = new List<object>(((IDictionary<string,object>)addresses).Keys);
+        List<object> addressKeys = new List<object>(addresses.Keys);
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", data },
         };

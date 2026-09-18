@@ -203,7 +203,7 @@ public partial class ndax : ccxt.ndax
                 updates[(string)symbol] = true;
             }
         }
-        List<object> symbols = new List<object>(((IDictionary<string,object>)updates).Keys);
+        List<object> symbols = new List<object>(updates.Keys);
         for (int i = 0; isLessThan(i, symbols.Count); postFixIncrement(ref i))
         {
             string? symbol = ((string)getValue(symbols, i));
@@ -365,7 +365,7 @@ public partial class ndax : ccxt.ndax
             }
         }
         string name = "SubscribeTicker";
-        List<object> marketIds = new List<object>(((IDictionary<string,object>)updates).Keys);
+        List<object> marketIds = new List<object>(updates.Keys);
         for (int i = 0; isLessThan(i, marketIds.Count); postFixIncrement(ref i))
         {
             string? marketId = ((string)getValue(marketIds, i));

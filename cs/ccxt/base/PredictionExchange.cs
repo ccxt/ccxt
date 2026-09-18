@@ -603,7 +603,7 @@ public partial class PredictionExchange : BaseExchange
                 lastDash = true;
             }
         }
-        List<object> replacementKeys = new List<object>(((IDictionary<string,object>)replacements).Keys);
+        List<object> replacementKeys = new List<object>(replacements.Keys);
         for (int i = 0; isLessThan(i, replacementKeys.Count); postFixIncrement(ref i))
         {
             string? replacementKey = ((string)getValue(replacementKeys, i));

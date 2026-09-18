@@ -1428,7 +1428,7 @@ public partial class coinone : Exchange
         //     }
         //
         IDictionary<string, object> walletAddress = this.safeDict(response, "walletAddress", new Dictionary<string, object>() {});
-        List<object> keys = new List<object>(((IDictionary<string,object>)walletAddress).Keys);
+        List<object> keys = new List<object>(walletAddress.Keys);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {

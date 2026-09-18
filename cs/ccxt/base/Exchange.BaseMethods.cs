@@ -1916,7 +1916,7 @@ public partial class BaseExchange
     {
         // derive data from networks: deposit, withdraw, active, fee, limits, precision
         IDictionary<string, object> networks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
-        List<object> keys = new List<object>(((IDictionary<string,object>)networks).Keys);
+        List<object> keys = new List<object>(networks.Keys);
         int length = keys.Count;
         if ((length != 0))
         {
@@ -1928,34 +1928,34 @@ public partial class BaseExchange
                 bool? currencyDeposit = this.safeBool(currency, "deposit");
                 if ((currencyDeposit == null) || ((deposit == true)))
                 {
-                    ((IDictionary<string,object>)currency)["deposit"] = deposit;
+                    currency["deposit"] = deposit;
                 }
                 bool? withdraw = this.safeBool(network, "withdraw");
                 bool? currencyWithdraw = this.safeBool(currency, "withdraw");
                 if ((currencyWithdraw == null) || ((withdraw == true)))
                 {
-                    ((IDictionary<string,object>)currency)["withdraw"] = withdraw;
+                    currency["withdraw"] = withdraw;
                 }
                 // find lowest fee (which is more desired)
                 string? fee = this.safeString(network, "fee");
                 string? feeMain = this.safeString(currency, "fee");
                 if ((feeMain == null) || isTrue(Precise.stringLt(fee, feeMain)))
                 {
-                    ((IDictionary<string,object>)currency)["fee"] = this.parseNumber(fee);
+                    currency["fee"] = this.parseNumber(fee);
                 }
                 // find lowest precision (which is more desired)
                 string? precision = this.safeString(network, "precision");
                 string? precisionMain = this.safeString(currency, "precision");
                 if ((precisionMain == null) || isTrue(Precise.stringGt(precision, precisionMain)))
                 {
-                    ((IDictionary<string,object>)currency)["precision"] = this.parseNumber(precision);
+                    currency["precision"] = this.parseNumber(precision);
                 }
                 // limits
                 IDictionary<string, object> limits = this.safeDict(network, "limits");
                 IDictionary<string, object> limitsMain = this.safeDict(currency, "limits");
                 if ((limitsMain == null))
                 {
-                    ((IDictionary<string,object>)currency)["limits"] = new Dictionary<string, object>() {};
+                    currency["limits"] = new Dictionary<string, object>() {};
                 }
                 // deposits
                 IDictionary<string, object> limitsDeposit = this.safeDict(limits, "deposit");
@@ -2174,8 +2174,8 @@ public partial class BaseExchange
         this.markets = this.mapToSafeMap(this.indexBy(values, "symbol"));
         Dictionary<string, object> marketsSortedBySymbol = this.keysort(this.markets);
         Dictionary<string, object> marketsSortedById = this.keysort(this.markets_by_id);
-        this.symbols = new List<object>(((IDictionary<string,object>)marketsSortedBySymbol).Keys);
-        this.ids = new List<object>(((IDictionary<string,object>)marketsSortedById).Keys);
+        this.symbols = new List<object>(marketsSortedBySymbol.Keys);
+        this.ids = new List<object>(marketsSortedById.Keys);
         int numCurrencies = 0;
         if (!isEqual(currencies, null))
         {
@@ -2222,7 +2222,7 @@ public partial class BaseExchange
             this.quoteCurrencies = this.mapToSafeMap(this.indexBy(quoteCurrencies, "code"));
             List<object> allCurrencies = this.arrayConcat(baseCurrencies, quoteCurrencies);
             Dictionary<string, object> groupedCurrencies = this.groupBy(allCurrencies, "code");
-            List<object> codes = new List<object>(((IDictionary<string,object>)groupedCurrencies).Keys);
+            List<object> codes = new List<object>(groupedCurrencies.Keys);
             List<object> resultingCurrencies = new List<object>() {};
             for (int i = 0; isLessThan(i, codes.Count); postFixIncrement(ref i))
             {
@@ -2247,7 +2247,7 @@ public partial class BaseExchange
         }
         this.currencies_by_id = this.indexBySafe(this.currencies, "id");
         Dictionary<string, object> currenciesSortedByCode = this.keysort(this.currencies);
-        this.codes = new List<object>(((IDictionary<string,object>)currenciesSortedByCode).Keys);
+        this.codes = new List<object>(currenciesSortedByCode.Keys);
         if (isEqual(this.markets, null))
         {
             throw new ExchangeError ((this.id + " setMarkets() markets not set")) ;
@@ -2336,7 +2336,7 @@ public partial class BaseExchange
                 debtBalance[(string)code] = getValue(getValue(balance, code), "debt");
             }
         }
-        List<object> debtBalanceArray = new List<object>(((IDictionary<string,object>)debtBalance).Keys);
+        List<object> debtBalanceArray = new List<object>(debtBalance.Keys);
         int length = debtBalanceArray.Count;
         if ((!isEqual(length, null)) && ((length != 0)))
         {
@@ -3106,7 +3106,7 @@ public partial class BaseExchange
             }
         }
         List<object> result = new List<object>() {};
-        List<object> feeValues = new List<object>(((IDictionary<string,object>)reduced).Values);
+        List<object> feeValues = new List<object>(reduced.Values);
         for (int i = 0; isLessThan(i, feeValues.Count); postFixIncrement(ref i))
         {
             List<object> reducedFeeValues = new List<object>(((IDictionary<string,object>)getValue(feeValues, i)).Values);
@@ -3705,7 +3705,7 @@ public partial class BaseExchange
             return null;
         }
         IDictionary<string, object> replacements = this.safeDict(this.options, "defaultNetworkCodeReplacements", new Dictionary<string, object>() {});
-        List<object> keys = new List<object>(((IDictionary<string,object>)replacements).Keys);
+        List<object> keys = new List<object>(replacements.Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
             string? baseCoin = ((string)getValue(keys, i));
@@ -7323,7 +7323,7 @@ public partial class BaseExchange
                 uniqueResult[(string)id] = entry;
             }
         }
-        List<object> values = new List<object>(((IDictionary<string,object>)uniqueResult).Values);
+        List<object> values = new List<object>(uniqueResult.Values);
         return ((object)values);
     }
 

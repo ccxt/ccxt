@@ -378,7 +378,7 @@ public partial class bybit : ccxt.bybit
         string requestId = this.requestId().ToString();
         if (inOp(orderRequest, "orderFilter"))
         {
-            ((IDictionary<string,object>)orderRequest).Remove((string)"orderFilter");
+            orderRequest.Remove((string)"orderFilter");
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "op", "order.cancel" },
@@ -1669,7 +1669,7 @@ public partial class bybit : ccxt.bybit
             symbols[(string)symbol] = true;
             callDynamically(trades, "append", new object[] {parsed});
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
+        List<object> keys = new List<object>(symbols.Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
             string currentMessageHash = ("myTrades:" + getValue(keys, i));
@@ -2262,7 +2262,7 @@ public partial class bybit : ccxt.bybit
             symbols[(string)symbol] = true;
             callDynamically(orders, "append", new object[] {parsed});
         }
-        List<object> symbolsArray = new List<object>(((IDictionary<string,object>)symbols).Keys);
+        List<object> symbolsArray = new List<object>(symbols.Keys);
         for (int i = 0; isLessThan(i, symbolsArray.Count); postFixIncrement(ref i))
         {
             string currentMessageHash = ("orders:" + getValue(symbolsArray, i));
@@ -2926,7 +2926,7 @@ public partial class bybit : ccxt.bybit
             this.handleOrderBook(client, (Dictionary<string, object>)message);
             return;
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)methods).Keys);
+        List<object> keys = new List<object>(methods.Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
             string? key = ((string)getValue(keys, i));

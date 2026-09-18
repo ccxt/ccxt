@@ -389,7 +389,7 @@ public partial class extended : ccxt.extended
             symbols[(string)((string)symbol)] = true;
             callDynamically(stored, "append", new object[] {trade});
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
+        List<object> keys = new List<object>(symbols.Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
             string messageHash = ("myTrades:" + getValue(keys, i));
@@ -561,7 +561,7 @@ public partial class extended : ccxt.extended
             symbols[(string)((string)symbol)] = true;
             callDynamically(orders, "append", new object[] {order});
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
+        List<object> keys = new List<object>(symbols.Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
             string messageHash = ("orders:" + getValue(keys, i));

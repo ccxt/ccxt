@@ -2465,7 +2465,7 @@ public partial class okx : ccxt.okx
         }
         object messageHash = add(channel, "::myTrades");
         callDynamically(client, "resolve", new object[] {this.myTrades, messageHash});
-        List<object> tradeSymbols = new List<object>(((IDictionary<string,object>)symbols).Keys);
+        List<object> tradeSymbols = new List<object>(symbols.Keys);
         for (int i = 0; isLessThan(i, tradeSymbols.Count); postFixIncrement(ref i))
         {
             object symbolMessageHash = add(add(messageHash, "::"), getValue(tradeSymbols, i));
@@ -2514,7 +2514,7 @@ public partial class okx : ccxt.okx
         Int64? instIdCode = this.safeInteger(market, "instIdCode");
         if (!isEqual(instIdCode, null))
         {
-            ((IDictionary<string,object>)args).Remove((string)"instId");
+            args.Remove((string)"instId");
             args["instIdCode"] = instIdCode;
         }
         string? ordType = this.safeString(args, "ordType");
@@ -2604,7 +2604,7 @@ public partial class okx : ccxt.okx
         Int64? instIdCode = this.safeInteger(market, "instIdCode");
         if (!isEqual(instIdCode, null))
         {
-            ((IDictionary<string,object>)args).Remove((string)"instId");
+            args.Remove((string)"instId");
             args["instIdCode"] = instIdCode;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {

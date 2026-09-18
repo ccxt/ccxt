@@ -1397,7 +1397,7 @@ public partial class cryptocom : ccxt.cryptocom
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)((IDictionary<string,object>)request)["params"])["instrument_name"] = GetValue(market, "id");
+            ((IDictionary<string,object>)request["params"])["instrument_name"] = GetValue(market, "id");
         }
         Int64 messageHash = this.nonce();
         return ccxt.BaseExchange.ToOrderList(await this.watchPrivateRequest(messageHash, request));

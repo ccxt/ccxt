@@ -1422,8 +1422,8 @@ public partial class bitmex : Exchange
                 ((IList<object>)getValue(result, side)).Add(new List<object>() {price, amount});
             }
         }
-        result["bids"] = this.sortBy(((IDictionary<string,object>)result)["bids"], 0, true);
-        result["asks"] = this.sortBy(((IDictionary<string,object>)result)["asks"], 0);
+        result["bids"] = this.sortBy(result["bids"], 0, true);
+        result["asks"] = this.sortBy(result["asks"], 0);
         return ccxt.BaseExchange.ToOrderBook(result);
     }
 
@@ -3606,7 +3606,7 @@ public partial class bitmex : Exchange
                 double? withdrawalFee = this.parseNumber(Precise.stringMul(withdrawalFeeId, precision));
                 if ((networkCode != null))
                 {
-                    ((IDictionary<string,object>)((IDictionary<string,object>)result)["networks"])[(string)networkCode] = new Dictionary<string, object>() {
+                    ((IDictionary<string,object>)result["networks"])[(string)networkCode] = new Dictionary<string, object>() {
                         { "deposit", new Dictionary<string, object>() {
                             { "fee", null },
                             { "percentage", null },
@@ -3619,8 +3619,8 @@ public partial class bitmex : Exchange
                 }
                 if ((networksLength == 1))
                 {
-                    ((IDictionary<string,object>)((IDictionary<string,object>)result)["withdraw"])["fee"] = withdrawalFee;
-                    ((IDictionary<string,object>)((IDictionary<string,object>)result)["withdraw"])["percentage"] = false;
+                    ((IDictionary<string,object>)result["withdraw"])["fee"] = withdrawalFee;
+                    ((IDictionary<string,object>)result["withdraw"])["percentage"] = false;
                 }
             }
         }

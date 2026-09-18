@@ -737,7 +737,7 @@ public partial class dydx : Exchange
         // }
         //
         IDictionary<string, object> data = this.safeDict(response, "markets", new Dictionary<string, object>() {});
-        List<object> markets = new List<object>(((IDictionary<string,object>)data).Values);
+        List<object> markets = new List<object>(data.Values);
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(markets));
     }
 

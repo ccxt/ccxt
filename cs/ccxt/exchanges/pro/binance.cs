@@ -3189,7 +3189,7 @@ public partial class binance : ccxt.binance
         object url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "ws-api"), marketTypeVar);
         var client = this.client(url);
         IDictionary<string, object> subscriptions = client.subscriptions;
-        List<object> subscriptionsKeys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
+        List<object> subscriptionsKeys = new List<object>(subscriptions.Keys);
         string? accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
         if (isEqual(accountType, marketTypeVar))
         {
@@ -3243,7 +3243,7 @@ public partial class binance : ccxt.binance
         //
         string? messageHash = this.safeString(message, "id");
         IDictionary<string, object> subscriptions = client.subscriptions;
-        List<object> subscriptionsKeys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
+        List<object> subscriptionsKeys = new List<object>(subscriptions.Keys);
         string? accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
         IDictionary<string, object> result = this.safeDict(message, "result", new Dictionary<string, object>() {});
         Int64? subscriptionId = this.safeInteger(result, "subscriptionId");
@@ -3650,7 +3650,7 @@ public partial class binance : ccxt.binance
         {
             var client = getValue(clients, i);
             IDictionary<string, object> clientSubscriptions = this.safeDict(client as WebSocketClient, "subscriptions", new Dictionary<string, object>() {});
-            List<object> subscriptionKeys = new List<object>(((IDictionary<string,object>)clientSubscriptions).Keys);
+            List<object> subscriptionKeys = new List<object>(clientSubscriptions.Keys);
             for (int j = 0; isLessThan(j, subscriptionKeys.Count); postFixIncrement(ref j))
             {
                 string? subscribeType = ((string)getValue(subscriptionKeys, j));
@@ -4099,7 +4099,7 @@ public partial class binance : ccxt.binance
         string? wallet = this.safeString(this.options, "wallet", "wb"); // cw for cross wallet
         // each account is connected to a different endpoint
         IDictionary<string, object> subscriptions = client.subscriptions;
-        List<object> subscriptionsKeys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
+        List<object> subscriptionsKeys = new List<object>(subscriptions.Keys);
         object accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
         object messageHash = add(accountType, ":balance");
         if (isEqual(getValue(this.balance, accountType), null))
@@ -5783,7 +5783,7 @@ public partial class binance : ccxt.binance
         // each account is connected to a different endpoint
         // and has exactly one subscriptionhash which is the account type
         IDictionary<string, object> subscriptions = client.subscriptions;
-        List<object> subscriptionsKeys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
+        List<object> subscriptionsKeys = new List<object>(subscriptions.Keys);
         object accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
         if (isEqual(this.positions, null))
         {
@@ -6494,7 +6494,7 @@ public partial class binance : ccxt.binance
         //
         string? eventVar = this.safeString(message, "e");
         IDictionary<string, object> subscriptions = client.subscriptions;
-        List<object> subscriptionsKeys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
+        List<object> subscriptionsKeys = new List<object>(subscriptions.Keys);
         string? accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
         if (eventVar == "eventStreamTerminated")
         {

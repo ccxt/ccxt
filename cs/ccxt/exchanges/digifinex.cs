@@ -687,7 +687,7 @@ public partial class digifinex : Exchange
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
         Dictionary<string, object> groupedById = this.groupBy(data, "currency");
-        List<object> values = new List<object>(((IDictionary<string,object>)groupedById).Values);
+        List<object> values = new List<object>(groupedById.Values);
         return this.parseCurrencies(values);
     }
 
@@ -4885,7 +4885,7 @@ public partial class digifinex : Exchange
                 }
             }
         }
-        List<object> depositWithdrawCodes = new List<object>(((IDictionary<string,object>)depositWithdrawFees).Keys);
+        List<object> depositWithdrawCodes = new List<object>(depositWithdrawFees.Keys);
         for (int i = 0; isLessThan(i, depositWithdrawCodes.Count); postFixIncrement(ref i))
         {
             string? code = ((string)getValue(depositWithdrawCodes, i));

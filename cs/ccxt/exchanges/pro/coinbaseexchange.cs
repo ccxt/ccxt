@@ -797,7 +797,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                     {
                         Dictionary<string, object> info = this.extend(getValue(previousOrder, "info"), message);
                         Dictionary<string, object> order = this.parseWsOrder(info);
-                        List<object> keys = new List<object>(((IDictionary<string,object>)order).Keys);
+                        List<object> keys = new List<object>(order.Keys);
                         // update the reference
                         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
                         {

@@ -3246,7 +3246,7 @@ public partial class cryptocom : Exchange
                 string? networkCode = this.networkIdToCode(networkId, currencyCode);
                 if ((networkCode != null))
                 {
-                    ((IDictionary<string,object>)((IDictionary<string,object>)result)["networks"])[(string)networkCode] = new Dictionary<string, object>() {
+                    ((IDictionary<string,object>)result["networks"])[(string)networkCode] = new Dictionary<string, object>() {
                         { "deposit", new Dictionary<string, object>() {
                             { "fee", null },
                             { "percentage", null },
@@ -3259,8 +3259,8 @@ public partial class cryptocom : Exchange
                 }
                 if ((networkListLength == 1))
                 {
-                    ((IDictionary<string,object>)((IDictionary<string,object>)result)["withdraw"])["fee"] = this.safeNumber(networkInfo, "withdrawal_fee");
-                    ((IDictionary<string,object>)((IDictionary<string,object>)result)["withdraw"])["percentage"] = false;
+                    ((IDictionary<string,object>)result["withdraw"])["fee"] = this.safeNumber(networkInfo, "withdrawal_fee");
+                    ((IDictionary<string,object>)result["withdraw"])["percentage"] = false;
                 }
             }
         }
@@ -4237,7 +4237,7 @@ public partial class cryptocom : Exchange
             this.checkRequiredCredentials();
             string nonce = this.nonce().ToString();
             Dictionary<string, object> requestParams = this.extend(new Dictionary<string, object>() {}, parameters);
-            List<object> paramsKeys = new List<object>(((IDictionary<string,object>)requestParams).Keys);
+            List<object> paramsKeys = new List<object>(requestParams.Keys);
             object strSortKey = this.paramsToString(requestParams, 0);
             object payload = add(add(add(add(path, nonce), this.apiKey), strSortKey), nonce);
             string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256);

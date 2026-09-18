@@ -2154,7 +2154,7 @@ public partial class bitstamp : Exchange
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         Dictionary<string, object> currencies = this.indexBy(response, "currency");
-        List<object> ids = new List<object>(((IDictionary<string,object>)currencies).Keys);
+        List<object> ids = new List<object>(currencies.Keys);
         for (int i = 0; isLessThan(i, ids.Count); postFixIncrement(ref i))
         {
             string? id = ((string)getValue(ids, i));

@@ -1007,7 +1007,7 @@ public partial class bitfinex : ccxt.bitfinex
             ((IDictionary<string,object>)this.balance)[(string)((string)balanceType)] = this.safeBalance(oldBalance);
             updatedTypes[(string)((string)balanceType)] = true;
         }
-        List<object> updatesKeys = new List<object>(((IDictionary<string,object>)updatedTypes).Keys);
+        List<object> updatesKeys = new List<object>(updatedTypes.Keys);
         for (int i = 0; isLessThan(i, updatesKeys.Count); postFixIncrement(ref i))
         {
             string? type = ((string)getValue(updatesKeys, i));
@@ -1284,7 +1284,7 @@ public partial class bitfinex : ccxt.bitfinex
         }
         string name = "orders";
         callDynamically(client, "resolve", new object[] {this.orders, name});
-        List<object> keys = new List<object>(((IDictionary<string,object>)symbolIds).Keys);
+        List<object> keys = new List<object>(symbolIds.Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
             string? symbol = ((string)getValue(keys, i));

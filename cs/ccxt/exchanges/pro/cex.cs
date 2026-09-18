@@ -107,7 +107,7 @@ public partial class cex : ccxt.cex
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", data },
         };
-        List<object> currencyIds = new List<object>(((IDictionary<string,object>)freeBalance).Keys);
+        List<object> currencyIds = new List<object>(freeBalance.Keys);
         for (int i = 0; isLessThan(i, currencyIds.Count); postFixIncrement(ref i))
         {
             string? currencyId = ((string)getValue(currencyIds, i));

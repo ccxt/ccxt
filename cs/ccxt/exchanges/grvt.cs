@@ -2513,7 +2513,7 @@ public partial class grvt : Exchange
             }
             // trigger by
             string? triggerPriceType = this.safeStringUpper(parameters, "triggerPriceType", "LAST");
-            ((IDictionary<string,object>)((IDictionary<string,object>)orderRequest)["metadata"])["trigger"] = new Dictionary<string, object>() {
+            ((IDictionary<string,object>)orderRequest["metadata"])["trigger"] = new Dictionary<string, object>() {
                 { "trigger_type", selectedType },
                 { "tpsl", new Dictionary<string, object>() {
                     { "trigger_by", triggerPriceType },

@@ -11160,6 +11160,22 @@ function declaredLocalOfUse (csharp, node, name) {
     return undefined;
 }
 
+// the dictionary type a recorded/printed declaration line carries: an explicit
+// Dictionary/IDictionary spelling, or the `var x = new Dictionary<string, object>()` shape the
+// printer emits for a literal initializer (the value names the type)
+function recordedDictType (recorded) {
+    if (recorded === undefined) {
+        return undefined;
+    }
+    if ((recorded.type === 'Dictionary<string, object>') || (recorded.type === 'IDictionary<string, object>')) {
+        return recorded.type;
+    }
+    if ((recorded.type === 'var') && /^new (I?Dictionary)<string, object>/.test (recorded.value.trim ())) {
+        return 'Dictionary<string, object>';
+    }
+    return undefined;
+}
+
 // the local a dictionary-write receiver names: the identifier itself, or the identifier under
 // a TS assertion whose C# print is that very identifier (`(x as Dict)['k'] = v` — the C#
 // printAsExpression falls through to the bare expression for every type that is not `any`,
@@ -11188,8 +11204,8 @@ function dictionaryWriteReceiverIdentifier (expression) {
 }
 
 // true when the receiver of this index WRITE is a local whose printed declaration already is a
-// concrete dictionary (the `var x = new Dictionary<string, object>()` shape included: the
-// printer spells a NewExpression initializer `var`, and that value names the type)
+// concrete dictionary (the `var x = new Dictionary<string, object>()` shape included), or a
+// PARAMETER whose printed signature type is one — the same answer receiverDeclaredType gives
 function csharpDictionaryIndexWriteNeedsNoCast (csharp, node) {
     const receiver = dictionaryWriteReceiverIdentifier (node?.expression);
     if (receiver === undefined) {
@@ -11198,14 +11214,10 @@ function csharpDictionaryIndexWriteNeedsNoCast (csharp, node) {
     if (receiver.escapedText === 'request') {
         return false; // S21 owns the `request` receiver family
     }
-    const recorded = declaredLocalOfUse (csharp, node, receiver.escapedText);
-    if (recorded === undefined) {
-        return false;
-    }
-    if (recorded.type === 'Dictionary<string, object>' || recorded.type === 'IDictionary<string, object>') {
+    if (recordedDictType (declaredLocalOfUse (csharp, node, receiver.escapedText)) !== undefined) {
         return true;
     }
-    return recorded.type === 'var' && /^new (I?Dictionary)<string, object>/.test (recorded.value.trim ());
+    return (typeof csharp.csharpPrintedParamType === 'function') && (csharp.csharpPrintedParamType (receiver) !== undefined);
 }
 
 // the key shapes the dictionary index write accepts: a string, a union holding one, or an
@@ -11449,19 +11461,20 @@ export function installCsharpStringReceivers (transpiler) {
 // The C# element-access printer emits `((IDictionary<string,object>)request)["k"] = v` for a
 // write into a dictionary because it cannot name the receiver's C# type on its own: the
 // declaration `Dictionary<string, object> request = ...` is this classifier's rewrite. Answer
-// the printer hook with the type that declaration carries — the same answer installCsharpLocalTypes
-// rewrites the line with (csharpLocalType), falling back to the printer's own getCSharpLocalType
-// for a declaration this classifier does not type. `request` is S21's family and answers with
-// whatever the declaration carries. Every OTHER receiver shape the printer cannot see is
-// answered here too, and only when the cast is an identity conversion:
+// the printer hook with the type that declaration carries — the record of the line this module
+// actually emitted (the same evidence the S22 index-write hook reads), falling back to
+// csharpLocalType (the rewrite decision) and the printer's own getCSharpLocalType. `request` is
+// S21's family and answers with whatever the declaration carries. Every OTHER receiver shape the
+// printer cannot see is answered here too, and only when the cast is an identity conversion:
 //   - `this.<member>` whose hand-written base declaration already IS a dictionary
 //     (cs/ccxt/base/Exchange.Options.cs): the cast is an implicit upcast to the interface the
 //     member's type implements, both indexers are the same setter;
 //   - a local declared with a ws orderbook type — ccxt.pro.IOrderBook / OrderBook /
 //     IndexedOrderBook / CountedOrderBook all implement IDictionary<string, object>
 //     (cs/ccxt/ws/OrderBook.cs), so the same holds.
-// An `object` receiver (an object local, an `object` parameter, a this.<member> the base
-// declares `object`) keeps the cast: dropping it would not compile, i.e. it is no identity.
+// The printer's gate is generic (any Dictionary/IDictionary receiver), so an `object` receiver
+// (an object local, an `object` parameter, a this.<member> the base declares `object`) keeps the
+// cast: dropping it would not compile, i.e. it is no identity.
 //
 // localIdentifierType resolves a bare read only while the enclosing function holds exactly one
 // binding of the name; two `request`s in sibling blocks (gate/bigone/aster build one per branch)
@@ -11496,6 +11509,10 @@ function dictWriteMemberReceiverType (node) {
     return 'IDictionary<string, object>';
 }
 
+// U58: a PARAMETER has no declaration line: its C# type exists only in the printed signature,
+// which the printer records (csharpPrintedParamType — `Dict` -> Dictionary<string, object> under
+// INFER_ARG_TYPE). ccxt prints every parameter `object` and retypes the ones its post-print
+// passes own, so those are answered post-print instead (retypeDictReceiverCasts).
 function receiverDeclaredType (csharp, node) {
     const member = dictWriteMemberReceiverType (node);
     if (member !== undefined) {
@@ -11503,6 +11520,10 @@ function receiverDeclaredType (csharp, node) {
     }
     if (node?.kind !== ts.SyntaxKind.Identifier) {
         return undefined;
+    }
+    const binding = resolveReference (csharp, node);
+    if (binding?.kind === ts.SyntaxKind.Parameter) {
+        return (typeof csharp.csharpPrintedParamType === 'function') ? csharp.csharpPrintedParamType (node) : undefined;
     }
     const declared = identifierDeclaredType (csharp, node);
     if (declared === undefined) {
@@ -11516,11 +11537,18 @@ function receiverDeclaredType (csharp, node) {
 
 // the type the emitted declaration of this identifier carries (see the block comment above)
 function identifierDeclaredType (csharp, node) {
+    const binding = resolveReference (csharp, node);
+    if (binding?.kind === ts.SyntaxKind.Parameter) {
+        return (typeof csharp.csharpPrintedParamType === 'function') ? csharp.csharpPrintedParamType (node) : undefined;
+    }
+    const recorded = recordedDictType (declaredLocalOfUse (csharp, node, node.escapedText));
+    if (recorded !== undefined) {
+        return recorded;
+    }
     const own = localIdentifierType (csharp, node);
     if (own !== undefined) {
         return own;
     }
-    const binding = resolveReference (csharp, node);
     if ((binding === undefined) || (binding.kind !== ts.SyntaxKind.VariableDeclaration) || (binding.name?.kind !== ts.SyntaxKind.Identifier)) {
         return undefined;
     }

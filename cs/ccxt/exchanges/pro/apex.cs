@@ -811,7 +811,7 @@ public partial class apex : ccxt.apex
             symbols[(string)((string)symbol)] = true;
             callDynamically(trades, "append", new object[] {parsed});
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
+        List<object> keys = new List<object>(symbols.Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
             string currentMessageHash = ("myTrades:" + getValue(keys, i));
@@ -867,7 +867,7 @@ public partial class apex : ccxt.apex
             symbols[(string)((string)symbol)] = true;
             callDynamically(orders, "append", new object[] {parsed});
         }
-        List<object> symbolsArray = new List<object>(((IDictionary<string,object>)symbols).Keys);
+        List<object> symbolsArray = new List<object>(symbols.Keys);
         for (int i = 0; isLessThan(i, symbolsArray.Count); postFixIncrement(ref i))
         {
             string currentMessageHash = ("orders:" + getValue(symbolsArray, i));
@@ -1154,7 +1154,7 @@ public partial class apex : ccxt.apex
             DynamicInvoker.InvokeMethod(exacMethod, new object[] { client, message});
             return;
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)methods).Keys);
+        List<object> keys = new List<object>(methods.Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
             string? key = ((string)getValue(keys, i));

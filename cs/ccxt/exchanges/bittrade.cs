@@ -999,7 +999,7 @@ public partial class bittrade : Exchange
         //
         if (inOp(response, "tick"))
         {
-            if ((isEqual(((IDictionary<string,object>)response)["tick"], null)) || (isEqual(((IDictionary<string,object>)response)["tick"], null)))
+            if ((isEqual(response["tick"], null)) || (isEqual(response["tick"], null)))
             {
                 throw new BadSymbol (((this.id + " fetchOrderBook() returned empty response: ") + this.json(response))) ;
             }

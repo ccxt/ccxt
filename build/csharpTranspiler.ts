@@ -4323,6 +4323,88 @@ class NewTranspiler {
         return lines.join ('\n');
     }
 
+    // `((IDictionary<string,object>)x)` around a PARAMETER whose emitted signature declares a
+    // concrete dictionary: the cast only names the box that declaration carries, so it is an
+    // identity conversion and the receiver's own indexer/member does the same work. A
+    // parameter's type exists nowhere at print time — ccxt prints every parameter `object` and
+    // retypes the ones its passes own (typeCoreArgs, retypeParseMarketParams, the ws message
+    // handler) — so the proof is read here, from the emitted signature, exactly like the string
+    // receivers above. Only casts whose receiver really is the parameter are dropped: a name the
+    // body also binds as a non-dictionary (a local, a lambda/foreach/catch variable) is skipped.
+    retypeDictReceiverCasts (content: string): string {
+        if (!content.includes ('((IDictionary<string,object>)')) {
+            return content;
+        }
+        const sigRe = /^(\s*)public\s+(?:async\s+|virtual\s+|override\s+)+[\w<>., ?]+\s+\w+\s*\((.*)\)\s*$/;
+        const declRe = /^\s*(object|string\??|bool\??|Int64\??|double\??|int\??|long\??|var|byte\[\]|List<[^>]*>|IList<[^>]*>|Dictionary<[^>]*>|IDictionary<[^>]*>|ccxt\.[\w.<>?]+|Future\??|WebSocketClient\??)\s+([A-Za-z_][A-Za-z0-9_]*)\s*=/;
+        const lines = content.split ('\n');
+        for (let i = 0; i < lines.length; i++) {
+            const sig = sigRe.exec (lines[i]);
+            if (sig === null) {
+                continue;
+            }
+            let bodyStart = i + 1;
+            while (bodyStart < lines.length && lines[bodyStart].trim () !== '{') {
+                bodyStart++;
+            }
+            if (bodyStart >= lines.length) {
+                continue;
+            }
+            let bodyEnd = lines.length - 1;
+            for (let j = bodyStart + 1; j < lines.length; j++) {
+                if (lines[j] === sig[1] + '}') { bodyEnd = j; break; }
+            }
+            const candidates = new Set<string> ();
+            for (const param of this.splitCsharpParams (sig[2])) {
+                const declaredDict = /^(Dictionary<string, object>|IDictionary<string, object>)\s+([A-Za-z_][A-Za-z0-9_]*)/.exec (param.trim ());
+                if (declaredDict !== null) {
+                    candidates.add (declaredDict[2]);
+                }
+            }
+            if (candidates.size === 0) {
+                continue;
+            }
+            const blocked = new Set<string> ();
+            for (let j = bodyStart + 1; j < bodyEnd; j++) {
+                const declaration = declRe.exec (lines[j]);
+                if (declaration === null) {
+                    continue;
+                }
+                if ((declaration[1] !== 'Dictionary<string, object>') && (declaration[1] !== 'IDictionary<string, object>')) {
+                    blocked.add (declaration[2]);
+                }
+            }
+            const body = lines.slice (bodyStart + 1, bodyEnd);
+            const text = body.join ('\n');
+            let rewritten = text;
+            for (const name of candidates) {
+                if (blocked.has (name)) {
+                    continue; // another binding of the name exists in this method
+                }
+                if (new RegExp ('\\b' + name + '\\b\\s*=>').test (text)) {
+                    continue; // a lambda parameter of the same name would shadow it
+                }
+                if (new RegExp ('(?:\\bforeach|\\bcatch|\\bfor|\\busing|\\bfixed)\\s*\\([^)]*\\b' + name + '\\b').test (text)) {
+                    continue; // a loop/catch variable of the same name would shadow it
+                }
+                rewritten = rewritten.replace (new RegExp ('\\(\\(IDictionary<string,object>\\)' + name + '\\)', 'g'), name);
+            }
+            if (rewritten !== text) {
+                const rewrittenBody = rewritten.split ('\n');
+                lines.splice (bodyStart + 1, body.length, ...rewrittenBody);
+                i = bodyStart + rewrittenBody.length;
+            }
+        }
+        return lines.join ('\n');
+    }
+
+    // the two post-print passes that drop a cast proven by the EMITTED declaration text: the
+    // string receivers (S10) and the dictionary receivers above. Independent, one entry point so
+    // the pass chains stay a single call
+    retypePrintedReceiverCasts (content: string): string {
+        return this.retypeStringReceiverCasts (this.retypeDictReceiverCasts (content));
+    }
+
     // `sign()` / `handleErrors()`: retype the SIGNATURE_ARG_TYPES positions on every declaration
     // (the base virtual and all 101 venue overrides — C# overrides are invariant). The body is
     // left byte-identical; a position whose body assigns to the parameter keeps the narrowed
@@ -6318,7 +6400,7 @@ class NewTranspiler {
                 this.createGeneratedHeader().join('\n'),
                 "public partial class BaseExchange\n{\n\n"
             ]).join("\n");
-            const file = fileHeader + this.stripRedundantStringCasts (this.retypeStringReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.retypeParameterArgs (this.typeVenueStringArgs (this.retypeSafeCollectionHelpers (this.pascalizeTypedCores (this.dropStringTimeframeCasts (this.retypeSignatureArgs (this.finalizeCoreArgTypes (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), false))))))), false)), 'BaseExchange'))))))) + "\n";
+            const file = fileHeader + this.stripRedundantStringCasts (this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.retypeParameterArgs (this.typeVenueStringArgs (this.retypeSafeCollectionHelpers (this.pascalizeTypedCores (this.dropStringTimeframeCasts (this.retypeSignatureArgs (this.finalizeCoreArgTypes (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), false))))))), false)), 'BaseExchange'))))))) + "\n";
             fs.writeFileSync (csharpExchangeBase, file);
             log.green ('Transpiled base methods to', (csharpExchangeBase as any).yellow)
             if (exchangeClassMatch) {
@@ -6326,7 +6408,7 @@ class NewTranspiler {
                     this.createGeneratedHeader().join('\n'),
                     "public partial class Exchange\n{\n\n"
                 ]).join("\n");
-                const tradingFile = tradingHeader + this.stripRedundantStringCasts (this.retypeStringReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.retypeParameterArgs (this.typeVenueStringArgs (this.pascalizeTypedCores (this.dropStringTimeframeCasts (this.retypeSignatureArgs (this.finalizeCoreArgTypes (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (exchangeBody), false))))))), false), 'Exchange'))))))) + "\n}\n";
+                const tradingFile = tradingHeader + this.stripRedundantStringCasts (this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.retypeParameterArgs (this.typeVenueStringArgs (this.pascalizeTypedCores (this.dropStringTimeframeCasts (this.retypeSignatureArgs (this.finalizeCoreArgTypes (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (exchangeBody), false))))))), false), 'Exchange'))))))) + "\n}\n";
                 fs.writeFileSync (BASE_TRADING_METHODS_FILE, tradingFile);
                 log.green ('Transpiled trading methods to', (BASE_TRADING_METHODS_FILE as any).yellow)
             }
@@ -6374,7 +6456,7 @@ class NewTranspiler {
                 "public partial class PredictionExchange : BaseExchange\n{\n\n"
             ]).join("\n");
             // method wrappers retired: PascalCase cores on PredictionExchange are the public API
-            const file = fileHeader + fields + this.retypeStringReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.typeVenueStringArgs (this.pascalizeTypedCores (this.dropStringTimeframeCasts (this.retypeSignatureArgs (this.finalizeCoreArgTypes (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), true))))))), true), 'PredictionExchange'))))) + "\n";
+            const file = fileHeader + fields + this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.typeVenueStringArgs (this.pascalizeTypedCores (this.dropStringTimeframeCasts (this.retypeSignatureArgs (this.finalizeCoreArgTypes (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), true))))))), true), 'PredictionExchange'))))) + "\n";
             fs.writeFileSync (predictionBase, file);
             this._predictionBaseWritten = true;
             log.green ('Transpiled prediction base methods to', (predictionBase as any).yellow)
@@ -6720,7 +6802,7 @@ class NewTranspiler {
         // tier flag has to come from `this.isPrediction` (set by every prediction pass) --
         // otherwise a prediction file would look up the REST venue's table and skip its own
         const venueKey = (this.isPrediction ? 'prediction:' : ws ? 'pro:' : '') + this.currentVenue;
-        content = this.typeVenueStringArgs (this.stripRedundantStringCasts (this.retypeStringReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.retypeWsHandlerMessagesToInterface (this.retypeWsHandlerMessages (this.retypeParameterArgs (this.pascalizeTypedCores (this.dropStringTimeframeCasts (this.retypeSignatureArgs (this.finalizeCoreArgTypes (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (content))))))))))))))))), venueKey);
+        content = this.typeVenueStringArgs (this.stripRedundantStringCasts (this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.retypeWsHandlerMessagesToInterface (this.retypeWsHandlerMessages (this.retypeParameterArgs (this.pascalizeTypedCores (this.dropStringTimeframeCasts (this.retypeSignatureArgs (this.finalizeCoreArgTypes (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (content))))))))))))))))), venueKey);
         content = this.dropRedundantObjectBoxCasts (content);
         content = this.retypeCacheElementWriteCasts (content);
         this.currentVenue = '';

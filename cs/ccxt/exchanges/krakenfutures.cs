@@ -1742,7 +1742,7 @@ public partial class krakenfutures : Exchange
         Dictionary<string, object> order = new Dictionary<string, object>() {};
         if (inOp(response, "cancelStatus"))
         {
-            order = this.parseOrder(((IDictionary<string,object>)response)["cancelStatus"]);
+            order = this.parseOrder(response["cancelStatus"]);
         }
         return ccxt.BaseExchange.ToOrder(this.extend(new Dictionary<string, object>() {             { "info", response },         }, order));
     }
@@ -3314,7 +3314,7 @@ public partial class krakenfutures : Exchange
         bool isCash = (accountType == "cashAccount");
         IDictionary<string, object> balances = this.safeDict2(response, "balances", "currencies", new Dictionary<string, object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        List<object> currencyIds = new List<object>(((IDictionary<string,object>)balances).Keys);
+        List<object> currencyIds = new List<object>(balances.Keys);
         for (int i = 0; isLessThan(i, currencyIds.Count); postFixIncrement(ref i))
         {
             string? currencyId = ((string)getValue(currencyIds, i));

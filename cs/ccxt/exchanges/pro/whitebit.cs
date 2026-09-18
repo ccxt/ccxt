@@ -952,7 +952,7 @@ public partial class whitebit : ccxt.whitebit
                 }
             } else
             {
-                List<object> keys = new List<object>(((IDictionary<string,object>)balanceDict).Keys);
+                List<object> keys = new List<object>(balanceDict.Keys);
                 for (int j = 0; isLessThan(j, keys.Count); postFixIncrement(ref j))
                 {
                     string? currencyId = ((string)getValue(keys, j));
@@ -1052,7 +1052,7 @@ public partial class whitebit : ccxt.whitebit
             {
                 // resubscribe
                 List<object> marketIdsNew = new List<object>() {};
-                marketIdsNew = new List<object>(((IDictionary<string,object>)subscription).Keys);
+                marketIdsNew = new List<object>(subscription.Keys);
                 if (isTrue(isNested))
                 {
                     marketIdsNew = new List<object>() {marketIdsNew};
@@ -1272,7 +1272,7 @@ public partial class whitebit : ccxt.whitebit
         // not every method stores its subscription
         // as an object so we can't do indeById here
         IDictionary<string, object> subs = client.subscriptions;
-        List<object> values = new List<object>(((IDictionary<string,object>)subs).Values);
+        List<object> values = new List<object>(subs.Values);
         for (int i = 0; isLessThan(i, values.Count); postFixIncrement(ref i))
         {
             object subscription = getValue(values, i);

@@ -1344,7 +1344,7 @@ public partial class bitopro : Exchange
 
     public virtual List<object> parseCancelOrders(IDictionary<string, object> data)
     {
-        List<object> dataKeys = new List<object>(((IDictionary<string,object>)data).Keys);
+        List<object> dataKeys = new List<object>(data.Keys);
         List<object> orders = new List<object>() {};
         for (int i = 0; isLessThan(i, dataKeys.Count); postFixIncrement(ref i))
         {

@@ -1256,7 +1256,7 @@ public partial class gate : ccxt.gate
             callDynamically(stored, "append", new object[] {parsed});
             marketIds[(string)symbol] = timeframe;
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)marketIds).Keys);
+        List<object> keys = new List<object>(marketIds.Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
             string? symbol = ((string)getValue(keys, i));
@@ -1378,7 +1378,7 @@ public partial class gate : ccxt.gate
                 marketIds[(string)symbol] = true;
             }
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)marketIds).Keys);
+        List<object> keys = new List<object>(marketIds.Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
             string? market = ((string)getValue(keys, i));
@@ -1910,7 +1910,7 @@ public partial class gate : ccxt.gate
                 marketIds[(string)GetValue(market, "id")] = true;
             }
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)marketIds).Keys);
+        List<object> keys = new List<object>(marketIds.Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
             string messageHash = ((hashPrefix + ":") + getValue(keys, i));
@@ -2510,7 +2510,7 @@ public partial class gate : ccxt.gate
             { "delivery", "future" },
             { "fx", "swap" },
         };
-        List<object> keys = new List<object>(((IDictionary<string,object>)findBy).Keys);
+        List<object> keys = new List<object>(findBy.Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
             string? key = ((string)getValue(keys, i));

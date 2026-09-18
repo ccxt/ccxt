@@ -1162,7 +1162,7 @@ public partial class coinbaseexchange : Exchange
         //     }
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        List<object> marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
+        List<object> marketIds = new List<object>(response.Keys);
         string delimiter = "-";
         for (int i = 0; isLessThan(i, marketIds.Count); postFixIncrement(ref i))
         {

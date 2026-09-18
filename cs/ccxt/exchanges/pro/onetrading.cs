@@ -1180,7 +1180,7 @@ public partial class onetrading : ccxt.onetrading
             ((IDictionary<string,object>)getValue(subscription, marketId))[(string)timeframeVar] = true;
         }
         List<object> properties = new List<object>() {};
-        List<object> marketIds = new List<object>(((IDictionary<string,object>)subscription).Keys);
+        List<object> marketIds = new List<object>(subscription.Keys);
         for (int i = 0; isLessThan(i, marketIds.Count); postFixIncrement(ref i))
         {
             List<object> marketIdtimeframes = new List<object>(((IDictionary<string,object>)getValue(subscription, getValue(marketIds, i))).Keys);
@@ -1454,7 +1454,7 @@ public partial class onetrading : ccxt.onetrading
             subscription[(string)marketId] = true;
         }
         ((IDictionary<string,object>)request)["type"] = type;
-        ((IDictionary<string,object>)getValue(getValue(request, "channels"), 0))["instrument_codes"] = new List<object>(((IDictionary<string,object>)subscription).Keys);
+        ((IDictionary<string,object>)getValue(getValue(request, "channels"), 0))["instrument_codes"] = new List<object>(subscription.Keys);
         return await this.watch(url, messageHash, this.deepExtend(request, parameters), subscriptionHash, subscription);
     }
 

@@ -1044,7 +1044,7 @@ public partial class phemex : ccxt.phemex
                 marketIds[(string)symbol] = true;
             }
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)marketIds).Keys);
+        List<object> keys = new List<object>(marketIds.Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
             string? market = ((string)getValue(keys, i));
@@ -1326,7 +1326,7 @@ public partial class phemex : ccxt.phemex
             }
             marketIds[(string)symbol] = true;
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)marketIds).Keys);
+        List<object> keys = new List<object>(marketIds.Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
             string currentMessageHash = (("orders" + ":") + getValue(keys, i));

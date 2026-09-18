@@ -5722,8 +5722,8 @@ public partial class coinex : Exchange
             bool? isWithdrawEnabled = this.safeBool(entry, "withdraw_enabled");
             if ((isWithdrawEnabled == true))
             {
-                ((IDictionary<string,object>)((IDictionary<string,object>)result)["withdraw"])["fee"] = this.safeNumber(entry, "withdrawal_fee");
-                ((IDictionary<string,object>)((IDictionary<string,object>)result)["withdraw"])["percentage"] = false;
+                ((IDictionary<string,object>)result["withdraw"])["fee"] = this.safeNumber(entry, "withdrawal_fee");
+                ((IDictionary<string,object>)result["withdraw"])["percentage"] = false;
                 string? networkId = this.safeString(entry, "chain");
                 if (((networkId != null)) && (networkId != ""))
                 {
@@ -5732,7 +5732,7 @@ public partial class coinex : Exchange
                     string? networkCode = this.networkIdToCode(networkId, feeCode);
                     if ((networkCode != null))
                     {
-                        ((IDictionary<string,object>)((IDictionary<string,object>)result)["networks"])[(string)networkCode] = new Dictionary<string, object>() {
+                        ((IDictionary<string,object>)result["networks"])[(string)networkCode] = new Dictionary<string, object>() {
                             { "withdraw", new Dictionary<string, object>() {
                                 { "fee", this.safeNumber(entry, "withdrawal_fee") },
                                 { "percentage", false },

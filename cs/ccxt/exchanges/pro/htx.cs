@@ -1949,7 +1949,7 @@ public partial class htx : ccxt.htx
             ((IList<object>)getValue(positionsByMarginMode, marginMode)).Add(position);
             callDynamically(cache, "append", new object[] {position});
         }
-        List<object> marginModes = new List<object>(((IDictionary<string,object>)positionsByMarginMode).Keys);
+        List<object> marginModes = new List<object>(positionsByMarginMode.Keys);
         for (int i = 0; isLessThan(i, marginModes.Count); postFixIncrement(ref i))
         {
             object marginMode = getValue(marginModes, i);

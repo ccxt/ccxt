@@ -276,7 +276,7 @@ public partial class hitbtc : ccxt.hitbtc
         IDictionary<string, object> snapshot = this.safeDict(message, "snapshot");
         IDictionary<string, object> data = this.safeDict2(message, "snapshot", "update", new Dictionary<string, object>() {});
         string type = ((snapshot != null) && (snapshot != null)) ? "snapshot" : "update";
-        List<object> marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
+        List<object> marketIds = new List<object>(data.Keys);
         for (int i = 0; isLessThan(i, marketIds.Count); postFixIncrement(ref i))
         {
             string? marketId = ((string)getValue(marketIds, i));
@@ -449,7 +449,7 @@ public partial class hitbtc : ccxt.hitbtc
         //    }
         //
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
-        List<object> marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
+        List<object> marketIds = new List<object>(data.Keys);
         List<object> result = new List<object>() {};
         string topic = "tickers";
         for (int i = 0; isLessThan(i, marketIds.Count); postFixIncrement(ref i))
@@ -586,7 +586,7 @@ public partial class hitbtc : ccxt.hitbtc
         //     }
         //
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
-        List<object> marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
+        List<object> marketIds = new List<object>(data.Keys);
         List<object> result = new List<object>() {};
         string topic = "bidask";
         for (int i = 0; isLessThan(i, marketIds.Count); postFixIncrement(ref i))
@@ -699,7 +699,7 @@ public partial class hitbtc : ccxt.hitbtc
         //    }
         //
         IDictionary<string, object> data = this.safeDict2(message, "snapshot", "update", new Dictionary<string, object>() {});
-        List<object> marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
+        List<object> marketIds = new List<object>(data.Keys);
         for (int i = 0; isLessThan(i, marketIds.Count); postFixIncrement(ref i))
         {
             string? marketId = ((string)getValue(marketIds, i));
@@ -795,7 +795,7 @@ public partial class hitbtc : ccxt.hitbtc
         };
         if (!isEqual(limitVar, null))
         {
-            ((IDictionary<string,object>)((IDictionary<string,object>)request)["params"])["limit"] = limitVar;
+            ((IDictionary<string,object>)request["params"])["limit"] = limitVar;
         }
         object ohlcv = await this.subscribePublic(name, "candles", new List<object>() {symbol}, this.deepExtend(request, parameters));
         if (isTrue(this.newUpdates))
@@ -841,7 +841,7 @@ public partial class hitbtc : ccxt.hitbtc
         //    }
         //
         IDictionary<string, object> data = this.safeDict2(message, "snapshot", "update", new Dictionary<string, object>() {});
-        List<object> marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
+        List<object> marketIds = new List<object>(data.Keys);
         string? channel = this.safeString(message, "ch", "");
         List<object> splitChannel = channel.Split(new [] {"/"}, StringSplitOptions.None).ToList<object>();
         string? period = this.safeString(splitChannel, 1);

@@ -1796,7 +1796,7 @@ public partial class myriad : PredictionExchange
         }
         IDictionary<string, object> fetchedInfo = this.safeDict(fetched, "info", new Dictionary<string, object>() {});
         IDictionary<string, object> rawOrder = this.safeDict(fetched, "order", new Dictionary<string, object>() {});
-        List<object> rawOrderKeys = new List<object>(((IDictionary<string,object>)rawOrder).Keys);
+        List<object> rawOrderKeys = new List<object>(rawOrder.Keys);
         int rawOrderKeysLength = rawOrderKeys.Count;
         if ((rawOrderKeysLength == 0))
         {
@@ -1934,7 +1934,7 @@ public partial class myriad : PredictionExchange
             }
             IDictionary<string, object> fetchedInfo = this.safeDict(fetched, "info", new Dictionary<string, object>() {});
             IDictionary<string, object> rawOrder = this.safeDict(fetched, "order", new Dictionary<string, object>() {});
-            List<object> rawOrderKeys = new List<object>(((IDictionary<string,object>)rawOrder).Keys);
+            List<object> rawOrderKeys = new List<object>(rawOrder.Keys);
             int rawOrderKeysLength = rawOrderKeys.Count;
             if ((rawOrderKeysLength == 0))
             {
@@ -3809,7 +3809,7 @@ public partial class myriad : PredictionExchange
             ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(ts);
             updated[(string)sym] = true;
         }
-        List<object> updatedSymbols = new List<object>(((IDictionary<string,object>)updated).Keys);
+        List<object> updatedSymbols = new List<object>(updated.Keys);
         int updatedLength = updatedSymbols.Count;
         for (int k = 0; isLessThan(k, updatedLength); postFixIncrement(ref k))
         {
