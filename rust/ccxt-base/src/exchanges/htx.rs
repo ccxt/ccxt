@@ -4881,7 +4881,7 @@ impl HtxCore {
         let mut order: Value = self.safe_string2(trade.clone(), Value::Str("order-id".to_string()), Value::Str("order_id".to_string()), &[]);
         let mut side: Value = self.safe_string2(trade.clone(), Value::Str("direction".to_string()), Value::Str("side".to_string()), &[]);
         let mut type_var: Value = self.safe_string_k(trade.clone(), "type", &[]);
-        if is_true(&(Value::Bool(type_var != Value::Null))) && is_true(&(get_index_of(&type_var, &Value::Str("-".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN))) {
+        if is_true(&(Value::Bool(type_var != Value::Null))) && is_true(&(Value::Int(type_var.as_str().and_then(|__s| __s.find("-")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN))) {
             let mut typeParts: Value = split(&type_var, &Value::Str("-".to_string()));
             side = typeParts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
             type_var = typeParts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
@@ -4921,7 +4921,7 @@ impl HtxCore {
         // - otherwise the least priority is given to the `id` key
         let mut id: Value = Value::Null;
         let mut safeId: Value = self.safe_string_k(trade.clone(), "id", &[]);
-        if (safeId != Value::Null) && get_index_of(&safeId, &Value::Str("-".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if (safeId != Value::Null) && Value::Int(safeId.as_str().and_then(|__s| __s.find("-")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             id = safeId.clone();
         }  else {
             id = self.safe_string_n(trade.clone(), Value::List(vec![Value::Str("trade_id".to_string()), Value::Str("trade-id".to_string()), Value::Str("id".to_string())]), &[]);
@@ -7496,7 +7496,7 @@ impl HtxCore {
             type_var = self.safe_string_k(order.clone(), "order_price_type", &[]);
             let mut rawType: Value = self.safe_string_k(order.clone(), "type", &[]);
             if (rawType != Value::Null) {
-                if get_index_of(&rawType, &Value::Str("-".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+                if Value::Int(rawType.as_str().and_then(|__s| __s.find("-")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                     let mut orderType: Value = split(&rawType, &Value::Str("-".to_string()));
                     side = orderType.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
                     type_var = orderType.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
@@ -7509,7 +7509,7 @@ impl HtxCore {
         let mut clientOrderId: Value = self.safe_string_n(order.clone(), Value::List(vec![Value::Str("client_order_id".to_string()), Value::Str(format!("{}{}", Value::Str("client-or".to_string()), Value::Str("der-id".to_string()))), Value::Str("algo_client_order_id".to_string())]), &[]); // transpiler regex trick for php issue
         let mut cost: Value = Value::Null;
         let mut amount: Value = Value::Null;
-        if is_true(&(Value::Bool(type_var != Value::Null))) && is_true(&(get_index_of(&type_var, &Value::Str("market".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN))) && is_true(&(Value::Bool(isLinearOrder.as_bool() != Some(true)))) {
+        if is_true(&(Value::Bool(type_var != Value::Null))) && is_true(&(Value::Int(type_var.as_str().and_then(|__s| __s.find("market")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN))) && is_true(&(Value::Bool(isLinearOrder.as_bool() != Some(true)))) {
             cost = self.safe_string_k(order.clone(), "field-cash-amount", &[]);
         }  else {
             amount = self.safe_string2(order.clone(), Value::Str("volume".to_string()), Value::Str("amount".to_string()), &[]);
@@ -9446,7 +9446,7 @@ impl HtxCore {
         if (txHash == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" parseTransaction() missing txHash".to_string())))));
         }
-        if (networkId.as_str() == Some("ETH")) && get_index_of(&txHash, &Value::Str("0x".to_string())).as_f64().unwrap_or(f64::NAN) < Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if (networkId.as_str() == Some("ETH")) && Value::Int(txHash.as_str().and_then(|__s| __s.find("0x")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) < Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             txHash = Value::Str(format!("{}{}", Value::Str("0x".to_string()), txHash));
         }
         let mut subType: Value = self.safe_string_k(transaction.clone(), "sub-type", &[]);
@@ -10532,7 +10532,7 @@ impl HtxCore {
                     })]);
                     let mut id: Value = self.safe_string_k(options.clone(), "id", &[Value::Str("AA03022abc".to_string())]);
                     if !isArrayParams {
-                        if is_true(&(Value::Bool(get_index_of(&pathString, &Value::Str("cancel".to_string())).as_f64() == Value::Int(-1).as_f64()))) && is_true(&Value::Bool(ends_with(&pathString, &Value::Str("order".to_string())))) {
+                        if is_true(&(Value::Bool(Value::Int(pathString.as_str().and_then(|__s| __s.find("cancel")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Value::Int(-1).as_f64()))) && is_true(&Value::Bool(ends_with(&pathString, &Value::Str("order".to_string())))) {
                             // swap order placement
                             let mut channelCode: Value = self.safe_string_k(params.clone(), "channel_code", &[]);
                             if (channelCode == Value::Null) {

@@ -342,11 +342,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub async fn test_method(&mut self, mut methodName: Value, mut exchange: Value, mut args: Value, mut isPublic: Value) -> Value {
         // todo: temporary skip for c#
-        if get_index_of(&methodName, &Value::Str("OrderBook".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) && (self.ext.as_str() == Some("cs")) {
+        if Value::Int(methodName.as_str().and_then(|__s| __s.find("OrderBook")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) && (self.ext.as_str() == Some("cs")) {
             add_element_to_object(get_value_mut(&mut exchange, &Value::Str("options".to_string())), &Value::Str("checksum".to_string()), Value::Bool(false));
         }
         // todo: temporary skip for php
-        if get_index_of(&methodName, &Value::Str("OrderBook".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) && (self.ext.as_str() == Some("php")) {
+        if Value::Int(methodName.as_str().and_then(|__s| __s.find("OrderBook")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) && (self.ext.as_str() == Some("php")) {
             return Value::Bool(true);
         }
         let mut skippedPropertiesForMethod: Value = self.get_skips(exchange.clone(), methodName.clone());
@@ -1112,7 +1112,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         unscopedError = exceptionMessage(e.clone());
                     }
-                    assert(Value::Bool(get_index_of(&unscopedError, &Value::Str("requires at least one of".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN)), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" fetchEvents () without a scope must throw ArgumentsRequired, got: ".to_string())), unscopedError))]);
+                    assert(Value::Bool(Value::Int(unscopedError.as_str().and_then(|__s| __s.find("requires at least one of")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN)), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" fetchEvents () without a scope must throw ArgumentsRequired, got: ".to_string())), unscopedError))]);
                 }
                 // every venue requires fetchEvents to be scoped; a skip-tests.json
                 // preferredEventQuery supplies a query known to match the venue's markets
@@ -1228,7 +1228,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     tickersError = exceptionMessage(e.clone());
                 }
-                assert(Value::Bool(get_index_of(&tickersError, &Value::Str("requires an outcomes argument".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN)), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" fetchTickers () without outcomes must throw ArgumentsRequired, got: ".to_string())), tickersError))]);
+                assert(Value::Bool(Value::Int(tickersError.as_str().and_then(|__s| __s.find("requires an outcomes argument")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN)), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" fetchTickers () without outcomes must throw ArgumentsRequired, got: ".to_string())), tickersError))]);
             }
         }
         dump(&[Value::Str("[INFO:MAIN] Selected prediction OUTCOME:".to_string()), outcomeSymbol.clone(), Value::Str("| EVENT:".to_string()), exchange.json(eventId.clone())]);
@@ -1743,7 +1743,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             while { if !__for_first_1519 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1519 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(urlParts.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             if i.as_f64().unwrap_or(f64::NAN) > Value::Int(2).as_f64().unwrap_or(f64::NAN) {
                 let mut current: Value = get_value(&urlParts, &i);
-                if get_index_of(&current, &Value::Str("?".to_string())).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
+                if Value::Int(current.as_str().and_then(|__s| __s.find("?")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
                     // handle urls like this: /v1/account/accounts?AccessK
                     let mut currentParts: Value = split(&current, &Value::Str("?".to_string()));
                     res = Value::Str(format!("{}{}", res, Value::Str("/".to_string())));

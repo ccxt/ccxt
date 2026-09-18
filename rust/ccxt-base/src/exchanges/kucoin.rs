@@ -12131,7 +12131,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         let mut timestampId: Value = self.safe_string2(info.clone(), Value::Str("createdAt".to_string()), Value::Str("timestamp".to_string()), &[]);
         let mut timestamp: Value = self.milliseconds();
         if (timestampId != Value::Null) {
-            timestamp = self.parse_to_int(slice(&timestampId, &Value::Int(0), &Value::Int(13)));
+            timestamp = self.parse_to_int(timestampId.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(13); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::Str).unwrap_or(Value::Null));
         }
         let mut currencyId: Value = self.safe_string_k(info.clone(), "currency", &[]);
         return Value::Map({
@@ -13992,7 +13992,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
                     side = Value::Str("short".to_string());
                 }
             }  else if (type_var != Value::Null) {
-                if get_index_of(&type_var, &Value::Str("long".to_string())).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
+                if Value::Int(type_var.as_str().and_then(|__s| __s.find("long")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
                     side = Value::Str("long".to_string());
                 }  else {
                     side = Value::Str("short".to_string());

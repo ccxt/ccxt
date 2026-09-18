@@ -1252,13 +1252,13 @@ impl BitrueCore {
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
         if is_true(&Value::Bool(in_op(&message, &Value::Str("channel".to_string())))) {
             let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[]);
-            if get_index_of(&channel, &Value::Str("_depth_step".to_string())).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
+            if Value::Int(channel.as_str().and_then(|__s| __s.find("_depth_step")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
                 self.handle_order_book(client.clone(), message.clone());
-            }  else if get_index_of(&channel, &Value::Str("_trade_ticker".to_string())).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
+            }  else if Value::Int(channel.as_str().and_then(|__s| __s.find("_trade_ticker")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
                 self.handle_trades(client.clone(), message.clone());
-            }  else if get_index_of(&channel, &Value::Str("_kline_".to_string())).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
+            }  else if Value::Int(channel.as_str().and_then(|__s| __s.find("_kline_")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
                 self.handle_ohlcv(client.clone(), message.clone());
-            }  else if get_index_of(&channel, &Value::Str("_ticker".to_string())).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
+            }  else if Value::Int(channel.as_str().and_then(|__s| __s.find("_ticker")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
                 self.handle_ticker(client.clone(), message.clone());
             }
         }  else if is_true(&Value::Bool(in_op(&message, &Value::Str("ping".to_string())))) {

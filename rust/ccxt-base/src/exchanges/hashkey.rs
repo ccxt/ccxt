@@ -3132,7 +3132,7 @@ impl HashkeyCore {
         let mut amountString: Value = self.safe_string_k(item.clone(), "change", &[]);
         let mut amount: Value = self.parse_number(amountString.clone(), &[]);
         let mut direction: Value = Value::Str("in".to_string());
-        if get_index_of(&amountString, &Value::Str("-".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if Value::Int(amountString.as_str().and_then(|__s| __s.find("-")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             direction = Value::Str("out".to_string());
         }
         let mut afterString: Value = self.safe_string_k(item.clone(), "total", &[]);

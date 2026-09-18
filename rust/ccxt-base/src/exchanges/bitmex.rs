@@ -2765,8 +2765,8 @@ impl BitmexCore {
         let mut postOnly: Value = Value::Null;
         let mut reduceOnly: Value = Value::Null;
         if Value::Int(execInst.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-            postOnly = (Value::Bool(get_index_of(&execInst, &Value::Str("ParticipateDoNotInitiate".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN)));
-            reduceOnly = Value::Bool(is_true(&(get_index_of(&execInst, &Value::Str("ReduceOnly".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN))) || is_true(&(get_index_of(&execInst, &Value::Str("Close".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN))));
+            postOnly = (Value::Bool(Value::Int(execInst.as_str().and_then(|__s| __s.find("ParticipateDoNotInitiate")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN)));
+            reduceOnly = Value::Bool(is_true(&(Value::Int(execInst.as_str().and_then(|__s| __s.find("ReduceOnly")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN))) || is_true(&(Value::Int(execInst.as_str().and_then(|__s| __s.find("Close")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN))));
         }
         let mut timestamp: Value = self.parse8601(self.safe_string_k(order.clone(), "timestamp", &[]));
         let mut triggerPrice: Value = self.safe_number_k(order.clone(), "stopPx", &[]);
@@ -3079,7 +3079,7 @@ impl BitmexCore {
         })]);
         let mut error: Value = self.safe_string_k(order.clone(), "error", &[]);
         if (error != Value::Null) {
-            if get_index_of(&error, &Value::Str("Unable to cancel order due to existing state".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if Value::Int(error.as_str().and_then(|__s| __s.find("Unable to cancel order due to existing state")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                 panic!("{}", crate::exchange_errors::order_not_found(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() failed: ".to_string()))), error))));
             }
         }

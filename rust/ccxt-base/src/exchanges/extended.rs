@@ -1090,7 +1090,7 @@ impl ExtendedCore {
 })]);
         let mut marketId: Value = self.safe_string_k(market.clone(), "name", &[]);
         let mut baseId: Value = self.safe_string_k(market.clone(), "assetName", &[Value::Str("".to_string())]);
-        if get_index_of(&baseId, &Value::Str("SPOT".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if Value::Int(baseId.as_str().and_then(|__s| __s.find("SPOT")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             baseId = replace_str(&baseId, &Value::Str("SPOT".to_string()), &Value::Str("".to_string()));
         }
         let mut quoteId: Value = self.safe_string_k(market.clone(), "collateralAssetName", &[]);
@@ -1267,7 +1267,7 @@ impl ExtendedCore {
         //     }
         //
         let mut currencyId: Value = self.safe_string_k(currency.clone(), "symbol", &[]);
-        if is_true(&(Value::Bool(currencyId != Value::Null))) && is_true(&(get_index_of(&currencyId, &Value::Str("SPOT".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN))) {
+        if is_true(&(Value::Bool(currencyId != Value::Null))) && is_true(&(Value::Int(currencyId.as_str().and_then(|__s| __s.find("SPOT")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN))) {
             currencyId = replace_str(&currencyId, &Value::Str("SPOT".to_string()), &Value::Str("".to_string()));
         }
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -4783,13 +4783,13 @@ impl ExtendedCore {
 
     pub fn get_extended_signature_hex(&self, mut signature: Value) -> Value {
         if is_string(&signature) {
-            if (get_index_of(&signature, &Value::Str("0x".to_string())).as_f64() == Some(0.0)) {
+            if (Value::Int(signature.as_str().and_then(|__s| __s.find("0x")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
                 return signature;
             }
             return Value::Str(format!("{}{}", Value::Str("0x".to_string()), self.get_extended_decimal_to_base16(signature.clone())));
         }
         let mut signatureString: Value = self.number_to_string(signature.clone());
-        if (get_index_of(&signatureString, &Value::Str("0x".to_string())).as_f64() == Some(0.0)) {
+        if (Value::Int(signatureString.as_str().and_then(|__s| __s.find("0x")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
             return signatureString;
         }
         return Value::Str(format!("{}{}", Value::Str("0x".to_string()), self.get_extended_decimal_to_base16(signatureString.clone())));

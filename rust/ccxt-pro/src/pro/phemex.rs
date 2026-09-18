@@ -1942,7 +1942,7 @@ impl PhemexCore {
             }
         }
         let mut methodName: Value = self.safe_string_k(message.clone(), "method", &[Value::Str("".to_string())]);
-        if is_true(&(Value::Bool(in_op(&message, &Value::Str("market24h".to_string()))))) || is_true(&(Value::Bool(in_op(&message, &Value::Str("spot_market24h".to_string()))))) || is_true(&(get_index_of(&methodName, &Value::Str("perp_market24h_pack_p".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN))) {
+        if is_true(&(Value::Bool(in_op(&message, &Value::Str("market24h".to_string()))))) || is_true(&(Value::Bool(in_op(&message, &Value::Str("spot_market24h".to_string()))))) || is_true(&(Value::Int(methodName.as_str().and_then(|__s| __s.find("perp_market24h_pack_p")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN))) {
             self.handle_ticker(client.clone(), message.clone());
             return;
         }  else if is_true(&(Value::Bool(in_op(&message, &Value::Str("trades".to_string()))))) || is_true(&(Value::Bool(in_op(&message, &Value::Str("trades_p".to_string()))))) {

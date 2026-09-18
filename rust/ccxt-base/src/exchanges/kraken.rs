@@ -1140,7 +1140,7 @@ impl KrakenCore {
             let mut id: Value = get_value(&keys, &i);
             let mut id: Value = get_value(&keys, &i);
             let mut isSynthetic: bool = false;
-            if get_index_of(&id, &Value::Str(":BTNL".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if Value::Int(id.as_str().and_then(|__s| __s.find(":BTNL")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                 isSynthetic = true;
             }
             let mut market: Value = get_value(&markets, &id);
@@ -1392,7 +1392,7 @@ impl KrakenCore {
         if (id == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" parseCurrency() missing id".to_string())))));
         }
-        if get_index_of(&id, &Value::Str(".".to_string())).as_f64().unwrap_or(f64::NAN) < Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if Value::Int(id.as_str().and_then(|__s| __s.find(".")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) < Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             let mut altName: Value = self.safe_string_k(rawCurrency.clone(), "altname", &[]);
             // handle cases like below:
             //
@@ -1416,7 +1416,7 @@ impl KrakenCore {
         if (code == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" parseCurrency() missing code".to_string())))));
         }
-        let mut isFiat: bool = get_index_of(&code, &Value::Str(".HOLD".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN);
+        let mut isFiat: bool = Value::Int(code.as_str().and_then(|__s| __s.find(".HOLD")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN);
         rawCurrency = self.omit(rawCurrency.clone(), Value::Str("_coin_id".to_string()), &[]);
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1461,7 +1461,7 @@ impl KrakenCore {
         if (currencyId == Value::Null) {
             return currencyId;
         }
-        if get_index_of(&currencyId, &Value::Str(".".to_string())).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if Value::Int(currencyId.as_str().and_then(|__s| __s.find(".")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             // if ID contains .M, .S or .F, then it can't contain X or Z prefix. in such case, ID equals to ALTNAME
             let mut parts: Value = split(&currencyId, &Value::Str(".".to_string()));
             let mut firstPart: Value = self.safe_string(parts.clone(), Value::Int(0), &[]);
@@ -2489,7 +2489,7 @@ impl KrakenCore {
         });
         let mut orderRequest: Value = self.order_request(Value::Str("createOrder".to_string()), symbol.clone(), type_var.clone(), request.clone(), amount.clone(), &[price.clone(), params.clone()]);
         let mut flags: Value = self.safe_string(orderRequest.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Str("oflags".to_string()), &[Value::Str("".to_string())]);
-        let mut isUsingCost: Value = Value::Bool(get_index_of(&flags, &Value::Str("viqc".to_string())).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN));
+        let mut isUsingCost: Value = Value::Bool(Value::Int(flags.as_str().and_then(|__s| __s.find("viqc")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN));
         let __ws_arg_8 = self.extend(get_value(&orderRequest, &Value::Int(0)), &[get_value(&orderRequest, &Value::Int(1))]);
         let mut response: Value = self.private_post_add_order(&[__ws_arg_8]).await;
         //
@@ -2867,7 +2867,7 @@ impl KrakenCore {
             price = self.safe_string2(order.clone(), Value::Str("limitprice".to_string()), Value::Str("price".to_string()), &[price.clone()]);
         }
         let mut flags: Value = self.safe_string_k(order.clone(), "oflags", &[Value::Str("".to_string())]);
-        let mut isPostOnly: Value = Value::Bool(get_index_of(&flags, &Value::Str("post".to_string())).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN));
+        let mut isPostOnly: Value = Value::Bool(Value::Int(flags.as_str().and_then(|__s| __s.find("post")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN));
         let mut average: Value = self.safe_number_k(order.clone(), "price", &[]);
         if (market != Value::Null) {
             symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -2879,9 +2879,9 @@ impl KrakenCore {
                         m.insert("rate".to_string(), Value::Null);
                     m
                 });
-                if get_index_of(&flags, &Value::Str("fciq".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+                if Value::Int(flags.as_str().and_then(|__s| __s.find("fciq")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                     add_element_to_object(&mut fee, &Value::Str("currency".to_string()), market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null));
-                }  else if get_index_of(&flags, &Value::Str("fcib".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+                }  else if Value::Int(flags.as_str().and_then(|__s| __s.find("fcib")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                     add_element_to_object(&mut fee, &Value::Str("currency".to_string()), market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null));
                 }
             }
@@ -3009,7 +3009,7 @@ impl KrakenCore {
         let mut cost: Value = self.safe_string_k(params.clone(), "cost", &[]);
         let mut flags: Value = self.safe_string_k(params.clone(), "oflags", &[]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("cost".to_string()), Value::Str("oflags".to_string())]), &[]);
-        let mut isViqcOrder: bool = is_true(&(Value::Bool(flags != Value::Null))) && is_true(&(get_index_of(&flags, &Value::Str("viqc".to_string())).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN))); // volume in quote currency
+        let mut isViqcOrder: bool = is_true(&(Value::Bool(flags != Value::Null))) && is_true(&(Value::Int(flags.as_str().and_then(|__s| __s.find("viqc")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN))); // volume in quote currency
         if isMarketOrder && is_true(&(Value::Bool((cost != Value::Null) || isViqcOrder))) {
             if (cost == Value::Null) && is_true(&(Value::Bool(amount != Value::Null))) {
                 add_element_to_object(&mut request, &Value::Str("volume".to_string()), self.cost_to_precision(symbol.clone(), self.number_to_string(amount.clone())));
@@ -3594,7 +3594,7 @@ impl KrakenCore {
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if is_true(&(Value::Bool(self.last_http_response.clone() != Value::Null))) && is_true(&(Value::Bool(self.last_http_response.as_str() != Some("")))) {
-                if get_index_of(&self.last_http_response, &Value::Str("EOrder:Unknown order".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+                if Value::Int(self.last_http_response.as_str().and_then(|__s| __s.find("EOrder:Unknown order")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                     panic!("{}", crate::exchange_errors::order_not_found(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() error ".to_string()))), self.last_http_response.clone()))));
                 }
             }

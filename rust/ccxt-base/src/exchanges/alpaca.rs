@@ -1070,7 +1070,7 @@ impl AlpacaCore {
         if (timestamp == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTime() missing timestamp".to_string())))));
         }
-        let mut localTime: Value = slice(&timestamp, &Value::Int(0), &Value::Int(23));
+        let mut localTime: Value = timestamp.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(23); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::Str).unwrap_or(Value::Null);
         if (timestamp == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTime() missing timestamp".to_string())))));
         }
@@ -1911,7 +1911,7 @@ impl AlpacaCore {
         let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stop_price".to_string()), &[]);
         if (triggerPrice != Value::Null) {
             let mut newType: Value = Value::Null;
-            if get_index_of(&type_var, &Value::Str("limit".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if Value::Int(type_var.as_str().and_then(|__s| __s.find("limit")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                 newType = Value::Str("stop_limit".to_string());
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support stop orders for ".to_string()))), type_var)), Value::Str(" orders, only stop_limit orders are supported".to_string())))));
@@ -1919,7 +1919,7 @@ impl AlpacaCore {
             add_element_to_object(&mut request, &Value::Str("stop_price".to_string()), self.price_to_precision(symbol.clone(), triggerPrice.clone()));
             add_element_to_object(&mut request, &Value::Str("type".to_string()), newType.clone());
         }
-        if get_index_of(&type_var, &Value::Str("limit".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if Value::Int(type_var.as_str().and_then(|__s| __s.find("limit")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             add_element_to_object(&mut request, &Value::Str("limit_price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
         }
         let mut cost: Value = self.safe_string_k(params.clone(), "cost", &[]);
@@ -2279,7 +2279,7 @@ impl AlpacaCore {
         }
         let mut orderType: Value = self.safe_string_k(order.clone(), "order_type", &[]);
         if (orderType != Value::Null) {
-            if get_index_of(&orderType, &Value::Str("limit".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if Value::Int(orderType.as_str().and_then(|__s| __s.find("limit")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                 // might be limit or stop-limit
                 orderType = Value::Str("limit".to_string());
             }
@@ -3026,7 +3026,7 @@ impl AlpacaCore {
                 continue;
             }
             let mut baseId: Value = Value::Null;
-            if get_index_of(&positionSymbol, &Value::Str("/".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if Value::Int(positionSymbol.as_str().and_then(|__s| __s.find("/")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                 let mut parts: Value = split(&positionSymbol, &Value::Str("/".to_string()));
                 baseId = self.safe_string(parts.clone(), Value::Int(0), &[]);
             }  else {

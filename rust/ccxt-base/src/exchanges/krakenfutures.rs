@@ -933,12 +933,12 @@ impl KrakenfuturesCore {
             let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
             let mut marketType: Value = self.safe_string_k(market.clone(), "type", &[]);
             let mut type_var: Value = Value::Null;
-            let mut index: Value = (Value::Bool(get_index_of(&marketType, &Value::Str(" index".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN)));
+            let mut index: Value = (Value::Bool(Value::Int(marketType.as_str().and_then(|__s| __s.find(" index")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN)));
             let mut linear: Value = Value::Null;
             let mut inverse: Value = Value::Null;
             let mut expiry: Value = Value::Null;
             if !is_true(&index) {
-                linear = (Value::Bool(get_index_of(&marketType, &Value::Str("_vanilla".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN)));
+                linear = (Value::Bool(Value::Int(marketType.as_str().and_then(|__s| __s.find("_vanilla")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN)));
                 inverse = Value::Bool(!is_true(&linear));
                 let mut settleTime: Value = self.safe_string_k(market.clone(), "lastTradingTime", &[]);
                 type_var = (if is_true(&(Value::Bool(settleTime == Value::Null))) { Value::Str("swap".to_string()) } else { Value::Str("future".to_string()) });
@@ -1828,9 +1828,9 @@ impl KrakenfuturesCore {
         let mut takerOrMaker: Value = Value::Null;
         let mut fillType: Value = self.safe_string_k(trade.clone(), "fillType", &[]);
         if (fillType != Value::Null) {
-            if get_index_of(&fillType, &Value::Str("taker".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if Value::Int(fillType.as_str().and_then(|__s| __s.find("taker")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                 takerOrMaker = Value::Str("taker".to_string());
-            }  else if get_index_of(&fillType, &Value::Str("maker".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            }  else if Value::Int(fillType.as_str().and_then(|__s| __s.find("maker")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                 takerOrMaker = Value::Str("maker".to_string());
             }
         }

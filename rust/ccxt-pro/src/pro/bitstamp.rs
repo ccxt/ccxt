@@ -1178,7 +1178,7 @@ impl BitstampCore {
         if (channel == Value::Null) {
             return;
         }
-        if get_index_of(&channel, &Value::Str("order_book".to_string())).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
+        if Value::Int(channel.as_str().and_then(|__s| __s.find("order_book")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
             self.handle_order_book_subscription(client.clone(), message.clone());
         }
 }

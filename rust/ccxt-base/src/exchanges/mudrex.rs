@@ -558,13 +558,13 @@ impl MudrexCore {
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), text.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), text)));
             let mut msg: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), text));
             let mut low: Value = to_lower(&text);
-            if (code.as_f64() == Some(401.0)) || get_index_of(&low, &Value::Str("auth".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if (code.as_f64() == Some(401.0)) || Value::Int(low.as_str().and_then(|__s| __s.find("auth")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                 panic!("{}", crate::exchange_errors::authentication_error(msg));
             }
-            if (code.as_f64() == Some(429.0)) || get_index_of(&low, &Value::Str("rate".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if (code.as_f64() == Some(429.0)) || Value::Int(low.as_str().and_then(|__s| __s.find("rate")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                 panic!("{}", crate::exchange_errors::rate_limit_exceeded(msg));
             }
-            if get_index_of(&low, &Value::Str("insufficient".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if Value::Int(low.as_str().and_then(|__s| __s.find("insufficient")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                 panic!("{}", crate::exchange_errors::insufficient_funds(msg));
             }
             if (code.as_f64() == Some(400.0)) {
@@ -907,7 +907,7 @@ impl MudrexCore {
         let mut ms: Value = self.safe_string_k(asset.clone(), "symbol", &[]);
         let mut base: Value = ms.clone();
         if (ms != Value::Null) && is_true(&Value::Bool(ends_with(&ms, &Value::Str("USDT".to_string())))) {
-            base = slice(&ms, &Value::Int(0), &Value::Int(-4));
+            base = ms.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = (__l - 4).max(0); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::Str).unwrap_or(Value::Null);
         }
         let mut quote: Value = Value::Str("USDT".to_string());
         let mut settle: Value = Value::Str("USDT".to_string());

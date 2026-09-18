@@ -2973,7 +2973,7 @@ impl BlofinCore {
         if (chainId == Value::Null) {
             return Value::Null;
         }
-        if get_index_of(&chainId, &Value::Str("(".to_string())).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
+        if Value::Int(chainId.as_str().and_then(|__s| __s.find("(")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
             // php-safe suffix extraction: split instead of index arithmetic,
             // because a stored strpos result and a two-argument slice do not
             // survive the php conversion (false-vs-int compare; length arg)

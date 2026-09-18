@@ -1620,7 +1620,7 @@ impl LighterCore {
         //
         let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[Value::Str("".to_string())]);
         let mut type_var: Value = Value::Str("spot".to_string());
-        if get_index_of(&channel, &Value::Str("user_stats:".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if Value::Int(channel.as_str().and_then(|__s| __s.find("user_stats:")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             type_var = Value::Str("swap".to_string());
         }
         let mut balance: Value = self.safe_dict(self.balance.clone(), type_var.clone(), &[Value::Map({
@@ -2066,35 +2066,35 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return;
         }
         let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[Value::Str("".to_string())]);
-        if get_index_of(&channel, &Value::Str("order_book:".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if Value::Int(channel.as_str().and_then(|__s| __s.find("order_book:")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             self.handle_order_book(client.clone(), message.clone());
             return;
         }
-        if get_index_of(&channel, &Value::Str("market_stats:".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if Value::Int(channel.as_str().and_then(|__s| __s.find("market_stats:")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             self.handle_ticker(client.clone(), message.clone());
             return;
         }
-        if get_index_of(&channel, &Value::Str("trade:".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if Value::Int(channel.as_str().and_then(|__s| __s.find("trade:")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             self.handle_trades(client.clone(), message.clone());
             return;
         }
-        if get_index_of(&channel, &Value::Str("account_all_trades:".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if Value::Int(channel.as_str().and_then(|__s| __s.find("account_all_trades:")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             self.handle_my_trades(client.clone(), message.clone());
             return;
         }
-        if get_index_of(&channel, &Value::Str("account_all_assets:".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if Value::Int(channel.as_str().and_then(|__s| __s.find("account_all_assets:")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             self.handle_balance(client.clone(), message.clone());
             return;
         }
-        if get_index_of(&channel, &Value::Str("user_stats:".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if Value::Int(channel.as_str().and_then(|__s| __s.find("user_stats:")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             self.handle_balance(client.clone(), message.clone());
             return;
         }
-        if get_index_of(&channel, &Value::Str("account_orders:".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if Value::Int(channel.as_str().and_then(|__s| __s.find("account_orders:")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             self.handle_orders(client.clone(), message.clone());
             return;
         }
-        if get_index_of(&channel, &Value::Str("account_all_orders:".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if Value::Int(channel.as_str().and_then(|__s| __s.find("account_all_orders:")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             self.handle_orders(client.clone(), message.clone());
             return;
         }

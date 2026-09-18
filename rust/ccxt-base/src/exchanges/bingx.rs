@@ -5003,11 +5003,11 @@ impl BingxCore {
         let mut stopLoss: Value = self.safe_string_k(result.clone(), "stopLoss", &[]);
         // for py fix, the SL is already parsed as object (instead of stringified, as it's provided)
         // so we need trick to check if it's non-parsed string yet
-        if is_true(&(Value::Bool(stopLossDict == Value::Null))) && is_true(&(Value::Bool(stopLoss != Value::Null))) && is_true(&(Value::Bool(get_index_of(&stopLoss, &Value::Str("{".to_string())).as_f64() == Some(0.0)))) {
+        if is_true(&(Value::Bool(stopLossDict == Value::Null))) && is_true(&(Value::Bool(stopLoss != Value::Null))) && is_true(&(Value::Bool(Value::Int(stopLoss.as_str().and_then(|__s| __s.find("{")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)))) {
             add_element_to_object(&mut result, &Value::Str("stopLoss".to_string()), self.parse_json_value(stopLoss.clone()));
         }
         let mut takeProfit: Value = self.safe_string_k(result.clone(), "takeProfit", &[]);
-        if is_true(&(Value::Bool(takeProfit != Value::Null))) && is_true(&(Value::Bool(get_index_of(&takeProfit, &Value::Str("{".to_string())).as_f64() == Some(0.0)))) {
+        if is_true(&(Value::Bool(takeProfit != Value::Null))) && is_true(&(Value::Bool(Value::Int(takeProfit.as_str().and_then(|__s| __s.find("{")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)))) {
             add_element_to_object(&mut result, &Value::Str("takeProfit".to_string()), self.parse_json_value(takeProfit.clone()));
         }
         return self.parse_order(result.clone(), &[market.clone()]);
@@ -5516,11 +5516,11 @@ impl BingxCore {
         let mut stopPrice: Value = self.omit_zero(self.safe_string2(order.clone(), Value::Str("StopPrice".to_string()), Value::Str("stopPrice".to_string()), &[]));
         let mut triggerPrice: Value = stopPrice.clone();
         if (stopPrice != Value::Null) {
-            if is_true(&(get_index_of(&rawType, &Value::Str("stop".to_string())).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN))) && is_true(&(Value::Bool(stopLossPrice == Value::Null))) {
+            if is_true(&(Value::Int(rawType.as_str().and_then(|__s| __s.find("stop")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN))) && is_true(&(Value::Bool(stopLossPrice == Value::Null))) {
                 stopLossPrice = stopPrice.clone();
                 triggerPrice = Value::Null;
             }
-            if is_true(&(get_index_of(&rawType, &Value::Str("take".to_string())).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN))) && is_true(&(Value::Bool(takeProfitPrice == Value::Null))) {
+            if is_true(&(Value::Int(rawType.as_str().and_then(|__s| __s.find("take")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN))) && is_true(&(Value::Bool(takeProfitPrice == Value::Null))) {
                 takeProfitPrice = stopPrice.clone();
                 triggerPrice = Value::Null;
             }

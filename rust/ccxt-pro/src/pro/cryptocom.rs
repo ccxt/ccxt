@@ -2062,7 +2062,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         });
         let mut result: Value = self.safe_value2(message.clone(), Value::Str("result".to_string()), Value::Str("info".to_string()), &[]);
         let mut channel: Value = self.safe_string_k(result.clone(), "channel", &[]);
-        if is_true(&(Value::Bool(channel != Value::Null))) && get_index_of(&channel, &Value::Str("user.trade".to_string())).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
+        if is_true(&(Value::Bool(channel != Value::Null))) && Value::Int(channel.as_str().and_then(|__s| __s.find("user.trade")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
             // channel might be user.trade.BTC_USDT
             self.handle_trades(client.clone(), result.clone());
         }

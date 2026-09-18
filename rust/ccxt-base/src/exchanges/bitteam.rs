@@ -3103,12 +3103,12 @@ impl BitteamCore {
         }
         if (code.as_f64() != Some(200.0)) {
             if (code.as_f64() == Some(404.0)) {
-                if is_true(&(get_index_of(&url, &Value::Str("/ccxt/order/".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN))) && is_true(&(Value::Bool(method.as_str() == Some("GET")))) {
+                if is_true(&(Value::Int(url.as_str().and_then(|__s| __s.find("/ccxt/order/")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN))) && is_true(&(Value::Bool(method.as_str() == Some("GET")))) {
                     let mut parts: Value = split(&url, &Value::Str("/order/".to_string()));
                     let mut orderId: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
                     panic!("{}", crate::exchange_errors::order_not_found(Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" order ".to_string()))), &orderId), Value::Str(" not found".to_string())))));
                 }
-                if get_index_of(&url, &Value::Str("/cmc/orderbook/".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+                if Value::Int(url.as_str().and_then(|__s| __s.find("/cmc/orderbook/")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                     let mut parts: Value = split(&url, &Value::Str("/cmc/orderbook/".to_string()));
                     let mut symbolId: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
                     panic!("{}", crate::exchange_errors::bad_symbol(Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" symbolId ".to_string()))), &symbolId), Value::Str(" not found".to_string())))));

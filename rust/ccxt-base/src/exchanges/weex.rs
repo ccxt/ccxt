@@ -4512,7 +4512,7 @@ impl WeexCore {
         if (amountRaw == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" parseLedgerEntry() missing amountRaw".to_string())))));
         }
-        if get_index_of(&amountRaw, &Value::Str("-".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if Value::Int(amountRaw.as_str().and_then(|__s| __s.find("-")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             direction = Value::Str("out".to_string());
         }
         let mut rawType: Value = self.safe_string2(item.clone(), Value::Str("bizType".to_string()), Value::Str("incomeType".to_string()), &[]);

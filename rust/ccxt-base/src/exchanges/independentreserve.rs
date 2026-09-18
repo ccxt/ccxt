@@ -1011,14 +1011,14 @@ impl IndependentreserveCore {
         let mut orderType: Value = self.safe_string2(order.clone(), Value::Str("Type".to_string()), Value::Str("OrderType".to_string()), &[]);
         let mut side: Value = Value::Null;
         if (orderType != Value::Null) {
-            if get_index_of(&orderType, &Value::Str("Bid".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if Value::Int(orderType.as_str().and_then(|__s| __s.find("Bid")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                 side = Value::Str("buy".to_string());
-            }  else if get_index_of(&orderType, &Value::Str("Offer".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            }  else if Value::Int(orderType.as_str().and_then(|__s| __s.find("Offer")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                 side = Value::Str("sell".to_string());
             }
-            if get_index_of(&orderType, &Value::Str("Market".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if Value::Int(orderType.as_str().and_then(|__s| __s.find("Market")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                 orderType = Value::Str("market".to_string());
-            }  else if get_index_of(&orderType, &Value::Str("Limit".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            }  else if Value::Int(orderType.as_str().and_then(|__s| __s.find("Limit")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                 orderType = Value::Str("limit".to_string());
             }
         }
@@ -1279,9 +1279,9 @@ impl IndependentreserveCore {
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone(), Value::Str("/".to_string())]);
         let mut side: Value = self.safe_string_k(trade.clone(), "OrderType", &[]);
         if (side != Value::Null) {
-            if get_index_of(&side, &Value::Str("Bid".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if Value::Int(side.as_str().and_then(|__s| __s.find("Bid")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                 side = Value::Str("buy".to_string());
-            }  else if get_index_of(&side, &Value::Str("Offer".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            }  else if Value::Int(side.as_str().and_then(|__s| __s.find("Offer")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                 side = Value::Str("sell".to_string());
             }
         }

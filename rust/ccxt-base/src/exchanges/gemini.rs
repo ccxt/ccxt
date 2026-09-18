@@ -1606,7 +1606,7 @@ impl GeminiCore {
                 minSize = self.safe_number(response.clone(), Value::Int(3), &[]); // quantityMinimum
             }
             let mut marketIdUpper: Value = to_upper(&marketId);
-            let mut isPerp: bool = get_index_of(&marketIdUpper, &Value::Str("PERP".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN);
+            let mut isPerp: bool = Value::Int(marketIdUpper.as_str().and_then(|__s| __s.find("PERP")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN);
             let mut marketIdWithoutPerp: Value = replace_str(&marketIdUpper, &Value::Str("PERP".to_string()), &Value::Str("".to_string()));
             let mut conflictingMarkets: Value = self.safe_dict_k(self.options.clone(), "conflictingMarkets", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1906,11 +1906,11 @@ impl GeminiCore {
         if is_true(&(Value::Bool(marketId != Value::Null))) && is_true(&(Value::Bool(market == Value::Null))) {
             let mut idLength: Value = (match (&(Value::Int(marketId.len() as i64)), &(Value::Int(0))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
             if (idLength.as_f64() == Some(7.0)) {
-                baseId = slice(&marketId, &Value::Int(0), &Value::Int(4));
-                quoteId = slice(&marketId, &Value::Int(4), &Value::Int(7));
+                baseId = marketId.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(4); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::Str).unwrap_or(Value::Null);
+                quoteId = marketId.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(4); let __j = __l.min(7); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::Str).unwrap_or(Value::Null);
             }  else {
-                baseId = slice(&marketId, &Value::Int(0), &Value::Int(3));
-                quoteId = slice(&marketId, &Value::Int(3), &Value::Int(6));
+                baseId = marketId.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(3); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::Str).unwrap_or(Value::Null);
+                quoteId = marketId.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(3); let __j = __l.min(6); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::Str).unwrap_or(Value::Null);
             }
             base = self.safe_currency_code(baseId.clone(), &[]);
             quote = self.safe_currency_code(quoteId.clone(), &[]);
@@ -2950,7 +2950,7 @@ impl GeminiCore {
         if (api.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut apiKey: Value = self.apiKey.clone();
-            if get_index_of(&apiKey, &Value::Str("account".to_string())).as_f64().unwrap_or(f64::NAN) < Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if Value::Int(apiKey.as_str().and_then(|__s| __s.find("account")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) < Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                 panic!("{}", crate::exchange_errors::authentication_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" sign() requires an account-key, master-keys are not-supported".to_string())))));
             }
             let mut nonce: Value = to_string_val(&self.nonce());

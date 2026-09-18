@@ -1327,7 +1327,7 @@ impl KrakenCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if get_index_of(&url, &Value::Str("v2".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if Value::Int(url.as_str().and_then(|__s| __s.find("v2")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             add_element_to_object(&mut request, &Value::Str("method".to_string()), Value::Str("ping".to_string()));
         }  else {
             add_element_to_object(&mut request, &Value::Str("event".to_string()), Value::Str("ping".to_string()));

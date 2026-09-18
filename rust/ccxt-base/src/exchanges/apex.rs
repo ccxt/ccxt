@@ -1835,7 +1835,7 @@ impl ApexCore {
 
     pub fn add_hyphen_before_usdt(&self, mut symbol: Value) -> Value {
         let mut uppercaseSymbol: Value = to_upper(&symbol);
-        let mut index: Value = get_index_of(&uppercaseSymbol, &Value::Str("USDT".to_string()));
+        let mut index: Value = Value::Int(uppercaseSymbol.as_str().and_then(|__s| __s.find("USDT")).map(|__i| __i as i64).unwrap_or(-1));
         let mut symbolChar: Value = self.safe_string(symbol.clone(), (match (&(index), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
         if index.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) && (symbolChar.as_str() != Some("-")) {
             return Value::Str(format!("{}{}", Value::Str(format!("{}{}", slice(&symbol, &Value::Int(0), &index), Value::Str("-".to_string()))), slice(&symbol, &index, &Value::Null)));

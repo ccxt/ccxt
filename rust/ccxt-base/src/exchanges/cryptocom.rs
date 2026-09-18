@@ -1399,7 +1399,7 @@ impl CryptocomCore {
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut erString: Value = self.exception_message(e.clone(), &[]);
-            if get_index_of(&erString, &Value::Str("SYS_ERROR".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if Value::Int(erString.as_str().and_then(|__s| __s.find("SYS_ERROR")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                 return Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

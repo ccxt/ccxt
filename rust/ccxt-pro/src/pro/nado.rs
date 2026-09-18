@@ -2646,24 +2646,24 @@ impl NadoCore {
         if (messageHash == Value::Null) {
             return;
         }
-        if (get_index_of(&messageHash, &Value::Str("trade:".to_string())).as_f64() == Some(0.0)) {
+        if (Value::Int(messageHash.as_str().and_then(|__s| __s.find("trade:")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
             let mut symbol: Value = replace_str(&messageHash, &Value::Str("trade:".to_string()), &Value::Str("".to_string()));
             if is_true(&Value::Bool(in_op(&self.trades, &symbol))) {
                 remove(&mut self.trades, &symbol);
             }
-        }  else if (get_index_of(&messageHash, &Value::Str("orderbook:".to_string())).as_f64() == Some(0.0)) {
+        }  else if (Value::Int(messageHash.as_str().and_then(|__s| __s.find("orderbook:")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
             let mut symbol: Value = replace_str(&messageHash, &Value::Str("orderbook:".to_string()), &Value::Str("".to_string()));
             if is_true(&Value::Bool(in_op(&self.orderbooks, &symbol))) {
                 remove(&mut self.orderbooks, &symbol);
             }
-        }  else if (get_index_of(&messageHash, &Value::Str("ohlcv:".to_string())).as_f64() == Some(0.0)) {
+        }  else if (Value::Int(messageHash.as_str().and_then(|__s| __s.find("ohlcv:")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
             let mut parts: Value = split(&messageHash, &Value::Str(":".to_string()));
             let mut timeframe: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
             let mut symbol: Value = self.safe_string(parts.clone(), Value::Int(2), &[]);
             if is_true(&(Value::Bool(symbol != Value::Null))) && is_true(&(Value::Bool(timeframe != Value::Null))) && is_true(&(Value::Bool(in_op(&self.ohlcvs, &symbol)))) && is_true(&(Value::Bool(in_op(&get_value(&self.ohlcvs, &symbol), &timeframe)))) {
                 remove(&mut get_value(&self.ohlcvs, &symbol), &timeframe);
             }
-        }  else if (get_index_of(&messageHash, &Value::Str("ticker:".to_string())).as_f64() == Some(0.0)) {
+        }  else if (Value::Int(messageHash.as_str().and_then(|__s| __s.find("ticker:")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
             let mut symbol: Value = replace_str(&messageHash, &Value::Str("ticker:".to_string()), &Value::Str("".to_string()));
             if is_true(&Value::Bool(in_op(&self.tickers, &symbol))) {
                 remove(&mut self.tickers, &symbol);
@@ -2677,7 +2677,7 @@ impl NadoCore {
                 remove(&mut self.tickers, &get_value(&symbols, &i));
             }
             }
-        }  else if (get_index_of(&messageHash, &Value::Str("bidask:".to_string())).as_f64() == Some(0.0)) {
+        }  else if (Value::Int(messageHash.as_str().and_then(|__s| __s.find("bidask:")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
             let mut symbol: Value = replace_str(&messageHash, &Value::Str("bidask:".to_string()), &Value::Str("".to_string()));
             if is_true(&Value::Bool(in_op(&self.bidsasks, &symbol))) {
                 remove(&mut self.bidsasks, &symbol);
@@ -2691,11 +2691,11 @@ impl NadoCore {
                 remove(&mut self.bidsasks, &get_value(&symbols, &i));
             }
             }
-        }  else if (get_index_of(&messageHash, &Value::Str("orders".to_string())).as_f64() == Some(0.0)) {
+        }  else if (Value::Int(messageHash.as_str().and_then(|__s| __s.find("orders")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
             self.orders = Value::Null;
-        }  else if (get_index_of(&messageHash, &Value::Str("myTrades".to_string())).as_f64() == Some(0.0)) {
+        }  else if (Value::Int(messageHash.as_str().and_then(|__s| __s.find("myTrades")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
             self.myTrades = Value::Null;
-        }  else if (get_index_of(&messageHash, &Value::Str("positions".to_string())).as_f64() == Some(0.0)) {
+        }  else if (Value::Int(messageHash.as_str().and_then(|__s| __s.find("positions")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
             self.positions = Value::Null;
         }
 }

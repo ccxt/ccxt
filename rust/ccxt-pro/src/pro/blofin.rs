@@ -1301,7 +1301,7 @@ impl BlofinCore {
             let mut arg: Value = self.safe_dict_k(message.clone(), "arg", &[]);
             let mut channelName: Value = self.safe_string_k(arg.clone(), "channel", &[]);
             method = self.safe_value(methods.clone(), channelName.clone(), &[]);
-            if is_true(&(Value::Bool(method == Value::Null))) && is_true(&(get_index_of(&channelName, &Value::Str("candle".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN))) {
+            if is_true(&(Value::Bool(method == Value::Null))) && is_true(&(Value::Int(channelName.as_str().and_then(|__s| __s.find("candle")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN))) {
                 method = methods.as_map().and_then(|__m| __m.get("candle")).cloned().unwrap_or(Value::Null);
             }
         }

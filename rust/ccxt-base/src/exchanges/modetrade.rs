@@ -4467,7 +4467,7 @@ impl ModetradeCore {
             let mut ts: Value = to_string_val(&self.nonce());
             url = Value::Str(format!("{}{}", url, pathWithParams));
             let mut apiKey: Value = self.apiKey.clone();
-            if get_index_of(&apiKey, &Value::Str("ed25519:".to_string())).as_f64().unwrap_or(f64::NAN) < Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if Value::Int(apiKey.as_str().and_then(|__s| __s.find("ed25519:")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) < Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                 apiKey = Value::Str(format!("{}{}", Value::Str("ed25519:".to_string()), apiKey));
             }
             headers = Value::Map({
@@ -4493,7 +4493,7 @@ impl ModetradeCore {
                 }
             }
             let mut secret: Value = self.secret.clone();
-            if get_index_of(&secret, &Value::Str("ed25519:".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if Value::Int(secret.as_str().and_then(|__s| __s.find("ed25519:")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                 let mut parts: Value = split(&secret, &Value::Str("ed25519:".to_string()));
                 secret = parts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
             }

@@ -1977,7 +1977,7 @@ impl IndodaxCore {
                     if (networkId == Value::Null) {
                         panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddresses() missing networkId".to_string())))));
                     }
-                    if get_index_of(&networkId, &Value::Str(",".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+                    if Value::Int(networkId.as_str().and_then(|__s| __s.find(",")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                         network = Value::List(vec![]);
                         if (networkId == Value::Null) {
                             panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddresses() missing networkId".to_string())))));

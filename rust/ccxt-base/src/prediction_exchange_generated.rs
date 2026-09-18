@@ -1061,11 +1061,11 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         // download. returns undefined for id-like inputs (numeric token ids, 0x hashes) that
         // carry no searchable words
         let mut marketPart: Value = outcomeSymbol.clone();
-        let mut colonIndex: Value = get_index_of(&outcomeSymbol, &Value::Str(":".to_string()));
+        let mut colonIndex: Value = Value::Int(outcomeSymbol.as_str().and_then(|__s| __s.find(":")).map(|__i| __i as i64).unwrap_or(-1));
         if colonIndex.as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             marketPart = slice(&outcomeSymbol, &Value::Int(0), &colonIndex);
         }
-        if (get_index_of(&marketPart, &Value::Str("0x".to_string())).as_f64() == Some(0.0)) {
+        if (Value::Int(marketPart.as_str().and_then(|__s| __s.find("0x")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
             return Value::Null;
         }
         // handles join words with '_' (slug-derived) or legacy '-' separated inputs (normalized below)

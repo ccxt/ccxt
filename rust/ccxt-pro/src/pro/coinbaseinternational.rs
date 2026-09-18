@@ -1211,7 +1211,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut errorMessage: Value = self.safe_string_k(message.clone(), "message", &[]);
             panic!("{}", crate::exchange_errors::exchange_error(errorMessage));
         }
-        if get_index_of(&channel, &Value::Str("CANDLES".to_string())).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
+        if Value::Int(channel.as_str().and_then(|__s| __s.find("CANDLES")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
             self.handle_ohlcv(client.clone(), message.clone());
         }
         let mut method: Value = self.safe_value(methods.clone(), channel.clone(), &[]);

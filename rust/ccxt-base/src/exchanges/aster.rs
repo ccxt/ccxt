@@ -5606,7 +5606,7 @@ impl AsterCore {
             encodedString = Value::Str(format!("{}{}", encodedString, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", key, Value::Str("=".to_string()))), encoded)), Value::Str("&".to_string())))));
         }
         }
-        return slice(&encodedString, &Value::Int(0), &Value::Int(-1));
+        return encodedString.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = (__l - 1).max(0); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::Str).unwrap_or(Value::Null);
 
     Value::Null
 }

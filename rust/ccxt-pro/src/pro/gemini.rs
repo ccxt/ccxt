@@ -628,8 +628,8 @@ impl GeminiCore {
         //     }
         //
         let mut type_var: Value = self.safe_string_k(message.clone(), "type", &[Value::Str("".to_string())]);
-        let mut timeframeId: Value = slice(&type_var, &Value::Int(8), &Value::Null);
-        let mut timeframeEndIndex: Value = get_index_of(&timeframeId, &Value::Str("_".to_string()));
+        let mut timeframeId: Value = type_var.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(8); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::Str).unwrap_or(Value::Null);
+        let mut timeframeEndIndex: Value = Value::Int(timeframeId.as_str().and_then(|__s| __s.find("_")).map(|__i| __i as i64).unwrap_or(-1));
         timeframeId = slice(&timeframeId, &Value::Int(0), &timeframeEndIndex);
         let mut marketId: Value = to_lower(&self.safe_string_k(message.clone(), "symbol", &[Value::Str("".to_string())]));
         let mut market: Value = self.safe_market(&[marketId.clone()]);
@@ -1266,7 +1266,7 @@ impl GeminiCore {
             m
         });
         let mut type_var: Value = self.safe_string_k(message.clone(), "type", &[Value::Str("".to_string())]);
-        if get_index_of(&type_var, &Value::Str("candles".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if Value::Int(type_var.as_str().and_then(|__s| __s.find("candles")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             self.handle_ohlcv(client.clone(), message.clone());
             return;
         }
@@ -1334,7 +1334,7 @@ impl GeminiCore {
         }
         self.check_required_credentials(&[]);
         let mut startIndex: Value = get_array_length(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())));
-        let mut urlParamsIndex: Value = get_index_of(&url, &Value::Str("?".to_string()));
+        let mut urlParamsIndex: Value = Value::Int(url.as_str().and_then(|__s| __s.find("?")).map(|__i| __i as i64).unwrap_or(-1));
         let mut urlLength: Value = Value::Int(url.len() as i64);
         let mut endIndex: Value = (if is_true(&(urlParamsIndex.as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN))) { urlParamsIndex.clone() } else { urlLength.clone() });
         let mut request: Value = slice(&url, &startIndex, &endIndex);
