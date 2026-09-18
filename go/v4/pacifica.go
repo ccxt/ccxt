@@ -3947,7 +3947,7 @@ func (this *Pacifica) fetchOpenInterestBody(ch chan any, symbol any, optionalArg
 	PanicOnError(ois)
 	var oi any = this.SafeDict(ois, symbol)
 	if IsEqual(oi, nil) {
-		panic(BadSymbol(Add(Add(this.Id, " fetchOpenInterest() could not find open interest for "), symbol)))
+		panic(BadSymbol(Add(this.Id+" fetchOpenInterest() could not find open interest for ", symbol)))
 	}
 
 	ch <- oi

@@ -2836,24 +2836,24 @@ func (this *Alpaca) ParseBalance(response any) any {
 		AddElementToObject(cashAccount, "total", Precise.StringSub(equity, positionsValue)) // equity minus the positions market value equals cash plus open-order holds; stringSub degrades to undefined when either field is absent and safeBalance then derives the total from free
 		AddElementToObject(result, code, cashAccount)
 	}
-	for i := 0; IsLessThan(i, GetArrayLength(positions)); i++ {
+	for i := 0; i < GetArrayLength(positions); i++ {
 		var position any = GetValue(positions, i)
 		var positionSymbol *string = this.SafeString(position, "symbol")
 		if positionSymbol == nil {
 			continue
 		}
 		var baseId any = nil
-		if IsGreaterThanOrEqual(GetIndexOf(positionSymbol, "/"), 0) {
+		if GetIndexOf(positionSymbol, "/") >= 0 {
 			var parts []string = Split(positionSymbol, "/")
 			baseId = DerefScalar(this.SafeString(parts, 0))
 		} else {
 			// crypto position symbols come compressed with a USD tail, e.g. BTCUSD or USDTUSD
 			var baseLength int64 = Subtract(GetLength(positionSymbol), 3).(int64)
-			if (IsGreaterThan(baseLength, 0)) && (Slice(positionSymbol, baseLength, nil) == "USD") {
+			if (baseLength > 0) && (Slice(positionSymbol, baseLength, nil) == "USD") {
 				baseId = Slice(positionSymbol, 0, baseLength)
 			}
 		}
-		if IsEqual(baseId, nil) {
+		if baseId == nil {
 			continue
 		}
 		var positionCode *string = this.SafeCurrencyCode(baseId)
