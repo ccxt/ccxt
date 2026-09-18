@@ -2194,7 +2194,18 @@ public partial class testMainClass
     public async virtual Task<object> testResponseStatically(BaseExchange exchange, object method, object skipKeys, object data)
     {
         object expectedResult = exchange.safeValue(data, "parsedResponse");
-        var mockedExchange = setFetchResponse(exchange, getValue(data, "httpResponse"));
+        // 'httpResponseByUrl' serves a body per url fragment for methods that call several
+        // endpoints; the typed ports narrow each body to the shape its api leaf declares,
+        // so one shared 'httpResponse' cannot cover two differently-shaped endpoints
+        object responsesByUrl = exchange.safeDict(data, "httpResponseByUrl");
+        var mockedExchange = exchange;
+        if (isTrue(!isEqual(responsesByUrl, null)))
+        {
+            mockedExchange = setFetchResponseByUrl(exchange, responsesByUrl);
+        } else
+        {
+            mockedExchange = setFetchResponse(exchange, getValue(data, "httpResponse"));
+        }
         if (isTrue(this.info))
         {
             dump("[INFO] STATIC RESPONSE TEST:", method, ":", getValue(data, "description"));

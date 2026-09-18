@@ -9,6 +9,7 @@ use Exception; // a common import
 use ccxt\async\abstract\pacifica as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
+use ccxt\BadSymbol;
 use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
@@ -3133,11 +3134,12 @@ class pacifica extends Exchange {
             Async\await($this->load_markets());
         }
         $symbols = $this->market_symbols($symbols);
-        $swapMarkets = Async\await($this->fetch_swap_markets());
-        return $this->parse_open_interests($swapMarkets, $symbols);
+        $response = Async\await($this->publicGetInfoPrices($params));
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_open_interests($data, $symbols);
     }
 
-    public function fetch_open_interest(string $symbol, $params = array()) {
+    public function fetch_open_interest(string $symbol, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_open_interest(...))($symbol, $params);
     }
 
@@ -3151,12 +3153,16 @@ class pacifica extends Exchange {
          * @param {array} [$params] exchange specific parameters
          * @return {array} an ~@link https://docs.ccxt.com/?id=open-interest-structure open interest structure~
          */
-        $symbol = $this->symbol($symbol);
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
+        $symbol = $this->symbol($symbol);
         $ois = Async\await($this->fetch_open_interests(array( $symbol ), $params));
-        return $ois[$symbol];
+        $oi = $this->safe_dict($ois, $symbol);
+        if ($oi === null) {
+            throw new BadSymbol($this->id . ' fetchOpenInterest() could not find open interest for ' . $symbol);
+        }
+        return $oi;
     }
 
     public function parse_open_interest(mixed $interest, ?array $market = null) {

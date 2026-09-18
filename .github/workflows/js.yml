@@ -60,6 +60,8 @@ jobs:
     - uses: actions/setup-node@v5
       with:
         node-version: '22'
+    - name: Test pre-push file selection
+      run: node --test build/tests/test.pre-push.mjs
     - name: Debug binary FILES [REMOVE]
       run: git ls-files | grep binaries
     - name: Install npm dependencies

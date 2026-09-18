@@ -1565,6 +1565,16 @@ class bingx extends Exchange {
             // safeTrade applies contractSize when calculating inverse cost.
             $amount = $this->safe_string($trade, 'volume');
         }
+        $price = $this->safe_string_n($trade, array( 'price', 'p', 'tradePrice' ));
+        if (($market !== null) && ($market['linear'] === true) && ($this->safe_string($trade, 'x') === 'TRADE')) {
+            $lastAmount = $this->safe_string($trade, 'l');
+            $lastPrice = $this->safe_string($trade, 'L');
+            if (($lastAmount !== null) && ($lastPrice !== null)) {
+                // Linear WS l/L describe the last fill, not the original order's q/p.
+                $amount = $lastAmount;
+                $price = $lastPrice;
+            }
+        }
         return $this->safe_trade(array(
             'id' => $this->safe_string_2($trade, 'id', 't'),
             'info' => $trade,
@@ -1575,7 +1585,7 @@ class bingx extends Exchange {
             'type' => $this->safe_string_lower($trade, 'o'),
             'side' => $this->parse_order_side($side),
             'takerOrMaker' => $takeOrMaker,
-            'price' => $this->safe_string_n($trade, array( 'price', 'p', 'tradePrice' )),
+            'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
             'fee' => array(

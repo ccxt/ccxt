@@ -4789,7 +4789,7 @@ class RustTranspilerBuilder {
         // `testFetchTickersAmounts` → `fetchTickersAmountsTest`. The
         // pre-rename `test*` prefix is also kept for legacy helpers and any
         // tests we haven't synced yet.
-        const pattern = /(?:\bself\.[a-zA-Z_][a-zA-Z0-9_]*|\bexchange\d*\.[a-zA-Z_][a-zA-Z0-9_]*|\brsa|\beddsa|\becdsa|\bjwt|\btotp|\bhelper[A-Z][a-zA-Z0-9_]*|\bprecise[A-Z][a-zA-Z0-9_]*|\btest[A-Z][a-zA-Z0-9_]*|\b[a-z][a-zA-Z0-9_]*(?:Helper(?:Test)?|Test)|\bassert[A-Z][a-zA-Z0-9_]*|\b(?:equals|deepEqual|assert|dump|callMethod|callMethodSync|callExchangeMethodDynamically|callExchangeMethodDynamicallySync|getExchangeProp|setExchangeProp|setFetchResponse|initExchange|close|jsonStringify|jsonParse|exceptionMessage|convertAscii|isNullValue|ioFileExists|ioFileRead|ioDirRead|setupWsMockTransport|getWsSentMessages|injectWsMessage|wsClientHasPendingFutures|markWsTestCompleted|isWsTestCompleted|rejectPendingWsFutures|preloadWsMessages|wsHasQueuedMessages))\(/;
+        const pattern = /(?:\bself\.[a-zA-Z_][a-zA-Z0-9_]*|\bexchange\d*\.[a-zA-Z_][a-zA-Z0-9_]*|\brsa|\beddsa|\becdsa|\bjwt|\btotp|\bhelper[A-Z][a-zA-Z0-9_]*|\bprecise[A-Z][a-zA-Z0-9_]*|\btest[A-Z][a-zA-Z0-9_]*|\b[a-z][a-zA-Z0-9_]*(?:Helper(?:Test)?|Test)|\bassert[A-Z][a-zA-Z0-9_]*|\b(?:equals|deepEqual|assert|dump|callMethod|callMethodSync|callExchangeMethodDynamically|callExchangeMethodDynamicallySync|getExchangeProp|setExchangeProp|setFetchResponse|setFetchResponseByUrl|initExchange|close|jsonStringify|jsonParse|exceptionMessage|convertAscii|isNullValue|ioFileExists|ioFileRead|ioDirRead|setupWsMockTransport|getWsSentMessages|injectWsMessage|wsClientHasPendingFutures|markWsTestCompleted|isWsTestCompleted|rejectPendingWsFutures|preloadWsMessages|wsHasQueuedMessages))\(/;
         while (i < content.length) {
             const rest = content.slice(i);
             const m = rest.match(pattern);
@@ -9345,6 +9345,10 @@ impl std::ops::DerefMut for ${coreName} {
             content = content.replace(
                 /\bsetFetchResponse\(\s*exchange\.clone\(\)/g,
                 'setFetchResponse(&mut exchange',
+            );
+            content = content.replace(
+                /\bsetFetchResponseByUrl\(\s*exchange\.clone\(\)/g,
+                'setFetchResponseByUrl(&mut exchange',
             );
             // Static-WS-test parsedResponse case: `Promise.all([watch, inject])`.
             // The transpiler leaves `callExchangeMethodDynamically(...)` (the

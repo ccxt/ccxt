@@ -2309,7 +2309,18 @@ public class TestMain extends BaseTest
         return BaseExchange.supplyAsync(() -> {
 
             Object expectedResult = exchange.safeValue(data, "parsedResponse");
-            var mockedExchange = setFetchResponse(exchange, Helpers.GetValue(data, "httpResponse"));
+            // 'httpResponseByUrl' serves a body per url fragment for methods that call several
+            // endpoints; the typed ports narrow each body to the shape its api leaf declares,
+            // so one shared 'httpResponse' cannot cover two differently-shaped endpoints
+            Object responsesByUrl = exchange.safeDict(data, "httpResponseByUrl");
+            var mockedExchange = exchange;
+            if (Helpers.isTrue(!Helpers.isEqual(responsesByUrl, null)))
+            {
+                mockedExchange = setFetchResponseByUrl(exchange, responsesByUrl);
+            } else
+            {
+                mockedExchange = setFetchResponse(exchange, Helpers.GetValue(data, "httpResponse"));
+            }
             if (Helpers.isTrue(this.info))
             {
                 dump("[INFO] STATIC RESPONSE TEST:", method, ":", Helpers.GetValue(data, "description"));

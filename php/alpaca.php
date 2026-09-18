@@ -2091,14 +2091,20 @@ class alpaca extends Exchange {
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
          * @see https://docs.alpaca.markets/reference/getaccount-1
+         * @see https://docs.alpaca.markets/reference/getallopenpositions
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~. note that `info` is
+         * the composite `array( $account, $positions )` wrapper of both raw venue payloads, not the bare $account payload it was
+         * before crypto $positions were included — read `info['account']['cash']` where `info['cash']` used to be read
          */
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $response = $this->traderPrivateGetV2Account($params);
+        // the two calls stay sequential deliberately — the static request harness records one request per case,
+        // and concurrent calls make the recorded url nondeterministic per language
+        $account = $this->traderPrivateGetV2Account($params);
+        $positions = $this->traderPrivateGetV2Positions();
         //
         //     {
         //         "id": "43a01bde-4eb1-64fssc26adb5",
@@ -2147,18 +2153,76 @@ class alpaca extends Exchange {
         //         "pending_reg_taf_fees": "0"
         //     }
         //
+        $response = array(
+            'account' => $account,
+            'positions' => $positions,
+        );
         return $this->parse_balance($response);
     }
 
     public function parse_balance(mixed $response): array {
+        //
+        // crypto holdings live on the positions endpoint, the account endpoint carries only the cash currency
+        //
+        //     "positions": [
+        //         {
+        //             "asset_id": "64bbff51-59d6-4b3c-9351-13ad85e3c752",
+        //             "symbol": "BTCUSD",
+        //             "exchange": "CRYPTO",
+        //             "asset_class": "crypto",
+        //             "asset_marginable": false,
+        //             "qty": "0.000207296",
+        //             "avg_entry_price": "80037",
+        //             "side": "long",
+        //             "market_value": "16.592345",
+        //             "cost_basis": "16.59135",
+        //             "unrealized_pl": "0.000995",
+        //             "unrealized_plpc": "0.00006",
+        //             "current_price": "80041.8",
+        //             "qty_available": "0.000207296"
+        //         }
+        //     ]
+        //
+        $account = $this->safe_dict($response, 'account', array());
+        $positions = $this->safe_list($response, 'positions', array());
         $result = array( 'info' => $response );
-        $account = $this->account();
-        $currencyId = $this->safe_string($response, 'currency');
+        $currencyId = $this->safe_string($account, 'currency');
         $code = $this->safe_currency_code($currencyId);
-        $account['free'] = $this->safe_string($response, 'cash');
-        $account['total'] = $this->safe_string($response, 'equity');
         if ($code !== null) {
-            $result[$code] = $account;
+            $cashAccount = $this->account();
+            $cashAccount['free'] = $this->safe_string($account, 'cash'); // cash already excludes the amounts held for open orders, verified live 2026-09-16
+            $equity = $this->safe_string($account, 'equity');
+            $positionsValue = $this->safe_string($account, 'position_market_value');
+            $cashAccount['total'] = Precise::string_sub($equity, $positionsValue); // equity minus the positions market value equals cash plus open-order holds; stringSub degrades to undefined when either field is absent and safeBalance then derives the total from free
+            $result[$code] = $cashAccount;
+        }
+        for ($i = 0; $i < count($positions); $i++) {
+            $position = $positions[$i];
+            $positionSymbol = $this->safe_string($position, 'symbol');
+            if ($positionSymbol === null) {
+                continue;
+            }
+            $baseId = null;
+            if (mb_strpos($positionSymbol, '/') !== false) {
+                $parts = explode('/', $positionSymbol);
+                $baseId = $this->safe_string($parts, 0);
+            } else {
+                // crypto position symbols come compressed with a USD tail, e.g. BTCUSD or USDTUSD
+                $baseLength = strlen($positionSymbol) - 3;
+                if (($baseLength > 0) && (mb_substr($positionSymbol, $baseLength) === 'USD')) {
+                    $baseId = mb_substr($positionSymbol, 0, $baseLength - 0);
+                }
+            }
+            if ($baseId === null) {
+                continue; // an unrecognized position symbol shape must not break the whole balance
+            }
+            $positionCode = $this->safe_currency_code($baseId);
+            if (($positionCode !== null) && !(is_array($result) && array_key_exists($positionCode ?? '', $result))) {
+                $positionAccount = $this->account();
+                $positionAccount['free'] = $this->safe_string($position, 'qty_available');
+                $positionAccount['total'] = $this->safe_string($position, 'qty');
+                $result[$positionCode] = $positionAccount;
+            }
         }
         return $this->safe_balance($result);
     }

@@ -2959,8 +2959,9 @@ class pacifica extends pacifica$1["default"] {
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        const swapMarkets = await this.fetchSwapMarkets();
-        return this.parseOpenInterests(swapMarkets, symbols);
+        const response = await this.publicGetInfoPrices(params);
+        const data = this.safeList(response, 'data', []);
+        return this.parseOpenInterests(data, symbols);
     }
     /**
      * @method
@@ -2972,12 +2973,16 @@ class pacifica extends pacifica$1["default"] {
      * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     async fetchOpenInterest(symbol, params = {}) {
-        symbol = this.symbol(symbol);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
+        symbol = this.symbol(symbol);
         const ois = await this.fetchOpenInterests([symbol], params);
-        return ois[symbol];
+        const oi = this.safeDict(ois, symbol);
+        if (oi === undefined) {
+            throw new errors.BadSymbol(this.id + ' fetchOpenInterest() could not find open interest for ' + symbol);
+        }
+        return oi;
     }
     parseOpenInterest(interest, market = undefined) {
         //
