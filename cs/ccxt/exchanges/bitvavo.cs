@@ -763,7 +763,7 @@ public partial class bitvavo : Exchange
     public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -854,7 +854,7 @@ public partial class bitvavo : Exchange
     public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -896,7 +896,7 @@ public partial class bitvavo : Exchange
     public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1049,7 +1049,7 @@ public partial class bitvavo : Exchange
     public async override Task<ccxt.TradingFees> FetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1108,7 +1108,7 @@ public partial class bitvavo : Exchange
     public async override Task<ccxt.TradingFeeInterface> FetchTradingFee(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1153,7 +1153,7 @@ public partial class bitvavo : Exchange
     public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1255,7 +1255,7 @@ public partial class bitvavo : Exchange
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1314,7 +1314,7 @@ public partial class bitvavo : Exchange
     public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1342,7 +1342,7 @@ public partial class bitvavo : Exchange
     public async override Task<List<ccxt.Account>> FetchAccounts(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1393,7 +1393,7 @@ public partial class bitvavo : Exchange
     public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1464,13 +1464,13 @@ public partial class bitvavo : Exchange
     public async override Task<List<ccxt.TransferEntry>> FetchTransfers(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> currency = null;
-        if (!isEqual(code, null))
+        if ((code != null))
         {
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["symbol"] = getValue(currency, "id");
@@ -1528,12 +1528,12 @@ public partial class bitvavo : Exchange
     public async override Task<ccxt.TransferEntry> FetchTransfer(string id, string code = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         IDictionary<string, object> currency = null;
-        if (!isEqual(code, null))
+        if ((code != null))
         {
             currency = this.currency(((string)code));
         }
@@ -1613,7 +1613,7 @@ public partial class bitvavo : Exchange
     public async override Task<ccxt.DepositAddress> FetchDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1637,11 +1637,11 @@ public partial class bitvavo : Exchange
     public virtual Dictionary<string, object> createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(type, null))
+        if ((type == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " requires a type argument")) ;
         }
-        if (isEqual(side, null))
+        if ((side == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " requires a side argument")) ;
         }
@@ -1772,7 +1772,7 @@ public partial class bitvavo : Exchange
     public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1888,7 +1888,7 @@ public partial class bitvavo : Exchange
     public async override Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1901,7 +1901,7 @@ public partial class bitvavo : Exchange
     public virtual Dictionary<string, object> cancelOrderRequest(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " cancelOrder() requires a symbol argument")) ;
         }
@@ -1941,7 +1941,7 @@ public partial class bitvavo : Exchange
     public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1968,13 +1968,13 @@ public partial class bitvavo : Exchange
     public async override Task<List<ccxt.Order>> CancelAllOrders(string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
@@ -2022,7 +2022,7 @@ public partial class bitvavo : Exchange
         {
             throw new BadRequest ((string)(this.id + " cancelAllOrdersAfter() timeout should be 0 or greater than or equal to 10000 milliseconds")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2057,11 +2057,11 @@ public partial class bitvavo : Exchange
     public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchOrder() requires a symbol argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2149,11 +2149,11 @@ public partial class bitvavo : Exchange
     public async override Task<List<ccxt.Order>> FetchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchOrders() requires a symbol argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2221,13 +2221,13 @@ public partial class bitvavo : Exchange
     public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
@@ -2435,11 +2435,11 @@ public partial class bitvavo : Exchange
     public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchMyTrades() requires a symbol argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2490,13 +2490,13 @@ public partial class bitvavo : Exchange
     public async override Task<List<ccxt.LedgerEntry>> FetchLedger(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> currency = null;
-        if (!isEqual(code, null))
+        if ((code != null))
         {
             currency = this.currency(((string)code));
         }
@@ -2608,7 +2608,7 @@ public partial class bitvavo : Exchange
             { "amount", this.currencyToPrecision(((string)code), amount) },
             { "address", address },
         };
-        if (!isEqual(tag, null))
+        if ((tag != null))
         {
             ((IDictionary<string,object>)request)["paymentId"] = tag;
         }
@@ -2635,7 +2635,7 @@ public partial class bitvavo : Exchange
         tagVar = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
         this.checkAddress(address);
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2657,7 +2657,7 @@ public partial class bitvavo : Exchange
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> currency = null;
-        if (!isEqual(code, null))
+        if ((code != null))
         {
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["symbol"] = getValue(currency, "id");
@@ -2687,13 +2687,13 @@ public partial class bitvavo : Exchange
     public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> request = this.fetchWithdrawalsRequest(((string)code), since, limit, parameters);
         IDictionary<string, object> currency = null;
-        if (!isEqual(code, null))
+        if ((code != null))
         {
             currency = this.currency(((string)code));
         }
@@ -2720,7 +2720,7 @@ public partial class bitvavo : Exchange
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> currency = null;
-        if (!isEqual(code, null))
+        if ((code != null))
         {
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["symbol"] = getValue(currency, "id");
@@ -2750,13 +2750,13 @@ public partial class bitvavo : Exchange
     public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> request = this.fetchDepositsRequest(((string)code), since, limit, parameters);
         IDictionary<string, object> currency = null;
-        if (!isEqual(code, null))
+        if ((code != null))
         {
             currency = this.currency(((string)code));
         }
@@ -2938,7 +2938,7 @@ public partial class bitvavo : Exchange
     public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(object codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3018,7 +3018,7 @@ public partial class bitvavo : Exchange
 
     public override object handleErrors(object httpCode, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
     {
-        if (isEqual(response, null))
+        if ((response == null))
         {
             return null;  // fallback to default error handler
         }

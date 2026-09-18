@@ -100,7 +100,7 @@ public partial class p2b : ccxt.p2b
         object limitVar = limit;
         timeframeVar ??= "15m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -136,7 +136,7 @@ public partial class p2b : ccxt.p2b
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -168,7 +168,7 @@ public partial class p2b : ccxt.p2b
     public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -228,13 +228,13 @@ public partial class p2b : ccxt.p2b
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, null, false, true, true);
         List<object> messageHashes = new List<object>() {};
-        if (!isEqual(symbols, null))
+        if ((symbols != null))
         {
             for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
             {
@@ -274,7 +274,7 @@ public partial class p2b : ccxt.p2b
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }

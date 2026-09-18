@@ -62,7 +62,7 @@ public partial class bittrade : ccxt.bittrade
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -142,7 +142,7 @@ public partial class bittrade : ccxt.bittrade
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -241,7 +241,7 @@ public partial class bittrade : ccxt.bittrade
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -335,7 +335,7 @@ public partial class bittrade : ccxt.bittrade
         {
             throw new ExchangeError ((string)(this.id + " watchOrderBook accepts limit = 150 only")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }

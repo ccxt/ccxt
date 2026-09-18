@@ -155,7 +155,7 @@ public partial class PredictionExchange : BaseExchange
         // own-line length read so the regex transpiler treats `queries` as an array (count())
         // and not a string (strlen()); guard undefined since the default is undefined
         int queriesLength = 0;
-        if (!isEqual(queries, null))
+        if ((queries != null))
         {
             queriesLength = getArrayLength(queries);
         }
@@ -208,7 +208,7 @@ public partial class PredictionExchange : BaseExchange
     public virtual object filterEventsByStatus(object events, object status = null)
     {
         // 'active' | 'inactive' | 'closed' | 'all' — 'inactive' and 'closed' are interchangeable
-        if ((isEqual(status, null)) || (isEqual(status, "all")))
+        if (((status == null)) || (isEqual(status, "all")))
         {
             return events;
         }
@@ -232,11 +232,11 @@ public partial class PredictionExchange : BaseExchange
         // keep events whose title and/or description contains one of the queries (searchIn defaults to 'both')
         // own-line length read so the regex transpiler uses count() (array) not strlen() (string)
         int queriesLength = 0;
-        if (!isEqual(queries, null))
+        if ((queries != null))
         {
             queriesLength = getArrayLength(queries);
         }
-        if ((isEqual(searchIn, null)) || (isEqual(queries, null)) || (isEqual(queriesLength, 0)))
+        if (((searchIn == null)) || ((queries == null)) || (isEqual(queriesLength, 0)))
         {
             return events;
         }
@@ -314,7 +314,7 @@ public partial class PredictionExchange : BaseExchange
     {
         // keep events carrying one of the requested tags; tolerant to string tags and to
         // object tags ({ slug, title, ... }) since venues differ. no-op when no tags requested
-        if ((isEqual(tags, null)) || ((getArrayLength(tags) == 0)))
+        if (((tags == null)) || ((getArrayLength(tags) == 0)))
         {
             return events;
         }
@@ -387,11 +387,11 @@ public partial class PredictionExchange : BaseExchange
         // merge (not reset) so successive scoped fetchEvents calls accumulate into the cache.
         // index by the unified `event` handle too (that's the identifier every outcome's `event`
         // field carries), so getEvent (handle) resolves without each exchange hand-writing it
-        if (isEqual(this.events, null))
+        if ((this.events == null))
         {
             this.events = new Dictionary<string, object>() {};
         }
-        if (isEqual(this.events_by_slug, null))
+        if ((this.events_by_slug == null))
         {
             this.events_by_slug = new Dictionary<string, object>() {};
         }
@@ -421,7 +421,7 @@ public partial class PredictionExchange : BaseExchange
     {
         // the cached events as a list; empty on a cold instance (this.events is keyed by both
         // id and handle, so de-duplicate by identity before returning)
-        if (isEqual(this.events, null))
+        if ((this.events == null))
         {
             return new List<object>() {};
         }
@@ -448,7 +448,7 @@ public partial class PredictionExchange : BaseExchange
         // markets), so prefer fetchEvents (params) directly when you need a specific scope
         reload ??= false;
         parameters ??= new Dictionary<string, object>();
-        if (!isTrue(reload) && (!isEqual(this.events, null) && !isEqual(this.events, null)))
+        if (!isTrue(reload) && ((this.events != null) && (this.events != null)))
         {
             return this.events;
         }
@@ -470,11 +470,11 @@ public partial class PredictionExchange : BaseExchange
     {
         // cache-only event resolver (the event analogue of this.outcome) - the cache fills
         // through fetchEvents; this never fetches
-        if ((!isEqual(this.events, null)) && (inOp(this.events, eventIdOrSlug)))
+        if (((this.events != null)) && (inOp(this.events, eventIdOrSlug)))
         {
             return getValue(this.events, eventIdOrSlug);
         }
-        if ((!isEqual(this.events_by_slug, null)) && (inOp(this.events_by_slug, eventIdOrSlug)))
+        if (((this.events_by_slug != null)) && (inOp(this.events_by_slug, eventIdOrSlug)))
         {
             return getValue(this.events_by_slug, eventIdOrSlug);
         }
@@ -483,11 +483,11 @@ public partial class PredictionExchange : BaseExchange
 
     public virtual IDictionary<string, object> outcome(object outcomeSymbol)
     {
-        if (isEqual(outcomeSymbol, null))
+        if ((outcomeSymbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " outcome() requires an outcomeSymbol argument")) ;
         }
-        if ((isEqual(this.outcomes, null)) || isTrue(this.isEmpty(this.outcomes)))
+        if (((this.outcomes == null)) || isTrue(this.isEmpty(this.outcomes)))
         {
             throw new ExchangeError ((string)(this.id + " outcomes not loaded - call loadOutcomes () or an outcome-addressed method first")) ;
         }
@@ -495,7 +495,7 @@ public partial class PredictionExchange : BaseExchange
         {
             return ((IDictionary<string, object>)((object)(getValue(this.outcomes, outcomeSymbol))));
         }
-        if ((!isEqual(this.outcomes_by_id, null)) && (inOp(this.outcomes_by_id, outcomeSymbol)))
+        if (((this.outcomes_by_id != null)) && (inOp(this.outcomes_by_id, outcomeSymbol)))
         {
             return ((IDictionary<string, object>)((object)(getValue(this.outcomes_by_id, outcomeSymbol))));
         }
@@ -507,15 +507,15 @@ public partial class PredictionExchange : BaseExchange
         // sync cache-only membership probe — never throws and never fetches. this is the predicate
         // behind loadOutcome's fast path and loadOutcomes' miss filter; safeOutcome (stub on miss)
         // and outcome (throws on miss) are the accessors
-        if (isEqual(outcomeIdOrSymbol, null))
+        if ((outcomeIdOrSymbol == null))
         {
             return ((bool)((object)(false))!);
         }
-        if ((!isEqual(this.outcomes, null)) && (inOp(this.outcomes, outcomeIdOrSymbol)))
+        if (((this.outcomes != null)) && (inOp(this.outcomes, outcomeIdOrSymbol)))
         {
             return ((bool)((object)(true))!);
         }
-        if ((!isEqual(this.outcomes_by_id, null)) && (inOp(this.outcomes_by_id, outcomeIdOrSymbol)))
+        if (((this.outcomes_by_id != null)) && (inOp(this.outcomes_by_id, outcomeIdOrSymbol)))
         {
             return ((bool)((object)(true))!);
         }
@@ -524,18 +524,18 @@ public partial class PredictionExchange : BaseExchange
 
     public virtual object safeOutcome(object outcomeIdOrSymbol, object outcomeObj = null)
     {
-        if (!isEqual(outcomeIdOrSymbol, null))
+        if ((outcomeIdOrSymbol != null))
         {
-            if ((!isEqual(this.outcomes, null)) && (inOp(this.outcomes, outcomeIdOrSymbol)))
+            if (((this.outcomes != null)) && (inOp(this.outcomes, outcomeIdOrSymbol)))
             {
                 return getValue(this.outcomes, outcomeIdOrSymbol);
             }
-            if ((!isEqual(this.outcomes_by_id, null)) && (inOp(this.outcomes_by_id, outcomeIdOrSymbol)))
+            if (((this.outcomes_by_id != null)) && (inOp(this.outcomes_by_id, outcomeIdOrSymbol)))
             {
                 return getValue(this.outcomes_by_id, outcomeIdOrSymbol);
             }
         }
-        if (!isEqual(outcomeObj, null))
+        if ((outcomeObj != null))
         {
             return outcomeObj;
         }
@@ -585,7 +585,7 @@ public partial class PredictionExchange : BaseExchange
             { "percent", "pct" },
         };
         List<object> stopWords = new List<object>() {"will", "the", "a", "an", "after", "before", "in", "at", "by", "of", "there", "be", "to", "or", "and", "for", "on", "its", "that", "this", "from", "with", "as", "is", "are", "was", "were", "?", "how", "many", "who", "what", "when", "where", "which", "much"};
-        string lower = ((bool) (isEqual(slug, null))) ? "" : ((string)slug).ToLower();
+        string lower = ((bool) ((slug == null))) ? "" : ((string)slug).ToLower();
         string allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
         object chars = this.stringToCharsArray(lower);
         object s = "";
@@ -655,7 +655,7 @@ public partial class PredictionExchange : BaseExchange
         // removal so labels like "UP OR DOWN" survive intact) — venue labels with spaces or
         // currency symbols ("JD Vance", a dollar-sign price) yield clean handles (JD_VANCE, 120)
         // instead of leaking raw text into the outcome handle
-        if (isEqual(outcome, null))
+        if ((outcome == null))
         {
             outcome = "";
         }
@@ -724,11 +724,11 @@ public partial class PredictionExchange : BaseExchange
         // still emits the legacy symbol / id / marketSymbol keys. used both by populateOutcomes
         // for a full rebuild and by on-demand single-market fetches (kalshi fetchOutcome), so a
         // cache miss doesn't force a full O(markets x outcomes) rebuild per new outcome
-        if (isEqual(this.outcomes, null))
+        if ((this.outcomes == null))
         {
             this.outcomes = new Dictionary<string, object>() {};
         }
-        if (isEqual(this.outcomes_by_id, null))
+        if ((this.outcomes_by_id == null))
         {
             this.outcomes_by_id = new Dictionary<string, object>() {};
         }
@@ -785,7 +785,7 @@ public partial class PredictionExchange : BaseExchange
         // eventId/slug-only fetchEvents path)
         this.outcomes = new Dictionary<string, object>() {};
         this.outcomes_by_id = new Dictionary<string, object>() {};
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             return;
         }
@@ -803,7 +803,7 @@ public partial class PredictionExchange : BaseExchange
         // createOrder, ...). without this, on a cold instance or a loadAllOutcomes:false venue
         // such as kalshi, the returned handles are unusable — fetchTicker(ev.markets[0].outcomes[0].outcome)
         // BadSymbols because the outcome was never cached
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             this.markets = this.createSafeDictionary();
         }
@@ -836,7 +836,7 @@ public partial class PredictionExchange : BaseExchange
         // request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
         reload ??= false;
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(outcomes, null))
+        if ((outcomes != null))
         {
             List<object> missing = new List<object>() {};
             for (int i = 0; i < getArrayLength(outcomes); postFixIncrement(ref i))
@@ -847,7 +847,7 @@ public partial class PredictionExchange : BaseExchange
                 }
             }
             int missingLength = getArrayLength(missing);
-            bool wasWarm = (!isEqual(this.outcomes, null)) && !isTrue(this.isEmpty(this.outcomes));
+            bool wasWarm = ((this.outcomes != null)) && !isTrue(this.isEmpty(this.outcomes));
             bool? loadAll = this.safeBool(this.options, "loadAllOutcomes", false);
             if ((missingLength > 0) && ((loadAll == true)) && !wasWarm && !isTrue(reload))
             {
@@ -869,7 +869,7 @@ public partial class PredictionExchange : BaseExchange
             }
             return this.outcomes;
         }
-        if (!isTrue(reload) && (!isEqual(this.outcomes, null)) && !isTrue(this.isEmpty(this.outcomes)))
+        if (!isTrue(reload) && ((this.outcomes != null)) && !isTrue(this.isEmpty(this.outcomes)))
         {
             return this.outcomes;
         }
@@ -905,7 +905,7 @@ public partial class PredictionExchange : BaseExchange
         // miss loads the whole (capped) listing once so later lookups are 0-network hits — only
         // sane on venues whose full universe is one cheap request (hyperliquid)
         reload ??= false;
-        if (isEqual(outcomeSymbol, null))
+        if ((outcomeSymbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " loadOutcome() requires an outcomeSymbol argument")) ;
         }
@@ -915,11 +915,11 @@ public partial class PredictionExchange : BaseExchange
             {
                 return this.safeOutcome(outcomeSymbol);
             }
-            bool wasWarm = (!isEqual(this.outcomes, null)) && !isTrue(this.isEmpty(this.outcomes));
+            bool wasWarm = ((this.outcomes != null)) && !isTrue(this.isEmpty(this.outcomes));
             // if markets are already loaded (offline-injected, or loaded by loadMarkets/fetchEvents)
             // but the outcome cache is cold, index them for free before hitting the network — this
             // makes cold-cache resolution consistent across languages regardless of loadAllOutcomes
-            if (!wasWarm && (!isEqual(this.markets, null)) && !isTrue(this.isEmpty(this.markets)))
+            if (!wasWarm && ((this.markets != null)) && !isTrue(this.isEmpty(this.markets)))
             {
                 this.populateOutcomes();
                 if (isTrue(this.hasOutcome(outcomeSymbol)))
@@ -1775,9 +1775,9 @@ public partial class PredictionExchange : BaseExchange
         // `symbol` with the `outcome` handle and attach the outcome identity fields
         // outcomeId and market - so books match the PredictionOrderBook structure.
         string? fallback = this.safeString2(orderbook, "outcome", "symbol");
-        ((IDictionary<string,object>)orderbook)["outcome"] = ((bool) (isEqual(outcomeObj, null))) ? fallback : this.safeString(outcomeObj, "outcome", fallback);
-        ((IDictionary<string,object>)orderbook)["outcomeId"] = ((bool) (isEqual(outcomeObj, null))) ? this.safeString(orderbook, "outcomeId") : this.safeString(outcomeObj, "outcomeId");
-        ((IDictionary<string,object>)orderbook)["market"] = ((bool) (isEqual(outcomeObj, null))) ? this.safeString(orderbook, "market") : this.safeString(outcomeObj, "market");
+        ((IDictionary<string,object>)orderbook)["outcome"] = ((bool) ((outcomeObj == null))) ? fallback : this.safeString(outcomeObj, "outcome", fallback);
+        ((IDictionary<string,object>)orderbook)["outcomeId"] = ((bool) ((outcomeObj == null))) ? this.safeString(orderbook, "outcomeId") : this.safeString(outcomeObj, "outcomeId");
+        ((IDictionary<string,object>)orderbook)["market"] = ((bool) ((outcomeObj == null))) ? this.safeString(orderbook, "market") : this.safeString(outcomeObj, "market");
         // omit (not delete) — `del dict['symbol']` raises KeyError in python/php when absent
         return this.omit(orderbook, "symbol");
     }
@@ -1938,7 +1938,7 @@ public partial class PredictionExchange : BaseExchange
     // sendEvmTransaction dispatches to the exchange's signEvmTransaction override
     public virtual object padHexToEven(object hex)
     {
-        if (isEqual(hex, null))
+        if ((hex == null))
         {
             return "";
         }
@@ -1953,7 +1953,7 @@ public partial class PredictionExchange : BaseExchange
 
     public virtual object padHexAddress(object address)
     {
-        if (isEqual(address, null))
+        if ((address == null))
         {
             return "";
         }
@@ -1964,7 +1964,7 @@ public partial class PredictionExchange : BaseExchange
 
     public virtual object rlpEncodeBytes(object hex)
     {
-        if (isEqual(hex, null))
+        if ((hex == null))
         {
             return "";
         }
@@ -2026,7 +2026,7 @@ public partial class PredictionExchange : BaseExchange
     {
         // a hex value (e.g. an RPC result) as minimal big-endian byte hex; leading zero bytes
         // are stripped and 0 becomes the empty byte string (RLP integer encoding)
-        if (isEqual(hexValue, null))
+        if ((hexValue == null))
         {
             return "";
         }

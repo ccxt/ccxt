@@ -45,7 +45,7 @@ public partial class phemex : ccxt.phemex
 
     public override string? fromEn(object en, object scale)
     {
-        if (isEqual(en, null))
+        if ((en == null))
         {
             return null;
         }
@@ -57,7 +57,7 @@ public partial class phemex : ccxt.phemex
 
     public override object fromEp(object ep, object market = null)
     {
-        if ((isEqual(ep, null)) || (isEqual(market, null)))
+        if (((ep == null)) || ((market == null)))
         {
             return ep;
         }
@@ -66,7 +66,7 @@ public partial class phemex : ccxt.phemex
 
     public override object fromEv(object ev, object market = null)
     {
-        if ((isEqual(ev, null)) || (isEqual(market, null)))
+        if (((ev == null)) || ((market == null)))
         {
             return ev;
         }
@@ -75,7 +75,7 @@ public partial class phemex : ccxt.phemex
 
     public override object fromEr(object er, object market = null)
     {
-        if ((isEqual(er, null)) || (isEqual(market, null)))
+        if (((er == null)) || ((market == null)))
         {
             return er;
         }
@@ -337,7 +337,7 @@ public partial class phemex : ccxt.phemex
     public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -559,7 +559,7 @@ public partial class phemex : ccxt.phemex
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -600,7 +600,7 @@ public partial class phemex : ccxt.phemex
     public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -656,7 +656,7 @@ public partial class phemex : ccxt.phemex
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -701,7 +701,7 @@ public partial class phemex : ccxt.phemex
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -746,7 +746,7 @@ public partial class phemex : ccxt.phemex
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -884,14 +884,14 @@ public partial class phemex : ccxt.phemex
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
         string? type = null;
         object messageHash = "trades:";
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
@@ -905,7 +905,7 @@ public partial class phemex : ccxt.phemex
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        if (isEqual(symbolVar, null))
+        if ((symbolVar == null))
         {
             string? settle = this.safeString(parameters, "settle");
             messageHash = ((bool) ((settle == "USDT"))) ? (add(messageHash, "perpetual")) : (add(messageHash, type));
@@ -1071,14 +1071,14 @@ public partial class phemex : ccxt.phemex
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         object messageHash = "orders:";
         IDictionary<string, object> market = null;
         string? type = null;
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
@@ -1093,7 +1093,7 @@ public partial class phemex : ccxt.phemex
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         bool isUSDTSettled = (this.safeString(parameters, "settle") == "USDT");
-        if (isEqual(symbolVar, null))
+        if ((symbolVar == null))
         {
             messageHash = ((bool) (isUSDTSettled)) ? (add(messageHash, "perpetual")) : (add(messageHash, type));
         }
@@ -1307,7 +1307,7 @@ public partial class phemex : ccxt.phemex
         this.handleMyTrades(client as WebSocketClient, trades);
         Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
         Dictionary<string, object> marketIds = new Dictionary<string, object>() {};
-        if (isEqual(this.orders, null))
+        if ((this.orders == null))
         {
             this.orders = new ArrayCacheBySymbolById(limit);
         }
@@ -1688,7 +1688,7 @@ public partial class phemex : ccxt.phemex
     public async virtual Task<object> subscribePrivate(object type, object messageHash, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }

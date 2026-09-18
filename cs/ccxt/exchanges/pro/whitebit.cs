@@ -78,7 +78,7 @@ public partial class whitebit : ccxt.whitebit
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -164,7 +164,7 @@ public partial class whitebit : ccxt.whitebit
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -281,7 +281,7 @@ public partial class whitebit : ccxt.whitebit
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -305,7 +305,7 @@ public partial class whitebit : ccxt.whitebit
     public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -399,7 +399,7 @@ public partial class whitebit : ccxt.whitebit
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -479,11 +479,11 @@ public partial class whitebit : ccxt.whitebit
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbolVar, null))
+        if ((symbolVar == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " watchMyTrades() requires a symbol argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -522,7 +522,7 @@ public partial class whitebit : ccxt.whitebit
         //   }
         //
         object trade = this.safeValue(message, "params");
-        if (isEqual(this.myTrades, null))
+        if ((this.myTrades == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache(limit);
@@ -621,11 +621,11 @@ public partial class whitebit : ccxt.whitebit
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbolVar, null))
+        if ((symbolVar == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " watchOrders() requires a symbol argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -672,7 +672,7 @@ public partial class whitebit : ccxt.whitebit
         //
         object parameters = this.safeValue(message, "params", new List<object>() {});
         object data = this.safeValue(parameters, 1);
-        if (isEqual(this.orders, null))
+        if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
@@ -819,7 +819,7 @@ public partial class whitebit : ccxt.whitebit
     public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -999,7 +999,7 @@ public partial class whitebit : ccxt.whitebit
     {
         isNested ??= false;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }

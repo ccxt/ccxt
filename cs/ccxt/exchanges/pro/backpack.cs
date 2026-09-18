@@ -59,7 +59,7 @@ public partial class backpack : ccxt.backpack
     {
         parameters ??= new Dictionary<string, object>();
         unwatch ??= false;
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -214,7 +214,7 @@ public partial class backpack : ccxt.backpack
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -252,7 +252,7 @@ public partial class backpack : ccxt.backpack
     public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -282,7 +282,7 @@ public partial class backpack : ccxt.backpack
     public async override Task<object> unWatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -387,7 +387,7 @@ public partial class backpack : ccxt.backpack
     public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -416,7 +416,7 @@ public partial class backpack : ccxt.backpack
     public async override Task<object> unWatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -554,7 +554,7 @@ public partial class backpack : ccxt.backpack
         {
             throw new ArgumentsRequired ((string)(this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -599,7 +599,7 @@ public partial class backpack : ccxt.backpack
         {
             throw new ArgumentsRequired ((string)(this.id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -731,7 +731,7 @@ public partial class backpack : ccxt.backpack
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -773,7 +773,7 @@ public partial class backpack : ccxt.backpack
     public async override Task<object> unWatchTradesForSymbols(object symbols, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -927,7 +927,7 @@ public partial class backpack : ccxt.backpack
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(object symbols, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -973,7 +973,7 @@ public partial class backpack : ccxt.backpack
     public async override Task<object> unWatchOrderBookForSymbols(object symbols, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1118,12 +1118,12 @@ public partial class backpack : ccxt.backpack
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
@@ -1155,12 +1155,12 @@ public partial class backpack : ccxt.backpack
     public async override Task<object> unWatchOrders(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
             symbol = getValue(market, "symbol");
@@ -1335,14 +1335,14 @@ public partial class backpack : ccxt.backpack
     public async override Task<List<ccxt.Position>> WatchPositions(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
         List<object> messageHashes = new List<object>() {};
         List<object> topics = new List<object>() {};
-        if (!isEqual(symbols, null))
+        if ((symbols != null))
         {
             for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
             {
@@ -1375,14 +1375,14 @@ public partial class backpack : ccxt.backpack
     public async override Task<object> unWatchPositions(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
         List<object> messageHashes = new List<object>() {};
         List<object> topics = new List<object>() {};
-        if (!isEqual(symbols, null))
+        if ((symbols != null))
         {
             for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
             {
@@ -1425,7 +1425,7 @@ public partial class backpack : ccxt.backpack
         //
         string messageHash = "positions";
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
-        if (isEqual(this.positions, null))
+        if ((this.positions == null))
         {
             this.positions = new ArrayCacheBySymbolById();
         }

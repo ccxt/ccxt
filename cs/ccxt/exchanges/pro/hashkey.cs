@@ -94,7 +94,7 @@ public partial class hashkey : ccxt.hashkey
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -197,7 +197,7 @@ public partial class hashkey : ccxt.hashkey
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -263,7 +263,7 @@ public partial class hashkey : ccxt.hashkey
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -343,7 +343,7 @@ public partial class hashkey : ccxt.hashkey
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -420,12 +420,12 @@ public partial class hashkey : ccxt.hashkey
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         object messageHash = "orders";
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             symbolVar = this.symbol(symbolVar);
             messageHash = add(add(messageHash, ":"), symbolVar);
@@ -475,7 +475,7 @@ public partial class hashkey : ccxt.hashkey
         //         "lt": ""
         //     }
         //
-        if (isEqual(this.orders, null))
+        if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
@@ -560,12 +560,12 @@ public partial class hashkey : ccxt.hashkey
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         string messageHash = "myTrades";
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             symbolVar = this.symbol(symbolVar);
             messageHash = messageHash + add(":", symbolVar);
@@ -597,7 +597,7 @@ public partial class hashkey : ccxt.hashkey
         //     }
         //
         subscription ??= new Dictionary<string, object>();
-        if (isEqual(this.myTrades, null))
+        if ((this.myTrades == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCacheBySymbolById(limit);
@@ -691,7 +691,7 @@ public partial class hashkey : ccxt.hashkey
     public async override Task<List<ccxt.Position>> WatchPositions(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -699,7 +699,7 @@ public partial class hashkey : ccxt.hashkey
         symbols = this.marketSymbols(symbols);
         string messageHash = "positions";
         List<object> messageHashes = new List<object>() {};
-        if (isEqual(symbols, null))
+        if ((symbols == null))
         {
             ((IList<object>)messageHashes).Add(messageHash);
         } else
@@ -742,7 +742,7 @@ public partial class hashkey : ccxt.hashkey
         //         "mm": "0.0367"
         //     }
         //
-        if (isEqual(this.positions, null))
+        if ((this.positions == null))
         {
             this.positions = new ArrayCacheBySymbolBySide();
         }
@@ -805,7 +805,7 @@ public partial class hashkey : ccxt.hashkey
     {
         parameters ??= new Dictionary<string, object>();
         object listenKey = await this.authenticate();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -972,7 +972,7 @@ public partial class hashkey : ccxt.hashkey
     public async virtual Task keepAliveListenKey(object listenKey, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(listenKey, null))
+        if ((listenKey == null))
         {
             return;
         }

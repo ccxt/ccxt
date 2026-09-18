@@ -1219,7 +1219,7 @@ public partial class bitfinex : Exchange
         // this api call does not return the 'used' amount - use the v1 version instead (which also returns zero balances)
         // there is a difference between this and the v1 api, namely trading wallet is called margin in v2
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1284,7 +1284,7 @@ public partial class bitfinex : Exchange
         // transferring between derivatives wallet and regular wallet is not documented in their API
         // however we support it in CCXT (from just looking at web inspector)
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1444,7 +1444,7 @@ public partial class bitfinex : Exchange
     public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1617,13 +1617,13 @@ public partial class bitfinex : Exchange
     public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(symbols, null))
+        if ((symbols != null))
         {
             IList<object> ids = this.marketIds(symbols);
             ((IDictionary<string,object>)request)["symbols"] = String.Join(",", ((IList<object>)ids).ToArray());
@@ -1686,7 +1686,7 @@ public partial class bitfinex : Exchange
     public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1802,7 +1802,7 @@ public partial class bitfinex : Exchange
     public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1876,7 +1876,7 @@ public partial class bitfinex : Exchange
         timeframeVar ??= "1m";
         limitVar ??= 100;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1937,7 +1937,7 @@ public partial class bitfinex : Exchange
 
     public virtual string? parseOrderStatus(object status)
     {
-        if (isEqual(status, null))
+        if ((status == null))
         {
             return null;
         }
@@ -2057,11 +2057,11 @@ public partial class bitfinex : Exchange
     public virtual Dictionary<string, object> createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(type, null))
+        if ((type == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " requires a type argument")) ;
         }
-        if (isEqual(side, null))
+        if ((side == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " requires a side argument")) ;
         }
@@ -2197,7 +2197,7 @@ public partial class bitfinex : Exchange
     public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2278,7 +2278,7 @@ public partial class bitfinex : Exchange
     public async override Task<List<ccxt.Order>> CreateOrders(object orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2349,7 +2349,7 @@ public partial class bitfinex : Exchange
     public async override Task<List<ccxt.Order>> CancelAllOrders(string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2381,14 +2381,14 @@ public partial class bitfinex : Exchange
     public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         object cid = this.safeValue2(parameters, "cid", "clientOrderId"); // client order id
         object request = null;
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
         }
@@ -2431,7 +2431,7 @@ public partial class bitfinex : Exchange
     public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2445,7 +2445,7 @@ public partial class bitfinex : Exchange
             { "id", numericIds },
         };
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
         }
@@ -2578,14 +2578,14 @@ public partial class bitfinex : Exchange
     public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
         object response = null;
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             response = await this.privatePostAuthROrders(this.extend(request, parameters));
         } else
@@ -2660,7 +2660,7 @@ public partial class bitfinex : Exchange
     {
         // returns the most recent closed or canceled orders up to circa two weeks ago
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2686,7 +2686,7 @@ public partial class bitfinex : Exchange
         parameters = ((IList<object>)requestparametersVariable)[1];
         IDictionary<string, object> market = null;
         object response = null;
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             response = await this.privatePostAuthROrdersHist(this.extend(request, parameters));
         } else
@@ -2758,11 +2758,11 @@ public partial class bitfinex : Exchange
     public async override Task<List<ccxt.Trade>> FetchOrderTrades(string id, string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchOrderTrades() requires a symbol argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2800,7 +2800,7 @@ public partial class bitfinex : Exchange
     public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2817,7 +2817,7 @@ public partial class bitfinex : Exchange
             ((IDictionary<string,object>)request)["limit"] = limit; // default 25, max 1000
         }
         object response = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
@@ -2848,7 +2848,7 @@ public partial class bitfinex : Exchange
     public async override Task<ccxt.DepositAddress> CreateDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2870,7 +2870,7 @@ public partial class bitfinex : Exchange
     public async override Task<ccxt.DepositAddress> FetchDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3008,7 +3008,7 @@ public partial class bitfinex : Exchange
         {
             object data = this.safeValue(transaction, 4, new List<object>() {});
             timestamp = this.safeInteger(transaction, 0);
-            if (!isEqual(currency, null))
+            if ((currency != null))
             {
                 code = getValue(currency, "code");
             }
@@ -3099,7 +3099,7 @@ public partial class bitfinex : Exchange
     public async override Task<ccxt.TradingFees> FetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3225,7 +3225,7 @@ public partial class bitfinex : Exchange
     public async override Task<List<ccxt.Transaction>> FetchDepositsWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3240,7 +3240,7 @@ public partial class bitfinex : Exchange
             ((IDictionary<string,object>)request)["limit"] = limit; // max 1000
         }
         object response = null;
-        if (!isEqual(code, null))
+        if ((code != null))
         {
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
@@ -3298,7 +3298,7 @@ public partial class bitfinex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         this.checkAddress(address);
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3321,7 +3321,7 @@ public partial class bitfinex : Exchange
             { "amount", this.numberToString(amount) },
             { "address", address },
         };
-        if (!isEqual(tag, null))
+        if ((tag != null))
         {
             ((IDictionary<string,object>)request)["payment_id"] = tag;
         }
@@ -3392,7 +3392,7 @@ public partial class bitfinex : Exchange
     public async override Task<List<ccxt.Position>> FetchPositions(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3567,7 +3567,7 @@ public partial class bitfinex : Exchange
     public override object handleErrors(object statusCode, object statusText, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
     {
         // ["error", 11010, "ratelimit: error"]
-        if (!isEqual(response, null))
+        if ((response != null))
         {
             if (!((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
@@ -3601,7 +3601,7 @@ public partial class bitfinex : Exchange
 
     public virtual object parseLedgerEntryType(object type)
     {
-        if (isEqual(type, null))
+        if ((type == null))
         {
             return null;
         } else if (getIndexOf(type, "fee") >= 0 || getIndexOf(type, "charged") >= 0)
@@ -3696,7 +3696,7 @@ public partial class bitfinex : Exchange
     public async override Task<List<ccxt.LedgerEntry>> FetchLedger(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3722,7 +3722,7 @@ public partial class bitfinex : Exchange
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         object response = null;
-        if (!isEqual(code, null))
+        if ((code != null))
         {
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
@@ -3769,11 +3769,11 @@ public partial class bitfinex : Exchange
     public async override Task<ccxt.FundingRates> FetchFundingRates(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbols, null))
+        if ((symbols == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchFundingRates() requires a symbols argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3831,11 +3831,11 @@ public partial class bitfinex : Exchange
     public async override Task<List<ccxt.FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -4028,13 +4028,13 @@ public partial class bitfinex : Exchange
     public async override Task<ccxt.OpenInterests> FetchOpenInterests(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
         IList<object> marketIds = new List<object>() {"ALL"};
-        if (!isEqual(symbols, null))
+        if ((symbols != null))
         {
             marketIds = this.marketIds(symbols);
         }
@@ -4087,7 +4087,7 @@ public partial class bitfinex : Exchange
     public async override Task<ccxt.OpenInterest> FetchOpenInterest(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -4149,7 +4149,7 @@ public partial class bitfinex : Exchange
         object timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -4299,7 +4299,7 @@ public partial class bitfinex : Exchange
     public async override Task<List<ccxt.Liquidation>> FetchLiquidations(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -4404,7 +4404,7 @@ public partial class bitfinex : Exchange
     public async override Task<ccxt.MarginModification> SetMargin(string symbol, double amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -4470,7 +4470,7 @@ public partial class bitfinex : Exchange
     public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -4479,7 +4479,7 @@ public partial class bitfinex : Exchange
         };
         IDictionary<string, object> market = null;
         object response = null;
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             response = await this.privatePostAuthROrders(this.extend(request, parameters));
         } else
@@ -4557,7 +4557,7 @@ public partial class bitfinex : Exchange
     public async override Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }

@@ -1016,8 +1016,8 @@ public partial class myriad : PredictionExchange
         Dictionary<string, object> parsed = this.parsePredictionOrder(wrapper, outcomeObj);
         // the POST /orders response is minimal (hash + status), so backfill the known request values
         // side/type/price/amount/timeInForce and a creation timestamp - when parsePredictionOrder left them empty
-        string? sideStr = ((bool) (isEqual(side, null))) ? null : ((string)((string)side)).ToLower();
-        string typeStr = ((bool) (isEqual(type, null))) ? "limit" : ((string)type).ToLower();
+        string? sideStr = ((bool) ((side == null))) ? null : ((string)((string)side)).ToLower();
+        string typeStr = ((bool) ((type == null))) ? "limit" : ((string)type).ToLower();
         if ((this.safeString(parsed, "side") == null))
         {
             ((IDictionary<string,object>)parsed)["side"] = sideStr;
@@ -1061,7 +1061,7 @@ public partial class myriad : PredictionExchange
     public virtual Dictionary<string, object> buildOrderbookOrder(object outcome, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.privateKey, null))
+        if ((this.privateKey == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " createOrder() requires a privateKey to sign the order")) ;
         }
@@ -1071,7 +1071,7 @@ public partial class myriad : PredictionExchange
         string? marketId = this.safeString(info, "marketId");
         Int64? outcomeId = this.safeInteger(info, "outcomeId", 0);
         object trader = this.ethGetAddressFromPrivateKey(this.privateKey);
-        string typeStr = ((bool) (isEqual(type, null))) ? "limit" : ((string)type).ToLower();
+        string typeStr = ((bool) ((type == null))) ? "limit" : ((string)type).ToLower();
         string sideStr = ((string)((string)side)).ToLower();
         int sideInt = ((bool) ((sideStr == "buy"))) ? 0 : 1;
         bool isMarket = (isEqual(typeStr, "market"));
@@ -1217,13 +1217,13 @@ public partial class myriad : PredictionExchange
         // route dollar-sizing through createMarketBuyOrderWithCost (which sets costDenominated); a
         // plain createOrder buy on the AMM is rejected so it can't misinterpret shares as collateral
         parameters ??= new Dictionary<string, object>();
-        string? sideLower = ((bool) (!isEqual(side, null))) ? ((string)((string)side)).ToLower() : null;
+        string? sideLower = ((bool) ((side != null))) ? ((string)((string)side)).ToLower() : null;
         bool? isCostDenominated = this.safeBool(parameters, "costDenominated", false);
         if ((isEqual(sideLower, "buy")) && ((isCostDenominated != true)))
         {
             throw new NotSupported ((string)(this.id + " createOrder() market buy on the AMM sizes by collateral, not shares — use createMarketBuyOrderWithCost(outcome, collateral) for a dollar buy, or the default order book (omit enableAmm) for a share-denominated order")) ;
         }
-        if (isEqual(this.privateKey, null))
+        if ((this.privateKey == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " createOrder() requires a privateKey to sign the on-chain transaction")) ;
         }
@@ -1408,7 +1408,7 @@ public partial class myriad : PredictionExchange
     public virtual Dictionary<string, object> clobOrderMessage(object rawOrder)
     {
         object signer = this.safeString2(rawOrder, "trader", "user");
-        if (!isEqual(this.privateKey, null))
+        if ((this.privateKey != null))
         {
             signer = this.ethGetAddressFromPrivateKey(this.privateKey);
         } else
@@ -1539,7 +1539,7 @@ public partial class myriad : PredictionExchange
         string? tif = this.safeStringUpper(order, "timeInForce");
         bool isMarketTif = ((tif == "FOK")) || ((tif == "FAK"));
         // resolve the outcome from market/outcome ids when no market was passed (e.g. fetchOrders without a outcome)
-        string? outcome = ((bool) (isEqual(market, null))) ? null : this.safeString(market, "outcome");
+        string? outcome = ((bool) ((market == null))) ? null : this.safeString(market, "outcome");
         object outcomeObj = market;
         if ((outcome == null))
         {
@@ -1693,7 +1693,7 @@ public partial class myriad : PredictionExchange
         object outcomeObj = null;
         string? outcomeSymbol = null;
         string? rowOutcomeId = null;
-        if (!isEqual(outcome, null))
+        if ((outcome != null))
         {
             outcomeObj = await this.loadOutcome(outcome);
             outcomeSymbol = this.safeString(outcomeObj, "outcome", outcome);
@@ -1781,7 +1781,7 @@ public partial class myriad : PredictionExchange
     public async override Task<ccxt.PredictionOrder> CancelOrder(string id, string outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.privateKey, null))
+        if ((this.privateKey == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " cancelOrder() requires a privateKey to sign the cancellation")) ;
         }
@@ -1836,7 +1836,7 @@ public partial class myriad : PredictionExchange
             { "networkId", networkId },
         });
         object market = null;
-        if (!isEqual(outcome, null))
+        if ((outcome != null))
         {
             market = await this.loadOutcome(outcome);
         }
@@ -1855,14 +1855,14 @@ public partial class myriad : PredictionExchange
     public async virtual Task<List<ccxt.PredictionOrder>> CancelAllOrders(string outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.privateKey, null))
+        if ((this.privateKey == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " cancelAllOrders() requires a privateKey to sign the cancellation")) ;
         }
         object trader = this.ethGetAddressFromPrivateKey(this.privateKey);
         string? marketId = this.safeString(parameters, "market_id", "0");
         string? networkId = this.safeString(parameters, "network_id", this.safeString(this.options, "defaultNetworkId", "56"));
-        if (!isEqual(outcome, null))
+        if ((outcome != null))
         {
             IDictionary<string, object> outcomeObj = ((IDictionary<string, object>)await this.loadOutcome(outcome));
             IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
@@ -1911,7 +1911,7 @@ public partial class myriad : PredictionExchange
     public async override Task<List<ccxt.PredictionOrder>> CancelOrders(object ids, string outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.privateKey, null))
+        if ((this.privateKey == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " cancelOrders() requires a privateKey to sign the cancellations")) ;
         }
@@ -2024,7 +2024,7 @@ public partial class myriad : PredictionExchange
         //     }
         //
         object market = null;
-        if (!isEqual(outcome, null))
+        if ((outcome != null))
         {
             market = await this.loadOutcome(outcome);
         }
@@ -2051,10 +2051,10 @@ public partial class myriad : PredictionExchange
         string? trader = this.safeString(parameters, "trader");
         if ((trader == null))
         {
-            if (!isEqual(this.privateKey, null))
+            if ((this.privateKey != null))
             {
                 ((IDictionary<string,object>)request)["trader"] = this.ethGetAddressFromPrivateKey(this.privateKey);
-            } else if (!isEqual(this.walletAddress, null))
+            } else if ((this.walletAddress != null))
             {
                 ((IDictionary<string,object>)request)["trader"] = this.walletAddress;
             }
@@ -2063,7 +2063,7 @@ public partial class myriad : PredictionExchange
         parameters = this.omit(parameters, new List<object>() {"tradingModel", "trading_model"});
         object outcomeObj = null;
         string? outcomeSymbol = null;
-        if (!isEqual(outcome, null))
+        if ((outcome != null))
         {
             outcomeObj = await this.loadOutcome(outcome);
             outcomeSymbol = this.safeString(outcomeObj, "outcome", outcome);
@@ -2777,7 +2777,7 @@ public partial class myriad : PredictionExchange
         //         "externalSources": []
         //     }
         //
-        string? outcomeId = ((bool) (!isEqual(market, null) && !isEqual(market, null))) ? this.safeString(getValue(market, "info"), "outcomeId") : null;
+        string? outcomeId = ((bool) ((market != null) && (market != null))) ? this.safeString(getValue(market, "info"), "outcomeId") : null;
         IList<object> outcomes = (IList<object>)(this.safeList(raw, "outcomes", new List<object>() {}));
         double? price = null;
         double? change = null;
@@ -3203,7 +3203,7 @@ public partial class myriad : PredictionExchange
     public async override Task<ccxt.PredictionTickers> FetchTickers(object outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(outcomes, null))
+        if ((outcomes == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())")) ;
         }
@@ -3450,7 +3450,7 @@ public partial class myriad : PredictionExchange
                 rawQuestions = this.safeList(responses, 1, new List<object>() {});
             }
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             this.markets = this.createSafeDictionary();
         }
@@ -3570,7 +3570,7 @@ public partial class myriad : PredictionExchange
         object options = getValue(this.options, "requestId");
         Int64? previousValue = this.safeInteger(options, url, 0);
         Int64 newValue = ((Int64)this.sum(previousValue, 1));
-        if (!isEqual(url, null))
+        if ((url != null))
         {
             ((IDictionary<string,object>)getValue(this.options, "requestId"))[(string)url] = newValue;
         }
@@ -3579,7 +3579,7 @@ public partial class myriad : PredictionExchange
 
     public virtual double? fromWei(object wei)
     {
-        if (isEqual(wei, null))
+        if ((wei == null))
         {
             return ((double?)((object)(null)));
         }
@@ -3589,7 +3589,7 @@ public partial class myriad : PredictionExchange
     public virtual string? marketOutcomeToSymbol(object networkId, object marketId, object outcomeId)
     {
         // guard the ids before concatenating: a missing id would crash on string + None in Python/PHP
-        if ((isEqual(networkId, null)) || (isEqual(marketId, null)) || (isEqual(outcomeId, null)))
+        if (((networkId == null)) || ((marketId == null)) || ((outcomeId == null)))
         {
             return null;
         }
@@ -3858,7 +3858,7 @@ public partial class myriad : PredictionExchange
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(outcome, null))
+        if ((outcome == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " watchMyTrades() requires a outcome (the trades channel is per-market)")) ;
         }
@@ -3876,11 +3876,11 @@ public partial class myriad : PredictionExchange
     public virtual string? walletAddressOrUndefined()
     {
         // like walletAddressFromKeys but returns undefined instead of throwing when no wallet is configured
-        if ((!isEqual(this.walletAddress, null)) && (((string)this.walletAddress).Length > 0))
+        if (((this.walletAddress != null)) && (((string)this.walletAddress).Length > 0))
         {
             return ((string)this.walletAddress).ToLower();
         }
-        if (!isEqual(this.privateKey, null))
+        if ((this.privateKey != null))
         {
             return ((string)this.ethGetAddressFromPrivateKey(this.privateKey)).ToLower();
         }
@@ -3926,7 +3926,7 @@ public partial class myriad : PredictionExchange
                 { "currency", this.safeString(market, "quote") },
             } },
         }, market);
-        if (isEqual(this.trades, null))
+        if ((this.trades == null))
         {
             this.trades = this.createSafeDictionary();
         }
@@ -3987,7 +3987,7 @@ public partial class myriad : PredictionExchange
             int myLegsLength = getArrayLength(myLegs);
             if (myLegsLength > 0)
             {
-                if (isEqual(this.myTrades, null))
+                if ((this.myTrades == null))
                 {
                     Int64? myTradesLimit = this.safeInteger(this.options, "myTradesLimit", 1000);
                     this.myTrades = new ArrayCacheByOutcomeById(myTradesLimit);
@@ -4036,7 +4036,7 @@ public partial class myriad : PredictionExchange
     public async override Task<ccxt.PredictionTickers> WatchTickers(object outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(outcomes, null))
+        if ((outcomes == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " watchTickers() requires a list of outcomes (the prices channel is per-market)")) ;
         }
@@ -4109,7 +4109,7 @@ public partial class myriad : PredictionExchange
         Int64? ts = this.safeInteger(data, "ts");
         List<object> outcomes = this.safeList(data, "outcomes", new List<object>() {});
         int outcomesLength = outcomes.Count;
-        if (isEqual(this.tickers, null))
+        if ((this.tickers == null))
         {
             this.tickers = this.createSafeDictionary();
         }
@@ -4173,7 +4173,7 @@ public partial class myriad : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         string trader = this.walletAddressFromKeys();
         string? networkId = this.safeString(this.options, "defaultNetworkId", "56");
-        if (!isEqual(outcomeVar, null))
+        if ((outcomeVar != null))
         {
             IDictionary<string, object> outcomeObj = ((IDictionary<string, object>)await this.loadOutcome(outcomeVar));
             IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
@@ -4188,7 +4188,7 @@ public partial class myriad : PredictionExchange
 
     public virtual void handleOrder(WebSocketClient client, object data)
     {
-        if (isEqual(this.orders, null))
+        if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheByOutcomeById(limit);
@@ -4251,7 +4251,7 @@ public partial class myriad : PredictionExchange
     public async override Task<List<ccxt.Position>> WatchPositions(object outcomes = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(outcomes, null))
+        if ((outcomes != null))
         {
             await this.loadOutcomes(outcomes);
         }
@@ -4303,7 +4303,7 @@ public partial class myriad : PredictionExchange
 
     public virtual void handlePosition(WebSocketClient client, object data)
     {
-        if (isEqual(this.positions, null))
+        if ((this.positions == null))
         {
             Int64? limit = this.safeInteger(this.options, "positionsLimit", 1000);
             this.positions = new ArrayCacheByOutcomeById(limit);
@@ -4369,7 +4369,7 @@ public partial class myriad : PredictionExchange
         bool hasWallet = ((address != null)) && (((string)this.walletAddress).Length > 0);
         if (!hasWallet)
         {
-            if (isEqual(this.privateKey, null))
+            if ((this.privateKey == null))
             {
                 throw new ArgumentsRequired ((string)(this.id + " requires a walletAddress or privateKey to watch private channels")) ;
             }
@@ -4381,7 +4381,7 @@ public partial class myriad : PredictionExchange
     public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
     {
         // Myriad error responses are { "error": "<message>", "details": [...] } with a 4xx status
-        if (isEqual(response, null))
+        if ((response == null))
         {
             return null;
         }
@@ -4427,7 +4427,7 @@ public partial class myriad : PredictionExchange
                 url = add(url, ("?" + querystring));
             }
         }
-        object existingHeaders = ((bool) (!isEqual(headers, null))) ? headers : new Dictionary<string, object>() {};
+        object existingHeaders = ((bool) ((headers != null))) ? headers : new Dictionary<string, object>() {};
         headers = this.extend(new Dictionary<string, object>() {
             { "Accept", "application/json" },
             { "Content-Type", "application/json" },
@@ -4443,7 +4443,7 @@ public partial class myriad : PredictionExchange
                 body = this.json(query);
             }
         }
-        if ((!isEqual(this.apiKey, null)) && (!isEqual(this.apiKey, "")))
+        if (((this.apiKey != null)) && (!isEqual(this.apiKey, "")))
         {
             // keep this literal split. the php transpiler prefixes every occurrence of a local or
             // parameter name with '$' at the text level, including occurrences inside single-quoted

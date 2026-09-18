@@ -693,7 +693,7 @@ public partial class bydfi : Exchange
     public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -773,7 +773,7 @@ public partial class bydfi : Exchange
     public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -825,7 +825,7 @@ public partial class bydfi : Exchange
     public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -848,7 +848,7 @@ public partial class bydfi : Exchange
             { "contractType", contractType },
         };
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
@@ -986,7 +986,7 @@ public partial class bydfi : Exchange
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1091,7 +1091,7 @@ public partial class bydfi : Exchange
     public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1130,7 +1130,7 @@ public partial class bydfi : Exchange
     public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1200,7 +1200,7 @@ public partial class bydfi : Exchange
     public async override Task<ccxt.FundingRate> FetchFundingRate(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1277,11 +1277,11 @@ public partial class bydfi : Exchange
     public async override Task<List<ccxt.FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1374,7 +1374,7 @@ public partial class bydfi : Exchange
     public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1425,16 +1425,16 @@ public partial class bydfi : Exchange
     public virtual Dictionary<string, object> createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(type, null))
+        if ((type == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " requires a type argument")) ;
         }
-        if (isEqual(side, null))
+        if ((side == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " requires a side argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (isEqual(side, null))
+        if ((side == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " createOrderRequest() requires a side argument")) ;
         }
@@ -1576,7 +1576,7 @@ public partial class bydfi : Exchange
     public async override Task<List<ccxt.Order>> CreateOrders(object orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1630,7 +1630,7 @@ public partial class bydfi : Exchange
     public async override Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1658,7 +1658,7 @@ public partial class bydfi : Exchange
     public async override Task<List<ccxt.Order>> EditOrders(object orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1698,16 +1698,16 @@ public partial class bydfi : Exchange
         parameters ??= new Dictionary<string, object>();
         string? clientOrderId = this.safeString(parameters, "clientOrderId");
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if ((isEqual(id, null)) && ((clientOrderId == null)))
+        if (((id == null)) && ((clientOrderId == null)))
         {
             throw new ArgumentsRequired ((string)(this.id + " editOrder() requires an id argument or a clientOrderId parameter")) ;
-        } else if (!isEqual(id, null))
+        } else if ((id != null))
         {
             ((IDictionary<string,object>)request)["orderId"] = id;
         }
         Dictionary<string, object> market = this.market(symbol);
         ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
-        if (!isEqual(side, null))
+        if ((side != null))
         {
             ((IDictionary<string,object>)request)["side"] = ((string)side).ToUpper();
         }
@@ -1735,11 +1735,11 @@ public partial class bydfi : Exchange
     public async override Task<List<ccxt.Order>> CancelAllOrders(string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " cancelAllOrders() requires a symbol argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1806,11 +1806,11 @@ public partial class bydfi : Exchange
     public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchOpenOrders() requires a symbol argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1888,11 +1888,11 @@ public partial class bydfi : Exchange
     public async virtual Task<ccxt.Order> FetchOpenOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchOpenOrder() requires a symbol argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1901,10 +1901,10 @@ public partial class bydfi : Exchange
             { "symbol", getValue(market, "id") },
         };
         string? clientOrderId = this.safeString(parameters, "clientOrderId");
-        if ((isEqual(id, null)) && ((clientOrderId == null)))
+        if (((id == null)) && ((clientOrderId == null)))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchOpenOrder() requires an id argument or a clientOrderId parameter")) ;
-        } else if (!isEqual(id, null))
+        } else if ((id != null))
         {
             ((IDictionary<string,object>)request)["orderId"] = id;
         }
@@ -1948,7 +1948,7 @@ public partial class bydfi : Exchange
     public async override Task<List<ccxt.Order>> FetchCanceledAndClosedOrders(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1971,7 +1971,7 @@ public partial class bydfi : Exchange
             { "contractType", contractType },
         };
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
@@ -2244,11 +2244,11 @@ public partial class bydfi : Exchange
     public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " setLeverage() requires a symbol argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2280,11 +2280,11 @@ public partial class bydfi : Exchange
     public async override Task<ccxt.Leverage> FetchLeverage(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchLeverage() requires a symbol argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2340,7 +2340,7 @@ public partial class bydfi : Exchange
     public async override Task<List<ccxt.Position>> FetchPositions(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2392,7 +2392,7 @@ public partial class bydfi : Exchange
     public async override Task<List<ccxt.Position>> FetchPositionsForSymbol(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2546,7 +2546,7 @@ public partial class bydfi : Exchange
     public async override Task<List<ccxt.Position>> FetchPositionHistory(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2589,7 +2589,7 @@ public partial class bydfi : Exchange
     public async override Task<List<ccxt.Position>> FetchPositionsHistory(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2667,7 +2667,7 @@ public partial class bydfi : Exchange
     public async override Task<ccxt.MarginMode> FetchMarginMode(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2728,7 +2728,7 @@ public partial class bydfi : Exchange
     {
         string marginModeVar = marginMode;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " setMarginMode() requires a symbol argument")) ;
         }
@@ -2737,7 +2737,7 @@ public partial class bydfi : Exchange
         {
             throw new BadRequest ((string)(this.id + " setMarginMode() marginMode argument should be isolated or cross")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2775,11 +2775,11 @@ public partial class bydfi : Exchange
     public async override Task<Dictionary<string, object>> SetPositionMode(object hedged, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             throw new NotSupported ((string)(this.id + " setPositionMode() does not support a symbol argument. The position mode is set identically for all markets with same settle currency")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2827,7 +2827,7 @@ public partial class bydfi : Exchange
     public async override Task<ccxt.PositionModeInfo> FetchPositionMode(string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2840,7 +2840,7 @@ public partial class bydfi : Exchange
         contractType = ((IList<object>)contractTypeparametersVariable)[0];
         parameters = ((IList<object>)contractTypeparametersVariable)[1];
         object settleCoin = "USDT";
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             IList<object> settleCoinparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchPositionMode", "settleCoin", settleCoin);
             settleCoin = ((IList<object>)settleCoinparametersVariable)[0];
@@ -2893,7 +2893,7 @@ public partial class bydfi : Exchange
     public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3005,7 +3005,7 @@ public partial class bydfi : Exchange
     public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3059,11 +3059,11 @@ public partial class bydfi : Exchange
     {
         object sinceVar = since;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(code, null))
+        if ((code == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchTransfers() requires a code argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3214,11 +3214,11 @@ public partial class bydfi : Exchange
     public async virtual Task<List<ccxt.Transaction>> FetchTransactionsHelper(object type, object code, object since, object limit, object parameters)
     {
         string methodName = ((bool) (isEqual(type, "deposit"))) ? "fetchDeposits" : "fetchWithdrawals";
-        if (isEqual(code, null))
+        if ((code == null))
         {
             throw new ArgumentsRequired ((string)(((this.id + " ") + methodName) + "() requires a code argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3270,7 +3270,7 @@ public partial class bydfi : Exchange
         }
         ((IDictionary<string,object>)request)["startTime"] = startTime;
         ((IDictionary<string,object>)request)["endTime"] = until;
-        if (!isEqual(limit, null))
+        if ((limit != null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -3432,7 +3432,7 @@ public partial class bydfi : Exchange
 
     public override object handleErrors(object httpCode, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
     {
-        if (isEqual(response, null))
+        if ((response == null))
         {
             return null;  // fallback to default error handler
         }

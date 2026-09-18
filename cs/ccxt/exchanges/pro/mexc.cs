@@ -90,7 +90,7 @@ public partial class mexc : ccxt.mexc
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -215,7 +215,7 @@ public partial class mexc : ccxt.mexc
     public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -422,13 +422,13 @@ public partial class mexc : ccxt.mexc
     public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, null, true, false, true);
         string? marketType = null;
-        if (isEqual(symbols, null))
+        if ((symbols == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " watchBidsAsks required symbols argument")) ;
         }
@@ -592,7 +592,7 @@ public partial class mexc : ccxt.mexc
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -776,7 +776,7 @@ public partial class mexc : ccxt.mexc
         double? volume = this.safeNumber2(ohlcv, "v", "volume");
         // MEXC swap websocket klines publish contracts volume in `q`,
         // while spot/protobuf uses `v`/`volume`.
-        if ((!isEqual(market, null)) && ((this.safeBool(market, "spot") != true)) && (isEqual(volume, null)))
+        if (((market != null)) && ((this.safeBool(market, "spot") != true)) && (isEqual(volume, null)))
         {
             volume = this.safeNumber2(ohlcv, "q", "v");
         }
@@ -799,7 +799,7 @@ public partial class mexc : ccxt.mexc
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1040,7 +1040,7 @@ public partial class mexc : ccxt.mexc
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1169,13 +1169,13 @@ public partial class mexc : ccxt.mexc
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         object messageHash = "myTrades";
         IDictionary<string, object> market = null;
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
@@ -1371,13 +1371,13 @@ public partial class mexc : ccxt.mexc
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         object messageHash = "orders";
         IDictionary<string, object> market = null;
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
@@ -1679,7 +1679,7 @@ public partial class mexc : ccxt.mexc
     public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1772,7 +1772,7 @@ public partial class mexc : ccxt.mexc
     public async override Task<ccxt.FundingRate> WatchFundingRate(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1797,7 +1797,7 @@ public partial class mexc : ccxt.mexc
     public async override Task<object> unWatchFundingRate(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1851,7 +1851,7 @@ public partial class mexc : ccxt.mexc
     public async override Task<object> unWatchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1890,7 +1890,7 @@ public partial class mexc : ccxt.mexc
     public async override Task<object> unWatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1935,13 +1935,13 @@ public partial class mexc : ccxt.mexc
     public async override Task<object> unWatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, null, true, false, true);
         string? marketType = null;
-        if (isEqual(symbols, null))
+        if ((symbols == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " watchBidsAsks required symbols argument")) ;
         }
@@ -1991,7 +1991,7 @@ public partial class mexc : ccxt.mexc
         object timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2034,7 +2034,7 @@ public partial class mexc : ccxt.mexc
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2078,7 +2078,7 @@ public partial class mexc : ccxt.mexc
     public async override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2223,7 +2223,7 @@ public partial class mexc : ccxt.mexc
     public async virtual Task keepAliveListenKey(object listenKey, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(listenKey, null))
+        if ((listenKey == null))
         {
             return;
         }

@@ -629,7 +629,7 @@ public partial class BaseExchange
 
     public virtual string? findTimeframe(object timeframe, object timeframes = null)
     {
-        if (isEqual(timeframes, null))
+        if ((timeframes == null))
         {
             timeframes = this.timeframes;
         }
@@ -649,28 +649,28 @@ public partial class BaseExchange
     {
         List<object> usedProxies = new List<object>() {};
         object proxyUrl = null;
-        if (!isEqual(this.proxyUrl, null))
+        if ((this.proxyUrl != null))
         {
             ((IList<object>)usedProxies).Add("proxyUrl");
             proxyUrl = this.proxyUrl;
         }
-        if (!isEqual(this.proxy_url, null))
+        if ((this.proxy_url != null))
         {
             ((IList<object>)usedProxies).Add("proxy_url");
             proxyUrl = this.proxy_url;
         }
-        if (!isEqual(this.proxyUrlCallback, null))
+        if ((this.proxyUrlCallback != null))
         {
             ((IList<object>)usedProxies).Add("proxyUrlCallback");
             proxyUrl = callDynamically(this, "proxyUrlCallback", new object[] { url, method, headers, body });
         }
-        if (!isEqual(this.proxy_url_callback, null))
+        if ((this.proxy_url_callback != null))
         {
             ((IList<object>)usedProxies).Add("proxy_url_callback");
             proxyUrl = callDynamically(this, "proxy_url_callback", new object[] { url, method, headers, body });
         }
         // backwards-compatibility
-        if (!isEqual(this.proxy, null))
+        if ((this.proxy != null))
         {
             ((IList<object>)usedProxies).Add("proxy");
             if ((this.proxy is Delegate))
@@ -801,8 +801,8 @@ public partial class BaseExchange
 
     public virtual void checkConflictingProxies(object proxyAgentSet, object proxyUrlSet)
     {
-        bool proxyAgentIsSet = (!isEqual(proxyAgentSet, null)) && (!isEqual(proxyAgentSet, null)) && (!isEqual(proxyAgentSet, ""));
-        bool proxyUrlIsSet = (!isEqual(proxyUrlSet, null)) && (!isEqual(proxyUrlSet, null)) && (!isEqual(proxyUrlSet, ""));
+        bool proxyAgentIsSet = ((proxyAgentSet != null)) && ((proxyAgentSet != null)) && (!isEqual(proxyAgentSet, ""));
+        bool proxyUrlIsSet = ((proxyUrlSet != null)) && ((proxyUrlSet != null)) && (!isEqual(proxyUrlSet, ""));
         if (proxyAgentIsSet && proxyUrlIsSet)
         {
             throw new InvalidProxySettings ((string)(this.id + " you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy")) ;
@@ -811,7 +811,7 @@ public partial class BaseExchange
 
     public virtual object checkAddress(object address = null)
     {
-        if (isEqual(address, null))
+        if ((address == null))
         {
             throw new InvalidAddress ((string)(this.id + " address is undefined")) ;
         }
@@ -893,7 +893,7 @@ public partial class BaseExchange
     {
         key ??= "timestamp";
         tail ??= false;
-        if (isEqual(array, null))
+        if ((array == null))
         {
             return new List<object>() {};
         }
@@ -1239,7 +1239,7 @@ public partial class BaseExchange
 
     public virtual object parseTransfer(object transfer, object currency = null)
     {
-        if (isEqual(transfer, null))
+        if ((transfer == null))
         {
             throw new NotSupported ((string)(this.id + " parseTransfer() is not supported yet")) ;
         }
@@ -1545,7 +1545,7 @@ public partial class BaseExchange
         this.createNetworksByIdObject();
         this.featuresGenerator();
         // init predefined markets if any
-        if (!isEqual(this.markets, null))
+        if ((this.markets != null))
         {
             this.setMarkets(this.markets);
         }
@@ -1561,7 +1561,7 @@ public partial class BaseExchange
 
     public virtual void initRestRateLimiter()
     {
-        if (isEqual(this.rateLimit, null) || (!isEqual(this.id, null) && isEqual(this.rateLimit, -1)))
+        if (isEqual(this.rateLimit, null) || ((this.id != null) && isEqual(this.rateLimit, -1)))
         {
             throw new ExchangeError ((string)(this.id + ".rateLimit property is not configured")) ;
         }
@@ -1581,7 +1581,7 @@ public partial class BaseExchange
             { "windowSize", this.rollingWindowSize },
             { "rateLimit", this.rateLimit },
         };
-        Dictionary<string, object> existingBucket = ((bool) (isEqual(this.tokenBucket, null))) ? new Dictionary<string, object>() {} : this.tokenBucket;
+        Dictionary<string, object> existingBucket = ((bool) ((this.tokenBucket == null))) ? new Dictionary<string, object>() {} : this.tokenBucket;
         this.tokenBucket = this.extend(defaultBucket, existingBucket);
         this.initThrottler();
     }
@@ -1602,7 +1602,7 @@ public partial class BaseExchange
         //         },
         //     }
         //
-        if (isEqual(this.features, null))
+        if ((this.features == null))
         {
             return;
         }
@@ -1639,7 +1639,7 @@ public partial class BaseExchange
 
     public virtual object featuresMapper(object initialFeatures, object marketType, object subType = null)
     {
-        object featuresObj = ((bool) (!isEqual(subType, null))) ? getValue(getValue(initialFeatures, ((string)marketType)), subType) : getValue(initialFeatures, ((string)marketType));
+        object featuresObj = ((bool) ((subType != null))) ? getValue(getValue(initialFeatures, ((string)marketType)), subType) : getValue(initialFeatures, ((string)marketType));
         // if exchange does not have that market-type (eg. future>inverse)
         if ((featuresObj == null))
         {
@@ -1725,11 +1725,11 @@ public partial class BaseExchange
          * @returns {object} returns feature value
          */
         // if exchange does not yet have features manually implemented
-        if (isEqual(this.features, null))
+        if ((this.features == null))
         {
             return defaultValue;
         }
-        if (isEqual(marketType, null))
+        if ((marketType == null))
         {
             return defaultValue;  // marketType is required
         }
@@ -1744,7 +1744,7 @@ public partial class BaseExchange
             return defaultValue;
         }
         object methodsContainer = getValue(this.features, marketType);
-        if (isEqual(subType, null))
+        if ((subType == null))
         {
             if (!isEqual(marketType, "spot"))
             {
@@ -1764,9 +1764,9 @@ public partial class BaseExchange
             methodsContainer = getValue(getValue(this.features, marketType), subType);
         }
         // if user wanted only marketType and didn't provide methodName, eg: featureIsSupported('spot')
-        if (isEqual(methodName, null))
+        if ((methodName == null))
         {
-            return ((bool) (!isEqual(defaultValue, null))) ? defaultValue : methodsContainer;
+            return ((bool) ((defaultValue != null))) ? defaultValue : methodsContainer;
         }
         if (!(inOp(methodsContainer, methodName)))
         {
@@ -1778,9 +1778,9 @@ public partial class BaseExchange
             return defaultValue;
         }
         // if user wanted only method and didn't provide `paramName`, eg: featureIsSupported('swap', 'linear', 'createOrder')
-        if (isEqual(paramName, null))
+        if ((paramName == null))
         {
-            return ((bool) (!isEqual(defaultValue, null))) ? defaultValue : methodDict;
+            return ((bool) ((defaultValue != null))) ? defaultValue : methodDict;
         }
         List<object> splited = ((string)paramName).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>(); // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
         object parentKey = getValue(splited, 0);
@@ -2091,7 +2091,7 @@ public partial class BaseExchange
             { "created", null },
             { "info", null },
         };
-        if (!isEqual(market, null))
+        if ((market != null))
         {
             Dictionary<string, object> result = this.extend(cleanStructure, market);
             // set undefined swap/future/etc
@@ -2177,7 +2177,7 @@ public partial class BaseExchange
         this.symbols = new List<object>(((IDictionary<string,object>)marketsSortedBySymbol).Keys);
         this.ids = new List<object>(((IDictionary<string,object>)marketsSortedById).Keys);
         int numCurrencies = 0;
-        if (!isEqual(currencies, null))
+        if ((currencies != null))
         {
             List<object> keys = new List<object>(((IDictionary<string,object>)currencies).Keys);
             numCurrencies = keys.Count;
@@ -2248,7 +2248,7 @@ public partial class BaseExchange
         this.currencies_by_id = this.indexBySafe(this.currencies, "id");
         Dictionary<string, object> currenciesSortedByCode = this.keysort(this.currencies);
         this.codes = new List<object>(((IDictionary<string,object>)currenciesSortedByCode).Keys);
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             throw new ExchangeError ((string)(this.id + " setMarkets() markets not set")) ;
         }
@@ -2349,7 +2349,7 @@ public partial class BaseExchange
     {
         // parses numbers as strings
         // * it is important pass the trades as unparsed rawTrades
-        if (isEqual(order, null))
+        if ((order == null))
         {
             order = new Dictionary<string, object>() {};
         }
@@ -2707,7 +2707,7 @@ public partial class BaseExchange
         //     ]
         //
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(orders, null))
+        if ((orders == null))
         {
             return new List<object>() {};
         }
@@ -2880,19 +2880,19 @@ public partial class BaseExchange
         if (!isEqual(timestamp, null))
         {
             id = this.numberToString(timestamp);
-            if (!isEqual(side, null))
+            if ((side != null))
             {
                 id = add(id, add("-", side));
             }
-            if (!isEqual(amount, null))
+            if ((amount != null))
             {
                 id = add(id, ("-" + this.numberToString(amount)));
             }
-            if (!isEqual(price, null))
+            if ((price != null))
             {
                 id = add(id, ("-" + this.numberToString(price)));
             }
-            if (!isEqual(takerOrMaker, null))
+            if ((takerOrMaker != null))
             {
                 id = add(id, add("-", takerOrMaker));
             }
@@ -3192,7 +3192,7 @@ public partial class BaseExchange
             if ((average == null) && (close != null))
             {
                 int precision = 18;
-                if (!isEqual(market, null) && isTrue(this.isTickPrecision()))
+                if ((market != null) && isTrue(this.isTickPrecision()))
                 {
                     IDictionary<string, object> marketPrecision = this.safeDict(market, "precision");
                     string? precisionPrice = this.safeString(marketPrecision, "price");
@@ -3420,7 +3420,7 @@ public partial class BaseExchange
             {
                 throw new NullResponse ((string)(this.id + " fetchWebEndpoint() returned empty content")) ;
             }
-            if (!isEqual(startRegex, null))
+            if ((startRegex != null))
             {
                 List<object> splitted_by_start = ((string)content).Split(new [] {((string)startRegex)}, StringSplitOptions.None).ToList<object>();
                 content = getValue(splitted_by_start, 1); // we need second part after start
@@ -3429,7 +3429,7 @@ public partial class BaseExchange
             {
                 throw new NullResponse ((string)(this.id + " fetchWebEndpoint() returned empty content")) ;
             }
-            if (!isEqual(endRegex, null))
+            if ((endRegex != null))
             {
                 List<object> splitted_by_end = ((string)content).Split(new [] {((string)endRegex)}, StringSplitOptions.None).ToList<object>();
                 content = getValue(splitted_by_end, 0); // we need first part after start
@@ -3468,7 +3468,7 @@ public partial class BaseExchange
          * @returns {string[]|undefined} list of exchange-specific market ids
          * Overloads: non-null `string[]` input yields `string[]`; optional input yields `Strings`.
          */
-        if (isEqual(symbols, null))
+        if ((symbols == null))
         {
             return this.toArray(symbols);
         }
@@ -3486,7 +3486,7 @@ public partial class BaseExchange
 
     public virtual IList<object> currencyIds(object codes = null)
     {
-        if (isEqual(codes, null))
+        if ((codes == null))
         {
             return this.toArray(codes);
         }
@@ -3504,7 +3504,7 @@ public partial class BaseExchange
 
     public virtual IList<object> marketsForSymbols(object symbols = null)
     {
-        if (isEqual(symbols, null))
+        if ((symbols == null))
         {
             return null;
         }
@@ -3531,7 +3531,7 @@ public partial class BaseExchange
         allowEmpty ??= true;
         sameTypeOnly ??= false;
         sameSubTypeOnly ??= false;
-        if (isEqual(symbols, null))
+        if ((symbols == null))
         {
             if (!isTrue(allowEmpty))
             {
@@ -3568,7 +3568,7 @@ public partial class BaseExchange
                     throw new BadRequest ((string)(this.id + " symbols must be of the same subType, either linear or inverse.")) ;
                 }
             }
-            if (!isEqual(type, null) && !isEqual(getValue(market, "type"), type))
+            if ((type != null) && !isEqual(getValue(market, "type"), type))
             {
                 throw new BadRequest ((string)(add((this.id + " symbols must be of the same type "), type) + ". If the type is incorrect you can change it in options or the params of the request")) ;
             }
@@ -3585,7 +3585,7 @@ public partial class BaseExchange
 
     public virtual IList<object> marketCodes(object codes = null)
     {
-        if (isEqual(codes, null))
+        if ((codes == null))
         {
             return this.toArray(codes);
         }
@@ -3613,7 +3613,7 @@ public partial class BaseExchange
 
     public virtual IList<object> filterByKey(object objects, object key, object value = null)
     {
-        if (isEqual(value, null))
+        if ((value == null))
         {
             return this.toArray(objects);
         }
@@ -3700,7 +3700,7 @@ public partial class BaseExchange
         * @returns {string[]} [preferredChain, alternativeChain]
         */
         allowDefault ??= false;
-        if (isEqual(networkCode, null))
+        if ((networkCode == null))
         {
             return null;
         }
@@ -3721,7 +3721,7 @@ public partial class BaseExchange
             if (isEqual(currencyCode, baseCoin))
             {
                 preferPrimary = true; // mainnet currency uses primary chain
-            } else if (!isEqual(currencyCode, null))
+            } else if ((currencyCode != null))
             {
                 preferPrimary = false; // any other (token) currency uses secondary chain
             } else if (isTrue(allowDefault))
@@ -3747,7 +3747,7 @@ public partial class BaseExchange
          * @param {string} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
          * @returns {string|undefined} exchange-specific network id
          */
-        if (isEqual(networkCode, null))
+        if ((networkCode == null))
         {
             return null;
         }
@@ -3763,7 +3763,7 @@ public partial class BaseExchange
         }
         // fall back to scanning loaded currencies
         List<object> currenciesToCheck = new List<object>() {};
-        if (isEqual(currencyCode, null))
+        if ((currencyCode == null))
         {
             currenciesToCheck = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
         } else
@@ -3798,7 +3798,7 @@ public partial class BaseExchange
          * @param {string|undefined} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
          * @returns {string|undefined} unified network code
          */
-        if (isEqual(networkId, null))
+        if ((networkId == null))
         {
             return null;
         }
@@ -3813,7 +3813,7 @@ public partial class BaseExchange
         object alternativeChain = getValue(chainPair, 1);
         // when the exchange explicitly defines both forms in options.networks (e.g. BTC + BRC20),
         // it disambiguates them — trust the direct id→code inversion instead of guessing
-        if (isEqual(currencyCode, null))
+        if ((currencyCode == null))
         {
             IDictionary<string, object> networkIdsByCodes = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
             if ((inOp(networkIdsByCodes, preferredChain)) && (inOp(networkIdsByCodes, alternativeChain)))
@@ -3872,7 +3872,7 @@ public partial class BaseExchange
         object chosenNetworkId = null;
         List<object> availableNetworkIds = new List<object>(((IDictionary<string,object>)indexedNetworkEntries).Keys);
         int responseNetworksLength = availableNetworkIds.Count;
-        if (!isEqual(networkCode, null))
+        if ((networkCode != null))
         {
             if ((responseNetworksLength == 0))
             {
@@ -3926,7 +3926,7 @@ public partial class BaseExchange
         priceKey ??= 0;
         amountKey ??= 1;
         countOrIdKey ??= 2;
-        if (isEqual(orderbook, null))
+        if ((orderbook == null))
         {
             orderbook = new Dictionary<string, object>() {};
         }
@@ -3947,7 +3947,7 @@ public partial class BaseExchange
         object timeframeVar = timeframe;
         timeframeVar ??= "1m";
         tail ??= false;
-        if (isEqual(ohlcvs, null))
+        if ((ohlcvs == null))
         {
             return new List<object>() {};
         }
@@ -3966,21 +3966,21 @@ public partial class BaseExchange
         symbols = this.marketSymbols(symbols);
         Dictionary<string, object> tiers = new Dictionary<string, object>() {};
         int symbolsLength = 0;
-        if (!isEqual(symbols, null))
+        if ((symbols != null))
         {
             symbolsLength = getArrayLength(symbols);
         }
-        bool noSymbols = (isEqual(symbols, null)) || (isEqual(symbolsLength, 0));
+        bool noSymbols = ((symbols == null)) || (isEqual(symbolsLength, 0));
         if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
             {
                 object item = getValue(response, i);
-                string? id = ((bool) (isEqual(marketIdKey, null))) ? null : this.safeString(item, marketIdKey);
+                string? id = ((bool) ((marketIdKey == null))) ? null : this.safeString(item, marketIdKey);
                 Dictionary<string, object> market = this.safeMarket(id, null, null, "swap");
                 string? symbol = ((string)getValue(market, "symbol"));
                 bool? contract = this.safeBool(market, "contract", false);
-                if (((contract == true)) && (noSymbols || ((!isEqual(symbols, null)) && this.inArray(symbol, symbols))))
+                if (((contract == true)) && (noSymbols || (((symbols != null)) && this.inArray(symbol, symbols))))
                 {
                     ((IDictionary<string,object>)tiers)[(string)symbol] = this.parseMarketLeverageTiers(item, market);
                 }
@@ -3995,7 +3995,7 @@ public partial class BaseExchange
                 Dictionary<string, object> market = this.safeMarket(marketId, null, null, "swap");
                 string? symbol = ((string)getValue(market, "symbol"));
                 bool? contract = this.safeBool(market, "contract", false);
-                if (((contract == true)) && (noSymbols || ((!isEqual(symbols, null)) && this.inArray(symbol, symbols))))
+                if (((contract == true)) && (noSymbols || (((symbols != null)) && this.inArray(symbol, symbols))))
                 {
                     ((IDictionary<string,object>)tiers)[(string)symbol] = this.parseMarketLeverageTiers(item, market);
                 }
@@ -4077,7 +4077,7 @@ public partial class BaseExchange
 
     public virtual object parseADLRank(object info, object market = null)
     {
-        if (isEqual(info, null))
+        if ((info == null))
         {
             throw new NotSupported ((string)(this.id + " parseADLRank() is not supported yet")) ;
         }
@@ -4157,7 +4157,7 @@ public partial class BaseExchange
             ((IList<object>)result).Add(transaction);
         }
         result = this.sortBy(result, "timestamp");
-        object code = ((bool) (!isEqual(currency, null))) ? getValue(currency, "code") : null;
+        object code = ((bool) ((currency != null))) ? getValue(currency, "code") : null;
         return this.filterByCurrencySinceLimit(result,((string)code), since, limit);
     }
 
@@ -4172,7 +4172,7 @@ public partial class BaseExchange
             ((IList<object>)result).Add(transfer);
         }
         result = this.sortBy(result, "timestamp");
-        object code = ((bool) (!isEqual(currency, null))) ? getValue(currency, "code") : null;
+        object code = ((bool) ((currency != null))) ? getValue(currency, "code") : null;
         return this.filterByCurrencySinceLimit(result,((string)code), since, limit);
     }
 
@@ -4196,7 +4196,7 @@ public partial class BaseExchange
             }
         }
         result = this.sortBy(result, "timestamp");
-        object code = ((bool) (!isEqual(currency, null))) ? getValue(currency, "code") : null;
+        object code = ((bool) ((currency != null))) ? getValue(currency, "code") : null;
         return this.filterByCurrencySinceLimit(result,((string)code), since, limit);
     }
 
@@ -4212,7 +4212,7 @@ public partial class BaseExchange
 
     public virtual object currencyId(string code)
     {
-        if (isEqual(code, null))
+        if ((code == null))
         {
             return code;
         }
@@ -4240,7 +4240,7 @@ public partial class BaseExchange
 
     public virtual string? symbol(object symbol)
     {
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " symbol() requires a symbol argument")) ;
         }
@@ -4362,11 +4362,11 @@ public partial class BaseExchange
         symbolWithActiveStatus ??= true;
         symbolWithUnknownStatus ??= true;
         object filteredMarkets = this.markets;
-        if (!isEqual(marketType, null))
+        if ((marketType != null))
         {
             filteredMarkets = this.filterBy(filteredMarkets, "type", marketType);
         }
-        if (!isEqual(subType, null))
+        if ((subType != null))
         {
             this.checkRequiredArgument("getSymbolsForMarketType", subType, "subType", new List<object>() {"linear", "inverse", "quanto"});
             filteredMarkets = this.filterBy(filteredMarkets, "subType", subType);
@@ -4389,7 +4389,7 @@ public partial class BaseExchange
         indexed ??= true;
         objects = this.toArray(objects);
         // return all of them if no values were passed
-        if ((isEqual(values, null)) || (isEqual(values, null)) || (isEqual(values, false)) || (isEqual(values, 0)) || (isEqual(values, "")))
+        if (((values == null)) || ((values == null)) || (isEqual(values, false)) || (isEqual(values, 0)) || (isEqual(values, "")))
         {
             // return indexed ? this.indexBy (objects, key) : objects;
             if (isTrue(indexed))
@@ -4421,7 +4421,7 @@ public partial class BaseExchange
         indexed ??= true;
         objects = this.toArray(objects);
         // return all of them if no values were passed
-        if ((isEqual(values, null)) || (isEqual(values, null)) || (isEqual(values, false)) || (isEqual(values, 0)) || (isEqual(values, "")))
+        if (((values == null)) || ((values == null)) || (isEqual(values, false)) || (isEqual(values, 0)) || (isEqual(values, "")))
         {
             // return indexed ? this.indexBy (objects, key) : objects;
             if (isTrue(indexed))
@@ -4548,7 +4548,7 @@ public partial class BaseExchange
             this.accounts = ccxt.BaseExchange.FromAccountList(await this.FetchAccounts(parameters));
         } else
         {
-            if (!isEqual(this.accounts, null))
+            if ((this.accounts != null))
             {
                 return this.accounts;
             } else
@@ -4679,16 +4679,16 @@ public partial class BaseExchange
 
     public virtual Dictionary<string, object> safeCurrency(object currencyId, object currency = null)
     {
-        if ((isEqual(currencyId, null)) && (!isEqual(currency, null)))
+        if (((currencyId == null)) && ((currency != null)))
         {
             return ccxt.BaseExchange.ToDict(currency);
         }
-        if ((!isEqual(currencyId, null)) && (!isEqual(this.currencies_by_id, null)) && (inOp(this.currencies_by_id, currencyId)) && (!isEqual(getValue(this.currencies_by_id, currencyId), null)))
+        if (((currencyId != null)) && ((this.currencies_by_id != null)) && (inOp(this.currencies_by_id, currencyId)) && (!isEqual(getValue(this.currencies_by_id, currencyId), null)))
         {
             return ccxt.BaseExchange.ToDict(getValue(this.currencies_by_id, currencyId));
         }
         object code = currencyId;
-        if (!isEqual(currencyId, null))
+        if ((currencyId != null))
         {
             code = this.commonCurrencyCode(((string)currencyId).ToUpper());
         }
@@ -4701,9 +4701,9 @@ public partial class BaseExchange
 
     public virtual Dictionary<string, object> safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)
     {
-        if (!isEqual(marketId, null))
+        if ((marketId != null))
         {
-            if ((!isEqual(this.markets_by_id, null)) && (inOp(this.markets_by_id, marketId)))
+            if (((this.markets_by_id != null)) && (inOp(this.markets_by_id, marketId)))
             {
                 object markets = getValue(this.markets_by_id, marketId);
                 int numMarkets = getArrayLength(markets);
@@ -4712,9 +4712,9 @@ public partial class BaseExchange
                     return ((Dictionary<string, object>)((object)(getValue(markets, 0))));
                 } else
                 {
-                    if (isEqual(marketType, null))
+                    if ((marketType == null))
                     {
-                        if (isEqual(market, null))
+                        if ((market == null))
                         {
                             throw new ArgumentsRequired ((string)(add((this.id + " safeMarket() requires a fourth argument for "), marketId) + " to disambiguate between different markets with the same market id")) ;
                         } else
@@ -4731,7 +4731,7 @@ public partial class BaseExchange
                         }
                     }
                 }
-            } else if (!isEqual(delimiter, null) && !isEqual(delimiter, ""))
+            } else if ((delimiter != null) && !isEqual(delimiter, ""))
             {
                 List<object> parts = ((string)marketId).Split(new [] {((string)delimiter)}, StringSplitOptions.None).ToList<object>();
                 int partsLength = parts.Count;
@@ -4767,7 +4767,7 @@ public partial class BaseExchange
                 return ((Dictionary<string, object>)((object)(result)));
             }
         }
-        if (!isEqual(market, null))
+        if ((market != null))
         {
             return ((Dictionary<string, object>)((object)(market)));
         }
@@ -4784,7 +4784,7 @@ public partial class BaseExchange
 
     public virtual object marketOrNull(object symbol = null)
     {
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             return null;
         }
@@ -4822,7 +4822,7 @@ public partial class BaseExchange
 
     public virtual string oath()
     {
-        if (!isEqual(this.twofa, null))
+        if ((this.twofa != null))
         {
             return totp(this.twofa);
         } else
@@ -4968,9 +4968,9 @@ public partial class BaseExchange
     /* eslint-enable no-unused-vars */
     public virtual object requireValue(object value, object message = null)
     {
-        if (isEqual(value, null))
+        if ((value == null))
         {
-            object errorMessage = ((bool) (!isEqual(message, null))) ? message : "value is required";
+            object errorMessage = ((bool) ((message != null))) ? message : "value is required";
             throw new ArgumentsRequired ((string)add((this.id + " "), errorMessage)) ;
         }
         return value;
@@ -5062,12 +5062,12 @@ public partial class BaseExchange
             return new List<object>() {type, parameters};
         }
         // type from market
-        if (!isEqual(market, null))
+        if ((market != null))
         {
             return new List<object>() {getValue(market, "type"), parameters};
         }
         // type from default-argument
-        if (!isEqual(defaultValue, null))
+        if ((defaultValue != null))
         {
             return new List<object>() {defaultValue, parameters};
         }
@@ -5107,7 +5107,7 @@ public partial class BaseExchange
         } else
         {
             // at first, check from market object
-            if (!isEqual(market, null))
+            if ((market != null))
             {
                 if (isEqual(getValue(market, "linear"), true))
                 {
@@ -5141,7 +5141,7 @@ public partial class BaseExchange
 
     public virtual void throwExactlyMatchedException(object exact, object str, object message)
     {
-        if (isEqual(str, null))
+        if ((str == null))
         {
             return;
         }
@@ -5167,7 +5167,7 @@ public partial class BaseExchange
         for (int i = 0; i < keys.Count; postFixIncrement(ref i))
         {
             string? key = ((string)getValue(keys, i));
-            if (!isEqual(str, null))
+            if ((str != null))
             {
                 if (isGreaterThanOrEqual(getIndexOf(str, key), 0))
                 {
@@ -5580,7 +5580,7 @@ public partial class BaseExchange
 
     public virtual Dictionary<string, object> currency(string code)
     {
-        if (isEqual(code, null))
+        if ((code == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " currency() requires a code argument")) ;
         }
@@ -5607,7 +5607,7 @@ public partial class BaseExchange
 
     public virtual Dictionary<string, object> market(object symbol)
     {
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " market() requires a symbol argument")) ;
         }
@@ -5662,7 +5662,7 @@ public partial class BaseExchange
                 {
                     // check if base currency is inside dict
                     string baseCurrencyCode = ((string)currencyCode).Replace((string)leverageSuffix, (string)"");
-                    if ((!isEqual(existingCurrencies, null)) && (inOp(existingCurrencies, baseCurrencyCode)))
+                    if (((existingCurrencies != null)) && (inOp(existingCurrencies, baseCurrencyCode)))
                     {
                         return ((bool)((object)(true))!);
                     }
@@ -5679,10 +5679,10 @@ public partial class BaseExchange
             parameters = this.extend(tag, parameters);
             tag = null;
         }
-        if (isEqual(tag, null))
+        if ((tag == null))
         {
             tag = this.safeString(parameters, "tag");
-            if (!isEqual(tag, null))
+            if ((tag != null))
             {
                 parameters = this.omit(parameters, "tag");
             }
@@ -5692,7 +5692,7 @@ public partial class BaseExchange
 
     public virtual string? costToPrecision(object symbol, object cost)
     {
-        if (isEqual(cost, null))
+        if ((cost == null))
         {
             return null;
         }
@@ -5702,7 +5702,7 @@ public partial class BaseExchange
 
     public virtual string? priceToPrecision(object symbol, object price)
     {
-        if (isEqual(price, null))
+        if ((price == null))
         {
             return null;
         }
@@ -5717,7 +5717,7 @@ public partial class BaseExchange
 
     public virtual string? amountToPrecision(object symbol, object amount)
     {
-        if (isEqual(amount, null))
+        if ((amount == null))
         {
             return null;
         }
@@ -5732,7 +5732,7 @@ public partial class BaseExchange
 
     public virtual string? feeToPrecision(object symbol, object fee)
     {
-        if (isEqual(fee, null))
+        if ((fee == null))
         {
             return null;
         }
@@ -5742,13 +5742,13 @@ public partial class BaseExchange
 
     public virtual string? currencyToPrecision(string code, object fee, object networkCode = null)
     {
-        if (isEqual(code, null))
+        if ((code == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " currencyToPrecision() requires a code argument")) ;
         }
         object currency = getValue(this.currencies, code);
         object precision = this.safeValue(currency, "precision");
-        if (!isEqual(networkCode, null))
+        if ((networkCode != null))
         {
             IDictionary<string, object> networks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
             IDictionary<string, object> networkItem = this.safeDict(networks, networkCode, new Dictionary<string, object>() {});
@@ -5808,7 +5808,7 @@ public partial class BaseExchange
          * @param {string} precision The number of digits to the right of the decimal
          * @returns {string} a string number equal to 1e-precision
          */
-        if (isEqual(precision, null))
+        if ((precision == null))
         {
             return ((string?)((object)(null)));
         }
@@ -5845,7 +5845,7 @@ public partial class BaseExchange
          * @param {string} precision The number of digits to the right of the decimal
          * @returns {string} a string number equal to 1e-precision
          */
-        if (isEqual(precision, null))
+        if ((precision == null))
         {
             return null;
         }
@@ -6043,7 +6043,7 @@ public partial class BaseExchange
             Dictionary<string, object> address = this.extend(this.parseDepositAddress(getValue(addresses, i)), parameters);
             ((IList<object>)result).Add(address);
         }
-        if (!isEqual(codes, null))
+        if ((codes != null))
         {
             result = this.filterByArray(result, "currency", codes, false);
         }
@@ -6105,7 +6105,7 @@ public partial class BaseExchange
             ((IList<object>)rates).Add(this.parseFundingRateHistory(entry, market));
         }
         List<object> sorted = this.sortBy(rates, "timestamp");
-        object symbol = ((bool) (isEqual(market, null))) ? null : getValue(market, "symbol");
+        object symbol = ((bool) ((market == null))) ? null : getValue(market, "symbol");
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
 
@@ -6149,7 +6149,7 @@ public partial class BaseExchange
             ((IList<object>)rates).Add(this.parseLongShortRatio(entry, market));
         }
         List<object> sorted = this.sortBy(rates, "timestamp");
-        object symbol = ((bool) (isEqual(market, null))) ? null : getValue(market, "symbol");
+        object symbol = ((bool) ((market == null))) ? null : getValue(market, "symbol");
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
 
@@ -6200,7 +6200,7 @@ public partial class BaseExchange
         */
         allowEmpty ??= false;
         string? triggerDirection = this.safeString(parameters, "triggerDirection");
-        bool exchangeSpecificDefined = (!isEqual(exchangeSpecificKey, null)) && (inOp(parameters, exchangeSpecificKey));
+        bool exchangeSpecificDefined = ((exchangeSpecificKey != null)) && (inOp(parameters, exchangeSpecificKey));
         if ((triggerDirection != null))
         {
             parameters = this.omit(parameters, "triggerDirection");
@@ -6587,7 +6587,7 @@ public partial class BaseExchange
         */
         options ??= new List<object>();
         int optionsLength = getArrayLength(options);
-        if ((isEqual(argument, null)) || ((optionsLength > 0) && (!(this.inArray(argument, options)))))
+        if (((argument == null)) || ((optionsLength > 0) && (!(this.inArray(argument, options)))))
         {
             string messageOptions = String.Join(", ", ((IList<object>)options).ToArray());
             string message = (add((add((this.id + " "), methodName) + "() requires a "), argumentName) + " argument");
@@ -6608,10 +6608,10 @@ public partial class BaseExchange
          * @param {string} methodName name of the method that requires a symbol
          * @param {string} marginMode is either 'isolated' or 'cross'
          */
-        if ((isEqual(marginMode, "isolated")) && (isEqual(symbol, null)))
+        if ((isEqual(marginMode, "isolated")) && ((symbol == null)))
         {
             throw new ArgumentsRequired ((string)(add((this.id + " "), methodName) + "() requires a symbol argument for isolated margin")) ;
-        } else if ((isEqual(marginMode, "cross")) && (!isEqual(symbol, null)))
+        } else if ((isEqual(marginMode, "cross")) && ((symbol != null)))
         {
             throw new ArgumentsRequired ((string)(add((this.id + " "), methodName) + "() cannot have a symbol argument for cross margin")) ;
         }
@@ -6641,11 +6641,11 @@ public partial class BaseExchange
             object currencyId = entry;
             if (isArray)
             {
-                currencyId = ((bool) (isEqual(currencyIdKey, null))) ? null : this.safeString(dictionary, currencyIdKey);
+                currencyId = ((bool) ((currencyIdKey == null))) ? null : this.safeString(dictionary, currencyIdKey);
             }
             Dictionary<string, object> currency = this.safeCurrency(currencyId);
             string? code = this.safeString(currency, "code");
-            if ((isEqual(codes, null)) || (this.inArray(code, codes)))
+            if (((codes == null)) || (this.inArray(code, codes)))
             {
                 ((IDictionary<string,object>)depositWithdrawFees)[(string)((string)code)] = this.parseDepositWithdrawFee(dictionary, currency);
             }
@@ -6741,7 +6741,7 @@ public partial class BaseExchange
          * @returns {MarketInterface|undefined} market structure for the first symbol, or undefined if symbols is undefined
          * Overloads: non-null `string[]` input yields `MarketInterface`; optional input yields `Market`.
          */
-        if (isEqual(symbols, null))
+        if ((symbols == null))
         {
             return null;
         }
@@ -6990,7 +6990,7 @@ public partial class BaseExchange
         {
             try
             {
-                if ((!isEqual(timeframe, null) && !isEqual(timeframe, "")) && !isEqual(method, "fetchFundingRateHistory"))
+                if (((timeframe != null) && !isEqual(timeframe, "")) && !isEqual(method, "fetchFundingRateHistory"))
                 {
                     return await ((Task<object>)callDynamically(this, method, new object[] { symbol, timeframe, since, limit, parameters }));
                 } else
@@ -7172,7 +7172,7 @@ public partial class BaseExchange
                     object index = subtract(subtract(responseLength, j), 1);
                     IDictionary<string, object> entry = this.safeDict(response, index);
                     IDictionary<string, object> info = this.safeDict(entry, "info");
-                    object cursor = ((bool) (isEqual(cursorReceived, null))) ? null : this.safeValue(info, cursorReceived);
+                    object cursor = ((bool) ((cursorReceived == null))) ? null : this.safeValue(info, cursorReceived);
                     if ((cursor != null))
                     {
                         cursorValue = cursor;
@@ -7449,9 +7449,9 @@ public partial class BaseExchange
         for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
         {
             object info = getValue(response, i);
-            string? currencyId = ((bool) (isEqual(currencyKey, null))) ? null : this.safeString(info, currencyKey);
+            string? currencyId = ((bool) ((currencyKey == null))) ? null : this.safeString(info, currencyKey);
             Dictionary<string, object> currency = this.safeCurrency(currencyId);
-            string? marketId = ((bool) (isEqual(symbolKey, null))) ? null : this.safeString(info, symbolKey);
+            string? marketId = ((bool) ((symbolKey == null))) ? null : this.safeString(info, symbolKey);
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, "option");
             ((IDictionary<string,object>)optionStructures)[(string)getValue(market, "symbol")] = this.parseOption(info, currency, market);
         }
@@ -7461,16 +7461,16 @@ public partial class BaseExchange
     public virtual Dictionary<string, object> parseMarginModes(object response, object symbols = null, object symbolKey = null, object marketType = null)
     {
         Dictionary<string, object> marginModeStructures = new Dictionary<string, object>() {};
-        if (isEqual(marketType, null))
+        if ((marketType == null))
         {
             marketType = "swap"; // default to swap
         }
         for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
         {
             object info = getValue(response, i);
-            string? marketId = ((bool) (isEqual(symbolKey, null))) ? null : this.safeString(info, symbolKey);
+            string? marketId = ((bool) ((symbolKey == null))) ? null : this.safeString(info, symbolKey);
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
-            if ((isEqual(symbols, null)) || this.inArray(getValue(market, "symbol"), symbols))
+            if (((symbols == null)) || this.inArray(getValue(market, "symbol"), symbols))
             {
                 ((IDictionary<string,object>)marginModeStructures)[(string)getValue(market, "symbol")] = this.parseMarginMode(info, market);
             }
@@ -7486,16 +7486,16 @@ public partial class BaseExchange
     public virtual Dictionary<string, object> parseLeverages(object response, object symbols = null, object symbolKey = null, object marketType = null)
     {
         Dictionary<string, object> leverageStructures = new Dictionary<string, object>() {};
-        if (isEqual(marketType, null))
+        if ((marketType == null))
         {
             marketType = "swap"; // default to swap
         }
         for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
         {
             object info = getValue(response, i);
-            string? marketId = ((bool) (isEqual(symbolKey, null))) ? null : this.safeString(info, symbolKey);
+            string? marketId = ((bool) ((symbolKey == null))) ? null : this.safeString(info, symbolKey);
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
-            if ((isEqual(symbols, null)) || this.inArray(getValue(market, "symbol"), symbols))
+            if (((symbols == null)) || this.inArray(getValue(market, "symbol"), symbols))
             {
                 ((IDictionary<string,object>)leverageStructures)[(string)getValue(market, "symbol")] = this.parseLeverage(info, market);
             }
@@ -7519,8 +7519,8 @@ public partial class BaseExchange
         for (int i = 0; i < getArrayLength(conversionsArray); postFixIncrement(ref i))
         {
             object entry = getValue(conversionsArray, i);
-            string? fromId = ((bool) (isEqual(fromCurrencyKey, null))) ? null : this.safeString(entry, fromCurrencyKey);
-            string? toId = ((bool) (isEqual(toCurrencyKey, null))) ? null : this.safeString(entry, toCurrencyKey);
+            string? fromId = ((bool) ((fromCurrencyKey == null))) ? null : this.safeString(entry, fromCurrencyKey);
+            string? toId = ((bool) ((toCurrencyKey == null))) ? null : this.safeString(entry, toCurrencyKey);
             if ((fromId != null))
             {
                 fromCurrency = this.safeCurrency(fromId);
@@ -7534,7 +7534,7 @@ public partial class BaseExchange
         }
         List<object> sorted = this.sortBy(result, "timestamp");
         IDictionary<string, object> currency = null;
-        if (!isEqual(codeVar, null))
+        if ((codeVar != null))
         {
             currency = this.safeCurrency(codeVar);
             if ((currency == null))
@@ -7543,7 +7543,7 @@ public partial class BaseExchange
             }
             codeVar = getValue(currency, "code");
         }
-        if (isEqual(codeVar, null))
+        if ((codeVar == null))
         {
             return this.filterBySinceLimit(sorted, since, limit);
         }
@@ -7555,7 +7555,7 @@ public partial class BaseExchange
 
     public virtual object parseConversion(object conversion, object fromCurrency = null, object toCurrency = null)
     {
-        if (isEqual(conversion, null))
+        if ((conversion == null))
         {
             throw new NotSupported ((string)(this.id + " parseConversion () is not supported yet")) ;
         }
@@ -7564,7 +7564,7 @@ public partial class BaseExchange
 
     public virtual string? convertExpireDate(object date)
     {
-        if (isEqual(date, null))
+        if ((date == null))
         {
             return null;
         }
@@ -7580,7 +7580,7 @@ public partial class BaseExchange
 
     public virtual string? convertExpireDateToMarketIdDate(object date)
     {
-        if (isEqual(date, null))
+        if ((date == null))
         {
             return null;
         }
@@ -7632,7 +7632,7 @@ public partial class BaseExchange
 
     public virtual string? convertMarketIdExpireDate(object date)
     {
-        if (isEqual(date, null))
+        if ((date == null))
         {
             return null;
         }
@@ -7671,7 +7671,7 @@ public partial class BaseExchange
 
     public virtual object parseMarginModification(object data, object market = null)
     {
-        if (isEqual(data, null))
+        if ((data == null))
         {
             throw new NotSupported ((string)(this.id + " parseMarginModification() is not supported yet")) ;
         }
@@ -7681,16 +7681,16 @@ public partial class BaseExchange
     public virtual List<object> parseMarginModifications(object response, object symbols = null, object symbolKey = null, object marketType = null)
     {
         List<object> marginModifications = new List<object>() {};
-        if (isEqual(response, null))
+        if ((response == null))
         {
             return ((List<object>)((object)(marginModifications)));
         }
         for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
         {
             object info = getValue(response, i);
-            string? marketId = ((bool) (isEqual(symbolKey, null))) ? null : this.safeString(info, symbolKey);
+            string? marketId = ((bool) ((symbolKey == null))) ? null : this.safeString(info, symbolKey);
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
-            if ((isEqual(symbols, null)) || this.inArray(getValue(market, "symbol"), symbols))
+            if (((symbols == null)) || this.inArray(getValue(market, "symbol"), symbols))
             {
                 ((IList<object>)marginModifications).Add(this.parseMarginModification(info, market));
             }
@@ -7745,17 +7745,17 @@ public partial class BaseExchange
     public virtual void cleanUnsubscription(WebSocketClient client, object subHash, object unsubHash, object subHashIsPrefix = null)
     {
         subHashIsPrefix ??= false;
-        if ((!isEqual(unsubHash, null)) && (inOp(client.subscriptions, unsubHash)))
+        if (((unsubHash != null)) && (inOp(client.subscriptions, unsubHash)))
         {
             ((IDictionary<string,object>)client.subscriptions).Remove((string)unsubHash);
         }
         if (!isTrue(subHashIsPrefix))
         {
-            if ((!isEqual(subHash, null)) && (inOp(client.subscriptions, subHash)))
+            if (((subHash != null)) && (inOp(client.subscriptions, subHash)))
             {
                 ((IDictionary<string,object>)client.subscriptions).Remove((string)subHash);
             }
-            if ((!isEqual(subHash, null)) && (inOp(client.futures, subHash)))
+            if (((subHash != null)) && (inOp(client.futures, subHash)))
             {
                 var error = new UnsubscribeError(add((this.id + " "), subHash));
                 client.reject(error, subHash);
@@ -7766,7 +7766,7 @@ public partial class BaseExchange
             for (int i = 0; i < clientSubscriptions.Count; postFixIncrement(ref i))
             {
                 string? sub = ((string)getValue(clientSubscriptions, i));
-                if (((sub != null)) && (!isEqual(subHash, null)) && ((string)sub).StartsWith(((string)subHash)))
+                if (((sub != null)) && ((subHash != null)) && ((string)sub).StartsWith(((string)subHash)))
                 {
                     ((IDictionary<string,object>)client.subscriptions).Remove((string)sub);
                 }
@@ -7775,7 +7775,7 @@ public partial class BaseExchange
             for (int i = 0; i < clientFutures.Count; postFixIncrement(ref i))
             {
                 string? future = ((string)getValue(clientFutures, i));
-                if (((future != null)) && (!isEqual(subHash, null)) && ((string)future).StartsWith(((string)subHash)))
+                if (((future != null)) && ((subHash != null)) && ((string)future).StartsWith(((string)subHash)))
                 {
                     var error = new UnsubscribeError(((this.id + " ") + future));
                     client.reject(error, future);
@@ -7806,7 +7806,7 @@ public partial class BaseExchange
                 {
                     throw new ArgumentsRequired ((string)(this.id + " cleanCache() requires a timeframe argument")) ;
                 }
-                if ((!isEqual(this.ohlcvs, null)) && (((IDictionary<string, object>)this.ohlcvs).ContainsKey(symbol)))
+                if (((this.ohlcvs != null)) && (((IDictionary<string, object>)this.ohlcvs).ContainsKey(symbol)))
                 {
                     if (inOp(getValue(this.ohlcvs, symbol), timeframe))
                     {
@@ -7847,13 +7847,13 @@ public partial class BaseExchange
             }
         } else
         {
-            if ((topic == "myTrades") && (!isEqual(this.myTrades, null)))
+            if ((topic == "myTrades") && ((this.myTrades != null)))
             {
                 this.myTrades = null;
-            } else if ((topic == "orders") && (!isEqual(this.orders, null)))
+            } else if ((topic == "orders") && ((this.orders != null)))
             {
                 this.orders = null;
-            } else if ((topic == "positions") && (!isEqual(this.positions, null)))
+            } else if ((topic == "positions") && ((this.positions != null)))
             {
                 this.positions = null;
                 List<object> clients = new List<object>(((IDictionary<string,object>)this.clients).Values);
@@ -7866,7 +7866,7 @@ public partial class BaseExchange
                         ((IDictionary<string,object>)futures).Remove((string)"fetchPositionsSnapshot");
                     }
                 }
-            } else if (((topic == "ticker") || (topic == "markPrice")) && (!isEqual(this.tickers, null)))
+            } else if (((topic == "ticker") || (topic == "markPrice")) && ((this.tickers != null)))
             {
                 List<object> tickerSymbols = new List<object>(((IDictionary<string,object>)this.tickers).Keys);
                 for (int i = 0; i < tickerSymbols.Count; postFixIncrement(ref i))
@@ -7877,7 +7877,7 @@ public partial class BaseExchange
                         ((IDictionary<string,object>)this.tickers).Remove((string)tickerSymbol);
                     }
                 }
-            } else if ((topic == "bidsasks") && (!isEqual(this.bidsasks, null)))
+            } else if ((topic == "bidsasks") && ((this.bidsasks != null)))
             {
                 List<object> bidsaskSymbols = new List<object>(((IDictionary<string,object>)this.bidsasks).Keys);
                 for (int i = 0; i < bidsaskSymbols.Count; postFixIncrement(ref i))

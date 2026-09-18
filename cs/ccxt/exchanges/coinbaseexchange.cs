@@ -902,7 +902,7 @@ public partial class coinbaseexchange : Exchange
     public async override Task<List<ccxt.Account>> FetchAccounts(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -985,7 +985,7 @@ public partial class coinbaseexchange : Exchange
     public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1006,7 +1006,7 @@ public partial class coinbaseexchange : Exchange
     public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1082,7 +1082,7 @@ public partial class coinbaseexchange : Exchange
         string? low = null;
         string? open = null;
         string? volume = null;
-        object symbol = ((bool) (isEqual(market, null))) ? null : getValue(market, "symbol");
+        object symbol = ((bool) ((market == null))) ? null : getValue(market, "symbol");
         if (((ticker is IList<object>) || (ticker.GetType().IsGenericType && ticker.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             last = this.safeString(ticker, 4);
@@ -1134,7 +1134,7 @@ public partial class coinbaseexchange : Exchange
     public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1188,7 +1188,7 @@ public partial class coinbaseexchange : Exchange
     public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1325,7 +1325,7 @@ public partial class coinbaseexchange : Exchange
     public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchMyTrades() requires a symbol argument")) ;
         }
@@ -1337,7 +1337,7 @@ public partial class coinbaseexchange : Exchange
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters, 100));
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1377,7 +1377,7 @@ public partial class coinbaseexchange : Exchange
     public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1415,7 +1415,7 @@ public partial class coinbaseexchange : Exchange
     public async override Task<ccxt.TradingFees> FetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1480,7 +1480,7 @@ public partial class coinbaseexchange : Exchange
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1667,7 +1667,7 @@ public partial class coinbaseexchange : Exchange
     public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1701,12 +1701,12 @@ public partial class coinbaseexchange : Exchange
     public async override Task<List<ccxt.Trade>> FetchOrderTrades(string id, string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
         }
@@ -1754,7 +1754,7 @@ public partial class coinbaseexchange : Exchange
     public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1768,7 +1768,7 @@ public partial class coinbaseexchange : Exchange
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["product_id"] = getValue(market, "id");
@@ -1828,7 +1828,7 @@ public partial class coinbaseexchange : Exchange
     public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1920,7 +1920,7 @@ public partial class coinbaseexchange : Exchange
     public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1935,7 +1935,7 @@ public partial class coinbaseexchange : Exchange
             parameters = this.omit(parameters, new List<object>() {"clientOrderId", "client_oid"});
         }
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["product_id"] = getValue(market, "symbol"); // the request will be more performant if you include it
@@ -1963,13 +1963,13 @@ public partial class coinbaseexchange : Exchange
     public async override Task<List<ccxt.Order>> CancelAllOrders(string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["product_id"] = getValue(market, "symbol"); // the request will be more performant if you include it
@@ -2005,7 +2005,7 @@ public partial class coinbaseexchange : Exchange
         tagVar = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
         this.checkAddress(address);
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2024,7 +2024,7 @@ public partial class coinbaseexchange : Exchange
         } else
         {
             ((IDictionary<string,object>)request)["crypto_address"] = address;
-            if (!isEqual(tagVar, null))
+            if ((tagVar != null))
             {
                 ((IDictionary<string,object>)request)["destination_tag"] = tagVar;
             }
@@ -2143,11 +2143,11 @@ public partial class coinbaseexchange : Exchange
     {
         // https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccountledger
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(code, null))
+        if ((code == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchLedger() requires a code param")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2201,7 +2201,7 @@ public partial class coinbaseexchange : Exchange
     public async override Task<List<ccxt.Transaction>> FetchDepositsWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2210,7 +2210,7 @@ public partial class coinbaseexchange : Exchange
         object id = this.safeString(parameters, "id"); // account id
         if ((id == null))
         {
-            if (!isEqual(code, null))
+            if ((code != null))
             {
                 currency = this.currency(((string)code));
                 Dictionary<string, object> accountsByCurrencyCode = this.indexBy(this.accounts, "code");
@@ -2467,7 +2467,7 @@ public partial class coinbaseexchange : Exchange
     public async override Task<ccxt.DepositAddress> CreateDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }

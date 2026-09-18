@@ -1050,7 +1050,7 @@ public partial class btse : Exchange
     public async override Task<List<ccxt.FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
         }
@@ -1275,7 +1275,7 @@ public partial class btse : Exchange
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(symbols, null))
+        if ((symbols != null))
         {
             int length = getArrayLength(symbols);
             if ((length == 1))
@@ -1318,7 +1318,7 @@ public partial class btse : Exchange
             string? marketId = this.safeString(entry, "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = ((string)getValue(market, "symbol"));
-            if (isEqual(symbols, null) || this.inArray(symbol, symbols))
+            if ((symbols == null) || this.inArray(symbol, symbols))
             {
                 List<object> levels = this.safeList(entry, "riskLimits", new List<object>() {});
                 List<object> tiers = new List<object>() {};
@@ -1478,7 +1478,7 @@ public partial class btse : Exchange
         market = this.safeMarket(marketId, market);
         string? last = this.safeString(ticker, "lastPrice");
         string? baseVolume = this.safeString(ticker, "amount");
-        if (((baseVolume != null)) && (!isEqual(market, null)) && (isEqual(getValue(market, "contract"), true)))
+        if (((baseVolume != null)) && ((market != null)) && (isEqual(getValue(market, "contract"), true)))
         {
             // for contract markets the amount field is denominated in contracts, verified live -
             // scaling by contractSize converts it into base currency units
@@ -1811,7 +1811,7 @@ public partial class btse : Exchange
         }
         Dictionary<string, object> market = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
@@ -1834,7 +1834,7 @@ public partial class btse : Exchange
         object response = null;
         if (isEqual(marketType, "spot"))
         {
-            if (isEqual(symbol, null))
+            if ((symbol == null))
             {
                 throw new ArgumentsRequired ((string)(this.id + " fetchMyTrades() requires a symbol argument for spot markets")) ;
             }
@@ -1943,7 +1943,7 @@ public partial class btse : Exchange
         string? clientOrderId = this.safeString(parameters, "clientOrderId");
         if ((clientOrderId == null))
         {
-            if (isEqual(id, null))
+            if ((id == null))
             {
                 throw new ArgumentsRequired ((string)(this.id + " fetchOrderTrades() requires an id argument or a clientOrderId parameter")) ;
             } else
@@ -2626,7 +2626,7 @@ public partial class btse : Exchange
         {
             ((IDictionary<string,object>)request)["clOrderId"] = clientOrderId;
             parameters = this.omit(parameters, "clientOrderId");
-        } else if (isEqual(id, null))
+        } else if ((id == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchOpenOrder() requires an id argument or a clientOrderId parameter")) ;
         } else
@@ -2634,7 +2634,7 @@ public partial class btse : Exchange
             ((IDictionary<string,object>)request)["orderId"] = id;
         }
         Dictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
         }
@@ -2691,7 +2691,7 @@ public partial class btse : Exchange
         {
             ((IDictionary<string,object>)request)["clOrderId"] = clientOrderId;
             parameters = this.omit(parameters, "clientOrderId");
-        } else if (isEqual(id, null))
+        } else if ((id == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " editOrder() requires an id argument or a clientOrderId parameter")) ;
         } else
@@ -2765,7 +2765,7 @@ public partial class btse : Exchange
     public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " cancelOrder() requires a symbol argument")) ;
         }
@@ -2777,7 +2777,7 @@ public partial class btse : Exchange
         {
             ((IDictionary<string,object>)request)["clOrderId"] = clientOrderId;
             parameters = this.omit(parameters, "clientOrderId");
-        } else if (isEqual(id, null))
+        } else if ((id == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " cancelOrder() requires an id argument or a clientOrderId parameter")) ;
         } else
@@ -2830,7 +2830,7 @@ public partial class btse : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         Dictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
         }
@@ -2913,7 +2913,7 @@ public partial class btse : Exchange
         await this.loadMarkets();
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
         }
@@ -3186,7 +3186,7 @@ public partial class btse : Exchange
         ((IDictionary<string,object>)request)["historyTypes"] = this.json(typesList);
         parameters = this.omit(parameters, "walletType");
         Dictionary<string, object> currency = null;
-        if (!isEqual(code, null))
+        if ((code != null))
         {
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["asset"] = getValue(currency, "id");
@@ -3429,7 +3429,7 @@ public partial class btse : Exchange
         ((IDictionary<string,object>)request)["walletType"] = walletType;
         parameters = this.omit(parameters, "walletType");
         Dictionary<string, object> currency = null;
-        if (!isEqual(code, null))
+        if ((code != null))
         {
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["asset"] = getValue(currency, "id");
@@ -3780,7 +3780,7 @@ public partial class btse : Exchange
     public async override Task<ccxt.PositionModeInfo> FetchPositionMode(string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchPositionMode() requires a symbol argument")) ;
         }
@@ -3822,7 +3822,7 @@ public partial class btse : Exchange
         // it terms of btse positionMode could be HEDGE, ONE_WAY or ISOLATED
         // ISOLATED positionMode is always hedged and multi-position
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " setPositionMode() requires a symbol argument")) ;
         }
@@ -3904,7 +3904,7 @@ public partial class btse : Exchange
         // we use params.hedged to define the positionMode when marginModeVar is cross
         // and warn user if the params are not correct for the marginModeVar being set
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " setMarginMode() requires a symbol argument")) ;
         }
@@ -4079,7 +4079,7 @@ public partial class btse : Exchange
     public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " setLeverage() requires a symbol argument")) ;
         }
@@ -4106,7 +4106,7 @@ public partial class btse : Exchange
 
     public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
     {
-        if ((isEqual(response, null)) || (isEqual(response, null)))
+        if (((response == null)) || ((response == null)))
         {
             return null;  // fallback to default error handler
         }

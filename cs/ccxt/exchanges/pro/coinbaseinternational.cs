@@ -80,7 +80,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async virtual Task<object> subscribe(object name, object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -88,7 +88,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         IDictionary<string, object> market = null;
         object messageHash = name;
         IList<object> productIds = null;
-        if (isEqual(symbols, null))
+        if ((symbols == null))
         {
             symbols = this.getActiveSymbols();
         }
@@ -149,7 +149,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async virtual Task<object> subscribeMultiple(object name, object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -217,11 +217,11 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async override Task<ccxt.FundingRates> WatchFundingRates(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbols, null))
+        if ((symbols == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " watchFundingRates() requires an array of symbols")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -249,7 +249,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -289,7 +289,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -513,7 +513,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -602,7 +602,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }

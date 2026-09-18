@@ -108,7 +108,7 @@ public partial class blofin : ccxt.blofin
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -198,7 +198,7 @@ public partial class blofin : ccxt.blofin
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(object symbols, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -301,7 +301,7 @@ public partial class blofin : ccxt.blofin
     public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbols, null))
+        if ((symbols == null))
         {
             throw new NotSupported ((string)(this.id + " watchTickers() requires a list of symbols")) ;
         }
@@ -361,7 +361,7 @@ public partial class blofin : ccxt.blofin
     public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -467,7 +467,7 @@ public partial class blofin : ccxt.blofin
         {
             throw new ArgumentsRequired ((string)(this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -536,7 +536,7 @@ public partial class blofin : ccxt.blofin
     public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -600,7 +600,7 @@ public partial class blofin : ccxt.blofin
     {
         parameters ??= new Dictionary<string, object>();
         ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchOrders";
-        List<object> symbolsArray = ((bool) (!isEqual(symbol, null))) ? new List<object>() {symbol} : new List<object>() {};
+        List<object> symbolsArray = ((bool) ((symbol != null))) ? new List<object>() {symbol} : new List<object>() {};
         return await this.WatchOrdersForSymbols(symbolsArray,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
     }
 
@@ -622,7 +622,7 @@ public partial class blofin : ccxt.blofin
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         await this.authenticate();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -650,7 +650,7 @@ public partial class blofin : ccxt.blofin
         //         ]
         //     }
         //
-        if (isEqual(this.orders, null))
+        if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
@@ -690,7 +690,7 @@ public partial class blofin : ccxt.blofin
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -712,7 +712,7 @@ public partial class blofin : ccxt.blofin
         //         ]
         //     }
         //
-        if (isEqual(this.positions, null))
+        if ((this.positions == null))
         {
             this.positions = new ArrayCacheBySymbolBySide();
         }
@@ -748,7 +748,7 @@ public partial class blofin : ccxt.blofin
     public async override Task<ccxt.FundingRate> WatchFundingRate(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -797,7 +797,7 @@ public partial class blofin : ccxt.blofin
     {
         // underlier method for all watch-multiple symbols
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }

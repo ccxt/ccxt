@@ -100,7 +100,7 @@ public partial class bitget : ccxt.bitget
         uta ??= false;
         parameters ??= new Dictionary<string, object>();
         object instType = null;
-        if (isEqual(market, null))
+        if ((market == null))
         {
             IList<object> instTypeparametersVariable = (IList<object>)this.handleProductTypeAndParams(null, parameters);
             instType = ((IList<object>)instTypeparametersVariable)[0];
@@ -142,7 +142,7 @@ public partial class bitget : ccxt.bitget
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -198,12 +198,12 @@ public partial class bitget : ccxt.bitget
     public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, null, false);
-        if (isEqual(symbols, null))
+        if ((symbols == null))
         {
             symbols = new List<object>() {};
         }
@@ -457,12 +457,12 @@ public partial class bitget : ccxt.bitget
     public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, null, false);
-        if (isEqual(symbols, null))
+        if ((symbols == null))
         {
             symbols = new List<object>() {};
         }
@@ -559,7 +559,7 @@ public partial class bitget : ccxt.bitget
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -620,7 +620,7 @@ public partial class bitget : ccxt.bitget
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -793,7 +793,7 @@ public partial class bitget : ccxt.bitget
         //     }
         //
         int volumeIndex = 5;
-        if ((!isEqual(market, null)) && (isEqual(getValue(market, "inverse"), true)))
+        if (((market != null)) && (isEqual(getValue(market, "inverse"), true)))
         {
             volumeIndex = 6;
         }
@@ -835,7 +835,7 @@ public partial class bitget : ccxt.bitget
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -852,7 +852,7 @@ public partial class bitget : ccxt.bitget
     public async virtual Task<object> unWatchChannel(object symbol, object channel, object messageHashTopic, object methodName, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -902,7 +902,7 @@ public partial class bitget : ccxt.bitget
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(object symbols, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1156,7 +1156,7 @@ public partial class bitget : ccxt.bitget
         {
             throw new ArgumentsRequired ((string)(this.id + " watchTradesForSymbols() requires a non-empty array of symbols")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1399,7 +1399,7 @@ public partial class bitget : ccxt.bitget
         {
             defaultType = ((bool) ((posMode != null))) ? "contract" : "spot";
         }
-        if (isEqual(market, null))
+        if ((market == null))
         {
             market = this.safeMarket(instId, null, null, defaultType);
         }
@@ -1450,7 +1450,7 @@ public partial class bitget : ccxt.bitget
     public async override Task<List<ccxt.Position>> WatchPositions(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1463,7 +1463,7 @@ public partial class bitget : ccxt.bitget
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
         symbols = this.marketSymbols(symbols);
-        if ((!isEqual(symbols, null)) && !isTrue(this.isEmpty(symbols)))
+        if (((symbols != null)) && !isTrue(this.isEmpty(symbols)))
         {
             market = this.getMarketFromSymbols(symbols);
             var instTypeparametersVariable = this.getInstType("watchPositions", market, uta, parameters);
@@ -1578,7 +1578,7 @@ public partial class bitget : ccxt.bitget
         //
         IDictionary<string, object> arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
         string instType = ((string)this.safeString(arg, "instType", ""));
-        if (isEqual(this.positions, null))
+        if ((this.positions == null))
         {
             this.positions = new Dictionary<string, object>() {};
         }
@@ -1683,7 +1683,7 @@ public partial class bitget : ccxt.bitget
         string? percentageDecimal = this.safeString2(position, "unrealizedPLR", "profitRate");
         string? percentage = Precise.stringMul(percentageDecimal, "100");
         object contractSize = null;
-        if (!isEqual(market, null))
+        if ((market != null))
         {
             contractSize = getValue(market, "contractSize");
         }
@@ -1741,7 +1741,7 @@ public partial class bitget : ccxt.bitget
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1753,7 +1753,7 @@ public partial class bitget : ccxt.bitget
         parameters = ((IList<object>)isTriggerparametersVariable)[1];
         object messageHash = ((bool) (isEqual(isTrigger, true))) ? "triggerOrder" : "order";
         object subscriptionHash = "order:trades";
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
@@ -1773,11 +1773,11 @@ public partial class bitget : ccxt.bitget
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("watchOrders", market, parameters, "linear");
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        if ((isEqual(type, "spot") || isEqual(type, "margin")) && (isEqual(symbolVar, null)))
+        if ((isEqual(type, "spot") || isEqual(type, "margin")) && ((symbolVar == null)))
         {
             marketId = "default";
         }
-        if (((productType == null)) && (!isEqual(type, "spot")) && (isEqual(symbolVar, null)))
+        if (((productType == null)) && (!isEqual(type, "spot")) && ((symbolVar == null)))
         {
             messageHash = add(add(messageHash, ":"), subType);
         } else if ((productType == "USDT-FUTURES"))
@@ -1800,7 +1800,7 @@ public partial class bitget : ccxt.bitget
             instType = ((IList<object>)instTypeparametersVariable)[0];
             parameters = ((IList<object>)instTypeparametersVariable)[1];
         }
-        if (isEqual(type, "spot") && (!isEqual(symbolVar, null)))
+        if (isEqual(type, "spot") && ((symbolVar != null)))
         {
             subscriptionHash = add(add(subscriptionHash, ":"), symbolVar);
         }
@@ -1972,7 +1972,7 @@ public partial class bitget : ccxt.bitget
                 marketType = "contract";
             }
         }
-        if (isEqual(this.orders, null))
+        if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
@@ -2328,13 +2328,13 @@ public partial class bitget : ccxt.bitget
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
         object messageHash = "myTrades";
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
@@ -2496,7 +2496,7 @@ public partial class bitget : ccxt.bitget
         //         "ts": 1733904123981
         //     }
         //
-        if (isEqual(this.myTrades, null))
+        if ((this.myTrades == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache(limit);

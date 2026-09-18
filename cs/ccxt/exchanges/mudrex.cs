@@ -239,7 +239,7 @@ public partial class mudrex : Exchange
         object url = add(add(bs, "/"), this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         Dictionary<string, object> requestHeaders = new Dictionary<string, object>() {};
-        if (!isEqual(headers, null))
+        if ((headers != null))
         {
             requestHeaders = this.extend(new Dictionary<string, object>() {}, headers);
         }
@@ -297,7 +297,7 @@ public partial class mudrex : Exchange
 
     public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
     {
-        if (isEqual(response, null) || !(response is IDictionary<string, object>))
+        if ((response == null) || !(response is IDictionary<string, object>))
         {
             return null;
         }
@@ -362,7 +362,7 @@ public partial class mudrex : Exchange
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -465,7 +465,7 @@ public partial class mudrex : Exchange
     public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -491,7 +491,7 @@ public partial class mudrex : Exchange
     public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -510,7 +510,7 @@ public partial class mudrex : Exchange
             }
             Dictionary<string, object> m = this.safeMarket(sym);
             string? symbol = ((string)getValue(m, "symbol"));
-            if (!isEqual(symbols, null) && !this.inArray(symbol, symbols))
+            if ((symbols != null) && !this.inArray(symbol, symbols))
             {
                 continue;
             }
@@ -698,7 +698,7 @@ public partial class mudrex : Exchange
     public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -774,7 +774,7 @@ public partial class mudrex : Exchange
     public async override Task<ccxt.Leverage> FetchLeverage(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -802,11 +802,11 @@ public partial class mudrex : Exchange
     public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " setLeverage() requires a symbol")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -849,7 +849,7 @@ public partial class mudrex : Exchange
     public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -941,12 +941,12 @@ public partial class mudrex : Exchange
     public async override Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
         }
@@ -1072,12 +1072,12 @@ public partial class mudrex : Exchange
     public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
         }
@@ -1102,12 +1102,12 @@ public partial class mudrex : Exchange
     public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
         }
@@ -1134,7 +1134,7 @@ public partial class mudrex : Exchange
     public async virtual Task<List<ccxt.Order>> FetchOrdersByState(object state, object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1155,7 +1155,7 @@ public partial class mudrex : Exchange
         object data = this.safeValue(response, "data", new List<object>() {});
         IList<object> rows = this.toArray(data);
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
         }
@@ -1231,7 +1231,7 @@ public partial class mudrex : Exchange
     public async override Task<List<ccxt.Position>> FetchPositions(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1270,7 +1270,7 @@ public partial class mudrex : Exchange
     public async override Task<List<ccxt.Position>> FetchPositionsHistory(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1380,7 +1380,7 @@ public partial class mudrex : Exchange
     public async override Task<object> closePosition(string symbol, string side = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1393,7 +1393,7 @@ public partial class mudrex : Exchange
             for (int i = 0; i < getArrayLength(positions); postFixIncrement(ref i))
             {
                 object p = getValue(positions, i);
-                if (!isEqual(side, null) && !isEqual(getValue(p, "side"), side))
+                if ((side != null) && !isEqual(getValue(p, "side"), side))
                 {
                     continue;
                 }
@@ -1444,7 +1444,7 @@ public partial class mudrex : Exchange
     public async override Task<object> addMargin(string symbol, object amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1507,12 +1507,12 @@ public partial class mudrex : Exchange
     public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
         }

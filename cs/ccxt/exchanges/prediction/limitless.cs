@@ -1211,7 +1211,7 @@ public partial class limitless : PredictionExchange
             raw = this.safeDict(ticker, "market", new Dictionary<string, object>() {});
             book = this.safeDict(ticker, "book");
         }
-        string? rawLabel = ((bool) (!isEqual(market, null))) ? this.safeString(market, "label", this.safeString(getValue(market, "info"), "outcomeLabel", "yes")) : "yes";
+        string? rawLabel = ((bool) ((market != null))) ? this.safeString(market, "label", this.safeString(getValue(market, "info"), "outcomeLabel", "yes")) : "yes";
         bool isYes = (((string)rawLabel).ToLower() != "no");
         string? bidStr = null;
         string? askStr = null;
@@ -1327,7 +1327,7 @@ public partial class limitless : PredictionExchange
     public async override Task<ccxt.PredictionTickers> FetchTickers(object outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(outcomes, null))
+        if ((outcomes == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())")) ;
         }
@@ -1726,7 +1726,7 @@ public partial class limitless : PredictionExchange
     public async override Task<List<ccxt.PredictionOrder>> FetchOrders(string outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(outcome, null))
+        if ((outcome == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchOrders requires an outcome argument")) ;
         }
@@ -1781,7 +1781,7 @@ public partial class limitless : PredictionExchange
     public async override Task<List<ccxt.PredictionOrder>> FetchOpenOrders(string outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(outcome, null))
+        if ((outcome == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchOpenOrders requires an outcome argument")) ;
         }
@@ -1806,7 +1806,7 @@ public partial class limitless : PredictionExchange
     public async override Task<List<ccxt.PredictionOrder>> FetchClosedOrders(string outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(outcome, null))
+        if ((outcome == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchClosedOrders requires an outcome argument")) ;
         }
@@ -1830,7 +1830,7 @@ public partial class limitless : PredictionExchange
     public async virtual Task<List<ccxt.PredictionOrder>> FetchOrdersByIds(object ids, string outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(outcome, null))
+        if ((outcome != null))
         {
             await this.loadOutcome(outcome);
         }
@@ -1975,7 +1975,7 @@ public partial class limitless : PredictionExchange
     public async virtual Task<ccxt.PredictionOrder> FetchOrder(string id, string outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(outcome, null))
+        if ((outcome != null))
         {
             await this.loadOutcome(outcome);
         }
@@ -2360,7 +2360,7 @@ public partial class limitless : PredictionExchange
             { "buy", 0 },
             { "sell", 1 },
         };
-        if (isEqual(side, null))
+        if ((side == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " createOrder() requires a side argument")) ;
         }
@@ -2481,7 +2481,7 @@ public partial class limitless : PredictionExchange
     public virtual object signOrderRequest(object signRequest, object marketSymbol)
     {
         this.checkRequiredCredentials();
-        if (isEqual(this.privateKey, null))
+        if ((this.privateKey == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " createOrder() requires a privateKey (the embedded/trading wallet key) to sign orders")) ;
         }
@@ -2601,7 +2601,7 @@ public partial class limitless : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        if (isEqual(this.privateKey, null))
+        if ((this.privateKey == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " approve() requires a privateKey to sign the on-chain transaction")) ;
         }
@@ -2646,7 +2646,7 @@ public partial class limitless : PredictionExchange
     public async override Task<ccxt.PredictionOrder> CancelOrder(string id, string outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(outcome, null))
+        if ((outcome != null))
         {
             await this.loadOutcome(outcome);
         }
@@ -2683,7 +2683,7 @@ public partial class limitless : PredictionExchange
         string? conditionId = this.safeString2(parameters, "conditionId", "condition_id");
         if ((conditionId == null))
         {
-            if (isEqual(outcome, null))
+            if ((outcome == null))
             {
                 throw new ArgumentsRequired ((string)(this.id + " redeem() requires an outcome or a params.conditionId")) ;
             }
@@ -2720,7 +2720,7 @@ public partial class limitless : PredictionExchange
     public async override Task<List<ccxt.PredictionOrder>> CancelOrders(object ids, string outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(outcome, null))
+        if ((outcome != null))
         {
             await this.loadOutcome(outcome);
         }
@@ -2753,7 +2753,7 @@ public partial class limitless : PredictionExchange
     public async virtual Task<List<ccxt.PredictionOrder>> CancelAllOrders(string outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(outcome, null))
+        if ((outcome != null))
         {
             object warn = true;
             IList<object> warnparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "cancelAllOrders", "warnOnCancelAllOrdersWithOutcome", warn);
@@ -2766,7 +2766,7 @@ public partial class limitless : PredictionExchange
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         string? slug = this.safeString(parameters, "slug");
-        if (!isEqual(outcome, null))
+        if ((outcome != null))
         {
             IDictionary<string, object> outcomeObj = ((IDictionary<string, object>)await this.loadOutcome(outcome));
             ((IDictionary<string,object>)request)["slug"] = this.safeString(getValue(outcomeObj, "info"), "slug");
@@ -2799,7 +2799,7 @@ public partial class limitless : PredictionExchange
         // resolve the handle for the final filter — the caller may have passed an outcomeId
         parameters ??= new Dictionary<string, object>();
         object outcomeSymbol = outcome;
-        if (!isEqual(outcome, null))
+        if ((outcome != null))
         {
             IDictionary<string, object> outcomeObj = ((IDictionary<string, object>)await this.loadOutcome(outcome));
             outcomeSymbol = this.safeString(outcomeObj, "outcome");
@@ -3073,7 +3073,7 @@ public partial class limitless : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         int symbolsLength = 0;
-        if (!isEqual(outcomes, null))
+        if ((outcomes != null))
         {
             symbolsLength = getArrayLength(outcomes);
         }
@@ -3185,7 +3185,7 @@ public partial class limitless : PredictionExchange
 
     public virtual object getPositionFromClobEntry(object label, object entry = null)
     {
-        if (isEqual(entry, null))
+        if ((entry == null))
         {
             return null;
         }
@@ -3346,11 +3346,11 @@ public partial class limitless : PredictionExchange
                 ((IList<object>)rawMarkets).Add(getValue(listRaw, i));
             }
         }
-        if (isEqual(this.events, null))
+        if ((this.events == null))
         {
             this.events = new Dictionary<string, object>() {};
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             this.markets = this.createSafeDictionary();
         }
@@ -3441,7 +3441,7 @@ public partial class limitless : PredictionExchange
                 { "limit", pageSize },
             };
             Dictionary<string, object> response = null;
-            if (!isEqual(categoryId, null))
+            if ((categoryId != null))
             {
                 ((IDictionary<string,object>)request)["categoryId"] = categoryId;
                 response = await this.limitlessPublicGetMarketsActiveCategoryId(this.extend(request, rest));
@@ -3578,7 +3578,7 @@ public partial class limitless : PredictionExchange
         if (isEqual(access, "private"))
         {
             string bodyString = "";
-            if (isEqual(headers, null))
+            if ((headers == null))
             {
                 headers = new Dictionary<string, object>() {};
             }
@@ -3586,7 +3586,7 @@ public partial class limitless : PredictionExchange
             {
                 bodyString = this.json(query);
                 body = bodyString;
-                object headerDefaults = ((bool) (!isEqual(headers, null))) ? headers : new Dictionary<string, object>() {};
+                object headerDefaults = ((bool) ((headers != null))) ? headers : new Dictionary<string, object>() {};
                 headers = this.extend(new Dictionary<string, object>() {
                     { "Accept", "application/json" },
                     { "Content-Type", "application/json" },
@@ -3623,7 +3623,7 @@ public partial class limitless : PredictionExchange
      */
     public override object handleErrors(object statusCode, object statusText, object url, object method, object responseHeaders, object responseBody, object response, object requestHeaders, object requestBody)
     {
-        if (isEqual(response, null))
+        if ((response == null))
         {
             return null;
         }

@@ -216,11 +216,11 @@ public partial class bitrue : ccxt.bitrue
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
@@ -268,7 +268,7 @@ public partial class bitrue : ccxt.bitrue
         //    }
         //
         Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsOrder(message));
-        if (isEqual(this.orders, null))
+        if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
@@ -344,7 +344,7 @@ public partial class bitrue : ccxt.bitrue
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -493,7 +493,7 @@ public partial class bitrue : ccxt.bitrue
 
     public virtual object convertFromRawQuantity(object symbol, object rawQuantity)
     {
-        if (isEqual(rawQuantity, null))
+        if ((rawQuantity == null))
         {
             return null;
         }
@@ -522,7 +522,7 @@ public partial class bitrue : ccxt.bitrue
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -652,7 +652,7 @@ public partial class bitrue : ccxt.bitrue
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -770,7 +770,7 @@ public partial class bitrue : ccxt.bitrue
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }

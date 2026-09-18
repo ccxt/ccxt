@@ -239,7 +239,7 @@ public partial class xt : ccxt.xt
         }
         string tradeType = ((bool) isContract) ? "contract" : "spot";
         object messageHash = add(add(name, "::"), tradeType);
-        if (!isEqual(symbols, null))
+        if ((symbols != null))
         {
             messageHash = add(add(messageHash, "::"), String.Join(",", ((IList<object>)symbols).ToArray()));
         }
@@ -344,7 +344,7 @@ public partial class xt : ccxt.xt
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -370,7 +370,7 @@ public partial class xt : ccxt.xt
     public async override Task<object> unWatchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -397,7 +397,7 @@ public partial class xt : ccxt.xt
     public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -405,7 +405,7 @@ public partial class xt : ccxt.xt
         string? defaultMethod = this.safeString(options, "method", "tickers");
         string? name = this.safeString(parameters, "method", defaultMethod);
         IDictionary<string, object> market = null;
-        if (!isEqual(symbols, null))
+        if ((symbols != null))
         {
             market = this.market(getValue(symbols, 0));
         }
@@ -431,14 +431,14 @@ public partial class xt : ccxt.xt
     public async override Task<object> unWatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         IDictionary<string, object> options = this.safeDict(this.options, "unWatchTickers");
         string? defaultMethod = this.safeString(options, "method", "tickers");
         string? name = this.safeString(parameters, "method", defaultMethod);
-        if (!isEqual(symbols, null))
+        if ((symbols != null))
         {
             throw new NotSupported ((string)(this.id + " unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only")) ;
         }
@@ -470,7 +470,7 @@ public partial class xt : ccxt.xt
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -500,7 +500,7 @@ public partial class xt : ccxt.xt
         object timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -529,7 +529,7 @@ public partial class xt : ccxt.xt
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -556,7 +556,7 @@ public partial class xt : ccxt.xt
     public async override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -583,7 +583,7 @@ public partial class xt : ccxt.xt
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -615,7 +615,7 @@ public partial class xt : ccxt.xt
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -647,13 +647,13 @@ public partial class xt : ccxt.xt
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         string name = "order";
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
         }
@@ -681,13 +681,13 @@ public partial class xt : ccxt.xt
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         string name = "trade";
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
         }
@@ -711,7 +711,7 @@ public partial class xt : ccxt.xt
     public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -733,7 +733,7 @@ public partial class xt : ccxt.xt
     public async override Task<List<ccxt.Position>> WatchPositions(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -769,7 +769,7 @@ public partial class xt : ccxt.xt
     public async override Task<ccxt.FundingRate> WatchFundingRate(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -794,7 +794,7 @@ public partial class xt : ccxt.xt
     public async override Task<object> unWatchFundingRate(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -844,7 +844,7 @@ public partial class xt : ccxt.xt
 
     public virtual void setPositionsCache(WebSocketClient client)
     {
-        if (isEqual(this.positions, null))
+        if ((this.positions == null))
         {
             this.positions = new ArrayCacheBySymbolBySide();
         }
@@ -915,7 +915,7 @@ public partial class xt : ccxt.xt
         //      }
         //    }
         //
-        if (isEqual(this.positions, null))
+        if ((this.positions == null))
         {
             this.positions = new ArrayCacheBySymbolBySide();
         }

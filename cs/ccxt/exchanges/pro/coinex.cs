@@ -262,7 +262,7 @@ public partial class coinex : ccxt.coinex
     public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -340,7 +340,7 @@ public partial class coinex : ccxt.coinex
         //         "id": null
         //     }
         //
-        if (isEqual(this.balance, null))
+        if ((this.balance == null))
         {
             this.balance = new Dictionary<string, object>() {};
         }
@@ -421,13 +421,13 @@ public partial class coinex : ccxt.coinex
         string? code = this.safeCurrencyCode(currencyId);
         ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available");
         ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "frozen");
-        if (!isEqual(accountType, null))
+        if ((accountType != null))
         {
             if (isEqual(this.safeValue(this.balance, accountType), null))
             {
                 ((IDictionary<string,object>)this.balance)[(string)accountType] = new Dictionary<string, object>() {};
             }
-            if ((!isEqual(accountType, null)) && ((code != null)))
+            if (((accountType != null)) && ((code != null)))
             {
                 ((IDictionary<string,object>)getValue(this.balance, accountType))[(string)code] = account;
             }
@@ -457,12 +457,12 @@ public partial class coinex : ccxt.coinex
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
@@ -698,7 +698,7 @@ public partial class coinex : ccxt.coinex
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -720,14 +720,14 @@ public partial class coinex : ccxt.coinex
     public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         IList<object> marketIds = this.marketIds(symbols);
         IDictionary<string, object> market = null;
         List<object> messageHashes = new List<object>() {};
-        bool symbolsDefined = (!isEqual(symbols, null));
+        bool symbolsDefined = ((symbols != null));
         if (symbolsDefined)
         {
             for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
@@ -796,7 +796,7 @@ public partial class coinex : ccxt.coinex
     public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -807,7 +807,7 @@ public partial class coinex : ccxt.coinex
         IList<object> callerMethodNameparametersVariable = (IList<object>)this.handleParamString(parameters, "callerMethodName", "watchTradesForSymbols");
         callerMethodName = (string)((IList<object>)callerMethodNameparametersVariable)[0];
         parameters = ((IList<object>)callerMethodNameparametersVariable)[1];
-        bool symbolsDefined = (!isEqual(symbols, null));
+        bool symbolsDefined = ((symbols != null));
         if (symbolsDefined)
         {
             for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
@@ -857,7 +857,7 @@ public partial class coinex : ccxt.coinex
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -887,7 +887,7 @@ public partial class coinex : ccxt.coinex
             throw new NotSupported ((string)((this.id + " watchOrderBookForSymbols() aggregation must be one of ") + String.Join(", ", ((IList<object>)aggregations).ToArray()))) ;
         }
         parameters = this.omit(parameters, "aggregation");
-        bool symbolsDefined = (!isEqual(symbols, null));
+        bool symbolsDefined = ((symbols != null));
         if (!symbolsDefined)
         {
             throw new ArgumentsRequired ((string)(this.id + " watchOrderBookForSymbols() requires a symbol argument")) ;
@@ -1037,7 +1037,7 @@ public partial class coinex : ccxt.coinex
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1046,7 +1046,7 @@ public partial class coinex : ccxt.coinex
         string messageHash = "orders";
         IDictionary<string, object> market = null;
         List<object> marketList = null;
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
@@ -1056,7 +1056,7 @@ public partial class coinex : ccxt.coinex
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         await this.authenticate(type);
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             marketList = new List<object>() {getValue(market, "id")};
             messageHash = messageHash + add(":", symbolVar);
@@ -1221,7 +1221,7 @@ public partial class coinex : ccxt.coinex
         Dictionary<string, object> parsedOrder = ((Dictionary<string, object>)this.parseWsOrder(order));
         string? symbol = ((string)getValue(parsedOrder, "symbol"));
         Dictionary<string, object> market = this.market(symbol);
-        if (isEqual(this.orders, null))
+        if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
@@ -1394,14 +1394,14 @@ public partial class coinex : ccxt.coinex
     public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         IList<object> marketIds = this.marketIds(symbols);
         List<object> messageHashes = new List<object>() {};
         IDictionary<string, object> market = null;
-        bool symbolsDefined = (!isEqual(symbols, null));
+        bool symbolsDefined = ((symbols != null));
         if (symbolsDefined)
         {
             for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
@@ -1516,7 +1516,7 @@ public partial class coinex : ccxt.coinex
 
     public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
     {
-        if (isEqual(response, null))
+        if ((response == null))
         {
             return null;
         }

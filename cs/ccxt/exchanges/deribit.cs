@@ -880,8 +880,8 @@ public partial class deribit : Exchange
 
     public override Dictionary<string, object> safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)
     {
-        bool isOption = (!isEqual(marketId, null)) && ((((string)marketId).EndsWith(((string)"-C"))) || (((string)marketId).EndsWith(((string)"-P"))));
-        if (isOption && ((isEqual(this.markets_by_id, null)) || !(inOp(this.markets_by_id, marketId))))
+        bool isOption = ((marketId != null)) && ((((string)marketId).EndsWith(((string)"-C"))) || (((string)marketId).EndsWith(((string)"-P"))));
+        if (isOption && (((this.markets_by_id == null)) || !(inOp(this.markets_by_id, marketId))))
         {
             // handle expired option contracts
             return ((Dictionary<string, object>)((object)(this.createExpiredOptionMarket(marketId))));
@@ -1037,7 +1037,7 @@ public partial class deribit : Exchange
     public async override Task<List<ccxt.Account>> FetchAccounts(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1417,7 +1417,7 @@ public partial class deribit : Exchange
     public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1494,7 +1494,7 @@ public partial class deribit : Exchange
     public async override Task<ccxt.DepositAddress> CreateDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1533,7 +1533,7 @@ public partial class deribit : Exchange
     public async override Task<ccxt.DepositAddress> FetchDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1656,7 +1656,7 @@ public partial class deribit : Exchange
     public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1710,7 +1710,7 @@ public partial class deribit : Exchange
     public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1718,7 +1718,7 @@ public partial class deribit : Exchange
         object code = this.safeString2(parameters, "code", "currency");
         object type = null;
         parameters = this.omit(parameters, new List<object>() {"code"});
-        if (!isEqual(symbols, null))
+        if ((symbols != null))
         {
             for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
             {
@@ -1826,7 +1826,7 @@ public partial class deribit : Exchange
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2006,7 +2006,7 @@ public partial class deribit : Exchange
     public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2078,7 +2078,7 @@ public partial class deribit : Exchange
     public async override Task<ccxt.TradingFees> FetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2212,7 +2212,7 @@ public partial class deribit : Exchange
     public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2422,7 +2422,7 @@ public partial class deribit : Exchange
     public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2430,7 +2430,7 @@ public partial class deribit : Exchange
             { "order_id", id },
         };
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
         }
@@ -2486,7 +2486,7 @@ public partial class deribit : Exchange
     public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2676,7 +2676,7 @@ public partial class deribit : Exchange
         {
             throw new ArgumentsRequired ((string)(this.id + " editOrder() requires an amount argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2716,7 +2716,7 @@ public partial class deribit : Exchange
     public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2741,13 +2741,13 @@ public partial class deribit : Exchange
     public async override Task<List<ccxt.Order>> CancelAllOrders(string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> response = null;
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             response = await this.privateGetCancelAll(this.extend(request, parameters));
         } else
@@ -2784,14 +2784,14 @@ public partial class deribit : Exchange
     public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
         Dictionary<string, object> response = null;
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             object code = this.codeFromOptions("fetchOpenOrders", parameters);
             Dictionary<string, object> currency = this.currency(((string)code));
@@ -2822,7 +2822,7 @@ public partial class deribit : Exchange
     public async override Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2836,7 +2836,7 @@ public partial class deribit : Exchange
         {
             ((IDictionary<string,object>)request)["count"] = 1000; // max value
         }
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             object code = this.codeFromOptions("fetchClosedOrders", parameters);
             Dictionary<string, object> currency = this.currency(((string)code));
@@ -2867,7 +2867,7 @@ public partial class deribit : Exchange
     public async override Task<List<ccxt.Trade>> FetchOrderTrades(string id, string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2929,7 +2929,7 @@ public partial class deribit : Exchange
     public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2942,7 +2942,7 @@ public partial class deribit : Exchange
             ((IDictionary<string,object>)request)["count"] = limit; // default 10
         }
         Dictionary<string, object> response = null;
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             object code = this.codeFromOptions("fetchMyTrades", parameters);
             Dictionary<string, object> currency = this.currency(((string)code));
@@ -3020,11 +3020,11 @@ public partial class deribit : Exchange
     public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(code, null))
+        if ((code == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchDeposits() requires a currency code argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3076,11 +3076,11 @@ public partial class deribit : Exchange
     public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(code, null))
+        if ((code == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchWithdrawals() requires a currency code argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3284,7 +3284,7 @@ public partial class deribit : Exchange
     public async override Task<ccxt.Position> FetchPosition(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3338,7 +3338,7 @@ public partial class deribit : Exchange
     public async override Task<List<ccxt.Position>> FetchPositions(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3396,7 +3396,7 @@ public partial class deribit : Exchange
     public async virtual Task<List<Dictionary<string, object>>> FetchVolatilityHistory(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3468,11 +3468,11 @@ public partial class deribit : Exchange
     public async override Task<List<ccxt.TransferEntry>> FetchTransfers(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(code, null))
+        if ((code == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchTransfers() requires a currency code argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3539,7 +3539,7 @@ public partial class deribit : Exchange
     public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3649,7 +3649,7 @@ public partial class deribit : Exchange
         tagVar = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
         this.checkAddress(address);
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3659,7 +3659,7 @@ public partial class deribit : Exchange
             { "address", address },
             { "amount", amount },
         };
-        if (!isEqual(this.twofa, null))
+        if ((this.twofa != null))
         {
             ((IDictionary<string,object>)request)["tfa"] = totp(this.twofa);
         }
@@ -3707,7 +3707,7 @@ public partial class deribit : Exchange
     public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(object codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3752,7 +3752,7 @@ public partial class deribit : Exchange
     public async override Task<ccxt.FundingRate> FetchFundingRate(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3794,7 +3794,7 @@ public partial class deribit : Exchange
     {
         object sinceVar = since;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3933,7 +3933,7 @@ public partial class deribit : Exchange
     public async override Task<List<ccxt.Liquidation>> FetchLiquidations(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3996,7 +3996,7 @@ public partial class deribit : Exchange
 
     public virtual object addPaginationCursorToResult(object cursor, object data)
     {
-        if (!isEqual(cursor, null))
+        if ((cursor != null))
         {
             int dataLength = getArrayLength(data);
             if (isGreaterThan(dataLength, 0))
@@ -4026,11 +4026,11 @@ public partial class deribit : Exchange
     public async override Task<List<ccxt.Liquidation>> FetchMyLiquidations(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchMyLiquidations() requires a symbol argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -4121,7 +4121,7 @@ public partial class deribit : Exchange
     public async override Task<ccxt.Greeks> FetchGreeks(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -4260,7 +4260,7 @@ public partial class deribit : Exchange
     public async override Task<ccxt.Option> FetchOption(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -4318,7 +4318,7 @@ public partial class deribit : Exchange
     public async override Task<ccxt.OptionChain> FetchOptionChain(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -4427,7 +4427,7 @@ public partial class deribit : Exchange
     public async override Task<ccxt.OpenInterest> FetchOpenInterest(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -4571,7 +4571,7 @@ public partial class deribit : Exchange
 
     public override object handleErrors(object httpCode, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
     {
-        if ((isEqual(response, null)) || (isEqual(response, null)))
+        if (((response == null)) || ((response == null)))
         {
             return null;  // fallback to default error handler
         }

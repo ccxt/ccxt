@@ -9,7 +9,7 @@ public partial class testMainClass : BaseTest
 {
     public static void testCurrency(BaseExchange exchange, object skippedProperties, object method, object entry)
     {
-        if (isEqual(entry, null))
+        if ((entry == null))
         {
             return;
         }

@@ -431,7 +431,7 @@ public partial class btcbox : Exchange
     public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -452,7 +452,7 @@ public partial class btcbox : Exchange
     public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -507,7 +507,7 @@ public partial class btcbox : Exchange
     public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -533,7 +533,7 @@ public partial class btcbox : Exchange
     public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -592,7 +592,7 @@ public partial class btcbox : Exchange
     public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -634,7 +634,7 @@ public partial class btcbox : Exchange
     public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -669,12 +669,12 @@ public partial class btcbox : Exchange
     {
         string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         // a special case for btcbox – default symbolVar is BTC/JPY
-        if (isEqual(symbolVar, null))
+        if ((symbolVar == null))
         {
             symbolVar = "BTC/JPY";
         }
@@ -699,7 +699,7 @@ public partial class btcbox : Exchange
             { "closed", "closed" },
             { "no", "closed" },
         };
-        if (isEqual(status, null))
+        if ((status == null))
         {
             return null;
         }
@@ -782,12 +782,12 @@ public partial class btcbox : Exchange
     {
         string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         // a special case for btcbox – default symbolVar is BTC/JPY
-        if (isEqual(symbolVar, null))
+        if ((symbolVar == null))
         {
             symbolVar = "BTC/JPY";
         }
@@ -815,12 +815,12 @@ public partial class btcbox : Exchange
     public async virtual Task<List<ccxt.Order>> FetchOrdersByType(object type, object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         // a special case for btcbox – default symbol is BTC/JPY
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             symbol = "BTC/JPY";
         }
@@ -935,7 +935,7 @@ public partial class btcbox : Exchange
 
     public override object handleErrors(object httpCode, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
     {
-        if (isEqual(response, null))
+        if ((response == null))
         {
             return null;  // resort to defaultErrorHandler
         }

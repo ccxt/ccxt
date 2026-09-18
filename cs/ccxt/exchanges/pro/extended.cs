@@ -58,7 +58,7 @@ public partial class extended : ccxt.extended
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -156,7 +156,7 @@ public partial class extended : ccxt.extended
     {
         this.checkRequiredCredentials();
         object url = add(getValue(getValue(this.urls, "api"), "ws"), "/account");
-        if ((isEqual(this.clients, null)) || !(inOp(this.clients, url)))
+        if (((this.clients == null)) || !(inOp(this.clients, url)))
         {
             Dictionary<string, object> defaultOptions = new Dictionary<string, object>() {
                 { "ws", new Dictionary<string, object>() {
@@ -197,12 +197,12 @@ public partial class extended : ccxt.extended
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         string messageHash = "orders";
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
@@ -230,7 +230,7 @@ public partial class extended : ccxt.extended
     public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -318,12 +318,12 @@ public partial class extended : ccxt.extended
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         string messageHash = "myTrades";
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
@@ -368,7 +368,7 @@ public partial class extended : ccxt.extended
         //         "seq": 1
         //     }
         //
-        if (isEqual(this.myTrades, null))
+        if ((this.myTrades == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCacheBySymbolById(limit);
@@ -421,13 +421,13 @@ public partial class extended : ccxt.extended
     public async override Task<List<ccxt.Position>> WatchPositions(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
         string messageHash = "positions";
-        if (!isEqual(symbols, null))
+        if ((symbols != null))
         {
             messageHash = messageHash + ("::" + String.Join(",", ((IList<object>)symbols).ToArray()));
         }
@@ -467,7 +467,7 @@ public partial class extended : ccxt.extended
         //         "seq": 1
         //     }
         //
-        if (isEqual(this.positions, null))
+        if ((this.positions == null))
         {
             this.positions = new ArrayCacheBySymbolBySide();
         }
@@ -540,7 +540,7 @@ public partial class extended : ccxt.extended
         //         "seq": 1
         //     }
         //
-        if (isEqual(this.orders, null))
+        if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
@@ -592,7 +592,7 @@ public partial class extended : ccxt.extended
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -670,7 +670,7 @@ public partial class extended : ccxt.extended
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -737,7 +737,7 @@ public partial class extended : ccxt.extended
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -835,7 +835,7 @@ public partial class extended : ccxt.extended
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }

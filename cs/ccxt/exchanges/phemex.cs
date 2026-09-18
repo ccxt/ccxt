@@ -862,7 +862,7 @@ public partial class phemex : Exchange
 
     public virtual object parseSafeNumber(object value = null)
     {
-        if (isEqual(value, null))
+        if ((value == null))
         {
             return value;
         }
@@ -1444,7 +1444,7 @@ public partial class phemex : Exchange
     {
         priceKey ??= 0;
         amountKey ??= 1;
-        if (isEqual(market, null))
+        if ((market == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " customParseBidAsk() requires a market argument")) ;
         }
@@ -1498,7 +1498,7 @@ public partial class phemex : Exchange
     public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1556,7 +1556,7 @@ public partial class phemex : Exchange
 
     public virtual object toEn(object n, object scale)
     {
-        if ((isEqual(n, null)) || (isEqual(scale, null)))
+        if (((n == null)) || ((scale == null)))
         {
             return null;
         }
@@ -1570,7 +1570,7 @@ public partial class phemex : Exchange
 
     public virtual object toEv(object amount, object market = null)
     {
-        if ((isEqual(amount, null)) || (isEqual(market, null)))
+        if (((amount == null)) || ((market == null)))
         {
             return amount;
         }
@@ -1579,7 +1579,7 @@ public partial class phemex : Exchange
 
     public virtual object toEp(object price, object market = null)
     {
-        if ((isEqual(price, null)) || (isEqual(market, null)))
+        if (((price == null)) || ((market == null)))
         {
             return price;
         }
@@ -1588,7 +1588,7 @@ public partial class phemex : Exchange
 
     public virtual string? fromEn(object en, object scale)
     {
-        if (isEqual(en, null) || isEqual(scale, null))
+        if ((en == null) || (scale == null))
         {
             return null;
         }
@@ -1600,7 +1600,7 @@ public partial class phemex : Exchange
 
     public virtual object fromEp(object ep, object market = null)
     {
-        if ((isEqual(ep, null)) || (isEqual(market, null)))
+        if (((ep == null)) || ((market == null)))
         {
             return ep;
         }
@@ -1609,7 +1609,7 @@ public partial class phemex : Exchange
 
     public virtual object fromEv(object ev, object market = null)
     {
-        if ((isEqual(ev, null)) || (isEqual(market, null)))
+        if (((ev == null)) || ((market == null)))
         {
             return ev;
         }
@@ -1618,7 +1618,7 @@ public partial class phemex : Exchange
 
     public virtual object fromEr(object er, object market = null)
     {
-        if ((isEqual(er, null)) || (isEqual(market, null)))
+        if (((er == null)) || ((market == null)))
         {
             return er;
         }
@@ -1641,7 +1641,7 @@ public partial class phemex : Exchange
         //     ]
         //
         object baseVolume = null;
-        if ((!isEqual(market, null)) && (isEqual(getValue(market, "spot"), true)))
+        if (((market != null)) && (isEqual(getValue(market, "spot"), true)))
         {
             baseVolume = this.parseNumber(this.fromEv(this.safeString(ohlcv, 7), market));
         } else
@@ -1672,7 +1672,7 @@ public partial class phemex : Exchange
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1865,7 +1865,7 @@ public partial class phemex : Exchange
     public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1949,12 +1949,12 @@ public partial class phemex : Exchange
     public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        if (!isEqual(symbols, null))
+        if ((symbols != null))
         {
             object first = this.safeValue(symbols, 0);
             market = this.market(first);
@@ -1997,7 +1997,7 @@ public partial class phemex : Exchange
     public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2479,7 +2479,7 @@ public partial class phemex : Exchange
     public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3061,7 +3061,7 @@ public partial class phemex : Exchange
         object typeVar = type;
         object sideVar = side;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3412,7 +3412,7 @@ public partial class phemex : Exchange
     public async override Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3502,11 +3502,11 @@ public partial class phemex : Exchange
     public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " cancelOrder() requires a symbol argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3555,11 +3555,11 @@ public partial class phemex : Exchange
     public async override Task<List<ccxt.Order>> CancelAllOrders(string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " cancelAllOrders() requires a symbol argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3600,11 +3600,11 @@ public partial class phemex : Exchange
     public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchOrder() requires a symbol argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3681,11 +3681,11 @@ public partial class phemex : Exchange
     public async override Task<List<ccxt.Order>> FetchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchOrders() requires a symbol argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3734,15 +3734,15 @@ public partial class phemex : Exchange
     public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchOpenOrders() requires a symbol argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3800,12 +3800,12 @@ public partial class phemex : Exchange
     public async override Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
         }
@@ -3823,7 +3823,7 @@ public partial class phemex : Exchange
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
         object response = null;
-        if ((isEqual(symbol, null)) || ((this.safeString(market, "settle") == "USDT")))
+        if (((symbol == null)) || ((this.safeString(market, "settle") == "USDT")))
         {
             ((IDictionary<string,object>)request)["currency"] = this.safeString(parameters, "settle", "USDT");
             response = await this.privateGetExchangeOrderV2OrderList(this.extend(request, parameters));
@@ -3898,12 +3898,12 @@ public partial class phemex : Exchange
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
         }
@@ -3917,7 +3917,7 @@ public partial class phemex : Exchange
             limitVar = mathMin(200, limitVar);
             ((IDictionary<string,object>)request)["limit"] = limitVar;
         }
-        bool isUSDTSettled = (!isEqual(type, "spot")) && ((isEqual(symbol, null)) || ((this.safeString(market, "settle") == "USDT")));
+        bool isUSDTSettled = (!isEqual(type, "spot")) && (((symbol == null)) || ((this.safeString(market, "settle") == "USDT")));
         if (isUSDTSettled)
         {
             ((IDictionary<string,object>)request)["currency"] = "USDT";
@@ -3926,7 +3926,7 @@ public partial class phemex : Exchange
             {
                 ((IDictionary<string,object>)request)["limit"] = 200;
             }
-        } else if (!isEqual(symbol, null) && (market != null))
+        } else if ((symbol != null) && (market != null))
         {
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         }
@@ -4074,7 +4074,7 @@ public partial class phemex : Exchange
     public async override Task<ccxt.DepositAddress> FetchDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -4131,12 +4131,12 @@ public partial class phemex : Exchange
     public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         IDictionary<string, object> currency = null;
-        if (!isEqual(code, null))
+        if ((code != null))
         {
             currency = this.currency(((string)code));
         }
@@ -4178,12 +4178,12 @@ public partial class phemex : Exchange
     public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         IDictionary<string, object> currency = null;
-        if (!isEqual(code, null))
+        if ((code != null))
         {
             currency = this.currency(((string)code));
         }
@@ -4373,7 +4373,7 @@ public partial class phemex : Exchange
     public async override Task<List<ccxt.Position>> FetchPositions(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -4534,7 +4534,7 @@ public partial class phemex : Exchange
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -4778,11 +4778,11 @@ public partial class phemex : Exchange
     public async override Task<List<ccxt.FundingHistory>> FetchFundingHistory(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchFundingHistory() requires a symbol argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -4853,7 +4853,7 @@ public partial class phemex : Exchange
 
     public virtual object parseFundingFeeToPrecision(object value, object market = null, object currencyCode = null)
     {
-        if (isEqual(value, null) || isEqual(currencyCode, null) || isEqual(market, null))
+        if ((value == null) || (currencyCode == null) || (market == null))
         {
             return value;
         }
@@ -4880,7 +4880,7 @@ public partial class phemex : Exchange
     public async override Task<ccxt.FundingRate> FetchFundingRate(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -5008,7 +5008,7 @@ public partial class phemex : Exchange
     public async override Task<ccxt.MarginModification> SetMargin(string symbol, double amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -5076,11 +5076,11 @@ public partial class phemex : Exchange
     {
         string marginModeVar = marginMode;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " setMarginMode() requires a symbol argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -5135,7 +5135,7 @@ public partial class phemex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredArgument("setPositionMode", symbol, "symbol");
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -5168,11 +5168,11 @@ public partial class phemex : Exchange
     public async override Task<ccxt.LeverageTiers> FetchLeverageTiers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        if (!isEqual(symbols, null))
+        if ((symbols != null))
         {
             object first = this.safeValue(symbols, 0);
             Dictionary<string, object> market = this.market(first);
@@ -5381,7 +5381,7 @@ public partial class phemex : Exchange
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " setLeverage() requires a symbol argument")) ;
         }
@@ -5389,7 +5389,7 @@ public partial class phemex : Exchange
         {
             throw new BadRequest ((string)(this.id + " setLeverage() leverage should be between -100 and 100")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -5439,7 +5439,7 @@ public partial class phemex : Exchange
     public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -5538,11 +5538,11 @@ public partial class phemex : Exchange
     public async override Task<List<ccxt.TransferEntry>> FetchTransfers(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        if (isEqual(code, null))
+        if ((code == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchTransfers() requires a code argument")) ;
         }
@@ -5670,11 +5670,11 @@ public partial class phemex : Exchange
     public async override Task<List<ccxt.FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -5777,7 +5777,7 @@ public partial class phemex : Exchange
         IList<object> tagparametersVariable = (IList<object>)this.handleWithdrawTagAndParams(tagVar, parameters);
         tagVar = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -5809,7 +5809,7 @@ public partial class phemex : Exchange
             { "amount", amount },
             { "chainName", ((string)networkId).ToUpper() },
         };
-        if (!isEqual(tagVar, null))
+        if ((tagVar != null))
         {
             ((IDictionary<string,object>)request)["addressTag"] = tagVar;
         }
@@ -5857,7 +5857,7 @@ public partial class phemex : Exchange
     public async override Task<ccxt.OpenInterest> FetchOpenInterest(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -5942,7 +5942,7 @@ public partial class phemex : Exchange
     public async override Task<ccxt.Conversion> FetchConvertQuote(object fromCode, object toCode, double? amount = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -5992,7 +5992,7 @@ public partial class phemex : Exchange
     public async override Task<ccxt.Conversion> CreateConvertTrade(string id, object fromCode, object toCode, double? amount = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -6049,12 +6049,12 @@ public partial class phemex : Exchange
     public async override Task<List<ccxt.Conversion>> FetchConvertTradeHistory(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(code, null))
+        if ((code != null))
         {
             ((IDictionary<string,object>)request)["fromCurrency"] = code;
         }
@@ -6190,7 +6190,7 @@ public partial class phemex : Exchange
     public async override Task<List<ccxt.ADL>> FetchPositionsADLRank(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -6391,7 +6391,7 @@ public partial class phemex : Exchange
 
     public override object handleErrors(object httpCode, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
     {
-        if (isEqual(response, null))
+        if ((response == null))
         {
             return null;  // fallback to default error handler
         }

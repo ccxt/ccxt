@@ -12,9 +12,9 @@ public partial class testMainClass : BaseTest
         public object logTemplate(BaseExchange exchange, object method, object entry)
         {
             // there are cases when exchange is undefined (eg. base tests)
-            object id = ((bool) (!isEqual(exchange, null))) ? exchange.id : "undefined";
-            object methodString = ((bool) (!isEqual(method, null))) ? method : "undefined";
-            string? entryString = ((bool) (!isEqual(exchange, null) && !isEqual(entry, null))) ? exchange.json(entry) : "";
+            object id = ((bool) ((exchange != null))) ? exchange.id : "undefined";
+            object methodString = ((bool) ((method != null))) ? method : "undefined";
+            string? entryString = ((bool) ((exchange != null) && (entry != null))) ? exchange.json(entry) : "";
             return (((add((add(" <<< ", id) + " "), methodString) + " ::: ") + entryString) + " >>> ");
         }
         public object isTemporaryFailure(object e)
@@ -27,7 +27,7 @@ public partial class testMainClass : BaseTest
             if ((value is string))
             {
                 stringVal = value;
-            } else if (isEqual(value, null))
+            } else if ((value == null))
             {
                 stringVal = "undefined";
             } else
@@ -65,10 +65,10 @@ public partial class testMainClass : BaseTest
         {
             deep ??= false;
             object logText = logTemplate(exchange, method, entry);
-            assert(!isEqual(entry, null), add("item is null/undefined", logText));
+            assert((entry != null), add("item is null/undefined", logText));
             // get all expected & predefined keys for this specific item and ensure thos ekeys exist in parsed structure
             List<object> allowEmptySkips = exchange.safeList(skippedProperties, "allowNull", new List<object>() {});
-            if (!isEqual(emptyAllowedFor, null))
+            if ((emptyAllowedFor != null))
             {
                 emptyAllowedFor = concat(emptyAllowedFor, allowEmptySkips);
             }
@@ -80,7 +80,7 @@ public partial class testMainClass : BaseTest
                 assert((realLength == expectedLength), add(("entry length is not equal to expected length of " + ((object)expectedLength).ToString()), logText));
                 for (int i = 0; i < getArrayLength(format); postFixIncrement(ref i))
                 {
-                    bool emptyAllowedForThisKey = (isEqual(emptyAllowedFor, null)) || isTrue(exchange.inArray(i, emptyAllowedFor));
+                    bool emptyAllowedForThisKey = ((emptyAllowedFor == null)) || isTrue(exchange.inArray(i, emptyAllowedFor));
                     object value = getValue(entry, i);
                     // check when:
                     // - it's not inside "allowe empty values" list
@@ -106,7 +106,7 @@ public partial class testMainClass : BaseTest
                         continue;
                     }
                     assert(inOp(entry, key), add((add("\"", stringValue(key)) + "\" key is missing from structure"), logText));
-                    bool emptyAllowedForThisKey = (isEqual(emptyAllowedFor, null)) || isTrue(exchange.inArray(key, emptyAllowedFor));
+                    bool emptyAllowedForThisKey = ((emptyAllowedFor == null)) || isTrue(exchange.inArray(key, emptyAllowedFor));
                     object value = getValue(entry, key);
                     // check when:
                     // - it's not inside "allowed empty values" list
@@ -162,7 +162,7 @@ public partial class testMainClass : BaseTest
                 object maxTs = 2147483648000; // 19 Jan 2038 - max int
                 assert(isGreaterThan(ts, minTs), add((("timestamp is impossible to be before " + ((object)minTs).ToString()) + " (03.01.2009)"), logText)); // 03 Jan 2009 - first block
                 assert(isLessThan(ts, maxTs), add((("timestamp more than " + ((object)maxTs).ToString()) + " (19.01.2038)"), logText)); // 19 Jan 2038 - int32 overflows // 7258118400000  -> Jan 1 2200
-                if (!isEqual(nowToCheck, null))
+                if ((nowToCheck != null))
                 {
                     int maxMsOffset = 60000; // 1 min
                     assert(isLessThan(ts, add(nowToCheck, maxMsOffset)), add((((("returned item timestamp (" + exchange.iso8601(ts)) + ") is ahead of the current time (") + exchange.iso8601(nowToCheck)) + ")"), logText));
@@ -218,12 +218,12 @@ public partial class testMainClass : BaseTest
                 return;
             }
             object logText = logTemplate(exchange, method, entry);
-            assert(!isEqual(actualCode, null) || isTrue(allowNull), add("currency code is null", logText));
-            if (!isEqual(actualCode, null))
+            assert((actualCode != null) || isTrue(allowNull), add("currency code is null", logText));
+            if ((actualCode != null))
             {
                 assert((actualCode is string), add("currency code should be either undefined or a string", logText));
                 assert((inOp(exchange.currencies, actualCode)), add((add("currency code (\"", actualCode) + "\") should be present in exchange.currencies"), logText));
-                if (!isEqual(expectedCode, null))
+                if ((expectedCode != null))
                 {
                     assert(isEqual(actualCode, expectedCode), add((add((add("currency code in response (\"", stringValue(actualCode)) + "\") should be equal to expected code (\""), stringValue(expectedCode)) + "\")"), logText));
                 }
@@ -238,8 +238,8 @@ public partial class testMainClass : BaseTest
                 return;
             }
             object logText = logTemplate(exchange, method, entry);
-            bool undefinedValues = isEqual(currencyId, null) && isEqual(currencyCode, null);
-            bool definedValues = !isEqual(currencyId, null) && !isEqual(currencyCode, null);
+            bool undefinedValues = (currencyId == null) && (currencyCode == null);
+            bool definedValues = (currencyId != null) && (currencyCode != null);
             assert(undefinedValues || definedValues, add("currencyId and currencyCode should be either both defined or both undefined", logText));
             assert(definedValues || isTrue(allowNull), add("currency code and id is not defined", logText));
             if (definedValues)
@@ -265,11 +265,11 @@ public partial class testMainClass : BaseTest
             {
                 assert((actualSymbol is string), add("symbol should be either undefined or a string", logText));
             }
-            if (!isEqual(expectedSymbol, null))
+            if ((expectedSymbol != null))
             {
                 assert(isEqual(actualSymbol, expectedSymbol), add((add((add("symbol in response (\"", stringValue(actualSymbol)) + "\") should be equal to expected symbol (\""), stringValue(expectedSymbol)) + "\")"), logText));
             }
-            bool definedValues = (actualSymbol != null) && !isEqual(expectedSymbol, null);
+            bool definedValues = (actualSymbol != null) && (expectedSymbol != null);
             assert(definedValues || isTrue(allowNull), add("symbols are not defined", logText));
         }
         public void assertSymbolInMarkets(BaseExchange exchange, object skippedProperties, object method, object symbol)
@@ -302,7 +302,7 @@ public partial class testMainClass : BaseTest
             object logText = logTemplate(exchange, method, entry);
             string? value = exchange.safeString(entry, key);
             assert((value != null) || isTrue(allowNull), add("value is null", logText));
-            if ((value != null) && !isEqual(compareTo, null))
+            if ((value != null) && (compareTo != null))
             {
                 assert(Precise.stringGe(value, compareTo), add(add(add(add(add(stringValue(key), " key (with a value of "), stringValue(value)), ") was expected to be >= "), stringValue(compareTo)), logText));
             }
@@ -317,7 +317,7 @@ public partial class testMainClass : BaseTest
             object logText = logTemplate(exchange, method, entry);
             string? value = exchange.safeString(entry, key);
             assert((value != null) || isTrue(allowNull), add("value is null", logText));
-            if ((value != null) && !isEqual(compareTo, null))
+            if ((value != null) && (compareTo != null))
             {
                 assert(Precise.stringLt(value, compareTo), add(add(add(add(add(stringValue(key), " key (with a value of "), stringValue(value)), ") was expected to be < "), stringValue(compareTo)), logText));
             }
@@ -332,7 +332,7 @@ public partial class testMainClass : BaseTest
             object logText = logTemplate(exchange, method, entry);
             string? value = exchange.safeString(entry, key);
             assert((value != null) || isTrue(allowNull), add("value is null", logText));
-            if ((value != null) && !isEqual(compareTo, null))
+            if ((value != null) && (compareTo != null))
             {
                 assert(Precise.stringLe(value, compareTo), add(add(add(add(add(stringValue(key), " key (with a value of "), stringValue(value)), ") was expected to be <= "), stringValue(compareTo)), logText));
             }
@@ -347,7 +347,7 @@ public partial class testMainClass : BaseTest
             object logText = logTemplate(exchange, method, entry);
             string? value = exchange.safeString(entry, key);
             assert((value != null) || isTrue(allowNull), add("value is null", logText));
-            if ((value != null) && !isEqual(compareTo, null))
+            if ((value != null) && (compareTo != null))
             {
                 assert(Precise.stringEq(value, compareTo), add(add(add(add(add(stringValue(key), " key (with a value of "), stringValue(value)), ") was expected to be equal to "), stringValue(compareTo)), logText));
             }
@@ -440,7 +440,7 @@ public partial class testMainClass : BaseTest
                 return;
             }
             object logText = logTemplate(exchange, method, entry);
-            if (!isEqual(entry, null))
+            if ((entry != null))
             {
                 object value = exchange.safeValue(entry, key);
                 assert((value != null) || isTrue(allowNull), add("value is null", logText));
@@ -682,10 +682,10 @@ public partial class testMainClass : BaseTest
         public object concat(object a = null, object b = null)
         {
             // we use this method temporarily, because of ast-transpiler issue across langs
-            if (isEqual(a, null))
+            if ((a == null))
             {
                 return b;
-            } else if (isEqual(b, null))
+            } else if ((b == null))
             {
                 return a;
             } else
@@ -714,7 +714,7 @@ public partial class testMainClass : BaseTest
                 isEmptyArrayResponse = ((responseLength == 0));
             }
             string hintText = "";
-            if (!isEqual(hint, null))
+            if ((hint != null))
             {
                 hintText = add(" ", hint);
             }
@@ -723,7 +723,7 @@ public partial class testMainClass : BaseTest
         public void assertNonEmtpyArray(BaseExchange exchange, object skippedProperties, object method, object entry, object hint = null)
         {
             object logText = logTemplate(exchange, method, entry);
-            if (!isEqual(hint, null))
+            if ((hint != null))
             {
                 logText = add(add(logText, " "), hint);
             }
@@ -802,7 +802,7 @@ public partial class testMainClass : BaseTest
                     {
                         return;
                     }
-                    if (!isEqual(ohlcv, null))
+                    if ((ohlcv != null))
                     {
                         int ohlcvLength = getArrayLength(ohlcv);
                         if (isLessThanOrEqual(ohlcvLength, 1))

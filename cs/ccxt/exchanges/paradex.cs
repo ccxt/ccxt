@@ -993,11 +993,11 @@ public partial class paradex : Exchange
     public async override Task<ccxt.TradingFeeInterface> FetchTradingFee(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchTradingFee() requires a symbol argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1041,7 +1041,7 @@ public partial class paradex : Exchange
     public async override Task<ccxt.TradingFees> FetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1095,7 +1095,7 @@ public partial class paradex : Exchange
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1180,7 +1180,7 @@ public partial class paradex : Exchange
     public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1226,7 +1226,7 @@ public partial class paradex : Exchange
     public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1327,7 +1327,7 @@ public partial class paradex : Exchange
     public async override Task<ccxt.FundingRates> FetchFundingRates(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1336,7 +1336,7 @@ public partial class paradex : Exchange
         // the venue: a single symbol is asked for by name, which is 544 bytes
         // against 1.6 MB
         string target = "ALL";
-        if (!isEqual(symbols, null))
+        if ((symbols != null))
         {
             int symbolsLength = getArrayLength(symbols);
             if ((symbolsLength == 1))
@@ -1364,7 +1364,7 @@ public partial class paradex : Exchange
     public async override Task<ccxt.FundingRate> FetchFundingRate(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1450,7 +1450,7 @@ public partial class paradex : Exchange
     public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1504,7 +1504,7 @@ public partial class paradex : Exchange
     public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1635,7 +1635,7 @@ public partial class paradex : Exchange
     public async override Task<ccxt.OpenInterest> FetchOpenInterest(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2006,7 +2006,7 @@ public partial class paradex : Exchange
 
     public virtual string? parseOrderStatus(object status)
     {
-        if (!isEqual(status, null))
+        if ((status != null))
         {
             Dictionary<string, object> statuses = new Dictionary<string, object>() {
                 { "NEW", "open" },
@@ -2038,11 +2038,11 @@ public partial class paradex : Exchange
     public virtual Dictionary<string, object> createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(type, null))
+        if ((type == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " requires a type argument")) ;
         }
-        if (isEqual(side, null))
+        if ((side == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " requires a side argument")) ;
         }
@@ -2231,7 +2231,7 @@ public partial class paradex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticateRest();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2299,7 +2299,7 @@ public partial class paradex : Exchange
             throw new ArgumentsRequired ((string)(this.id + " editOrder() requires a price argument")) ;
         }
         await this.authenticateRest();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2360,7 +2360,7 @@ public partial class paradex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticateRest();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2431,7 +2431,7 @@ public partial class paradex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticateRest();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2468,13 +2468,13 @@ public partial class paradex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticateRest();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         List<object> clientOrderIds = this.safeListN(parameters, new List<object>() {"clOrdIDs", "clientOrderIds", "client_order_ids"});
         parameters = this.omit(parameters, new List<object>() {"clOrdIDs", "clientOrderIds", "client_order_ids"});
-        bool hasOrderIds = (!isEqual(ids, null)) && (((ids is IList<object>) || (ids.GetType().IsGenericType && ids.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))));
+        bool hasOrderIds = ((ids != null)) && (((ids is IList<object>) || (ids.GetType().IsGenericType && ids.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))));
         bool hasClientOrderIds = ((clientOrderIds != null)) && (((clientOrderIds is IList<object>) || (clientOrderIds.GetType().IsGenericType && clientOrderIds.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))));
         if (!hasOrderIds && !hasClientOrderIds)
         {
@@ -2556,12 +2556,12 @@ public partial class paradex : Exchange
     public async override Task<List<ccxt.Order>> CancelAllOrders(string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " cancelAllOrders() requires a symbol argument")) ;
         }
         await this.authenticateRest();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2592,7 +2592,7 @@ public partial class paradex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticateRest();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2656,7 +2656,7 @@ public partial class paradex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticateRest();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2670,7 +2670,7 @@ public partial class paradex : Exchange
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
@@ -2748,13 +2748,13 @@ public partial class paradex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticateRest();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
@@ -2808,7 +2808,7 @@ public partial class paradex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticateRest();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2865,7 +2865,7 @@ public partial class paradex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticateRest();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2879,7 +2879,7 @@ public partial class paradex : Exchange
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
@@ -2940,7 +2940,7 @@ public partial class paradex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticateRest();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2962,7 +2962,7 @@ public partial class paradex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticateRest();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3074,7 +3074,7 @@ public partial class paradex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticateRest();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3087,7 +3087,7 @@ public partial class paradex : Exchange
             ((IDictionary<string,object>)request)["from"] = 1;
         }
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
         }
@@ -3149,7 +3149,7 @@ public partial class paradex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticateRest();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3225,7 +3225,7 @@ public partial class paradex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticateRest();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3301,7 +3301,7 @@ public partial class paradex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticateRest();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3315,7 +3315,7 @@ public partial class paradex : Exchange
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> currency = null;
-        if (!isEqual(code, null))
+        if ((code != null))
         {
             currency = this.safeCurrency(code);
         }
@@ -3479,7 +3479,7 @@ public partial class paradex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticateRest();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3532,7 +3532,7 @@ public partial class paradex : Exchange
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredArgument("setMarginMode", symbol, "symbol");
         await this.authenticateRest();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3562,7 +3562,7 @@ public partial class paradex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticateRest();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3626,7 +3626,7 @@ public partial class paradex : Exchange
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredArgument("setLeverage", symbol, "symbol");
         await this.authenticateRest();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3655,7 +3655,7 @@ public partial class paradex : Exchange
     public async override Task<ccxt.Greeks> FetchGreeks(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3715,7 +3715,7 @@ public partial class paradex : Exchange
     public async override Task<ccxt.AllGreeks> FetchAllGreeks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3841,12 +3841,12 @@ public partial class paradex : Exchange
     public async override Task<List<ccxt.FundingHistory>> FetchFundingHistory(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchFundingHistory() requires a symbol argument")) ;
         }
         await this.authenticateRest();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3940,11 +3940,11 @@ public partial class paradex : Exchange
     public async override Task<List<ccxt.FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -4075,7 +4075,7 @@ public partial class paradex : Exchange
 
     public override object handleErrors(object httpCode, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
     {
-        if (isEqual(response, null))
+        if ((response == null))
         {
             return null;  // fallback to default error handler
         }

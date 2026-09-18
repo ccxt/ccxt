@@ -1830,7 +1830,7 @@ public partial class mexc : Exchange
     public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1924,7 +1924,7 @@ public partial class mexc : Exchange
     public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2175,7 +2175,7 @@ public partial class mexc : Exchange
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2312,14 +2312,14 @@ public partial class mexc : Exchange
     public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
         bool isSingularMarket = false;
-        if (!isEqual(symbols, null))
+        if ((symbols != null))
         {
             int length = getArrayLength(symbols);
             isSingularMarket = (length == 1);
@@ -2390,7 +2390,7 @@ public partial class mexc : Exchange
     public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2573,13 +2573,13 @@ public partial class mexc : Exchange
     public async override Task<ccxt.Tickers> FetchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
         bool isSingularMarket = false;
-        if (!isEqual(symbols, null))
+        if ((symbols != null))
         {
             int length = getArrayLength(symbols);
             isSingularMarket = (length == 1);
@@ -2617,7 +2617,7 @@ public partial class mexc : Exchange
     public async override Task<ccxt.Order> CreateMarketBuyOrderWithCost(string symbol, double cost, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2645,7 +2645,7 @@ public partial class mexc : Exchange
     public async override Task<ccxt.Order> CreateMarketSellOrderWithCost(string symbol, double cost, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2690,7 +2690,7 @@ public partial class mexc : Exchange
     public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2753,7 +2753,7 @@ public partial class mexc : Exchange
             ((IDictionary<string,object>)request)["newClientOrderId"] = clientOrderId;
             parameters = this.omit(parameters, new List<object>() {"type", "clientOrderId"});
         }
-        if (!isEqual(marginMode, null))
+        if ((marginMode != null))
         {
             if (!isEqual(marginMode, "isolated"))
             {
@@ -2802,7 +2802,7 @@ public partial class mexc : Exchange
     public async virtual Task<ccxt.Order> CreateSpotOrder(object market, object type, object side, object amount, object price = null, object marginMode = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2879,13 +2879,13 @@ public partial class mexc : Exchange
     public async virtual Task<ccxt.Order> CreateSwapOrder(object market, object type, object side, object amount, object price = null, object marginMode = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         object symbol = getValue(market, "symbol");
         object openType = null;
-        if (!isEqual(marginMode, null))
+        if ((marginMode != null))
         {
             if (isEqual(marginMode, "cross"))
             {
@@ -3018,7 +3018,7 @@ public partial class mexc : Exchange
     public async override Task<List<ccxt.Order>> CreateOrders(object orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3097,11 +3097,11 @@ public partial class mexc : Exchange
     public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchOrder() requires a symbol argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3194,13 +3194,13 @@ public partial class mexc : Exchange
     public async override Task<List<ccxt.Order>> FetchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
@@ -3212,7 +3212,7 @@ public partial class mexc : Exchange
         var query = ((IList<object>) marketTypequeryVariable)[1];
         if (isEqual(marketType, "spot"))
         {
-            if (isEqual(symbol, null))
+            if ((symbol == null))
             {
                 throw new ArgumentsRequired ((string)(this.id + " fetchOrders() requires a symbol argument for spot market")) ;
             }
@@ -3402,13 +3402,13 @@ public partial class mexc : Exchange
     public async virtual Task<List<ccxt.Order>> FetchOrdersByIds(object ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
@@ -3479,14 +3479,14 @@ public partial class mexc : Exchange
     public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
         string? marketType = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
         }
@@ -3495,7 +3495,7 @@ public partial class mexc : Exchange
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         if (isEqual(marketType, "spot"))
         {
-            if (!isEqual(symbol, null))
+            if ((symbol != null))
             {
                 ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
             }
@@ -3616,13 +3616,13 @@ public partial class mexc : Exchange
     public async virtual Task<List<ccxt.Order>> FetchOrdersByState(object state, object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
         }
@@ -3654,13 +3654,13 @@ public partial class mexc : Exchange
     public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
@@ -3675,7 +3675,7 @@ public partial class mexc : Exchange
         object data = null;
         if (isEqual(marketType, "spot"))
         {
-            if (isEqual(symbol, null))
+            if ((symbol == null))
             {
                 throw new ArgumentsRequired ((string)(this.id + " cancelOrder() requires a symbol argument")) ;
             }
@@ -3755,11 +3755,11 @@ public partial class mexc : Exchange
     public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> market = ((bool) (!isEqual(symbol, null))) ? this.market(symbol) : null;
+        Dictionary<string, object> market = ((bool) ((symbol != null))) ? this.market(symbol) : null;
         IList<object> marketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("cancelOrders", market, parameters);
         var marketType = ((IList<object>) marketTypeVariable)[0];
         if (isEqual(marketType, "spot"))
@@ -3801,12 +3801,12 @@ public partial class mexc : Exchange
     public async override Task<List<ccxt.Order>> CancelAllOrders(string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
         }
@@ -3817,7 +3817,7 @@ public partial class mexc : Exchange
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         if (isEqual(marketType, "spot"))
         {
-            if (isEqual(symbol, null))
+            if ((symbol == null))
             {
                 await this.spotPrivateDeleteOrderAll(parameters);
                 //
@@ -3848,7 +3848,7 @@ public partial class mexc : Exchange
             return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market));
         } else
         {
-            if (!isEqual(symbol, null))
+            if ((symbol != null))
             {
                 ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
             }
@@ -4220,7 +4220,7 @@ public partial class mexc : Exchange
         IList<object> marketTypequeryVariable = (IList<object>)this.handleMarketTypeAndParams("fetchAccounts", null, parameters);
         var marketType = ((IList<object>) marketTypequeryVariable)[0];
         var query = ((IList<object>) marketTypequeryVariable)[1];
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -4254,7 +4254,7 @@ public partial class mexc : Exchange
     public async override Task<ccxt.TradingFeeInterface> FetchTradingFee(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -4438,7 +4438,7 @@ public partial class mexc : Exchange
     public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -4589,11 +4589,11 @@ public partial class mexc : Exchange
     public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchMyTrades() requires a symbol argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -4683,13 +4683,13 @@ public partial class mexc : Exchange
     public async override Task<List<ccxt.Trade>> FetchOrderTrades(string id, string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
         }
@@ -4699,7 +4699,7 @@ public partial class mexc : Exchange
         List<object> trades = new List<object>() {};
         if (isEqual(marketType, "spot"))
         {
-            if (isEqual(symbol, null))
+            if ((symbol == null))
             {
                 throw new ArgumentsRequired ((string)(this.id + " fetchOrderTrades() requires a symbol argument")) ;
             }
@@ -4746,7 +4746,7 @@ public partial class mexc : Exchange
         {
             throw new ArgumentsRequired ((string)(this.id + " modifyMarginHelper() requires a positionId parameter")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -4809,7 +4809,7 @@ public partial class mexc : Exchange
     public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -4821,7 +4821,7 @@ public partial class mexc : Exchange
         {
             double? openType = this.safeNumber(parameters, "openType"); // 1 or 2
             double? positionType = this.safeNumber(parameters, "positionType"); // 1 or 2
-            Dictionary<string, object> market = ((bool) (!isEqual(symbol, null))) ? this.market(symbol) : null;
+            Dictionary<string, object> market = ((bool) ((symbol != null))) ? this.market(symbol) : null;
             if ((isEqual(openType, null)) || (isEqual(positionType, null)) || ((market == null)))
             {
                 throw new ArgumentsRequired ((string)(this.id + " setLeverage() requires a positionId parameter or a symbol argument with openType and positionType parameters, use openType 1 or 2 for isolated or cross margin respectively, use positionType 1 or 2 for long or short positions")) ;
@@ -4852,13 +4852,13 @@ public partial class mexc : Exchange
     public async override Task<List<ccxt.FundingHistory>> FetchFundingHistory(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
@@ -5001,7 +5001,7 @@ public partial class mexc : Exchange
     public async override Task<ccxt.FundingRate> FetchFundingRate(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -5043,11 +5043,11 @@ public partial class mexc : Exchange
     public async override Task<List<ccxt.FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -5117,7 +5117,7 @@ public partial class mexc : Exchange
     public async override Task<ccxt.LeverageTiers> FetchLeverageTiers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -5293,7 +5293,7 @@ public partial class mexc : Exchange
     public async override Task<ccxt.DepositAddresses> FetchDepositAddressesByNetwork(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -5352,7 +5352,7 @@ public partial class mexc : Exchange
     public async override Task<ccxt.DepositAddress> CreateDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -5448,13 +5448,13 @@ public partial class mexc : Exchange
     public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> currency = null;
-        if (!isEqual(code, null))
+        if ((code != null))
         {
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["coin"] = getValue(currency, "id");
@@ -5516,13 +5516,13 @@ public partial class mexc : Exchange
     public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> currency = null;
-        if (!isEqual(code, null))
+        if ((code != null))
         {
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["coin"] = getValue(currency, "id");
@@ -5720,7 +5720,7 @@ public partial class mexc : Exchange
     public async override Task<object> closeAllPositions(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -5748,7 +5748,7 @@ public partial class mexc : Exchange
     public async override Task<ccxt.Position> FetchPosition(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -5772,7 +5772,7 @@ public partial class mexc : Exchange
     public async override Task<List<ccxt.Position>> FetchPositions(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -5932,7 +5932,7 @@ public partial class mexc : Exchange
         IList<object> marketTypequeryVariable = (IList<object>)this.handleMarketTypeAndParams("fetchTransfer", null, parameters);
         var marketType = ((IList<object>) marketTypequeryVariable)[0];
         var query = ((IList<object>) marketTypequeryVariable)[1];
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -5985,13 +5985,13 @@ public partial class mexc : Exchange
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchTransfers", null, parameters);
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> currency = null;
-        if (!isEqual(code, null))
+        if ((code != null))
         {
             currency = this.currency(((string)code));
         }
@@ -6088,7 +6088,7 @@ public partial class mexc : Exchange
     public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -6256,7 +6256,7 @@ public partial class mexc : Exchange
     {
         object tagVar = tag;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -6296,7 +6296,7 @@ public partial class mexc : Exchange
             { "address", address },
             { "amount", amount },
         };
-        if (!isEqual(tagVar, null))
+        if ((tagVar != null))
         {
             ((IDictionary<string,object>)request)["memo"] = tagVar;
         }
@@ -6376,7 +6376,7 @@ public partial class mexc : Exchange
     public async override Task<Dictionary<string, object>> FetchTransactionFees(object codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -6422,7 +6422,7 @@ public partial class mexc : Exchange
             string? currencyId = this.safeString(entry, "coin");
             Dictionary<string, object> currency = this.safeCurrency(currencyId);
             string? code = this.safeString(currency, "code");
-            if ((isEqual(codes, null)) || (this.inArray(code, codes)))
+            if (((codes == null)) || (this.inArray(code, codes)))
             {
                 ((IDictionary<string,object>)withdrawFees)[(string)((string)code)] = this.parseTransactionFee(entry, currency);
             }
@@ -6487,7 +6487,7 @@ public partial class mexc : Exchange
     public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(object codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -6588,7 +6588,7 @@ public partial class mexc : Exchange
     public async override Task<ccxt.Leverage> FetchLeverage(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -6701,12 +6701,12 @@ public partial class mexc : Exchange
     public async override Task<List<ccxt.Position>> FetchPositionsHistory(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(symbols, null))
+        if ((symbols != null))
         {
             int symbolsLength = getArrayLength(symbols);
             if ((symbolsLength == 1))
@@ -6780,7 +6780,7 @@ public partial class mexc : Exchange
     public async override Task<Dictionary<string, object>> SetMarginMode(string marginMode, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -6804,7 +6804,7 @@ public partial class mexc : Exchange
             { "leverage", leverage },
             { "openType", ((bool) ((marginModeLower == "isolated"))) ? 1 : 2 },
         };
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         }
@@ -6879,7 +6879,7 @@ public partial class mexc : Exchange
             }
             if ((isEqual(method, "POST")) || (isEqual(method, "PUT")) || (isEqual(method, "DELETE")))
             {
-                headers = ((bool) (isEqual(headers, null))) ? new Dictionary<string, object>() {} : headers;
+                headers = ((bool) ((headers == null))) ? new Dictionary<string, object>() {} : headers;
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
             }
         } else if ((section == "contract") || (section == "spot2"))
@@ -6931,7 +6931,7 @@ public partial class mexc : Exchange
 
     public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
     {
-        if (isEqual(response, null))
+        if ((response == null))
         {
             return null;
         }

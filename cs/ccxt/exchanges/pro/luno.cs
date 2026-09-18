@@ -51,7 +51,7 @@ public partial class luno : ccxt.luno
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -132,7 +132,7 @@ public partial class luno : ccxt.luno
         //       "order_id": "BXEEU4S2BWF5WRB"
         //     }
         //
-        object symbol = ((bool) (isEqual(market, null))) ? null : getValue(market, "symbol");
+        object symbol = ((bool) ((market == null))) ? null : getValue(market, "symbol");
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", null },
@@ -166,7 +166,7 @@ public partial class luno : ccxt.luno
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }

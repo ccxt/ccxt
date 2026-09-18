@@ -85,7 +85,7 @@ public partial class derive : ccxt.derive
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -160,7 +160,7 @@ public partial class derive : ccxt.derive
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -301,7 +301,7 @@ public partial class derive : ccxt.derive
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -336,7 +336,7 @@ public partial class derive : ccxt.derive
     public async override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -453,7 +453,7 @@ public partial class derive : ccxt.derive
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -571,7 +571,7 @@ public partial class derive : ccxt.derive
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -581,7 +581,7 @@ public partial class derive : ccxt.derive
         parameters = ((IList<object>)subaccountIdparametersVariable)[1];
         string topic = (this.numberToString(subaccountId) + ".orders");
         string messageHash = topic;
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
@@ -660,7 +660,7 @@ public partial class derive : ccxt.derive
             string? orderId = this.safeString(parsed, "id");
             if ((symbol != null))
             {
-                if (isEqual(this.orders, null))
+                if ((this.orders == null))
                 {
                     Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
                     this.orders = new ArrayCacheBySymbolById(limit);
@@ -709,7 +709,7 @@ public partial class derive : ccxt.derive
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -719,7 +719,7 @@ public partial class derive : ccxt.derive
         parameters = ((IList<object>)subaccountIdparametersVariable)[1];
         string topic = (this.numberToString(subaccountId) + ".trades");
         string messageHash = topic;
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");

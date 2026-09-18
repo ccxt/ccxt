@@ -425,7 +425,7 @@ public partial class kraken : ccxt.kraken
     public async override Task<List<ccxt.Order>> CancelOrdersWs(object ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             throw new NotSupported ((string)(this.id + " cancelOrdersWs () does not support cancelling orders for a specific symbol.")) ;
         }
@@ -458,7 +458,7 @@ public partial class kraken : ccxt.kraken
     public async override Task<ccxt.Order> CancelOrderWs(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             throw new NotSupported ((string)(this.id + " cancelOrderWs () does not support cancelling orders for a specific symbol.")) ;
         }
@@ -508,7 +508,7 @@ public partial class kraken : ccxt.kraken
     public async override Task<List<ccxt.Order>> CancelAllOrdersWs(string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             throw new NotSupported ((string)(this.id + " cancelAllOrdersWs () does not support cancelling orders in a specific market.")) ;
         }
@@ -1257,7 +1257,7 @@ public partial class kraken : ccxt.kraken
         object token = await this.authenticate();
         string subscriptionHash = "executions";
         object messageHash = name;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             symbol = this.symbol(symbol);
             messageHash = add(messageHash, add(":", symbol));
@@ -1272,7 +1272,7 @@ public partial class kraken : ccxt.kraken
             } },
             { "req_id", requestId },
         };
-        if (!isEqual(parameters, null))
+        if ((parameters != null))
         {
             ((IDictionary<string,object>)subscribe)["params"] = this.deepExtend(((IDictionary<string,object>)subscribe)["params"], parameters);
         }
@@ -1339,7 +1339,7 @@ public partial class kraken : ccxt.kraken
         int allTradesLength = getArrayLength(allTrades);
         if (allTradesLength > 0)
         {
-            if (isEqual(this.myTrades, null))
+            if ((this.myTrades == null))
             {
                 Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
                 this.myTrades = new ArrayCache(limit);
@@ -1392,7 +1392,7 @@ public partial class kraken : ccxt.kraken
         //     }
         //
         object symbol = this.safeString(trade, "symbol");
-        if (!isEqual(market, null))
+        if ((market != null))
         {
             symbol = getValue(market, "symbol");
         }
@@ -1477,7 +1477,7 @@ public partial class kraken : ccxt.kraken
         if (allOrdersLength > 0)
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
-            if (isEqual(this.orders, null))
+            if ((this.orders == null))
             {
                 this.orders = new ArrayCacheBySymbolById(limit);
             }
@@ -1603,7 +1603,7 @@ public partial class kraken : ccxt.kraken
         await this.loadMarkets();
         // symbols are required
         symbols = this.marketSymbols(symbols, null, false, true, false);
-        if (isEqual(symbols, null))
+        if ((symbols == null))
         {
             return null;
         }
@@ -1709,7 +1709,7 @@ public partial class kraken : ccxt.kraken
     {
         // unifiedElementName can be : orderbook, trade, ticker, bidask ...
         // subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
-        bool withSymbol = !isEqual(symbol, null);
+        bool withSymbol = (symbol != null);
         object messageHash = unifiedElementName;
         if (!withSymbol)
         {
@@ -1718,7 +1718,7 @@ public partial class kraken : ccxt.kraken
         {
             messageHash = add(messageHash, add("@", symbol));
         }
-        if (!isEqual(subChannelName, null))
+        if ((subChannelName != null))
         {
             messageHash = add(messageHash, add("#", subChannelName));
         }

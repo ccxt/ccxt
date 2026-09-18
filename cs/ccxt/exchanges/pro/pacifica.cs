@@ -69,7 +69,7 @@ public partial class pacifica : ccxt.pacifica
     public virtual void setupApiKeyHeaders(object key = null)
     {
         Dictionary<string, object> headers = new Dictionary<string, object>() {};
-        if (!isEqual(key, null))
+        if ((key != null))
         {
             ((IDictionary<string,object>)headers)["PF-API-KEY"] = key;
         } else
@@ -108,7 +108,7 @@ public partial class pacifica : ccxt.pacifica
     public async override Task<ccxt.Order> CreateOrderWs(string symbol, string type, string side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -198,7 +198,7 @@ public partial class pacifica : ccxt.pacifica
     {
         parameters ??= new Dictionary<string, object>();
         string batchOperationType = "edit_order";
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -261,11 +261,11 @@ public partial class pacifica : ccxt.pacifica
     {
         parameters ??= new Dictionary<string, object>();
         string batchOperationType = "batch_orders";
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + "cancelOrders() requires a \"symbol\" argument!")) ;
         }
@@ -350,11 +350,11 @@ public partial class pacifica : ccxt.pacifica
     {
         parameters ??= new Dictionary<string, object>();
         string operationType = "cancel_order";
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " cancelOrderWs() requires a symbol argument")) ;
         }
@@ -415,7 +415,7 @@ public partial class pacifica : ccxt.pacifica
     public async override Task<List<ccxt.Order>> CancelAllOrdersWs(string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -456,7 +456,7 @@ public partial class pacifica : ccxt.pacifica
     {
         parameters ??= new Dictionary<string, object>();
         this.setupApiKeyHeaders();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -495,7 +495,7 @@ public partial class pacifica : ccxt.pacifica
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -612,7 +612,7 @@ public partial class pacifica : ccxt.pacifica
     {
         parameters ??= new Dictionary<string, object>();
         this.setupApiKeyHeaders();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -647,7 +647,7 @@ public partial class pacifica : ccxt.pacifica
     public async override Task<object> unWatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -687,12 +687,12 @@ public partial class pacifica : ccxt.pacifica
         IList<object> userAddressparametersVariable = (IList<object>)this.handleOriginAndSingleAddress("watchMyTrades", parameters);
         userAddress = (string)((IList<object>)userAddressparametersVariable)[0];
         parameters = ((IList<object>)userAddressparametersVariable)[1];
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         string messageHash = "myTrades";
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             symbolVar = this.symbol(symbolVar);
             messageHash = messageHash + add(":", symbolVar);
@@ -729,11 +729,11 @@ public partial class pacifica : ccxt.pacifica
     public async override Task<object> unWatchMyTrades(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             throw new NotSupported ((string)(this.id + " unWatchMyTrades does not support a symbol argument, unWatch from all markets only")) ;
         }
@@ -826,7 +826,7 @@ public partial class pacifica : ccxt.pacifica
         //   ]
         // }
         //
-        if (isEqual(this.myTrades, null))
+        if ((this.myTrades == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCacheBySymbolById(limit);
@@ -877,7 +877,7 @@ public partial class pacifica : ccxt.pacifica
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -915,7 +915,7 @@ public partial class pacifica : ccxt.pacifica
     public async override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1087,7 +1087,7 @@ public partial class pacifica : ccxt.pacifica
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1130,7 +1130,7 @@ public partial class pacifica : ccxt.pacifica
         object timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1216,7 +1216,7 @@ public partial class pacifica : ccxt.pacifica
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1226,7 +1226,7 @@ public partial class pacifica : ccxt.pacifica
         parameters = ((IList<object>)userAddressparametersVariable)[1];
         IDictionary<string, object> market = null;
         object messageHash = "order";
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
@@ -1264,11 +1264,11 @@ public partial class pacifica : ccxt.pacifica
     public async override Task<object> unWatchOrders(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             throw new NotSupported ((string)(this.id + " unWatchOrders() does not support a symbol argument, unWatch from all markets only")) ;
         }
@@ -1321,7 +1321,7 @@ public partial class pacifica : ccxt.pacifica
         //   ]
         // }
         List<object> data = this.safeList(message, "data", new List<object>() {});
-        if (isEqual(this.orders, null))
+        if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
@@ -1595,7 +1595,7 @@ public partial class pacifica : ccxt.pacifica
 
     public virtual Dictionary<string, object> wrapAsPostAction(object operationType, object request)
     {
-        if (isEqual(operationType, null))
+        if ((operationType == null))
         {
             throw new ArgumentsRequired ((string)(this.id + "postAction() requires a \"operationType\" argument!")) ;
         }

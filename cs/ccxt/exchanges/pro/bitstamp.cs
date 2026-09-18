@@ -65,7 +65,7 @@ public partial class bitstamp : ccxt.bitstamp
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -97,7 +97,7 @@ public partial class bitstamp : ccxt.bitstamp
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -264,7 +264,7 @@ public partial class bitstamp : ccxt.bitstamp
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -300,7 +300,7 @@ public partial class bitstamp : ccxt.bitstamp
     public async override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -332,7 +332,7 @@ public partial class bitstamp : ccxt.bitstamp
         Int64? timestamp = this.parseToInt(divide(microtimestamp, 1000));
         string? price = this.safeString(trade, "price");
         string? amount = this.safeString(trade, "amount");
-        if (isEqual(market, null))
+        if ((market == null))
         {
             market = this.safeMarket(null, market);
         }
@@ -414,7 +414,7 @@ public partial class bitstamp : ccxt.bitstamp
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -479,11 +479,11 @@ public partial class bitstamp : ccxt.bitstamp
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbolVar, null))
+        if ((symbolVar == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " watchOrders() requires a symbol argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -517,11 +517,11 @@ public partial class bitstamp : ccxt.bitstamp
     public async override Task<object> unWatchOrders(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " unWatchOrders() requires a symbol argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -548,11 +548,11 @@ public partial class bitstamp : ccxt.bitstamp
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbolVar, null))
+        if ((symbolVar == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " watchMyTrades() requires a symbol argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -586,11 +586,11 @@ public partial class bitstamp : ccxt.bitstamp
     public async override Task<object> unWatchMyTrades(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " unWatchMyTrades() requires a symbol argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -632,7 +632,7 @@ public partial class bitstamp : ccxt.bitstamp
             return;
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (isEqual(this.myTrades, null))
+        if ((this.myTrades == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCacheBySymbolById(limit);
@@ -731,7 +731,7 @@ public partial class bitstamp : ccxt.bitstamp
             return;
         }
         Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
-        if (isEqual(this.orders, null))
+        if ((this.orders == null))
         {
             this.orders = new ArrayCacheBySymbolById(limit);
         }
@@ -909,12 +909,12 @@ public partial class bitstamp : ccxt.bitstamp
         // would wipe the whole orders/myTrades cache - rebuild those without
         // the unsubscribed symbols instead, so the markets that are still
         // subscribed keep their cached history
-        if (((topic == "orders")) && (!isEqual(this.orders, null)))
+        if (((topic == "orders")) && ((this.orders != null)))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             var freshOrdersCache = new ArrayCacheBySymbolById(limit);
             this.orders = this.pruneCachedBySymbols(freshOrdersCache, this.orders, symbols);
-        } else if (((topic == "myTrades")) && (!isEqual(this.myTrades, null)))
+        } else if (((topic == "myTrades")) && ((this.myTrades != null)))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             var freshTradesCache = new ArrayCacheBySymbolById(limit);

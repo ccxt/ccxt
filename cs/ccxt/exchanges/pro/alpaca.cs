@@ -76,7 +76,7 @@ public partial class alpaca : ccxt.alpaca
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "crypto"));
         await this.authenticate(url);
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -172,7 +172,7 @@ public partial class alpaca : ccxt.alpaca
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "crypto"));
         await this.authenticate(url);
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -238,7 +238,7 @@ public partial class alpaca : ccxt.alpaca
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "crypto"));
         await this.authenticate(url);
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -336,7 +336,7 @@ public partial class alpaca : ccxt.alpaca
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "crypto"));
         await this.authenticate(url);
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -403,11 +403,11 @@ public partial class alpaca : ccxt.alpaca
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "trading"));
         await this.authenticate(url);
         string messageHash = "myTrades";
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             symbolVar = this.symbol(symbolVar);
             messageHash = messageHash + add(":", symbolVar);
@@ -443,12 +443,12 @@ public partial class alpaca : ccxt.alpaca
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "trading"));
         await this.authenticate(url);
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         string messageHash = "orders";
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
@@ -523,7 +523,7 @@ public partial class alpaca : ccxt.alpaca
         //
         object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
         object rawOrder = this.safeValue(data, "order", new Dictionary<string, object>() {});
-        if (isEqual(this.orders, null))
+        if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);

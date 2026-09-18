@@ -141,7 +141,7 @@ public partial class weex : ccxt.weex
     public virtual void authenticate(object url)
     {
         this.checkRequiredCredentials();
-        if ((!isEqual(this.clients, null)) && (inOp(this.clients, url)))
+        if (((this.clients != null)) && (inOp(this.clients, url)))
         {
             return;
         }
@@ -194,7 +194,7 @@ public partial class weex : ccxt.weex
     {
         string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -216,7 +216,7 @@ public partial class weex : ccxt.weex
     public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -274,7 +274,7 @@ public partial class weex : ccxt.weex
     public async override Task<object> unWatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -369,7 +369,7 @@ public partial class weex : ccxt.weex
         //
         Int64? timestamp = this.safeInteger(ticker, "C");
         string? close = this.safeString(ticker, "c");
-        object symbol = ((bool) (isEqual(market, null))) ? null : getValue(market, "symbol");
+        object symbol = ((bool) ((market == null))) ? null : getValue(market, "symbol");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
@@ -430,7 +430,7 @@ public partial class weex : ccxt.weex
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -488,7 +488,7 @@ public partial class weex : ccxt.weex
     public async override Task<object> unWatchTradesForSymbols(object symbols, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -583,7 +583,7 @@ public partial class weex : ccxt.weex
         //     }
         //
         Int64? timestamp = this.safeInteger(trade, "T");
-        object symbol = ((bool) (isEqual(market, null))) ? null : getValue(market, "symbol");
+        object symbol = ((bool) ((market == null))) ? null : getValue(market, "symbol");
         bool? isBuyerMaker = this.safeBool(trade, "m"); // m is the isBuyerMaker flag of the REST trades, true means the taker sold
         string? side = null;
         string? takerOrMaker = null;
@@ -649,7 +649,7 @@ public partial class weex : ccxt.weex
     public async override Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -730,7 +730,7 @@ public partial class weex : ccxt.weex
     public async override Task<object> unWatchOHLCVForSymbols(object symbolsAndTimeframes, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -897,7 +897,7 @@ public partial class weex : ccxt.weex
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(object symbols, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -960,7 +960,7 @@ public partial class weex : ccxt.weex
     public async override Task<object> unWatchOrderBookForSymbols(object symbols, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1071,7 +1071,7 @@ public partial class weex : ccxt.weex
     public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1114,7 +1114,7 @@ public partial class weex : ccxt.weex
     public async override Task<object> unWatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1180,7 +1180,7 @@ public partial class weex : ccxt.weex
     public virtual object parseWsBidAsk(object message, object market = null)
     {
         Int64? timestamp = this.safeInteger(message, "E");
-        object symbol = ((bool) (isEqual(market, null))) ? null : getValue(market, "symbol");
+        object symbol = ((bool) ((market == null))) ? null : getValue(market, "symbol");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
@@ -1211,13 +1211,13 @@ public partial class weex : ccxt.weex
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         string? marketType = null;
         IDictionary<string, object> market = null;
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
@@ -1228,7 +1228,7 @@ public partial class weex : ccxt.weex
         bool isContract = (!isEqual(marketType, "spot"));
         string messageHash = ((bool) isContract) ? "myContractTrades" : "myTrades";
         string subscriptionHash = messageHash;
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             messageHash = messageHash + add("::", symbolVar);
         }
@@ -1255,7 +1255,7 @@ public partial class weex : ccxt.weex
     public async override Task<object> unWatchMyTrades(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             throw new NotSupported ((string)(this.id + " unWatchMyTrades does not support a symbol argument. Unsubscribing from myTrades is global for all symbols.")) ;
         }
@@ -1325,7 +1325,7 @@ public partial class weex : ccxt.weex
         //         "updatedTime": "1776181258059"
         //     }
         //
-        if (isEqual(this.myTrades, null))
+        if ((this.myTrades == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCacheBySymbolById(limit);
@@ -1446,12 +1446,12 @@ public partial class weex : ccxt.weex
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
@@ -1463,7 +1463,7 @@ public partial class weex : ccxt.weex
         bool isContract = (!isEqual(marketType, "spot"));
         string messageHash = ((bool) isContract) ? "contractOrders" : "orders";
         string subscriptionHash = messageHash;
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             messageHash = messageHash + add("::", symbolVar);
         }
@@ -1489,7 +1489,7 @@ public partial class weex : ccxt.weex
     public async override Task<object> unWatchOrders(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             throw new NotSupported ((string)(this.id + " unWatchOrders does not support a symbol argument. Unsubscribing from orders is global for all symbols.")) ;
         }
@@ -1562,7 +1562,7 @@ public partial class weex : ccxt.weex
         //
         List<object> data = this.safeList(message, "d", new List<object>() {});
         Dictionary<string, object> symbols = new Dictionary<string, object>() {};
-        if (isEqual(this.orders, null))
+        if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
@@ -1768,7 +1768,7 @@ public partial class weex : ccxt.weex
     public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1939,7 +1939,7 @@ public partial class weex : ccxt.weex
     public async override Task<List<ccxt.Position>> WatchPositions(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1949,7 +1949,7 @@ public partial class weex : ccxt.weex
         symbols = this.marketSymbols(symbols, "swap", true);
         string messageHash = "positions";
         string subscriptionHash = messageHash;
-        if (!isEqual(symbols, null))
+        if ((symbols != null))
         {
             messageHash = messageHash + ("::" + String.Join(",", ((IList<object>)symbols).ToArray()));
         }
@@ -1957,7 +1957,7 @@ public partial class weex : ccxt.weex
         this.setPositionsCache(client as WebSocketClient, parameters);
         object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
         object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
-        if ((isEqual(fetchPositionsSnapshot, true)) && (isEqual(awaitPositionsSnapshot, true)) && (isEqual(this.positions, null)))
+        if ((isEqual(fetchPositionsSnapshot, true)) && (isEqual(awaitPositionsSnapshot, true)) && ((this.positions == null)))
         {
             object snapshot = await client.future("fetchPositionsSnapshot");
             return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true));
@@ -2016,7 +2016,7 @@ public partial class weex : ccxt.weex
     public async override Task<object> unWatchPositions(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isEqual(symbols, null))
+        if ((symbols != null))
         {
             throw new NotSupported ((string)(this.id + " unWatchPositions does not support a symbols argument. Unsubscribing from positions is global for all symbols.")) ;
         }
@@ -2073,7 +2073,7 @@ public partial class weex : ccxt.weex
         //         ]
         //     }
         //
-        if (isEqual(this.positions, null))
+        if ((this.positions == null))
         {
             this.positions = new ArrayCacheBySymbolById();
         }

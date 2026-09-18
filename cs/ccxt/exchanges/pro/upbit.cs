@@ -36,16 +36,16 @@ public partial class upbit : ccxt.upbit
     public async virtual Task<object> watchPublicMultiple(object symbols, object channel, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        if (isEqual(symbols, null))
+        if ((symbols == null))
         {
             symbols = this.symbols;
         }
         symbols = this.marketSymbols(symbols);
-        if (isEqual(symbols, null))
+        if ((symbols == null))
         {
             symbols = new List<object>() {};
         }
@@ -405,7 +405,7 @@ public partial class upbit : ccxt.upbit
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", channel },
         };
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             await this.loadMarkets();
             Dictionary<string, object> market = this.market(symbol);
@@ -427,7 +427,7 @@ public partial class upbit : ccxt.upbit
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)subscriptionsKey] = new Dictionary<string, object>() {};
         }
         object channelKey = channel;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             channelKey = add(add(channel, ":"), symbol);
         }
@@ -470,7 +470,7 @@ public partial class upbit : ccxt.upbit
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -499,7 +499,7 @@ public partial class upbit : ccxt.upbit
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -522,7 +522,7 @@ public partial class upbit : ccxt.upbit
             { "watch", "open" },
             { "trade", "open" },
         };
-        if (isEqual(status, null))
+        if ((status == null))
         {
             return null;
         }
@@ -676,7 +676,7 @@ public partial class upbit : ccxt.upbit
         Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsOrder(message));
         string? symbol = this.safeString(parsed, "symbol");
         string? orderId = this.safeString(parsed, "id");
-        if (isEqual(this.orders, null))
+        if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
@@ -718,7 +718,7 @@ public partial class upbit : ccxt.upbit
     public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }

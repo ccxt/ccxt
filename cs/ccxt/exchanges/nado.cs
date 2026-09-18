@@ -738,7 +738,7 @@ public partial class nado : Exchange
         this.checkRequiredCredentials();
         await this.loadMarkets();
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
         }
@@ -778,7 +778,7 @@ public partial class nado : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         List<object> productIds = new List<object>() {};
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
             ((IList<object>)productIds).Add(this.parseToInt(getValue(market, "id")));
@@ -840,7 +840,7 @@ public partial class nado : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " cancelOrders() requires a symbol argument")) ;
         }
@@ -951,7 +951,7 @@ public partial class nado : Exchange
     public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchOrder() requires a symbol argument")) ;
         }
@@ -1005,7 +1005,7 @@ public partial class nado : Exchange
         await this.loadMarkets();
         List<object> productIds = new List<object>() {};
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
             ((IList<object>)productIds).Add(this.parseToInt(getValue(market, "id")));
@@ -1095,7 +1095,7 @@ public partial class nado : Exchange
     public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.walletAddress, null))
+        if ((this.walletAddress == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchOpenOrders() requires walletAddress")) ;
         }
@@ -1112,7 +1112,7 @@ public partial class nado : Exchange
                 { "status_types", new List<object>() {"waiting_price", "waiting_dependency"} },
             }));
         }
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchOpenOrders() requires a symbol argument")) ;
         }
@@ -1173,13 +1173,13 @@ public partial class nado : Exchange
     public async override Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.walletAddress, null))
+        if ((this.walletAddress == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchClosedOrders() requires walletAddress")) ;
         }
         await this.loadMarkets();
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
         }
@@ -1303,13 +1303,13 @@ public partial class nado : Exchange
     public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.walletAddress, null))
+        if ((this.walletAddress == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchMyTrades() requires walletAddress")) ;
         }
         await this.loadMarkets();
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
         }
@@ -1389,7 +1389,7 @@ public partial class nado : Exchange
     public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.walletAddress, null))
+        if ((this.walletAddress == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchBalance() requires walletAddress")) ;
         }
@@ -1467,13 +1467,13 @@ public partial class nado : Exchange
     public async virtual Task<object> queryTransactionsByEventType(object eventType, object transactionType, object methodName, string code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.walletAddress, null))
+        if ((this.walletAddress == null))
         {
             throw new ArgumentsRequired ((string)(add((this.id + " "), methodName) + "() requires walletAddress")) ;
         }
         await this.loadMarkets();
         IDictionary<string, object> currency = null;
-        if (!isEqual(code, null))
+        if ((code != null))
         {
             currency = this.currency(((string)code));
         }
@@ -1570,7 +1570,7 @@ public partial class nado : Exchange
     public async override Task<List<ccxt.Position>> FetchPositions(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.walletAddress, null))
+        if ((this.walletAddress == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchPositions() requires walletAddress")) ;
         }
@@ -2023,11 +2023,11 @@ public partial class nado : Exchange
     public async override Task<List<ccxt.FundingHistory>> FetchFundingHistory(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchFundingHistory() requires a symbol argument")) ;
         }
-        if (isEqual(this.walletAddress, null))
+        if ((this.walletAddress == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchFundingHistory() requires walletAddress")) ;
         }
@@ -3115,7 +3115,7 @@ public partial class nado : Exchange
 
     public virtual string? convertToX18(object value)
     {
-        if (isEqual(value, null))
+        if ((value == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " convertToX18() requires a value")) ;
         }
@@ -3124,7 +3124,7 @@ public partial class nado : Exchange
 
     public virtual double? parseX18(object value)
     {
-        if (isEqual(value, null))
+        if ((value == null))
         {
             return ((double?)((object)(null)));
         }
@@ -3192,11 +3192,11 @@ public partial class nado : Exchange
     public virtual string createSubaccount(object walletAddress, object subaccount = null)
     {
         subaccount ??= "default";
-        if (isEqual(walletAddress, null))
+        if ((walletAddress == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " createSubaccount() requires walletAddress")) ;
         }
-        if (isEqual(subaccount, null))
+        if ((subaccount == null))
         {
             subaccount = "default";
         }
@@ -3363,7 +3363,7 @@ public partial class nado : Exchange
 
     public virtual object signHash(object hash, object privateKey)
     {
-        if (isEqual(privateKey, null))
+        if ((privateKey == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " signHash() requires privateKey")) ;
         }
@@ -3376,7 +3376,7 @@ public partial class nado : Exchange
 
     public virtual object removeMarketSuffix(object marketId)
     {
-        if (isEqual(marketId, null))
+        if ((marketId == null))
         {
             return null;
         }
@@ -3429,7 +3429,7 @@ public partial class nado : Exchange
 
     public override object handleErrors(object httpCode, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
     {
-        if ((isEqual(response, null)) || (isEqual(response, null)))
+        if (((response == null)) || ((response == null)))
         {
             return null;  // fallback to default error handler
         }

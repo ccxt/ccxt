@@ -818,7 +818,7 @@ public partial class bithumb : Exchange
     public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -855,7 +855,7 @@ public partial class bithumb : Exchange
     public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1102,7 +1102,7 @@ public partial class bithumb : Exchange
     public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1117,7 +1117,7 @@ public partial class bithumb : Exchange
             // Bithumb v2 ticker payloads are inconsistent for all-market calls,
             // so we aggregate 300 markets per request only when symbols are not provided.
             List<object> marketIds = new List<object>() {};
-            object symbolsForMarketIds = ((bool) (isEqual(symbols, null))) ? this.symbols : symbols;
+            object symbolsForMarketIds = ((bool) ((symbols == null))) ? this.symbols : symbols;
             int symbolsForMarketIdsLength = getArrayLength(symbolsForMarketIds);
             for (int i = 0; i < symbolsForMarketIdsLength; postFixIncrement(ref i))
             {
@@ -1131,7 +1131,7 @@ public partial class bithumb : Exchange
             }
             List<object> marketIdsChunks = new List<object>() {};
             List<object> promises = new List<object>() {};
-            if (!isEqual(symbols, null))
+            if ((symbols != null))
             {
                 ((IDictionary<string,object>)request)["markets"] = String.Join(",", ((IList<object>)marketIds).ToArray());
                 ((IList<object>)marketIdsChunks).Add(marketIds);
@@ -1251,7 +1251,7 @@ public partial class bithumb : Exchange
         {
             IDictionary<string, object> quoteCurrencies = this.safeDict(this.options, "quoteCurrencies", new Dictionary<string, object>() {});
             List<object> quotes = new List<object>(((IDictionary<string,object>)quoteCurrencies).Keys);
-            if (!isEqual(symbols, null))
+            if ((symbols != null))
             {
                 Dictionary<string, object> requiredQuotes = new Dictionary<string, object>() {};
                 for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
@@ -1315,7 +1315,7 @@ public partial class bithumb : Exchange
     public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1456,7 +1456,7 @@ public partial class bithumb : Exchange
         object timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1709,7 +1709,7 @@ public partial class bithumb : Exchange
     public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1786,7 +1786,7 @@ public partial class bithumb : Exchange
     public async override Task<List<ccxt.Order>> CreateOrders(object orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1984,7 +1984,7 @@ public partial class bithumb : Exchange
     public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2047,7 +2047,7 @@ public partial class bithumb : Exchange
     public async override Task<ccxt.Order> CreateMarketBuyOrderWithCost(string symbol, double cost, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2081,7 +2081,7 @@ public partial class bithumb : Exchange
     public async override Task<ccxt.Order> CreateTwapOrder(string symbol, string side, double amount, object duration, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2141,7 +2141,7 @@ public partial class bithumb : Exchange
     public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2150,7 +2150,7 @@ public partial class bithumb : Exchange
         generation = ((IList<object>)generationparametersVariable)[0];
         parameters = ((IList<object>)generationparametersVariable)[1];
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
         }
@@ -2233,7 +2233,7 @@ public partial class bithumb : Exchange
             }
         } else
         {
-            if (isEqual(symbol, null))
+            if ((symbol == null))
             {
                 throw new ArgumentsRequired ((string)(this.id + " fetchOrder() requires a symbol argument")) ;
             }
@@ -2498,7 +2498,7 @@ public partial class bithumb : Exchange
         if (!isEqual(feeCost, null))
         {
             object currency = null;
-            if (!isEqual(market, null))
+            if ((market != null))
             {
                 currency = getValue(market, "quote");
             }
@@ -2560,7 +2560,7 @@ public partial class bithumb : Exchange
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2585,7 +2585,7 @@ public partial class bithumb : Exchange
             return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limitVar));
         } else
         {
-            if (isEqual(symbol, null))
+            if ((symbol == null))
             {
                 throw new ArgumentsRequired ((string)(this.id + " fetchOpenOrders() requires a symbol argument")) ;
             }
@@ -2626,7 +2626,7 @@ public partial class bithumb : Exchange
     public async override Task<List<ccxt.Order>> FetchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2651,7 +2651,7 @@ public partial class bithumb : Exchange
             }
         }
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["market"] = this.getGen2MarketId(market);
@@ -2785,7 +2785,7 @@ public partial class bithumb : Exchange
     public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2794,7 +2794,7 @@ public partial class bithumb : Exchange
         generation = ((IList<object>)generationparametersVariable)[0];
         parameters = ((IList<object>)generationparametersVariable)[1];
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
         }
@@ -2828,7 +2828,7 @@ public partial class bithumb : Exchange
             }
         } else
         {
-            if (isEqual(symbol, null))
+            if ((symbol == null))
             {
                 throw new ArgumentsRequired ((string)(this.id + " cancelOrder() requires a symbol argument")) ;
             }
@@ -2877,7 +2877,7 @@ public partial class bithumb : Exchange
     public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2890,7 +2890,7 @@ public partial class bithumb : Exchange
             throw new BadRequest ((string)(this.id + " cancelOrders is only supported for the generation 2 API")) ;
         }
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
         }
@@ -2959,7 +2959,7 @@ public partial class bithumb : Exchange
     {
         object tagVar = tag;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2981,10 +2981,10 @@ public partial class bithumb : Exchange
         {
             string? destination = this.safeString2(parameters, "destination", "secondary_address");
             parameters = this.omit(parameters, new List<object>() {"destination", "secondary_address"});
-            if ((isEqual(tagVar, null)) && ((destination == null)))
+            if (((tagVar == null)) && ((destination == null)))
             {
                 throw new ArgumentsRequired ((string)(add((this.id + " "), code) + " withdraw() requires a tag argument or an extra destination param")) ;
-            } else if (!isEqual(tagVar, null))
+            } else if ((tagVar != null))
             {
                 destinationRequest = tagVar;
             } else
@@ -3126,7 +3126,7 @@ public partial class bithumb : Exchange
 
     public virtual object parseTransactionStatusByType(object status, object type = null)
     {
-        if (isEqual(type, null))
+        if ((type == null))
         {
             return status;
         }
@@ -3164,7 +3164,7 @@ public partial class bithumb : Exchange
     public async virtual Task<List<Dictionary<string, object>>> FetchWithdrawalWhitelist(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3209,7 +3209,7 @@ public partial class bithumb : Exchange
     public async virtual Task<ccxt.Transaction> FetchWithdrawal(string id, string code = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3221,7 +3221,7 @@ public partial class bithumb : Exchange
         {
             throw new BadRequest ((string)(this.id + " fetchWithdrawal() is only supported for the generation 2 API")) ;
         }
-        if (isEqual(code, null))
+        if ((code == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchWithdrawal() requires a code argument")) ;
         }
@@ -3229,7 +3229,7 @@ public partial class bithumb : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
         };
-        if (!isEqual(id, null))
+        if ((id != null))
         {
             ((IDictionary<string,object>)request)["uuid"] = id;
         }
@@ -3273,7 +3273,7 @@ public partial class bithumb : Exchange
     public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3298,7 +3298,7 @@ public partial class bithumb : Exchange
             response = await this.privateGetV1WithdrawsKrw(this.extend(request, parameters));
         } else
         {
-            if (!isEqual(code, null))
+            if ((code != null))
             {
                 currency = this.currency(((string)code));
                 ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
@@ -3340,7 +3340,7 @@ public partial class bithumb : Exchange
     public async virtual Task<ccxt.Transaction> FetchDeposit(string id, string code = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3352,7 +3352,7 @@ public partial class bithumb : Exchange
         {
             throw new BadRequest ((string)(this.id + " fetchDeposit() is only supported for the generation 2 API")) ;
         }
-        if (isEqual(code, null))
+        if ((code == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchDeposit() requires a code argument")) ;
         }
@@ -3360,7 +3360,7 @@ public partial class bithumb : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
         };
-        if (!isEqual(id, null))
+        if ((id != null))
         {
             ((IDictionary<string,object>)request)["uuid"] = id;
         }
@@ -3404,7 +3404,7 @@ public partial class bithumb : Exchange
     public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3429,7 +3429,7 @@ public partial class bithumb : Exchange
             response = await this.privateGetV1DepositsKrw(this.extend(request, parameters));
         } else
         {
-            if (!isEqual(code, null))
+            if ((code != null))
             {
                 currency = this.currency(((string)code));
                 ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
@@ -3470,7 +3470,7 @@ public partial class bithumb : Exchange
     public async override Task<ccxt.DepositAddress> CreateDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3519,7 +3519,7 @@ public partial class bithumb : Exchange
     public async override Task<ccxt.DepositAddress> FetchDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3567,7 +3567,7 @@ public partial class bithumb : Exchange
     public async override Task<List<ccxt.DepositAddress>> FetchDepositAddresses(object codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3625,7 +3625,7 @@ public partial class bithumb : Exchange
     public virtual object fixCommaNumber(object numberStr)
     {
         // some endpoints need this https://github.com/ccxt/ccxt/issues/11031
-        if (isEqual(numberStr, null))
+        if ((numberStr == null))
         {
             return null;
         }
@@ -3771,7 +3771,7 @@ public partial class bithumb : Exchange
 
     public override object handleErrors(object httpCode, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
     {
-        if (isEqual(response, null))
+        if ((response == null))
         {
             return null;  // fallback to default error handler
         }

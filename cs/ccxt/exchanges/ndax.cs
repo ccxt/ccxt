@@ -631,7 +631,7 @@ public partial class ndax : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        if (isEqual(this.login, null) || isEqual(this.password, null))
+        if ((this.login == null) || (this.password == null))
         {
             throw new AuthenticationError ((string)(this.id + " signIn() requires exchange.login, exchange.password")) ;
         }
@@ -657,7 +657,7 @@ public partial class ndax : Exchange
         string? pending2faToken = this.safeString(response, "Pending2FaToken");
         if ((pending2faToken != null))
         {
-            if (isEqual(this.twofa, null))
+            if ((this.twofa == null))
             {
                 throw new AuthenticationError ((string)(this.id + " signIn() requires exchange.twofa credentials")) ;
             }
@@ -951,7 +951,7 @@ public partial class ndax : Exchange
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         Int64? omsId = this.safeInteger(this.options, "omsId", 1);
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1086,7 +1086,7 @@ public partial class ndax : Exchange
     public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1124,7 +1124,7 @@ public partial class ndax : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Int64? omsId = this.safeInteger(this.options, "omsId", 1);
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1203,7 +1203,7 @@ public partial class ndax : Exchange
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         Int64? omsId = this.safeInteger(this.options, "omsId", 1);
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1441,7 +1441,7 @@ public partial class ndax : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Int64? omsId = this.safeInteger(this.options, "omsId", 1);
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1476,7 +1476,7 @@ public partial class ndax : Exchange
     public async override Task<List<ccxt.Account>> FetchAccounts(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((isEqual(this.login, null)) || (isEqual(this.login, "")))
+        if (((this.login == null)) || (isEqual(this.login, "")))
         {
             throw new AuthenticationError ((string)(this.id + " fetchAccounts() requires exchange.login email credential")) ;
         }
@@ -1516,7 +1516,7 @@ public partial class ndax : Exchange
         {
             object balance = getValue(response, i);
             string? currencyId = this.safeString(balance, "ProductId");
-            if (((currencyId != null)) && (!isEqual(this.currencies_by_id, null)) && (((IDictionary<string, object>)this.currencies_by_id).ContainsKey(currencyId)))
+            if (((currencyId != null)) && ((this.currencies_by_id != null)) && (((IDictionary<string, object>)this.currencies_by_id).ContainsKey(currencyId)))
             {
                 string? code = this.safeCurrencyCode(currencyId);
                 Dictionary<string, object> account = this.account();
@@ -1543,7 +1543,7 @@ public partial class ndax : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Int64? omsId = this.safeInteger(this.options, "omsId", 1);
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1691,7 +1691,7 @@ public partial class ndax : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Int64? omsId = this.safeInteger(this.options, "omsId", 1);
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1727,7 +1727,7 @@ public partial class ndax : Exchange
         //     ]
         //
         IDictionary<string, object> currency = null;
-        if (!isEqual(code, null))
+        if ((code != null))
         {
             currency = this.currency(((string)code));
         }
@@ -1744,7 +1744,7 @@ public partial class ndax : Exchange
             { "Expired", "expired" },
             { "FullyExecuted", "closed" },
         };
-        if (isEqual(status, null))
+        if ((status == null))
         {
             return null;
         }
@@ -1866,7 +1866,7 @@ public partial class ndax : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Int64? omsId = this.safeInteger(this.options, "omsId", 1);
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1946,7 +1946,7 @@ public partial class ndax : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Int64? omsId = this.safeInteger(this.options, "omsId", 1);
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2009,7 +2009,7 @@ public partial class ndax : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Int64? omsId = this.safeInteger(this.options, "omsId", 1);
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2022,7 +2022,7 @@ public partial class ndax : Exchange
             { "AccountId", accountId },
         };
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["InstrumentId"] = getValue(market, "id");
@@ -2095,7 +2095,7 @@ public partial class ndax : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Int64? omsId = this.safeInteger(this.options, "omsId", 1);
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2107,7 +2107,7 @@ public partial class ndax : Exchange
             { "omsId", omsId },
             { "AccountId", accountId },
         };
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
             ((IDictionary<string,object>)request)["IntrumentId"] = getValue(market, "id");
@@ -2139,7 +2139,7 @@ public partial class ndax : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Int64? omsId = this.safeInteger(this.options, "omsId", 1);
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2148,7 +2148,7 @@ public partial class ndax : Exchange
         // const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         // params = this.omit (params, [ 'accountId', 'AccountId' ]);
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
         }
@@ -2184,7 +2184,7 @@ public partial class ndax : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Int64? omsId = this.safeInteger(this.options, "omsId", 1);
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2193,7 +2193,7 @@ public partial class ndax : Exchange
         Int64? accountId = this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
         parameters = this.omit(parameters, new List<object>() {"accountId", "AccountId"});
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
         }
@@ -2270,7 +2270,7 @@ public partial class ndax : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Int64? omsId = this.safeInteger(this.options, "omsId", 1);
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2283,7 +2283,7 @@ public partial class ndax : Exchange
             { "AccountId", accountId },
         };
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["InstrumentId"] = getValue(market, "id");
@@ -2364,7 +2364,7 @@ public partial class ndax : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Int64? omsId = this.safeInteger(this.options, "omsId", 1);
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2373,7 +2373,7 @@ public partial class ndax : Exchange
         Int64? accountId = this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
         parameters = this.omit(parameters, new List<object>() {"accountId", "AccountId"});
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
         }
@@ -2450,7 +2450,7 @@ public partial class ndax : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Int64? omsId = this.safeInteger(this.options, "omsId", 1);
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2459,7 +2459,7 @@ public partial class ndax : Exchange
         // const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         // params = this.omit (params, [ 'accountId', 'AccountId' ]);
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
         }
@@ -2535,7 +2535,7 @@ public partial class ndax : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Int64? omsId = this.safeInteger(this.options, "omsId", 1);
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2590,7 +2590,7 @@ public partial class ndax : Exchange
         string? address = this.safeString(parts, 0);
         string? tag = this.safeString(parts, 1);
         object code = null;
-        if (!isEqual(currency, null))
+        if ((currency != null))
         {
             code = getValue(currency, "code");
         }
@@ -2636,7 +2636,7 @@ public partial class ndax : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Int64? omsId = this.safeInteger(this.options, "omsId", 1);
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2645,7 +2645,7 @@ public partial class ndax : Exchange
         Int64? accountId = this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
         parameters = this.omit(parameters, new List<object>() {"accountId", "AccountId"});
         IDictionary<string, object> currency = null;
-        if (!isEqual(code, null))
+        if ((code != null))
         {
             currency = this.currency(((string)code));
         }
@@ -2704,7 +2704,7 @@ public partial class ndax : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Int64? omsId = this.safeInteger(this.options, "omsId", 1);
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2713,7 +2713,7 @@ public partial class ndax : Exchange
         Int64? accountId = this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
         parameters = this.omit(parameters, new List<object>() {"accountId", "AccountId"});
         IDictionary<string, object> currency = null;
-        if (!isEqual(code, null))
+        if ((code != null))
         {
             currency = this.currency(((string)code));
         }
@@ -2795,8 +2795,8 @@ public partial class ndax : Exchange
                 { "Confirmed2Fa", "pending" },
             } },
         };
-        object statuses = ((bool) (isEqual(type, null))) ? new Dictionary<string, object>() {} : this.safeValue(statusesByType, type, new Dictionary<string, object>() {});
-        if (isEqual(status, null))
+        object statuses = ((bool) ((type == null))) ? new Dictionary<string, object>() {} : this.safeValue(statusesByType, type, new Dictionary<string, object>() {});
+        if ((status == null))
         {
             return null;
         }
@@ -2934,13 +2934,13 @@ public partial class ndax : Exchange
         {
             throw new AuthenticationError ((string)(this.id + " call signIn() method to obtain a session token")) ;
         }
-        if (isEqual(this.twofa, null))
+        if ((this.twofa == null))
         {
             throw new AuthenticationError ((string)(this.id + " withdraw() requires exchange.twofa credentials")) ;
         }
         this.checkAddress(address);
         Int64? omsId = this.safeInteger(this.options, "omsId", 1);
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -2997,7 +2997,7 @@ public partial class ndax : Exchange
         }
         object withdrawTemplate = parseJson(template);
         ((IDictionary<string,object>)withdrawTemplate)["ExternalAddress"] = address;
-        if (!isEqual(tagVar, null))
+        if ((tagVar != null))
         {
             if (inOp(withdrawTemplate, "Memo"))
             {
@@ -3103,7 +3103,7 @@ public partial class ndax : Exchange
         {
             throw new AuthenticationError ((string)add((this.id + " "), body)) ;
         }
-        if (isEqual(response, null))
+        if ((response == null))
         {
             return null;
         }

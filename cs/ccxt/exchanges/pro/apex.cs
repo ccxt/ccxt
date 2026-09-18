@@ -84,7 +84,7 @@ public partial class apex : ccxt.apex
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -233,7 +233,7 @@ public partial class apex : ccxt.apex
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -414,7 +414,7 @@ public partial class apex : ccxt.apex
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -439,7 +439,7 @@ public partial class apex : ccxt.apex
     public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -554,7 +554,7 @@ public partial class apex : ccxt.apex
     public async override Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -677,11 +677,11 @@ public partial class apex : ccxt.apex
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         string messageHash = "myTrades";
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             symbolVar = this.symbol(symbolVar);
             messageHash = messageHash + add(":", symbolVar);
@@ -710,7 +710,7 @@ public partial class apex : ccxt.apex
     public async override Task<List<ccxt.Position>> WatchPositions(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -756,12 +756,12 @@ public partial class apex : ccxt.apex
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         string messageHash = "orders";
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             symbolVar = this.symbol(symbolVar);
             messageHash = messageHash + add(":", symbolVar);
@@ -796,7 +796,7 @@ public partial class apex : ccxt.apex
         //         "updatedAt":1652185678345
         //     }
         // ]
-        if (isEqual(this.myTrades, null))
+        if ((this.myTrades == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCacheBySymbolById(limit);
@@ -853,7 +853,7 @@ public partial class apex : ccxt.apex
         //         "status":"PENDING"
         //     }
         // ]
-        if (isEqual(this.orders, null))
+        if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
@@ -879,7 +879,7 @@ public partial class apex : ccxt.apex
 
     public virtual void setPositionsCache(WebSocketClient client, object symbols = null)
     {
-        if (!isEqual(this.positions, null))
+        if ((this.positions != null))
         {
             return;
         }
@@ -940,7 +940,7 @@ public partial class apex : ccxt.apex
         //
         // each account is connected to a different endpoint
         // and has exactly one subscriptionhash which is the account type
-        if (isEqual(this.positions, null))
+        if ((this.positions == null))
         {
             this.positions = new ArrayCacheBySymbolBySide();
         }

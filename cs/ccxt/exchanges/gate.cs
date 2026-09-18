@@ -2068,8 +2068,8 @@ public partial class gate : Exchange
 
     public override Dictionary<string, object> safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)
     {
-        bool isOption = (!isEqual(marketId, null)) && ((getIndexOf(marketId, "-C") > -1) || (getIndexOf(marketId, "-P") > -1));
-        if (isOption && ((isEqual(this.markets_by_id, null)) || !(inOp(this.markets_by_id, marketId))))
+        bool isOption = ((marketId != null)) && ((getIndexOf(marketId, "-C") > -1) || (getIndexOf(marketId, "-P") > -1));
+        if (isOption && (((this.markets_by_id == null)) || !(inOp(this.markets_by_id, marketId))))
         {
             // handle expired option contracts
             return ((Dictionary<string, object>)((object)(this.createExpiredOptionMarket(marketId))));
@@ -2665,7 +2665,7 @@ public partial class gate : Exchange
         // * Do not call for multi spot order methods like cancelAllOrders and fetchOpenOrders. Use multiOrderSpotPrepareRequest instead
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (!isEqual(market, null))
+        if ((market != null))
         {
             if (isEqual(getValue(market, "contract"), true))
             {
@@ -2713,7 +2713,7 @@ public partial class gate : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (!isTrue(trigger))
         {
-            if (isEqual(market, null))
+            if ((market == null))
             {
                 throw new ArgumentsRequired ((string)(this.id + " spotOrderPrepareRequest() requires a market argument for non-trigger orders")) ;
             }
@@ -2743,7 +2743,7 @@ public partial class gate : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "account", marginMode },
         };
-        if (!isEqual(market, null))
+        if ((market != null))
         {
             if (isTrue(trigger))
             {
@@ -2935,7 +2935,7 @@ public partial class gate : Exchange
     public async override Task<ccxt.FundingRate> FetchFundingRate(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3007,13 +3007,13 @@ public partial class gate : Exchange
     public async override Task<ccxt.FundingRates> FetchFundingRates(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
         IDictionary<string, object> market = null;
-        if (!isEqual(symbols, null))
+        if ((symbols != null))
         {
             string? firstSymbol = this.safeString(symbols, 0);
             market = this.market(firstSymbol);
@@ -3160,7 +3160,7 @@ public partial class gate : Exchange
     {
         string codeVar = code;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3216,7 +3216,7 @@ public partial class gate : Exchange
     public async override Task<ccxt.DepositAddresses> FetchDepositAddressesByNetwork(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3245,7 +3245,7 @@ public partial class gate : Exchange
     public async override Task<ccxt.DepositAddress> FetchDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3294,7 +3294,7 @@ public partial class gate : Exchange
     public async override Task<ccxt.TradingFeeInterface> FetchTradingFee(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3331,7 +3331,7 @@ public partial class gate : Exchange
     public async override Task<ccxt.TradingFees> FetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3411,7 +3411,7 @@ public partial class gate : Exchange
     public async override Task<Dictionary<string, object>> FetchTransactionFees(object codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3441,7 +3441,7 @@ public partial class gate : Exchange
             IDictionary<string, object> entry = this.safeDict(response, i, new Dictionary<string, object>() {});
             string? currencyId = this.safeString(entry, "currency");
             string? code = this.safeCurrencyCode(currencyId);
-            if ((!isEqual(codes, null)) && !this.inArray(code, codes))
+            if (((codes != null)) && !this.inArray(code, codes))
             {
                 continue;
             }
@@ -3483,7 +3483,7 @@ public partial class gate : Exchange
     public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(object codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3584,13 +3584,13 @@ public partial class gate : Exchange
     public async override Task<List<ccxt.FundingHistory>> FetchFundingHistory(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         // let defaultType = 'future';
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
             symbol = getValue(market, "symbol");
@@ -3692,7 +3692,7 @@ public partial class gate : Exchange
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -3833,7 +3833,7 @@ public partial class gate : Exchange
     public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -4017,7 +4017,7 @@ public partial class gate : Exchange
     public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -4093,7 +4093,7 @@ public partial class gate : Exchange
     public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -4415,7 +4415,7 @@ public partial class gate : Exchange
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -4499,7 +4499,7 @@ public partial class gate : Exchange
         // separated option logic because the from, to and limit parameters weren't functioning
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -4529,11 +4529,11 @@ public partial class gate : Exchange
     public async override Task<List<ccxt.FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -4647,7 +4647,7 @@ public partial class gate : Exchange
     public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -4776,11 +4776,11 @@ public partial class gate : Exchange
     public async override Task<List<ccxt.Trade>> FetchOrderTrades(string id, string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchOrderTrades() requires a symbol argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -4835,7 +4835,7 @@ public partial class gate : Exchange
     public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -4851,7 +4851,7 @@ public partial class gate : Exchange
         string? type = null;
         string? marginMode = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        Dictionary<string, object> market = ((bool) (!isEqual(symbol, null))) ? this.market(symbol) : null;
+        Dictionary<string, object> market = ((bool) ((symbol != null))) ? this.market(symbol) : null;
         Int64? until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, new List<object>() {"until"});
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
@@ -5164,7 +5164,7 @@ public partial class gate : Exchange
     public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -5178,7 +5178,7 @@ public partial class gate : Exchange
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> currency = null;
-        if (!isEqual(code, null))
+        if ((code != null))
         {
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id"); // todo: currencies have network-junctions
@@ -5216,7 +5216,7 @@ public partial class gate : Exchange
     public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -5230,7 +5230,7 @@ public partial class gate : Exchange
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> currency = null;
-        if (!isEqual(code, null))
+        if ((code != null))
         {
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id"); // todo: currencies have network-junctions
@@ -5272,7 +5272,7 @@ public partial class gate : Exchange
         tagVar = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
         this.checkAddress(address);
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -5282,7 +5282,7 @@ public partial class gate : Exchange
             { "address", address },
             { "amount", this.currencyToPrecision(((string)code), amount) },
         };
-        if (!isEqual(tagVar, null))
+        if ((tagVar != null))
         {
             ((IDictionary<string,object>)request)["memo"] = tagVar;
         }
@@ -5493,7 +5493,7 @@ public partial class gate : Exchange
     public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -5663,7 +5663,7 @@ public partial class gate : Exchange
     public async override Task<List<ccxt.Order>> CreateOrders(object orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -5685,11 +5685,11 @@ public partial class gate : Exchange
     public virtual Dictionary<string, object> createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(type, null))
+        if ((type == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " requires a type argument")) ;
         }
-        if (isEqual(side, null))
+        if ((side == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " requires a side argument")) ;
         }
@@ -6000,7 +6000,7 @@ public partial class gate : Exchange
     public async override Task<ccxt.Order> CreateMarketBuyOrderWithCost(string symbol, double cost, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -6092,7 +6092,7 @@ public partial class gate : Exchange
     public async override Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -6542,7 +6542,7 @@ public partial class gate : Exchange
     public virtual List<object> fetchOrderRequest(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        Dictionary<string, object> market = ((bool) (isEqual(symbol, null))) ? null : this.market(symbol);
+        Dictionary<string, object> market = ((bool) ((symbol == null))) ? null : this.market(symbol);
         bool? trigger = this.safeBoolN(parameters, new List<object>() {"trigger", "is_stop_order", "stop"}, false);
         parameters = this.omit(parameters, new List<object>() {"is_stop_order", "stop", "trigger"});
         string? clientOrderId = this.safeString2(parameters, "text", "clientOrderId");
@@ -6591,12 +6591,12 @@ public partial class gate : Exchange
     public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         await this.loadUnifiedStatus();
-        Dictionary<string, object> market = ((bool) (isEqual(symbol, null))) ? null : this.market(symbol);
+        Dictionary<string, object> market = ((bool) ((symbol == null))) ? null : this.market(symbol);
         object result = this.handleMarketTypeAndParams("fetchOrder", market, parameters);
         string? type = this.safeString(result, 0);
         bool? trigger = this.safeBoolN(parameters, new List<object>() {"trigger", "is_stop_order", "stop"}, false);
@@ -6690,7 +6690,7 @@ public partial class gate : Exchange
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -6706,7 +6706,7 @@ public partial class gate : Exchange
         }
         Int64? until = this.safeInteger(parameters, "until");
         IDictionary<string, object> market = null;
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
@@ -6747,7 +6747,7 @@ public partial class gate : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
             symbol = getValue(market, "symbol");
@@ -6804,13 +6804,13 @@ public partial class gate : Exchange
     public async virtual Task<List<ccxt.Order>> FetchOrdersByStatus(object status, object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         await this.loadUnifiedStatus();
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
             symbol = getValue(market, "symbol");
@@ -7049,12 +7049,12 @@ public partial class gate : Exchange
     public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         await this.loadUnifiedStatus();
-        Dictionary<string, object> market = ((bool) (isEqual(symbol, null))) ? null : this.market(symbol);
+        Dictionary<string, object> market = ((bool) ((symbol == null))) ? null : this.market(symbol);
         bool? trigger = this.safeBoolN(parameters, new List<object>() {"is_stop_order", "stop", "trigger"}, false);
         parameters = this.omit(parameters, new List<object>() {"is_stop_order", "stop", "trigger"});
         IList<object> typequeryVariable = (IList<object>)this.handleMarketTypeAndParams("cancelOrder", market, parameters);
@@ -7198,13 +7198,13 @@ public partial class gate : Exchange
     public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         await this.loadUnifiedStatus();
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
         }
@@ -7215,7 +7215,7 @@ public partial class gate : Exchange
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         bool isSpot = (isEqual(type, "spot"));
-        if (isSpot && (isEqual(symbol, null)))
+        if (isSpot && ((symbol == null)))
         {
             throw new ArgumentsRequired ((string)(this.id + " cancelOrders requires a symbol argument for spot markets")) ;
         }
@@ -7259,7 +7259,7 @@ public partial class gate : Exchange
     public async override Task<List<ccxt.Order>> CancelOrdersForSymbols(object orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -7312,12 +7312,12 @@ public partial class gate : Exchange
     public async override Task<List<ccxt.Order>> CancelAllOrders(string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         await this.loadUnifiedStatus();
-        Dictionary<string, object> market = ((bool) (isEqual(symbol, null))) ? null : this.market(symbol);
+        Dictionary<string, object> market = ((bool) ((symbol == null))) ? null : this.market(symbol);
         bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         IList<object> typequeryVariable = (IList<object>)this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
@@ -7408,7 +7408,7 @@ public partial class gate : Exchange
     public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -7504,7 +7504,7 @@ public partial class gate : Exchange
     public async override Task<Dictionary<string, object>> SetLeverage(object leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " setLeverage() requires a symbol argument")) ;
         }
@@ -7514,7 +7514,7 @@ public partial class gate : Exchange
         {
             throw new BadRequest ((string)(this.id + " setLeverage() leverage should be between 1 and 100")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -7748,7 +7748,7 @@ public partial class gate : Exchange
     public async override Task<ccxt.Position> FetchPosition(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -7852,13 +7852,13 @@ public partial class gate : Exchange
     public async override Task<List<ccxt.Position>> FetchPositions(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
         symbols = this.marketSymbols(symbols, null, true, true, true);
-        if (!isEqual(symbols, null))
+        if ((symbols != null))
         {
             int symbolsLength = getArrayLength(symbols);
             if (symbolsLength > 0)
@@ -7877,7 +7877,7 @@ public partial class gate : Exchange
         }
         if (isEqual(type, "option"))
         {
-            if (!isEqual(symbols, null))
+            if ((symbols != null))
             {
                 string? marketId = this.safeString(market, "id");
                 List<object> optionParts = ((string)((string)marketId)).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
@@ -7981,7 +7981,7 @@ public partial class gate : Exchange
     public async override Task<ccxt.LeverageTiers> FetchLeverageTiers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -8114,7 +8114,7 @@ public partial class gate : Exchange
     public async override Task<List<ccxt.LeverageTier>> FetchMarketLeverageTiers(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -8237,7 +8237,7 @@ public partial class gate : Exchange
     public async override Task<object> repayIsolatedMargin(object symbol, string code, object amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -8272,7 +8272,7 @@ public partial class gate : Exchange
     public async override Task<object> repayCrossMargin(string code, object amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -8315,7 +8315,7 @@ public partial class gate : Exchange
     public async override Task<object> borrowIsolatedMargin(object symbol, string code, object amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -8365,7 +8365,7 @@ public partial class gate : Exchange
     public async override Task<object> borrowCrossMargin(string code, object amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -8467,7 +8467,7 @@ public partial class gate : Exchange
     public async override Task<List<ccxt.BorrowInterest>> FetchBorrowInterest(string code = null, object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -8481,13 +8481,13 @@ public partial class gate : Exchange
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         IDictionary<string, object> currency = null;
-        if (!isEqual(code, null))
+        if ((code != null))
         {
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
         }
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
         }
@@ -8641,7 +8641,7 @@ public partial class gate : Exchange
                 query = this.omit(query, "query");
                 body = this.json(query);
             }
-            object bodyPayload = ((bool) (isEqual(body, null))) ? "" : body;
+            object bodyPayload = ((bool) ((body == null))) ? "" : body;
             object bodySignature = this.hash(this.encode(bodyPayload), sha512);
             Int64 nonce = this.nonce();
             Int64? timestamp = this.parseToInt((nonce / 1000));
@@ -8669,7 +8669,7 @@ public partial class gate : Exchange
     public async virtual Task<object> modifyMarginHelper(object symbol, object amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -8790,7 +8790,7 @@ public partial class gate : Exchange
         string timeframeVar = timeframe;
         timeframeVar ??= "5m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -8890,11 +8890,11 @@ public partial class gate : Exchange
     public async virtual Task<List<Dictionary<string, object>>> FetchSettlementHistory(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchSettlementHistory() requires a symbol argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -8953,12 +8953,12 @@ public partial class gate : Exchange
     public async virtual Task<List<Dictionary<string, object>>> FetchMySettlementHistory(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             market = this.market(symbol);
             symbol = getValue(market, "symbol");
@@ -9154,7 +9154,7 @@ public partial class gate : Exchange
     public async override Task<List<ccxt.LedgerEntry>> FetchLedger(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -9175,7 +9175,7 @@ public partial class gate : Exchange
         parameters = ((IList<object>)typeparametersVariable)[1];
         if ((isEqual(type, "spot")) || (isEqual(type, "margin")))
         {
-            if (!isEqual(code, null))
+            if ((code != null))
             {
                 currency = this.currency(((string)code));
                 ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id"); // todo: currencies have network-junctions
@@ -9419,7 +9419,7 @@ public partial class gate : Exchange
     public async override Task<Dictionary<string, object>> SetPositionMode(object hedged, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        Dictionary<string, object> market = ((bool) (!isEqual(symbol, null))) ? this.market(symbol) : null;
+        Dictionary<string, object> market = ((bool) ((symbol != null))) ? this.market(symbol) : null;
         var requestqueryVariable = this.prepareRequest(market, "swap", parameters);
         var request = ((IList<object>) requestqueryVariable)[0];
         var query = ((IList<object>) requestqueryVariable)[1];
@@ -9439,7 +9439,7 @@ public partial class gate : Exchange
     public async virtual Task<List<string>> FetchUnderlyingAssets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -9493,7 +9493,7 @@ public partial class gate : Exchange
     public async override Task<List<ccxt.Liquidation>> FetchLiquidations(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -9549,11 +9549,11 @@ public partial class gate : Exchange
     public async override Task<List<ccxt.Liquidation>> FetchMyLiquidations(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchMyLiquidations() requires a symbol argument")) ;
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -9728,7 +9728,7 @@ public partial class gate : Exchange
     public async override Task<ccxt.Greeks> FetchGreeks(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -9796,7 +9796,7 @@ public partial class gate : Exchange
         //
         string? marketId = this.safeString(greeks, "name");
         string? symbol = this.safeSymbol(marketId, market);
-        if (isEqual(market, null))
+        if ((market == null))
         {
             throw new ExchangeError ((string)(this.id + " parseGreeks() could not resolve market")) ;
         }
@@ -9843,7 +9843,7 @@ public partial class gate : Exchange
             { "close", true },
         };
         parameters = this.extend(request, parameters);
-        if (isEqual(sideVar, null))
+        if ((sideVar == null))
         {
             sideVar = ""; // sideVar is not used but needs to be present, otherwise crashes in php
         }
@@ -9864,12 +9864,12 @@ public partial class gate : Exchange
     public async override Task<ccxt.Leverage> FetchLeverage(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             // unified account does not require a symbol
             market = this.market(symbol);
@@ -9911,7 +9911,7 @@ public partial class gate : Exchange
     public async override Task<ccxt.Leverages> FetchLeverages(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -9956,7 +9956,7 @@ public partial class gate : Exchange
     public async override Task<ccxt.Option> FetchOption(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -10022,7 +10022,7 @@ public partial class gate : Exchange
     public async override Task<ccxt.OptionChain> FetchOptionChain(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -10163,12 +10163,12 @@ public partial class gate : Exchange
     public async override Task<List<ccxt.Position>> FetchPositionsHistory(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        if (!isEqual(symbols, null))
+        if ((symbols != null))
         {
             int symbolsLength = getArrayLength(symbols);
             if ((symbolsLength == 1))
@@ -10239,7 +10239,7 @@ public partial class gate : Exchange
 
     public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
     {
-        if (isEqual(response, null))
+        if ((response == null))
         {
             return null;
         }

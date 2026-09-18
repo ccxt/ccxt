@@ -199,7 +199,7 @@ public partial class toobit : ccxt.toobit
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -320,7 +320,7 @@ public partial class toobit : ccxt.toobit
     public async override Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -455,7 +455,7 @@ public partial class toobit : ccxt.toobit
     {
         string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -477,7 +477,7 @@ public partial class toobit : ccxt.toobit
     public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -611,7 +611,7 @@ public partial class toobit : ccxt.toobit
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(object symbols, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -767,7 +767,7 @@ public partial class toobit : ccxt.toobit
     public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -798,7 +798,7 @@ public partial class toobit : ccxt.toobit
     public virtual void setBalanceCache(WebSocketClient client, object marketType, object subscriptionHash = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if ((isEqual(subscriptionHash, null)) || (inOp(((WebSocketClient)client).subscriptions, subscriptionHash)))
+        if (((subscriptionHash == null)) || (inOp(((WebSocketClient)client).subscriptions, subscriptionHash)))
         {
             return;
         }
@@ -907,7 +907,7 @@ public partial class toobit : ccxt.toobit
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -915,7 +915,7 @@ public partial class toobit : ccxt.toobit
         object market = this.marketOrNull(symbolVar);
         symbolVar = this.safeString(market, "symbol", symbolVar);
         object messageHash = "orders";
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             messageHash = add(add(messageHash, ":"), symbolVar);
         }
@@ -961,7 +961,7 @@ public partial class toobit : ccxt.toobit
         //        "td": "0"
         //    }
         //
-        if (isEqual(this.orders, null))
+        if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
@@ -1043,7 +1043,7 @@ public partial class toobit : ccxt.toobit
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1051,7 +1051,7 @@ public partial class toobit : ccxt.toobit
         object market = this.marketOrNull(symbolVar);
         symbolVar = this.safeString(market, "symbol", symbolVar);
         object messageHash = "myTrades";
-        if (!isEqual(symbolVar, null))
+        if ((symbolVar != null))
         {
             messageHash = add(add(messageHash, ":"), symbolVar);
         }
@@ -1133,7 +1133,7 @@ public partial class toobit : ccxt.toobit
     public async override Task<List<ccxt.Position>> WatchPositions(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -1143,7 +1143,7 @@ public partial class toobit : ccxt.toobit
         if (!isTrue(this.isEmpty(symbols)))
         {
             symbols = this.marketSymbols(symbols);
-            if (isEqual(symbols, null))
+            if ((symbols == null))
             {
                 throw new ArgumentsRequired ((string)(this.id + " watchPositions() symbols is required")) ;
             }
@@ -1170,7 +1170,7 @@ public partial class toobit : ccxt.toobit
     public virtual void setPositionsCache(WebSocketClient client, object type, object symbols = null, object isPortfolioMargin = null)
     {
         isPortfolioMargin ??= false;
-        if (isEqual(this.positions, null))
+        if ((this.positions == null))
         {
             this.positions = new Dictionary<string, object>() {};
         }
@@ -1242,7 +1242,7 @@ public partial class toobit : ccxt.toobit
         // ]
         //
         string accountType = "swap";
-        if (isEqual(this.positions, null))
+        if ((this.positions == null))
         {
             this.positions = new Dictionary<string, object>() {};
         }

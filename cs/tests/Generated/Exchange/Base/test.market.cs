@@ -9,7 +9,7 @@ public partial class testMainClass : BaseTest
 {
     public static void testMarket(BaseExchange exchange, object skippedProperties, object method, object market)
     {
-        if (isEqual(market, null))
+        if ((market == null))
         {
             return;
         }

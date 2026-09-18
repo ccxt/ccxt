@@ -148,7 +148,7 @@ public partial class grvt : ccxt.grvt
     {
         string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -169,7 +169,7 @@ public partial class grvt : ccxt.grvt
     public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(symbols, null))
+        if ((symbols == null))
         {
             throw new ArgumentsRequired ((string)(this.id + " watchTickers requires a symbols argument")) ;
         }
@@ -181,7 +181,7 @@ public partial class grvt : ccxt.grvt
         IList<object> intervalparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchTickers", "interval", interval);
         interval = ((IList<object>)intervalparametersVariable)[0];
         parameters = ((IList<object>)intervalparametersVariable)[1];
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -338,7 +338,7 @@ public partial class grvt : ccxt.grvt
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -433,7 +433,7 @@ public partial class grvt : ccxt.grvt
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -457,7 +457,7 @@ public partial class grvt : ccxt.grvt
     public async override Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -556,7 +556,7 @@ public partial class grvt : ccxt.grvt
     {
         string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -579,7 +579,7 @@ public partial class grvt : ccxt.grvt
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -740,7 +740,7 @@ public partial class grvt : ccxt.grvt
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -748,7 +748,7 @@ public partial class grvt : ccxt.grvt
         string subAccountId = this.getSubAccountId(parameters);
         List<object> messageHashes = new List<object>() {};
         List<object> rawHashes = new List<object>() {};
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
             ((IList<object>)rawHashes).Add(add((subAccountId + "-"), getValue(market, "id")));
@@ -808,7 +808,7 @@ public partial class grvt : ccxt.grvt
         //    }
         //
         IDictionary<string, object> data = this.safeDict(message, "feed", new Dictionary<string, object>() {});
-        if (isEqual(this.myTrades, null))
+        if ((this.myTrades == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCacheBySymbolById(limit);
@@ -839,7 +839,7 @@ public partial class grvt : ccxt.grvt
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -847,7 +847,7 @@ public partial class grvt : ccxt.grvt
         symbols = this.marketSymbols(symbols);
         List<object> rawHashes = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        if (!isEqual(symbols, null))
+        if ((symbols != null))
         {
             for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
             {
@@ -903,7 +903,7 @@ public partial class grvt : ccxt.grvt
         //        "prev_sequence_number": "0"
         //    }
         //
-        if (isEqual(this.positions, null))
+        if ((this.positions == null))
         {
             this.positions = new ArrayCacheBySymbolBySide();
         }
@@ -938,7 +938,7 @@ public partial class grvt : ccxt.grvt
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -946,7 +946,7 @@ public partial class grvt : ccxt.grvt
         string subAccountId = this.getSubAccountId(parameters);
         List<object> messageHashes = new List<object>() {};
         List<object> rawHashes = new List<object>() {};
-        if (isEqual(symbol, null))
+        if ((symbol == null))
         {
             ((IList<object>)messageHashes).Add("orders");
             ((IList<object>)rawHashes).Add(subAccountId);
@@ -1035,7 +1035,7 @@ public partial class grvt : ccxt.grvt
         //    }
         //
         IDictionary<string, object> data = this.safeDict(message, "feed");
-        if (isEqual(this.orders, null))
+        if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);

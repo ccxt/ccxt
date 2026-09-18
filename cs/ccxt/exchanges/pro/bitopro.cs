@@ -72,7 +72,7 @@ public partial class bitopro : ccxt.bitopro
                 throw new ExchangeError ((string)(this.id + " watchOrderBook limit argument must be undefined, 5, 10, 20, 50, 100, 500 or 1000")) ;
             }
         }
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -146,7 +146,7 @@ public partial class bitopro : ccxt.bitopro
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -219,12 +219,12 @@ public partial class bitopro : ccxt.bitopro
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
         object messageHash = "USER_TRADE";
-        if (!isEqual(symbol, null))
+        if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
             messageHash = add(add(messageHash, ":"), getValue(market, "symbol"));
@@ -271,7 +271,7 @@ public partial class bitopro : ccxt.bitopro
         string? quote = this.safeCurrencyCode(quoteId);
         string? symbol = this.symbol(add(add(bs, "/"), quote));
         object messageHash = this.safeString(message, "event");
-        if (isEqual(this.myTrades, null))
+        if ((this.myTrades == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCacheBySymbolById(limit);
@@ -379,7 +379,7 @@ public partial class bitopro : ccxt.bitopro
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
@@ -430,7 +430,7 @@ public partial class bitopro : ccxt.bitopro
 
     public virtual void authenticate(object url)
     {
-        if ((!isEqual(this.clients, null)) && (inOp(this.clients, url)))
+        if (((this.clients != null)) && (inOp(this.clients, url)))
         {
             return;
         }
@@ -476,7 +476,7 @@ public partial class bitopro : ccxt.bitopro
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        if (isEqual(this.markets, null))
+        if ((this.markets == null))
         {
             await this.loadMarkets();
         }
