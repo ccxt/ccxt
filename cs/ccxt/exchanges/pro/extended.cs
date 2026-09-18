@@ -195,7 +195,7 @@ public partial class extended : ccxt.extended
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object symbolVar = symbol;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -214,7 +214,7 @@ public partial class extended : ccxt.extended
         });
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
@@ -316,7 +316,7 @@ public partial class extended : ccxt.extended
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object symbolVar = symbol;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -335,7 +335,7 @@ public partial class extended : ccxt.extended
         });
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolVar, since, limitVar, true));
     }
@@ -735,7 +735,7 @@ public partial class extended : ccxt.extended
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object symbolVar = symbol;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -756,7 +756,7 @@ public partial class extended : ccxt.extended
         });
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -832,7 +832,7 @@ public partial class extended : ccxt.extended
     {
         object symbolVar = symbol;
         object timeframeVar = timeframe;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -873,7 +873,7 @@ public partial class extended : ccxt.extended
         });
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }

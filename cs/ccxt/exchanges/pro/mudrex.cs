@@ -137,7 +137,7 @@ public partial class mudrex : ccxt.mudrex
     {
         object symbolVar = symbol;
         string timeframeVar = timeframe;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -173,7 +173,7 @@ public partial class mudrex : ccxt.mudrex
         object ohlcv = await this.watch(url, messageHash, request, messageHash);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }

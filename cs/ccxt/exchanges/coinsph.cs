@@ -1245,7 +1245,7 @@ public partial class coinsph : Exchange
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string timeframeVar = timeframe;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -1261,7 +1261,7 @@ public partial class coinsph : Exchange
         };
         if (isEqual(limitVar, null))
         {
-            limitVar = 1000;
+            limitVar = ((Int64?)1000);
         }
         if (!isEqual(since, null))
         {

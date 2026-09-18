@@ -83,7 +83,7 @@ public partial class derive : ccxt.derive
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -91,7 +91,7 @@ public partial class derive : ccxt.derive
         }
         if (isEqual(limitVar, null))
         {
-            limitVar = 10;
+            limitVar = ((Int64?)10);
         }
         Dictionary<string, object> market = this.market(symbol);
         string topic = add(add(add("orderbook.", GetValue(market, "id")), ".10."), this.numberToString(limitVar));
@@ -451,7 +451,7 @@ public partial class derive : ccxt.derive
      */
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -473,7 +473,7 @@ public partial class derive : ccxt.derive
         object trades = await this.watchPublic(topic, request, subscription);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {GetValue(market, "symbol"), limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {GetValue(market, "symbol"), limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbol, since, limitVar, true));
     }
@@ -569,7 +569,7 @@ public partial class derive : ccxt.derive
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object symbolVar = symbol;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -601,7 +601,7 @@ public partial class derive : ccxt.derive
         object orders = await this.watchPrivate(messageHash, message, subscription);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
@@ -707,7 +707,7 @@ public partial class derive : ccxt.derive
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object symbolVar = symbol;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -739,7 +739,7 @@ public partial class derive : ccxt.derive
         object trades = await this.watchPrivate(messageHash, message, subscription);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolVar, since, limitVar, true));
     }

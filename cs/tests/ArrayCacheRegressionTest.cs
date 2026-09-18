@@ -167,22 +167,23 @@ public partial class BaseTest
     // 4. TS reads a missing key as undefined and falls through to `return limit`.
     // The C# port indexed the Dictionary directly and threw KeyNotFoundException,
     // which surfaced as a hard crash the first time watchOrders was called for a
-    // symbol that had not produced an update yet.
+    // symbol that had not produced an update yet. getLimit returns Int64? (the box
+    // the generated `limitVar` shadows read), so these assertions read Int64.
     private void testArrayCacheGetLimitMissingSymbol()
     {
         var cache = new ArrayCache();
         var limited = cache.getLimit("BTC/USDT", 5);
-        Assert(limited != null && Convert.ToInt32(limited) == 5, "getLimit on an unseen symbol must return the limit, got " + limited);
+        Assert(limited != null && Convert.ToInt64(limited) == 5, "getLimit on an unseen symbol must return the limit, got " + limited);
         Assert(cache.getLimit("ETH/USDT", null) == null, "getLimit on an unseen symbol with no limit must return null");
 
         // same path through the nested (Set-valued) subclasses
         var byId = new ArrayCacheBySymbolById();
         var byIdLimited = byId.getLimit("BTC/USDT", 7);
-        Assert(byIdLimited != null && Convert.ToInt32(byIdLimited) == 7, "ArrayCacheBySymbolById.getLimit on an unseen symbol must return the limit, got " + byIdLimited);
+        Assert(byIdLimited != null && Convert.ToInt64(byIdLimited) == 7, "ArrayCacheBySymbolById.getLimit on an unseen symbol must return the limit, got " + byIdLimited);
 
         var bySide = new ArrayCacheBySymbolBySide();
         var bySideLimited = bySide.getLimit("BTC/USDT", 9);
-        Assert(bySideLimited != null && Convert.ToInt32(bySideLimited) == 9, "ArrayCacheBySymbolBySide.getLimit on an unseen symbol must return the limit, got " + bySideLimited);
+        Assert(bySideLimited != null && Convert.ToInt64(bySideLimited) == 9, "ArrayCacheBySymbolBySide.getLimit on an unseen symbol must return the limit, got " + bySideLimited);
 
         // a symbol that HAS produced updates still reports its own count, and the
         // stored `false` clear-flag written back by append must not be mistaken
@@ -190,9 +191,9 @@ public partial class BaseTest
         var counting = new ArrayCache();
         counting.append(orderRow("BTC/USDT", "1"));
         counting.append(orderRow("BTC/USDT", "2"));
-        Assert(Convert.ToInt32(counting.getLimit("BTC/USDT", 10)) == 2, "getLimit must report the per-symbol update count");
+        Assert(Convert.ToInt64(counting.getLimit("BTC/USDT", 10)) == 2, "getLimit must report the per-symbol update count");
         counting.append(orderRow("BTC/USDT", "3"));
-        Assert(Convert.ToInt32(counting.getLimit("BTC/USDT", 10)) == 1, "getLimit must reset the per-symbol counter after it is read");
+        Assert(Convert.ToInt64(counting.getLimit("BTC/USDT", 10)) == 1, "getLimit must reset the per-symbol counter after it is read");
     }
 
     // 5. clear() dropped the rows but kept the hashmap, so the next append of a
@@ -229,7 +230,7 @@ public partial class BaseTest
         counting.append(orderRow("BTC/USDT", "2"));
         counting.clear();
         counting.append(orderRow("BTC/USDT", "3"));
-        Assert(Convert.ToInt32(counting.getLimit("BTC/USDT", 10)) == 1, "clear() must reset the per-symbol update counters");
+        Assert(Convert.ToInt64(counting.getLimit("BTC/USDT", 10)) == 1, "clear() must reset the per-symbol update counters");
         Assert(counting.Count == 1, "clear() then append must leave exactly one row");
     }
 

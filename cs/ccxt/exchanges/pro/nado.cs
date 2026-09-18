@@ -92,7 +92,7 @@ public partial class nado : ccxt.nado
      */
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
@@ -100,7 +100,7 @@ public partial class nado : ccxt.nado
         object trades = await this.watchPublic("trade", market, messageHash, parameters);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {GetValue(market, "symbol"), limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {GetValue(market, "symbol"), limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -134,7 +134,7 @@ public partial class nado : ccxt.nado
      */
     public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         int symbolsLength = getArrayLength(symbols);
@@ -156,7 +156,7 @@ public partial class nado : ccxt.nado
         {
             IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
-            limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -316,7 +316,7 @@ public partial class nado : ccxt.nado
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object timeframeVar = timeframe;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -329,7 +329,7 @@ public partial class nado : ccxt.nado
         object stored = getValue(result, 2);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(stored, "getLimit", new object[] {GetValue(market, "symbol"), limitVar});
+            limitVar = ((Int64?)callDynamically(stored, "getLimit", new object[] {GetValue(market, "symbol"), limitVar}));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(stored, since, limitVar, 0, true));
     }
@@ -629,7 +629,7 @@ public partial class nado : ccxt.nado
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object symbolVar = symbol;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         await this.loadMarkets();
@@ -657,7 +657,7 @@ public partial class nado : ccxt.nado
         object orders = await this.watchPrivate("order_update", stream, messageHash, parameters);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
@@ -717,7 +717,7 @@ public partial class nado : ccxt.nado
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object symbolVar = symbol;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         await this.loadMarkets();
@@ -745,7 +745,7 @@ public partial class nado : ccxt.nado
         object trades = await this.watchPrivate("fill", stream, messageHash, parameters);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolVar, since, limitVar, true));
     }

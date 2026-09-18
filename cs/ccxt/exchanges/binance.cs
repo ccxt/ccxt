@@ -16148,7 +16148,7 @@ public partial class binance : Exchange
      */
     public async virtual Task<List<Dictionary<string, object>>> FetchBorrowRateHistory(string code, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -16156,7 +16156,7 @@ public partial class binance : Exchange
         }
         if (isEqual(limitVar, null))
         {
-            limitVar = 93;
+            limitVar = ((Int64?)93);
         } else if (isGreaterThan(limitVar, 93))
         {
             throw new BadRequest (add(this.id, " fetchBorrowRateHistory() limit parameter cannot exceed 92")) ;
@@ -16682,7 +16682,7 @@ public partial class binance : Exchange
     public async override Task<List<ccxt.OpenInterest>> FetchOpenInterestHistory(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string timeframeVar = timeframe;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         timeframeVar ??= "5m";
         parameters ??= new Dictionary<string, object>();
         if (isEqual(timeframeVar, "1m"))
@@ -16729,7 +16729,7 @@ public partial class binance : Exchange
         {
             if (isEqual(limitVar, null))
             {
-                limitVar = 30; // Exchange default
+                limitVar = ((Int64?)30); // Exchange default
             }
             int duration = this.parseTimeframe(timeframeVar);
             request["endTime"] = this.sum(since, multiply(multiply(duration, limitVar), 1000));

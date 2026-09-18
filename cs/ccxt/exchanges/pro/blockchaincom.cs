@@ -146,7 +146,7 @@ public partial class blockchaincom : ccxt.blockchaincom
     {
         object symbolVar = symbol;
         string timeframeVar = timeframe;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -168,7 +168,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         object ohlcv = await this.watch(url, messageHash, request, messageHash, request);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }
@@ -469,7 +469,7 @@ public partial class blockchaincom : ccxt.blockchaincom
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object symbolVar = symbol;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -491,7 +491,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         object orders = await this.watch(url, messageHash, request, messageHash);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }

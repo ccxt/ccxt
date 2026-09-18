@@ -1256,7 +1256,7 @@ public partial class derive : Exchange
      */
     public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -1273,7 +1273,7 @@ public partial class derive : Exchange
         {
             if (isGreaterThan(limitVar, 1000))
             {
-                limitVar = 1000;
+                limitVar = ((Int64?)1000);
             }
             request["page_size"] = limitVar; // default 100, max 1000
         }

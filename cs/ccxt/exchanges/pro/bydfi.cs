@@ -678,7 +678,7 @@ public partial class bydfi : ccxt.bydfi
      */
     public async override Task<List<ccxt.Order>> WatchOrdersForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -702,7 +702,7 @@ public partial class bydfi : ccxt.bydfi
         {
             object first = this.safeValue(orders, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
-            limitVar = callDynamically(orders, "getLimit", new object[] {tradeSymbol, limitVar});
+            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {tradeSymbol, limitVar}));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limitVar, "timestamp", true));
     }

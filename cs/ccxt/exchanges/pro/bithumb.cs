@@ -613,7 +613,7 @@ public partial class bithumb : ccxt.bithumb
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object symbolVar = symbol;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -648,7 +648,7 @@ public partial class bithumb : ccxt.bithumb
         object trades = await this.watch(url, messageHash, request, messageHash);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -998,7 +998,7 @@ public partial class bithumb : ccxt.bithumb
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object symbolVar = symbol;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -1029,7 +1029,7 @@ public partial class bithumb : ccxt.bithumb
         object orders = await this.watch(url, messageHash, request, messageHash);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }

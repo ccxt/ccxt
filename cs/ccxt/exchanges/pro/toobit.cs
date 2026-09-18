@@ -197,7 +197,7 @@ public partial class toobit : ccxt.toobit
      */
     public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -226,7 +226,7 @@ public partial class toobit : ccxt.toobit
         {
             object first = this.safeValue(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
-            limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -905,7 +905,7 @@ public partial class toobit : ccxt.toobit
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string symbolVar = symbol;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -923,7 +923,7 @@ public partial class toobit : ccxt.toobit
         object orders = await this.watch(url, messageHash, parameters, messageHash);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
@@ -1041,7 +1041,7 @@ public partial class toobit : ccxt.toobit
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string symbolVar = symbol;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -1059,7 +1059,7 @@ public partial class toobit : ccxt.toobit
         object trades = await this.watch(url, messageHash, parameters, messageHash);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }

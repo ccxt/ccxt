@@ -593,7 +593,7 @@ public partial class coinbase : ccxt.coinbase
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string symbolVar = symbol;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -604,7 +604,7 @@ public partial class coinbase : ccxt.coinbase
         object trades = await this.subscribe(name, false, symbolVar, parameters);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -642,7 +642,7 @@ public partial class coinbase : ccxt.coinbase
      */
     public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -654,7 +654,7 @@ public partial class coinbase : ccxt.coinbase
         {
             IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
-            limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -692,7 +692,7 @@ public partial class coinbase : ccxt.coinbase
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -702,7 +702,7 @@ public partial class coinbase : ccxt.coinbase
         object orders = await this.subscribe(name, true, symbol, parameters);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(orders, "getLimit", new object[] {symbol, limitVar});
+            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbol, limitVar}));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limitVar, "timestamp", true));
     }

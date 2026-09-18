@@ -675,14 +675,14 @@ public partial class bitbank : Exchange
     {
         string timeframeVar = timeframe;
         object sinceVar = since;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isEqual(sinceVar, null))
         {
             if (isEqual(limitVar, null))
             {
-                limitVar = 1000; // it doesn't have any defaults, might return 200, might 2000 (i.e. https://public.bitbank.cc/btc_jpy/candlestick/4hour/2020)
+                limitVar = ((Int64?)1000); // it doesn't have any defaults, might return 200, might 2000 (i.e. https://public.bitbank.cc/btc_jpy/candlestick/4hour/2020)
             }
             int duration = this.parseTimeframe(timeframeVar);
             sinceVar = subtract(this.milliseconds(), multiply(multiply(duration, 1000), limitVar));

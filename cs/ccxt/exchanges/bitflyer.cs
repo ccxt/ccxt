@@ -904,8 +904,8 @@ public partial class bitflyer : Exchange
      */
     public async override Task<List<ccxt.Order>> FetchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
-        limitVar ??= 100;
+        Int64? limitVar = limit;
+        limitVar ??= ((Int64?)100);
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
@@ -942,8 +942,8 @@ public partial class bitflyer : Exchange
      */
     public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
-        limitVar ??= 100;
+        Int64? limitVar = limit;
+        limitVar ??= ((Int64?)100);
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "child_order_state", "ACTIVE" },
@@ -964,8 +964,8 @@ public partial class bitflyer : Exchange
      */
     public async override Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
-        limitVar ??= 100;
+        Int64? limitVar = limit;
+        limitVar ??= ((Int64?)100);
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "child_order_state", "COMPLETED" },

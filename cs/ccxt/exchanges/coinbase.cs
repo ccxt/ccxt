@@ -4065,8 +4065,8 @@ public partial class coinbase : Exchange
      */
     public async override Task<List<ccxt.Order>> FetchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
-        limitVar ??= 100;
+        Int64? limitVar = limit;
+        limitVar ??= ((Int64?)100);
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -4160,7 +4160,7 @@ public partial class coinbase : Exchange
 
     public async virtual Task<List<ccxt.Order>> FetchOrdersByStatus(string? status, object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -4180,7 +4180,7 @@ public partial class coinbase : Exchange
         }
         if (isEqual(limitVar, null))
         {
-            limitVar = 100;
+            limitVar = ((Int64?)100);
         }
         request["limit"] = limitVar;
         if (!isEqual(since, null))

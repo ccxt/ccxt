@@ -118,7 +118,7 @@ public partial class cryptocom : ccxt.cryptocom
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(object symbols, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -129,7 +129,7 @@ public partial class cryptocom : ccxt.cryptocom
         List<object> messageHashes = new List<object>() {};
         if ((isEqual(limitVar, null)) || (isEqual(limitVar, 0)))
         {
-            limitVar = 50;
+            limitVar = ((Int64?)50);
         }
         object topicParams = this.safeValue(parameters, "params");
         if ((topicParams == null))
@@ -161,7 +161,7 @@ public partial class cryptocom : ccxt.cryptocom
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            string currentTopic = add(add(add(add("book", "."), GetValue(market, "id")), "."), limitVar.ToString());
+            string currentTopic = add(add(add(add("book", "."), GetValue(market, "id")), "."), ((object)limitVar).ToString());
             string messageHash = add("orderbook:", GetValue(market, "symbol"));
             ((IList<object>)messageHashes).Add(messageHash);
             ((IList<object>)topics).Add(currentTopic);
@@ -395,7 +395,7 @@ public partial class cryptocom : ccxt.cryptocom
      */
     public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -415,7 +415,7 @@ public partial class cryptocom : ccxt.cryptocom
         {
             object first = this.safeValue(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
-            limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -520,7 +520,7 @@ public partial class cryptocom : ccxt.cryptocom
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object symbolVar = symbol;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -537,7 +537,7 @@ public partial class cryptocom : ccxt.cryptocom
         object trades = await this.watchPrivateSubscribe(messageHash, parameters);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolVar, since, limitVar, true));
     }
@@ -843,7 +843,7 @@ public partial class cryptocom : ccxt.cryptocom
     {
         object symbolVar = symbol;
         string timeframeVar = timeframe;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -857,7 +857,7 @@ public partial class cryptocom : ccxt.cryptocom
         object ohlcv = await this.watchPublic(messageHash, parameters);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }
@@ -945,7 +945,7 @@ public partial class cryptocom : ccxt.cryptocom
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object symbolVar = symbol;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -962,7 +962,7 @@ public partial class cryptocom : ccxt.cryptocom
         object orders = await this.watchPrivateSubscribe(messageHash, parameters);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }

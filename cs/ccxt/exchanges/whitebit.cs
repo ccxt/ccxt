@@ -3245,7 +3245,7 @@ public partial class whitebit : Exchange
      */
     public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -3264,7 +3264,7 @@ public partial class whitebit : Exchange
         }
         if (isEqual(limitVar, null) || isGreaterThan(limitVar, 100))
         {
-            limitVar = 100;
+            limitVar = ((Int64?)100);
         }
         if (!isEqual(limitVar, null))
         {
@@ -3308,7 +3308,7 @@ public partial class whitebit : Exchange
      */
     public async override Task<List<ccxt.Transaction>> FetchTransactions(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -3327,7 +3327,7 @@ public partial class whitebit : Exchange
         }
         if (isEqual(limitVar, null) || isGreaterThan(limitVar, 100))
         {
-            limitVar = 100;
+            limitVar = ((Int64?)100);
         }
         if (!isEqual(limitVar, null))
         {

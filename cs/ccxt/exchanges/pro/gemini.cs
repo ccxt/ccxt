@@ -48,7 +48,7 @@ public partial class gemini : ccxt.gemini
      */
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -73,7 +73,7 @@ public partial class gemini : ccxt.gemini
         object trades = await this.watch(url, messageHash, request, subscribeHash);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {GetValue(market, "symbol"), limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {GetValue(market, "symbol"), limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -91,14 +91,14 @@ public partial class gemini : ccxt.gemini
      */
     public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         object trades = await this.helperForWatchMultipleConstruct("trades", symbols, parameters);
         if (isTrue(this.newUpdates))
         {
             List<object> first = this.safeList(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
-            limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -305,7 +305,7 @@ public partial class gemini : ccxt.gemini
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string timeframeVar = timeframe;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -326,7 +326,7 @@ public partial class gemini : ccxt.gemini
         object ohlcv = await this.watch(url, messageHash, request, messageHash);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbol, limitVar});
+            limitVar = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {symbol, limitVar}));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }
@@ -723,7 +723,7 @@ public partial class gemini : ccxt.gemini
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object symbolVar = symbol;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         object url = add(getValue(getValue(this.urls, "api"), "ws"), "/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked");
         if (isEqual(this.markets, null))
@@ -743,7 +743,7 @@ public partial class gemini : ccxt.gemini
         object orders = await this.watch(url, messageHash, null, messageHash);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }

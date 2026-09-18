@@ -97,7 +97,7 @@ public partial class p2b : ccxt.p2b
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object timeframeVar = timeframe;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         timeframeVar ??= "15m";
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -116,7 +116,7 @@ public partial class p2b : ccxt.p2b
         object ohlcv = await this.subscribe("kline.subscribe", messageHash, request, parameters);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbol, limitVar});
+            limitVar = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {symbol, limitVar}));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }
@@ -226,7 +226,7 @@ public partial class p2b : ccxt.p2b
      */
     public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -254,7 +254,7 @@ public partial class p2b : ccxt.p2b
         {
             object first = this.safeValue(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
-            limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -272,7 +272,7 @@ public partial class p2b : ccxt.p2b
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -284,7 +284,7 @@ public partial class p2b : ccxt.p2b
         string? interval = this.safeString(parameters, "interval", "0.001");
         if (isEqual(limitVar, null))
         {
-            limitVar = 100;
+            limitVar = ((Int64?)100);
         }
         List<object> request = new List<object>() {GetValue(market, "id"), limitVar, interval};
         object orderbook = await this.subscribe(name, messageHash, request, parameters);

@@ -632,7 +632,7 @@ public partial class hitbtc : ccxt.hitbtc
      */
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -652,7 +652,7 @@ public partial class hitbtc : ccxt.hitbtc
         object trades = await this.subscribePublic(name, "trades", new List<object>() {symbol}, this.deepExtend(request, parameters));
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbol, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbol, limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp"));
     }
@@ -782,7 +782,7 @@ public partial class hitbtc : ccxt.hitbtc
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string timeframeVar = timeframe;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         string? period = this.safeString(this.timeframes, timeframeVar, timeframeVar);
@@ -800,7 +800,7 @@ public partial class hitbtc : ccxt.hitbtc
         object ohlcv = await this.subscribePublic(name, "candles", new List<object>() {symbol}, this.deepExtend(request, parameters));
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbol, limitVar});
+            limitVar = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {symbol, limitVar}));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0));
     }
@@ -905,7 +905,7 @@ public partial class hitbtc : ccxt.hitbtc
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -929,7 +929,7 @@ public partial class hitbtc : ccxt.hitbtc
         object orders = await this.subscribePrivate(name, symbol, parameters);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(orders, "getLimit", new object[] {symbol, limitVar});
+            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbol, limitVar}));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limitVar, "timestamp"));
     }

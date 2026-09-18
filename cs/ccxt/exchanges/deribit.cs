@@ -1823,7 +1823,7 @@ public partial class deribit : Exchange
     {
         string timeframeVar = timeframe;
         object sinceVar = since;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -1849,7 +1849,7 @@ public partial class deribit : Exchange
         {
             if (isEqual(limitVar, null))
             {
-                limitVar = 1000; // at max, it provides 5000 bars, but we set generous default here
+                limitVar = ((Int64?)1000); // at max, it provides 5000 bars, but we set generous default here
             }
             request["start_timestamp"] = subtract(now, multiply(multiply((subtract(limitVar, 1)), duration), 1000));
             request["end_timestamp"] = now;

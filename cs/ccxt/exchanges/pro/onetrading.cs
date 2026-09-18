@@ -286,7 +286,7 @@ public partial class onetrading : ccxt.onetrading
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object symbolVar = symbol;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -314,7 +314,7 @@ public partial class onetrading : ccxt.onetrading
         object trades = await this.watch(url, messageHash, request, subscribeHash, request);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
         }
         trades = this.filterBySymbolSinceLimit(trades, symbolVar, since, limitVar);
         int numTrades = getArrayLength(trades);
@@ -473,7 +473,7 @@ public partial class onetrading : ccxt.onetrading
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object symbolVar = symbol;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -501,7 +501,7 @@ public partial class onetrading : ccxt.onetrading
         object orders = await this.watch(url, messageHash, request, subscribeHash, request);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar}));
         }
         orders = this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar);
         int numOrders = getArrayLength(orders);
@@ -1128,7 +1128,7 @@ public partial class onetrading : ccxt.onetrading
     {
         object symbolVar = symbol;
         object timeframeVar = timeframe;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -1204,7 +1204,7 @@ public partial class onetrading : ccxt.onetrading
         object ohlcv = await this.watch(url, messageHash, this.deepExtend(request, parameters), subscriptionHash, subscription);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }

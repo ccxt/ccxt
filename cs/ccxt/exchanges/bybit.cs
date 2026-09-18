@@ -3727,7 +3727,7 @@ public partial class bybit : Exchange
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string timeframeVar = timeframe;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
@@ -3752,7 +3752,7 @@ public partial class bybit : Exchange
         };
         if (isEqual(limitVar, null))
         {
-            limitVar = 200; // default is 200 when requested with `since`
+            limitVar = ((Int64?)200); // default is 200 when requested with `since`
         }
         if (!isEqual(since, null))
         {
@@ -4024,7 +4024,7 @@ public partial class bybit : Exchange
     public async override Task<List<ccxt.FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object symbolVar = symbol;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbolVar, null))
         {
@@ -4044,7 +4044,7 @@ public partial class bybit : Exchange
         }
         if (isEqual(limitVar, null))
         {
-            limitVar = 200;
+            limitVar = ((Int64?)200);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "limit", limitVar },

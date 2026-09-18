@@ -703,7 +703,7 @@ public partial class aster : ccxt.aster
      */
     public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -743,7 +743,7 @@ public partial class aster : ccxt.aster
         {
             object first = this.safeValue(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
-            limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -1043,7 +1043,7 @@ public partial class aster : ccxt.aster
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(object symbols, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -1071,13 +1071,13 @@ public partial class aster : ccxt.aster
         };
         if (isEqual(limitVar, null) || (!isEqual(limitVar, 5) && !isEqual(limitVar, 10) && !isEqual(limitVar, 20)))
         {
-            limitVar = 20;
+            limitVar = ((Int64?)20);
         }
         for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            ((IList<object>)subscriptionArgs).Add(add(add(this.safeStringLower(market, "id"), "@depth"), limitVar.ToString()));
+            ((IList<object>)subscriptionArgs).Add(add(add(this.safeStringLower(market, "id"), "@depth"), ((object)limitVar).ToString()));
             ((IList<object>)messageHashes).Add(add("orderbook:", GetValue(market, "symbol")));
         }
         object orderbook = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
@@ -1934,7 +1934,7 @@ public partial class aster : ccxt.aster
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object symbolVar = symbol;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -1962,7 +1962,7 @@ public partial class aster : ccxt.aster
         object orders = await this.watchMultiple(url, new List<object>() {messageHash}, null, new List<object>() {type});
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
@@ -1983,7 +1983,7 @@ public partial class aster : ccxt.aster
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object symbolVar = symbol;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -2011,7 +2011,7 @@ public partial class aster : ccxt.aster
         object trades = await this.watchMultiple(url, new List<object>() {messageHash}, null, new List<object>() {type});
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolVar, since, limitVar, true));
     }

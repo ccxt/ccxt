@@ -75,7 +75,7 @@ public partial class whitebit : ccxt.whitebit
     {
         object symbolVar = symbol;
         string timeframeVar = timeframe;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -97,7 +97,7 @@ public partial class whitebit : ccxt.whitebit
         object ohlcv = await this.watchPublic(messageHash, method, reqParams, parameters);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }
@@ -162,7 +162,7 @@ public partial class whitebit : ccxt.whitebit
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -171,7 +171,7 @@ public partial class whitebit : ccxt.whitebit
         Dictionary<string, object> market = this.market(symbol);
         if (isEqual(limitVar, null))
         {
-            limitVar = 10; // max 100
+            limitVar = ((Int64?)10); // max 100
         }
         string messageHash = add(add("orderbook", ":"), GetValue(market, "symbol"));
         string method = "depth_subscribe";
@@ -397,7 +397,7 @@ public partial class whitebit : ccxt.whitebit
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object symbolVar = symbol;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -411,7 +411,7 @@ public partial class whitebit : ccxt.whitebit
         object trades = await this.watchMultipleSubscription(messageHash, method, symbolVar, false, parameters);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -477,7 +477,7 @@ public partial class whitebit : ccxt.whitebit
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object symbolVar = symbol;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbolVar, null))
         {
@@ -495,7 +495,7 @@ public partial class whitebit : ccxt.whitebit
         object trades = await this.watchMultipleSubscription(messageHash, method, symbolVar, true, parameters);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolVar, since, limitVar, true));
     }
@@ -619,7 +619,7 @@ public partial class whitebit : ccxt.whitebit
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object symbolVar = symbol;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbolVar, null))
         {
@@ -637,7 +637,7 @@ public partial class whitebit : ccxt.whitebit
         object trades = await this.watchMultipleSubscription(messageHash, method, symbolVar, false, parameters);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(trades, symbolVar, since, limitVar, true));
     }

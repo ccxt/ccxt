@@ -1264,7 +1264,7 @@ public partial class bitrue : Exchange
      */
     public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -1281,7 +1281,7 @@ public partial class bitrue : Exchange
             {
                 if (isGreaterThan(limitVar, 100))
                 {
-                    limitVar = 100;
+                    limitVar = ((Int64?)100);
                 }
                 request["limit"] = limitVar; // default 100, max 100, see https://www.bitrue.com/api-docs#order-book
             }
@@ -1301,7 +1301,7 @@ public partial class bitrue : Exchange
             {
                 if (isGreaterThan(limitVar, 1000))
                 {
-                    limitVar = 1000;
+                    limitVar = ((Int64?)1000);
                 }
                 request["limit"] = limitVar; // default 100, max 1000, see https://github.com/Bitrue-exchange/bitrue-official-api-docs#order-book
             }
@@ -2706,7 +2706,7 @@ public partial class bitrue : Exchange
      */
     public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -2728,7 +2728,7 @@ public partial class bitrue : Exchange
         {
             if (isGreaterThan(limitVar, 1000))
             {
-                limitVar = 1000;
+                limitVar = ((Int64?)1000);
             }
             request["limit"] = limitVar;
         }
@@ -3287,7 +3287,7 @@ public partial class bitrue : Exchange
      */
     public async override Task<List<ccxt.TransferEntry>> FetchTransfers(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -3311,7 +3311,7 @@ public partial class bitrue : Exchange
         {
             if (isGreaterThan(limitVar, 200))
             {
-                limitVar = 200;
+                limitVar = ((Int64?)200);
             }
             request["limit"] = limitVar;
         }

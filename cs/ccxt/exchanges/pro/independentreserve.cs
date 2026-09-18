@@ -145,7 +145,7 @@ public partial class independentreserve : ccxt.independentreserve
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         object symbolVar = symbol;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -155,7 +155,7 @@ public partial class independentreserve : ccxt.independentreserve
         symbolVar = GetValue(market, "symbol");
         if (isEqual(limitVar, null))
         {
-            limitVar = 100;
+            limitVar = ((Int64?)100);
         }
         string? limitString = this.numberToString(limitVar);
         object url = add(add(add(add(add(add(getValue(getValue(this.urls, "api"), "ws"), "/orderbook/"), limitString), "?subscribe="), GetValue(market, "base")), "-"), GetValue(market, "quote"));

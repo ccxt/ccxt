@@ -134,7 +134,7 @@ public partial class lbank : ccxt.lbank
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string timeframeVar = timeframe;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -158,7 +158,7 @@ public partial class lbank : ccxt.lbank
         object ohlcv = await this.watch(url, messageHash, request, messageHash);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbol, limitVar});
+            limitVar = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {symbol, limitVar}));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }
@@ -868,7 +868,7 @@ public partial class lbank : ccxt.lbank
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -881,7 +881,7 @@ public partial class lbank : ccxt.lbank
         parameters = this.omit(parameters, "aggregation");
         if (isEqual(limitVar, null))
         {
-            limitVar = 100;
+            limitVar = ((Int64?)100);
         }
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "action", "subscribe" },
