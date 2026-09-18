@@ -133,7 +133,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             Map<String, Object> subscriptionParams = new HashMap<String, Object>() {{
                 put( "id", id );
             }};
-            Object unsubscribe = this.safeBool(parameters, "unsubscribe", false);
+            Boolean unsubscribe = (Boolean) this.safeBool(parameters, "unsubscribe", false);
             String method = "SUBSCRIBE";
             if (java.util.Objects.equals(unsubscribe, true))
             {
@@ -1150,8 +1150,8 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             Client client = this.client(url);
             this.fetchBalanceSnapshot(client);
             Object options = this.safeDict(this.options, "watchBalance");
-            Object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
-            Object awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
+            Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
+            Boolean awaitBalanceSnapshot = (Boolean) this.safeBool(options, "awaitBalanceSnapshot", true);
             if ((java.util.Objects.equals(fetchBalanceSnapshot, true)) && (java.util.Objects.equals(awaitBalanceSnapshot, true)))
             {
                 client.future("fetchBalanceSnapshot").getFuture().join();
@@ -1165,7 +1165,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
     public void fetchBalanceSnapshot(Client client)
     {
         Object options = this.safeValue(this.options, "watchBalance");
-        Object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
+        Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
         if (java.util.Objects.equals(fetchBalanceSnapshot, true))
         {
             String messageHash = "fetchBalanceSnapshot";
@@ -1279,7 +1279,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         String id = this.safeString(message, "id");
         Map<String, Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
         Object subscription = this.safeDict(subscriptionsById, id, new HashMap<String, Object>() {{}});
-        Object isUnSubMessage = this.safeBool(subscription, "unsubscribe", false);
+        Boolean isUnSubMessage = (Boolean) this.safeBool(subscription, "unsubscribe", false);
         if (java.util.Objects.equals(isUnSubMessage, true))
         {
             this.handleUnSubscription(client, subscription);
@@ -1290,7 +1290,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
     public void handleUnSubscription(Client client, Object subscription)
     {
         Object messageHashes = this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
-        Object subHashIsPrefix = this.safeBool(subscription, "subHashIsPrefix", false);
+        Boolean subHashIsPrefix = (Boolean) this.safeBool(subscription, "subHashIsPrefix", false);
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
             Object unsubHash = Helpers.GetValue(messageHashes, i);

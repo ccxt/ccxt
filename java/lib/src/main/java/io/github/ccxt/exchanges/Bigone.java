@@ -619,8 +619,8 @@ public class Bigone extends BigoneApi
             Object chain = Helpers.GetValue(chains, j);
             String networkId = this.safeString(chain, "gateway_name");
             Object networkCode = this.networkIdToCode(networkId, code);
-            Object deposit = this.safeBool(chain, "is_deposit_enabled");
-            Object withdraw = this.safeBool(chain, "is_withdrawal_enabled");
+            Boolean deposit = (Boolean) this.safeBool(chain, "is_deposit_enabled");
+            Boolean withdraw = (Boolean) this.safeBool(chain, "is_withdrawal_enabled");
             String minDepositAmount = this.safeString(chain, "min_deposit_amount");
             String minWithdrawalAmount = this.safeString(chain, "min_withdrawal_amount");
             String withdrawalFee = this.safeString(chain, "withdrawal_fee");
@@ -839,7 +839,7 @@ public class Bigone extends BigoneApi
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
                 String settle = this.safeCurrencyCode(settleId);
-                Object inverse = this.safeBool(market, "isInverse");
+                Boolean inverse = (Boolean) this.safeBool(market, "isInverse");
     final Object finalBase = base;
                 final Object finalInverse = inverse;
                             ((List<Object>)result).add(this.safeMarketStructure(new HashMap<String, Object>() {{
@@ -1727,7 +1727,7 @@ public class Bigone extends BigoneApi
         {
             triggerPrice = null;
         }
-        Object immediateOrCancel = this.safeBool(order, "immediate_or_cancel");
+        Boolean immediateOrCancel = (Boolean) this.safeBool(order, "immediate_or_cancel");
         String timeInForce = null;
         if (java.util.Objects.equals(immediateOrCancel, true))
         {
@@ -1846,7 +1846,7 @@ public class Bigone extends BigoneApi
             String requestSide = ((Helpers.isTrue(isBuy))) ? "BID" : "ASK";
             Object uppercaseType = ((String)type).toUpperCase();
             Boolean isLimit = java.util.Objects.equals(uppercaseType, "LIMIT");
-            Object exchangeSpecificParam = this.safeBool(parameters, "post_only", false);
+            Boolean exchangeSpecificParam = (Boolean) this.safeBool(parameters, "post_only", false);
             Boolean postOnly = null;
             List<Object> postOnlyparametersVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(uppercaseType, "MARKET"), java.util.Objects.equals(exchangeSpecificParam, true), parameters);
             postOnly = (Boolean) ((List<Object>) postOnlyparametersVariable).get(0);
@@ -2492,7 +2492,7 @@ public class Bigone extends BigoneApi
         String address = this.safeString(transaction, "target_address");
         String tag = this.safeString(transaction, "memo");
         String type = (((((Map<?, ?>)transaction).containsKey("customer_id")))) ? "withdrawal" : "deposit";
-        Object intern = this.safeBool(transaction, "is_internal");
+        Boolean intern = (Boolean) this.safeBool(transaction, "is_internal");
         return new HashMap<String, Object>() {{
             put( "info", transaction );
             put( "id", id );
@@ -2686,7 +2686,7 @@ public class Bigone extends BigoneApi
             //
             Object transfer = this.parseTransfer(response, currency);
             Object transferOptions = this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
-            Object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
+            Boolean fillResponseFromRequest = (Boolean) this.safeBool(transferOptions, "fillResponseFromRequest", true);
             if (java.util.Objects.equals(fillResponseFromRequest, true))
             {
                 Helpers.addElementToObject(transfer, "fromAccount", fromAccount);

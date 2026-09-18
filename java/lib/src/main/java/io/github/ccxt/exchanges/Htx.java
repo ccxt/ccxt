@@ -4991,10 +4991,10 @@ public class Htx extends HtxApi
             } else
             {
                 Object trigger = this.safeBool2(parameters, "stop", "trigger");
-                Object stopLossTakeProfit = this.safeBool(parameters, "stopLossTakeProfit");
-                Object stopLoss = this.safeBool(parameters, "stopLoss");
-                Object takeProfit = this.safeBool(parameters, "takeProfit");
-                Object trailing = this.safeBool(parameters, "trailing");
+                Boolean stopLossTakeProfit = (Boolean) this.safeBool(parameters, "stopLossTakeProfit");
+                Boolean stopLoss = (Boolean) this.safeBool(parameters, "stopLoss");
+                Boolean takeProfit = (Boolean) this.safeBool(parameters, "takeProfit");
+                Boolean trailing = (Boolean) this.safeBool(parameters, "trailing");
                 Boolean isAlgo = ((java.util.Objects.equals(trigger, true)) || (java.util.Objects.equals(stopLoss, true)) || (java.util.Objects.equals(takeProfit, true)) || (java.util.Objects.equals(stopLossTakeProfit, true)) || (java.util.Objects.equals(trailing, true)));
                 parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit")));
                 String clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("client_order_id", "clientOrderId", "algo_client_order_id")));
@@ -5340,9 +5340,9 @@ public class Htx extends HtxApi
             Object response = null;
             Object trigger = this.safeBool2(parameters, "stop", "trigger");
             Object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
-            Object stopLoss = this.safeBool(parameters, "stopLoss");
-            Object takeProfit = this.safeBool(parameters, "takeProfit");
-            Object trailing = this.safeBool(parameters, "trailing", false);
+            Boolean stopLoss = (Boolean) this.safeBool(parameters, "stopLoss");
+            Boolean takeProfit = (Boolean) this.safeBool(parameters, "takeProfit");
+            Boolean trailing = (Boolean) this.safeBool(parameters, "trailing", false);
             Boolean isAlgo = ((java.util.Objects.equals(trigger, true)) || (java.util.Objects.equals(stopLoss, true)) || (java.util.Objects.equals(takeProfit, true)) || (java.util.Objects.equals(stopLossTakeProfit, true)) || (java.util.Objects.equals(trailing, true)));
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit")));
             if (!java.util.Objects.equals(since, null))
@@ -5460,9 +5460,9 @@ public class Htx extends HtxApi
             {
                 Object trigger = this.safeBool2(parameters, "stop", "trigger");
                 Object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
-                Object stopLoss = this.safeBool(parameters, "stopLoss");
-                Object takeProfit = this.safeBool(parameters, "takeProfit");
-                Object trailing = this.safeBool(parameters, "trailing", false);
+                Boolean stopLoss = (Boolean) this.safeBool(parameters, "stopLoss");
+                Boolean takeProfit = (Boolean) this.safeBool(parameters, "takeProfit");
+                Boolean trailing = (Boolean) this.safeBool(parameters, "trailing", false);
                 Boolean isAlgo = ((java.util.Objects.equals(trigger, true)) || (java.util.Objects.equals(stopLoss, true)) || (java.util.Objects.equals(takeProfit, true)) || (java.util.Objects.equals(stopLossTakeProfit, true)) || (java.util.Objects.equals(trailing, true)));
                 if (java.util.Objects.equals(isAlgo, true))
                 {
@@ -5602,9 +5602,9 @@ public class Htx extends HtxApi
                 {
                     Object trigger = this.safeBool2(parameters, "stop", "trigger");
                     Object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
-                    Object stopLoss = this.safeBool(parameters, "stopLoss");
-                    Object takeProfit = this.safeBool(parameters, "takeProfit");
-                    Object trailing = this.safeBool(parameters, "trailing", false);
+                    Boolean stopLoss = (Boolean) this.safeBool(parameters, "stopLoss");
+                    Boolean takeProfit = (Boolean) this.safeBool(parameters, "takeProfit");
+                    Boolean trailing = (Boolean) this.safeBool(parameters, "trailing", false);
                     Boolean isAlgo = ((java.util.Objects.equals(trigger, true)) || (java.util.Objects.equals(stopLoss, true)) || (java.util.Objects.equals(takeProfit, true)) || (java.util.Objects.equals(stopLossTakeProfit, true)) || (java.util.Objects.equals(trailing, true)));
                     if (java.util.Objects.equals(isAlgo, true))
                     {
@@ -5779,10 +5779,10 @@ public class Htx extends HtxApi
                     }
                 }
                 Object trigger = this.safeBool2(parameters, "stop", "trigger");
-                Object stopLossTakeProfit = this.safeBool(parameters, "stopLossTakeProfit");
-                Object stopLoss = this.safeBool(parameters, "stopLoss");
-                Object takeProfit = this.safeBool(parameters, "takeProfit");
-                Object trailing = this.safeBool(parameters, "trailing", false);
+                Boolean stopLossTakeProfit = (Boolean) this.safeBool(parameters, "stopLossTakeProfit");
+                Boolean stopLoss = (Boolean) this.safeBool(parameters, "stopLoss");
+                Boolean takeProfit = (Boolean) this.safeBool(parameters, "takeProfit");
+                Boolean trailing = (Boolean) this.safeBool(parameters, "trailing", false);
                 parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit")));
                 if (Helpers.isTrue(isLinear))
                 {
@@ -6754,7 +6754,7 @@ public class Htx extends HtxApi
         parameters = ((List<Object>) subTypeparametersVariable).get(1);
         Boolean isLinear = (java.util.Objects.equals(subType, "linear"));
         Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
-        Object hedged = this.safeBool(parameters, "hedged", false);
+        Boolean hedged = (Boolean) this.safeBool(parameters, "hedged", false);
         String timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force", "gtc");
         if (Helpers.isTrue(isLinear))
         {
@@ -7423,7 +7423,7 @@ public class Htx extends HtxApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object trigger = this.safeBool2(parameters, "stop", "trigger");
             Object stopLossTakeProfit = this.safeBoolN(parameters, new ArrayList<Object>(Arrays.asList("stopLossTakeProfit", "stopLoss", "takeProfit")));
-            Object trailing = this.safeBool(parameters, "trailing", false);
+            Boolean trailing = (Boolean) this.safeBool(parameters, "trailing", false);
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit")));
             Object response = null;
             if (java.util.Objects.equals(marketType, "spot"))
@@ -7982,7 +7982,7 @@ public class Htx extends HtxApi
                 ((Map<String, Object>)request).put("contract_code", this.safeString(market, "id"));
                 Object trigger = this.safeBool2(parameters, "stop", "trigger");
                 Object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
-                Object trailing = this.safeBool(parameters, "trailing", false);
+                Boolean trailing = (Boolean) this.safeBool(parameters, "trailing", false);
                 parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger")));
                 if (java.util.Objects.equals(this.safeBool(market, "linear"), true))
                 {

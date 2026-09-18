@@ -910,7 +910,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             order = this.parseWsOrderUpdate(data, market);
         }
         Helpers.addElementToObject(order, "remaining", remains);
-        Object canceled = this.safeBool(data, "cancel", false);
+        Boolean canceled = (Boolean) this.safeBool(data, "cancel", false);
         if (java.util.Objects.equals(canceled, true))
         {
             Helpers.addElementToObject(order, "status", "canceled");
@@ -1019,7 +1019,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         {
             timestamp = this.parse8601(time);
         }
-        Object canceled = this.safeBool(order, "cancel", false);
+        Boolean canceled = (Boolean) this.safeBool(order, "cancel", false);
         String status = "open";
         if (java.util.Objects.equals(canceled, true))
         {

@@ -2828,11 +2828,11 @@ public class Kucoin extends KucoinApi
     public Object handleHfAndParams(Object... optionalArgs)
     {
         Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-        Object migrated = this.safeBool(this.options, "hf", false);
+        Boolean migrated = (Boolean) this.safeBool(this.options, "hf", false);
         Object loadedHf = null;
         if (!java.util.Objects.equals(migrated, null))
         {
-            if (Helpers.isTrue(migrated))
+            if (Boolean.TRUE.equals(migrated))
             {
                 loadedHf = true;
             } else
@@ -4905,7 +4905,7 @@ public class Kucoin extends KucoinApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object testOrder = this.safeBool(parameters, "test", false);
+            Boolean testOrder = (Boolean) this.safeBool(parameters, "test", false);
             parameters = this.omit(parameters, "test");
             Object hf = null;
             List<Object> hfparametersVariable = (List<Object>) this.handleHfAndParams(parameters);
@@ -5147,7 +5147,7 @@ public class Kucoin extends KucoinApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object testOrder = this.safeBool(parameters, "test", false);
+            Boolean testOrder = (Boolean) this.safeBool(parameters, "test", false);
             parameters = this.omit(parameters, "test");
             Boolean hasTpOrSlOrder = (!java.util.Objects.equals(this.safeValue(parameters, "stopLoss"), null)) || (!java.util.Objects.equals(this.safeValue(parameters, "takeProfit"), null));
             Object orderRequest = this.createContractOrderRequest(symbol, type, side, amount, price, parameters);
@@ -5323,7 +5323,7 @@ public class Kucoin extends KucoinApi
                 throw new ArgumentsRequired((this.id + " createOrder() requires a visibleSize parameter for iceberg orders")) ;
             }
         }
-        Object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
+        Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", false);
         Boolean hedged = null;
         List<Object> hedgedparametersVariable = (List<Object>) this.handleParamBool(parameters, "hedged", false);
         hedged = (Boolean) ((List<Object>) hedgedparametersVariable).get(0);
@@ -5518,7 +5518,7 @@ public class Kucoin extends KucoinApi
                         }
                     }
                 }
-                Object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
+                Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", false);
                 Object hedged = false;
                 List<Object> hedgedparametersVariable = (List<Object>) this.handleParamBool(parameters, "hedged", hedged);
                 hedged = ((List<Object>) hedgedparametersVariable).get(0);
@@ -7772,7 +7772,7 @@ public class Kucoin extends KucoinApi
         // const average = Precise.stringDiv (cost, Precise.stringMul (filled, market['contractSize']));
         // bool
         Object isActive = this.safeValue(order, "isActive");
-        Object cancelExist = this.safeBool(order, "cancelExist", false);
+        Boolean cancelExist = (Boolean) this.safeBool(order, "cancelExist", false);
         Object status = null;
         if (!java.util.Objects.equals(isActive, null))
         {
@@ -7950,10 +7950,10 @@ public class Kucoin extends KucoinApi
         String marketId = this.safeString(order, "symbol");
         Long timestamp = this.safeInteger(order, "createdAt");
         String feeCurrencyId = this.safeString(order, "feeCurrency");
-        Object cancelExist = this.safeBool(order, "cancelExist", false);
+        Boolean cancelExist = (Boolean) this.safeBool(order, "cancelExist", false);
         String responseStop = this.safeString(order, "stop");
         Boolean trigger = !java.util.Objects.equals(responseStop, null);
-        Object stopTriggered = this.safeBool(order, "stopTriggered", false);
+        Boolean stopTriggered = (Boolean) this.safeBool(order, "stopTriggered", false);
         Object isActive = this.safeBool2(order, "isActive", "active");
         String responseStatus = this.safeString(order, "status");
         String status = null;
@@ -9440,7 +9440,7 @@ public class Kucoin extends KucoinApi
                 updated = Helpers.multiply(updated, 1000);
             }
         }
-        Object intern = this.safeBool(transaction, "isInner");
+        Boolean intern = (Boolean) this.safeBool(transaction, "isInner");
         String tag = this.safeString(transaction, "memo");
         String chainId = this.safeString(transaction, "chain");
         final Object finalTimestamp = timestamp;
@@ -10475,7 +10475,7 @@ public class Kucoin extends KucoinApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object transfer = this.parseTransfer(data, currency);
             Object transferOptions = this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
-            Object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
+            Boolean fillResponseFromRequest = (Boolean) this.safeBool(transferOptions, "fillResponseFromRequest", true);
             if (java.util.Objects.equals(fillResponseFromRequest, true))
             {
                 Helpers.addElementToObject(transfer, "amount", amount);
@@ -10582,7 +10582,7 @@ public class Kucoin extends KucoinApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object transfer = this.parseTransfer(data, currency);
             Object transferOptions = this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
-            Object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
+            Boolean fillResponseFromRequest = (Boolean) this.safeBool(transferOptions, "fillResponseFromRequest", true);
             if (java.util.Objects.equals(fillResponseFromRequest, true))
             {
                 Helpers.addElementToObject(transfer, "amount", amount);
@@ -13656,7 +13656,7 @@ public class Kucoin extends KucoinApi
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String clientOrderId = this.safeString(parameters, "clientOrderId");
-            Object testOrder = this.safeBool(parameters, "test", false);
+            Boolean testOrder = (Boolean) this.safeBool(parameters, "test", false);
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("test", "clientOrderId")));
             if (java.util.Objects.equals(clientOrderId, null))
             {

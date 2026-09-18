@@ -649,7 +649,7 @@ public class Bydfi extends BydfiApi
         String quote = this.safeCurrencyCode(quoteId);
         String settle = this.safeCurrencyCode(settleId);
         Object symbol = Helpers.add((Helpers.add(Helpers.add(base, "/"), quote) + ":"), settle);
-        Object inverse = this.safeBool(market, "reverse");
+        Boolean inverse = (Boolean) this.safeBool(market, "reverse");
         String limitMaxQty = this.safeString(market, "limitMaxQty");
         String marketMaxQty = this.safeString(market, "marketMaxQty");
         String maxAmountString = Precise.stringMax(limitMaxQty, marketMaxQty);
@@ -891,7 +891,7 @@ public class Bydfi extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object paginate = this.safeBool(parameters, "paginate", false);
+            Boolean paginate = (Boolean) this.safeBool(parameters, "paginate", false);
             if (java.util.Objects.equals(paginate, true))
             {
                 Integer maxLimit = 500;
@@ -1621,7 +1621,7 @@ public class Bydfi extends BydfiApi
         List<Object> hedgedparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "hedged", hedged);
         hedged = ((List<Object>) hedgedparametersVariable).get(0);
         parameters = ((List<Object>) hedgedparametersVariable).get(1);
-        Object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
+        Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", false);
         if (Helpers.isTrue(hedged))
         {
             parameters = this.omit(parameters, "reduceOnly");
@@ -1633,7 +1633,7 @@ public class Bydfi extends BydfiApi
                 ((Map<String, Object>)request).put("positionSide", (((java.util.Objects.equals(reduceOnly, true)))) ? "LONG" : "SHORT");
             }
         }
-        Object closePosition = this.safeBool(parameters, "closePosition", false);
+        Boolean closePosition = (Boolean) this.safeBool(parameters, "closePosition", false);
         if (!java.util.Objects.equals(closePosition, true))
         {
             parameters = this.omit(parameters, "closePosition");
@@ -2117,7 +2117,7 @@ public class Bydfi extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object paginate = this.safeBool(parameters, "paginate", false);
+            Boolean paginate = (Boolean) this.safeBool(parameters, "paginate", false);
             if (java.util.Objects.equals(paginate, true))
             {
                 Integer maxLimit = 500;
@@ -3299,7 +3299,7 @@ public class Bydfi extends BydfiApi
             //
             Object transfer = this.parseTransfer(response, currency);
             Object transferOptions = this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
-            Object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
+            Boolean fillResponseFromRequest = (Boolean) this.safeBool(transferOptions, "fillResponseFromRequest", true);
             if (java.util.Objects.equals(fillResponseFromRequest, true))
             {
                 Long timestamp = this.milliseconds();
@@ -3345,7 +3345,7 @@ public class Bydfi extends BydfiApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
-            Object paginate = this.safeBool(parameters, "paginate", false);
+            Boolean paginate = (Boolean) this.safeBool(parameters, "paginate", false);
             if (java.util.Objects.equals(paginate, true))
             {
                 Integer maxLimit = 50;
@@ -3528,7 +3528,7 @@ public class Bydfi extends BydfiApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
-            Object paginate = this.safeBool(parameters, "paginate", false);
+            Boolean paginate = (Boolean) this.safeBool(parameters, "paginate", false);
             if (java.util.Objects.equals(paginate, true))
             {
                 Integer maxLimit = 50;

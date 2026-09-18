@@ -528,7 +528,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         //    }
         //
         Object parameters = this.safeList(message, "params", new ArrayList<Object>(Arrays.asList()));
-        Object isFullUpdate = this.safeBool(parameters, 0, false);
+        Boolean isFullUpdate = (Boolean) this.safeBool(parameters, 0, false);
         Object data = this.safeDict(parameters, 1);
         Object asks = this.safeList(data, "asks");
         Object bids = this.safeList(data, "bids");

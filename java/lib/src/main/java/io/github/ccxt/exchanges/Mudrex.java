@@ -342,7 +342,7 @@ public class Mudrex extends MudrexApi
         {
             return null;
         }
-        Object success = this.safeBool(response, "success", true);
+        Boolean success = (Boolean) this.safeBool(response, "success", true);
         if (!java.util.Objects.equals(success, true))
         {
             Object errors = this.safeList(response, "errors", new ArrayList<Object>(Arrays.asList()));

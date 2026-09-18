@@ -125,7 +125,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Object subscription = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
             Object id = this.requestId();
             String method = "SUBSCRIBE";
-            Object unsubscribe = this.safeBool(subscription, "unsubscribe", false);
+            Boolean unsubscribe = (Boolean) this.safeBool(subscription, "unsubscribe", false);
             if (java.util.Objects.equals(unsubscribe, true))
             {
                 method = "UNSUBSCRIBE";
@@ -158,7 +158,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), type), "/private");
             this.authenticate(url);
             String method = "SUBSCRIBE";
-            Object unsubscribe = this.safeBool(subscription, "unsubscribe", false);
+            Boolean unsubscribe = (Boolean) this.safeBool(subscription, "unsubscribe", false);
             if (java.util.Objects.equals(unsubscribe, true))
             {
                 method = "UNSUBSCRIBE";
@@ -673,12 +673,12 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeInteger(trade, "T");
         Object symbol = (((java.util.Objects.equals(market, null)))) ? null : ((Map<String, Object>)market).get("symbol");
-        Object isBuyerMaker = this.safeBool(trade, "m"); // m is the isBuyerMaker flag of the REST trades, true means the taker sold
+        Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "m"); // m is the isBuyerMaker flag of the REST trades, true means the taker sold
         String side = null;
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isBuyerMaker, null))
         {
-            side = ((Helpers.isTrue(isBuyerMaker))) ? "sell" : "buy";
+            side = ((Boolean.TRUE.equals(isBuyerMaker))) ? "sell" : "buy";
             takerOrMaker = "taker"; // a public trade is reported from the aggressor's side, same as parseTrade
         }
         final Object finalSide = side;
@@ -1974,8 +1974,8 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             Client client = this.client(url);
             this.setBalanceCache(client, type);
             Object options = this.safeDict(this.options, "watchBalance");
-            Object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
-            Object awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
+            Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
+            Boolean awaitBalanceSnapshot = (Boolean) this.safeBool(options, "awaitBalanceSnapshot", true);
             if ((java.util.Objects.equals(fetchBalanceSnapshot, true)) && (java.util.Objects.equals(awaitBalanceSnapshot, true)))
             {
                 client.future((type + ":fetchBalanceSnapshot")).getFuture().join();
@@ -1993,7 +1993,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             return;
         }
         Object options = this.safeDict(this.options, "watchBalance");
-        Object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
+        Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
         if (java.util.Objects.equals(fetchBalanceSnapshot, true))
         {
             Object messageHash = Helpers.add(type, ":fetchBalanceSnapshot");
@@ -2378,10 +2378,10 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         String id = this.safeString(message, "id");
         Map<String, Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
         Object subscription = this.safeDict(subscriptionsById, id, new HashMap<String, Object>() {{}});
-        Object unsubscribe = this.safeBool(subscription, "unsubscribe", false);
+        Boolean unsubscribe = (Boolean) this.safeBool(subscription, "unsubscribe", false);
         if (java.util.Objects.equals(unsubscribe, true))
         {
-            Object subHashIsPrefix = this.safeBool(subscription, "subHashIsPrefix", false);
+            Boolean subHashIsPrefix = (Boolean) this.safeBool(subscription, "subHashIsPrefix", false);
             Object messageHashes = this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
             Object subHashes = this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
@@ -2404,7 +2404,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         //         "msg": "INVALID_ARGUMENT: invalid symbol : ASDFS_SPBL"
         //     }
         //
-        Object result = this.safeBool(message, "result", true);
+        Boolean result = (Boolean) this.safeBool(message, "result", true);
         if (!java.util.Objects.equals(result, true))
         {
             String msg = this.safeString(message, "msg", "");

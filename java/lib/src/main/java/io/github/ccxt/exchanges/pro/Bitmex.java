@@ -824,7 +824,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
 
     public void handleAuthenticationMessage(Client client, Object message)
     {
-        Object authenticated = this.safeBool(message, "success", false);
+        Boolean authenticated = (Boolean) this.safeBool(message, "success", false);
         String messageHash = "authenticated";
         if (java.util.Objects.equals(authenticated, true))
         {

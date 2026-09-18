@@ -1979,10 +1979,10 @@ public class Nado extends NadoApi
                     Helpers.addElementToObject(assetsByCode, assetCode, rawAsset);
                 } else
                 {
-                    Object previousDeposit = this.safeBool(previous, "can_deposit", false);
-                    Object previousWithdraw = this.safeBool(previous, "can_withdraw", false);
-                    Object currentDeposit = this.safeBool(rawAsset, "can_deposit", false);
-                    Object currentWithdraw = this.safeBool(rawAsset, "can_withdraw", false);
+                    Boolean previousDeposit = (Boolean) this.safeBool(previous, "can_deposit", false);
+                    Boolean previousWithdraw = (Boolean) this.safeBool(previous, "can_withdraw", false);
+                    Boolean currentDeposit = (Boolean) this.safeBool(rawAsset, "can_deposit", false);
+                    Boolean currentWithdraw = (Boolean) this.safeBool(rawAsset, "can_withdraw", false);
                     if ((!java.util.Objects.equals(previousDeposit, true)) && (!java.util.Objects.equals(previousWithdraw, true)) && ((java.util.Objects.equals(currentDeposit, true)) || (java.util.Objects.equals(currentWithdraw, true))))
                     {
                         Helpers.addElementToObject(assetsByCode, assetCode, rawAsset);
@@ -2118,15 +2118,15 @@ public class Nado extends NadoApi
                     continue;
                 }
                 Object previous = this.safeDict(result, code);
-                Object canDeposit = this.safeBool(currency, "can_deposit", false);
-                Object canWithdraw = this.safeBool(currency, "can_withdraw", false);
+                Boolean canDeposit = (Boolean) this.safeBool(currency, "can_deposit", false);
+                Boolean canWithdraw = (Boolean) this.safeBool(currency, "can_withdraw", false);
                 if (java.util.Objects.equals(previous, null))
                 {
                     Helpers.addElementToObject(result, code, parsed);
                 } else
                 {
-                    Object previousDeposit = this.safeBool(previous, "deposit", false);
-                    Object previousWithdraw = this.safeBool(previous, "withdraw", false);
+                    Boolean previousDeposit = (Boolean) this.safeBool(previous, "deposit", false);
+                    Boolean previousWithdraw = (Boolean) this.safeBool(previous, "withdraw", false);
                     if ((!java.util.Objects.equals(previousDeposit, true)) && (!java.util.Objects.equals(previousWithdraw, true)) && ((java.util.Objects.equals(canDeposit, true)) || (java.util.Objects.equals(canWithdraw, true))))
                     {
                         Helpers.addElementToObject(result, code, parsed);
@@ -2739,10 +2739,10 @@ public class Nado extends NadoApi
             price = (((java.util.Objects.equals(parsedPrice, null)))) ? null : this.numberToString(parsedPrice);
         }
         String takerOrMaker = null;
-        Object isTaker = this.safeBool(trade, "is_taker");
+        Boolean isTaker = (Boolean) this.safeBool(trade, "is_taker");
         if (!java.util.Objects.equals(isTaker, null))
         {
-            if (Helpers.isTrue(isTaker))
+            if (Boolean.TRUE.equals(isTaker))
             {
                 takerOrMaker = "taker";
             } else
@@ -2967,8 +2967,8 @@ public class Nado extends NadoApi
 
     public Object parseCurrency(Object rawCurrency)
     {
-        Object canDeposit = this.safeBool(rawCurrency, "can_deposit", false);
-        Object canWithdraw = this.safeBool(rawCurrency, "can_withdraw", false);
+        Boolean canDeposit = (Boolean) this.safeBool(rawCurrency, "can_deposit", false);
+        Boolean canWithdraw = (Boolean) this.safeBool(rawCurrency, "can_withdraw", false);
         String id = this.safeString(rawCurrency, "product_id");
         String currencyId = this.safeString(rawCurrency, "symbol");
         String code = this.safeCurrencyCode(this.removeMarketSuffix(currencyId));
@@ -3492,7 +3492,7 @@ public class Nado extends NadoApi
         // | 64 bits | 16 bits | 10 bits          | 24 bits  | 2 bits  | 1 bit       | 2 bits     | 1 bit    | 8 bits  |
         // | 127..64 | 63..48  | 47..38           | 37..14   | 13..12  | 11          | 10..9      | 8        | 7..0    |
         Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-        Object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
+        Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", false);
         Object postOnly = this.isPostOnly(false, null, parameters);
         String timeInForce = this.safeStringUpper(parameters, "timeInForce");
         Integer orderType = 0;
@@ -3518,7 +3518,7 @@ public class Nado extends NadoApi
         {
             appendix = Precise.stringAdd(appendix, "2048");
         }
-        Object buildFee = this.safeBool(this.options, "builderFee", true);
+        Boolean buildFee = (Boolean) this.safeBool(this.options, "builderFee", true);
         if (java.util.Objects.equals(buildFee, true))
         {
             String builder = this.safeString(this.options, "builder", "4500");

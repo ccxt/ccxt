@@ -1690,17 +1690,17 @@ public class Aster extends AsterApi
         String costString = this.safeString2(trade, "quoteQty", "baseQty");
         Long timestamp = (Long) this.safeInteger2(trade, "time", "T");
         String side = this.safeStringLower(trade, "side");
-        Object isMaker = this.safeBool(trade, "maker");
+        Boolean isMaker = (Boolean) this.safeBool(trade, "maker");
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isMaker, null))
         {
-            takerOrMaker = ((Helpers.isTrue(isMaker))) ? "maker" : "taker";
+            takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
             if (java.util.Objects.equals(side, null))
             {
-                Object isBuyer = this.safeBool(trade, "buyer");
+                Boolean isBuyer = (Boolean) this.safeBool(trade, "buyer");
                 if (!java.util.Objects.equals(isBuyer, null))
                 {
-                    side = ((Helpers.isTrue(isBuyer))) ? "buy" : "sell";
+                    side = ((Boolean.TRUE.equals(isBuyer))) ? "buy" : "sell";
                 }
             }
         }
@@ -3516,7 +3516,7 @@ public class Aster extends AsterApi
         //       STOP/TAKE_PROFIT quantity, price, stopPrice; STOP_MARKET/TAKE_PROFIT_MARKET quantity, stopPrice
         // future: LIMIT timeInForce, quantity, price; MARKET quantity; STOP/TAKE_PROFIT quantity, price, stopPrice;
         //       STOP_MARKET/TAKE_PROFIT_MARKET stopPrice; TRAILING_STOP_MARKET callbackRate
-        Object closePosition = this.safeBool(parameters, "closePosition", false);
+        Boolean closePosition = (Boolean) this.safeBool(parameters, "closePosition", false);
         Boolean timeInForceIsRequired = false;
         Boolean priceIsRequired = false;
         Boolean triggerPriceIsRequired = false;
@@ -4816,7 +4816,7 @@ public class Aster extends AsterApi
         {
             timestamp = null;
         }
-        Object isolated = this.safeBool(position, "isolated");
+        Boolean isolated = (Boolean) this.safeBool(position, "isolated");
         if (java.util.Objects.equals(isolated, null))
         {
             String isolatedMarginRaw = this.safeString(position, "isolatedMargin");
@@ -4825,7 +4825,7 @@ public class Aster extends AsterApi
         String marginMode = null;
         String collateralString = null;
         String walletBalance = null;
-        if (Helpers.isTrue(isolated))
+        if (Boolean.TRUE.equals(isolated))
         {
             marginMode = "isolated";
             walletBalance = this.safeString(position, "isolatedWallet");
@@ -5516,7 +5516,7 @@ public class Aster extends AsterApi
             {
                 return false;  // skip if builder fee is not enabled
             }
-            Object approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
+            Boolean approvedBuilderFee = (Boolean) this.safeBool(this.options, "approvedBuilderFee", false);
             if (java.util.Objects.equals(approvedBuilderFee, true))
             {
                 return true;  // skip if builder fee is already approved

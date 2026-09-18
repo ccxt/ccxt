@@ -1675,11 +1675,11 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         String marketId = this.safeString(trade, "product_id");
         market = this.safeMarket(marketId, market);
         Object timestamp = this.parseWsTimestamp(trade, "timestamp");
-        Object isTakerBuyer = this.safeBool(trade, "is_taker_buyer");
+        Boolean isTakerBuyer = (Boolean) this.safeBool(trade, "is_taker_buyer");
         String side = null;
         if (!java.util.Objects.equals(isTakerBuyer, null))
         {
-            side = ((Helpers.isTrue(isTakerBuyer))) ? "buy" : "sell";
+            side = ((Boolean.TRUE.equals(isTakerBuyer))) ? "buy" : "sell";
         }
         final Object finalMarket = market;
         final Object finalSide = side;
@@ -1725,17 +1725,17 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         String marketId = this.safeString(trade, "product_id");
         market = this.safeMarket(marketId, market);
         Object timestamp = this.parseWsTimestamp(trade, "timestamp");
-        Object isBid = this.safeBool(trade, "is_bid");
+        Boolean isBid = (Boolean) this.safeBool(trade, "is_bid");
         String side = null;
         if (!java.util.Objects.equals(isBid, null))
         {
-            side = ((Helpers.isTrue(isBid))) ? "buy" : "sell";
+            side = ((Boolean.TRUE.equals(isBid))) ? "buy" : "sell";
         }
-        Object isTaker = this.safeBool(trade, "is_taker");
+        Boolean isTaker = (Boolean) this.safeBool(trade, "is_taker");
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isTaker, null))
         {
-            takerOrMaker = ((Helpers.isTrue(isTaker))) ? "taker" : "maker";
+            takerOrMaker = ((Boolean.TRUE.equals(isTaker))) ? "taker" : "maker";
         }
         Object feeCost = this.parseX18(this.safeString(trade, "fee"));
         Object fee = null;

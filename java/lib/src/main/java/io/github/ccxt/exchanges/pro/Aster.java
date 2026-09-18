@@ -402,7 +402,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 put( "method", "SUBSCRIBE" );
                 put( "params", subscriptionArgs );
             }};
-            Object use1sFreq = this.safeBool(parameters, "use1sFreq", true);
+            Boolean use1sFreq = (Boolean) this.safeBool(parameters, "use1sFreq", true);
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
@@ -469,7 +469,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 put( "method", "UNSUBSCRIBE" );
                 put( "params", subscriptionArgs );
             }};
-            Object use1sFreq = this.safeBool(parameters, "use1sFreq", true);
+            Boolean use1sFreq = (Boolean) this.safeBool(parameters, "use1sFreq", true);
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
@@ -1732,8 +1732,8 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             Client client = this.client(url);
             this.setBalanceCache(client, type);
             Object options = this.safeDict(this.options, "watchBalance");
-            Object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
-            Object awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
+            Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
+            Boolean awaitBalanceSnapshot = (Boolean) this.safeBool(options, "awaitBalanceSnapshot", true);
             if ((java.util.Objects.equals(fetchBalanceSnapshot, true)) && (java.util.Objects.equals(awaitBalanceSnapshot, true)))
             {
                 client.future((type + ":fetchBalanceSnapshot")).getFuture().join();
@@ -1752,7 +1752,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             return;
         }
         Object options = this.safeValue(this.options, "watchBalance");
-        Object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
+        Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
         if (java.util.Objects.equals(fetchBalanceSnapshot, true))
         {
             Object messageHash = Helpers.add(type, ":fetchBalanceSnapshot");

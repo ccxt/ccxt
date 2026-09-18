@@ -1622,17 +1622,17 @@ public class Backpack extends BackpackApi
         market = this.safeMarket(marketId, market);
         String price = this.safeString(trade, "price");
         String amount = this.safeString(trade, "quantity");
-        Object isBuyerMaker = this.safeBool(trade, "isBuyerMaker");
+        Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "isBuyerMaker");
         String side = this.parseOrderSide(this.safeString(trade, "side"));
-        Object isMaker = this.safeBool(trade, "isMaker");
+        Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker");
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isMaker, null))
         {
-            takerOrMaker = ((Helpers.isTrue(isMaker))) ? "maker" : "taker";
+            takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
         } else if (!java.util.Objects.equals(isBuyerMaker, null))
         {
             takerOrMaker = "taker";
-            side = ((Helpers.isTrue(isBuyerMaker))) ? "sell" : "buy";
+            side = ((Boolean.TRUE.equals(isBuyerMaker))) ? "sell" : "buy";
         }
         String orderId = this.safeString(trade, "orderId");
         Object fee = null;
@@ -2036,7 +2036,7 @@ public class Backpack extends BackpackApi
         String addressFrom = this.safeString(transaction, "fromAddress");
         String tag = this.safeString(transaction, "platformMemo");
         Double feeCost = this.safeNumber(transaction, "fee");
-        Object intern = this.safeBool(transaction, "isInternal", false);
+        Boolean intern = (Boolean) this.safeBool(transaction, "isInternal", false);
         Object fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
@@ -2650,8 +2650,8 @@ public class Backpack extends BackpackApi
         String status = this.parseOrderStatus(this.safeString(order, "status"));
         String triggerPrice = this.safeString(order, "triggerPrice");
         String filled = this.safeString(order, "executedQuantity");
-        Object reduceOnly = this.safeBool(order, "reduceOnly");
-        Object postOnly = this.safeBool(order, "postOnly");
+        Boolean reduceOnly = (Boolean) this.safeBool(order, "reduceOnly");
+        Boolean postOnly = (Boolean) this.safeBool(order, "postOnly");
         String stopLossPrice = this.safeString2(order, "stopLossLimitPrice", "stopLossTriggerPrice");
         String takeProfitPrice = this.safeString2(order, "takeProfitLimitPrice", "takeProfitTriggerPrice");
         final Object finalTimestamp = timestamp;

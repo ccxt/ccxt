@@ -3164,7 +3164,7 @@ public class Phemex extends PhemexApi
     public Object parseOrder(Object order, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object isSwap = this.safeBool(market, "swap", false);
+        Boolean isSwap = (Boolean) this.safeBool(market, "swap", false);
         Boolean hasPnl = (((Map<?, ?>)order).containsKey("closedPnl")) || (((Map<?, ?>)order).containsKey("closedPnlRv")) || (((Map<?, ?>)order).containsKey("totalPnlRv"));
         if ((java.util.Objects.equals(isSwap, true)) || Helpers.isTrue(hasPnl))
         {
@@ -3295,14 +3295,14 @@ public class Phemex extends PhemexApi
                 }
             } else if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
-                Object hedged = this.safeBool(parameters, "hedged", false);
+                Boolean hedged = (Boolean) this.safeBool(parameters, "hedged", false);
                 parameters = this.omit(parameters, "hedged");
                 String posSide = this.safeStringLower(parameters, "posSide");
                 if (java.util.Objects.equals(posSide, null))
                 {
                     if (java.util.Objects.equals(hedged, true))
                     {
-                        Object reduceOnly = this.safeBool(parameters, "reduceOnly");
+                        Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly");
                         if (java.util.Objects.equals(reduceOnly, true))
                         {
                             side = (((java.util.Objects.equals(side, "buy")))) ? "sell" : "buy";
@@ -5699,7 +5699,7 @@ final Object finalI = i;
             {
                 (this.loadMarkets()).join();
             }
-            Object isHedged = this.safeBool(parameters, "hedged", false);
+            Boolean isHedged = (Boolean) this.safeBool(parameters, "hedged", false);
             Object longLeverageRr = this.safeInteger(parameters, "longLeverageRr");
             Object shortLeverageRr = this.safeInteger(parameters, "shortLeverageRr");
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
@@ -5815,7 +5815,7 @@ final Object finalI = i;
                 transfer = this.parseTransfer(response);
             }
             Object transferOptions = this.safeValue(this.options, "transfer", new HashMap<String, Object>() {{}});
-            Object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
+            Boolean fillResponseFromRequest = (Boolean) this.safeBool(transferOptions, "fillResponseFromRequest", true);
             if (java.util.Objects.equals(fillResponseFromRequest, true))
             {
                 if (java.util.Objects.equals(((Map<String, Object>)transfer).get("fromAccount"), null))

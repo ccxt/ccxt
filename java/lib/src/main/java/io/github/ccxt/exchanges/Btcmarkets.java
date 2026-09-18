@@ -1475,7 +1475,7 @@ public class Btcmarkets extends BtcmarketsApi
         String id = this.safeString(order, "orderId");
         String clientOrderId = this.safeString(order, "clientOrderId");
         String timeInForce = this.safeString(order, "timeInForce");
-        Object postOnly = this.safeBool(order, "postOnly");
+        Boolean postOnly = (Boolean) this.safeBool(order, "postOnly");
         final Object finalMarket = market;
         final Object finalSide = side;
         return this.safeOrder(new HashMap<String, Object>() {{

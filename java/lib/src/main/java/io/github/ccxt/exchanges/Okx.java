@@ -3075,7 +3075,7 @@ public class Okx extends OkxApi
             // therefore we check the keys here
             // and fallback to generating the currencies from the markets
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            Object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
+            Boolean isSandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
             if (!Helpers.isTrue(this.checkRequiredCredentials(false)) || (java.util.Objects.equals(isSandboxMode, true)))
             {
                 return new HashMap<String, Object>() {{}};
@@ -3347,7 +3347,7 @@ public class Okx extends OkxApi
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String last = this.safeString(ticker, "last");
         String open = this.safeString(ticker, "open24h");
-        Object spot = this.safeBool(market, "spot", false);
+        Boolean spot = (Boolean) this.safeBool(market, "spot", false);
         String quoteVolume = (((java.util.Objects.equals(spot, true)))) ? this.safeString(ticker, "volCcy24h") : null;
         String baseVolume = this.safeString(ticker, "vol24h");
         String high = this.safeString(ticker, "high24h");
@@ -5180,7 +5180,7 @@ public class Okx extends OkxApi
                 throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
             }
             Object trigger = this.safeValue2(parameters, "stop", "trigger");
-            Object trailing = this.safeBool(parameters, "trailing", false);
+            Boolean trailing = (Boolean) this.safeBool(parameters, "trailing", false);
             Boolean isTrigger = (!java.util.Objects.equals(trigger, null)) && (!java.util.Objects.equals(trigger, false));
             if (Helpers.isTrue(isTrigger) || (java.util.Objects.equals(trailing, true)))
             {
@@ -5268,7 +5268,7 @@ public class Okx extends OkxApi
             Object clientOrderIds = this.parseIds(this.safeValue2(parameters, "clOrdId", "clientOrderId"));
             Object algoIds = this.parseIds(this.safeValue(parameters, "algoId"));
             Object trigger = this.safeValue2(parameters, "stop", "trigger");
-            Object trailing = this.safeBool(parameters, "trailing", false);
+            Boolean trailing = (Boolean) this.safeBool(parameters, "trailing", false);
             Boolean isTrigger = (!java.util.Objects.equals(trigger, null)) && (!java.util.Objects.equals(trigger, false));
             if (Helpers.isTrue(isTrigger) || (java.util.Objects.equals(trailing, true)))
             {
@@ -5405,7 +5405,7 @@ public class Okx extends OkxApi
             String defaultMethod = this.safeString(options, "method", "privatePostTradeCancelBatchOrders");
             String method = this.safeString(parameters, "method", defaultMethod);
             Object trigger = this.safeBool2(parameters, "stop", "trigger");
-            Object trailing = this.safeBool(parameters, "trailing", false);
+            Boolean trailing = (Boolean) this.safeBool(parameters, "trailing", false);
             Boolean isStopOrTrailing = (java.util.Objects.equals(trigger, true)) || (java.util.Objects.equals(trailing, true));
             if (java.util.Objects.equals(isStopOrTrailing, true))
             {
@@ -6077,7 +6077,7 @@ public class Okx extends OkxApi
             String method = this.safeString(parameters, "method", defaultMethod);
             String ordType = this.safeString(parameters, "ordType");
             Object trigger = this.safeValue2(parameters, "stop", "trigger");
-            Object trailing = this.safeBool(parameters, "trailing", false);
+            Boolean trailing = (Boolean) this.safeBool(parameters, "trailing", false);
             Boolean isTrigger = (!java.util.Objects.equals(trigger, null)) && (!java.util.Objects.equals(trigger, false));
             if ((java.util.Objects.equals(trailing, true)) || Helpers.isTrue(isTrigger) || ((!java.util.Objects.equals(ordType, null)) && (((Map<?, ?>)algoOrderTypes).containsKey(ordType))))
             {
@@ -6254,7 +6254,7 @@ public class Okx extends OkxApi
             String method = this.safeString(parameters, "method", defaultMethod);
             String ordType = this.safeString(parameters, "ordType");
             Object trigger = this.safeValue2(parameters, "stop", "trigger");
-            Object trailing = this.safeBool(parameters, "trailing", false);
+            Boolean trailing = (Boolean) this.safeBool(parameters, "trailing", false);
             Boolean isTrigger = (!java.util.Objects.equals(trigger, null)) && (!java.util.Objects.equals(trigger, false));
             if (java.util.Objects.equals(trailing, true))
             {
@@ -6468,7 +6468,7 @@ public class Okx extends OkxApi
             String method = this.safeString(parameters, "method", defaultMethod);
             String ordType = this.safeString(parameters, "ordType");
             Object trigger = this.safeBool2(parameters, "stop", "trigger");
-            Object trailing = this.safeBool(parameters, "trailing", false);
+            Boolean trailing = (Boolean) this.safeBool(parameters, "trailing", false);
             if ((java.util.Objects.equals(trailing, true)) || (java.util.Objects.equals(trigger, true)) || ((!java.util.Objects.equals(ordType, null)) && (((Map<?, ?>)algoOrderTypes).containsKey(ordType))))
             {
                 method = "privateGetTradeOrdersAlgoHistory";
@@ -11569,7 +11569,7 @@ public class Okx extends OkxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object auto = this.safeBool(parameters, "auto");
+            Boolean auto = (Boolean) this.safeBool(parameters, "auto");
             if (java.util.Objects.equals(type, null))
             {
                 throw new ArgumentsRequired((this.id + " fetchMarginAdjustmentHistory () requires a type argument")) ;

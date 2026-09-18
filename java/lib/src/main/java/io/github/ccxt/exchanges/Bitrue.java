@@ -1984,15 +1984,15 @@ public class Bitrue extends BitrueApi
         String orderId = this.safeString(trade, "orderId");
         String id = this.safeString2(trade, "id", "tradeId");
         String side = null;
-        Object buyerMaker = this.safeBool(trade, "isBuyerMaker"); // ignore "m" until Bitrue fixes api
-        Object isBuyer = this.safeBool(trade, "isBuyer");
+        Boolean buyerMaker = (Boolean) this.safeBool(trade, "isBuyerMaker"); // ignore "m" until Bitrue fixes api
+        Boolean isBuyer = (Boolean) this.safeBool(trade, "isBuyer");
         if (!java.util.Objects.equals(buyerMaker, null))
         {
-            side = ((Helpers.isTrue(buyerMaker))) ? "sell" : "buy";
+            side = ((Boolean.TRUE.equals(buyerMaker))) ? "sell" : "buy";
         }
         if (!java.util.Objects.equals(isBuyer, null))
         {
-            side = ((Helpers.isTrue(isBuyer))) ? "buy" : "sell"; // this is a true side
+            side = ((Boolean.TRUE.equals(isBuyer))) ? "buy" : "sell"; // this is a true side
         }
         Object fee = null;
         if (((Map<?, ?>)trade).containsKey("commission"))
@@ -2003,10 +2003,10 @@ public class Bitrue extends BitrueApi
             }};
         }
         String takerOrMaker = null;
-        Object isMaker = this.safeBool(trade, "isMaker");
+        Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker");
         if (!java.util.Objects.equals(isMaker, null))
         {
-            takerOrMaker = ((Helpers.isTrue(isMaker))) ? "maker" : "taker";
+            takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
         }
         final Object finalSide = side;
         final Object finalTakerOrMaker = takerOrMaker;
@@ -3878,7 +3878,7 @@ public class Bitrue extends BitrueApi
         }
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
-        Object success = this.safeBool(response, "success", true);
+        Boolean success = (Boolean) this.safeBool(response, "success", true);
         if (!java.util.Objects.equals(success, true))
         {
             String messageInner = this.safeString(response, "msg");

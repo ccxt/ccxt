@@ -1335,7 +1335,7 @@ public class Coincheck extends CoincheckApi
         //     {"success":false,"error":"disabled API Key"}'
         //     {"success":false,"error":"invalid authentication"}
         //
-        Object success = this.safeBool(response, "success", true);
+        Boolean success = (Boolean) this.safeBool(response, "success", true);
         if (!java.util.Objects.equals(success, true))
         {
             String error = this.safeString(response, "error");

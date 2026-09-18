@@ -239,7 +239,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
         Object orderBook = this.safeDict(message, "Data", new HashMap<String, Object>() {{}});
         String messageHash = Helpers.add((("orderbook:" + symbol) + ":"), depth);
         Object subscription = this.safeValue(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});
-        Object receivedSnapshot = this.safeBool(subscription, "receivedSnapshot", false);
+        Boolean receivedSnapshot = (Boolean) this.safeBool(subscription, "receivedSnapshot", false);
         Long timestamp = this.safeInteger(message, "Time");
         // let orderbook = this.safeValue (this.orderbooks, symbol);
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))

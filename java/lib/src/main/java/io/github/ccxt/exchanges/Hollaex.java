@@ -1541,7 +1541,7 @@ public class Hollaex extends HollaexApi
         String filled = this.safeString(order, "filled");
         String status = this.parseOrderStatus(this.safeString(order, "status"));
         Object meta = this.safeValue(order, "meta", new HashMap<String, Object>() {{}});
-        Object postOnly = this.safeBool(meta, "post_only", false);
+        Boolean postOnly = (Boolean) this.safeBool(meta, "post_only", false);
         return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", null );
@@ -1603,7 +1603,7 @@ public class Hollaex extends HollaexApi
             }};
             Double triggerPrice = this.safeNumberN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stop")));
             Object meta = this.safeValue(parameters, "meta", new HashMap<String, Object>() {{}});
-            Object exchangeSpecificParam = this.safeBool(meta, "post_only", false);
+            Boolean exchangeSpecificParam = (Boolean) this.safeBool(meta, "post_only", false);
             Boolean isMarketOrder = java.util.Objects.equals(type, "market");
             Object postOnly = this.isPostOnly(isMarketOrder, exchangeSpecificParam, parameters);
             if (!Helpers.isTrue(isMarketOrder))

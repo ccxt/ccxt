@@ -2981,7 +2981,7 @@ public class Mexc extends MexcApi
             {
                 (this.loadMarkets()).join();
             }
-            Object test = this.safeBool(parameters, "test", false);
+            Boolean test = (Boolean) this.safeBool(parameters, "test", false);
             parameters = this.omit(parameters, "test");
             Object request = this.createSpotOrderRequest(market, type, side, amount, price, marginMode, parameters);
             Object response = null;
@@ -3134,8 +3134,8 @@ public class Mexc extends MexcApi
                     throw new ArgumentsRequired((this.id + " createSwapOrder() requires a leverage parameter for isolated margin orders")) ;
                 }
             }
-            Object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
-            Object hedged = this.safeBool(parameters, "hedged", false);
+            Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", false);
+            Boolean hedged = (Boolean) this.safeBool(parameters, "hedged", false);
             Object sideInteger = null;
             if (java.util.Objects.equals(hedged, true))
             {
@@ -4750,7 +4750,7 @@ public class Mexc extends MexcApi
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((List<Object>) marketTypeparametersVariable).get(1);
             String marginMode = this.safeString(parameters, "marginMode");
-            Object isMargin = this.safeBool(parameters, "margin", false);
+            Boolean isMargin = (Boolean) this.safeBool(parameters, "margin", false);
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("margin", "marginMode")));
             Object response = null;
             if ((!java.util.Objects.equals(marginMode, null)) || (java.util.Objects.equals(isMargin, true)) || (java.util.Objects.equals(marketType, "margin")))
@@ -6732,7 +6732,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             tag = ((List<Object>) tagparametersVariable).get(0);
             parameters = ((List<Object>) tagparametersVariable).get(1);
-            Object intern = this.safeBool(parameters, "internal", false);
+            Boolean intern = (Boolean) this.safeBool(parameters, "internal", false);
             if (java.util.Objects.equals(intern, true))
             {
                 parameters = this.omit(parameters, "internal");
@@ -7182,7 +7182,7 @@ final Object finalRiskIncrVol = riskIncrVol;
         Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
         Object defaultValue = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
         String defaultType = this.safeString(this.options, "defaultType");
-        Object isMargin = this.safeBool(parameters, "margin", false);
+        Boolean isMargin = (Boolean) this.safeBool(parameters, "margin", false);
         Object marginMode = null;
         List<Object> marginModeparametersVariable = (List<Object>) super.handleMarginModeAndParams(methodName, parameters, defaultValue);
         marginMode = ((List<Object>) marginModeparametersVariable).get(0);
@@ -7478,7 +7478,7 @@ final Object finalRiskIncrVol = riskIncrVol;
         //     {"code":10216,"msg":"No available deposit address"}
         //     {"success":true, "code":0, "data":1634095541710}
         //
-        Object success = this.safeBool(response, "success", false); // v1
+        Boolean success = (Boolean) this.safeBool(response, "success", false); // v1
         if (java.util.Objects.equals(success, true))
         {
             return null;

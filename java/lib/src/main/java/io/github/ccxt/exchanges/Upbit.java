@@ -1624,7 +1624,7 @@ public class Upbit extends UpbitApi
             Object postOnly = this.isPostOnly(java.util.Objects.equals(type, "market"), false, parameters);
             String timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
             String selfTradePrevention = this.safeString2(parameters, "selfTradePrevention", "smp_type");
-            Object test = this.safeBool(parameters, "test", false);
+            Boolean test = (Boolean) this.safeBool(parameters, "test", false);
             if (Helpers.isTrue(postOnly) && (!java.util.Objects.equals(selfTradePrevention, null)))
             {
                 throw new ExchangeError((this.id + " createOrder() does not support post_only and selfTradePrevention simultaneously.")) ;

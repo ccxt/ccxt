@@ -2843,7 +2843,7 @@ public class Coinex extends CoinexApi
         Boolean isMarketOrder = java.util.Objects.equals(type, "market");
         Object postOnly = this.isPostOnly(isMarketOrder, java.util.Objects.equals(option, "maker_only"), parameters);
         String timeInForceRaw = this.safeStringUpper(parameters, "timeInForce");
-        Object reduceOnly = this.safeBool(parameters, "reduceOnly");
+        Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly");
         if (java.util.Objects.equals(reduceOnly, true))
         {
             if (!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
@@ -3000,7 +3000,7 @@ public class Coinex extends CoinexApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object reduceOnly = this.safeBool(parameters, "reduceOnly");
+            Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly");
             String triggerPrice = this.safeString2(parameters, "stopPrice", "triggerPrice");
             String stopLossTriggerPrice = this.safeString(parameters, "stopLossPrice");
             String takeProfitTriggerPrice = this.safeString(parameters, "takeProfitPrice");
@@ -6155,7 +6155,7 @@ final Object finalI = i;
         for (var i = 0; i < ((List<?>)chains).size(); i++)
         {
             Object entry = Helpers.GetValue(chains, i);
-            Object isWithdrawEnabled = this.safeBool(entry, "withdraw_enabled");
+            Boolean isWithdrawEnabled = (Boolean) this.safeBool(entry, "withdraw_enabled");
             if (java.util.Objects.equals(isWithdrawEnabled, true))
             {
                 Helpers.addElementToObject(Helpers.GetValue(result, "withdraw"), "fee", this.safeNumber(entry, "withdrawal_fee"));
@@ -6438,7 +6438,7 @@ final Object finalI = i;
         Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
         Object defaultValue = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
         String defaultType = this.safeString(this.options, "defaultType");
-        Object isMargin = this.safeBool(parameters, "margin", false);
+        Boolean isMargin = (Boolean) this.safeBool(parameters, "margin", false);
         Object marginMode = null;
         List<Object> marginModeparametersVariable = (List<Object>) super.handleMarginModeAndParams(methodName, parameters, defaultValue);
         marginMode = ((List<Object>) marginModeparametersVariable).get(0);

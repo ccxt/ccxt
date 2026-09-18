@@ -2145,15 +2145,15 @@ public class Weex extends WeexApi
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeInteger(trade, "time");
-        Object isBuyer = this.safeBool(trade, "isBuyer");
+        Boolean isBuyer = (Boolean) this.safeBool(trade, "isBuyer");
         String side = this.safeStringLower(trade, "side");
-        Object isBuyerMaker = this.safeBool(trade, "isBuyerMaker");
+        Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "isBuyerMaker");
         if (!java.util.Objects.equals(isBuyer, null))
         {
-            side = ((Helpers.isTrue(isBuyer))) ? "buy" : "sell";
+            side = ((Boolean.TRUE.equals(isBuyer))) ? "buy" : "sell";
         } else if (!java.util.Objects.equals(isBuyerMaker, null))
         {
-            side = ((Helpers.isTrue(isBuyerMaker))) ? "sell" : "buy";
+            side = ((Boolean.TRUE.equals(isBuyerMaker))) ? "sell" : "buy";
         }
         Object isSpot = true;
         if (java.util.Objects.equals(market, null))
@@ -2190,11 +2190,11 @@ public class Weex extends WeexApi
                 put( "currency", finalFeeCurrency );
             }};
         }
-        Object isMaker = this.safeBool(trade, "maker");
+        Boolean isMaker = (Boolean) this.safeBool(trade, "maker");
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isMaker, null))
         {
-            takerOrMaker = ((Helpers.isTrue(isMaker))) ? "maker" : "taker";
+            takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
         } else if (!java.util.Objects.equals(isBuyerMaker, null))
         {
             takerOrMaker = "taker";
@@ -2458,7 +2458,7 @@ public class Weex extends WeexApi
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
             parameters = ((List<Object>) typeparametersVariable).get(1);
-            Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+            Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
             if ((java.util.Objects.equals(sandboxMode, true)) && (java.util.Objects.equals(requestedType, null)))
             {
                 type = "swap"; // the demo trading API only provides the swap account, don't let the default spot type break a bare fetchBalance() call
@@ -2528,7 +2528,7 @@ public class Weex extends WeexApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
         Object balances = this.safeList(response, "balances", response);
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
@@ -2685,7 +2685,7 @@ public class Weex extends WeexApi
                 return (this.createContractOrder(symbol, type, side, amount, price, parameters)).join();
             } else
             {
-                Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+                Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
                 if (java.util.Objects.equals(sandboxMode, true))
                 {
                     throw new NotSupported((this.id + " createOrder() only supports swap markets in sandbox mode")) ;
@@ -2828,7 +2828,7 @@ public class Weex extends WeexApi
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object request = this.createContractOrderRequest(symbol, type, side, amount, price, parameters);
             String triggerPrice = this.safeString(request, "triggerPrice");
-            Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+            Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
             Object response = null;
             if (!java.util.Objects.equals(triggerPrice, null))
             {
@@ -2895,7 +2895,7 @@ public class Weex extends WeexApi
         {
             throw new BadRequest((this.id + " createOrder() cannot use the triggerPrice parameter together with the stopLossPrice or takeProfitPrice parameters")) ;
         }
-        Object reduceOnly = this.safeBool(query, "reduceOnly");
+        Boolean reduceOnly = (Boolean) this.safeBool(query, "reduceOnly");
         if (Helpers.isTrue(isStopLoss) || Helpers.isTrue(isTakeProfit))
         {
             reduceOnly = true;
@@ -3102,7 +3102,7 @@ public class Weex extends WeexApi
             List<Object> typeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelOrder", market, parameters);
             type = ((List<Object>) typeparametersVariable).get(0);
             parameters = ((List<Object>) typeparametersVariable).get(1);
-            Object trigger = this.safeBool(parameters, "trigger", false);
+            Boolean trigger = (Boolean) this.safeBool(parameters, "trigger", false);
             if ((java.util.Objects.equals(trigger, true)) && java.util.Objects.equals(id, null))
             {
                 throw new ArgumentsRequired((this.id + " cancelOrder() requires an id argument for trigger orders")) ;
@@ -3189,7 +3189,7 @@ public class Weex extends WeexApi
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((List<Object>) marketTypeparametersVariable).get(1);
-            Object trigger = this.safeBool(parameters, "trigger", false);
+            Boolean trigger = (Boolean) this.safeBool(parameters, "trigger", false);
             parameters = this.omit(parameters, "trigger");
             Object response = null;
             if (java.util.Objects.equals(marketType, "spot"))
@@ -3469,7 +3469,7 @@ public class Weex extends WeexApi
                 List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
                 request = ((List<Object>) requestparametersVariable).get(0);
                 parameters = ((List<Object>) requestparametersVariable).get(1);
-                Object trigger = this.safeBool(parameters, "trigger", false);
+                Boolean trigger = (Boolean) this.safeBool(parameters, "trigger", false);
                 if (java.util.Objects.equals(trigger, true))
                 {
                     parameters = this.omit(parameters, "trigger");
@@ -3800,7 +3800,7 @@ public class Weex extends WeexApi
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = ((List<Object>) requestparametersVariable).get(0);
             parameters = ((List<Object>) requestparametersVariable).get(1);
-            Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+            Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
             Object response = null;
             if (java.util.Objects.equals(sandboxMode, true))
             {
@@ -3958,7 +3958,7 @@ public class Weex extends WeexApi
         String rawStatus = this.safeStringLower2(order, "status", "algoStatus"); // algo (trigger) order payloads carry algoStatus instead of status
         Object triggerPrice = this.omitZero(this.safeString2(order, "triggerPrice", "stopPrice"));
         String rawType = this.safeStringUpper2(order, "type", "orderType");
-        Object isReduceOnly = this.safeBool(order, "reduceOnly");
+        Boolean isReduceOnly = (Boolean) this.safeBool(order, "reduceOnly");
         // entry conditional orders reuse the STOP/TAKE_PROFIT types with reduceOnly set to false, their trigger price is not a stop loss / take profit price
         // a missing reduceOnly counts as reduce-only to keep the legacy mapping for responses that omit the field
         Boolean isEntryTrigger = !Helpers.isTrue(this.safeBool(order, "reduceOnly", true));
@@ -4585,7 +4585,7 @@ public class Weex extends WeexApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+            Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
             Object response = null;
             if (java.util.Objects.equals(sandboxMode, true))
             {
@@ -4641,7 +4641,7 @@ public class Weex extends WeexApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+            Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
             if (java.util.Objects.equals(sandboxMode, true))
             {
                 // the demo trading API does not provide a single-position endpoint
@@ -5397,7 +5397,7 @@ public class Weex extends WeexApi
      */
     public Object toSandboxMarketId(Object market)
     {
-        Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
         String baseId = this.safeString(market, "baseId");
         if ((java.util.Objects.equals(sandboxMode, true)) && (!java.util.Objects.equals(baseId, null)))
         {
@@ -5417,7 +5417,7 @@ public class Weex extends WeexApi
      */
     public Object fromSandboxMarketId(String marketId)
     {
-        Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
         if ((!java.util.Objects.equals(sandboxMode, true)) || (java.util.Objects.equals(marketId, null)))
         {
             return marketId;
@@ -5459,7 +5459,7 @@ public class Weex extends WeexApi
         }
         if ((java.util.Objects.equals(api, "private")) || (java.util.Objects.equals(api, "contractPrivate")))
         {
-            Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+            Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
             if ((java.util.Objects.equals(sandboxMode, true)) && (!Helpers.isEqual(Helpers.getIndexOf(path, "capi/v3/sim/"), 0)))
             {
                 throw new NotSupported((Helpers.add((this.id + " "), path) + " is not available in sandbox mode, demo trading only supports fetchBalance, createOrder, fetchPositions, fetchClosedOrders and fetchCanceledOrders for swap markets")) ;

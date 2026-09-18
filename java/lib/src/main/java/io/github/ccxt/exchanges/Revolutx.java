@@ -1571,8 +1571,8 @@ public class Revolutx extends RevolutxApi
         Double amount = this.safeNumber(trade, "q");
         String side = this.safeStringLower(trade, "s");
         Long timestamp = (Long) this.safeInteger2(trade, "tdt", "pdt");
-        Object isMaker = this.safeBool(trade, "im", false);
-        String takerOrMaker = ((Helpers.isTrue((isMaker)))) ? "maker" : "taker";
+        Boolean isMaker = (Boolean) this.safeBool(trade, "im", false);
+        String takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
         Object cost = null;
         if (!java.util.Objects.equals(price, null) && !java.util.Objects.equals(amount, null))
         {

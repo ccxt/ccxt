@@ -2160,7 +2160,7 @@ public class Poloniex extends PoloniexApi
         }
         String clientOrderId = this.safeString2(order, "clientOrderId", "clOrdId");
         String marginMode = this.safeStringLower(order, "mgnMode");
-        Object reduceOnly = this.safeBool(order, "reduceOnly");
+        Boolean reduceOnly = (Boolean) this.safeBool(order, "reduceOnly");
         Long leverage = this.safeInteger(order, "lever");
         Boolean hedged = !java.util.Objects.equals(this.safeString(order, "posSide"), "BOTH");
         final Object finalTimestamp = timestamp;

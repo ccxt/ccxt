@@ -3885,7 +3885,7 @@ public class Woo extends WooApi
             ((Map<String, Object>)data).put("status", "ok");
             Object transfer = this.parseTransfer(data, currency);
             Object transferOptions = this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
-            Object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
+            Boolean fillResponseFromRequest = (Boolean) this.safeBool(transferOptions, "fillResponseFromRequest", true);
             if (java.util.Objects.equals(fillResponseFromRequest, true))
             {
                 Helpers.addElementToObject(transfer, "amount", amount);
@@ -4019,11 +4019,11 @@ public class Woo extends WooApi
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String code = this.safeCurrencyCode(this.safeString(transfer, "token"), currency);
         Object timestamp = this.safeTimestamp2(transfer, "createdTime", "timestamp");
-        Object success = this.safeBool(transfer, "success");
+        Boolean success = (Boolean) this.safeBool(transfer, "success");
         String status = null;
         if (!java.util.Objects.equals(success, null))
         {
-            status = ((Helpers.isTrue(success))) ? "ok" : "failed";
+            status = ((Boolean.TRUE.equals(success))) ? "ok" : "failed";
         }
         Object fromAccount = this.safeDict(transfer, "from", new HashMap<String, Object>() {{}});
         Object toAccount = this.safeDict(transfer, "to", new HashMap<String, Object>() {{}});
@@ -4217,7 +4217,7 @@ public class Woo extends WooApi
             this.checkRequiredCredentials();
             if (java.util.Objects.equals(method, "POST") && (java.util.Objects.equals(path, "trade/algoOrder") || java.util.Objects.equals(path, "trade/order")))
             {
-                Object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
+                Boolean isSandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
                 if (!java.util.Objects.equals(isSandboxMode, true))
                 {
                     String applicationId = "bc830de7-50f3-460b-9ee0-f430f83f9dad";
@@ -4298,7 +4298,7 @@ public class Woo extends WooApi
         //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
         //                     {"code":"-1011","message":"The system is under maintenance.","success":false}
         //
-        Object success = this.safeBool(response, "success");
+        Boolean success = (Boolean) this.safeBool(response, "success");
         String errorCode = this.safeString(response, "code");
         if (!java.util.Objects.equals(success, true))
         {

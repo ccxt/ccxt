@@ -1124,7 +1124,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         for (var i = 0; i < ((List<?>)networksArray).size(); i++)
         {
             Object info = Helpers.GetValue(Helpers.GetValue(networksArray, i), "info");
-            Object is_default = this.safeBool(info, "is_default", false);
+            Boolean is_default = (Boolean) this.safeBool(info, "is_default", false);
             if (java.util.Objects.equals(is_default, true))
             {
                 return Helpers.GetValue(networksArray, i);
@@ -2204,7 +2204,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 put( "to", toAccount );
             }};
             Map<String, Object> response = (this.v1PrivatePostPortfoliosTransfer(this.extend(request, parameters))).join();
-            Object success = this.safeBool(response, "success");
+            Boolean success = (Boolean) this.safeBool(response, "success");
             final Object finalSuccess = success;
             return new HashMap<String, Object>() {{
                 put( "info", response );

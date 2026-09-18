@@ -922,8 +922,8 @@ public class Hitbtc extends HitbtcApi
                 Long expiry = this.safeInteger(market, "expiry");
                 Boolean contract = (java.util.Objects.equals(marketType, "futures"));
                 Boolean spot = (java.util.Objects.equals(marketType, "spot"));
-                Object marginTrading = this.safeBool(market, "margin_trading", false);
-                Boolean margin = Helpers.isTrue(spot) && Helpers.isTrue(marginTrading);
+                Boolean marginTrading = (Boolean) this.safeBool(market, "margin_trading", false);
+                Boolean margin = Helpers.isTrue(spot) && Boolean.TRUE.equals(marginTrading);
                 Boolean future = (!java.util.Objects.equals(expiry, null));
                 Boolean swap = (Helpers.isTrue(contract) && !Helpers.isTrue(future));
                 Boolean option = false;
@@ -3448,7 +3448,7 @@ public class Hitbtc extends HitbtcApi
                 parameters = this.omit(parameters, "network");
             }
             Object withdrawOptions = this.safeValue(this.options, "withdraw", new HashMap<String, Object>() {{}});
-            Object includeFee = this.safeBool(withdrawOptions, "includeFee", false);
+            Boolean includeFee = (Boolean) this.safeBool(withdrawOptions, "includeFee", false);
             if (java.util.Objects.equals(includeFee, true))
             {
                 ((Map<String, Object>)request).put("include_fee", true);
@@ -4647,7 +4647,7 @@ public class Hitbtc extends HitbtcApi
         Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
         Object defaultValue = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
         String defaultType = this.safeString(this.options, "defaultType");
-        Object isMargin = this.safeBool(parameters, "margin", false);
+        Boolean isMargin = (Boolean) this.safeBool(parameters, "margin", false);
         Object marginMode = null;
         List<Object> marginModeparametersVariable = (List<Object>) super.handleMarginModeAndParams(methodName, parameters, defaultValue);
         marginMode = ((List<Object>) marginModeparametersVariable).get(0);

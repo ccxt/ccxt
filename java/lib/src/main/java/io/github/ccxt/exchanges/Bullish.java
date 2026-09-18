@@ -1430,7 +1430,7 @@ public class Bullish extends BullishApi
         String price = this.safeString(trade, "price");
         String amount = this.safeString(trade, "quantity");
         String side = this.safeStringLower(trade, "side");
-        Object isTaker = this.safeBool(trade, "isTaker");
+        Boolean isTaker = (Boolean) this.safeBool(trade, "isTaker");
         Object currency = ((Map<String, Object>)market).get("quote");
         String code = this.safeCurrencyCode(currency);
         Double feeCost = this.safeNumber(trade, "quoteFee");
@@ -1866,7 +1866,7 @@ public class Bullish extends BullishApi
             Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             (Helpers.promiseAll(new ArrayList<Object>(Arrays.asList(this.loadMarkets(), this.handleToken())))).join();
             Object tradingAccountId = (this.loadAccount(parameters)).join();
-            Object paginate = this.safeBool(parameters, "paginate", false);
+            Boolean paginate = (Boolean) this.safeBool(parameters, "paginate", false);
             if (java.util.Objects.equals(paginate, true))
             {
                 parameters = this.handlePaginationParams("fetchOrders", since, parameters);
@@ -2311,7 +2311,7 @@ public class Bullish extends BullishApi
             {
                 ((Map<String, Object>)request).put("type", ((String)type).toUpperCase());
             }
-            Object postOnly = this.safeBool(parameters, "postOnly", false);
+            Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", false);
             if (java.util.Objects.equals(postOnly, true))
             {
                 parameters = this.omit(parameters, "postOnly");
@@ -3346,7 +3346,7 @@ public class Bullish extends BullishApi
             //     }
             //
             Object transferOptions = this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
-            Object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
+            Boolean fillResponseFromRequest = (Boolean) this.safeBool(transferOptions, "fillResponseFromRequest", true);
             Object transfer = this.parseTransfer(response, currency);
             if (java.util.Objects.equals(fillResponseFromRequest, true))
             {

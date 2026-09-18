@@ -869,7 +869,7 @@ public class Grvt extends GrvtApi
             {
                 return false;  // skip if builder fee is not enabled
             }
-            Object approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
+            Boolean approvedBuilderFee = (Boolean) this.safeBool(this.options, "approvedBuilderFee", false);
             if (java.util.Objects.equals(approvedBuilderFee, true))
             {
                 return true;  // skip if builder fee is already approved
@@ -924,7 +924,7 @@ public class Grvt extends GrvtApi
                     // }
                     //
                     Object authResult = this.safeDict(authResponse, "result");
-                    Object ack = this.safeBool(authResult, "ack");
+                    Boolean ack = (Boolean) this.safeBool(authResult, "ack");
                     if (!java.util.Objects.equals(ack, true))
                     {
                         throw new ExchangeError(("Builder authorization failed, " + this.json(authResponse))) ;
@@ -1468,11 +1468,11 @@ public class Grvt extends GrvtApi
         market = this.safeMarket(marketId, market);
         Long timestamp = this.safeIntegerProduct(trade, "event_time", 0.000001);
         String takerOrMaker = null;
-        Object isTakerBuyer = this.safeBool(trade, "is_taker_buyer");
+        Boolean isTakerBuyer = (Boolean) this.safeBool(trade, "is_taker_buyer");
         String side = null;
         if (!java.util.Objects.equals(isTakerBuyer, null))
         {
-            side = ((Helpers.isTrue(isTakerBuyer))) ? "buy" : "sell";
+            side = ((Boolean.TRUE.equals(isTakerBuyer))) ? "buy" : "sell";
             takerOrMaker = "taker";
         } else
         {
@@ -1879,7 +1879,7 @@ public class Grvt extends GrvtApi
             {
                 ((Map<String, Object>)request).put("start_time", this.numberToString(Helpers.multiply(since, 1000000)));
             }
-            Object useTransfersEndpoint = this.safeBool(this.options, "useTransfersEndpointForDepositsWithdrawals", true);
+            Boolean useTransfersEndpoint = (Boolean) this.safeBool(this.options, "useTransfersEndpointForDepositsWithdrawals", true);
             if (java.util.Objects.equals(useTransfersEndpoint, true))
             {
                 Object transfers = (this.internalFetchTransfers(this.extend(request, parameters), currency, since, limit)).join();
@@ -1954,7 +1954,7 @@ public class Grvt extends GrvtApi
             {
                 ((Map<String, Object>)request).put("start_time", this.numberToString(Helpers.multiply(since, 1000000)));
             }
-            Object useTransfersEndpoint = this.safeBool(this.options, "useTransfersEndpointForDepositsWithdrawals", true);
+            Boolean useTransfersEndpoint = (Boolean) this.safeBool(this.options, "useTransfersEndpointForDepositsWithdrawals", true);
             if (java.util.Objects.equals(useTransfersEndpoint, true))
             {
                 Object transfers = (this.internalFetchTransfers(this.extend(request, parameters), currency, since, limit)).join();
@@ -2594,7 +2594,7 @@ public class Grvt extends GrvtApi
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId")));
             Boolean isMarketOrder = (java.util.Objects.equals(type, "market"));
             String subAccountId = this.getSubAccountId(parameters);
-            Object isReduceOnly = this.safeBool(parameters, "reduceOnly", false);
+            Boolean isReduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", false);
             final Object finalClientOrderId = clientOrderId;
             Map<String, Object> orderRequest = new HashMap<String, Object>() {{
                 put( "sub_account_id", subAccountId );
@@ -3722,10 +3722,10 @@ public class Grvt extends GrvtApi
                 put( "id", null );
             }});
         }
-        Object isMarket = this.safeBool(order, "is_market");
+        Boolean isMarket = (Boolean) this.safeBool(order, "is_market");
         String orderType = (((java.util.Objects.equals(isMarket, true)))) ? "market" : "limit";
-        Object isPostOnly = this.safeBool(order, "post_only");
-        Object isReduceOnly = this.safeBool(order, "reduce_only");
+        Boolean isPostOnly = (Boolean) this.safeBool(order, "post_only");
+        Boolean isReduceOnly = (Boolean) this.safeBool(order, "reduce_only");
         String timeInForceRaw = this.safeString(order, "time_in_force");
         String timeInForce = (((java.util.Objects.equals(isPostOnly, true)))) ? "PO" : this.parseTimeInForce(timeInForceRaw);
         String size = null;

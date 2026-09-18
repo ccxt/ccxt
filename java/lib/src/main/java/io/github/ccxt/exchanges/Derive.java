@@ -1632,7 +1632,7 @@ public class Derive extends DeriveApi
     public Object hashOrderMessage(Object order)
     {
         Object accountHash = this.hash(this.ethAbiEncode(new ArrayList<Object>(Arrays.asList("bytes32", "uint256", "uint256", "address", "bytes32", "uint256", "address", "address")), order), keccak(), "binary");
-        Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
         String DOMAIN_SEPARATOR = (((java.util.Objects.equals(sandboxMode, true)))) ? "9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105" : "d96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b";
         Object binaryDomainSeparator = this.base16ToBinary(DOMAIN_SEPARATOR);
         Object prefix = this.base16ToBinary("1901");
@@ -1716,10 +1716,10 @@ public class Derive extends DeriveApi
             List<Object> subaccountIdparametersVariable = (List<Object>) this.handleDeriveSubaccountId("createOrder", parameters);
             subaccountId = ((List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((List<Object>) subaccountIdparametersVariable).get(1);
-            Object test = this.safeBool(parameters, "test", false);
+            Boolean test = (Boolean) this.safeBool(parameters, "test", false);
             Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
             String timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
-            Object postOnly = this.safeBool(parameters, "postOnly");
+            Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly");
             Object orderType = ((String)type).toLowerCase();
             Object orderSide = ((String)((String)side)).toLowerCase();
             Boolean orderSideIsBuy = (java.util.Objects.equals(orderSide, "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
@@ -1727,7 +1727,7 @@ public class Derive extends DeriveApi
             // Order signature expiry must be between 2592000 and 7776000 sec from now
             Long signatureExpiry = this.safeInteger(parameters, "signature_expiry_sec", Helpers.add(this.seconds(), 7776000));
             Object ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
-            Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+            Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
             String TRADE_MODULE_ADDRESS = (((java.util.Objects.equals(sandboxMode, true)))) ? "0x87F2863866D85E3192a35A73b388BD625D83f2be" : "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b";
             Object priceString = this.numberToString(price);
             Object maxFee = null;
@@ -1921,7 +1921,7 @@ public class Derive extends DeriveApi
             parameters = ((List<Object>) subaccountIdparametersVariable).get(1);
             Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
             String timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
-            Object postOnly = this.safeBool(parameters, "postOnly");
+            Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly");
             Object orderType = ((String)type).toLowerCase();
             Object orderSide = ((String)((String)side)).toLowerCase();
             Boolean orderSideIsBuy = (java.util.Objects.equals(orderSide, "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
@@ -1929,7 +1929,7 @@ public class Derive extends DeriveApi
             Double signatureExpiry = this.safeNumber(parameters, "signature_expiry_sec", Helpers.add(this.seconds(), 7776000));
             // TODO: subaccount id / trade module address
             Object ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
-            Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+            Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
             String TRADE_MODULE_ADDRESS = (((java.util.Objects.equals(sandboxMode, true)))) ? "0x87F2863866D85E3192a35A73b388BD625D83f2be" : "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b";
             Object priceString = this.numberToString(price);
             String maxFeeString = this.safeString(parameters, "max_fee", "0");
@@ -2565,7 +2565,7 @@ public class Derive extends DeriveApi
         String filled = this.safeString(order, "filled_amount");
         String fee = this.safeString(order, "order_fee");
         String orderType = this.safeStringLower(order, "order_type");
-        Object isBid = this.safeBool(order, "is_bid");
+        Boolean isBid = (Boolean) this.safeBool(order, "is_bid");
         String side = this.safeString(order, "direction");
         if (java.util.Objects.equals(side, null))
         {

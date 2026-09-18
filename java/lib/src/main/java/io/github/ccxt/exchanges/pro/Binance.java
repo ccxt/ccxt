@@ -1434,7 +1434,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             Helpers.callDynamically(this, method, new Object[] {client, message, subscription});
         }
-        Object isUnSubMessage = this.safeBool(subscription, "unsubscribe", false);
+        Boolean isUnSubMessage = (Boolean) this.safeBool(subscription, "unsubscribe", false);
         if (java.util.Objects.equals(isUnSubMessage, true))
         {
             this.handleUnSubscription(client, subscription);
@@ -2852,7 +2852,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             symbols = this.marketSymbols(symbols, null, true, false, true);
             Boolean isBidAsk = (java.util.Objects.equals(channelName, "bookTicker"));
             Boolean isMarkPrice = (java.util.Objects.equals(channelName, "markPrice"));
-            Object use1sFreq = this.safeBool(parameters, "use1sFreq", true);
+            Boolean use1sFreq = (Boolean) this.safeBool(parameters, "use1sFreq", true);
             Object firstMarket = null;
             Object marketType = null;
             Boolean symbolsDefined = (!java.util.Objects.equals(symbols, null));
@@ -3550,7 +3550,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 {
                     // Step 1: Create listenToken via REST API
                     String symbol = this.safeString(parameters, "symbol");
-                    Object isIsolated = this.safeBool(parameters, "isIsolated", false);
+                    Boolean isIsolated = (Boolean) this.safeBool(parameters, "isIsolated", false);
                     Long validity = this.safeInteger(parameters, "validity");
                     Object request = new HashMap<String, Object>() {{}};
                     if (java.util.Objects.equals(isIsolated, true))
@@ -3640,7 +3640,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object type = this.safeString(parameters, "type", "margin");
             Object options = this.safeDict(this.options, type, new HashMap<String, Object>() {{}});
             String symbol = this.safeString(options, "symbol");
-            Object isIsolated = this.safeBool(options, "isIsolated", false);
+            Boolean isIsolated = (Boolean) this.safeBool(options, "isIsolated", false);
             Long validity = this.safeInteger(options, "validity");
             Object renewParams = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))
@@ -3955,7 +3955,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             return;
         }
         Object options = this.safeValue(this.options, "watchBalance");
-        Object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
+        Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
         if (java.util.Objects.equals(fetchBalanceSnapshot, true))
         {
             Object messageHash = Helpers.add(type, ":fetchBalanceSnapshot");
@@ -4326,7 +4326,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     urlType = "papi";
                 } else if (java.util.Objects.equals(type, "option"))
                 {
-                    Object demoMode = this.safeBool(this.options, "enableDemoTrading", false);
+                    Boolean demoMode = (Boolean) this.safeBool(this.options, "enableDemoTrading", false);
                     if ((java.util.Objects.equals(demoMode, true)) || Helpers.isTrue(this.isSandboxModeEnabled))
                     {
                         throw new NotSupported((this.id + " watchBalance() does not support option markets in demo/testnet mode")) ;
@@ -4339,8 +4339,8 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             this.setBalanceCache(client, type, isPortfolioMargin);
             this.setPositionsCache(client, type, null, isPortfolioMargin);
             Object options = this.safeDict(this.options, "watchBalance");
-            Object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
-            Object awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
+            Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
+            Boolean awaitBalanceSnapshot = (Boolean) this.safeBool(options, "awaitBalanceSnapshot", true);
             if ((java.util.Objects.equals(fetchBalanceSnapshot, true)) && (java.util.Objects.equals(awaitBalanceSnapshot, true)))
             {
                 client.future((type + ":fetchBalanceSnapshot")).getFuture().join();
@@ -4609,7 +4609,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             returnRateLimits = ((List<Object>) returnRateLimitsparametersVariable).get(0);
             parameters = ((List<Object>) returnRateLimitsparametersVariable).get(1);
             Helpers.addElementToObject(payload, "returnRateLimits", returnRateLimits);
-            Object test = this.safeBool(parameters, "test", false);
+            Boolean test = (Boolean) this.safeBool(parameters, "test", false);
             parameters = this.omit(parameters, "test");
             if ((java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true)) && (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) && Helpers.isTrue(isConditional))
             {
@@ -5415,7 +5415,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     urlType = "papi";
                 } else if (java.util.Objects.equals(type, "option"))
                 {
-                    Object demoMode = this.safeBool(this.options, "enableDemoTrading", false);
+                    Boolean demoMode = (Boolean) this.safeBool(this.options, "enableDemoTrading", false);
                     if ((java.util.Objects.equals(demoMode, true)) || Helpers.isTrue(this.isSandboxModeEnabled))
                     {
                         throw new NotSupported((this.id + " watchOrders() does not support option markets in demo/testnet mode")) ;
@@ -6089,7 +6089,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 urlType = "papi";
             } else if (java.util.Objects.equals(type, "option"))
             {
-                Object demoMode = this.safeBool(this.options, "enableDemoTrading", false);
+                Boolean demoMode = (Boolean) this.safeBool(this.options, "enableDemoTrading", false);
                 if ((java.util.Objects.equals(demoMode, true)) || Helpers.isTrue(this.isSandboxModeEnabled))
                 {
                     throw new NotSupported((this.id + " watchPositions() does not support option markets in demo/testnet mode")) ;
@@ -6647,7 +6647,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     urlType = "papi";
                 } else if (java.util.Objects.equals(type, "option"))
                 {
-                    Object demoMode = this.safeBool(this.options, "enableDemoTrading", false);
+                    Boolean demoMode = (Boolean) this.safeBool(this.options, "enableDemoTrading", false);
                     if ((java.util.Objects.equals(demoMode, true)) || Helpers.isTrue(this.isSandboxModeEnabled))
                     {
                         throw new NotSupported((this.id + " watchMyTrades() does not support option markets in demo/testnet mode")) ;

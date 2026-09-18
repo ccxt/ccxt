@@ -2357,7 +2357,7 @@ public class Delta extends DeltaApi
             {
                 ((Map<String, Object>)request).put("client_order_id", clientOrderId);
             }
-            Object reduceOnly = this.safeBool(parameters, "reduceOnly");
+            Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly");
             if (java.util.Objects.equals(reduceOnly, true))
             {
                 ((Map<String, Object>)request).put("reduce_only", reduceOnly);

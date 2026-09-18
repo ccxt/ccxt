@@ -1208,10 +1208,10 @@ public class Hashkey extends HashkeyApi
         Boolean active = java.util.Objects.equals(status, "TRADING");
         Object isLinear = null;
         String subType = null;
-        Object isInverse = this.safeBool(market, "inverse");
+        Boolean isInverse = (Boolean) this.safeBool(market, "inverse");
         if (!java.util.Objects.equals(isInverse, null))
         {
-            if (Helpers.isTrue(isInverse))
+            if (Boolean.TRUE.equals(isInverse))
             {
                 isLinear = false;
                 subType = "inverse";
@@ -1701,10 +1701,10 @@ public class Hashkey extends HashkeyApi
         {
             side = this.safeString(Helpers.split(side, "_"), 0);
         }
-        Object isBuyer = this.safeBool(trade, "isBuyer");
+        Boolean isBuyer = (Boolean) this.safeBool(trade, "isBuyer");
         if (!java.util.Objects.equals(isBuyer, null))
         {
-            side = ((Helpers.isTrue(isBuyer))) ? "buy" : "sell";
+            side = ((Boolean.TRUE.equals(isBuyer))) ? "buy" : "sell";
         }
         String takerOrMaker = null;
         Object isMaker = this.safeBool2(trade, "isMaker", "isMarker");
@@ -1712,12 +1712,12 @@ public class Hashkey extends HashkeyApi
         {
             takerOrMaker = ((Helpers.isTrue(isMaker))) ? "maker" : "taker";
         }
-        Object isBuyerMaker = this.safeBool(trade, "ibm");
+        Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "ibm");
         // if public trade
         if (!java.util.Objects.equals(isBuyerMaker, null))
         {
             takerOrMaker = "taker";
-            side = ((Helpers.isTrue(isBuyerMaker))) ? "sell" : "buy";
+            side = ((Boolean.TRUE.equals(isBuyerMaker))) ? "sell" : "buy";
         }
         String feeCost = this.safeString(trade, "commission");
         String feeCurrncyId = this.safeString(trade, "commissionAsset");
@@ -2522,7 +2522,7 @@ public class Hashkey extends HashkeyApi
         String status = this.safeString(transaction, "status"); // for fetchDeposits
         if (java.util.Objects.equals(status, null))
         {
-            Object success = this.safeBool(transaction, "success", false); // for withdraw
+            Boolean success = (Boolean) this.safeBool(transaction, "success", false); // for withdraw
             if (java.util.Objects.equals(success, true))
             {
                 status = "ok";
@@ -2646,7 +2646,7 @@ public class Hashkey extends HashkeyApi
         Long timestamp = this.safeInteger(transfer, "timestamp");
         String currencyId = this.safeString(currency, "id");
         String status = null;
-        Object success = this.safeBool(transfer, "success", false);
+        Boolean success = (Boolean) this.safeBool(transfer, "success", false);
         if (java.util.Objects.equals(success, true))
         {
             status = "ok";
@@ -3035,7 +3035,7 @@ public class Hashkey extends HashkeyApi
             }
             Object request = this.createSpotOrderRequest(symbol, type, side, amount, price, parameters);
             Map<String, Object> response = new HashMap<String, Object>() {{}};
-            Object test = this.safeBool(parameters, "test");
+            Boolean test = (Boolean) this.safeBool(parameters, "test");
             if (java.util.Objects.equals(test, true))
             {
                 parameters = this.omit(parameters, "test");

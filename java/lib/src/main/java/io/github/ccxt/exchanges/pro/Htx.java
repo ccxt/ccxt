@@ -3411,7 +3411,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 }};
             }
             Boolean isLinear = java.util.Objects.equals(subtype, "linear");
-            Object isV5 = this.safeBool(subscriptionParams, "isV5", false);
+            Boolean isV5 = (Boolean) this.safeBool(subscriptionParams, "isV5", false);
             Object url = this.getUrlByMarketType(type, isLinear, true, false, isV5);
             Object hostname = (((java.util.Objects.equals(type, "spot")))) ? Helpers.GetValue(((Map<String, Object>)this.urls).get("hostnames"), "spot") : Helpers.GetValue(((Map<String, Object>)this.urls).get("hostnames"), "contract");
             final Object finalType = type;

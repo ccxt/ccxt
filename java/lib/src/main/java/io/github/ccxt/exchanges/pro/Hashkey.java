@@ -719,7 +719,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         String marketId = this.safeString(trade, "s");
         market = this.safeMarket(marketId, market);
         Long timestamp = this.safeInteger(trade, "t");
-        Object isBuyerMaker = this.safeBool(trade, "m");
+        Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "m");
         Boolean isPublicTrade = java.util.Objects.equals(this.safeString(trade, "e"), null);
         Object side = null;
         String takerOrMaker = null;
@@ -728,10 +728,10 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             if (Helpers.isTrue(isPublicTrade))
             {
                 takerOrMaker = "taker";
-                side = ((Helpers.isTrue(isBuyerMaker))) ? "sell" : "buy";
+                side = ((Boolean.TRUE.equals(isBuyerMaker))) ? "sell" : "buy";
             } else
             {
-                takerOrMaker = ((Helpers.isTrue(isBuyerMaker))) ? "maker" : "taker";
+                takerOrMaker = ((Boolean.TRUE.equals(isBuyerMaker))) ? "maker" : "taker";
                 side = this.safeStringLower(trade, "S");
             }
         }
@@ -932,7 +932,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             return;
         }
         Object options = this.safeDict(this.options, "watchBalance");
-        Object snapshot = this.safeBool(options, "fetchBalanceSnapshot", true);
+        Boolean snapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", true);
         if (java.util.Objects.equals(snapshot, true))
         {
             Object messageHash = (Helpers.add(type, ":") + "fetchBalanceSnapshot");

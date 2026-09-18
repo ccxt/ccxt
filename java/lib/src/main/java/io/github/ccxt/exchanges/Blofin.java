@@ -1014,7 +1014,7 @@ public class Blofin extends BlofinApi
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String last = this.safeString(ticker, "last");
         String open = this.safeString(ticker, "open24h");
-        Object spot = this.safeBool(market, "spot", false);
+        Boolean spot = (Boolean) this.safeBool(market, "spot", false);
         String quoteVolume = (((java.util.Objects.equals(spot, true)))) ? this.safeString(ticker, "volCurrency24h") : null;
         String baseVolume = this.safeString(ticker, "vol24h");
         String high = this.safeString(ticker, "high24h");
@@ -1748,7 +1748,7 @@ public class Blofin extends BlofinApi
         String triggerPriceAny = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopLossPrice", "takeProfitPrice")));
         String triggerPriceSlTp = this.safeString2(parameters, "stopLossPrice", "takeProfitPrice");
         String timeInForce = this.safeString(parameters, "timeInForce", "GTC");
-        Object isHedged = this.safeBool(parameters, "hedged", false);
+        Boolean isHedged = (Boolean) this.safeBool(parameters, "hedged", false);
         if (java.util.Objects.equals(isHedged, true))
         {
             ((Map<String, Object>)request).put("positionSide", (((java.util.Objects.equals(side, "buy")))) ? "long" : "short");
@@ -2014,10 +2014,10 @@ public class Blofin extends BlofinApi
             Boolean isCombinedSlTp = (Helpers.isTrue(isStopLossPriceDefined) && Helpers.isTrue(isTakeProfitPriceDefined)) || Helpers.isTrue(isTpslEndpoint);
             Boolean isSlOrTp = Helpers.isTrue(isStopLossPriceDefined) || Helpers.isTrue(isTakeProfitPriceDefined);
             Object response = null;
-            Object reduceOnly = this.safeBool(parameters, "reduceOnly");
+            Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly");
             if (!java.util.Objects.equals(reduceOnly, null))
             {
-                ((Map<String, Object>)parameters).put("reduceOnly", ((Helpers.isTrue(reduceOnly))) ? "true" : "false");
+                ((Map<String, Object>)parameters).put("reduceOnly", ((Boolean.TRUE.equals(reduceOnly))) ? "true" : "false");
             }
             if (Helpers.isTrue(isCombinedSlTp))
             {
@@ -2053,7 +2053,7 @@ public class Blofin extends BlofinApi
         Object price = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-        Object hedged = this.safeBool(parameters, "hedged", false);
+        Boolean hedged = (Boolean) this.safeBool(parameters, "hedged", false);
         String positionSide = "net";
         if (java.util.Objects.equals(hedged, true))
         {
@@ -2151,7 +2151,7 @@ public class Blofin extends BlofinApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instId", ((Map<String, Object>)market).get("id") );
             }};
-            Object isTrigger = this.safeBool(parameters, "trigger", false);
+            Boolean isTrigger = (Boolean) this.safeBool(parameters, "trigger", false);
             Object isTpsl = this.safeBool2(parameters, "tpsl", "TPSL", false);
             String clientOrderId = this.safeString(parameters, "clientOrderId");
             if (!java.util.Objects.equals(clientOrderId, null))

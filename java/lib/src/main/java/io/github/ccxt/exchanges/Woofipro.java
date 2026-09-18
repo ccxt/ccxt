@@ -2265,10 +2265,10 @@ public class Woofipro extends WoofiproApi
         String cost = this.safeString2(order, "order_amount", "amount"); // This is quote amount
         String orderType = this.safeStringLower2(order, "order_type", "type");
         Object status = this.safeValue2(order, "status", "algoStatus");
-        Object success = this.safeBool(order, "success");
+        Boolean success = (Boolean) this.safeBool(order, "success");
         if (!java.util.Objects.equals(success, null))
         {
-            status = ((Helpers.isTrue((success)))) ? "NEW" : "REJECTED";
+            status = ((Boolean.TRUE.equals(success))) ? "NEW" : "REJECTED";
         }
         String side = this.safeStringLower(order, "side");
         String filled = this.safeStringN(order, new ArrayList<Object>(Arrays.asList("total_executed_quantity", "totalExecutedQuantity", "executed_quantity", "executed")));
@@ -4030,7 +4030,7 @@ public class Woofipro extends WoofiproApi
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeInteger(data, "timestamp");
-        Object success = this.safeBool(data, "success", false);
+        Boolean success = (Boolean) this.safeBool(data, "success", false);
         final Object finalSuccess = success;
         return new HashMap<String, Object>() {{
             put( "info", data );
@@ -4463,7 +4463,7 @@ public class Woofipro extends WoofiproApi
             this.checkRequiredCredentials();
             if ((java.util.Objects.equals(method, "POST") || java.util.Objects.equals(method, "PUT")) && (java.util.Objects.equals(path, "algo/order") || java.util.Objects.equals(path, "order") || java.util.Objects.equals(path, "batch-order")))
             {
-                Object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
+                Boolean isSandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
                 if (!java.util.Objects.equals(isSandboxMode, true))
                 {
                     String brokerId = this.safeString(this.options, "brokerId", "CCXT");
@@ -4546,7 +4546,7 @@ public class Woofipro extends WoofiproApi
         //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
         //                     {"code":"-1011","message":"The system is under maintenance.","success":false}
         //
-        Object success = this.safeBool(response, "success");
+        Boolean success = (Boolean) this.safeBool(response, "success");
         String errorCode = this.safeString(response, "code");
         if (!java.util.Objects.equals(success, true))
         {

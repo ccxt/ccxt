@@ -856,7 +856,7 @@ public class Btse extends BtseApi
         String minPriceString = this.safeString(market, "minOrderPrice");
         String pricePrecision = this.safeString(market, "minPriceIncrement");
         String amountPrecision = this.safeString(market, "minSizeIncrement");
-        Object active = this.safeBool(market, "active");
+        Boolean active = (Boolean) this.safeBool(market, "active");
         String type = "spot";
         Object expiry = null;
         String contractSize = null;
@@ -1956,7 +1956,7 @@ public class Btse extends BtseApi
             Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             (this.loadMarkets()).join();
-            Object paginate = this.safeBool(parameters, "paginate", false);
+            Boolean paginate = (Boolean) this.safeBool(parameters, "paginate", false);
             if (java.util.Objects.equals(paginate, true))
             {
                 parameters = this.omit(parameters, "paginate");
@@ -2911,7 +2911,7 @@ public class Btse extends BtseApi
             {
                 ((Map<String, Object>)request).put("orderPrice", this.priceToPrecision(symbol, price));
             }
-            Object isSlide = this.safeBool(parameters, "slide", false);
+            Boolean isSlide = (Boolean) this.safeBool(parameters, "slide", false);
             if ((java.util.Objects.equals(amount, null)) && (java.util.Objects.equals(price, null)) && (java.util.Objects.equals(triggerPrice, null)) && (!java.util.Objects.equals(isSlide, true)))
             {
                 throw new ArgumentsRequired((this.id + " editOrder() requires an amount argument, a price argument or a triggerPrice parameter")) ;
@@ -4245,7 +4245,7 @@ public class Btse extends BtseApi
             {
                 throw new BadRequest((this.id + " setMarginMode() marginMode argument should be either cross or isolated")) ;
             }
-            Object hedged = this.safeBool(parameters, "hedged");
+            Boolean hedged = (Boolean) this.safeBool(parameters, "hedged");
             if (java.util.Objects.equals(marginMode, "cross"))
             {
                 if (!(((Map<?, ?>)parameters).containsKey("hedged")))
@@ -4470,7 +4470,7 @@ public class Btse extends BtseApi
         //     {"status":400,"errorCode":-2,"message":"symbol parameter is mandatory","extraData":null}
         //     {"status":400,"errorCode":-7,"message":"Authenticate failed","extraData":null}
         //
-        Object success = this.safeBool(response, "success", true);
+        Boolean success = (Boolean) this.safeBool(response, "success", true);
         if (!java.util.Objects.equals(success, true))
         {
             String spotErrorCode = this.safeString(response, "code");

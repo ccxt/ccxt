@@ -1090,8 +1090,8 @@ public class Cryptocom extends CryptocomApi
                 Object settle = ((Helpers.isTrue(spot))) ? null : this.safeCurrencyCode(settleId);
                 String optionType = this.safeStringLower(market, "put_call");
                 String strike = this.safeString(market, "strike");
-                Object marginBuyEnabled = this.safeBool(market, "margin_buy_enabled");
-                Object marginSellEnabled = this.safeBool(market, "margin_sell_enabled");
+                Boolean marginBuyEnabled = (Boolean) this.safeBool(market, "margin_buy_enabled");
+                Boolean marginSellEnabled = (Boolean) this.safeBool(market, "margin_sell_enabled");
                 Object expiryString = this.omitZero(this.safeString(market, "expiry_timestamp_ms"));
                 Object expiry = (((!java.util.Objects.equals(expiryString, null)))) ? Helpers.parseInt(expiryString) : null;
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
@@ -1832,7 +1832,7 @@ public class Cryptocom extends CryptocomApi
                 ((Map<String, Object>)request).put("time_in_force", timeInForce);
             }
         }
-        Object postOnly = this.safeBool(parameters, "postOnly", false);
+        Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", false);
         if ((java.util.Objects.equals(postOnly, true)) || (java.util.Objects.equals(timeInForce, "PO")))
         {
             ((Map<String, Object>)request).put("exec_inst", new ArrayList<Object>(Arrays.asList("POST_ONLY")));
@@ -2109,7 +2109,7 @@ public class Cryptocom extends CryptocomApi
                 ((Map<String, Object>)request).put("time_in_force", timeInForce);
             }
         }
-        Object postOnly = this.safeBool(parameters, "postOnly", false);
+        Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", false);
         if ((java.util.Objects.equals(postOnly, true)) || (java.util.Objects.equals(timeInForce, "PO")))
         {
             ((Map<String, Object>)request).put("exec_inst", new ArrayList<Object>(Arrays.asList("POST_ONLY")));
@@ -3393,7 +3393,7 @@ public class Cryptocom extends CryptocomApi
         */
         Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
         String defaultType = this.safeString(this.options, "defaultType");
-        Object isMargin = this.safeBool(parameters, "margin", false);
+        Boolean isMargin = (Boolean) this.safeBool(parameters, "margin", false);
         parameters = this.omit(parameters, "margin");
         Object marginMode = null;
         List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams(methodName, parameters);

@@ -715,7 +715,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         //      "event":"update"
         //   }
         Object result = this.safeDict(message, "result", new HashMap<String, Object>() {{}});
-        Object full = this.safeBool(result, "full", false);
+        Boolean full = (Boolean) this.safeBool(result, "full", false);
         String marketIdWithPrefix = this.safeString(result, "s");
         if (java.util.Objects.equals(marketIdWithPrefix, null))
         {
@@ -2657,7 +2657,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object data = this.safeDict(message, "data");
             // use safeValue as result may be Array or an Object
             Object result = this.safeValue(data, "result");
-            Object ack = this.safeBool(message, "ack");
+            Boolean ack = (Boolean) this.safeBool(message, "ack");
             if (!java.util.Objects.equals(ack, true))
             {
                 client.resolve(result, requestId);

@@ -1073,7 +1073,7 @@ public class Coinex extends io.github.ccxt.exchanges.Coinex
         Object messageHash = ((name + ":") + symbol);
         Long timestamp = this.safeInteger(depth, "updated_at");
         io.github.ccxt.ws.WsOrderBook currentOrderBook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
-        Object fullOrderBook = this.safeBool(data, "is_full", false);
+        Boolean fullOrderBook = (Boolean) this.safeBool(data, "is_full", false);
         if (java.util.Objects.equals(fullOrderBook, true))
         {
             Object snapshot = this.parseOrderBook(depth, symbol, timestamp);

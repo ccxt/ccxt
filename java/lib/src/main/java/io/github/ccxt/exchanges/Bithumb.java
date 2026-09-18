@@ -2291,14 +2291,14 @@ public class Bithumb extends BithumbApi
             {
                 market = this.market(symbol);
             }
-            Object twap = this.safeBool(parameters, "twap", false);
+            Boolean twap = (Boolean) this.safeBool(parameters, "twap", false);
             parameters = this.omit(parameters, "twap");
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object response = null;
             Object data = null;
             if (Helpers.isEqual(generation, 2))
             {
-                if (Helpers.isTrue(twap))
+                if (Boolean.TRUE.equals(twap))
                 {
                     if (!java.util.Objects.equals(market, null))
                     {
@@ -2731,8 +2731,8 @@ public class Bithumb extends BithumbApi
             Object response = null;
             if (Helpers.isEqual(generation, 2))
             {
-                Object twap = this.safeBool(parameters, "twap", false);
-                if (Helpers.isTrue(twap))
+                Boolean twap = (Boolean) this.safeBool(parameters, "twap", false);
+                if (Boolean.TRUE.equals(twap))
                 {
                     ((Map<String, Object>)parameters).put("state", "progress");
                 } else
@@ -2805,9 +2805,9 @@ public class Bithumb extends BithumbApi
                 throw new BadRequest((this.id + " fetchOrders is only supported for the generation 2 API")) ;
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object twap = this.safeBool(parameters, "twap", false);
+            Boolean twap = (Boolean) this.safeBool(parameters, "twap", false);
             parameters = this.omit(parameters, "twap");
-            if (!Helpers.isTrue(twap))
+            if (!Boolean.TRUE.equals(twap))
             {
                 Object clientOrderIds = this.safeList2(parameters, "client_order_ids", "clientOrderIds");
                 if (!java.util.Objects.equals(clientOrderIds, null))
@@ -2828,7 +2828,7 @@ public class Bithumb extends BithumbApi
             }
             Object response = null;
             Object data = null;
-            if (Helpers.isTrue(twap))
+            if (Boolean.TRUE.equals(twap))
             {
                 response = (this.privateGetV1Twap(this.extend(request, parameters))).join();
                 //
@@ -2988,9 +2988,9 @@ public class Bithumb extends BithumbApi
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object response = null;
-            Object twap = this.safeBool(parameters, "twap", false);
+            Boolean twap = (Boolean) this.safeBool(parameters, "twap", false);
             parameters = this.omit(parameters, "twap");
-            if (Helpers.isTrue(twap))
+            if (Boolean.TRUE.equals(twap))
             {
                 ((Map<String, Object>)request).put("algo_order_id", id);
             } else
@@ -3007,7 +3007,7 @@ public class Bithumb extends BithumbApi
             }
             if (Helpers.isEqual(generation, 2))
             {
-                if (Helpers.isTrue(twap))
+                if (Boolean.TRUE.equals(twap))
                 {
                     response = (this.privateDeleteV1Twap(this.extend(request, parameters))).join();
                 } else

@@ -1996,7 +1996,7 @@ public class Gate extends GateApi
         return BaseExchange.supplyAsync(() -> {
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            Object unifiedAccount = this.safeBool(this.options, "unifiedAccount");
+            Boolean unifiedAccount = (Boolean) this.safeBool(this.options, "unifiedAccount");
             if (java.util.Objects.equals(unifiedAccount, null))
             {
                 try
@@ -6154,7 +6154,7 @@ final Object finalPointFee = pointFee;
                     ((Map<String, Object>)request).put("time_in_force", timeInForce);
                 }
             }
-            Object textIsRequired = this.safeBool(parameters, "textIsRequired", false);
+            Boolean textIsRequired = (Boolean) this.safeBool(parameters, "textIsRequired", false);
             if (!java.util.Objects.equals(clientOrderId, null))
             {
                 // user-defined, must follow the rules if not empty
@@ -6696,7 +6696,7 @@ final Object finalPointFee = pointFee;
         //     }
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object succeeded = this.safeBool(order, "succeeded", true);
+        Boolean succeeded = (Boolean) this.safeBool(order, "succeeded", true);
         if (!java.util.Objects.equals(succeeded, true))
         {
             // cancelOrders response
@@ -6840,7 +6840,7 @@ final Object finalRebate = rebate;
             lastTradeTimestamp = this.parseToInt(lastTradeTimestampStr);
         }
         Object initial = this.safeDict(order, "initial", new HashMap<String, Object>() {{}});
-        Object reduceOnlyInitial = this.safeBool(initial, "is_reduce_only");
+        Boolean reduceOnlyInitial = (Boolean) this.safeBool(initial, "is_reduce_only");
         Object reduceOnly = this.safeBool(order, "is_reduce_only", reduceOnlyInitial);
         String clientOrderId = this.safeString(order, "text");
         if (java.util.Objects.equals(clientOrderId, null))
@@ -10470,7 +10470,7 @@ final Object finalI = i;
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object response = null;
-            Object isUnified = this.safeBool(parameters, "unified");
+            Boolean isUnified = (Boolean) this.safeBool(parameters, "unified");
             parameters = this.omit(parameters, "unified");
             if (java.util.Objects.equals(this.safeBool(market, "spot"), true))
             {
@@ -10517,7 +10517,7 @@ final Object finalI = i;
             }
             symbols = this.marketSymbols(symbols);
             Object response = null;
-            Object isUnified = this.safeBool(parameters, "unified");
+            Boolean isUnified = (Boolean) this.safeBool(parameters, "unified");
             parameters = this.omit(parameters, "unified");
             String marketIdRequest = "id";
             if (java.util.Objects.equals(isUnified, true))

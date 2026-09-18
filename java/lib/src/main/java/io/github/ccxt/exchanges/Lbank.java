@@ -2005,7 +2005,7 @@ public class Lbank extends LbankApi
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String clientOrderId = this.safeString2(parameters, "custom_id", "clientOrderId");
-            Object postOnly = this.safeBool(parameters, "postOnly", false);
+            Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", false);
             String timeInForce = this.safeStringUpper(parameters, "timeInForce");
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("custom_id", "clientOrderId", "timeInForce", "postOnly")));
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3748,7 +3748,7 @@ public class Lbank extends LbankApi
             Object sign = null;
             if (java.util.Objects.equals(signatureMethod, "RSA"))
             {
-                Object cacheSecretAsPem = this.safeBool(this.options, "cacheSecretAsPem", true);
+                Boolean cacheSecretAsPem = (Boolean) this.safeBool(this.options, "cacheSecretAsPem", true);
                 Object pem = null;
                 if (java.util.Objects.equals(cacheSecretAsPem, true))
                 {

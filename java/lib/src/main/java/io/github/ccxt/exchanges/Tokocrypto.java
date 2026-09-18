@@ -2063,7 +2063,7 @@ public class Tokocrypto extends TokocryptoApi
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "clientId");
-            Object postOnly = this.safeBool(parameters, "postOnly", false);
+            Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", false);
             // only supported for spot/margin api
             if (java.util.Objects.equals(postOnly, true))
             {
@@ -3151,7 +3151,7 @@ public class Tokocrypto extends TokocryptoApi
         }
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
-        Object success = this.safeBool(response, "success", true);
+        Boolean success = (Boolean) this.safeBool(response, "success", true);
         if (!java.util.Objects.equals(success, true))
         {
             String messageInner = this.safeString(response, "msg");

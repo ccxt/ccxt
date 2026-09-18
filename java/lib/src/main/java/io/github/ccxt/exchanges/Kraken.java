@@ -1824,11 +1824,11 @@ public class Kraken extends KrakenApi
             symbol = ((Map<String, Object>)market).get("symbol");
         }
         String cost = this.safeString(trade, "cost");
-        Object maker = this.safeBool(trade, "maker");
+        Boolean maker = (Boolean) this.safeBool(trade, "maker");
         String takerOrMaker = null;
         if (!java.util.Objects.equals(maker, null))
         {
-            takerOrMaker = ((Helpers.isTrue(maker))) ? "maker" : "taker";
+            takerOrMaker = ((Boolean.TRUE.equals(maker))) ? "maker" : "taker";
         }
         if (java.util.Objects.equals(datetime, null))
         {
@@ -2388,7 +2388,7 @@ public class Kraken extends KrakenApi
         //     }
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object isUsingCost = this.safeBool(order, "usingCost", false);
+        Boolean isUsingCost = (Boolean) this.safeBool(order, "usingCost", false);
         order = this.omit(order, "usingCost");
         Object description = this.safeDict(order, "descr", new HashMap<String, Object>() {{}});
         Object orderDescriptionObj = this.safeDict(order, "descr"); // can be null

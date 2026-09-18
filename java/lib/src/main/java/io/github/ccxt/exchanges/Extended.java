@@ -917,7 +917,7 @@ public class Extended extends ExtendedApi
         }
         String name = this.safeString(currency, "name");
         Long precision = this.safeInteger(currency, "precision", 0);
-        Object isActive = this.safeBool(currency, "isActive");
+        Boolean isActive = (Boolean) this.safeBool(currency, "isActive");
         final Object finalCurrencyId = currencyId;
         final Object finalCode = code;
         final Object finalPrecision = precision;
@@ -1513,11 +1513,11 @@ public class Extended extends ExtendedApi
     put( "cost", finalFeeCost );
     put( "currency", (((java.util.Objects.equals(finalMarket, null)))) ? null : ((Map<String, Object>)finalMarket).get("settle") );
 }};
-        Object isTaker = this.safeBool(trade, "isTaker");
+        Boolean isTaker = (Boolean) this.safeBool(trade, "isTaker");
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isTaker, null))
         {
-            takerOrMaker = ((Helpers.isTrue(isTaker))) ? "taker" : "maker";
+            takerOrMaker = ((Boolean.TRUE.equals(isTaker))) ? "taker" : "maker";
         }
         final Object finalTakerOrMaker = takerOrMaker;
         return this.safeTrade(new HashMap<String, Object>() {{
@@ -2488,12 +2488,12 @@ public class Extended extends ExtendedApi
             //     }
             //
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object validSignature = this.safeBool(data, "validSignature");
+            Boolean validSignature = (Boolean) this.safeBool(data, "validSignature");
             Long now = this.milliseconds();
             String status = "pending";
             if (!java.util.Objects.equals(validSignature, null))
             {
-                status = ((Helpers.isTrue(validSignature))) ? "ok" : "failed";
+                status = ((Boolean.TRUE.equals(validSignature))) ? "ok" : "failed";
             }
             final Object finalStatus = status;
             return new HashMap<String, Object>() {{
@@ -2528,11 +2528,11 @@ public class Extended extends ExtendedApi
             fromAccount = counterpartyAccountId;
             toAccount = accountId;
         }
-        Object validSignature = this.safeBool(transfer, "validSignature");
+        Boolean validSignature = (Boolean) this.safeBool(transfer, "validSignature");
         String status = null;
         if (!java.util.Objects.equals(validSignature, null))
         {
-            status = ((Helpers.isTrue(validSignature))) ? "ok" : "failed";
+            status = ((Boolean.TRUE.equals(validSignature))) ? "ok" : "failed";
         } else
         {
             status = this.parseTransactionStatus(this.safeString(transfer, "status"));
@@ -3616,7 +3616,7 @@ public class Extended extends ExtendedApi
                 throw new ArgumentsRequired((this.id + " editOrder() requires an id argument")) ;
             }
             Long expiryEpochMillis = this.safeInteger(parameters, "expiryEpochMillis");
-            Object postOnly = this.safeBool(parameters, "postOnly");
+            Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly");
             Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
             String cancelId = this.safeString2(parameters, "cancelId", "previousOrderId");
             if ((java.util.Objects.equals(amount, null)) || (java.util.Objects.equals(price, null)) || (java.util.Objects.equals(expiryEpochMillis, null)) || (java.util.Objects.equals(postOnly, null)) || (java.util.Objects.equals(reduceOnly, null)) || (java.util.Objects.equals(cancelId, null)))
@@ -3640,7 +3640,7 @@ public class Extended extends ExtendedApi
                 }
                 if (java.util.Objects.equals(postOnly, null))
                 {
-                    postOnly = this.safeBool(order, "postOnly", false);
+                    postOnly = (Boolean) this.safeBool(order, "postOnly", false);
                 }
                 if (java.util.Objects.equals(reduceOnly, null))
                 {

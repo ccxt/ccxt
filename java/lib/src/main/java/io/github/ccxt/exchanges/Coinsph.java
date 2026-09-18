@@ -795,7 +795,7 @@ public class Coinsph extends CoinsphApi
     {
         String id = this.safeString(rawCurrency, "coin");
         String code = this.safeCurrencyCode(id);
-        Object isFiat = this.safeBool(rawCurrency, "isLegalMoney");
+        Boolean isFiat = (Boolean) this.safeBool(rawCurrency, "isLegalMoney");
         Object networkList = this.safeList(rawCurrency, "networkList", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < ((List<?>)networkList).size(); j++)
@@ -1733,7 +1733,7 @@ public class Coinsph extends CoinsphApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object testOrder = this.safeBool(parameters, "test", false);
+            Boolean testOrder = (Boolean) this.safeBool(parameters, "test", false);
             parameters = this.omit(parameters, "test");
             String orderType = this.safeString(parameters, "type", type);
             orderType = this.encodeOrderType(orderType);
@@ -2377,7 +2377,7 @@ public class Coinsph extends CoinsphApi
             Object tag = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             Object options = this.safeValue(this.options, "withdraw");
-            Object warning = this.safeBool(options, "warning", true);
+            Boolean warning = (Boolean) this.safeBool(options, "warning", true);
             if (java.util.Objects.equals(warning, true))
             {
                 throw new InvalidAddress((this.id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account")) ;

@@ -243,7 +243,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Object action = "subscribe";
             if (!java.util.Objects.equals(subscription, null))
             {
-                Object unsubscribe = this.safeBool(subscription, "unsubscribe", false);
+                Boolean unsubscribe = (Boolean) this.safeBool(subscription, "unsubscribe", false);
                 action = (((java.util.Objects.equals(unsubscribe, true)))) ? "unsubscribe" : action;
             }
             final Object finalAction = action;
@@ -279,7 +279,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Object action = "subscribe";
             if (!java.util.Objects.equals(subscription, null))
             {
-                Object unsubscribe = this.safeBool(subscription, "unsubscribe", false);
+                Boolean unsubscribe = (Boolean) this.safeBool(subscription, "unsubscribe", false);
                 action = (((java.util.Objects.equals(unsubscribe, true)))) ? "unsubscribe" : action;
             }
             final Object finalAction = action;
@@ -664,7 +664,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Object action = "subscribe";
             if (!java.util.Objects.equals(subscription, null))
             {
-                Object unsubscribe = this.safeBool(subscription, "unsubscribe", false);
+                Boolean unsubscribe = (Boolean) this.safeBool(subscription, "unsubscribe", false);
                 action = (((java.util.Objects.equals(unsubscribe, true)))) ? "unsubscribe" : action;
             }
             final Object finalAction = action;
@@ -2282,7 +2282,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         {
             Helpers.callDynamically(this, method, new Object[] {client, message, subscription});
         }
-        Object isUnSub = this.safeBool(subscription, "unsubscribe", false);
+        Boolean isUnSub = (Boolean) this.safeBool(subscription, "unsubscribe", false);
         if (java.util.Objects.equals(isUnSub, true))
         {
             Object messageHashes = this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
@@ -2536,7 +2536,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             timestamp = this.safeIntegerProduct(order, "orderTime", 0.000001);
         }
         String triggerPrice = this.safeString(order, "stopPrice");
-        Object triggerSuccess = this.safeBool(order, "triggerSuccess");
+        Boolean triggerSuccess = (Boolean) this.safeBool(order, "triggerSuccess");
         Boolean triggerFail = (!java.util.Objects.equals(triggerSuccess, true)) && (!java.util.Objects.equals(triggerSuccess, null)); // TODO: updated to triggerSuccess === False once transpiler transpiles it correctly
         if ((java.util.Objects.equals(status, "triggered")) && Helpers.isTrue(triggerFail))
         {
@@ -3125,8 +3125,8 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Client client = this.client(url);
             this.setBalanceCache(client, uniformType);
             Object options = this.safeDict(this.options, "watchBalance");
-            Object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
-            Object awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
+            Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
+            Boolean awaitBalanceSnapshot = (Boolean) this.safeBool(options, "awaitBalanceSnapshot", true);
             if ((java.util.Objects.equals(fetchBalanceSnapshot, true)) && (java.util.Objects.equals(awaitBalanceSnapshot, true)))
             {
                 client.future((uniformType + ":fetchBalanceSnapshot")).getFuture().join();
@@ -3169,7 +3169,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             return;
         }
         Object options = this.safeDict(this.options, "watchBalance");
-        Object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
+        Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
         if (java.util.Objects.equals(fetchBalanceSnapshot, true))
         {
             Object messageHash = Helpers.add(type, ":fetchBalanceSnapshot");
@@ -4171,7 +4171,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             this.handleSubject(client, message);
         } else if (Helpers.inOp(message, "result"))
         {
-            Object result = this.safeBool(message, "result", true);
+            Boolean result = (Boolean) this.safeBool(message, "result", true);
             if (!java.util.Objects.equals(result, true))
             {
                 this.handleErrorMessage(client, message);

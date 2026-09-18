@@ -1302,7 +1302,7 @@ public class Bingx extends BingxApi
             {
                 return new HashMap<String, Object>() {{}};
             }
-            Object isSandbox = this.safeBool(this.options, "sandboxMode", false);
+            Boolean isSandbox = (Boolean) this.safeBool(this.options, "sandboxMode", false);
             if (java.util.Objects.equals(isSandbox, true))
             {
                 return new HashMap<String, Object>() {{}};
@@ -1678,7 +1678,7 @@ public class Bingx extends BingxApi
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             List<Object> requests = new ArrayList<Object>(Arrays.asList(this.fetchSwapMarkets(parameters)));
-            Object isSandbox = this.safeBool(this.options, "sandboxMode", false);
+            Boolean isSandbox = (Boolean) this.safeBool(this.options, "sandboxMode", false);
             if (!java.util.Objects.equals(isSandbox, true))
             {
                 ((List<Object>)requests).add(this.fetchInverseSwapMarkets(parameters));
@@ -2089,7 +2089,7 @@ public class Bingx extends BingxApi
         // const type = (cost === undefined) ? 'spot' : 'swap'; this is not reliable
         String currencyId = this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("currency", "N", "commissionAsset")));
         String currencyCode = this.safeCurrencyCode(currencyId);
-        Object m = this.safeBool(trade, "m");
+        Boolean m = (Boolean) this.safeBool(trade, "m");
         String marketId = this.safeString2(trade, "s", "symbol");
         Object isBuyerMaker = this.safeBoolN(trade, new ArrayList<Object>(Arrays.asList("buyerMaker", "isBuyerMaker", "maker")));
         String takeOrMaker = null;
@@ -2107,15 +2107,15 @@ public class Bingx extends BingxApi
                 takeOrMaker = "taker";
             }
         }
-        Object isBuyer = this.safeBool(trade, "isBuyer");
+        Boolean isBuyer = (Boolean) this.safeBool(trade, "isBuyer");
         if (!java.util.Objects.equals(isBuyer, null))
         {
-            side = ((Helpers.isTrue(isBuyer))) ? "buy" : "sell";
+            side = ((Boolean.TRUE.equals(isBuyer))) ? "buy" : "sell";
         }
-        Object isMaker = this.safeBool(trade, "isMaker");
+        Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker");
         if (!java.util.Objects.equals(isMaker, null))
         {
-            takeOrMaker = ((Helpers.isTrue(isMaker))) ? "maker" : "taker";
+            takeOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
         }
         String amount = this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("qty", "amount", "q")));
         if ((!java.util.Objects.equals(market, null)) && (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) && (((Map<?, ?>)trade).containsKey("volume")))
@@ -2767,7 +2767,7 @@ public class Bingx extends BingxApi
         String id = this.safeString(interest, "symbol");
         String symbol = this.safeSymbol(id, market, "-", "swap");
         Object openInterest = this.safeNumber(interest, "openInterest");
-        Object inverse = this.safeBool(market, "inverse", false);
+        Boolean inverse = (Boolean) this.safeBool(market, "inverse", false);
         Boolean isInverse = (java.util.Objects.equals(inverse, true));
         Object openInterestAmount = ((Helpers.isTrue(isInverse))) ? openInterest : null;
         Object openInterestValue = ((Helpers.isTrue(isInverse))) ? null : openInterest;
@@ -3644,11 +3644,11 @@ public class Bingx extends BingxApi
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object marketId = this.safeString(position, "symbol", "");
         marketId = Helpers.replace(((String)marketId), "/", "-"); // standard return different format
-        Object isolated = this.safeBool(position, "isolated");
+        Boolean isolated = (Boolean) this.safeBool(position, "isolated");
         String marginMode = null;
         if (!java.util.Objects.equals(isolated, null))
         {
-            marginMode = ((Helpers.isTrue(isolated))) ? "isolated" : "cross";
+            marginMode = ((Boolean.TRUE.equals(isolated))) ? "isolated" : "cross";
         }
         Long timestamp = this.safeInteger(position, "openTime");
         final Object finalMarketId = marketId;
@@ -3926,7 +3926,7 @@ public class Bingx extends BingxApi
             {
                 ((Map<String, Object>)request).put("price", this.parseToNumeric(this.priceToPrecision(symbol, price)));
             }
-            Object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
+            Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", false);
             if (Helpers.isTrue(isTriggerOrder))
             {
                 ((Map<String, Object>)request).put("stopPrice", this.parseToNumeric(this.priceToPrecision(symbol, triggerPrice)));
@@ -4027,7 +4027,7 @@ public class Bingx extends BingxApi
                 }
             }
             String positionSide = null;
-            Object hedged = this.safeBool(parameters, "hedged", false);
+            Boolean hedged = (Boolean) this.safeBool(parameters, "hedged", false);
             if (java.util.Objects.equals(hedged, true))
             {
                 parameters = this.omit(parameters, "reduceOnly");
@@ -4043,7 +4043,7 @@ public class Bingx extends BingxApi
                 positionSide = "BOTH";
             }
             ((Map<String, Object>)request).put("positionSide", positionSide);
-            Object closePosition = this.safeBool(parameters, "closePosition", false);
+            Boolean closePosition = (Boolean) this.safeBool(parameters, "closePosition", false);
             if (!java.util.Objects.equals(closePosition, true))
             {
                 Object amountReq = amount;
@@ -4105,8 +4105,8 @@ public class Bingx extends BingxApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object test = this.safeBool(parameters, "test", false);
-            if (Helpers.isTrue(test) && ((!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) || (java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true))))
+            Boolean test = (Boolean) this.safeBool(parameters, "test", false);
+            if (Boolean.TRUE.equals(test) && ((!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) || (java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true))))
             {
                 throw new NotSupported((this.id + " createOrder() only supports test orders for linear swap markets")) ;
             }
@@ -4294,7 +4294,7 @@ public class Bingx extends BingxApi
                 response = (this.swapV2PrivatePostTradeBatchOrders(request)).join();
             } else
             {
-                Object sync = this.safeBool(parameters, "sync", false);
+                Boolean sync = (Boolean) this.safeBool(parameters, "sync", false);
                 if (java.util.Objects.equals(sync, true))
                 {
                     ((Map<String, Object>)request).put("sync", true);
@@ -4834,7 +4834,7 @@ public class Bingx extends BingxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object isTwapOrder = this.safeBool(parameters, "twap", false);
+            Boolean isTwapOrder = (Boolean) this.safeBool(parameters, "twap", false);
             parameters = this.omit(parameters, "twap");
             Object response = null;
             Object market = null;
@@ -5219,7 +5219,7 @@ public class Bingx extends BingxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object isTwapOrder = this.safeBool(parameters, "twap", false);
+            Boolean isTwapOrder = (Boolean) this.safeBool(parameters, "twap", false);
             parameters = this.omit(parameters, "twap");
             Object response = null;
             Object market = null;
@@ -5432,7 +5432,7 @@ public class Bingx extends BingxApi
                 response = (this.spotV1PrivateGetTradeOpenOrders(this.extend(request, parameters))).join();
             } else
             {
-                Object isTwapOrder = this.safeBool(parameters, "twap", false);
+                Boolean isTwapOrder = (Boolean) this.safeBool(parameters, "twap", false);
                 parameters = this.omit(parameters, "twap");
                 if (java.util.Objects.equals(isTwapOrder, true))
                 {
@@ -5724,7 +5724,7 @@ public class Bingx extends BingxApi
                 response = (this.spotV1PrivateGetTradeHistoryOrders(this.extend(request, parameters))).join();
             } else
             {
-                Object isTwapOrder = this.safeBool(parameters, "twap", false);
+                Boolean isTwapOrder = (Boolean) this.safeBool(parameters, "twap", false);
                 parameters = this.omit(parameters, "twap");
                 if (java.util.Objects.equals(isTwapOrder, true))
                 {
@@ -7703,7 +7703,7 @@ final Object finalMarket = market;
         Object type = Helpers.GetValue(section, 0);
         Object version = Helpers.GetValue(section, 1);
         Object access = Helpers.GetValue(section, 2);
-        Object isSandbox = this.safeBool(this.options, "sandboxMode", false);
+        Boolean isSandbox = (Boolean) this.safeBool(this.options, "sandboxMode", false);
         String url = (String) this.implodeHostname(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), type));
         if ((java.util.Objects.equals(isSandbox, true)) && java.util.Objects.equals(url, null))
         {

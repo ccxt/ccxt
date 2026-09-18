@@ -679,10 +679,10 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         String side = this.safeStringLower(trade, "side");
         Long timestamp = this.safeInteger(trade, "timestamp");
         String takerOrMaker = null;
-        Object maker = this.safeBool(trade, "maker");
+        Boolean maker = (Boolean) this.safeBool(trade, "maker");
         if (!java.util.Objects.equals(maker, null))
         {
-            takerOrMaker = ((Helpers.isTrue(maker))) ? "maker" : "taker";
+            takerOrMaker = ((Boolean.TRUE.equals(maker))) ? "maker" : "taker";
         }
         Map<String, Object> fee = new HashMap<String, Object>() {{}};
         String feeValue = this.safeString(trade, "fee");
@@ -1534,7 +1534,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         {
             return false;
         }
-        Object success = this.safeBool(message, "success");
+        Boolean success = (Boolean) this.safeBool(message, "success");
         if (java.util.Objects.equals(success, true))
         {
             return false;
