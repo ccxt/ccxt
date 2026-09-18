@@ -1599,7 +1599,7 @@ class blofin(Exchange, ImplicitAPI):
             else:
                 slLimitPrice = self.safe_string(params, 'stopLossLimitPrice')
                 if slLimitPrice is None:
-                    raise ArgumentsRequired(self.id + ' createTpslOrder() requires a "stopLossLimitPrice" parameter(instead of "price" argument) for stop loss orders when the order type is not market')
+                    raise ArgumentsRequired(self.id + ' createTpslOrder() requires a "stopLossLimitPrice" parameter (instead of "price" argument) for stop loss orders when the order type is not market')
                 request['slOrderPrice'] = self.price_to_precision(symbol, slLimitPrice)
                 params = self.omit(params, 'stopLossLimitPrice')
         if takeProfitPrice is not None:
@@ -1609,7 +1609,7 @@ class blofin(Exchange, ImplicitAPI):
             else:
                 tpLimitPrice = self.safe_string(params, 'takeProfitLimitPrice')
                 if tpLimitPrice is None:
-                    raise ArgumentsRequired(self.id + ' createTpslOrder() requires a "takeProfitLimitPrice" parameter(instead of "price" argument) for take profit orders when the order type is not market')
+                    raise ArgumentsRequired(self.id + ' createTpslOrder() requires a "takeProfitLimitPrice" parameter (instead of "price" argument) for take profit orders when the order type is not market')
                 request['tpOrderPrice'] = self.price_to_precision(symbol, tpLimitPrice)
                 params = self.omit(params, 'takeProfitLimitPrice')
         request['marginMode'] = marginMode

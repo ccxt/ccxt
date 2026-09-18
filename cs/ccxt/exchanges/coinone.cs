@@ -828,7 +828,7 @@ public partial class coinone : Exchange
         return ccxt.BaseExchange.ToTicker(this.parseTicker(ticker, market));
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         //     {
@@ -888,7 +888,7 @@ public partial class coinone : Exchange
         }, market);
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades (public)
@@ -1120,7 +1120,7 @@ public partial class coinone : Exchange
         return this.safeString(statuses, ((string)status), status);
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // createOrder
@@ -1184,7 +1184,7 @@ public partial class coinone : Exchange
             symbol = add(add(bs, "/"), quote);
             market = this.safeMarket(symbol, market, "/");
         }
-        object timestamp = this.safeTimestamp2(order, "timestamp", "updatedAt");
+        Int64? timestamp = this.safeTimestamp2(order, "timestamp", "updatedAt");
         if (isTrue(isEqual(timestamp, null)))
         {
             timestamp = this.safeInteger2(order, "ordered_at", "updated_at"); // v2.1 sends milliseconds

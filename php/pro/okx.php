@@ -1515,6 +1515,7 @@ class okx extends \ccxt\async\okx {
                 unset($this->orderbooks[$symbol]);
             }
             $client->reject($error, $messageHash);
+            return $orderbook;
         }
         $timestamp = $this->safe_integer($message, 'ts');
         $orderbook['nonce'] = $seqId;
@@ -1632,7 +1633,10 @@ class okx extends \ccxt\async\okx {
                 $orderbook = $this->order_book(array(), $limit);
                 $this->orderbooks[$symbol] = $orderbook;
                 $orderbook['symbol'] = $symbol;
-                $this->handle_order_book_message($client, $update, $orderbook, $messageHash);
+                $this->handle_order_book_message($client, $update, $orderbook, $messageHash, $market);
+                if (!(is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions))) {
+                    break;
+                }
                 $client->resolve($orderbook, $messageHash);
             }
         } elseif ($action === 'update') {
@@ -1641,6 +1645,11 @@ class okx extends \ccxt\async\okx {
                 for ($i = 0; $i < count($data); $i++) {
                     $update = $data[$i];
                     $this->handle_order_book_message($client, $update, $orderbook, $messageHash, $market);
+                    if (!(is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions))) {
+                        // a nonce gap rejected the future and always cleared the subscription entry, while the book
+                        // removal alone is skipped for a frame lacking an instrument id - stop replaying leftover rows
+                        break;
+                    }
                     $client->resolve($orderbook, $messageHash);
                 }
             }

@@ -1888,7 +1888,9 @@ fetches all option contracts greeks, financial metrics used to measure the facto
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure). note that `info` is
+the composite `{ account, positions }` wrapper of both raw venue payloads, not the bare account payload it was
+before crypto positions were included — read `info['account']['cash']` where `info['cash']` used to be read
 
 
 | Param | Type | Required | Description |
@@ -3162,6 +3164,7 @@ fetches information on multiple orders made by the user *classic accounts only*
 * [grvt](/exchanges/grvt.md#fetchfundinghistory)
 * [htx](/exchanges/htx.md#fetchfundinghistory)
 * [hyperliquid](/exchanges/hyperliquid.md#fetchfundinghistory)
+* [krakenfutures](/exchanges/krakenfutures.md#fetchfundinghistory)
 * [kucoin](/exchanges/kucoin.md#fetchfundinghistory)
 * [mexc](/exchanges/mexc.md#fetchfundinghistory)
 * [modetrade](/exchanges/modetrade.md#fetchfundinghistory)

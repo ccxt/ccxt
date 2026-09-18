@@ -169,6 +169,23 @@ function setFetchResponse(exchange, mockResponse) {
     exchange.fetch = async (url, method = 'GET', headers = undefined, body = undefined) => mockResponse;
     return exchange;
 }
+// Serves a different body per request, keyed by url fragment, for methods that call
+// several endpoints. One shared body cannot serve two endpoints whose api leaves
+// declare different shapes: the typed ports narrow each body to its declared shape
+// and throw on a mismatch. A request matching no fragment gets the first body.
+function setFetchResponseByUrl(exchange, responsesByUrl) {
+    const fragments = Object.keys(responsesByUrl);
+    exchange.fetch = async (url, method = 'GET', headers = undefined, body = undefined) => {
+        for (let i = 0; i < fragments.length; i++) {
+            const fragment = fragments[i];
+            if (url.indexOf(fragment) >= 0) {
+                return responsesByUrl[fragment];
+            }
+        }
+        return responsesByUrl[fragments[0]];
+    };
+    return exchange;
+}
 function setupWsMockTransport(exchange, url) {
     // put the ws client for the given url into an "already connected" state
     // with a transport stub, so watch* methods never open a real socket;
@@ -267,5 +284,5 @@ AuthenticationError, NotSupported, ExchangeError, InvalidProxySettings, Exchange
 // shared
 getCliArgValue, 
 //
-dump, jsonParse, jsonStringify, convertAscii, ioFileExists, ioFileRead, ioDirRead, callMethod, callMethodSync, callExchangeMethodDynamically, callExchangeMethodDynamicallySync, callOverridenMethod, exceptionMessage, getRootException, exitScript, getExchangeProp, setExchangeProp, initExchange, getTestFiles, getTestFilesSync, setFetchResponse, setupWsMockTransport, injectWsMessage, rejectPendingWsFutures, wsClientHasPendingFutures, markWsTestCompleted, isWsTestCompleted, getWsSentMessages, isNullValue, close, getRootDir, argvExchange, argvSymbol, argvMethod, isSync, LANG, ENV_VARS, NEW_LINE, EXT, getEnvVars, getLang, getExt, isWindows, isLinux, isAmd64, };
+dump, jsonParse, jsonStringify, convertAscii, ioFileExists, ioFileRead, ioDirRead, callMethod, callMethodSync, callExchangeMethodDynamically, callExchangeMethodDynamicallySync, callOverridenMethod, exceptionMessage, getRootException, exitScript, getExchangeProp, setExchangeProp, initExchange, getTestFiles, getTestFilesSync, setFetchResponse, setFetchResponseByUrl, setupWsMockTransport, injectWsMessage, rejectPendingWsFutures, wsClientHasPendingFutures, markWsTestCompleted, isWsTestCompleted, getWsSentMessages, isNullValue, close, getRootDir, argvExchange, argvSymbol, argvMethod, isSync, LANG, ENV_VARS, NEW_LINE, EXT, getEnvVars, getLang, getExt, isWindows, isLinux, isAmd64, };
 export default {};

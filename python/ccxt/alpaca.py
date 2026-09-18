@@ -1475,7 +1475,7 @@ class alpaca(Exchange, ImplicitAPI):
         if feeValue is not None:
             fee = {
                 'cost': feeValue,
-                'currency': 'USD',
+                'currency': 'USD',  # commission is denominated per the account currency; crypto fills omit the field entirely — their fee is taken from the received asset, verified live 2026-09-15
             }
         orderType = self.safe_string(order, 'order_type')
         if orderType is not None:
@@ -1489,7 +1489,7 @@ class alpaca(Exchange, ImplicitAPI):
             'clientOrderId': self.safe_string(order, 'client_order_id'),
             'timestamp': timestamp,
             'datetime': datetime,
-            'lastTradeTimeStamp': None,
+            'lastTradeTimestamp': self.parse8601(self.safe_string(order, 'filled_at')),  # set on complete fills only — per-fill timestamps for partials come from the account activities used by fetchMyTrades, and updated_at also moves on non-fill transitions so it is no substitute
             'status': status,
             'symbol': symbol,
             'type': orderType,
@@ -1512,10 +1512,22 @@ class alpaca(Exchange, ImplicitAPI):
         statuses = {
             'pending_new': 'open',
             'accepted': 'open',
+            'accepted_for_bidding': 'open',
             'new': 'open',
             'partially_filled': 'open',
             'activated': 'open',
+            'done_for_day': 'open',  # no more executions on that day, the order itself stays live
+            'stopped': 'open',  # a fill is guaranteed at a stated price but has not occurred yet
+            'suspended': 'open',
+            'held': 'open',
+            'pending_replace': 'open',
+            'pending_cancel': 'canceling',
             'filled': 'closed',
+            'calculated': 'closed',  # completed for the day, settlement calculations are pending
+            'canceled': 'canceled',
+            'replaced': 'canceled',  # the venue closes the replaced id and opens a new order id for the replacement
+            'expired': 'expired',
+            'rejected': 'rejected',
         }
         return self.safe_string(statuses, status, status)
 
@@ -1979,13 +1991,19 @@ class alpaca(Exchange, ImplicitAPI):
         query for balance and get the amount of funds available for trading or funds locked in orders
 
         https://docs.alpaca.markets/reference/getaccount-1
+        https://docs.alpaca.markets/reference/getallopenpositions
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`. note that `info` is
+ the composite `{account, positions}` wrapper of both raw venue payloads, not the bare account payload it was
+ before crypto positions were included — read `info['account']['cash']` where `info['cash']` used to be read
         """
         if self.markets is None:
             self.load_markets()
-        response = self.traderPrivateGetV2Account(params)
+        # the two calls stay sequential deliberately — the static request harness records one request per case,
+        # and concurrent calls make the recorded url nondeterministic per language
+        account = self.traderPrivateGetV2Account(params)
+        positions = self.traderPrivateGetV2Positions()
         #
         #     {
         #         "id": "43a01bde-4eb1-64fssc26adb5",
@@ -2034,17 +2052,69 @@ class alpaca(Exchange, ImplicitAPI):
         #         "pending_reg_taf_fees": "0"
         #     }
         #
+        response = {
+            'account': account,
+            'positions': positions,
+        }
         return self.parse_balance(response)
 
     def parse_balance(self, response: object) -> Balances:
+        #
+        # crypto holdings live on the positions endpoint, the account endpoint carries only the cash currency
+        #
+        #     "positions": [
+        #         {
+        #             "asset_id": "64bbff51-59d6-4b3c-9351-13ad85e3c752",
+        #             "symbol": "BTCUSD",
+        #             "exchange": "CRYPTO",
+        #             "asset_class": "crypto",
+        #             "asset_marginable": false,
+        #             "qty": "0.000207296",
+        #             "avg_entry_price": "80037",
+        #             "side": "long",
+        #             "market_value": "16.592345",
+        #             "cost_basis": "16.59135",
+        #             "unrealized_pl": "0.000995",
+        #             "unrealized_plpc": "0.00006",
+        #             "current_price": "80041.8",
+        #             "qty_available": "0.000207296"
+        #         }
+        #     ]
+        #
+        account = self.safe_dict(response, 'account', {})
+        positions = self.safe_list(response, 'positions', [])
         result = {'info': response}
-        account = self.account()
-        currencyId = self.safe_string(response, 'currency')
+        currencyId = self.safe_string(account, 'currency')
         code = self.safe_currency_code(currencyId)
-        account['free'] = self.safe_string(response, 'cash')
-        account['total'] = self.safe_string(response, 'equity')
         if code is not None:
-            result[code] = account
+            cashAccount = self.account()
+            cashAccount['free'] = self.safe_string(account, 'cash')  # cash already excludes the amounts held for open orders, verified live 2026-09-16
+            equity = self.safe_string(account, 'equity')
+            positionsValue = self.safe_string(account, 'position_market_value')
+            cashAccount['total'] = Precise.string_sub(equity, positionsValue)  # equity minus the positions market value equals cash plus open-order holds; stringSub degrades to undefined when either field is absent and safeBalance then derives the total from free
+            result[code] = cashAccount
+        for i in range(0, len(positions)):
+            position = positions[i]
+            positionSymbol = self.safe_string(position, 'symbol')
+            if positionSymbol is None:
+                continue
+            baseId = None
+            if positionSymbol.find('/') >= 0:
+                parts = positionSymbol.split('/')
+                baseId = self.safe_string(parts, 0)
+            else:
+                # crypto position symbols come compressed with a USD tail, e.g. BTCUSD or USDTUSD
+                baseLength = len(positionSymbol) - 3
+                if (baseLength > 0) and (positionSymbol[baseLength:] == 'USD'):
+                    baseId = positionSymbol[0:baseLength]
+            if baseId is None:
+                continue  # an unrecognized position symbol shape must not break the whole balance
+            positionCode = self.safe_currency_code(baseId)
+            if (positionCode is not None) and not (positionCode in result):
+                positionAccount = self.account()
+                positionAccount['free'] = self.safe_string(position, 'qty_available')
+                positionAccount['total'] = self.safe_string(position, 'qty')
+                result[positionCode] = positionAccount
         return self.safe_balance(result)
 
     def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):

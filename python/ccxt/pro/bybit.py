@@ -2205,13 +2205,47 @@ class bybit(ccxt.async_support.bybit):
                 self.balance[code] = account
 
     async def watch_topics(self, url: object, messageHashes: object, topics: object, params={}):
-        request = {
-            'op': 'subscribe',
-            'req_id': self.request_id(),
-            'args': topics,
-        }
-        message = self.extend(request, params)
-        return await self.watch_multiple(url, messageHashes, message, messageHashes)
+        client = self.client(url)
+        newTopics = []
+        topicsLength = len(topics)
+        messageHashesLength = len(messageHashes)
+        if topicsLength == messageHashesLength:
+            for i in range(0, topicsLength):
+                messageHash = messageHashes[i]
+                if not (messageHash in client.subscriptions):
+                    newTopics.append(topics[i])
+        else:
+            # watchOrders spot: two topics, one hash. Collect topics already
+            # recorded on any subscription so a later call with a new hash
+            # does not resend already-subscribed topics.
+            subscribedTopics = {}
+            subscriptionHashes = list(client.subscriptions.keys())
+            for i in range(0, len(subscriptionHashes)):
+                existing = self.safe_dict(client.subscriptions, subscriptionHashes[i], {})
+                recordedTopics = self.safe_list(existing, 'topics', [])
+                recordedLength = len(recordedTopics)
+                for j in range(0, recordedLength):
+                    subscribedTopics[recordedTopics[j]] = True
+            for i in range(0, topicsLength):
+                topic = topics[i]
+                if not (topic in subscribedTopics):
+                    newTopics.append(topic)
+        message = None
+        subscription = None
+        newTopicsLength = len(newTopics)
+        if newTopicsLength > 0:
+            reqId = self.request_id()
+            request = {
+                'op': 'subscribe',
+                'req_id': reqId,
+                'args': newTopics,
+            }
+            message = self.extend(request, params)
+            subscription = {
+                'id': reqId,
+                'topics': newTopics,
+            }
+        return await self.watch_multiple(url, messageHashes, message, messageHashes, subscription)
 
     async def un_watch_topics(self, url: str, topic: str, symbols: Strings, messageHashes: list[str], subMessageHashes: list[str], topics: object, params={}, subExtension={}):
         reqId = self.request_id()
@@ -2315,26 +2349,40 @@ class bybit(ccxt.async_support.bybit):
                     raise ExchangeError(self.id + ' ' + ret_msg)
             return False
         except Exception as error:
-            messageHash = self.safe_string_2(message, 'req_id', 'reqId')
-            if messageHash is not None:
-                client.reject(error, messageHash)
-            elif isinstance(error, AuthenticationError):
-                authenticatedHash = 'authenticated'
-                client.reject(error, authenticatedHash)
-                if authenticatedHash in client.subscriptions:
-                    del client.subscriptions[authenticatedHash]
-                op = self.safe_string(message, 'op')
-                if (op is not None) and (op != 'auth'):
-                    # an operation response that carries no reqId, e.g. bybit
-                    # omits it on some permission rejections of trade ops,
-                    # would leave the awaiting future pending forever, and
-                    # since nothing on this client can proceed without
-                    # authentication, reject everything pending, mirroring the
-                    # behavior of unattributable non auth errors, see
-                    # https://github.com/ccxt/ccxt/issues/29361
-                    client.reject(error)
-            else:
-                client.reject(error, messageHash)
+            reqId = self.safe_string_2(message, 'req_id', 'reqId')
+            foundSubscription = False
+            if reqId is not None:
+                keys = list(client.subscriptions.keys())
+                for i in range(0, len(keys)):
+                    messageHash = keys[i]
+                    if not (messageHash in client.subscriptions):
+                        continue
+                    subscription = self.safe_dict(client.subscriptions, messageHash)
+                    subId = self.safe_string(subscription, 'id')
+                    if reqId == subId:
+                        foundSubscription = True
+                        del client.subscriptions[messageHash]
+                        client.reject(error, messageHash)
+            if not foundSubscription:
+                if reqId is not None:
+                    client.reject(error, reqId)
+                elif isinstance(error, AuthenticationError):
+                    authenticatedHash = 'authenticated'
+                    client.reject(error, authenticatedHash)
+                    if authenticatedHash in client.subscriptions:
+                        del client.subscriptions[authenticatedHash]
+                    op = self.safe_string(message, 'op')
+                    if (op is not None) and (op != 'auth'):
+                        # an operation response that carries no reqId, e.g. bybit
+                        # omits it on some permission rejections of trade ops,
+                        # would leave the awaiting future pending forever, and
+                        # since nothing on this client can proceed without
+                        # authentication, reject everything pending, mirroring the
+                        # behavior of unattributable non auth errors, see
+                        # https://github.com/ccxt/ccxt/issues/29361
+                        client.reject(error)
+                else:
+                    client.reject(error, reqId)
             return True
 
     def handle_message(self, client: Client, message: object):

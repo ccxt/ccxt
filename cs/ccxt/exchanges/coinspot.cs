@@ -692,7 +692,7 @@ public partial class coinspot : Exchange
         return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderbook, getValue(market, "symbol"), null, "buyorders", "sellorders", "rate", "amount"));
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         //     {
@@ -809,7 +809,7 @@ public partial class coinspot : Exchange
             Dictionary<string, object> market = this.safeMarket(id);
             if (isTrue(isEqual(getValue(market, "spot"), true)))
             {
-                object symbol = getValue(market, "symbol");
+                string? symbol = ((string)getValue(market, "symbol"));
                 object ticker = getValue(prices, id);
                 ((IDictionary<string,object>)result)[(string)symbol] = this.parseTicker(ticker, market);
             }
@@ -921,7 +921,7 @@ public partial class coinspot : Exchange
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // public fetchTrades

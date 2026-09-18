@@ -6,12 +6,13 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.pacifica import ImplicitAPI
 import math
-from ccxt.base.types import Balances, Currency, Int, LedgerEntry, Leverage, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currency, Int, LedgerEntry, Leverage, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -804,21 +805,35 @@ class pacifica(Exchange, ImplicitAPI):
         # {
         #   "success": true,
         #   "data": {
-        #     "balance": "2000.000000",
+        #     "balance": "4970.000323",           // USDC cash (perp collateral)
         #     "fee_level": 0,
         #     "maker_fee": "0.00015",
         #     "taker_fee": "0.0004",
-        #     "account_equity": "2150.250000",
-        #     "available_to_spend": "1800.750000",
-        #     "available_to_withdraw": "1500.850000",
-        #     "pending_balance": "0.000000",
-        #     "total_margin_used": "349.500000",
-        #     "cross_mmr": "420.690000",
-        #     "positions_count": 2,
-        #     "orders_count": 3,
-        #     "stop_orders_count": 1,
-        #     "updated_at": 1716200000000,
-        #     "use_ltp_for_stop_orders": false
+        #     "account_equity": "5478.140323",     // balance + spot_market_value
+        #     "cross_account_equity": "5376.512323",
+        #     "spot_market_value": "508.14",
+        #     "spot_collateral": "406.512",
+        #     "available_to_spend": "5376.512323",
+        #     "available_to_withdraw": "5376.512323",
+        #     "pending_balance": "0",
+        #     "pending_interest": "0",
+        #     "total_margin_used": "0",
+        #     "cross_mmr": "0",
+        #     "positions_count": 0,
+        #     "orders_count": 0,
+        #     "stop_orders_count": 0,
+        #     "spot_balances": [
+        #       {
+        #         "symbol": "SOL",
+        #         "amount": "5",
+        #         "available_to_withdraw": "5",
+        #         "pending_balance": "0",
+        #         "daily_withdraw_amount_usd": "0",
+        #         "effective_daily_deposit_limit_usd": "50000",
+        #         "effective_daily_withdraw_limit_usd": "250000"
+        #       }
+        #     ],
+        #     "updated_at": 1789394568220
         #   },
         #   "error": null,
         #   "code": null
@@ -827,15 +842,21 @@ class pacifica(Exchange, ImplicitAPI):
         result = {
             'info': data,
         }
-        result['free'] = {}
-        result['used'] = {}
-        result['total'] = {}
-        totalBalance = self.safe_number(data, 'account_equity')
-        usedMargin = self.safe_number(data, 'total_margin_used')
-        freeBalance = self.safe_number(data, 'available_to_spend')
-        result['total']['USDC'] = totalBalance
-        result['used']['USDC'] = usedMargin
-        result['free']['USDC'] = freeBalance
+        usdcAccount = self.account()
+        usdcAccount['total'] = self.safe_string(data, 'balance')
+        usdcAccount['used'] = self.safe_string(data, 'total_margin_used')
+        result['USDC'] = usdcAccount
+        spotBalances = self.safe_list(data, 'spot_balances', [])
+        for i in range(0, len(spotBalances)):
+            balance = spotBalances[i]
+            currencyId = self.safe_string(balance, 'symbol')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['total'] = self.safe_string(balance, 'amount')
+            account['free'] = self.safe_string(balance, 'available_to_withdraw')
+            # skip a spot USDC entry so it can't clobber the perp-collateral account above
+            if (code is not None) and not (code in result):
+                result[code] = account
         timestamp = self.safe_integer(data, 'updated_at')
         result['timestamp'] = timestamp
         result['datetime'] = self.iso8601(timestamp)
@@ -2808,10 +2829,11 @@ class pacifica(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         symbols = self.market_symbols(symbols)
-        swapMarkets = await self.fetch_swap_markets()
-        return self.parse_open_interests(swapMarkets, symbols)
+        response = await self.publicGetInfoPrices(params)
+        data = self.safe_list(response, 'data', [])
+        return self.parse_open_interests(data, symbols)
 
-    async def fetch_open_interest(self, symbol: str, params={}):
+    async def fetch_open_interest(self, symbol: str, params={}) -> OpenInterest:
         """
         retrieves the open interest of a contract trading pair
 
@@ -2821,11 +2843,14 @@ class pacifica(Exchange, ImplicitAPI):
         :param dict [params]: exchange specific parameters
         :returns dict: an `open interest structure <https://docs.ccxt.com/?id=open-interest-structure>`
         """
-        symbol = self.symbol(symbol)
         if self.markets is None:
             await self.load_markets()
+        symbol = self.symbol(symbol)
         ois = await self.fetch_open_interests([symbol], params)
-        return ois[symbol]
+        oi = self.safe_dict(ois, symbol)
+        if oi is None:
+            raise BadSymbol(self.id + ' fetchOpenInterest() could not find open interest for ' + symbol)
+        return oi
 
     def parse_open_interest(self, interest: object, market: Market = None):
         #

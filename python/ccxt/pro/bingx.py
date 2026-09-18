@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
-from ccxt.base.types import Balances, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Trade
+from ccxt.base.types import Balances, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import BadRequest
@@ -261,13 +261,17 @@ class bingx(ccxt.async_support.bingx):
         marketType = 'swap' if isSwap else 'spot'
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
-        ticker = self.parse_ws_ticker(data, market)
+        # the Coin-M stream is a distinct endpoint, so it identifies an inverse
+        # ticker even when the market id could not be resolved
+        inverseUrl = self.safe_string(self.urls['api']['ws'], 'inverse')
+        isInverse = (inverseUrl is not None) and (client.url.find(inverseUrl) == 0)
+        ticker = self.parse_ws_ticker(data, market, isInverse)
         self.tickers[symbol] = ticker
         client.resolve(ticker, self.get_message_hash('ticker', symbol))
         if self.safe_string(message, 'dataType') == 'all@ticker':
             client.resolve(ticker, self.get_message_hash('ticker'))
 
-    def parse_ws_ticker(self, message: object, market: Market = None):
+    def parse_ws_ticker(self, message: object, market: Market = None, isInverse: Bool = None):
         #
         #     {
         #         "e": "24hTicker",
@@ -294,6 +298,11 @@ class bingx(ccxt.async_support.bingx):
         marketId = self.safe_string(message, 's')
         market = self.safe_market(marketId, market)
         close = self.safe_string(message, 'c')
+        # Coin-M m is coin volume; v is contracts and q is already USD turnover.
+        # prefer the caller's stream-derived flag so an unresolved market id on
+        # the Coin-M endpoint does not silently fall back to the contract count
+        inverse = (market['inverse'] is True) if (isInverse is None) else isInverse
+        baseVolumeKey = 'm' if inverse else 'v'
         return self.safe_ticker({
             'symbol': market['symbol'],
             'timestamp': timestamp,
@@ -312,7 +321,7 @@ class bingx(ccxt.async_support.bingx):
             'change': self.safe_string(message, 'p'),
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_string(message, 'v'),
+            'baseVolume': self.safe_string(message, baseVolumeKey),
             'quoteVolume': self.safe_string(message, 'q'),
             'info': message,
         }, market)

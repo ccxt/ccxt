@@ -773,7 +773,7 @@ public partial class gemini : Exchange
             List<object> promises = new List<object>() {};
             ((IList<object>)promises).Add(this.FetchMarketsFromWeb(parameters)); // get usd markets
             ((IList<object>)promises).Add(this.FetchUSDTMarkets(parameters)); // get usdt markets
-            object promisesResult = await promiseAll(promises);
+            List<object> promisesResult = await promiseAll(promises);
             return ccxt.BaseExchange.ToMarketInterfaceList(this.arrayConcat(getValue(promisesResult, 0), getValue(promisesResult, 1)));
         }
         return await this.FetchMarketsFromAPI(parameters);
@@ -961,7 +961,7 @@ public partial class gemini : Exchange
                 };
                 ((IList<object>)promises).Add(this.publicGetV1SymbolsDetailsSymbol(this.extend(request, parameters)));
             }
-            object responses = await promiseAll(promises);
+            List<object> responses = await promiseAll(promises);
             for (int i = 0; isLessThan(i, getArrayLength(responses)); postFixIncrement(ref i))
             {
                 ((IList<object>)result).Add(this.parseMarket(getValue(responses, i)));
@@ -1288,7 +1288,7 @@ public partial class gemini : Exchange
         return await this.FetchTickerV1AndV2(((string)symbol), parameters);
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         // fetchTickers
@@ -1423,7 +1423,7 @@ public partial class gemini : Exchange
         return ccxt.BaseExchange.ToTickers(this.removeKeysFromDict(result, brokenPairs));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // public fetchTrades
@@ -1607,7 +1607,7 @@ public partial class gemini : Exchange
         double? maker = this.parseNumber(makerString);
         double? taker = this.parseNumber(takerString);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        object symbols = this.symbols;
+        List<object> symbols = this.symbols;
         for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
@@ -1642,7 +1642,7 @@ public partial class gemini : Exchange
         return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // createOrder (private)
@@ -2324,9 +2324,9 @@ public partial class gemini : Exchange
             await this.loadMarkets();
         }
         object indexedByNetwork = ccxt.BaseExchange.FromDepositAddresses(await this.FetchDepositAddressesByNetwork(((string)code), parameters));
-        object networkCode = null;
+        string? networkCode = null;
         IList<object> networkCodeparametersVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
-        networkCode = ((IList<object>)networkCodeparametersVariable)[0];
+        networkCode = (string)((IList<object>)networkCodeparametersVariable)[0];
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         return ccxt.BaseExchange.ToDepositAddress(this.safeValue(indexedByNetwork, networkCode));
     }
@@ -2351,9 +2351,9 @@ public partial class gemini : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)codeVar));
         codeVar = getValue(currency, "code");
-        object networkCode = null;
+        string? networkCode = null;
         IList<object> networkCodeparametersVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
-        networkCode = ((IList<object>)networkCodeparametersVariable)[0];
+        networkCode = (string)((IList<object>)networkCodeparametersVariable)[0];
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         if (isTrue(isEqual(networkCode, null)))
         {
@@ -2495,7 +2495,7 @@ public partial class gemini : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))

@@ -14,7 +14,7 @@ func testWatchPositionBody(ch chan any, exchange ccxt.ICoreExchange, skippedProp
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var method string = "watchPosition"
-	var now any = exchange.Milliseconds()
+	var now int64 = exchange.Milliseconds()
 	var ends any = Add(now, 15000)
 	for IsLessThan(now, ends) {
 		var response any = nil
@@ -29,7 +29,7 @@ func testWatchPositionBody(ch chan any, exchange ccxt.ICoreExchange, skippedProp
 						}
 						ret_ = func() any {
 							// catch block:
-							if !IsTrue(IsTemporaryFailure(e)) {
+							if !EvalTruthy(IsTemporaryFailure(e)) {
 								panic(e)
 							}
 							now = exchange.Milliseconds()
@@ -47,7 +47,7 @@ func testWatchPositionBody(ch chan any, exchange ccxt.ICoreExchange, skippedProp
 			}()
 
 		}
-		if IsTrue(IsTrue((IsEqual(success, true))) && IsTrue((!IsEqual(response, nil)))) {
+		if (success == true) && (!IsEqual(response, nil)) {
 			Assert(exchange.IsDictionary(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), symbol), " must return a dictionary. "), exchange.Json(response)))
 			now = exchange.Milliseconds()
 			TestPosition(exchange, skippedProperties, method, response, symbol, now)

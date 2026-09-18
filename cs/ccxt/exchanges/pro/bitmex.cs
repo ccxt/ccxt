@@ -63,7 +63,7 @@ public partial class bitmex : ccxt.bitmex
      */
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -92,7 +92,7 @@ public partial class bitmex : ccxt.bitmex
         }
         symbols = this.marketSymbols(symbols, null, true);
         string name = "instrument";
-        object url = getValue(getValue(this.urls, "api"), "ws");
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         List<object> messageHashes = new List<object>() {};
         List<object> rawSubscriptions = new List<object>() {};
         if (isTrue(!isEqual(symbols, null)))
@@ -101,7 +101,7 @@ public partial class bitmex : ccxt.bitmex
             {
                 object symbol = getValue(symbols, i);
                 Dictionary<string, object> market = this.market(symbol);
-                object subscription = add(add(name, ":"), getValue(market, "id"));
+                string subscription = add(add(name, ":"), getValue(market, "id"));
                 ((IList<object>)rawSubscriptions).Add(subscription);
                 string messageHash = add("ticker:", symbol);
                 ((IList<object>)messageHashes).Add(messageHash);
@@ -364,7 +364,7 @@ public partial class bitmex : ccxt.bitmex
             {
                 ((IDictionary<string,object>)this.tickers)[(string)symbol] = this.parseTicker(new Dictionary<string, object>() {});
             }
-            object updatedTicker = this.parseTicker(update);
+            Dictionary<string, object> updatedTicker = this.parseTicker(update);
             Dictionary<string, object> fullParsedTicker = this.deepExtend(getValue(this.tickers, symbol), updatedTicker);
             ((IDictionary<string,object>)tickers)[(string)symbol] = fullParsedTicker;
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = fullParsedTicker;
@@ -427,7 +427,7 @@ public partial class bitmex : ccxt.bitmex
                 ((IList<object>)messageHashes).Add(add("liquidations::", symbol));
             }
         }
-        object url = getValue(getValue(this.urls, "api"), "ws");
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "op", "subscribe" },
             { "args", subscriptionHashes },
@@ -510,7 +510,7 @@ public partial class bitmex : ccxt.bitmex
         }
         await this.authenticate();
         string messageHash = "margin";
-        object url = getValue(getValue(this.urls, "api"), "ws");
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "op", "subscribe" },
             { "args", new List<object>() {messageHash} },
@@ -694,8 +694,8 @@ public partial class bitmex : ccxt.bitmex
         {
             string? marketId = ((string)getValue(marketIds, i));
             Dictionary<string, object> market = this.safeMarket(marketId);
-            object symbol = getValue(market, "symbol");
-            object messageHash = add(add(table, ":"), symbol);
+            string? symbol = ((string)getValue(market, "symbol"));
+            string messageHash = add(add(table, ":"), symbol);
             IList<object> trades = this.parseTrades(getValue(dataByMarketIds, marketId), market);
             object stored = this.safeValue(this.trades, symbol);
             if (isTrue(isEqual(stored, null)))
@@ -732,7 +732,7 @@ public partial class bitmex : ccxt.bitmex
     public async virtual Task<object> authenticate(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object url = getValue(getValue(this.urls, "api"), "ws");
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         var client = this.client(url);
         string messageHash = "authenticated";
         var future = client.reusableFuture(messageHash);
@@ -760,7 +760,7 @@ public partial class bitmex : ccxt.bitmex
         if (isTrue(isEqual(authenticated, true)))
         {
             // we resolve the future here permanently so authentication only happens once
-            Future future = ((Future)this.safeValue((client as WebSocketClient).futures, messageHash));
+            var future = this.safeValue((client as WebSocketClient).futures, messageHash);
             (future as Future).resolve(true);
         } else
         {
@@ -799,7 +799,7 @@ public partial class bitmex : ccxt.bitmex
             symbols = this.marketSymbols(symbols);
             messageHash = add("positions::", String.Join(",", ((IList<object>)symbols).ToArray()));
         }
-        object url = getValue(getValue(this.urls, "api"), "ws");
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "op", "subscribe" },
             { "args", new List<object>() {subscriptionHash} },
@@ -972,7 +972,7 @@ public partial class bitmex : ccxt.bitmex
         for (int i = 0; isLessThan(i, getArrayLength(rawPositions)); postFixIncrement(ref i))
         {
             object rawPosition = getValue(rawPositions, i);
-            object position = this.parsePosition(rawPosition);
+            Dictionary<string, object> position = this.parsePosition(rawPosition);
             object side = this.safeString(position, "side");
             if (isTrue(isEqual(side, null)))
             {
@@ -1042,7 +1042,7 @@ public partial class bitmex : ccxt.bitmex
             symbolVar = this.symbol(symbolVar);
             messageHash = add(messageHash, add(":", symbolVar));
         }
-        object url = getValue(getValue(this.urls, "api"), "ws");
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "op", "subscribe" },
             { "args", new List<object>() {subscriptionHash} },
@@ -1223,13 +1223,13 @@ public partial class bitmex : ccxt.bitmex
             {
                 object currentOrder = getValue(data, i);
                 string? orderId = this.safeString(currentOrder, "orderID");
-                object previousOrder = this.safeValue((stored as ArrayCache).hashmap, orderId);
+                Dictionary<string, object> previousOrder = ((Dictionary<string, object>)this.safeValue((stored as ArrayCache).hashmap, orderId));
                 object rawOrder = currentOrder;
                 if (isTrue(!isEqual(previousOrder, null)))
                 {
                     rawOrder = this.extend(getValue(previousOrder, "info"), currentOrder);
                 }
-                object order = this.parseOrder(rawOrder);
+                Dictionary<string, object> order = this.parseOrder(rawOrder);
                 callDynamically(stored, "append", new object[] {order});
                 object symbol = getValue(order, "symbol");
                 ((IDictionary<string,object>)symbols)[(string)((string)symbol)] = true;
@@ -1273,7 +1273,7 @@ public partial class bitmex : ccxt.bitmex
             symbolVar = this.symbol(symbolVar);
             messageHash = add(messageHash, add(":", symbolVar));
         }
-        object url = getValue(getValue(this.urls, "api"), "ws");
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "op", "subscribe" },
             { "args", new List<object>() {subscriptionHash} },
@@ -1435,7 +1435,7 @@ public partial class bitmex : ccxt.bitmex
             object messageHash = add(add(table, ":"), symbol);
             ((IList<object>)messageHashes).Add(messageHash);
         }
-        object url = getValue(getValue(this.urls, "api"), "ws");
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "op", "subscribe" },
             { "args", topics },
@@ -1471,12 +1471,12 @@ public partial class bitmex : ccxt.bitmex
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            object topic = add(add(table, ":"), getValue(market, "id"));
+            string topic = add(add(table, ":"), getValue(market, "id"));
             ((IList<object>)topics).Add(topic);
-            object messageHash = add(add(table, ":"), symbol);
+            string messageHash = add(add(table, ":"), symbol);
             ((IList<object>)messageHashes).Add(messageHash);
         }
-        object url = getValue(getValue(this.urls, "api"), "ws");
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "op", "subscribe" },
             { "args", topics },
@@ -1506,7 +1506,7 @@ public partial class bitmex : ccxt.bitmex
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object symbolVar = symbol;
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -1517,8 +1517,8 @@ public partial class bitmex : ccxt.bitmex
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         string table = add("tradeBin", this.safeString(this.timeframes, timeframeVar, timeframeVar));
-        object messageHash = add(add(table, ":"), getValue(market, "id"));
-        object url = getValue(getValue(this.urls, "api"), "ws");
+        string messageHash = add(add(table, ":"), getValue(market, "id"));
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "op", "subscribe" },
             { "args", new List<object>() {messageHash} },
@@ -1600,7 +1600,7 @@ public partial class bitmex : ccxt.bitmex
         //
         object table = this.safeString(message, "table");
         string interval = ((string)((string)table)).Replace((string)"tradeBin", (string)"");
-        object timeframe = this.findTimeframe(interval);
+        string? timeframe = this.findTimeframe(interval);
         int duration = this.parseTimeframe(timeframe);
         List<object> candles = this.safeList(message, "data", new List<object>() {});
         Dictionary<string, object> results = new Dictionary<string, object>() {};
@@ -1609,7 +1609,7 @@ public partial class bitmex : ccxt.bitmex
             object candle = getValue(candles, i);
             string? marketId = this.safeString(candle, "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
-            object symbol = getValue(market, "symbol");
+            string? symbol = ((string)getValue(market, "symbol"));
             object messageHash = add(add(table, ":"), getValue(market, "id"));
             List<object> result = new List<object>() {subtract(this.parseToInt(this.parse8601(this.safeString(candle, "timestamp"))), multiply(duration, 1000)), null, this.safeFloat(candle, "high"), this.safeFloat(candle, "low"), this.safeFloat(candle, "close"), this.safeFloat(candle, "volume")};
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
@@ -1639,7 +1639,7 @@ public partial class bitmex : ccxt.bitmex
             await this.loadMarkets();
         }
         string eventVar = "heartbeat";
-        object url = getValue(getValue(this.urls, "api"), "ws");
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         return await this.watch(url, eventVar);
     }
 
@@ -1711,7 +1711,7 @@ public partial class bitmex : ccxt.bitmex
                 return;  // protecting from weird update
             }
             Dictionary<string, object> market = this.safeMarket(marketId);
-            object symbol = getValue(market, "symbol");
+            string? symbol = ((string)getValue(market, "symbol"));
             if (isTrue(isEqual(table, "orderBookL2")))
             {
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.indexedOrderBook();
@@ -1755,7 +1755,7 @@ public partial class bitmex : ccxt.bitmex
                 }
                 ((IDictionary<string,object>)numUpdatesByMarketId)[(string)marketId] = this.sum(getValue(numUpdatesByMarketId, marketId), 1);
                 Dictionary<string, object> market = this.safeMarket(marketId);
-                object symbol = getValue(market, "symbol");
+                string? symbol = ((string)getValue(market, "symbol"));
                 ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
                 double? price = this.safeNumber(getValue(data, i), "price");
                 object size = ((bool) isTrue((isEqual(action, "delete")))) ? 0 : this.convertFromRawQuantity(symbol, this.safeString(getValue(data, i), "size", "0"));
@@ -1773,7 +1773,7 @@ public partial class bitmex : ccxt.bitmex
             {
                 string? marketId = ((string)getValue(marketIds, i));
                 Dictionary<string, object> market = this.safeMarket(marketId);
-                object symbol = getValue(market, "symbol");
+                string? symbol = ((string)getValue(market, "symbol"));
                 object messageHash = add(add(table, ":"), symbol);
                 ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
                 callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
@@ -1839,7 +1839,7 @@ public partial class bitmex : ccxt.bitmex
             {
                 object messageHash = getValue(args, 0);
                 object broad = getValue(getValue(this.exceptions, "ws"), "broad");
-                object broadKey = this.findBroadlyMatchedKey(broad, error);
+                string? broadKey = this.findBroadlyMatchedKey(broad, error);
                 object exception = null;
                 if (isTrue(isEqual(broadKey, null)))
                 {

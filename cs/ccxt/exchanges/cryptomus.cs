@@ -570,7 +570,7 @@ public partial class cryptomus : Exchange
         return ccxt.BaseExchange.ToTickers(this.parseTickers(data, symbols));
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         //     {
@@ -656,7 +656,7 @@ public partial class cryptomus : Exchange
         //     }
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object timestamp = this.safeTimestamp(data, "timestamp");
+        Int64? timestamp = this.safeTimestamp(data, "timestamp");
         return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity"));
     }
 
@@ -706,7 +706,7 @@ public partial class cryptomus : Exchange
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(dataList, market, since, limit));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         //     {
@@ -718,7 +718,7 @@ public partial class cryptomus : Exchange
         //         "type": "sell"
         //     }
         //
-        object timestamp = this.safeTimestamp(trade, "timestamp");
+        Int64? timestamp = this.safeTimestamp(trade, "timestamp");
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", this.safeString(trade, "trade_id") },
             { "timestamp", timestamp },
@@ -1059,7 +1059,7 @@ public partial class cryptomus : Exchange
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(result, market, null, null));
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // createOrder
@@ -1254,7 +1254,7 @@ public partial class cryptomus : Exchange
         List<object> feeTiers = this.safeList(data, "tariff_steps", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         Dictionary<string, object> tiers = this.parseFeeTiers(feeTiers);
-        object symbols = this.symbols;
+        List<object> symbols = this.symbols;
         if (isTrue(isEqual(symbols, null)))
         {
             return ccxt.BaseExchange.ToTradingFees(result);

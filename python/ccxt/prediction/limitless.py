@@ -1093,7 +1093,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         :returns dict: a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
         """
         if outcomes is None:
-            raise ArgumentsRequired(self.id + ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch(discover them via fetchEvents())')
+            raise ArgumentsRequired(self.id + ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())')
         result = {}
         # resolve the uncached outcomes first, then group by parent market to fetch each
         # market and book only once
@@ -1989,7 +1989,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             params = self.omit(params, 'cost')
             if createMarketBuyOrderRequiresPrice:
                 if (price is None) and (cost is None):
-                    raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
+                    raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
                 else:
                     quoteAmount = self.parse_to_numeric(Precise.string_mul(amountString, priceString))
                     costRequest = cost if (cost is not None) else quoteAmount
@@ -2033,7 +2033,7 @@ class limitless(PredictionExchange, ImplicitAPI):
     def sign_order_request(self, signRequest: dict, marketSymbol: object):
         self.check_required_credentials()
         if self.privateKey is None:
-            raise ArgumentsRequired(self.id + ' createOrder() requires a privateKey(the embedded/trading wallet key) to sign orders')
+            raise ArgumentsRequired(self.id + ' createOrder() requires a privateKey (the embedded/trading wallet key) to sign orders')
         market = self.market(marketSymbol)
         info = self.safe_dict(market, 'info')
         venue = self.safe_dict(info, 'venue')
@@ -2191,7 +2191,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             outcomeObj = self.outcome(outcome)
             conditionId = self.safe_string(self.safe_dict(outcomeObj, 'info', {}), 'conditionId')
         if conditionId is None:
-            raise ArgumentsRequired(self.id + ' redeem() could not resolve the market conditionId - pass params.conditionId(a bytes32 hex string)')
+            raise ArgumentsRequired(self.id + ' redeem() could not resolve the market conditionId - pass params.conditionId (a bytes32 hex string)')
         request = {
             'conditionId': conditionId,
         }
@@ -2244,7 +2244,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             warn = True
             warn, params = self.handle_option_and_params(params, 'cancelAllOrders', 'warnOnCancelAllOrdersWithOutcome', warn)
             if warn:
-                raise BadRequest(self.id + ' cancelAllOrders cancels all orders for entire slug(both YES and NO outcomes). Please provide params.slug to specify the slug, or set the warnOnCancelAllOrdersWithOutcome option to False to suppress self warning message.')
+                raise BadRequest(self.id + ' cancelAllOrders cancels all orders for entire slug (both YES and NO outcomes). Please provide params.slug to specify the slug, or set the warnOnCancelAllOrdersWithOutcome option to False to suppress self warning message.')
         request = {}
         slug = self.safe_string(params, 'slug')
         if outcome is not None:
@@ -2785,7 +2785,7 @@ class limitless(PredictionExchange, ImplicitAPI):
     async def fetch_raw_active_markets(self, params={}, categoryId: Str = None) -> list[object]:
         """
  @ignore
-        pages the active-markets listing(or a single category's listing), bounded by limit(or options.fetchMarketsLimit)
+        pages the active-markets listing(or a single category's listing), bounded by limit (or options.fetchMarketsLimit)
         :param dict [params]: extra exchange-specific parameters
         :param int [params.limit]: max number of raw markets to collect
         :param str [categoryId]: a limitless category id — pages only that category's listing

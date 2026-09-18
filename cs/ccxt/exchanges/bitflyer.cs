@@ -289,7 +289,7 @@ public partial class bitflyer : Exchange
         });
     }
 
-    public virtual object parseExpiryDate(object expiry)
+    public virtual Int64? parseExpiryDate(object expiry)
     {
         string? day = slice(expiry, 0, 2);
         string? monthName = slice(expiry, 2, 5);
@@ -309,7 +309,7 @@ public partial class bitflyer : Exchange
             { "DEC", "12" },
         };
         string? month = this.safeString(months, monthName);
-        return this.parse8601(add(add(add(add(add(year, "-"), month), "-"), day), "T00:00:00Z"));
+        return ((Int64?)((object)(this.parse8601(add(add(add(add(add(year, "-"), month), "-"), day), "T00:00:00Z")))));
     }
 
     public override Dictionary<string, object> safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)
@@ -378,7 +378,7 @@ public partial class bitflyer : Exchange
             string? settle = null;
             string? baseId = null;
             string? quoteId = null;
-            object expiry = null;
+            Int64? expiry = null;
             if (isTrue(spot))
             {
                 baseId = this.safeString(currencies, 0);
@@ -569,7 +569,7 @@ public partial class bitflyer : Exchange
         return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderbook, getValue(market, "symbol"), null, "bids", "asks", "price", "size"));
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         string? symbol = this.safeSymbol(null, market);
         Int64? timestamp = this.parse8601(this.safeString(ticker, "timestamp"));
@@ -622,7 +622,7 @@ public partial class bitflyer : Exchange
         return ccxt.BaseExchange.ToTicker(this.parseTicker(response, market));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades (public) v1
@@ -843,7 +843,7 @@ public partial class bitflyer : Exchange
         return this.safeString(statuses, ((string)status), status);
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         Int64? timestamp = this.parse8601(this.safeString(order, "child_order_date"));
         string? price = this.safeString(order, "price");
