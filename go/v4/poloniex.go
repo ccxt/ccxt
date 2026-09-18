@@ -895,13 +895,13 @@ func (this *Poloniex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		"symbol":   GetValue(market, "id"),
 		"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
-	var keyStart any = func() any {
+	var keyStart string = func() string {
 		if IsEqual(GetValue(market, "spot"), true) {
 			return "startTime"
 		}
 		return "sTime"
 	}()
-	var keyEnd any = func() any {
+	var keyEnd string = func() string {
 		if IsEqual(GetValue(market, "spot"), true) {
 			return "endTime"
 		}
@@ -1242,7 +1242,7 @@ func (this *Poloniex) ParseSwapMarket(market any) any {
 	if alias != nil {
 		typeVar = "future"
 	}
-	var marketType any = func() any {
+	var marketType string = func() string {
 		if typeVar == "future" {
 			return "future"
 		}
@@ -1960,13 +1960,13 @@ func (this *Poloniex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(marketTypeparamsVariable, 1)
 	var isContract bool = this.InArray(marketType, []any{"swap", "future"})
 	var request any = map[string]any{}
-	var startKey any = func() any {
+	var startKey string = func() string {
 		if isContract {
 			return "sTime"
 		}
 		return "startTime"
 	}()
-	var endKey any = func() any {
+	var endKey string = func() string {
 		if isContract {
 			return "eTime"
 		}
@@ -2312,7 +2312,7 @@ func (this *Poloniex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	if !IsEqual(limit, nil) {
-		var max any = func() any {
+		var max int = func() int {
 			if IsEqual(marketType, "spot") {
 				return 2000
 			}
@@ -2607,15 +2607,15 @@ func (this *Poloniex) OrderRequest(symbol any, typeVar any, side any, amount any
 			}
 		}
 	}
-	var upperCaseType any = ToUpper(typeVar)
-	var isMarket bool = (IsEqual(upperCaseType, "MARKET"))
-	var isPostOnly bool = this.IsPostOnly(isMarket, (IsEqual(upperCaseType, "LIMIT_MAKER")), params)
+	var upperCaseType string = ToUpper(typeVar)
+	var isMarket bool = IsEqual(upperCaseType, "MARKET")
+	var isPostOnly bool = this.IsPostOnly(isMarket, IsEqual(upperCaseType, "LIMIT_MAKER"), params)
 	params = this.Omit(params, []any{"postOnly", "triggerPrice", "stopPrice"})
 	if triggerPrice != nil {
 		if !IsEqual(GetValue(market, "spot"), true) {
 			panic(InvalidOrder(Add(Add(this.Id+" createOrder() does not support trigger orders for ", GetValue(market, "type")), " markets")))
 		}
-		upperCaseType = func() any {
+		upperCaseType = func() string {
 			if IsEqual(price, nil) {
 				return "STOP"
 			}
@@ -2649,7 +2649,7 @@ func (this *Poloniex) OrderRequest(symbol any, typeVar any, side any, amount any
 			} else {
 				quoteAmount = this.CostToPrecision(symbol, amount)
 			}
-			var amountKey any = func() any {
+			var amountKey string = func() string {
 				if IsEqual(GetValue(market, "spot"), true) {
 					return "amount"
 				}
@@ -2657,7 +2657,7 @@ func (this *Poloniex) OrderRequest(symbol any, typeVar any, side any, amount any
 			}()
 			AddElementToObject(request, amountKey, quoteAmount)
 		} else {
-			var amountKey any = func() any {
+			var amountKey string = func() string {
 				if IsEqual(GetValue(market, "spot"), true) {
 					return "quantity"
 				}
@@ -2666,14 +2666,14 @@ func (this *Poloniex) OrderRequest(symbol any, typeVar any, side any, amount any
 			AddElementToObject(request, amountKey, this.AmountToPrecision(symbol, amount))
 		}
 	} else {
-		var amountKey any = func() any {
+		var amountKey string = func() string {
 			if IsEqual(GetValue(market, "spot"), true) {
 				return "quantity"
 			}
 			return "sz"
 		}()
 		AddElementToObject(request, amountKey, this.AmountToPrecision(symbol, amount))
-		var priceKey any = func() any {
+		var priceKey string = func() string {
 			if IsEqual(GetValue(market, "spot"), true) {
 				return "price"
 			}
@@ -2684,7 +2684,7 @@ func (this *Poloniex) OrderRequest(symbol any, typeVar any, side any, amount any
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "clOrdId")
 	if clientOrderId != nil {
 		// the futures v3 api silently ignores the spot key and generates its own id
-		var clientOrderIdKey any = func() any {
+		var clientOrderIdKey string = func() string {
 			if IsEqual(GetValue(market, "spot"), true) {
 				return "clientOrderId"
 			}
@@ -3048,7 +3048,7 @@ func (this *Poloniex) fetchOrderStatusBody(ch chan any, id any, optionalArgs ...
 	PanicOnError(orders)
 	var indexed map[string]any = this.IndexBy(orders, "id")
 
-	ch <- func() any {
+	ch <- func() string {
 		if InOp(indexed, id) {
 			return "open"
 		}
@@ -4150,7 +4150,7 @@ func (this *Poloniex) ParseTransaction(transaction any, optionalArgs ...any) any
 	var status any = DerefScalar(this.SafeString(transaction, "status", "pending"))
 	status = this.ParseTransactionStatus(status)
 	var txid *string = this.SafeString(transaction, "txid")
-	var typeVar any = func() any {
+	var typeVar string = func() string {
 		if InOp(transaction, "withdrawalRequestsId") {
 			return "withdrawal"
 		}
@@ -4161,7 +4161,7 @@ func (this *Poloniex) ParseTransaction(transaction any, optionalArgs ...any) any
 	var tag *string = this.SafeString(transaction, "paymentID")
 	var amountString *string = this.SafeString(transaction, "amount")
 	var feeCostString *string = this.SafeString(transaction, "fee")
-	if IsEqual(typeVar, "withdrawal") {
+	if typeVar == "withdrawal" {
 		amountString = Precise.StringSub(amountString, feeCostString)
 	}
 	return map[string]any{
@@ -4429,7 +4429,7 @@ func (this *Poloniex) setPositionModeBody(ch chan any, hedged any, optionalArgs 
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var mode any = func() any {
+	var mode string = func() string {
 		if EvalTruthy(hedged) {
 			return "HEDGE"
 		}
@@ -4649,7 +4649,7 @@ func (this *Poloniex) ParseMarginModification(data any, optionalArgs ...any) any
 	var marketId *string = this.SafeString(data, "symbol")
 	market = this.SafeMarket(marketId, market)
 	var rawType *string = this.SafeString(data, "type")
-	var typeVar any = func() any {
+	var typeVar string = func() string {
 		if rawType != nil && *rawType == "ADD" {
 			return "add"
 		}

@@ -877,7 +877,7 @@ func (this *BaseExchange) FilterByValueSinceLimit(array any, field any, optional
 			// safeValue (not entry[field]) so a missing field is a non-match, not a
 			// KeyError in python/php — prediction structures key on outcome, not symbol
 			var entryFiledEqualValue bool = IsEqual(this.SafeValue(entry, field), value)
-			var firstCondition any = func() any {
+			var firstCondition bool = func() bool {
 				if valueIsDefined {
 					return entryFiledEqualValue
 				}
@@ -885,13 +885,13 @@ func (this *BaseExchange) FilterByValueSinceLimit(array any, field any, optional
 			}()
 			var entryKeyValue any = this.SafeValue(entry, key)
 			var entryKeyGESince bool = (!IsEqual(entryKeyValue, nil)) && (!IsEqual(entryKeyValue, nil)) && (!IsEqual(entryKeyValue, 0)) && (!IsEqual(since, nil)) && (IsGreaterThanOrEqual(entryKeyValue, since))
-			var secondCondition any = func() any {
+			var secondCondition bool = func() bool {
 				if sinceIsDefined {
 					return entryKeyGESince
 				}
 				return true
 			}()
-			if EvalTruthy(firstCondition) && EvalTruthy(secondCondition) {
+			if firstCondition && secondCondition {
 				AppendToArray(&result, entry)
 			}
 		}
@@ -1852,7 +1852,7 @@ func (this *BaseExchange) InitRestRateLimiter() {
 		refillRate = Divide(1, this.RateLimit)
 	}
 	var useLeaky bool = (this.RollingWindowSize == 0) || (this.RateLimiterAlgorithm == "leakyBucket")
-	var algorithm any = func() any {
+	var algorithm string = func() string {
 		if useLeaky {
 			return "leakyBucket"
 		}
