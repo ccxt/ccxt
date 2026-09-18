@@ -155,7 +155,6 @@ const {
     DECIMAL_PLACES,
     NO_PADDING,
     TICK_SIZE,
-    SIGNIFICANT_DIGITS,
     sleep,
     readFile, writeFile, existsFile, getTempDir, filePathToFileUrlForWindows,
 } = functions;
