@@ -834,7 +834,7 @@ public partial class derive : ccxt.derive
                 {
                     eventVar = this.safeString(parsedChannel, 1);
                     // {subaccounr_id}.trades
-                    if (isEqual(eventVar, "trades"))
+                    if ((eventVar == "trades"))
                     {
                         eventVar = "mytrades";
                     }

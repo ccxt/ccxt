@@ -870,7 +870,7 @@ public partial class backpack : ccxt.backpack
         string? price = this.safeString(trade, "p");
         string? amount = this.safeString(trade, "q");
         string? orderId = null;
-        if (isEqual(side, "buy"))
+        if ((side == "buy"))
         {
             orderId = this.safeString(trade, "b");
         } else

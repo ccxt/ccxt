@@ -554,7 +554,7 @@ public partial class lbank : ccxt.lbank
         // reverse if it was 'maker'
         if ((secondPart != null) && (secondPart == "maker"))
         {
-            side = ((bool) (isEqual(side, "buy"))) ? "sell" : "buy";
+            side = ((bool) ((side == "buy"))) ? "sell" : "buy";
         }
         return this.safeTrade(new Dictionary<string, object>() {
             { "timestamp", timestamp },
@@ -716,7 +716,7 @@ public partial class lbank : ccxt.lbank
         string? status = this.safeString(orderUpdate, "orderStatus");
         string? orderAmount = this.safeString(orderUpdate, "orderAmt");
         string? cost = null;
-        if ((isEqual(type, "market")) && ((side == "buy")))
+        if (((type == "market")) && ((side == "buy")))
         {
             cost = orderAmount;
         }

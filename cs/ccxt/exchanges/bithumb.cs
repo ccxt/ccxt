@@ -672,7 +672,7 @@ public partial class bithumb : Exchange
                 for (int j = 0; j < currencyIds.Count; postFixIncrement(ref j))
                 {
                     string? currencyId = ((string)getValue(currencyIds, j));
-                    if (isEqual(currencyId, "date"))
+                    if ((currencyId == "date"))
                     {
                         continue;
                     }
@@ -1645,10 +1645,10 @@ public partial class bithumb : Exchange
         }
         object type = null;
         string? side = this.safeStringLower2(trade, "ask_bid", "type");
-        if (isEqual(side, "bid"))
+        if ((side == "bid"))
         {
             side = "buy";
-        } else if (isEqual(side, "ask"))
+        } else if ((side == "ask"))
         {
             side = "sell";
         } else
@@ -1898,14 +1898,14 @@ public partial class bithumb : Exchange
         IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isEqual(type, "market"), false, parameters);
         postOnly = (bool)((IList<object>)postOnlyparametersVariable)[0];
         parameters = ((IList<object>)postOnlyparametersVariable)[1];
-        if (isTrue(postOnly) || (isEqual(timeInForce, "PO")))
+        if (isTrue(postOnly) || ((timeInForce == "PO")))
         {
             ((IDictionary<string,object>)request)["time_in_force"] = "post_only";
             parameters = this.omit(parameters, "postOnly");
-        } else if (isEqual(timeInForce, "FOK"))
+        } else if ((timeInForce == "FOK"))
         {
             ((IDictionary<string,object>)request)["time_in_force"] = "fok";
-        } else if (isEqual(timeInForce, "IOC"))
+        } else if ((timeInForce == "IOC"))
         {
             ((IDictionary<string,object>)request)["time_in_force"] = "ioc";
         }
@@ -2468,10 +2468,10 @@ public partial class bithumb : Exchange
         object remaining = this.fixCommaNumber(this.safeString2(order, "units_remaining", "remaining_volume"));
         if ((remaining == null))
         {
-            if (isEqual(status, "closed"))
+            if ((status == "closed"))
             {
                 remaining = "0";
-            } else if (!isEqual(status, "canceled"))
+            } else if ((status != "canceled"))
             {
                 remaining = amount;
             }
@@ -2510,7 +2510,7 @@ public partial class bithumb : Exchange
         }
         bool? postOnly = null;
         string? timeInForce = this.safeStringUpper(order, "time_in_force");
-        if (isEqual(timeInForce, "POST_ONLY"))
+        if ((timeInForce == "POST_ONLY"))
         {
             timeInForce = "PO";
             postOnly = true;

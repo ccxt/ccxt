@@ -1730,7 +1730,7 @@ public partial class bitmex : ccxt.bitmex
                 object size = this.convertFromRawQuantity(symbol, this.safeString(getValue(data, i), "size"));
                 string? id = this.safeString(getValue(data, i), "id");
                 string? side = this.safeString(getValue(data, i), "side");
-                side = ((bool) (isEqual(side, "Buy"))) ? "bids" : "asks";
+                side = ((bool) ((side == "Buy"))) ? "bids" : "asks";
                 object bookside = getValue(orderbook, side);
                 (bookside as IOrderBookSide).storeArray(new List<object>() {price, size, id});
                 string? datetime = this.safeString(getValue(data, i), "timestamp");
@@ -1761,7 +1761,7 @@ public partial class bitmex : ccxt.bitmex
                 object size = ((bool) ((action == "delete"))) ? 0 : this.convertFromRawQuantity(symbol, this.safeString(getValue(data, i), "size", "0"));
                 string? id = this.safeString(getValue(data, i), "id");
                 string? side = this.safeString(getValue(data, i), "side");
-                side = ((bool) (isEqual(side, "Buy"))) ? "bids" : "asks";
+                side = ((bool) ((side == "Buy"))) ? "bids" : "asks";
                 object bookside = getValue(orderbook, side);
                 (bookside as IOrderBookSide).storeArray(new List<object>() {price, size, id});
                 string? datetime = this.safeString(getValue(data, i), "timestamp");

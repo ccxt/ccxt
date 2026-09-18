@@ -3493,7 +3493,7 @@ public partial class mexc : Exchange
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        if (isEqual(marketType, "spot"))
+        if ((marketType == "spot"))
         {
             if (!isEqual(symbol, null))
             {
@@ -3673,7 +3673,7 @@ public partial class mexc : Exchange
         var marginMode = ((IList<object>) marginModequeryVariable)[0];
         var query = ((IList<object>) marginModequeryVariable)[1];
         object data = null;
-        if (isEqual(marketType, "spot"))
+        if ((marketType == "spot"))
         {
             if (isEqual(symbol, null))
             {
@@ -3815,7 +3815,7 @@ public partial class mexc : Exchange
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        if (isEqual(marketType, "spot"))
+        if ((marketType == "spot"))
         {
             if (isEqual(symbol, null))
             {
@@ -4451,7 +4451,7 @@ public partial class mexc : Exchange
         bool? isMargin = this.safeBool(parameters, "margin", false);
         parameters = this.omit(parameters, new List<object>() {"margin", "marginMode"});
         object response = null;
-        if (((marginMode != null)) || ((isMargin == true)) || (isEqual(marketType, "margin")))
+        if (((marginMode != null)) || ((isMargin == true)) || ((marketType == "margin")))
         {
             object parsedSymbols = null;
             string? symbol = this.safeString(parameters, "symbol");
@@ -4476,10 +4476,10 @@ public partial class mexc : Exchange
             ((IDictionary<string,object>)request)["symbols"] = parsedSymbols;
             parameters = this.omit(parameters, new List<object>() {"symbol", "symbols"});
             response = await this.spotPrivateGetMarginIsolatedAccount(this.extend(request, parameters));
-        } else if (isEqual(marketType, "spot"))
+        } else if ((marketType == "spot"))
         {
             response = await this.spotPrivateGetAccount(this.extend(request, parameters));
-        } else if (isEqual(marketType, "swap"))
+        } else if ((marketType == "swap"))
         {
             response = await this.contractPrivateGetAccountAssets(this.extend(request, parameters));
         } else
@@ -4606,7 +4606,7 @@ public partial class mexc : Exchange
             { "symbol", getValue(market, "id") },
         };
         List<object> trades = new List<object>() {};
-        if (isEqual(marketType, "spot"))
+        if ((marketType == "spot"))
         {
             if (!isEqual(since, null))
             {
@@ -5651,7 +5651,7 @@ public partial class mexc : Exchange
                 { "currency", code },
             };
         }
-        if (isEqual(type, "withdrawal"))
+        if ((type == "withdrawal"))
         {
             // mexc withdrawal amount includes the fee
             amountString = Precise.stringSub(amountString, feeCostString);
@@ -6025,7 +6025,7 @@ public partial class mexc : Exchange
             throw new ArgumentsRequired ((string)(this.id + " fetchTransfers() requires a toAccountType parameter, one of \"SPOT\", \"FUTURES\"")) ;
         }
         object resultList = new List<object>() {};
-        if (isEqual(marketType, "spot"))
+        if ((marketType == "spot"))
         {
             if (!isEqual(since, null))
             {
@@ -6059,7 +6059,7 @@ public partial class mexc : Exchange
             //     "total": 1
             // }
             resultList = this.safeList(response, "rows", new List<object>() {});
-        } else if (isEqual(marketType, "swap"))
+        } else if ((marketType == "swap"))
         {
             if (!isEqual(limit, null))
             {

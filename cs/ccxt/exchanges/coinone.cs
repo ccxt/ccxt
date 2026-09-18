@@ -931,7 +931,7 @@ public partial class coinone : Exchange
             feeCostString = Precise.stringAbs(feeCostString);
             string? feeRateString = this.safeString(trade, "feeRate");
             feeRateString = Precise.stringAbs(feeRateString);
-            object feeCurrencyCode = ((bool) (isEqual(side, "sell"))) ? getValue(market, "quote") : getValue(market, "base");
+            object feeCurrencyCode = ((bool) ((side == "sell"))) ? getValue(market, "quote") : getValue(market, "base");
             fee = new Dictionary<string, object>() {
                 { "cost", feeCostString },
                 { "currency", feeCurrencyCode },
@@ -1190,14 +1190,14 @@ public partial class coinone : Exchange
             timestamp = this.safeInteger2(order, "ordered_at", "updated_at"); // v2.1 sends milliseconds
         }
         string? side = this.safeStringLower2(order, "type", "side");
-        if ((isEqual(side, "limit")) || (isEqual(side, "market")) || (isEqual(side, "stop_limit")))
+        if (((side == "limit")) || ((side == "market")) || ((side == "stop_limit")))
         {
             side = this.safeStringLower(order, "side"); // in v2.1 rows the type field carries the order type, the side lives in side
         }
-        if (isEqual(side, "ask"))
+        if ((side == "ask"))
         {
             side = "sell";
-        } else if (isEqual(side, "bid"))
+        } else if ((side == "bid"))
         {
             side = "buy";
         }
@@ -1205,7 +1205,7 @@ public partial class coinone : Exchange
         string? amountString = this.safeStringN(order, new List<object>() {"originalQty", "qty", "original_qty"});
         string? status = this.safeString(order, "status");
         // https://github.com/ccxt/ccxt/pull/7067
-        if (isEqual(status, "live"))
+        if ((status == "live"))
         {
             if (((remainingString != null)) && ((amountString != null)))
             {
@@ -1221,7 +1221,7 @@ public partial class coinone : Exchange
         string? feeCostString = this.safeString(order, "fee");
         if ((feeCostString != null))
         {
-            object feeCurrencyCode = ((bool) (isEqual(side, "sell"))) ? quote : bs;
+            object feeCurrencyCode = ((bool) ((side == "sell"))) ? quote : bs;
             fee = new Dictionary<string, object>() {
                 { "cost", feeCostString },
                 { "rate", this.safeString2(order, "feeRate", "fee_rate") },

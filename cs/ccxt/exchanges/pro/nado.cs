@@ -501,7 +501,7 @@ public partial class nado : ccxt.nado
         object ticker = await this.watchPublic(streamType, market, messageHash, parameters);
         if (isTrue(this.newUpdates))
         {
-            if (isEqual(messageHash, "ticker"))
+            if ((messageHash == "ticker"))
             {
                 return ccxt.BaseExchange.ToTickers(this.filterByArray(ticker, "symbol", symbols));
             }
@@ -572,7 +572,7 @@ public partial class nado : ccxt.nado
         object ticker = await this.watchPublic(streamType, market, messageHash, parameters);
         if (isTrue(this.newUpdates))
         {
-            if (isEqual(messageHash, "bidask"))
+            if ((messageHash == "bidask"))
             {
                 return ccxt.BaseExchange.ToTickers(this.filterByArray(ticker, "symbol", symbols));
             }

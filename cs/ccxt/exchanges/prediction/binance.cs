@@ -453,10 +453,10 @@ public partial class binance : PredictionExchange
                 // VOLUME, PARTICIPANTS, CREATED_TIME or END_DATE — 'liquidity' has no
                 // server-side equivalent and stays in params so the base
                 // applyEventFetchParams sorts it client-side instead
-                if (isEqual(sortBy, "NEWEST"))
+                if ((sortBy == "NEWEST"))
                 {
                     sortBy = "CREATED_TIME";
-                } else if (isEqual(sortBy, "LIQUIDITY"))
+                } else if ((sortBy == "LIQUIDITY"))
                 {
                     sortBy = null;
                 }

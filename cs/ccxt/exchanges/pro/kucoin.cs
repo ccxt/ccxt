@@ -490,7 +490,7 @@ public partial class kucoin : ccxt.kucoin
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchTickers", "uta", uta);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
-        bool isFuturesMethod = (!isEqual(marketType, "spot")) && (!isEqual(marketType, "margin"));
+        bool isFuturesMethod = ((marketType != "spot")) && ((marketType != "margin"));
         if ((isFuturesMethod || isTrue(uta)) && isEqual(symbols, null))
         {
             throw new ArgumentsRequired ((string)(((this.id + " watchTickers() requires a list of symbols for ") + marketType) + " markets and unified trading account (uta)")) ;
@@ -2005,7 +2005,7 @@ public partial class kucoin : ccxt.kucoin
             double? quantity = this.safeNumber(splitChange, 2);
             string type = ((bool) ((side == "buy"))) ? "bids" : "asks";
             List<object> value = new List<object>() {price, quantity};
-            if (isEqual(type, "bids"))
+            if ((type == "bids"))
             {
                 (storedBids as IOrderBookSide).storeArray(value);
             } else
@@ -2200,7 +2200,7 @@ public partial class kucoin : ccxt.kucoin
             IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchOrders", market, parameters);
             marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
             parameters = ((IList<object>)marketTypeparametersVariable)[1];
-            bool isFuturesMethod = ((!isEqual(marketType, "spot")) && (!isEqual(marketType, "margin")));
+            bool isFuturesMethod = (((marketType != "spot")) && ((marketType != "margin")));
             object url = await this.negotiate(true, isFuturesMethod);
             string topic = ((bool) ((trigger == true))) ? "/spotMarket/advancedOrders" : "/spotMarket/tradeOrders";
             if (isFuturesMethod)
@@ -2331,7 +2331,7 @@ public partial class kucoin : ccxt.kucoin
         string? triggerPrice = this.safeString(order, "stopPrice");
         bool? triggerSuccess = this.safeBool(order, "triggerSuccess");
         bool triggerFail = ((triggerSuccess != true)) && (!isEqual(triggerSuccess, null)); // TODO: updated to triggerSuccess === False once transpiler transpiles it correctly
-        if ((isEqual(status, "triggered")) && triggerFail)
+        if (((status == "triggered")) && triggerFail)
         {
             status = "canceled";
         }
@@ -2638,7 +2638,7 @@ public partial class kucoin : ccxt.kucoin
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        bool isFuturesMethod = ((!isEqual(marketType, "spot")) && (!isEqual(marketType, "margin")));
+        bool isFuturesMethod = (((marketType != "spot")) && ((marketType != "margin")));
         object uta = await this.isUTAEnabled();
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchMyTrades", "uta", uta);
         uta = ((IList<object>)utaparametersVariable)[0];

@@ -1072,7 +1072,7 @@ public partial class coinmate : Exchange
             };
         }
         string? takerOrMaker = this.safeString(trade, "feeType");
-        takerOrMaker = ((bool) (isEqual(takerOrMaker, "MAKER"))) ? "maker" : "taker";
+        takerOrMaker = ((bool) ((takerOrMaker == "MAKER"))) ? "maker" : "taker";
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", id },
             { "info", trade },
@@ -1382,16 +1382,16 @@ public partial class coinmate : Exchange
         }
         Dictionary<string, object> requestParams = this.extend(request, parameters);
         Dictionary<string, object> response = null;
-        if (isEqual(method, "privatePostBuyInstant"))
+        if ((method == "privatePostBuyInstant"))
         {
             response = await this.privatePostBuyInstant(requestParams);
-        } else if (isEqual(method, "privatePostSellInstant"))
+        } else if ((method == "privatePostSellInstant"))
         {
             response = await this.privatePostSellInstant(requestParams);
-        } else if (isEqual(method, "privatePostBuyLimit"))
+        } else if ((method == "privatePostBuyLimit"))
         {
             response = await this.privatePostBuyLimit(requestParams);
-        } else if (isEqual(method, "privatePostSellLimit"))
+        } else if ((method == "privatePostSellLimit"))
         {
             response = await this.privatePostSellLimit(requestParams);
         } else

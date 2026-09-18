@@ -627,7 +627,7 @@ public partial class hibachi : Exchange
                 { "currency", "USDT" },
             };
             orderType = this.safeStringLower(trade, "orderType");
-            if (isEqual(side, "buy"))
+            if ((side == "buy"))
             {
                 orderId = this.safeString(trade, "bidOrderId");
             } else
@@ -2241,7 +2241,7 @@ public partial class hibachi : Exchange
         Int64? timestamp = this.safeIntegerProduct(transaction, "timestampSec", 1000);
         string? address = this.safeString(transaction, "withdrawalAddress");
         string? transactionType = this.safeString(transaction, "transactionType");
-        if (!isEqual(transactionType, "deposit") && !isEqual(transactionType, "withdrawal"))
+        if ((transactionType != "deposit") && (transactionType != "withdrawal"))
         {
             transactionType = this.parseTransactionType(transactionType);
         }

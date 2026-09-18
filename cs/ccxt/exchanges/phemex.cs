@@ -1969,7 +1969,7 @@ public partial class phemex : Exchange
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         object query = this.omit(parameters, "type");
         object response = null;
-        if (isEqual(type, "spot"))
+        if ((type == "spot"))
         {
             response = await this.v1GetMdSpotTicker24hrAll(query);
         } else if (isEqual(subType, "inverse") || (this.safeString(market, "settle") == "USD"))
@@ -2491,11 +2491,11 @@ public partial class phemex : Exchange
         parameters = this.omit(parameters, new List<object>() {"code"});
         object response = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if ((!isEqual(type, "spot")) && (!isEqual(type, "swap")))
+        if (((type != "spot")) && ((type != "swap")))
         {
             throw new BadRequest ((string)(((this.id + " does not support ") + type) + " markets, only spot and swap")) ;
         }
-        if (isEqual(type, "swap"))
+        if ((type == "swap"))
         {
             object settle = null;
             IList<object> settleparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchBalance", "settle", "USDT");
@@ -2650,7 +2650,7 @@ public partial class phemex : Exchange
         //         }
         //     }
         //
-        if (isEqual(type, "swap"))
+        if ((type == "swap"))
         {
             return ccxt.BaseExchange.ToBalances(this.parseSwapBalance(response));
         }
@@ -2800,7 +2800,7 @@ public partial class phemex : Exchange
         }
         string? timeInForce = this.parseTimeInForce(this.safeString(order, "timeInForce"));
         double? triggerPrice = this.parseNumber(this.omitZero(this.fromEp(this.safeString(order, "stopPxEp"), market)));
-        bool postOnly = (isEqual(timeInForce, "PO"));
+        bool postOnly = ((timeInForce == "PO"));
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },
@@ -2971,7 +2971,7 @@ public partial class phemex : Exchange
         }
         string? timeInForce = this.parseTimeInForce(this.safeString(order, "timeInForce"));
         string? triggerPrice = ((string)this.omitZero(this.safeString2(order, "stopPx", "stopPxRp")));
-        bool postOnly = (isEqual(timeInForce, "PO"));
+        bool postOnly = ((timeInForce == "PO"));
         object reduceOnly = this.safeValue(order, "reduceOnly");
         string? execInst = this.safeString(order, "execInst");
         if ((execInst == "ReduceOnly"))
@@ -3194,7 +3194,7 @@ public partial class phemex : Exchange
                     throw new ArgumentsRequired ((string)(this.id + " createOrder() also requires a 'triggerDirection' parameter with either 'ascending' or 'descending' value")) ;
                 }
                 // the flow defined per https://phemex-docs.github.io/#more-order-typeVar-examples
-                if (isEqual(triggerDirection, "ascending") || isEqual(triggerDirection, "up"))
+                if ((triggerDirection == "ascending") || (triggerDirection == "up"))
                 {
                     if (isEqual(sideVar, "sell"))
                     {
@@ -3203,7 +3203,7 @@ public partial class phemex : Exchange
                     {
                         ((IDictionary<string,object>)request)["ordType"] = ((bool) (isEqual(typeVar, "Market"))) ? "Stop" : "StopLimit";
                     }
-                } else if (isEqual(triggerDirection, "descending") || isEqual(triggerDirection, "down"))
+                } else if ((triggerDirection == "descending") || (triggerDirection == "down"))
                 {
                     if (isEqual(sideVar, "sell"))
                     {
@@ -3917,7 +3917,7 @@ public partial class phemex : Exchange
             limitVar = mathMin(200, limitVar);
             ((IDictionary<string,object>)request)["limit"] = limitVar;
         }
-        bool isUSDTSettled = (!isEqual(type, "spot")) && ((isEqual(symbol, null)) || ((this.safeString(market, "settle") == "USDT")));
+        bool isUSDTSettled = ((type != "spot")) && ((isEqual(symbol, null)) || ((this.safeString(market, "settle") == "USDT")));
         if (isUSDTSettled)
         {
             ((IDictionary<string,object>)request)["currency"] = "USDT";
@@ -3938,7 +3938,7 @@ public partial class phemex : Exchange
         if (isUSDTSettled)
         {
             response = await this.privateGetExchangeOrderV2TradingList(this.extend(request, parameters));
-        } else if (isEqual(type, "swap"))
+        } else if ((type == "swap"))
         {
             ((IDictionary<string,object>)request)["tradeType"] = "Trade";
             response = await this.privateGetExchangeOrderTrade(this.extend(request, parameters));
@@ -4706,7 +4706,7 @@ public partial class phemex : Exchange
         string? priceDiff = null;
         if (isEqual(getValue(market, "linear"), true))
         {
-            if (isEqual(side, "long"))
+            if ((side == "long"))
             {
                 priceDiff = Precise.stringSub(markPriceString, entryPriceString);
             } else
@@ -4716,7 +4716,7 @@ public partial class phemex : Exchange
         } else
         {
             // inverse
-            if (isEqual(side, "long"))
+            if ((side == "long"))
             {
                 priceDiff = Precise.stringSub(Precise.stringDiv("1", entryPriceString), Precise.stringDiv("1", markPriceString));
             } else
@@ -5316,7 +5316,7 @@ public partial class phemex : Exchange
         string requestPath = ("/" + this.implodeParams(path, parameters));
         string url = requestPath;
         string queryString = "";
-        if ((isEqual(method, "GET")) || (isEqual(method, "DELETE")) || (isEqual(method, "PUT")) || (isEqual(url, "/positions/assign")))
+        if ((isEqual(method, "GET")) || (isEqual(method, "DELETE")) || (isEqual(method, "PUT")) || ((url == "/positions/assign")))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {

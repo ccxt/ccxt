@@ -761,7 +761,7 @@ public partial class lighter : ccxt.lighter
         Dictionary<string, object> fee = null;
         if ((takerOrMaker != null))
         {
-            string? feeRateRaw = ((bool) (isEqual(takerOrMaker, "maker"))) ? this.safeString(trade, "maker_fee") : this.safeString(trade, "taker_fee");
+            string? feeRateRaw = ((bool) ((takerOrMaker == "maker"))) ? this.safeString(trade, "maker_fee") : this.safeString(trade, "taker_fee");
             string? feeRate = ((bool) ((feeRateRaw != null))) ? Precise.stringDiv(feeRateRaw, "1000000") : "0";
             string? feeAmount = Precise.stringMul(costString, feeRate);
             fee = new Dictionary<string, object>() {
@@ -1107,7 +1107,7 @@ public partial class lighter : ccxt.lighter
         parameters = ((IList<object>)accountIndexparametersVariable)[1];
         string? messageHash = ((string)this.getMessageHash("balances", null, type));
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (isEqual(type, "spot"))
+        if ((type == "spot"))
         {
             ((IDictionary<string,object>)request)["channel"] = ("account_all_assets/" + this.numberToString(accountIndex));
             return ccxt.BaseExchange.ToBalances(await this.subscribePrivate(messageHash, this.extend(request, parameters)));

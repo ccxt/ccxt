@@ -776,7 +776,7 @@ public partial class toobit : ccxt.toobit
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchBalance", null, parameters);
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        bool isSpot = (isEqual(marketType, "spot"));
+        bool isSpot = ((marketType == "spot"));
         string type = ((bool) isSpot) ? "spot" : "contract";
         string spotSubHash = "spot:balance";
         string swapSubHash = "contract:private";

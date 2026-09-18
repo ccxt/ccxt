@@ -2521,7 +2521,7 @@ public partial class bybit : Exchange
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams(method, market, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        if (isEqual(type, "option") || isEqual(type, "spot"))
+        if ((type == "option") || (type == "spot"))
         {
             return new List<object>() {type, parameters};
         }
@@ -2535,7 +2535,7 @@ public partial class bybit : Exchange
         Dictionary<string, object> market = this.market(symbol);
         bool emptyPrecisionAmount = (isEqual(getValue(getValue(market, "precision"), "amount"), null));
         string? amountString = this.numberToString(amount);
-        if (!emptyPrecisionAmount && (!isEqual(amountString, "0")))
+        if (!emptyPrecisionAmount && ((amountString != "0")))
         {
             return this.amountToPrecision(symbol, amount);
         }
@@ -3950,7 +3950,7 @@ public partial class bybit : Exchange
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchFundingRates", market, parameters);
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        if (!isEqual(type, "swap"))
+        if ((type != "swap"))
         {
             throw new NotSupported ((string)(((this.id + " fetchFundingRates() does not support ") + type) + " markets")) ;
         } else
@@ -4307,23 +4307,23 @@ public partial class bybit : Exchange
         } else
         {
             string? lastLiquidityInd = this.safeString(trade, "lastLiquidityInd");
-            if (isEqual(lastLiquidityInd, "UNKNOWN"))
+            if ((lastLiquidityInd == "UNKNOWN"))
             {
                 lastLiquidityInd = null;
             }
             if ((lastLiquidityInd != null))
             {
-                if ((isEqual(lastLiquidityInd, "TAKER")) || (isEqual(lastLiquidityInd, "MAKER")))
+                if (((lastLiquidityInd == "TAKER")) || ((lastLiquidityInd == "MAKER")))
                 {
                     takerOrMaker = ((string)lastLiquidityInd).ToLower();
                 } else
                 {
-                    takerOrMaker = ((bool) (isEqual(lastLiquidityInd, "AddedLiquidity"))) ? "maker" : "taker";
+                    takerOrMaker = ((bool) ((lastLiquidityInd == "AddedLiquidity"))) ? "maker" : "taker";
                 }
             }
         }
         string? orderType = this.safeStringLower(trade, "orderType");
-        if (isEqual(orderType, "unknown"))
+        if ((orderType == "unknown"))
         {
             orderType = null;
         }
@@ -4337,7 +4337,7 @@ public partial class bybit : Exchange
             {
                 if (isTrue(Precise.stringGt(feeCostString, "0")))
                 {
-                    if (isEqual(side, "buy"))
+                    if ((side == "buy"))
                     {
                         feeCurrencyCode = getValue(market, "base");
                     } else
@@ -4346,7 +4346,7 @@ public partial class bybit : Exchange
                     }
                 } else
                 {
-                    if (isEqual(side, "buy"))
+                    if ((side == "buy"))
                     {
                         feeCurrencyCode = getValue(market, "quote");
                     } else
@@ -4752,7 +4752,7 @@ public partial class bybit : Exchange
         bool isSpot = (isEqual(type, "spot"));
         bool isLinear = (isEqual(type, "linear"));
         bool isInverse = (isEqual(type, "inverse"));
-        bool isFunding = (isEqual(lowercaseRawType, "fund")) || (isEqual(lowercaseRawType, "funding"));
+        bool isFunding = ((lowercaseRawType == "fund")) || ((lowercaseRawType == "funding"));
         if (isUnifiedAccount)
         {
             Int64? unifiedMarginStatus = this.safeInteger(this.options, "unifiedMarginStatus", 6);
@@ -5835,7 +5835,7 @@ public partial class bybit : Exchange
         }
         if ((triggerPrice != null))
         {
-            object triggerPriceRequest = ((bool) (isEqual(triggerPrice, "0"))) ? triggerPrice : this.getPrice(symbol, triggerPrice);
+            object triggerPriceRequest = ((bool) ((triggerPrice == "0"))) ? triggerPrice : this.getPrice(symbol, triggerPrice);
             ((IDictionary<string,object>)request)["triggerPrice"] = triggerPriceRequest;
             string? triggerBy = this.safeString(parameters, "triggerBy", "LastPrice");
             ((IDictionary<string,object>)request)["triggerBy"] = triggerBy;
@@ -7865,7 +7865,7 @@ public partial class bybit : Exchange
         object amount = null;
         if ((afterString != null) && (amountString != null))
         {
-            string? difference = ((bool) (isEqual(direction, "out"))) ? amountString : Precise.stringNeg(amountString);
+            string? difference = ((bool) ((direction == "out"))) ? amountString : Precise.stringNeg(amountString);
             before = this.parseToNumeric(Precise.stringAdd(afterString, difference));
             after = this.parseToNumeric(afterString);
             amount = this.parseToNumeric(Precise.stringAbs(amountString));
@@ -8364,10 +8364,10 @@ public partial class bybit : Exchange
             side = ((bool) ((positionIdx == "1"))) ? "long" : "short";
         } else if ((side != null))
         {
-            if (isEqual(side, "Buy"))
+            if ((side == "Buy"))
             {
                 side = ((bool) isHistory) ? "short" : "long";
-            } else if (isEqual(side, "Sell"))
+            } else if ((side == "Sell"))
             {
                 side = ((bool) isHistory) ? "long" : "short";
             } else

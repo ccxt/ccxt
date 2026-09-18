@@ -1704,10 +1704,10 @@ public partial class cryptocom : Exchange
         IList<object> marginModeparametersVariable = (IList<object>)this.customHandleMarginModeAndParams("createOrder", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
-        if ((isEqual(marketType, "margin")) || ((marginMode != null)))
+        if (((marketType == "margin")) || ((marginMode != null)))
         {
             ((IDictionary<string,object>)request)["spot_margin"] = "MARGIN";
-        } else if (isEqual(marketType, "spot"))
+        } else if ((marketType == "spot"))
         {
             ((IDictionary<string,object>)request)["spot_margin"] = "SPOT";
         }
@@ -3567,7 +3567,7 @@ public partial class cryptocom : Exchange
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         this.checkRequiredArgument("fetchSettlementHistory", type, "type", new List<object>() {"future", "option", "WARRANT", "FUTURE"});
-        if (isEqual(type, "option"))
+        if ((type == "option"))
         {
             type = "WARRANT";
         }

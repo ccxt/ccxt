@@ -231,7 +231,7 @@ public partial class mexc : ccxt.mexc
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchTickers", market, parameters);
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        bool isSpot = (isEqual(type, "spot"));
+        bool isSpot = ((type == "spot"));
         object url = ((bool) (isSpot)) ? getValue(getValue(getValue(this.urls, "api"), "ws"), "spot") : getValue(getValue(getValue(this.urls, "api"), "ws"), "swap");
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (isSpot)
@@ -436,7 +436,7 @@ public partial class mexc : ccxt.mexc
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchBidsAsks", getValue(markets, 0), parameters);
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        bool isSpot = isEqual(marketType, "spot");
+        bool isSpot = (marketType == "spot");
         if (!isSpot)
         {
             throw new NotSupported ((string)(this.id + " watchBidsAsks only support spot market")) ;
@@ -1186,7 +1186,7 @@ public partial class mexc : ccxt.mexc
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         object trades = null;
-        if (isEqual(type, "spot"))
+        if ((type == "spot"))
         {
             string channel = "spot@private.deals.v3.api.pb";
             trades = await this.watchSpotPrivate(channel, messageHash, parameters);
@@ -1388,7 +1388,7 @@ public partial class mexc : ccxt.mexc
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         object orders = null;
-        if (isEqual(type, "spot"))
+        if ((type == "spot"))
         {
             string channel = "spot@private.orders.v3.api.pb";
             orders = await this.watchSpotPrivate(channel, messageHash, parameters);
@@ -1688,7 +1688,7 @@ public partial class mexc : ccxt.mexc
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         string messageHash = ("balance:" + type);
-        if (isEqual(type, "spot"))
+        if ((type == "spot"))
         {
             string channel = "spot@private.account.v3.api.pb";
             return ccxt.BaseExchange.ToBalances(await this.watchSpotPrivate(channel, messageHash, parameters));
@@ -1906,7 +1906,7 @@ public partial class mexc : ccxt.mexc
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchTickers", market, parameters);
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        bool isSpot = (isEqual(type, "spot"));
+        bool isSpot = ((type == "spot"));
         object url = ((bool) (isSpot)) ? getValue(getValue(getValue(this.urls, "api"), "ws"), "spot") : getValue(getValue(getValue(this.urls, "api"), "ws"), "swap");
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (isSpot)
@@ -1949,7 +1949,7 @@ public partial class mexc : ccxt.mexc
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchBidsAsks", getValue(markets, 0), parameters);
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        bool isSpot = isEqual(marketType, "spot");
+        bool isSpot = (marketType == "spot");
         if (!isSpot)
         {
             throw new NotSupported ((string)(this.id + " watchBidsAsks only support spot market")) ;

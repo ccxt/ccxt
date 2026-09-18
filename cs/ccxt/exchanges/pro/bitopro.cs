@@ -317,10 +317,10 @@ public partial class bitopro : ccxt.bitopro
         string? side = this.safeString(trade, "side");
         if ((side != null))
         {
-            if (isEqual(side, "ask"))
+            if ((side == "ask"))
             {
                 side = "sell";
-            } else if (isEqual(side, "bid"))
+            } else if ((side == "bid"))
             {
                 side = "buy";
             }

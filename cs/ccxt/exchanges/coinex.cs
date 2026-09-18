@@ -2004,7 +2004,7 @@ public partial class coinex : Exchange
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         object response = null;
-        if (isEqual(type, "swap"))
+        if ((type == "swap"))
         {
             response = await this.v2PublicGetFuturesMarket(parameters);
         } else
@@ -2333,11 +2333,11 @@ public partial class coinex : Exchange
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchBalance", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
-        bool isMargin = ((marginMode != null)) || (isEqual(marketType, "margin"));
-        if (isEqual(marketType, "swap"))
+        bool isMargin = ((marginMode != null)) || ((marketType == "margin"));
+        if ((marketType == "swap"))
         {
             return await this.FetchSwapBalance(parameters);
-        } else if (isEqual(marketType, "financial"))
+        } else if ((marketType == "financial"))
         {
             return await this.FetchFinancialBalance(parameters);
         } else if (isMargin)
@@ -2581,11 +2581,11 @@ public partial class coinex : Exchange
         string? marketId = this.safeString(order, "market");
         string? defaultType = this.safeString(this.options, "defaultType");
         string? orderType = this.safeStringLower(order, "market_type", defaultType);
-        if (isEqual(orderType, "futures"))
+        if ((orderType == "futures"))
         {
             orderType = "swap";
         }
-        string marketType = ((bool) (isEqual(orderType, "swap"))) ? "swap" : "spot";
+        string marketType = ((bool) ((orderType == "swap"))) ? "swap" : "spot";
         market = this.safeMarket(marketId, market, null, marketType);
         string? feeCurrencyId = this.safeString(order, "fee_ccy");
         object feeCurrency = this.safeCurrencyCode(feeCurrencyId);
@@ -2594,15 +2594,15 @@ public partial class coinex : Exchange
             feeCurrency = getValue(market, "quote");
         }
         string? side = this.safeString(order, "side");
-        if (isEqual(side, "long"))
+        if ((side == "long"))
         {
             side = "buy";
-        } else if (isEqual(side, "short"))
+        } else if ((side == "short"))
         {
             side = "sell";
         }
         string? clientOrderId = this.safeString(order, "client_id");
-        if (isEqual(clientOrderId, ""))
+        if ((clientOrderId == ""))
         {
             clientOrderId = null;
         }
@@ -3515,7 +3515,7 @@ public partial class coinex : Exchange
         Dictionary<string, object> response = null;
         bool isClosed = (isEqual(status, "finished")) || (isEqual(status, "closed"));
         bool isOpen = (isEqual(status, "pending")) || (isEqual(status, "open"));
-        if (isEqual(marketType, "swap"))
+        if ((marketType == "swap"))
         {
             ((IDictionary<string,object>)request)["market_type"] = "FUTURES";
             if (isClosed)
@@ -4913,7 +4913,7 @@ public partial class coinex : Exchange
         {
             amount = this.safeNumber(transaction, "amount");
         }
-        if (isEqual(type, "deposit"))
+        if ((type == "deposit"))
         {
             feeCost = "0";
         }
@@ -6103,7 +6103,7 @@ public partial class coinex : Exchange
                 {
                     body = this.json(query);
                     preparedString = add(preparedString, body);
-                } else if (!isEqual(urlencoded, ""))
+                } else if ((urlencoded != ""))
                 {
                     preparedString = add(preparedString, ("?" + urlencoded));
                 }
@@ -6118,7 +6118,7 @@ public partial class coinex : Exchange
                 };
                 if (!isEqual(method, "POST"))
                 {
-                    if (!isEqual(urlencoded, ""))
+                    if ((urlencoded != ""))
                     {
                         url = add(url, ("?" + urlencoded));
                     }

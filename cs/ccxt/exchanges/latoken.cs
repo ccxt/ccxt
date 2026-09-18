@@ -1017,15 +1017,15 @@ public partial class latoken : Exchange
             side = ((bool) (isEqual(makerBuyer, true))) ? "sell" : "buy";
         } else
         {
-            if (isEqual(side, "TRADE_DIRECTION_BUY"))
+            if ((side == "TRADE_DIRECTION_BUY"))
             {
                 side = "buy";
-            } else if (isEqual(side, "TRADE_DIRECTION_SELL"))
+            } else if ((side == "TRADE_DIRECTION_SELL"))
             {
                 side = "sell";
             }
         }
-        bool isBuy = (isEqual(side, "buy"));
+        bool isBuy = ((side == "buy"));
         bool isMaker = (isEqual(makerBuyer, true)) && isBuy;
         string takerOrMaker = ((bool) isMaker) ? "maker" : "taker";
         string? baseId = this.safeString(trade, "baseCurrency");

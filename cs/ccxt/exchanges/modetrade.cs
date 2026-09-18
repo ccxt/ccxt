@@ -761,7 +761,7 @@ public partial class modetrade : Exchange
         if ((status == null))
         {
             status = "error";
-        } else if (isEqual(status, "0"))
+        } else if ((status == "0"))
         {
             status = "ok";
         } else
@@ -2970,7 +2970,7 @@ public partial class modetrade : Exchange
         // example in fetchLedger
         string? code = this.safeString(transaction, "token");
         string? movementDirection = this.safeStringLower(transaction, "token_side");
-        if (isEqual(movementDirection, "withdraw"))
+        if ((movementDirection == "withdraw"))
         {
             movementDirection = "withdrawal";
         }

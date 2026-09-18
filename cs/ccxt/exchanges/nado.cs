@@ -1773,7 +1773,7 @@ public partial class nado : Exchange
             IDictionary<string, object> asset = this.safeDict(assetsById, id, new Dictionary<string, object>() {});
             string? rawType = this.safeString(market, "type");
             string? type = ((bool) ((rawType == "perp"))) ? "swap" : rawType;
-            bool contract = (isEqual(type, "swap"));
+            bool contract = ((type == "swap"));
             string? tickerId = this.safeString2(pair, "ticker_id", "tickerId");
             if ((tickerId == null))
             {
@@ -1810,7 +1810,7 @@ public partial class nado : Exchange
                 { "quoteId", quoteId },
                 { "settleId", settleId },
                 { "type", type },
-                { "spot", (isEqual(type, "spot")) },
+                { "spot", ((type == "spot")) },
                 { "margin", null },
                 { "swap", contract },
                 { "future", false },
@@ -2706,7 +2706,7 @@ public partial class nado : Exchange
             object rawBalance = getValue(balances, i);
             string? currencyId = this.safeString(rawBalance, "product_id");
             string? code = this.safeCurrencyCode(currencyId);
-            if (isEqual(code, "0"))
+            if ((code == "0"))
             {
                 code = "USDT0";
             } else if (isEqual(code, currencyId))
@@ -3068,7 +3068,7 @@ public partial class nado : Exchange
             } else
             {
                 status = this.safeString(order, "status", "rejected");
-                if ((isEqual(status, "success")) || (getIndexOf(status, "waiting") >= 0))
+                if (((status == "success")) || (getIndexOf(status, "waiting") >= 0))
                 {
                     status = "open";
                 }

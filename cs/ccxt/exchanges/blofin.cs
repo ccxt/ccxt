@@ -1754,19 +1754,19 @@ public partial class blofin : Exchange
         string? type = this.safeString(order, "orderType");
         bool? postOnly = null;
         string? timeInForce = null;
-        if (isEqual(type, "post_only"))
+        if ((type == "post_only"))
         {
             postOnly = true;
             type = "limit";
-        } else if (isEqual(type, "fok"))
+        } else if ((type == "fok"))
         {
             timeInForce = "FOK";
             type = "limit";
-        } else if (isEqual(type, "ioc"))
+        } else if ((type == "ioc"))
         {
             timeInForce = "IOC";
             type = "limit";
-        } else if (isEqual(type, "conditional"))
+        } else if ((type == "conditional"))
         {
             type = "trigger";
         }
@@ -3033,11 +3033,11 @@ public partial class blofin : Exchange
         string? pos = this.safeString(position, "positions");
         string? contractsAbs = Precise.stringAbs(pos);
         string? side = this.safeString(position, "positionSide");
-        bool hedged = !isEqual(side, "net");
+        bool hedged = (side != "net");
         double? contracts = this.parseNumber(contractsAbs);
         if ((pos != null))
         {
-            if (isEqual(side, "net"))
+            if ((side == "net"))
             {
                 if (isTrue(Precise.stringGt(pos, "0")))
                 {

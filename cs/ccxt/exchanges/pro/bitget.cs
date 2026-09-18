@@ -1773,11 +1773,11 @@ public partial class bitget : ccxt.bitget
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("watchOrders", market, parameters, "linear");
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        if ((isEqual(type, "spot") || isEqual(type, "margin")) && (isEqual(symbolVar, null)))
+        if (((type == "spot") || (type == "margin")) && (isEqual(symbolVar, null)))
         {
             marketId = "default";
         }
-        if (((productType == null)) && (!isEqual(type, "spot")) && (isEqual(symbolVar, null)))
+        if (((productType == null)) && ((type != "spot")) && (isEqual(symbolVar, null)))
         {
             messageHash = add(add(messageHash, ":"), subType);
         } else if ((productType == "USDT-FUTURES"))
@@ -1791,7 +1791,7 @@ public partial class bitget : ccxt.bitget
             messageHash = add(messageHash, ":usdcfutures"); // non unified channel
         }
         object instType = null;
-        if ((market == null) && isEqual(type, "spot"))
+        if ((market == null) && (type == "spot"))
         {
             instType = "SPOT";
         } else
@@ -1800,7 +1800,7 @@ public partial class bitget : ccxt.bitget
             instType = ((IList<object>)instTypeparametersVariable)[0];
             parameters = ((IList<object>)instTypeparametersVariable)[1];
         }
-        if (isEqual(type, "spot") && (!isEqual(symbolVar, null)))
+        if ((type == "spot") && (!isEqual(symbolVar, null)))
         {
             subscriptionHash = add(add(subscriptionHash, ":"), symbolVar);
         }
@@ -1808,7 +1808,7 @@ public partial class bitget : ccxt.bitget
         {
             subscriptionHash = add(subscriptionHash, ":stop"); // we don't want to re-use the same subscription hash for stop orders
         }
-        object instId = ((bool) (isEqual(type, "spot") || isEqual(type, "margin"))) ? marketId : "default"; // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
+        object instId = ((bool) ((type == "spot") || (type == "margin"))) ? marketId : "default"; // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
         string channel = ((bool) (isEqual(isTrigger, true))) ? "orders-algo" : "orders";
         object marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("watchOrders", parameters);
@@ -2349,7 +2349,7 @@ public partial class bitget : ccxt.bitget
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchMyTrades", "uta", false);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
-        if ((market == null) && isEqual(type, "spot"))
+        if ((market == null) && (type == "spot"))
         {
             instType = "SPOT";
         } else
@@ -2567,7 +2567,7 @@ public partial class bitget : ccxt.bitget
         parameters = ((IList<object>)marginModeparametersVariable)[1];
         object instType = null;
         string channel = "account";
-        if ((isEqual(type, "swap")) || (isEqual(type, "future")))
+        if (((type == "swap")) || ((type == "future")))
         {
             instType = "USDT-FUTURES";
         } else if ((marginMode != null))

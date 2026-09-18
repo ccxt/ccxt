@@ -1801,7 +1801,7 @@ public partial class polymarket : PredictionExchange
         //
         //     OK
         //
-        bool ok = (isEqual(response, "OK")) || (isEqual(response, "ok"));
+        bool ok = ((response == "OK")) || ((response == "ok"));
         return ccxt.BaseExchange.ToStatus(new Dictionary<string, object>() {             { "status", ((bool) ok) ? "ok" : "maintenance" },             { "updated", null },             { "eta", null },             { "url", null },             { "info", response },         });
     }
 
@@ -3316,7 +3316,7 @@ public partial class polymarket : PredictionExchange
                 }
             }
             string querystring = ((bool) hasArrayParam) ? this.urlencodeWithArrayRepeat(query) : this.urlencode(query);
-            if (!isEqual(querystring, ""))
+            if ((querystring != ""))
             {
                 url = add(url, ("?" + querystring));
             }

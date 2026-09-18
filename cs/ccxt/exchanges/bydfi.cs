@@ -1528,7 +1528,7 @@ public partial class bydfi : Exchange
         }
         string? timeInForce = this.handleTimeInForce(parameters);
         bool postOnly = false;
-        IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isMarketOrder, isEqual(timeInForce, "POST_ONLY"), parameters);
+        IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isMarketOrder, (timeInForce == "POST_ONLY"), parameters);
         postOnly = (bool)((IList<object>)postOnlyparametersVariable)[0];
         parameters = ((IList<object>)postOnlyparametersVariable)[1];
         if (isTrue(postOnly))
@@ -2148,7 +2148,7 @@ public partial class bydfi : Exchange
         string? rawTimeInForce = this.safeString(order, "timeInForce");
         string? timeInForce = this.parseOrderTimeInForce(rawTimeInForce);
         bool? postOnly = null;
-        if (isEqual(timeInForce, "PO"))
+        if ((timeInForce == "PO"))
         {
             postOnly = true;
         }

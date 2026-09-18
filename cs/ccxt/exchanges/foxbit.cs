@@ -2037,7 +2037,7 @@ public partial class foxbit : Exchange
             amount = Precise.stringAdd(remaining, filled);
         }
         string? cost = this.safeString(order, "funds_received");
-        if (((cost == null)) || (isEqual(cost, "")))
+        if (((cost == null)) || ((cost == "")))
         {
             string? priceAverage = this.safeString(order, "price_avg");
             string? priceToCalculate = this.safeString(order, "price", priceAverage);

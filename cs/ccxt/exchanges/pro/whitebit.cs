@@ -725,7 +725,7 @@ public partial class whitebit : ccxt.whitebit
         string? type = this.parseWsOrderType(rawType);
         string? amount = null;
         string? remaining = null;
-        if (isEqual(type, "market"))
+        if ((type == "market"))
         {
             amount = this.safeString(order, "deal_stock");
             remaining = "0";

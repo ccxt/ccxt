@@ -818,7 +818,7 @@ public partial class blofin : ccxt.blofin
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams(callerMethodName, firstMarket, parameters);
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        if (!isEqual(marketType, "swap"))
+        if ((marketType != "swap"))
         {
             throw new NotSupported ((string)(((add((this.id + " "), callerMethodName) + "() does not support ") + marketType) + " markets yet")) ;
         }

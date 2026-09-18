@@ -215,7 +215,7 @@ public partial class xt : ccxt.xt
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams(methodName, market, parameters);
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        bool isContract = (!isEqual(type, "spot"));
+        bool isContract = ((type != "spot"));
         string id = add(this.numberToString(this.milliseconds()), name); // call back ID
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "method", ((bool) isContract) ? "SUBSCRIBE" : "subscribe" },
@@ -282,7 +282,7 @@ public partial class xt : ccxt.xt
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams(methodName, market, parameters);
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        bool isContract = (!isEqual(type, "spot"));
+        bool isContract = ((type != "spot"));
         string id = add(this.numberToString(this.milliseconds()), name); // call back ID
         Dictionary<string, object> unsubscribe = new Dictionary<string, object>() {
             { "method", ((bool) isContract) ? "UNSUBSCRIBE" : "unsubscribe" },

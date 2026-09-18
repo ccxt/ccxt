@@ -1613,7 +1613,7 @@ public partial class coinbase : Exchange
             object bs = this.safeCurrencyCode(baseId);
             string type = ((bool) (inOp(dataById, baseId))) ? "fiat" : "crypto";
             // https://github.com/ccxt/ccxt/issues/6066
-            if (isEqual(type, "crypto"))
+            if ((type == "crypto"))
             {
                 for (int j = 0; j < data.Count; postFixIncrement(ref j))
                 {
@@ -2397,9 +2397,9 @@ public partial class coinbase : Exchange
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchTickers", this.getMarketFromSymbols(symbols), parameters, "default");
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        if ((marketType != null) && !isEqual(marketType, "default"))
+        if ((marketType != null) && (marketType != "default"))
         {
-            ((IDictionary<string,object>)request)["product_type"] = ((bool) (isEqual(marketType, "swap"))) ? "FUTURE" : "SPOT";
+            ((IDictionary<string,object>)request)["product_type"] = ((bool) ((marketType == "swap"))) ? "FUTURE" : "SPOT";
         }
         Dictionary<string, object> response = null;
         object usePrivate = false;
@@ -2806,7 +2806,7 @@ public partial class coinbase : Exchange
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         string? method = this.safeString(this.options, "fetchBalance", "v3PrivateGetBrokerageAccounts");
-        if (isEqual(marketType, "future"))
+        if ((marketType == "future"))
         {
             response = await this.v3PrivateGetBrokerageCfmBalanceSummary(this.extend(request, parameters));
         } else if (((isV3 == true)) || ((method == "v3PrivateGetBrokerageAccounts")))
@@ -5496,7 +5496,7 @@ public partial class coinbase : Exchange
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         Dictionary<string, object> response = null;
-        if (isEqual(type, "future"))
+        if ((type == "future"))
         {
             response = await this.v3PrivateGetBrokerageCfmPositions(parameters);
         } else
@@ -5729,7 +5729,7 @@ public partial class coinbase : Exchange
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchTradingFees", null, parameters);
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        bool isSpot = (isEqual(type, "spot"));
+        bool isSpot = ((type == "spot"));
         string productType = ((bool) isSpot) ? "SPOT" : "FUTURE";
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "product_type", productType },

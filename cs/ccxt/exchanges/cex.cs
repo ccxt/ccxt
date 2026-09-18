@@ -1069,7 +1069,7 @@ public partial class cex : Exchange
         method = (string)((IList<object>)methodparametersVariable)[0];
         parameters = ((IList<object>)methodparametersVariable)[1];
         IDictionary<string, object> accountBalance = null;
-        if (isEqual(method, "privatePostGetMyAccountStatusV3"))
+        if ((method == "privatePostGetMyAccountStatusV3"))
         {
             Dictionary<string, object> response = await this.privatePostGetMyAccountStatusV3(parameters);
             //

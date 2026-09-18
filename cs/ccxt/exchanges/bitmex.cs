@@ -2621,8 +2621,8 @@ public partial class bitmex : Exchange
             }
             if (isTrailingAmountOrder)
             {
-                bool isStopSellOrder = (isEqual(side, "sell")) && ((isEqual(orderType, "Stop")) || (isEqual(orderType, "StopLimit")));
-                bool isBuyIfTouchedOrder = (isEqual(side, "buy")) && ((isEqual(orderType, "MarketIfTouched")) || (isEqual(orderType, "LimitIfTouched")));
+                bool isStopSellOrder = (isEqual(side, "sell")) && (((orderType == "Stop")) || ((orderType == "StopLimit")));
+                bool isBuyIfTouchedOrder = (isEqual(side, "buy")) && (((orderType == "MarketIfTouched")) || ((orderType == "LimitIfTouched")));
                 if (isStopSellOrder || isBuyIfTouchedOrder)
                 {
                     trailingAmount = ("-" + trailingAmount);
@@ -2640,7 +2640,7 @@ public partial class bitmex : Exchange
             ((IDictionary<string,object>)request)["ordType"] = orderType;
             parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice", "stopPx", "triggerDirection", "trailingAmount"});
         }
-        if ((isEqual(orderType, "Limit")) || (isEqual(orderType, "StopLimit")) || (isEqual(orderType, "LimitIfTouched")))
+        if (((orderType == "Limit")) || ((orderType == "StopLimit")) || ((orderType == "LimitIfTouched")))
         {
             ((IDictionary<string,object>)request)["price"] = this.parseToNumeric(this.priceToPrecision(symbol, price));
         }
@@ -2692,8 +2692,8 @@ public partial class bitmex : Exchange
                     orderType = ((bool) triggerAbove) ? "MarketIfTouched" : "Stop";
                 }
             }
-            bool isStopSellOrder = (isEqual(side, "sell")) && ((isEqual(orderType, "Stop")) || (isEqual(orderType, "StopLimit")));
-            bool isBuyIfTouchedOrder = (isEqual(side, "buy")) && ((isEqual(orderType, "MarketIfTouched")) || (isEqual(orderType, "LimitIfTouched")));
+            bool isStopSellOrder = (isEqual(side, "sell")) && (((orderType == "Stop")) || ((orderType == "StopLimit")));
+            bool isBuyIfTouchedOrder = (isEqual(side, "buy")) && (((orderType == "MarketIfTouched")) || ((orderType == "LimitIfTouched")));
             if (isStopSellOrder || isBuyIfTouchedOrder)
             {
                 trailingAmount = ("-" + trailingAmount);

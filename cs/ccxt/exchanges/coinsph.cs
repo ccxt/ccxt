@@ -1621,7 +1621,7 @@ public partial class coinsph : Exchange
         object options = this.safeValue(this.options, "createOrder", new Dictionary<string, object>() {});
         object newOrderRespType = this.safeValue(options, "newOrderRespType", new Dictionary<string, object>() {});
         // if limit order
-        if (isEqual(orderType, "LIMIT") || isEqual(orderType, "STOP_LOSS_LIMIT") || isEqual(orderType, "TAKE_PROFIT_LIMIT") || isEqual(orderType, "LIMIT_MAKER"))
+        if ((orderType == "LIMIT") || (orderType == "STOP_LOSS_LIMIT") || (orderType == "TAKE_PROFIT_LIMIT") || (orderType == "LIMIT_MAKER"))
         {
             if (isEqual(price, null))
             {
@@ -1630,17 +1630,17 @@ public partial class coinsph : Exchange
             newOrderRespType = this.safeString(newOrderRespType, "limit", "FULL");
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
             ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision(symbol, amount);
-            if (!isEqual(orderType, "LIMIT_MAKER"))
+            if ((orderType != "LIMIT_MAKER"))
             {
                 ((IDictionary<string,object>)request)["timeInForce"] = this.safeString(options, "timeInForce", "GTC");
             }
-        } else if (isEqual(orderType, "MARKET") || isEqual(orderType, "STOP_LOSS") || isEqual(orderType, "TAKE_PROFIT"))
+        } else if ((orderType == "MARKET") || (orderType == "STOP_LOSS") || (orderType == "TAKE_PROFIT"))
         {
             newOrderRespType = this.safeString(newOrderRespType, "market", "FULL");
-            if (isEqual(orderSide, "SELL"))
+            if ((orderSide == "SELL"))
             {
                 ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision(symbol, amount);
-            } else if (isEqual(orderSide, "BUY"))
+            } else if ((orderSide == "BUY"))
             {
                 string? quoteAmount = null;
                 object createMarketBuyOrderRequiresPrice = true;
@@ -1671,7 +1671,7 @@ public partial class coinsph : Exchange
                 ((IDictionary<string,object>)request)["quoteOrderQty"] = quoteAmount;
             }
         }
-        if (isEqual(orderType, "STOP_LOSS") || isEqual(orderType, "STOP_LOSS_LIMIT") || isEqual(orderType, "TAKE_PROFIT") || isEqual(orderType, "TAKE_PROFIT_LIMIT"))
+        if ((orderType == "STOP_LOSS") || (orderType == "STOP_LOSS_LIMIT") || (orderType == "TAKE_PROFIT") || (orderType == "TAKE_PROFIT_LIMIT"))
         {
             string? triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
             if ((triggerPrice == null))

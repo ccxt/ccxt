@@ -1204,13 +1204,13 @@ public partial class hitbtc : Exchange
         IDictionary<string, object> accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         string? account = ((bool) ((type == null))) ? null : this.safeString(accountsByType, type, type);
         object response = null;
-        if (isEqual(account, "wallet"))
+        if ((account == "wallet"))
         {
             response = await this.privateGetWalletBalance(parameters);
-        } else if (isEqual(account, "spot"))
+        } else if ((account == "spot"))
         {
             response = await this.privateGetSpotBalance(parameters);
-        } else if (isEqual(account, "derivatives"))
+        } else if ((account == "derivatives"))
         {
             response = await this.privateGetFuturesBalance(parameters);
         } else
@@ -1468,13 +1468,13 @@ public partial class hitbtc : Exchange
             response = await this.privateGetMarginHistoryTrade(this.extend(request, parameters));
         } else
         {
-            if (isEqual(marketType, "spot"))
+            if ((marketType == "spot"))
             {
                 response = await this.privateGetSpotHistoryTrade(this.extend(request, parameters));
-            } else if (isEqual(marketType, "swap"))
+            } else if ((marketType == "swap"))
             {
                 response = await this.privateGetFuturesHistoryTrade(this.extend(request, parameters));
-            } else if (isEqual(marketType, "margin"))
+            } else if ((marketType == "margin"))
             {
                 response = await this.privateGetMarginHistoryTrade(this.extend(request, parameters));
             } else
@@ -2172,13 +2172,13 @@ public partial class hitbtc : Exchange
             response = await this.privateGetMarginHistoryOrder(this.extend(request, parameters));
         } else
         {
-            if (isEqual(marketType, "spot"))
+            if ((marketType == "spot"))
             {
                 response = await this.privateGetSpotHistoryOrder(this.extend(request, parameters));
-            } else if (isEqual(marketType, "swap"))
+            } else if ((marketType == "swap"))
             {
                 response = await this.privateGetFuturesHistoryOrder(this.extend(request, parameters));
-            } else if (isEqual(marketType, "margin"))
+            } else if ((marketType == "margin"))
             {
                 response = await this.privateGetMarginHistoryOrder(this.extend(request, parameters));
             } else
@@ -2234,13 +2234,13 @@ public partial class hitbtc : Exchange
             response = await this.privateGetMarginHistoryOrder(this.extend(request, parameters));
         } else
         {
-            if (isEqual(marketType, "spot"))
+            if ((marketType == "spot"))
             {
                 response = await this.privateGetSpotHistoryOrder(this.extend(request, parameters));
-            } else if (isEqual(marketType, "swap"))
+            } else if ((marketType == "swap"))
             {
                 response = await this.privateGetFuturesHistoryOrder(this.extend(request, parameters));
-            } else if (isEqual(marketType, "margin"))
+            } else if ((marketType == "margin"))
             {
                 response = await this.privateGetMarginHistoryOrder(this.extend(request, parameters));
             } else
@@ -2317,13 +2317,13 @@ public partial class hitbtc : Exchange
             response = await this.privateGetMarginHistoryTrade(this.extend(request, parameters));
         } else
         {
-            if (isEqual(marketType, "spot"))
+            if ((marketType == "spot"))
             {
                 response = await this.privateGetSpotHistoryTrade(this.extend(request, parameters));
-            } else if (isEqual(marketType, "swap"))
+            } else if ((marketType == "swap"))
             {
                 response = await this.privateGetFuturesHistoryTrade(this.extend(request, parameters));
-            } else if (isEqual(marketType, "margin"))
+            } else if ((marketType == "margin"))
             {
                 response = await this.privateGetMarginHistoryTrade(this.extend(request, parameters));
             } else
@@ -2416,13 +2416,13 @@ public partial class hitbtc : Exchange
             response = await this.privateGetMarginOrder(this.extend(request, parameters));
         } else
         {
-            if (isEqual(marketType, "spot"))
+            if ((marketType == "spot"))
             {
                 response = await this.privateGetSpotOrder(this.extend(request, parameters));
-            } else if (isEqual(marketType, "swap"))
+            } else if ((marketType == "swap"))
             {
                 response = await this.privateGetFuturesOrder(this.extend(request, parameters));
-            } else if (isEqual(marketType, "margin"))
+            } else if ((marketType == "margin"))
             {
                 response = await this.privateGetMarginOrder(this.extend(request, parameters));
             } else
@@ -2496,13 +2496,13 @@ public partial class hitbtc : Exchange
             response = await this.privateGetMarginOrderClientOrderId(this.extend(request, parameters));
         } else
         {
-            if (isEqual(marketType, "spot"))
+            if ((marketType == "spot"))
             {
                 response = await this.privateGetSpotOrderClientOrderId(this.extend(request, parameters));
-            } else if (isEqual(marketType, "swap"))
+            } else if ((marketType == "swap"))
             {
                 response = await this.privateGetFuturesOrderClientOrderId(this.extend(request, parameters));
-            } else if (isEqual(marketType, "margin"))
+            } else if ((marketType == "margin"))
             {
                 response = await this.privateGetMarginOrderClientOrderId(this.extend(request, parameters));
             } else
@@ -2555,13 +2555,13 @@ public partial class hitbtc : Exchange
             response = await this.privateDeleteMarginOrder(this.extend(request, parameters));
         } else
         {
-            if (isEqual(marketType, "spot"))
+            if ((marketType == "spot"))
             {
                 response = await this.privateDeleteSpotOrder(this.extend(request, parameters));
-            } else if (isEqual(marketType, "swap"))
+            } else if ((marketType == "swap"))
             {
                 response = await this.privateDeleteFuturesOrder(this.extend(request, parameters));
-            } else if (isEqual(marketType, "margin"))
+            } else if ((marketType == "margin"))
             {
                 response = await this.privateDeleteMarginOrder(this.extend(request, parameters));
             } else
@@ -2616,13 +2616,13 @@ public partial class hitbtc : Exchange
             response = await this.privateDeleteMarginOrderClientOrderId(this.extend(request, parameters));
         } else
         {
-            if (isEqual(marketType, "spot"))
+            if ((marketType == "spot"))
             {
                 response = await this.privateDeleteSpotOrderClientOrderId(this.extend(request, parameters));
-            } else if (isEqual(marketType, "swap"))
+            } else if ((marketType == "swap"))
             {
                 response = await this.privateDeleteFuturesOrderClientOrderId(this.extend(request, parameters));
-            } else if (isEqual(marketType, "margin"))
+            } else if ((marketType == "margin"))
             {
                 response = await this.privateDeleteMarginOrderClientOrderId(this.extend(request, parameters));
             } else
@@ -2672,13 +2672,13 @@ public partial class hitbtc : Exchange
             response = await this.privatePatchMarginOrderClientOrderId(this.extend(request, parameters));
         } else
         {
-            if (isEqual(marketType, "spot"))
+            if ((marketType == "spot"))
             {
                 response = await this.privatePatchSpotOrderClientOrderId(this.extend(request, parameters));
-            } else if (isEqual(marketType, "swap"))
+            } else if ((marketType == "swap"))
             {
                 response = await this.privatePatchFuturesOrderClientOrderId(this.extend(request, parameters));
-            } else if (isEqual(marketType, "margin"))
+            } else if ((marketType == "margin"))
             {
                 response = await this.privatePatchMarginOrderClientOrderId(this.extend(request, parameters));
             } else
@@ -2730,10 +2730,10 @@ public partial class hitbtc : Exchange
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         object response = null;
-        if (isEqual(marketType, "swap"))
+        if ((marketType == "swap"))
         {
             response = await this.privatePostFuturesOrder(this.extend(request, parameters));
-        } else if ((isEqual(marketType, "margin")) || ((marginMode != null)))
+        } else if (((marketType == "margin")) || ((marginMode != null)))
         {
             response = await this.privatePostMarginOrder(this.extend(request, parameters));
         } else
@@ -2985,10 +2985,10 @@ public partial class hitbtc : Exchange
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         object response = null;
-        if (isEqual(marketType, "margin"))
+        if ((marketType == "margin"))
         {
             response = await this.privateGetMarginConfig(parameters);
-        } else if (isEqual(marketType, "swap"))
+        } else if ((marketType == "swap"))
         {
             response = await this.privateGetFuturesConfig(parameters);
         } else
@@ -3204,7 +3204,7 @@ public partial class hitbtc : Exchange
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchFundingRates", market, parameters);
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        if (!isEqual(type, "swap"))
+        if ((type != "swap"))
         {
             throw new NotSupported ((string)(((this.id + " fetchFundingRates() does not support ") + type) + " markets")) ;
         }
@@ -3359,7 +3359,7 @@ public partial class hitbtc : Exchange
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchPositions", null, parameters);
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        if (isEqual(marketType, "spot"))
+        if ((marketType == "spot"))
         {
             marketType = "swap";
         }
@@ -3373,10 +3373,10 @@ public partial class hitbtc : Exchange
             response = await this.privateGetMarginAccount(this.extend(request, parameters));
         } else
         {
-            if (isEqual(marketType, "swap"))
+            if ((marketType == "swap"))
             {
                 response = await this.privateGetFuturesAccount(this.extend(request, parameters));
-            } else if (isEqual(marketType, "margin"))
+            } else if ((marketType == "margin"))
             {
                 response = await this.privateGetMarginAccount(this.extend(request, parameters));
             } else
@@ -3462,10 +3462,10 @@ public partial class hitbtc : Exchange
             response = await this.privateGetMarginAccountIsolatedSymbol(this.extend(request, parameters));
         } else
         {
-            if (isEqual(marketType, "swap"))
+            if ((marketType == "swap"))
             {
                 response = await this.privateGetFuturesAccountIsolatedSymbol(this.extend(request, parameters));
-            } else if (isEqual(marketType, "margin"))
+            } else if ((marketType == "margin"))
             {
                 response = await this.privateGetMarginAccountIsolatedSymbol(this.extend(request, parameters));
             } else
@@ -3825,7 +3825,7 @@ public partial class hitbtc : Exchange
             }
         }
         string? stringAmount = this.numberToString(amount);
-        if (!isEqual(stringAmount, "0"))
+        if ((stringAmount != "0"))
         {
             amount = this.amountToPrecision(symbol, stringAmount);
         } else
@@ -3849,10 +3849,10 @@ public partial class hitbtc : Exchange
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
         object response = null;
-        if (isEqual(marketType, "swap"))
+        if ((marketType == "swap"))
         {
             response = await this.privatePutFuturesAccountIsolatedSymbol(this.extend(request, parameters));
-        } else if ((isEqual(marketType, "margin")) || (isEqual(marketType, "spot")) || (isEqual(marginMode, "isolated")))
+        } else if (((marketType == "margin")) || ((marketType == "spot")) || (isEqual(marginMode, "isolated")))
         {
             response = await this.privatePutMarginAccountIsolatedSymbol(this.extend(request, parameters));
         } else

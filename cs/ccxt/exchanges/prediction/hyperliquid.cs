@@ -356,7 +356,7 @@ public partial class hyperliquid : PredictionExchange
         if (((questionName != null)) && ((questionName != "")))
         {
             string questionSlug = this.shortenSlug(questionName);
-            if (((questionSlug != null)) && (!isEqual(questionSlug, "")))
+            if (((questionSlug != null)) && ((questionSlug != "")))
             {
                 string outcomeSlug = this.shortenSlug(name);
                 Dictionary<string, object> genericOutcomeNames = new Dictionary<string, object>() {
@@ -374,7 +374,7 @@ public partial class hyperliquid : PredictionExchange
                         outcomeSlug = "";
                     }
                 }
-                if (((outcomeSlug != null)) && (!isEqual(outcomeSlug, "")))
+                if (((outcomeSlug != null)) && ((outcomeSlug != "")))
                 {
                     return ((((questionSlug + "_") + outcomeSlug) + "_") + ((object)outcomeId).ToString());
                 }
@@ -1845,7 +1845,7 @@ public partial class hyperliquid : PredictionExchange
         Int64? timestamp = this.safeInteger(entry, "timestamp");
         string? tifRaw = this.safeString(entry, "tif");
         string? tif = this.parseTimeInForce(tifRaw);
-        bool postOnly = (isEqual(tif, "PO"));
+        bool postOnly = ((tif == "PO"));
         bool isTrigger = ((this.safeBool(entry, "isTrigger") == true));
         double? triggerPrice = ((bool) isTrigger) ? this.safeNumber(entry, "triggerPx") : null;
         return ((Dictionary<string, object>)((object)(this.safePredictionOrder(new Dictionary<string, object>() {
@@ -2159,7 +2159,7 @@ public partial class hyperliquid : PredictionExchange
                     {
                         string? word = ((string)getValue(words, wi));
                         // `< 0` (not `=== -1`) — the php transpiler maps `< 0` to `=== false`
-                        if ((!isEqual(word, "")) && (getIndexOf(haystack, word) < 0))
+                        if (((word != "")) && (getIndexOf(haystack, word) < 0))
                         {
                             allWords = false;
                             break;

@@ -1901,7 +1901,7 @@ public partial class whitebit : Exchange
         if ((method == null))
         {
             // if the user did not specify a method, choose it based on market type and symbols
-            if (onlyContractSymbols || (isEqual(marketType, "swap")))
+            if (onlyContractSymbols || ((marketType == "swap")))
             {
                 method = "v4PublicGetFutures";
             } else
@@ -2706,7 +2706,7 @@ public partial class whitebit : Exchange
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         List<object> requestType = new List<object>() {};
-        if (isEqual(type, "spot"))
+        if ((type == "spot"))
         {
             object isMargin = null;
             IList<object> isMarginparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "cancelAllOrders", "isMargin", false);
@@ -2719,7 +2719,7 @@ public partial class whitebit : Exchange
             {
                 ((IList<object>)requestType).Add("spot");
             }
-        } else if (isEqual(type, "swap"))
+        } else if ((type == "swap"))
         {
             ((IList<object>)requestType).Add("futures");
         } else
@@ -2873,7 +2873,7 @@ public partial class whitebit : Exchange
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         object response = null;
-        if (isEqual(marketType, "swap"))
+        if ((marketType == "swap"))
         {
             response = await this.v4PrivatePostCollateralAccountBalance(parameters);
         } else
@@ -3099,7 +3099,7 @@ public partial class whitebit : Exchange
         string? filled = this.safeString(order, "dealStock");
         string? remaining = this.safeString(order, "left");
         string? clientOrderId = this.safeString(order, "clientOrderId");
-        if (isEqual(clientOrderId, ""))
+        if ((clientOrderId == ""))
         {
             clientOrderId = null;
         }
@@ -3108,7 +3108,7 @@ public partial class whitebit : Exchange
         string? orderId = this.safeString2(order, "orderId", "id");
         string? type = this.safeString(order, "type");
         string? orderType = this.parseOrderType(type);
-        if (isEqual(orderType, "market"))
+        if ((orderType == "market"))
         {
             remaining = null;
         }

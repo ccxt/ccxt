@@ -2098,7 +2098,7 @@ public partial class hashkey : Exchange
         string? address = this.safeString(depositAddress, "address");
         this.checkAddress(address);
         string? tag = this.safeString(depositAddress, "addressExt");
-        if (isEqual(tag, ""))
+        if ((tag == ""))
         {
             tag = null;
         }
@@ -2977,7 +2977,7 @@ public partial class hashkey : Exchange
         timeInForce = (string)((IList<object>)timeInForceparametersVariable)[0];
         parameters = ((IList<object>)timeInForceparametersVariable)[1];
         bool postOnly = false;
-        IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isMarketOrder, isEqual(timeInForce, "LIMIT_MAKER"), parameters);
+        IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isMarketOrder, (timeInForce == "LIMIT_MAKER"), parameters);
         postOnly = (bool)((IList<object>)postOnlyparametersVariable)[0];
         parameters = ((IList<object>)postOnlyparametersVariable)[1];
         if (isTrue(postOnly))
@@ -3798,7 +3798,7 @@ public partial class hashkey : Exchange
         side = ((IList<object>)sidereduceOnlyVariable)[0];
         reduceOnly = ((IList<object>)sidereduceOnlyVariable)[1];
         string? feeCurrncyId = this.safeString(order, "feeCoin");
-        if (isEqual(feeCurrncyId, ""))
+        if ((feeCurrncyId == ""))
         {
             feeCurrncyId = null;
         }
@@ -4362,7 +4362,7 @@ public partial class hashkey : Exchange
             throw new ArgumentsRequired ((string)(add((this.id + " "), type) + "Margin() requires a params[\"side\"] argument, either \"long\" or \"short\"")) ;
         }
         side = ((string)side).ToUpper();
-        if ((!isEqual(side, "LONG")) && (!isEqual(side, "SHORT")))
+        if (((side != "LONG")) && ((side != "SHORT")))
         {
             throw new ArgumentsRequired ((string)(add((this.id + " "), type) + "Margin() params[\"side\"] must be either long or short")) ;
         }

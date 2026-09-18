@@ -4021,7 +4021,7 @@ public partial class kraken : Exchange
             { "to", toAccountParsed },
             { "asset", getValue(currency, "id") },
         };
-        if (!isEqual(fromAccountParsed, "Spot Wallet"))
+        if ((fromAccountParsed != "Spot Wallet"))
         {
             throw new BadRequest ((string)(((((this.id + " transfer cannot transfer from ") + fromAccountParsed) + " to ") + toAccountParsed) + ". Use krakenfutures instead to transfer from the futures account.")) ;
         }

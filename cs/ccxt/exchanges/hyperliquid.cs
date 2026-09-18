@@ -1170,7 +1170,7 @@ public partial class hyperliquid : Exchange
         isUnifiedEnabled = ((IList<object>)isUnifiedEnabledparametersVariable)[0];
         parameters = ((IList<object>)isUnifiedEnabledparametersVariable)[1];
         string? dex = this.safeString(parameters, "dex");
-        bool isSpot = ((isEqual(type, "spot")) || (isEqual(isUnifiedEnabled, true))) && ((dex == null));
+        bool isSpot = (((type == "spot")) || (isEqual(isUnifiedEnabled, true))) && ((dex == null));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", ((bool) ((isSpot == true))) ? "spotClearinghouseState" : "clearinghouseState" },
             { "user", userAddress },
@@ -2617,12 +2617,12 @@ public partial class hyperliquid : Exchange
                 string? takeProfitOrderType = this.safeString(takeProfit, "type", "limit");
                 string? takeProfitOrderLimitPrice = this.safeString2(takeProfit, "price", "takeProfitPrice", takeProfitOrderTriggerPrice);
                 grouping = this.safeString(orderParams, "grouping", "normalTpsl");
-                if (isEqual(grouping, "positionTpsl"))
+                if ((grouping == "positionTpsl"))
                 {
                     amount = "0";
                     stopLossOrderType = "market";
                     takeProfitOrderType = "market";
-                } else if (isEqual(grouping, "normalTpsl"))
+                } else if ((grouping == "normalTpsl"))
                 {
                     ((IList<object>)orderReq).Add(mainOrderObj);
                 } else
@@ -3882,7 +3882,7 @@ public partial class hyperliquid : Exchange
         string? side = this.safeString(entry, "side");
         if ((side != null))
         {
-            side = ((bool) (isEqual(side, "A"))) ? "sell" : "buy";
+            side = ((bool) ((side == "A"))) ? "sell" : "buy";
         }
         string? totalAmount = this.safeString2(entry, "origSz", "totalSz");
         string? remaining = this.safeString(entry, "sz");
@@ -4080,7 +4080,7 @@ public partial class hyperliquid : Exchange
         string? side = this.safeString(trade, "side");
         if ((side != null))
         {
-            side = ((bool) (isEqual(side, "A"))) ? "sell" : "buy";
+            side = ((bool) ((side == "A"))) ? "sell" : "buy";
         }
         string? fee = this.safeString(trade, "fee");
         string? takerOrMaker = null;
@@ -5630,7 +5630,7 @@ public partial class hyperliquid : Exchange
             }
         }
         string feedback = add((this.id + " "), body);
-        bool nonEmptyMessage = (((message != null)) && (!isEqual(message, "")));
+        bool nonEmptyMessage = (((message != null)) && ((message != "")));
         if (nonEmptyMessage)
         {
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);

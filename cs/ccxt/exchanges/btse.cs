@@ -3016,7 +3016,7 @@ public partial class btse : Exchange
         string? rawType = this.safeString2(order, "orderType", "type");
         string? status = this.parseOrderStatus(rawStatus);
         string? orderType = this.parseOrderType(rawType);
-        if ((isEqual(orderType, "market")) && (isEqual(status, "open")))
+        if (((orderType == "market")) && ((status == "open")))
         {
             // market orders never rest on the book, the exchange reports the
             // partially filled code on them when a residual quote dust amount

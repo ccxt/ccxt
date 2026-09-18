@@ -865,20 +865,20 @@ public partial class bit2c : Exchange
         // bit2c order type:
         // 0 = LMT,  1 = MKT
         string? type = this.safeString(orderUnified, "order_type");
-        if (isEqual(type, "0"))
+        if ((type == "0"))
         {
             type = "limit";
-        } else if (isEqual(type, "1"))
+        } else if ((type == "1"))
         {
             type = "market";
         }
         // bit2c side:
         // 0 = buy, 1 = sell
         string? side = this.safeString(orderUnified, "type");
-        if (isEqual(side, "0"))
+        if ((side == "0"))
         {
             side = "buy";
-        } else if (isEqual(side, "1"))
+        } else if ((side == "1"))
         {
             side = "sell";
         }

@@ -1706,16 +1706,16 @@ public partial class pacifica : Exchange
         object symbol = getValue(market, "symbol");
         string? id = this.safeString(trade, "history_id");
         string? side = this.safeString(trade, "side");
-        if (isEqual(side, "open_long"))
+        if ((side == "open_long"))
         {
             side = "buy";
-        } else if (isEqual(side, "close_long"))
+        } else if ((side == "close_long"))
         {
             side = "sell";
-        } else if (isEqual(side, "open_short"))
+        } else if ((side == "open_short"))
         {
             side = "sell";
-        } else if (isEqual(side, "close_short"))
+        } else if ((side == "close_short"))
         {
             side = "buy";
         }
@@ -1938,11 +1938,11 @@ public partial class pacifica : Exchange
             }
             ((IDictionary<string,object>)sigPayload)["stop_loss"] = slPayload;
         }
-        if (!isEqual(price, null) && isEqual(operationType, "create_order"))
+        if (!isEqual(price, null) && (operationType == "create_order"))
         {
             ((IDictionary<string,object>)sigPayload)["price"] = this.priceToPrecision(symbol, price);
         }
-        if (!isEqual(amount, null) && (!isEqual(operationType, "create_stop_order") && !isEqual(operationType, "set_position_tpsl")))
+        if (!isEqual(amount, null) && ((operationType != "create_stop_order") && (operationType != "set_position_tpsl")))
         {
             ((IDictionary<string,object>)sigPayload)["amount"] = this.amountToPrecision(symbol, amount);
         }
@@ -3043,7 +3043,7 @@ public partial class pacifica : Exchange
         string? side = this.safeString(order, "side", "d");
         if ((side != null))
         {
-            side = ((bool) (isEqual(side, "bid"))) ? "buy" : "sell";
+            side = ((bool) ((side == "bid"))) ? "buy" : "sell";
         }
         string? totalAmount = this.safeString2(order, "initial_amount", "a");
         string? filledAmount = this.safeString2(order, "filled_amount", "f");
@@ -3166,11 +3166,11 @@ public partial class pacifica : Exchange
         object symbol = getValue(market, "symbol");
         string? margin = this.safeString(position, "margin");
         string marginMode = ((bool) ((margin != null) && (margin != "0"))) ? "isolated" : "cross";
-        bool isIsolated = (isEqual(marginMode, "isolated"));
+        bool isIsolated = ((marginMode == "isolated"));
         string? side = this.safeString(position, "side");
         if ((side != null))
         {
-            side = ((bool) (isEqual(side, "bid"))) ? "long" : "short";
+            side = ((bool) ((side == "bid"))) ? "long" : "short";
         }
         Int64? createdAt = this.safeInteger(position, "created_at");
         return this.safePosition(new Dictionary<string, object>() {

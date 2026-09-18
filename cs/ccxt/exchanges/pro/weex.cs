@@ -1225,7 +1225,7 @@ public partial class weex : ccxt.weex
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        bool isContract = (!isEqual(marketType, "spot"));
+        bool isContract = ((marketType != "spot"));
         string messageHash = ((bool) isContract) ? "myContractTrades" : "myTrades";
         string subscriptionHash = messageHash;
         if (!isEqual(symbolVar, null))
@@ -1263,7 +1263,7 @@ public partial class weex : ccxt.weex
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("unWatchMyTrades", null, parameters);
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        bool isContract = (!isEqual(marketType, "spot"));
+        bool isContract = ((marketType != "spot"));
         string subHash = ((bool) isContract) ? "myContractTrades" : "myTrades";
         string unSubHash = ("unsubscribe::" + subHash);
         string channel = "fill";
@@ -1460,7 +1460,7 @@ public partial class weex : ccxt.weex
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchOrders", market, parameters);
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        bool isContract = (!isEqual(marketType, "spot"));
+        bool isContract = ((marketType != "spot"));
         string messageHash = ((bool) isContract) ? "contractOrders" : "orders";
         string subscriptionHash = messageHash;
         if (!isEqual(symbolVar, null))
@@ -1497,7 +1497,7 @@ public partial class weex : ccxt.weex
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("unWatchOrders", null, parameters);
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        bool isContract = (!isEqual(marketType, "spot"));
+        bool isContract = ((marketType != "spot"));
         string subHash = ((bool) isContract) ? "contractOrders" : "orders";
         string unSubHash = ("unsubscribe::" + subHash);
         string channel = "orders";

@@ -514,7 +514,7 @@ public partial class btcmarkets : Exchange
         Int64? timestamp = this.parse8601(this.safeString(transaction, "creationTime"));
         Int64? lastUpdate = this.parse8601(this.safeString(transaction, "lastUpdate"));
         string? type = this.parseTransactionType(this.safeStringLower(transaction, "type"));
-        if (isEqual(type, "withdraw"))
+        if ((type == "withdraw"))
         {
             type = "withdrawal";
         }
@@ -976,10 +976,10 @@ public partial class btcmarkets : Exchange
         market = this.safeMarket(marketId, market, "-");
         object feeCurrencyCode = ((bool) (isEqual(getValue(market, "quote"), "AUD"))) ? getValue(market, "quote") : getValue(market, "base");
         string? side = this.safeString(trade, "side");
-        if (isEqual(side, "Bid"))
+        if ((side == "Bid"))
         {
             side = "buy";
-        } else if (isEqual(side, "Ask"))
+        } else if ((side == "Ask"))
         {
             side = "sell";
         }
@@ -1318,10 +1318,10 @@ public partial class btcmarkets : Exchange
         string? marketId = this.safeString(order, "marketId");
         market = this.safeMarket(marketId, market, "-");
         string? side = this.safeString(order, "side");
-        if (isEqual(side, "Bid"))
+        if ((side == "Bid"))
         {
             side = "buy";
-        } else if (isEqual(side, "Ask"))
+        } else if ((side == "Ask"))
         {
             side = "sell";
         }

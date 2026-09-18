@@ -710,7 +710,7 @@ public partial class mudrex : Exchange
         parameters = this.omit(parameters, new List<object>() {"trade_currency", "tradeCurrency", "currency"});
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> response = null;
-        if (isEqual(type, "spot"))
+        if ((type == "spot"))
         {
             if ((requested != null))
             {

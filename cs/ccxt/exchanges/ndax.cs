@@ -1649,10 +1649,10 @@ public partial class ndax : Exchange
         }
         string? before = null;
         string? after = this.safeString(item, "Balance");
-        if (isEqual(direction, "out"))
+        if ((direction == "out"))
         {
             before = Precise.stringAdd(after, amount);
-        } else if (isEqual(direction, "in"))
+        } else if ((direction == "in"))
         {
             before = Precise.stringMax("0", Precise.stringSub(after, amount));
         }

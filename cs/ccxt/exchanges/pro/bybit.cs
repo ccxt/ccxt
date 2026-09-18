@@ -417,7 +417,7 @@ public partial class bybit : ccxt.bybit
         parameters = this.cleanParams(parameters);
         object options = this.safeValue(this.options, "watchTicker", new Dictionary<string, object>() {});
         string topic = ((string)this.safeString(options, "name", "tickers"));
-        if ((!isEqual(getValue(market, "spot"), true)) && !isEqual(topic, "tickers"))
+        if ((!isEqual(getValue(market, "spot"), true)) && (topic != "tickers"))
         {
             throw new BadRequest ((string)(this.id + " watchTicker() only supports name tickers for contract markets")) ;
         }
@@ -2320,7 +2320,7 @@ public partial class bybit : ccxt.bybit
         if (((isUnifiedMargin != true)) && ((isUnifiedAccount != true)))
         {
             // normal account using v5
-            if (isEqual(type, "spot"))
+            if ((type == "spot"))
             {
                 messageHash = messageHash + ":spot";
             } else
@@ -2331,7 +2331,7 @@ public partial class bybit : ccxt.bybit
         if ((isUnifiedMargin == true))
         {
             // unified margin account using v5
-            if (isEqual(type, "spot"))
+            if ((type == "spot"))
             {
                 messageHash = messageHash + ":spot";
             } else

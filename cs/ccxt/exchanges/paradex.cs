@@ -866,7 +866,7 @@ public partial class paradex : Exchange
         bool isOptionDelivery = ((assetKind == "OPTION"));
         bool isOption = isOptionPerpetual || isOptionDelivery;
         string type = ((bool) (isOption)) ? "option" : "swap";
-        bool isSwap = (isEqual(type, "swap"));
+        bool isSwap = ((type == "swap"));
         string? marketId = this.safeString(market, "symbol");
         string? quoteId = this.safeString(market, "quote_currency");
         string? baseId = this.safeString(market, "base_currency");
@@ -3428,7 +3428,7 @@ public partial class paradex : Exchange
         Int64? timestamp = this.safeInteger(transaction, "created_at");
         Int64? updated = this.safeInteger(transaction, "last_updated_at");
         string? type = this.safeString(transaction, "kind");
-        type = ((bool) (isEqual(type, "DEPOSIT"))) ? "deposit" : "withdrawal";
+        type = ((bool) ((type == "DEPOSIT"))) ? "deposit" : "withdrawal";
         string? status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         double? amount = this.safeNumber(transaction, "amount");
         return new Dictionary<string, object>() {

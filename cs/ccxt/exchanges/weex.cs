@@ -879,7 +879,7 @@ public partial class weex : Exchange
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         Dictionary<string, object> response = null;
-        if (!isEqual(type, "spot"))
+        if ((type != "spot"))
         {
             response = await this.contractGetCapiV3MarketTime(parameters);
         } else
@@ -1310,7 +1310,7 @@ public partial class weex : Exchange
             ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
         }
         object response = null;
-        if (isEqual(marketType, "spot"))
+        if ((marketType == "spot"))
         {
             //
             //     [
@@ -1390,7 +1390,7 @@ public partial class weex : Exchange
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         List<object> response = null;
-        if (isEqual(marketType, "spot"))
+        if ((marketType == "spot"))
         {
             response = await this.publicGetApiV3MarketTickerBookTicker(parameters);
         } else
@@ -1533,7 +1533,7 @@ public partial class weex : Exchange
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchLastPrices", market, parameters);
         type = (string)((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        if (!isEqual(type, "spot"))
+        if ((type != "spot"))
         {
             throw new NotSupported ((string)(this.id + " fetchLastPrices() supports spot markets only, use fetchMarkPrices() or fetchTickers() for contract markets")) ;
         }
@@ -2015,7 +2015,7 @@ public partial class weex : Exchange
             string? realizedPnl = this.safeString(trade, "realizedPnl");
             string marketType = ((bool) ((realizedPnl != null))) ? "swap" : "spot";
             market = this.safeMarket(marketId, null, null, marketType);
-            isSpot = isEqual(marketType, "spot");
+            isSpot = (marketType == "spot");
         } else
         {
             isSpot = getValue(market, "spot");
@@ -2028,7 +2028,7 @@ public partial class weex : Exchange
             object feeCurrency = this.safeCurrencyCode(commissionAsset);
             if (isEqual(isSpot, true))
             {
-                if (isEqual(side, "buy"))
+                if ((side == "buy"))
                 {
                     feeCurrency = getValue(market, "base");
                 } else
@@ -2285,7 +2285,7 @@ public partial class weex : Exchange
             type = "swap"; // the demo trading API only provides the swap account, don't let the default spot type break a bare fetchBalance() call
         }
         object response = null;
-        if (isEqual(type, "spot"))
+        if ((type == "spot"))
         {
             if ((sandboxMode == true))
             {
@@ -2353,7 +2353,7 @@ public partial class weex : Exchange
         {
             IDictionary<string, object> entry = this.safeDict(balances, i);
             string? currencyId = this.safeString(entry, "asset");
-            if (((sandboxMode == true)) && (isEqual(currencyId, "SUSDT")))
+            if (((sandboxMode == true)) && ((currencyId == "SUSDT")))
             {
                 currencyId = "USDT"; // demo trading balances are denominated in the demo asset SUSDT
             }
@@ -2903,7 +2903,7 @@ public partial class weex : Exchange
             ((IDictionary<string,object>)request)["orderId"] = id;
         }
         Dictionary<string, object> response = null;
-        if (isEqual(type, "spot"))
+        if ((type == "spot"))
         {
             // by orderId
             //     {
@@ -2968,7 +2968,7 @@ public partial class weex : Exchange
         bool? trigger = this.safeBool(parameters, "trigger", false);
         parameters = this.omit(parameters, "trigger");
         List<object> response = null;
-        if (isEqual(marketType, "spot"))
+        if ((marketType == "spot"))
         {
             if (isEqual(symbol, null))
             {
@@ -3018,7 +3018,7 @@ public partial class weex : Exchange
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("cancelOrders", market, parameters);
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        bool isSpot = (isEqual(marketType, "spot"));
+        bool isSpot = ((marketType == "spot"));
         List<object> clientOrderIds = this.safeList(parameters, "clientOrderIds");
         parameters = this.omit(parameters, "clientOrderIds");
         if ((clientOrderIds != null))
@@ -3087,7 +3087,7 @@ public partial class weex : Exchange
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchOrder", market, parameters);
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        bool isSpot = (isEqual(marketType, "spot"));
+        bool isSpot = ((marketType == "spot"));
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((isEqual(id, null)) && !isSpot)
         {
@@ -3169,7 +3169,7 @@ public partial class weex : Exchange
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        bool isSpot = (isEqual(marketType, "spot"));
+        bool isSpot = ((marketType == "spot"));
         object paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOpenOrders", "paginate", false);
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -3328,7 +3328,7 @@ public partial class weex : Exchange
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         object orders = null;
-        if (isEqual(marketType, "spot"))
+        if ((marketType == "spot"))
         {
             if (isEqual(symbol, null))
             {
@@ -3374,7 +3374,7 @@ public partial class weex : Exchange
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         object orders = null;
-        if (isEqual(marketType, "spot"))
+        if ((marketType == "spot"))
         {
             if (isEqual(symbol, null))
             {
@@ -3495,7 +3495,7 @@ public partial class weex : Exchange
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchCanceledAndClosedOrders", market, parameters);
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        if (isEqual(marketType, "spot"))
+        if ((marketType == "spot"))
         {
             throw new NotSupported ((string)(this.id + " fetchCanceledAndClosedOrders() does not support spot markets. Use fetchOrders() instead and filter by status \"canceled\" or \"closed\"")) ;
         }
@@ -3840,7 +3840,7 @@ public partial class weex : Exchange
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        bool isSpot = (isEqual(marketType, "spot"));
+        bool isSpot = ((marketType == "spot"));
         if (isSpot && (isEqual(symbol, null)))
         {
             throw new ArgumentsRequired ((string)(this.id + " fetchMyTrades() requires a symbol argument for spot markets")) ;
@@ -3966,7 +3966,7 @@ public partial class weex : Exchange
         {
             currency = this.currency(((string)code));
         }
-        if (isEqual(accountType, "contract"))
+        if ((accountType == "contract"))
         {
             if ((currency != null))
             {
@@ -3985,7 +3985,7 @@ public partial class weex : Exchange
             parameters = ((IList<object>)requestparametersVariable)[1];
             Dictionary<string, object> contractResponse = await this.contractPrivatePostCapiV3AccountIncome(this.extend(request, parameters));
             items = this.safeList(contractResponse, "items", new List<object>() {});
-        } else if (isEqual(accountType, "funding"))
+        } else if ((accountType == "funding"))
         {
             if (!isEqual(since, null))
             {
@@ -4085,7 +4085,7 @@ public partial class weex : Exchange
         bool isContractEntry = ((transferReason != null));
         if (isContractEntry)
         {
-            if ((isEqual(rawType, "withdraw")) || (isEqual(rawType, "deposit")))
+            if (((rawType == "withdraw")) || ((rawType == "deposit")))
             {
                 rawType = "transfer";
             }
@@ -4731,7 +4731,7 @@ public partial class weex : Exchange
         double? crossLeverage = this.safeNumber(leverage, "crossLeverage");
         double? longLeverage = this.safeNumber(leverage, "isolatedLongLeverage");
         double? shortLeverage = this.safeNumber(leverage, "isolatedShortLeverage");
-        if (isEqual(marginMode, "cross"))
+        if ((marginMode == "cross"))
         {
             longLeverage = crossLeverage;
             shortLeverage = crossLeverage;

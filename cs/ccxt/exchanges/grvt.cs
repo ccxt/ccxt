@@ -976,9 +976,9 @@ public partial class grvt : Exchange
         {
             type = "swap";
         }
-        bool isSpot = (isEqual(type, "spot"));
-        bool isSwap = (isEqual(type, "swap"));
-        bool isFuture = (isEqual(type, "future"));
+        bool isSpot = ((type == "spot"));
+        bool isSwap = ((type == "swap"));
+        bool isFuture = ((type == "future"));
         bool isContract = isSwap || isFuture;
         return ccxt.BaseExchange.ToDict(new Dictionary<string, object>() {
             { "id", marketId },
@@ -1990,10 +1990,10 @@ public partial class grvt : Exchange
                 direction = this.safeStringLower(parsedMeta, "direction");
                 txId = this.safeString(parsedMeta, "provider_tx_id");
                 networkCode = this.networkIdToCode(this.safeString(parsedMeta, "chainid"), code);
-                if (isEqual(direction, "withdrawal"))
+                if ((direction == "withdrawal"))
                 {
                     addressTo = this.safeString(parsedMeta, "endpoint");
-                } else if (isEqual(direction, "deposit"))
+                } else if ((direction == "deposit"))
                 {
                     addressFrom = this.safeString(parsedMeta, "endpoint");
                 }
@@ -2455,7 +2455,7 @@ public partial class grvt : Exchange
             if (isTrue(postOnly))
             {
                 timeInForce = "POST_ONLY";
-            } else if (isEqual(timeInForce, "ioc"))
+            } else if ((timeInForce == "ioc"))
             {
                 timeInForce = "IMMEDIATE_OR_CANCEL";
             }
@@ -3817,7 +3817,7 @@ public partial class grvt : Exchange
         if ((isPrivate == true))
         {
             this.checkRequiredCredentials();
-            if (!isEqual(queryString, ""))
+            if ((queryString != ""))
             {
                 path = add(add(path, "?"), queryString);
             }

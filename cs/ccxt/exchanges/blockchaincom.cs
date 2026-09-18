@@ -1073,7 +1073,7 @@ public partial class blockchaincom : Exchange
             type = "withdrawal";
             id = this.safeString(transaction, "withdrawalId");
         }
-        double? feeCost = ((bool) (isEqual(type, "withdrawal"))) ? this.safeNumber(transaction, "fee") : null;
+        double? feeCost = ((bool) ((type == "withdrawal"))) ? this.safeNumber(transaction, "fee") : null;
         Dictionary<string, object> fee = null;
         if (!isEqual(feeCost, null))
         {
