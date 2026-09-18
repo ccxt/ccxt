@@ -3794,7 +3794,7 @@ func (this *Gate) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 			var code *string = this.SafeCurrencyCode(currencyId, currency)
 			var networkCode any = this.NetworkIdToCode(chainKey, code)
 			if networkCode != nil {
-				AddElementToObject(GetValue(result, "networks"), networkCode, map[string]any{
+				AddElementToObject(result["networks"], networkCode, map[string]any{
 					"withdraw": map[string]any{
 						"fee":        this.ParseNumber(GetValue(withdrawFixOnChains, chainKey)),
 						"percentage": false,

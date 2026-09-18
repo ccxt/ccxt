@@ -2878,10 +2878,10 @@ func (this *Nado) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		},
 	}
 	if !IsEqual(limit, nil) {
-		AddElementToObject(GetValue(request, "candlesticks"), "limit", mathMin(limit, 500))
+		AddElementToObject(request["candlesticks"], "limit", mathMin(limit, 500))
 	}
 	if until != nil {
-		AddElementToObject(GetValue(request, "candlesticks"), "max_time", this.ParseToInt(Divide(until, 1000)))
+		AddElementToObject(request["candlesticks"], "max_time", this.ParseToInt(Divide(until, 1000)))
 	}
 
 	response := (<-this.ArchivePost(this.DeepExtend(request, params)))

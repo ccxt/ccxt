@@ -1697,7 +1697,7 @@ func (this *Cryptocom) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) a
 	}
 	if symbol != nil {
 		market = this.Market(symbol)
-		ccxt.AddElementToObject(ccxt.GetValue(request, "params"), "instrument_name", ccxt.GetValue(market, "id"))
+		ccxt.AddElementToObject(request["params"], "instrument_name", ccxt.GetValue(market, "id"))
 	}
 	var messageHash any = this.Nonce()
 

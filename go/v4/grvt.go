@@ -2811,7 +2811,7 @@ func (this *Grvt) createOrderBody(ch chan any, symbol any, typeVar any, side any
 		}
 		// trigger by
 		var triggerPriceType *string = this.SafeStringUpper(params, "triggerPriceType", "LAST")
-		AddElementToObject(GetValue(orderRequest, "metadata"), "trigger", map[string]any{
+		AddElementToObject(orderRequest["metadata"], "trigger", map[string]any{
 			"trigger_type": selectedType,
 			"tpsl": map[string]any{
 				"trigger_by":     triggerPriceType,

@@ -69,7 +69,7 @@ func HelperTestInitSandbox() {
 	//
 	// CASE B: when sandbox is enabled
 	//
-	ccxt.AddElementToObject(ccxt.GetValue(opts, "options"), "sandbox", true)
+	ccxt.AddElementToObject(opts["options"], "sandbox", true)
 	exchange4 := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange4.DerivedExchange = exchange4
 	exchange4.InitParent(opts, map[string]any{}, exchange4)

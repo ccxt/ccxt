@@ -7026,7 +7026,7 @@ func (this *Bingx) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 		for i := 0; i < networksLength; i++ {
 			var networkCode any = GetValue(networkCodes, i)
 			var network any = GetValue(networks, networkCode)
-			AddElementToObject(GetValue(result, "networks"), networkCode, map[string]any{
+			AddElementToObject(result["networks"], networkCode, map[string]any{
 				"deposit": map[string]any{
 					"fee":        nil,
 					"percentage": nil,
@@ -7037,8 +7037,8 @@ func (this *Bingx) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 				},
 			})
 			if networksLength == 1 {
-				AddElementToObject(GetValue(result, "withdraw"), "fee", this.SafeNumber(network, "withdrawFee"))
-				AddElementToObject(GetValue(result, "withdraw"), "percentage", false)
+				AddElementToObject(result["withdraw"], "fee", this.SafeNumber(network, "withdrawFee"))
+				AddElementToObject(result["withdraw"], "percentage", false)
 			}
 		}
 	}

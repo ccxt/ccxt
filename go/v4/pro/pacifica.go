@@ -1880,7 +1880,7 @@ func (this *Pacifica) WrapAsPostAction(operationType any, request any) any {
 		"id":     requestId,
 		"params": map[string]any{},
 	}
-	ccxt.AddElementToObject(ccxt.GetValue(payload, "params"), operationType, request)
+	ccxt.AddElementToObject(payload["params"], operationType, request)
 	return payload
 }
 func (this *Pacifica) HandleWsPost(client any, message any) {

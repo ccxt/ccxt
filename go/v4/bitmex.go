@@ -3984,7 +3984,7 @@ func (this *Bitmex) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 			var withdrawalFeeId *string = this.SafeString(network, "withdrawalFee")
 			var withdrawalFee any = this.ParseNumber(Precise.StringMul(withdrawalFeeId, precision))
 			if networkCode != nil {
-				AddElementToObject(GetValue(result, "networks"), networkCode, map[string]any{
+				AddElementToObject(result["networks"], networkCode, map[string]any{
 					"deposit": map[string]any{
 						"fee":        nil,
 						"percentage": nil,
@@ -3996,8 +3996,8 @@ func (this *Bitmex) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 				})
 			}
 			if networksLength == 1 {
-				AddElementToObject(GetValue(result, "withdraw"), "fee", withdrawalFee)
-				AddElementToObject(GetValue(result, "withdraw"), "percentage", false)
+				AddElementToObject(result["withdraw"], "fee", withdrawalFee)
+				AddElementToObject(result["withdraw"], "percentage", false)
 			}
 		}
 	}
