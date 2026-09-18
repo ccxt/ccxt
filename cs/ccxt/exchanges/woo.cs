@@ -1367,7 +1367,7 @@ public partial class woo : Exchange
         {
             return ccxt.BaseExchange.ToTradingFees(result);
         }
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); i++)
         {
             object symbol = getValue(symbols, i);
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
@@ -1477,7 +1477,7 @@ public partial class woo : Exchange
         Dictionary<string, object> networksById = this.groupBy(tokenNetworkRows, "token");
         Dictionary<string, object> tokensById = this.groupBy(tokenRows, "balance_token");
         List<object> currencyIds = new List<object>(((IDictionary<string,object>)tokensById).Keys);
-        for (int i = 0; i < currencyIds.Count; postFixIncrement(ref i))
+        for (int i = 0; i < currencyIds.Count; i++)
         {
             string? id = ((string)getValue(currencyIds, i));
             Dictionary<string, object> customCurrency = new Dictionary<string, object>() {
@@ -1503,7 +1503,7 @@ public partial class woo : Exchange
         Dictionary<string, object> chainsByNetworkId = this.indexBy(getValue(rawCurrency, "_networks_by_id"), "network");
         List<object> keys = new List<object>(((IDictionary<string,object>)chainsByNetworkId).Keys);
         Dictionary<string, object> resultingNetworks = new Dictionary<string, object>() {};
-        for (int j = 0; j < keys.Count; postFixIncrement(ref j))
+        for (int j = 0; j < keys.Count; j++)
         {
             string? networkId = ((string)getValue(keys, j));
             IDictionary<string, object> tokenEntry = this.safeDict(tokensByNetworkId, networkId, new Dictionary<string, object>() {});
@@ -2748,7 +2748,7 @@ public partial class woo : Exchange
         List<object> rows = this.safeList(data, "rows", new List<object>() {});
         Int64? timestamp = this.safeInteger(response, "timestamp");
         List<object> result = new List<object>() {};
-        for (int i = 0; i < rows.Count; postFixIncrement(ref i))
+        for (int i = 0; i < rows.Count; i++)
         {
             object row = getValue(rows, i);
             string? marketId = this.safeString(row, "symbol");
@@ -3135,7 +3135,7 @@ public partial class woo : Exchange
             { "info", response },
         };
         List<object> balances = this.safeList(response, "holding", new List<object>() {});
-        for (int i = 0; i < balances.Count; postFixIncrement(ref i))
+        for (int i = 0; i < balances.Count; i++)
         {
             object balance = getValue(balances, i);
             string? code = this.safeCurrencyCode(this.safeString(balance, "token"));
@@ -4315,7 +4315,7 @@ public partial class woo : Exchange
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> rows = this.safeList(data, "rows", new List<object>() {});
         List<object> rates = new List<object>() {};
-        for (int i = 0; i < rows.Count; postFixIncrement(ref i))
+        for (int i = 0; i < rows.Count; i++)
         {
             object entry = getValue(rows, i);
             string? marketId = this.safeString(entry, "symbol");
@@ -4422,7 +4422,7 @@ public partial class woo : Exchange
         Int64? longLeverage = spotLeverage;
         Int64? shortLeverage = spotLeverage;
         List<object> details = this.safeList(leverage, "details", new List<object>() {});
-        for (int i = 0; i < details.Count; postFixIncrement(ref i))
+        for (int i = 0; i < details.Count; i++)
         {
             IDictionary<string, object> position = this.safeDict(details, i, new Dictionary<string, object>() {});
             Int64? positionLeverage = this.safeInteger(position, "leverage");
@@ -5059,7 +5059,7 @@ public partial class woo : Exchange
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         List<object> data = this.safeList(response, "rows", new List<object>() {});
-        for (int i = 0; i < data.Count; postFixIncrement(ref i))
+        for (int i = 0; i < data.Count; i++)
         {
             object entry = getValue(data, i);
             string? id = this.safeString(entry, "token");
@@ -5208,7 +5208,7 @@ public partial class woo : Exchange
         Dictionary<string, object> currencyItem = this.currency(((string)code));
         object networks = getValue(currencyItem, "networks");
         List<object> networkKeys = new List<object>(((IDictionary<string,object>)networks).Keys);
-        for (int i = 0; i < networkKeys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < networkKeys.Count; i++)
         {
             object network = getValue(networkKeys, i);
             if (isEqual(network, "ETH"))

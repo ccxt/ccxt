@@ -880,7 +880,7 @@ public partial class cryptocom : Exchange
         string? code = this.safeCurrencyCode(id);
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         List<object> chains = this.safeList(currency, "network_list", new List<object>() {});
-        for (int j = 0; j < chains.Count; postFixIncrement(ref j))
+        for (int j = 0; j < chains.Count; j++)
         {
             object chain = getValue(chains, j);
             string? networkId = this.safeString(chain, "network_id");
@@ -1028,7 +1028,7 @@ public partial class cryptocom : Exchange
         IDictionary<string, object> resultResponse = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> data = this.safeList(resultResponse, "data", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (int i = 0; i < data.Count; postFixIncrement(ref i))
+        for (int i = 0; i < data.Count; i++)
         {
             object market = getValue(data, i);
             string? inst_type = this.safeString(market, "inst_type");
@@ -1531,7 +1531,7 @@ public partial class cryptocom : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (int i = 0; i < positionBalances.Count; postFixIncrement(ref i))
+        for (int i = 0; i < positionBalances.Count; i++)
         {
             object balance = getValue(positionBalances, i);
             string? currencyId = this.safeString(balance, "instrument_name");
@@ -1876,7 +1876,7 @@ public partial class cryptocom : Exchange
             await this.loadMarkets();
         }
         List<object> ordersRequests = new List<object>() {};
-        for (int i = 0; i < getArrayLength(orders); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(orders); i++)
         {
             object rawOrder = getValue(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
@@ -2257,7 +2257,7 @@ public partial class cryptocom : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         List<object> orderRequests = new List<object>() {};
-        for (int i = 0; i < getArrayLength(ids); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(ids); i++)
         {
             object id = getValue(ids, i);
             Dictionary<string, object> order = new Dictionary<string, object>() {
@@ -2292,7 +2292,7 @@ public partial class cryptocom : Exchange
             await this.loadMarkets();
         }
         List<object> orderRequests = new List<object>() {};
-        for (int i = 0; i < getArrayLength(orders); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(orders); i++)
         {
             object order = getValue(orders, i);
             string? id = this.safeString(order, "id");
@@ -2595,7 +2595,7 @@ public partial class cryptocom : Exchange
             throw new ExchangeError ((string)(this.id + " fetchDepositAddressesByNetwork() generating address...")) ;
         }
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; i < addressesLength; postFixIncrement(ref i))
+        for (int i = 0; i < addressesLength; i++)
         {
             IDictionary<string, object> value = this.safeDict(addresses, i);
             string? addressString = this.safeString(value, "address");
@@ -3011,7 +3011,7 @@ public partial class cryptocom : Exchange
         if ((execInst != null))
         {
             postOnly = false;
-            for (int i = 0; isLessThan(i, getArrayLength(execInst)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(execInst)); i++)
             {
                 object inst = getValue(execInst, i);
                 if (isEqual(inst, "POST_ONLY"))
@@ -3238,7 +3238,7 @@ public partial class cryptocom : Exchange
         };
         if ((networkList != null))
         {
-            for (int i = 0; i < networkListLength; postFixIncrement(ref i))
+            for (int i = 0; i < networkListLength; i++)
             {
                 object networkInfo = getValue(networkList, i);
                 string? networkId = this.safeString(networkInfo, "network_id");
@@ -3633,7 +3633,7 @@ public partial class cryptocom : Exchange
         //     ]
         //
         List<object> result = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(settlements)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(settlements)); i++)
         {
             ((IList<object>)result).Add(this.parseSettlement(getValue(settlements, i), market));
         }
@@ -3801,7 +3801,7 @@ public partial class cryptocom : Exchange
         List<object> data = this.safeList(result, "data", new List<object>() {});
         string? marketId = this.safeString(result, "instrument_name");
         List<object> rates = new List<object>() {};
-        for (int i = 0; i < data.Count; postFixIncrement(ref i))
+        for (int i = 0; i < data.Count; i++)
         {
             object entry = getValue(data, i);
             Int64? timestamp = this.safeInteger(entry, "t");
@@ -3928,7 +3928,7 @@ public partial class cryptocom : Exchange
         IDictionary<string, object> responseResult = this.safeDict(response, "result", new Dictionary<string, object>() {});
         List<object> positions = this.safeList(responseResult, "data", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (int i = 0; i < positions.Count; postFixIncrement(ref i))
+        for (int i = 0; i < positions.Count; i++)
         {
             object entry = getValue(positions, i);
             string? marketId = this.safeString(entry, "instrument_name");
@@ -4013,7 +4013,7 @@ public partial class cryptocom : Exchange
             List<object> objectKeys = new List<object>(((IDictionary<string,object>)obj).Keys);
             paramsKeys = this.sort(objectKeys);
         }
-        for (int i = 0; i < getArrayLength(paramsKeys); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(paramsKeys); i++)
         {
             object key = getValue(paramsKeys, i);
             returnString = add(returnString, key);
@@ -4023,7 +4023,7 @@ public partial class cryptocom : Exchange
                 returnString = add(returnString, "null");
             } else if (((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
-                for (int j = 0; j < getArrayLength(value); postFixIncrement(ref j))
+                for (int j = 0; j < getArrayLength(value); j++)
                 {
                     returnString = add(returnString, this.paramsToString(getValue(value, j), add(level, 1)));
                 }
@@ -4176,7 +4176,7 @@ public partial class cryptocom : Exchange
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         ((IDictionary<string,object>)result)["info"] = response;
-        for (int i = 0; i < this.symbols.Count; postFixIncrement(ref i))
+        for (int i = 0; i < this.symbols.Count; i++)
         {
             object symbol = getValue(this.symbols, i);
             Dictionary<string, object> market = this.market(symbol);

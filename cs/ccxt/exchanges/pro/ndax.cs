@@ -183,7 +183,7 @@ public partial class ndax : ccxt.ndax
         //
         string name = "SubscribeTrades";
         Dictionary<string, object> updates = new Dictionary<string, object>() {};
-        for (int i = 0; i < payload.Count; postFixIncrement(ref i))
+        for (int i = 0; i < payload.Count; i++)
         {
             Dictionary<string, object> trade = this.parseTrade(getValue(payload, i));
             string? symbol = ((string)getValue(trade, "symbol"));
@@ -204,7 +204,7 @@ public partial class ndax : ccxt.ndax
             }
         }
         List<object> symbols = new List<object>(((IDictionary<string,object>)updates).Keys);
-        for (int i = 0; i < symbols.Count; postFixIncrement(ref i))
+        for (int i = 0; i < symbols.Count; i++)
         {
             string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
@@ -293,7 +293,7 @@ public partial class ndax : ccxt.ndax
         //     ]
         //
         Dictionary<string, object> updates = new Dictionary<string, object>() {};
-        for (int i = 0; i < payload.Count; postFixIncrement(ref i))
+        for (int i = 0; i < payload.Count; i++)
         {
             object ohlcv = getValue(payload, i);
             string? marketId = this.safeString(ohlcv, 8);
@@ -305,7 +305,7 @@ public partial class ndax : ccxt.ndax
             }
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
             List<object> keys = new List<object>(((IDictionary<string,object>)this.timeframes).Keys);
-            for (int j = 0; j < keys.Count; postFixIncrement(ref j))
+            for (int j = 0; j < keys.Count; j++)
             {
                 string? timeframe = ((string)getValue(keys, j));
                 string? interval = this.safeString(this.timeframes, timeframe, timeframe);
@@ -366,11 +366,11 @@ public partial class ndax : ccxt.ndax
         }
         string name = "SubscribeTicker";
         List<object> marketIds = new List<object>(((IDictionary<string,object>)updates).Keys);
-        for (int i = 0; i < marketIds.Count; postFixIncrement(ref i))
+        for (int i = 0; i < marketIds.Count; i++)
         {
             string? marketId = ((string)getValue(marketIds, i));
             List<object> timeframes = new List<object>(((IDictionary<string,object>)getValue(updates, marketId)).Keys);
-            for (int j = 0; j < timeframes.Count; postFixIncrement(ref j))
+            for (int j = 0; j < timeframes.Count; j++)
             {
                 string? timeframe = ((string)getValue(timeframes, j));
                 string messageHash = ((((name + ":") + timeframe) + ":") + marketId);
@@ -475,7 +475,7 @@ public partial class ndax : ccxt.ndax
         }
         object timestamp = null;
         object nonce = null;
-        for (int i = 0; i < payload.Count; postFixIncrement(ref i))
+        for (int i = 0; i < payload.Count; i++)
         {
             object bidask = getValue(payload, i);
             if (isEqual(timestamp, null))

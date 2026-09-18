@@ -898,7 +898,7 @@ public partial class ndax : Exchange
             { "datetime", null },
             { "nonce", null },
         };
-        for (int i = 0; isLessThan(i, getArrayLength(orderbook)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orderbook)); i++)
         {
             object level = getValue(orderbook, i);
             if (isEqual(timestamp, null))
@@ -1492,7 +1492,7 @@ public partial class ndax : Exchange
         //     [ 449 ] // comma-separated list of account ids
         //
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(response); i++)
         {
             string? accountId = this.safeString(response, i);
             ((IList<object>)result).Add(new Dictionary<string, object>() {
@@ -1512,7 +1512,7 @@ public partial class ndax : Exchange
             { "timestamp", null },
             { "datetime", null },
         };
-        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); i++)
         {
             object balance = getValue(response, i);
             string? currencyId = this.safeString(balance, "ProductId");

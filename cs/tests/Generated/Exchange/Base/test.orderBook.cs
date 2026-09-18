@@ -32,7 +32,7 @@ public partial class testMainClass : BaseTest
         // todo: check non-emtpy arrays for bids/asks for toptier exchanges
         object bids = getValue(orderbook, "bids");
         int bidsLength = getArrayLength(bids);
-        for (int i = 0; i < bidsLength; postFixIncrement(ref i))
+        for (int i = 0; i < bidsLength; i++)
         {
             string? currentBidString = exchange.safeString(getValue(bids, i), 0);
             if (!(inOp(skippedProperties, "compareToNextItem")))
@@ -53,7 +53,7 @@ public partial class testMainClass : BaseTest
         }
         object asks = getValue(orderbook, "asks");
         int asksLength = getArrayLength(asks);
-        for (int i = 0; i < asksLength; postFixIncrement(ref i))
+        for (int i = 0; i < asksLength; i++)
         {
             string? currentAskString = exchange.safeString(getValue(asks, i), 0);
             if (!(inOp(skippedProperties, "compareToNextItem")))

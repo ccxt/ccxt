@@ -186,7 +186,7 @@ public partial class aster : ccxt.aster
             { "method", "SUBSCRIBE" },
             { "params", subscriptionArgs },
         };
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); i++)
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
@@ -246,7 +246,7 @@ public partial class aster : ccxt.aster
             { "method", "UNSUBSCRIBE" },
             { "params", subscriptionArgs },
         };
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); i++)
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
@@ -342,7 +342,7 @@ public partial class aster : ccxt.aster
             { "params", subscriptionArgs },
         };
         bool? use1sFreq = this.safeBool(parameters, "use1sFreq", true);
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); i++)
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
@@ -403,7 +403,7 @@ public partial class aster : ccxt.aster
             { "params", subscriptionArgs },
         };
         bool? use1sFreq = this.safeBool(parameters, "use1sFreq", true);
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); i++)
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
@@ -540,7 +540,7 @@ public partial class aster : ccxt.aster
             { "method", "SUBSCRIBE" },
             { "params", subscriptionArgs },
         };
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); i++)
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
@@ -595,7 +595,7 @@ public partial class aster : ccxt.aster
             { "method", "UNSUBSCRIBE" },
             { "params", subscriptionArgs },
         };
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); i++)
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
@@ -730,7 +730,7 @@ public partial class aster : ccxt.aster
             { "params", subscriptionArgs },
             { "id", 1 },
         };
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); i++)
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
@@ -785,7 +785,7 @@ public partial class aster : ccxt.aster
             { "method", "UNSUBSCRIBE" },
             { "params", subscriptionArgs },
         };
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); i++)
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
@@ -1073,7 +1073,7 @@ public partial class aster : ccxt.aster
         {
             limitVar = 20;
         }
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); i++)
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
@@ -1130,7 +1130,7 @@ public partial class aster : ccxt.aster
         {
             limit = 20;
         }
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); i++)
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
@@ -1272,7 +1272,7 @@ public partial class aster : ccxt.aster
             { "method", "SUBSCRIBE" },
             { "params", subscriptionArgs },
         };
-        for (int i = 0; i < getArrayLength(symbolsAndTimeframes); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbolsAndTimeframes); i++)
         {
             object data = getValue(symbolsAndTimeframes, i);
             object symbolString = this.safeString(data, 0);
@@ -1337,7 +1337,7 @@ public partial class aster : ccxt.aster
             { "method", "UNSUBSCRIBE" },
             { "params", subscriptionArgs },
         };
-        for (int i = 0; i < getArrayLength(symbolsAndTimeframes); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbolsAndTimeframes); i++)
         {
             object data = getValue(symbolsAndTimeframes, i);
             object symbolString = this.safeString(data, 0);
@@ -1510,7 +1510,7 @@ public partial class aster : ccxt.aster
             object url = add(add(getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), type), "/"), listenKey);
             var client = this.client(url);
             List<object> messageHashes = new List<object>(((IDictionary<string, ccxt.Exchange.Future>)client.futures).Keys);
-            for (int i = 0; i < messageHashes.Count; postFixIncrement(ref i))
+            for (int i = 0; i < messageHashes.Count; i++)
             {
                 string? messageHash = ((string)getValue(messageHashes, i));
                 ((WebSocketClient)client).reject(error, messageHash);
@@ -1674,7 +1674,7 @@ public partial class aster : ccxt.aster
         message = this.safeDict(message, "a", message);
         List<object> B = this.safeList(message, "B", new List<object>() {});
         string? wallet = this.safeString(this.options, "wallet", "wb");
-        for (int i = 0; i < B.Count; postFixIncrement(ref i))
+        for (int i = 0; i < B.Count; i++)
         {
             object entry = getValue(B, i);
             string? currencyId = this.safeString(entry, "a");
@@ -1726,7 +1726,7 @@ public partial class aster : ccxt.aster
             ((IList<object>)messageHashes).Add(messageHash);
         } else
         {
-            for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(symbols); i++)
             {
                 object symbol = getValue(symbols, i);
                 ((IList<object>)messageHashes).Add(add((messageHash + "::"), symbol));
@@ -1774,7 +1774,7 @@ public partial class aster : ccxt.aster
         object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions());
         this.positions = new ArrayCacheBySymbolBySide();
         object cache = this.positions;
-        for (int i = 0; i < getArrayLength(positions); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(positions); i++)
         {
             object position = getValue(positions, i);
             double? contracts = this.safeNumber(position, "contracts", 0);
@@ -1834,7 +1834,7 @@ public partial class aster : ccxt.aster
         IDictionary<string, object> data = this.safeDict(message, "a", new Dictionary<string, object>() {});
         List<object> rawPositions = this.safeList(data, "P", new List<object>() {});
         List<object> newPositions = new List<object>() {};
-        for (int i = 0; i < rawPositions.Count; postFixIncrement(ref i))
+        for (int i = 0; i < rawPositions.Count; i++)
         {
             object rawPosition = getValue(rawPositions, i);
             Dictionary<string, object> position = ((Dictionary<string, object>)this.parseWsPosition(rawPosition));
@@ -1847,7 +1847,7 @@ public partial class aster : ccxt.aster
         List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, messageHash);
         if (!isTrue(this.isEmpty(messageHashes)))
         {
-            for (int i = 0; i < getArrayLength(newPositions); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(newPositions); i++)
             {
                 object position = getValue(newPositions, i);
                 object symbol = getValue(position, "symbol");
@@ -2059,7 +2059,7 @@ public partial class aster : ccxt.aster
                         if (!isTrue(this.isEmpty(fees)))
                         {
                             bool insertNewFeeCurrency = true;
-                            for (int i = 0; isLessThan(i, getArrayLength(fees)); postFixIncrement(ref i))
+                            for (int i = 0; isLessThan(i, getArrayLength(fees)); i++)
                             {
                                 object orderFee = getValue(fees, i);
                                 if (isEqual(getValue(orderFee, "currency"), getValue(tradeFee, "currency")))

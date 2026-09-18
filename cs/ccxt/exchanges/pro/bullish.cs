@@ -197,7 +197,7 @@ public partial class bullish : ccxt.bullish
             ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArrayCache;
         }
         object tradesArray = getValue(this.trades, symbol);
-        for (int i = 0; i < getArrayLength(trades); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(trades); i++)
         {
             callDynamically(tradesArray, "append", new object[] {getValue(trades, i)});
         }
@@ -380,7 +380,7 @@ public partial class bullish : ccxt.bullish
         // 300 = '54885.0000000'
         // 301 = '0.06141566'
         // 302 ='53714.0000000'
-        for (int i = 0; isLessThan(i, getArrayLength(entry)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(entry)); i++)
         {
             if (!isEqual(mod(i, 2), 0))
             {
@@ -504,7 +504,7 @@ public partial class bullish : ccxt.bullish
             }
             object orders = this.orders;
             Dictionary<string, object> symbols = new Dictionary<string, object>() {};
-            for (int i = 0; i < getArrayLength(rawOrders); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(rawOrders); i++)
             {
                 object rawOrder = getValue(rawOrders, i);
                 Dictionary<string, object> parsedOrder = this.parseOrder(rawOrder);
@@ -518,7 +518,7 @@ public partial class bullish : ccxt.bullish
             string messageHash = "orders";
             (client as WebSocketClient).resolve(orders, messageHash);
             List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
-            for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+            for (int i = 0; i < keys.Count; i++)
             {
                 string? hashSymbol = ((string)getValue(keys, i));
                 string symbolMessageHash = ((messageHash + "::") + hashSymbol);
@@ -631,7 +631,7 @@ public partial class bullish : ccxt.bullish
             }
             object trades = this.myTrades;
             Dictionary<string, object> symbols = new Dictionary<string, object>() {};
-            for (int i = 0; i < getArrayLength(rawTrades); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(rawTrades); i++)
             {
                 object rawTrade = getValue(rawTrades, i);
                 Dictionary<string, object> parsedTrade = this.parseTrade(rawTrade);
@@ -645,7 +645,7 @@ public partial class bullish : ccxt.bullish
             string messageHash = "myTrades";
             (client as WebSocketClient).resolve(trades, messageHash);
             List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
-            for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+            for (int i = 0; i < keys.Count; i++)
             {
                 string? hashSymbol = ((string)getValue(keys, i));
                 string symbolMessageHash = ((messageHash + "::") + hashSymbol);
@@ -819,7 +819,7 @@ public partial class bullish : ccxt.bullish
         }
         object positions = this.positions;
         List<object> newPositions = new List<object>() {};
-        for (int i = 0; i < getArrayLength(rawPositions); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(rawPositions); i++)
         {
             object rawPosition = getValue(rawPositions, i);
             Dictionary<string, object> position = this.parsePosition(rawPosition);
@@ -827,7 +827,7 @@ public partial class bullish : ccxt.bullish
             ((IList<object>)newPositions).Add(position);
         }
         List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, "positions::");
-        for (int i = 0; i < getArrayLength(messageHashes); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(messageHashes); i++)
         {
             object messageHash = getValue(messageHashes, i);
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();

@@ -35,7 +35,7 @@ public partial class testMainClass : BaseTest
             if ((success == true))
             {
                 testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, response);
-                for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
+                for (int i = 0; i < getArrayLength(response); i++)
                 {
                     testTrade(exchange, skippedProperties, method, getValue(response, i), symbol, now, true);
                 }

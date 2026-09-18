@@ -250,7 +250,7 @@ public partial class paradex : ccxt.paradex
             { "asks", new List<object>() {} },
         };
         List<object> inserts = this.safeList(data, "inserts");
-        for (int i = 0; i < getArrayLength((IList<object>)(inserts)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength((IList<object>)(inserts)); i++)
         {
             IDictionary<string, object> insert = this.safeDict(inserts, i);
             string? side = this.safeString(insert, "side");
@@ -332,7 +332,7 @@ public partial class paradex : ccxt.paradex
         List<object> messageHashes = new List<object>() {};
         if ((symbols != null) && ((symbols is IList<object>) || (symbols.GetType().IsGenericType && symbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(symbols); i++)
             {
                 string messageHash = add((channel + "."), getValue(symbols, i));
                 ((IList<object>)messageHashes).Add(messageHash);
@@ -551,7 +551,7 @@ public partial class paradex : ccxt.paradex
             int symbolsLength = getArrayLength(symbols);
             if (symbolsLength > 0)
             {
-                for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+                for (int i = 0; i < getArrayLength(symbols); i++)
                 {
                     string messageHash = add((channel + "."), getValue(symbols, i));
                     ((IList<object>)messageHashes).Add(messageHash);

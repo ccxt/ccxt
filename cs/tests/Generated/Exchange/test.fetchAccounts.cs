@@ -12,7 +12,7 @@ public partial class testMainClass : BaseTest
         string method = "fetchAccounts";
         object accounts = await invokeExchangeDynamically(exchange, "fetchAccounts");
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, accounts);
-        for (int i = 0; i < getArrayLength(accounts); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(accounts); i++)
         {
             testAccount(exchange, skippedProperties, method, getValue(accounts, i));
         }

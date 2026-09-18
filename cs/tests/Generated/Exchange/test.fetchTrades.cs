@@ -17,7 +17,7 @@ public partial class testMainClass : BaseTest
         //
         Int64 now = exchange.milliseconds();
         bool isPublicTrade = true;
-        for (int i = 0; i < getArrayLength(trades); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(trades); i++)
         {
             testTrade(exchange, skippedProperties, method, getValue(trades, i), symbol, now, isPublicTrade);
         }
@@ -65,7 +65,7 @@ public partial class testMainClass : BaseTest
         string? lastPrice = null;
         object lastSide = null;
         object lastTrade = null;
-        for (int i = 0; i < getArrayLength(trades); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(trades); i++)
         {
             object trade = getValue(trades, i);
             object ts = getValue(trade, "timestamp");

@@ -169,7 +169,7 @@ public partial class bitrue : ccxt.bitrue
         //     }]
         //
         ((IDictionary<string,object>)this.balance)["info"] = balances;
-        for (int i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(balances)); i++)
         {
             object balance = getValue(balances, i);
             string? currencyId = this.safeString(balance, "a");
@@ -460,7 +460,7 @@ public partial class bitrue : ccxt.bitrue
             return null;
         }
         List<object> symbols = new List<object>(((IDictionary<string,object>)markets).Keys);
-        for (int i = 0; i < symbols.Count; postFixIncrement(ref i))
+        for (int i = 0; i < symbols.Count; i++)
         {
             object candidate = getValue(markets, getValue(symbols, i));
             if (!isEqual(getValue(candidate, "swap"), true))
@@ -480,7 +480,7 @@ public partial class bitrue : ccxt.bitrue
     public virtual List<object> parseContractBidsAsks(object bidsAsks, object symbol)
     {
         List<object> result = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(bidsAsks)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(bidsAsks)); i++)
         {
             object level = getValue(bidsAsks, i);
             double? price = this.safeNumber(level, 0);
@@ -589,7 +589,7 @@ public partial class bitrue : ccxt.bitrue
         List<object> data = this.safeList(tick, "data", new List<object>() {});
         bool appended = false;
         object stored = this.safeValue(this.trades, symbol);
-        for (int i = 0; i < data.Count; postFixIncrement(ref i))
+        for (int i = 0; i < data.Count; i++)
         {
             if ((stored == null))
             {

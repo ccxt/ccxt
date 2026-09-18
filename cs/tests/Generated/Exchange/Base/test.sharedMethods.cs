@@ -78,7 +78,7 @@ public partial class testMainClass : BaseTest
                 int realLength = getArrayLength(entry);
                 int expectedLength = getArrayLength(format);
                 assert((realLength == expectedLength), add(("entry length is not equal to expected length of " + ((object)expectedLength).ToString()), logText));
-                for (int i = 0; i < getArrayLength(format); postFixIncrement(ref i))
+                for (int i = 0; i < getArrayLength(format); i++)
                 {
                     bool emptyAllowedForThisKey = ((emptyAllowedFor == null)) || isTrue(exchange.inArray(i, emptyAllowedFor));
                     object value = getValue(entry, i);
@@ -98,7 +98,7 @@ public partial class testMainClass : BaseTest
             {
                 assert(exchange.isDictionary(entry), add("entry is not a dict", logText));
                 List<object> keys = new List<object>(((IDictionary<string,object>)format).Keys);
-                for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+                for (int i = 0; i < keys.Count; i++)
                 {
                     string? key = ((string)getValue(keys, i));
                     if (inOp(skippedProperties, key))
@@ -467,7 +467,7 @@ public partial class testMainClass : BaseTest
                 {
                     return;
                 }
-                for (int i = 0; i < getArrayLength(decimalNumbers); postFixIncrement(ref i))
+                for (int i = 0; i < getArrayLength(decimalNumbers); i++)
                 {
                     string? num = ((string)getValue(decimalNumbers, i));
                     string? numStr = num;
@@ -531,7 +531,7 @@ public partial class testMainClass : BaseTest
             object sinceTime = subtract(exchange.milliseconds(), (multiply(1000, 60) * 5));
             // iterate
             List<object> methods_singular = new List<object>() {"fetchOrder", "fetchOpenOrder", "fetchClosedOrder", "fetchCanceledOrder"};
-            for (int i = 0; i < getArrayLength(methods_singular); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(methods_singular); i++)
             {
                 string? singularFetchName = ((string)getValue(methods_singular, i));
                 if ((!isEqual(getValue(exchange.has, singularFetchName), null)) && (!isEqual(getValue(exchange.has, singularFetchName), false)))
@@ -550,14 +550,14 @@ public partial class testMainClass : BaseTest
             if ((fetchedOrder == null))
             {
                 List<object> methods_plural = new List<object>() {"fetchOrders", "fetchOpenOrders", "fetchClosedOrders", "fetchCanceledOrders"};
-                for (int i = 0; i < getArrayLength(methods_plural); postFixIncrement(ref i))
+                for (int i = 0; i < getArrayLength(methods_plural); i++)
                 {
                     string? pluralFetchName = ((string)getValue(methods_plural, i));
                     if ((!isEqual(getValue(exchange.has, pluralFetchName), null)) && (!isEqual(getValue(exchange.has, pluralFetchName), false)))
                     {
                         object orders = await ((Task<object>)callDynamically(exchange, pluralFetchName, new object[] { symbol, sinceTime }));
                         bool found = false;
-                        for (int j = 0; isLessThan(j, getArrayLength(orders)); postFixIncrement(ref j))
+                        for (int j = 0; isLessThan(j, getArrayLength(orders)); j++)
                         {
                             object currentOrder = getValue(orders, j);
                             if (isEqual(getValue(currentOrder, "id"), originalId))
@@ -691,11 +691,11 @@ public partial class testMainClass : BaseTest
             } else
             {
                 List<object> result = new List<object>() {};
-                for (int i = 0; i < getArrayLength(a); postFixIncrement(ref i))
+                for (int i = 0; i < getArrayLength(a); i++)
                 {
                     ((IList<object>)result).Add(getValue(a, i));
                 }
-                for (int j = 0; j < getArrayLength(b); postFixIncrement(ref j))
+                for (int j = 0; j < getArrayLength(b); j++)
                 {
                     ((IList<object>)result).Add(getValue(b, j));
                 }

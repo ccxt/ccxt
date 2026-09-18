@@ -420,7 +420,7 @@ public partial class cex : Exchange
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         IDictionary<string, object> rawNetworks = this.safeDict(rawCurrency, "blockchains", new Dictionary<string, object>() {});
         List<object> keys = new List<object>(((IDictionary<string,object>)rawNetworks).Keys);
-        for (int j = 0; j < keys.Count; postFixIncrement(ref j))
+        for (int j = 0; j < keys.Count; j++)
         {
             string? networkId = ((string)getValue(keys, j));
             object rawNetwork = getValue(rawNetworks, networkId);
@@ -964,7 +964,7 @@ public partial class cex : Exchange
         useKeyAsId ??= false;
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         List<object> keys = new List<object>(((IDictionary<string,object>)response).Keys);
-        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)getValue(keys, i));
             IDictionary<string, object> market = null;
@@ -979,7 +979,7 @@ public partial class cex : Exchange
             }
         }
         List<object> symbols = this.symbols;
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); i++)
         {
             object symbol = getValue(symbols, i);
             if (!(inOp(result, symbol)))
@@ -1114,7 +1114,7 @@ public partial class cex : Exchange
             { "info", response },
         };
         List<object> keys = new List<object>(((IDictionary<string,object>)response).Keys);
-        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)getValue(keys, i));
             IDictionary<string, object> balance = this.safeDict(response, key, new Dictionary<string, object>() {});
@@ -1585,7 +1585,7 @@ public partial class cex : Exchange
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> ids = this.safeList(data, "clientOrderIds", new List<object>() {});
         List<object> orders = new List<object>() {};
-        for (int i = 0; i < ids.Count; postFixIncrement(ref i))
+        for (int i = 0; i < ids.Count; i++)
         {
             object id = getValue(ids, i);
             ((IList<object>)orders).Add(new Dictionary<string, object>() {

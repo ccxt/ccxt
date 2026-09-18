@@ -837,7 +837,7 @@ public partial class grvt : Exchange
         List<object> approvedBuilder = this.safeList(currentBuilders, "results", new List<object>() {});
         int length = approvedBuilder.Count;
         bool found = false;
-        for (int i = 0; i < length; postFixIncrement(ref i))
+        for (int i = 0; i < length; i++)
         {
             IDictionary<string, object> builderInfo = this.safeDict(approvedBuilder, i, new Dictionary<string, object>() {});
             string? builderAccountId = this.safeString(builderInfo, "builder_account_id");
@@ -1711,7 +1711,7 @@ public partial class grvt : Exchange
         };
         List<object> spotBalances = this.safeList(response, "spot_balances", new List<object>() {});
         string? availableBalance = this.safeString(response, "available_balance");
-        for (int i = 0; i < spotBalances.Count; postFixIncrement(ref i))
+        for (int i = 0; i < spotBalances.Count; i++)
         {
             object balance = getValue(spotBalances, i);
             string? currencyId = this.safeString(balance, "currency");
@@ -2106,7 +2106,7 @@ public partial class grvt : Exchange
         onlyMainAccount ??= true;
         List<object> matchedResults = new List<object>() {};
         List<object> nonMatchedResults = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(transfers)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(transfers)); i++)
         {
             object transfer = getValue(transfers, i);
             if ((isTrue(onlyMainAccount) && isEqual(getValue(transfer, "fromAccount"), "0") && isEqual(getValue(transfer, "toAccount"), "0")) || (!isTrue(onlyMainAccount) && (!isEqual(getValue(transfer, "fromAccount"), "0") || !isEqual(getValue(transfer, "toAccount"), "0"))))
@@ -2611,7 +2611,7 @@ public partial class grvt : Exchange
         string priceMultiplier = "1000000000";
         List<object> orderLegs = this.safeList(order, "legs", new List<object>() {});
         List<object> legs = new List<object>() {};
-        for (int i = 0; i < orderLegs.Count; postFixIncrement(ref i))
+        for (int i = 0; i < orderLegs.Count; i++)
         {
             object leg = getValue(orderLegs, i);
             Dictionary<string, object> market = this.market(getValue(leg, "instrument"));
@@ -2770,7 +2770,7 @@ public partial class grvt : Exchange
             symbols = this.marketSymbols(symbols);
             ((IDictionary<string,object>)request)["base"] = new List<object>() {};
             ((IDictionary<string,object>)request)["quote"] = new List<object>() {};
-            for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(symbols); i++)
             {
                 object symbol = getValue(symbols, i);
                 Dictionary<string, object> market = this.market(symbol);

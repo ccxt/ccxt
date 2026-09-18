@@ -1314,7 +1314,7 @@ public partial class bingx : Exchange
         string? name = this.safeString(rawCurrency, "name");
         List<object> networkList = this.safeList(rawCurrency, "networkList");
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
-        for (int j = 0; j < getArrayLength(networkList); postFixIncrement(ref j))
+        for (int j = 0; j < getArrayLength(networkList); j++)
         {
             object rawNetwork = getValue(networkList, j);
             string? network = this.safeString(rawNetwork, "network");
@@ -3152,7 +3152,7 @@ public partial class bingx : Exchange
         List<object> spotBalances = this.safeList2(spotData, "balances", "assets", new List<object>() {});
         if (isContract)
         {
-            for (int i = 0; i < getArrayLength(contractBalances); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(contractBalances); i++)
             {
                 object balance = getValue(contractBalances, i);
                 string? currencyId = this.safeString(balance, "asset");
@@ -3172,7 +3172,7 @@ public partial class bingx : Exchange
             }
         } else
         {
-            for (int i = 0; i < getArrayLength(spotBalances); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(spotBalances); i++)
             {
                 object balance = getValue(spotBalances, i);
                 string? currencyId = this.safeString(balance, "asset");
@@ -4033,7 +4033,7 @@ public partial class bingx : Exchange
         }
         List<object> ordersRequests = new List<object>() {};
         List<object> marketIds = new List<object>() {};
-        for (int i = 0; i < getArrayLength(orders); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(orders); i++)
         {
             object rawOrder = getValue(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol", "");
@@ -4842,7 +4842,7 @@ public partial class bingx : Exchange
             idsToParse = clientOrderIds;
         }
         List<object> parsedIds = new List<object>() {};
-        for (int i = 0; i < getArrayLength(idsToParse); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(idsToParse); i++)
         {
             object id = getValue(idsToParse, i);
             string stringId = ((object)id).ToString();
@@ -6359,7 +6359,7 @@ public partial class bingx : Exchange
         };
         if ((networksLength != 0))
         {
-            for (int i = 0; i < networksLength; postFixIncrement(ref i))
+            for (int i = 0; i < networksLength; i++)
             {
                 string? networkCode = ((string)getValue(networkCodes, i));
                 object network = getValue(networks, networkCode);
@@ -6402,7 +6402,7 @@ public partial class bingx : Exchange
         IDictionary<string, object> response = await this.fetchCurrencies(parameters);
         Dictionary<string, object> depositWithdrawFees = new Dictionary<string, object>() {};
         List<object> responseCodes = new List<object>(((IDictionary<string,object>)response).Keys);
-        for (int i = 0; i < responseCodes.Count; postFixIncrement(ref i))
+        for (int i = 0; i < responseCodes.Count; i++)
         {
             string? code = ((string)getValue(responseCodes, i));
             if (((codes == null)) || (this.inArray(code, codes)))
@@ -6487,14 +6487,14 @@ public partial class bingx : Exchange
         object copied = this.clone(parameters);
         List<object> rawKeys = new List<object>(((IDictionary<string,object>)parameters).Keys);
         object keys = this.sort(rawKeys);
-        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); i++)
         {
             object key = getValue(keys, i);
             object value = getValue(parameters, key);
             if (((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
                 string arrStr = "[";
-                for (int j = 0; j < getArrayLength(value); postFixIncrement(ref j))
+                for (int j = 0; j < getArrayLength(value); j++)
                 {
                     object arrayElement = getValue(value, j);
                     if (j > 0)
@@ -6759,7 +6759,7 @@ public partial class bingx : Exchange
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> success = this.safeList(data, "success", new List<object>() {});
         List<object> positions = new List<object>() {};
-        for (int i = 0; i < getArrayLength(success); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(success); i++)
         {
             Dictionary<string, object> position = this.parsePosition(new Dictionary<string, object>() {
                 { "positionId", getValue(success, i) },
@@ -7071,14 +7071,14 @@ public partial class bingx : Exchange
         object keys = this.sort(rawKeys);
         string? adjustedValue = null;
         object result = null;
-        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); i++)
         {
             object key = getValue(keys, i);
             object value = getValue(parameters, key);
             if (((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
                 object arrStr = null;
-                for (int j = 0; j < getArrayLength(value); postFixIncrement(ref j))
+                for (int j = 0; j < getArrayLength(value); j++)
                 {
                     object arrayElement = getValue(value, j);
                     bool isString = ((arrayElement is string));
@@ -7181,7 +7181,7 @@ public partial class bingx : Exchange
         //     ]
         //
         List<object> tiers = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(info)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(info)); i++)
         {
             IDictionary<string, object> tier = this.safeDict(info, i);
             string tierString = ((string)this.safeString(tier, "tier"));

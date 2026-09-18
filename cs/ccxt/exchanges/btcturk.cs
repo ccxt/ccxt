@@ -363,7 +363,7 @@ public partial class btcturk : Exchange
         double? minAmount = null;
         double? maxAmount = null;
         double? minCost = null;
-        for (int j = 0; j < filters.Count; postFixIncrement(ref j))
+        for (int j = 0; j < filters.Count; j++)
         {
             object filter = getValue(filters, j);
             string? filterType = this.safeString(filter, "filterType");
@@ -436,7 +436,7 @@ public partial class btcturk : Exchange
             { "timestamp", null },
             { "datetime", null },
         };
-        for (int i = 0; i < data.Count; postFixIncrement(ref i))
+        for (int i = 0; i < data.Count; i++)
         {
             object entry = getValue(data, i);
             string? currencyId = this.safeString(entry, "asset");
@@ -858,7 +858,7 @@ public partial class btcturk : Exchange
         List<object> low = this.safeList(ohlcvs, "l", new List<object>() {});
         List<object> close = this.safeList(ohlcvs, "c", new List<object>() {});
         List<object> volume = this.safeList(ohlcvs, "v", new List<object>() {});
-        for (int i = 0; i < timestamp.Count; postFixIncrement(ref i))
+        for (int i = 0; i < timestamp.Count; i++)
         {
             Dictionary<string, object> ohlcv = new Dictionary<string, object>() {
                 { "timestamp", this.safeInteger(timestamp, i) },

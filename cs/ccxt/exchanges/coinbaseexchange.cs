@@ -711,7 +711,7 @@ public partial class coinbaseexchange : Exchange
         IDictionary<string, object> details = this.safeDict(rawCurrency, "details", new Dictionary<string, object>() {});
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         List<object> supportedNetworks = this.safeList(rawCurrency, "supported_networks", new List<object>() {});
-        for (int j = 0; j < supportedNetworks.Count; postFixIncrement(ref j))
+        for (int j = 0; j < supportedNetworks.Count; j++)
         {
             object network = getValue(supportedNetworks, j);
             string? networkId = this.safeString(network, "id");
@@ -825,7 +825,7 @@ public partial class coinbaseexchange : Exchange
         //
         List<object> result = new List<object>() {};
         IList<object> rawMarkets = this.toArray(response);
-        for (int i = 0; i < getArrayLength(rawMarkets); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(rawMarkets); i++)
         {
             object market = getValue(rawMarkets, i);
             string? id = this.safeString(market, "id");
@@ -957,7 +957,7 @@ public partial class coinbaseexchange : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); i++)
         {
             object balance = getValue(response, i);
             string? currencyId = this.safeString(balance, "currency");
@@ -1164,7 +1164,7 @@ public partial class coinbaseexchange : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         List<object> marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
         string delimiter = "-";
-        for (int i = 0; i < marketIds.Count; postFixIncrement(ref i))
+        for (int i = 0; i < marketIds.Count; i++)
         {
             string? marketId = ((string)getValue(marketIds, i));
             object entry = this.safeValue(response, marketId, new List<object>() {});
@@ -1430,7 +1430,7 @@ public partial class coinbaseexchange : Exchange
         double? maker = this.safeNumber(response, "maker_fee_rate");
         double? taker = this.safeNumber(response, "taker_fee_rate");
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; i < this.symbols.Count; postFixIncrement(ref i))
+        for (int i = 0; i < this.symbols.Count; i++)
         {
             object symbol = getValue(this.symbols, i);
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
@@ -2178,7 +2178,7 @@ public partial class coinbaseexchange : Exchange
         }
         List<object> response = await this.privateGetAccountsIdLedger(this.extend(request, parameters));
         IList<object> entries = this.toArray(response);
-        for (int i = 0; i < getArrayLength(entries); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(entries); i++)
         {
             ((IDictionary<string,object>)getValue(entries, i))["currency"] = code;
         }
@@ -2264,7 +2264,7 @@ public partial class coinbaseexchange : Exchange
             //    ]
             //
             response = this.toArray(transfers);
-            for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(response); i++)
             {
                 string? account_id = this.safeString(getValue(response, i), "account_id");
                 object account = this.safeValue(this.accountsById, account_id);
@@ -2301,7 +2301,7 @@ public partial class coinbaseexchange : Exchange
             //    ]
             //
             response = this.toArray(accountTransfers);
-            for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(response); i++)
             {
                 ((IDictionary<string,object>)getValue(response, i))["currency"] = code;
             }

@@ -434,12 +434,12 @@ public partial class independentreserve : Exchange
         List<object> result = new List<object>() {};
         IList<object> baseCurrencyIds = this.toArray(baseCurrencies);
         IList<object> quoteCurrencyIds = this.toArray(quoteCurrencies);
-        for (int i = 0; i < getArrayLength(baseCurrencyIds); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(baseCurrencyIds); i++)
         {
             object baseId = getValue(baseCurrencyIds, i);
             object bs = this.safeCurrencyCode(baseId);
             double? minAmount = this.safeNumber(limits, baseId);
-            for (int j = 0; j < getArrayLength(quoteCurrencyIds); postFixIncrement(ref j))
+            for (int j = 0; j < getArrayLength(quoteCurrencyIds); j++)
             {
                 object quoteId = getValue(quoteCurrencyIds, j);
                 string? quote = this.safeCurrencyCode(quoteId);
@@ -503,7 +503,7 @@ public partial class independentreserve : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); i++)
         {
             object balance = getValue(response, i);
             string? currencyId = this.safeString(balance, "CurrencyCode");
@@ -1038,7 +1038,7 @@ public partial class independentreserve : Exchange
         //
         Dictionary<string, object> fees = new Dictionary<string, object>() {};
         IList<object> rows = this.toArray(response);
-        for (int i = 0; i < getArrayLength(rows); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(rows); i++)
         {
             object fee = getValue(rows, i);
             string? currencyId = this.safeString(fee, "CurrencyCode");
@@ -1054,7 +1054,7 @@ public partial class independentreserve : Exchange
         }
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         List<object> symbols = this.symbols;
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); i++)
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
@@ -1340,7 +1340,7 @@ public partial class independentreserve : Exchange
             Int64 nonce = this.nonce();
             List<object> auth = new List<object>() {url, ("apiKey=" + (this.apiKey)), ("nonce=" + ((object)nonce).ToString())};
             List<object> keys = new List<object>(((IDictionary<string,object>)parameters).Keys);
-            for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+            for (int i = 0; i < keys.Count; i++)
             {
                 object key = getValue(keys, i);
                 string value = ((object)getValue(parameters, key)).ToString();
@@ -1352,7 +1352,7 @@ public partial class independentreserve : Exchange
             ((IDictionary<string,object>)query)["apiKey"] = this.apiKey;
             ((IDictionary<string,object>)query)["nonce"] = nonce;
             ((IDictionary<string,object>)query)["signature"] = ((string)signature).ToUpper();
-            for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+            for (int i = 0; i < keys.Count; i++)
             {
                 string? key = ((string)getValue(keys, i));
                 ((IDictionary<string,object>)query)[(string)key] = getValue(parameters, key);

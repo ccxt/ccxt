@@ -156,7 +156,7 @@ public partial class hashkey : ccxt.hashkey
         }
         List<object> data = this.safeList(message, "data", new List<object>() {});
         object stored = getValue(getValue(this.ohlcvs, symbol), ((string)timeframe));
-        for (int i = 0; i < data.Count; postFixIncrement(ref i))
+        for (int i = 0; i < data.Count; i++)
         {
             IDictionary<string, object> candle = this.safeDict(data, i, new Dictionary<string, object>() {});
             object parsed = this.parseWsOHLCV(candle, market);
@@ -318,7 +318,7 @@ public partial class hashkey : ccxt.hashkey
         if ((data != null))
         {
             data = this.sortBy(data, "t");
-            for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(data); i++)
             {
                 IDictionary<string, object> trade = this.safeDict(data, i);
                 Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsTrade(trade, market));
@@ -704,7 +704,7 @@ public partial class hashkey : ccxt.hashkey
             ((IList<object>)messageHashes).Add(messageHash);
         } else
         {
-            for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(symbols); i++)
             {
                 object symbol = getValue(symbols, i);
                 ((IList<object>)messageHashes).Add(add((messageHash + ":"), symbol));

@@ -155,7 +155,7 @@ public partial class coinex : ccxt.coinex
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         List<object> rawTickers = this.safeList(data, "state_list", new List<object>() {});
         Dictionary<string, object> newTickers = new Dictionary<string, object>() {};
-        for (int i = 0; i < rawTickers.Count; postFixIncrement(ref i))
+        for (int i = 0; i < rawTickers.Count; i++)
         {
             object entry = getValue(rawTickers, i);
             string? marketId = this.safeString(entry, "market");
@@ -166,7 +166,7 @@ public partial class coinex : ccxt.coinex
             ((IDictionary<string,object>)newTickers)[(string)symbol] = parsedTicker;
         }
         List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, "tickers::");
-        for (int i = 0; i < getArrayLength(messageHashes); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(messageHashes); i++)
         {
             object messageHash = getValue(messageHashes, i);
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
@@ -357,7 +357,7 @@ public partial class coinex : ccxt.coinex
         if (isSpot)
         {
             account = "spot";
-            for (int i = 0; i < balances.Count; postFixIncrement(ref i))
+            for (int i = 0; i < balances.Count; i++)
             {
                 rawBalances = this.arrayConcat(rawBalances, balances);
             }
@@ -366,13 +366,13 @@ public partial class coinex : ccxt.coinex
         if (isSwap)
         {
             account = "swap";
-            for (int i = 0; i < balances.Count; postFixIncrement(ref i))
+            for (int i = 0; i < balances.Count; i++)
             {
                 rawBalances = this.arrayConcat(rawBalances, balances);
             }
             info = rawBalances;
         }
-        for (int i = 0; i < getArrayLength(rawBalances); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(rawBalances); i++)
         {
             object entry = getValue(rawBalances, i);
             this.parseWsBalance(entry, account);
@@ -604,7 +604,7 @@ public partial class coinex : ccxt.coinex
             stored = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
-        for (int i = 0; i < trades.Count; postFixIncrement(ref i))
+        for (int i = 0; i < trades.Count; i++)
         {
             object trade = getValue(trades, i);
             Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsTrade(trade, market));
@@ -730,7 +730,7 @@ public partial class coinex : ccxt.coinex
         bool symbolsDefined = ((symbols != null));
         if (symbolsDefined)
         {
-            for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(symbols); i++)
             {
                 object symbol = getValue(symbols, i);
                 market = this.market(symbol);
@@ -810,7 +810,7 @@ public partial class coinex : ccxt.coinex
         bool symbolsDefined = ((symbols != null));
         if (symbolsDefined)
         {
-            for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(symbols); i++)
             {
                 object symbol = getValue(symbols, i);
                 market = this.market(symbol);
@@ -892,7 +892,7 @@ public partial class coinex : ccxt.coinex
         {
             throw new ArgumentsRequired ((string)(this.id + " watchOrderBookForSymbols() requires a symbol argument")) ;
         }
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); i++)
         {
             object symbol = getValue(symbols, i);
             market = this.market(symbol);
@@ -946,7 +946,7 @@ public partial class coinex : ccxt.coinex
 
     public override void handleDeltas(object bookside, object deltas)
     {
-        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(deltas)); i++)
         {
             this.handleDelta(bookside, getValue(deltas, i));
         }
@@ -1404,7 +1404,7 @@ public partial class coinex : ccxt.coinex
         bool symbolsDefined = ((symbols != null));
         if (symbolsDefined)
         {
-            for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(symbols); i++)
             {
                 object symbol = getValue(symbols, i);
                 market = this.market(symbol);

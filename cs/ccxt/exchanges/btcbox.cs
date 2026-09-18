@@ -268,7 +268,7 @@ public partial class btcbox : Exchange
         IDictionary<string, object> result2Data = this.safeDict(response2, "data", new Dictionary<string, object>() {});
         List<object> marketIds = new List<object>(((IDictionary<string,object>)response1).Keys);
         List<object> markets = new List<object>() {};
-        for (int i = 0; i < marketIds.Count; postFixIncrement(ref i))
+        for (int i = 0; i < marketIds.Count; i++)
         {
             string? marketId = ((string)getValue(marketIds, i));
             List<object> symbolParts = ((string)marketId).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
@@ -402,7 +402,7 @@ public partial class btcbox : Exchange
             { "info", response },
         };
         List<object> codes = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
-        for (int i = 0; i < codes.Count; postFixIncrement(ref i))
+        for (int i = 0; i < codes.Count; i++)
         {
             string? code = ((string)getValue(codes, i));
             Dictionary<string, object> currency = this.currency(((string)code));
@@ -847,7 +847,7 @@ public partial class btcbox : Exchange
         // btcbox does not return status, but we know it's 'open' as we queried for open orders
         if (isEqual(type, "open"))
         {
-            for (int i = 0; i < getArrayLength(orders); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(orders); i++)
             {
                 ((IDictionary<string,object>)getValue(orders, i))["status"] = "open";
             }

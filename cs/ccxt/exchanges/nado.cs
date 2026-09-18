@@ -756,7 +756,7 @@ public partial class nado : Exchange
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> cancelledOrders = this.safeList(data, "cancelled_orders", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (int i = 0; i < cancelledOrders.Count; postFixIncrement(ref i))
+        for (int i = 0; i < cancelledOrders.Count; i++)
         {
             ((IList<object>)result).Add(this.parseOrder(this.extend(new Dictionary<string, object>() {
                 { "status", "canceled" },
@@ -860,7 +860,7 @@ public partial class nado : Exchange
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> cancelledOrders = this.safeList(data, "cancelled_orders", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (int i = 0; i < cancelledOrders.Count; postFixIncrement(ref i))
+        for (int i = 0; i < cancelledOrders.Count; i++)
         {
             ((IList<object>)result).Add(this.parseOrder(this.extend(new Dictionary<string, object>() {
                 { "status", "canceled" },
@@ -890,7 +890,7 @@ public partial class nado : Exchange
         parameters = ((IList<object>)subaccountparametersVariable)[1];
         string sender = this.createSubaccount(this.walletAddress, subaccount);
         List<object> productIds = new List<object>() {};
-        for (int i = 0; i < getArrayLength(ids); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(ids); i++)
         {
             ((IList<object>)productIds).Add(productId);
         }
@@ -1234,7 +1234,7 @@ public partial class nado : Exchange
         //
         List<object> closedOrders = new List<object>() {};
         List<object> orders = this.safeList(response, "orders", new List<object>() {});
-        for (int i = 0; i < orders.Count; postFixIncrement(ref i))
+        for (int i = 0; i < orders.Count; i++)
         {
             object order = getValue(orders, i);
             if (isTrue(this.isArchiveOrderClosed(order)))
@@ -1367,7 +1367,7 @@ public partial class nado : Exchange
         List<object> txs = this.safeList(response, "txs", new List<object>() {});
         Dictionary<string, object> txsBySubmission = this.indexBy(txs, "submission_idx");
         List<object> trades = new List<object>() {};
-        for (int i = 0; i < matches.Count; postFixIncrement(ref i))
+        for (int i = 0; i < matches.Count; i++)
         {
             object match = getValue(matches, i);
             string? submissionIdx = this.safeString(match, "submission_idx");
@@ -1534,12 +1534,12 @@ public partial class nado : Exchange
         List<object> events = this.safeList(response, "events", new List<object>() {});
         List<object> txs = this.safeList(response, "txs", new List<object>() {});
         List<object> transactions = new List<object>() {};
-        for (int i = 0; i < events.Count; postFixIncrement(ref i))
+        for (int i = 0; i < events.Count; i++)
         {
             object eventVar = getValue(events, i);
             string? submissionIdx = this.safeString(eventVar, "submission_idx");
             object tx = new Dictionary<string, object>() {};
-            for (int j = 0; j < txs.Count; postFixIncrement(ref j))
+            for (int j = 0; j < txs.Count; j++)
             {
                 object rawTx = getValue(txs, j);
                 string? txSubmissionIdx = this.safeString(rawTx, "submission_idx");
@@ -1616,7 +1616,7 @@ public partial class nado : Exchange
         List<object> positions = this.safeList(data, "perp_balances", new List<object>() {});
         List<object> products = this.safeList(data, "perp_products", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (int i = 0; i < positions.Count; postFixIncrement(ref i))
+        for (int i = 0; i < positions.Count; i++)
         {
             object position = getValue(positions, i);
             IDictionary<string, object> balance = this.safeDict(position, "balance", new Dictionary<string, object>() {});
@@ -1627,7 +1627,7 @@ public partial class nado : Exchange
             }
             string? productId = this.safeString(position, "product_id");
             object product = new Dictionary<string, object>() {};
-            for (int j = 0; j < products.Count; postFixIncrement(ref j))
+            for (int j = 0; j < products.Count; j++)
             {
                 object rawProduct = getValue(products, j);
                 string? rawProductId = this.safeString(rawProduct, "product_id");
@@ -1719,7 +1719,7 @@ public partial class nado : Exchange
         // product_id is a JSON number: JS object keys are always strings but a Python
         // dict keeps int keys, so indexBy would never match the safeString lookups below
         Dictionary<string, object> pairsById = new Dictionary<string, object>() {};
-        for (int i = 0; i < pairs.Count; postFixIncrement(ref i))
+        for (int i = 0; i < pairs.Count; i++)
         {
             object rawPair = getValue(pairs, i);
             string? pairProductId = this.safeString(rawPair, "product_id");
@@ -1729,7 +1729,7 @@ public partial class nado : Exchange
             }
         }
         Dictionary<string, object> assetsById = new Dictionary<string, object>() {};
-        for (int i = 0; i < assets.Count; postFixIncrement(ref i))
+        for (int i = 0; i < assets.Count; i++)
         {
             object rawAsset = getValue(assets, i);
             string? assetProductId = this.safeString(rawAsset, "product_id");
@@ -1739,7 +1739,7 @@ public partial class nado : Exchange
             }
         }
         Dictionary<string, object> assetsByCode = new Dictionary<string, object>() {};
-        for (int i = 0; i < assets.Count; postFixIncrement(ref i))
+        for (int i = 0; i < assets.Count; i++)
         {
             object rawAsset = getValue(assets, i);
             string? assetSymbol = this.safeString(rawAsset, "symbol");
@@ -1765,7 +1765,7 @@ public partial class nado : Exchange
             }
         }
         List<object> markets = new List<object>() {};
-        for (int i = 0; i < symbols.Count; postFixIncrement(ref i))
+        for (int i = 0; i < symbols.Count; i++)
         {
             object market = getValue(symbols, i);
             string? id = this.safeString(market, "product_id");
@@ -1874,7 +1874,7 @@ public partial class nado : Exchange
         List<object> response = await this.gatewayV2PublicGetAssets(parameters);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         IList<object> assets = this.toArray(response);
-        for (int i = 0; i < getArrayLength(assets); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(assets); i++)
         {
             object currency = getValue(assets, i);
             Dictionary<string, object> parsed = this.parseCurrency(currency);
@@ -2068,7 +2068,7 @@ public partial class nado : Exchange
         //
         List<object> fundingPayments = this.safeList(response, "funding_payments", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (int i = 0; i < fundingPayments.Count; postFixIncrement(ref i))
+        for (int i = 0; i < fundingPayments.Count; i++)
         {
             ((IList<object>)result).Add(this.parseFundingHistory(getValue(fundingPayments, i), market));
         }
@@ -2117,7 +2117,7 @@ public partial class nado : Exchange
         //
         List<object> tickers = new List<object>(((IDictionary<string,object>)response).Keys);
         List<object> rates = new List<object>() {};
-        for (int i = 0; i < tickers.Count; postFixIncrement(ref i))
+        for (int i = 0; i < tickers.Count; i++)
         {
             string? ticker = ((string)getValue(tickers, i));
             ((IList<object>)rates).Add(this.safeDict(response, ticker, new Dictionary<string, object>() {}));
@@ -2214,7 +2214,7 @@ public partial class nado : Exchange
         //
         List<object> tickers = new List<object>(((IDictionary<string,object>)response).Keys);
         List<object> interests = new List<object>() {};
-        for (int i = 0; i < tickers.Count; postFixIncrement(ref i))
+        for (int i = 0; i < tickers.Count; i++)
         {
             string? ticker = ((string)getValue(tickers, i));
             ((IList<object>)interests).Add(this.safeDict(response, ticker, new Dictionary<string, object>() {}));
@@ -2701,7 +2701,7 @@ public partial class nado : Exchange
             { "info", response },
         };
         List<object> balances = this.safeList(response, "spot_balances", new List<object>() {});
-        for (int i = 0; i < balances.Count; postFixIncrement(ref i))
+        for (int i = 0; i < balances.Count; i++)
         {
             object rawBalance = getValue(balances, i);
             string? currencyId = this.safeString(rawBalance, "product_id");

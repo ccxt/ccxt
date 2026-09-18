@@ -415,7 +415,7 @@ public partial class binance : ccxt.binance
             ((IList<object>)messageHashes).Add("liquidations");
         } else
         {
-            for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(symbols); i++)
             {
                 Dictionary<string, object> market = this.market(getValue(symbols, i));
                 ((IList<object>)subscriptionHashes).Add(add(getValue(market, "lowercaseId"), "@forceOrder"));
@@ -654,7 +654,7 @@ public partial class binance : ccxt.binance
         List<object> messageHashes = new List<object>() {"myLiquidations"};
         if (!isTrue(this.isEmpty(symbols)))
         {
-            for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(symbols); i++)
             {
                 object symbol = getValue(symbols, i);
                 ((IList<object>)messageHashes).Add(("myLiquidations::" + (symbol)));
@@ -839,7 +839,7 @@ public partial class binance : ccxt.binance
         }
         List<object> subParams = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); i++)
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
@@ -914,7 +914,7 @@ public partial class binance : ccxt.binance
         List<object> subParams = new List<object>() {};
         List<object> subMessageHashes = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); i++)
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
@@ -1074,7 +1074,7 @@ public partial class binance : ccxt.binance
             // unroll the accumulated deltas
             object messages = (orderbook as ccxt.pro.OrderBook).cache;
             (orderbook as ccxt.pro.OrderBook).cache = new List<object>() {};
-            for (int i = 0; isLessThan(i, getArrayLength(messages)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(messages)); i++)
             {
                 object messageItem = getValue(messages, i);
                 Int64? U = this.safeInteger(messageItem, "U");
@@ -1131,7 +1131,7 @@ public partial class binance : ccxt.binance
 
     public override void handleDeltas(object bookside, object deltas)
     {
-        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(deltas)); i++)
         {
             this.handleDelta(bookside, getValue(deltas, i));
         }
@@ -1294,7 +1294,7 @@ public partial class binance : ccxt.binance
         object symbols = this.safeValue(subscription, "symbols", new List<object>() {symbolOfSubscription}); // watchOrderBookForSymbols
         Int64? limit = this.safeInteger(subscription, "limit", defaultLimit);
         // handle list of symbols
-        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); i++)
         {
             object symbol = getValue(symbols, i);
             if (inOp(this.orderbooks, symbol))
@@ -1338,7 +1338,7 @@ public partial class binance : ccxt.binance
     {
         List<object> messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
         List<object> subMessageHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});
-        for (int j = 0; j < messageHashes.Count; postFixIncrement(ref j))
+        for (int j = 0; j < messageHashes.Count; j++)
         {
             object unsubHash = getValue(messageHashes, j);
             object subHash = getValue(subMessageHashes, j);
@@ -1403,7 +1403,7 @@ public partial class binance : ccxt.binance
             // eOptions: always subscribe per-underlying (<underlying>@optionTrade)
             // handleTrade filters to the correct symbol via the 's' field
             Dictionary<string, object> seenUnderlyings = new Dictionary<string, object>() {};
-            for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(symbols); i++)
             {
                 object symbol = getValue(symbols, i);
                 Dictionary<string, object> market = this.market(symbol);
@@ -1419,7 +1419,7 @@ public partial class binance : ccxt.binance
             }
         } else
         {
-            for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(symbols); i++)
             {
                 object symbol = getValue(symbols, i);
                 Dictionary<string, object> market = this.market(symbol);
@@ -1504,7 +1504,7 @@ public partial class binance : ccxt.binance
             // eOptions: always subscribe per-underlying (<underlying>@optionTrade)
             // handleTrade filters to the correct symbol via the 's' field
             Dictionary<string, object> seenUnderlyings = new Dictionary<string, object>() {};
-            for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(symbols); i++)
             {
                 object symbol = getValue(symbols, i);
                 Dictionary<string, object> market = this.market(symbol);
@@ -1521,7 +1521,7 @@ public partial class binance : ccxt.binance
             }
         } else
         {
-            for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(symbols); i++)
             {
                 object symbol = getValue(symbols, i);
                 Dictionary<string, object> market = this.market(symbol);
@@ -1865,7 +1865,7 @@ public partial class binance : ccxt.binance
         {
             List<object> stockStreams = new List<object>() {};
             List<object> stockMessageHashes = new List<object>() {};
-            for (int i = 0; i < getArrayLength(symbolsAndTimeframes); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(symbolsAndTimeframes); i++)
             {
                 object stockSymAndTf = getValue(symbolsAndTimeframes, i);
                 string? stockSymbolString = this.symbol(getValue(stockSymAndTf, 0));
@@ -1919,7 +1919,7 @@ public partial class binance : ccxt.binance
         bool isUtc8 = ((timezone != null)) && (((timezone == "+08:00")) || isTrue(Precise.stringEq(timezone, "8")));
         List<object> rawHashes = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (int i = 0; i < getArrayLength(symbolsAndTimeframes); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbolsAndTimeframes); i++)
         {
             object symAndTf = getValue(symbolsAndTimeframes, i);
             object symbolString = getValue(symAndTf, 0);
@@ -2012,7 +2012,7 @@ public partial class binance : ccxt.binance
         List<object> rawHashes = new List<object>() {};
         List<object> subMessageHashes = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (int i = 0; i < getArrayLength(symbolsAndTimeframes); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbolsAndTimeframes); i++)
         {
             object symAndTf = getValue(symbolsAndTimeframes, i);
             object symbolString = getValue(symAndTf, 0);
@@ -2579,7 +2579,7 @@ public partial class binance : ccxt.binance
             symbols = this.marketSymbols(symbols, null, false, false, true);
             List<object> stockStreams = new List<object>() {};
             List<object> stockMessageHashes = new List<object>() {};
-            for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(symbols); i++)
             {
                 object stockTicker = this.getStockTickerFromSymbol(getValue(symbols, i));
                 ((IList<object>)stockStreams).Add(add(stockTicker, "@quote"));
@@ -2679,7 +2679,7 @@ public partial class binance : ccxt.binance
         if ((symbols != null))
         {
             Dictionary<string, object> seenUnderlyings = new Dictionary<string, object>() {};
-            for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(symbols); i++)
             {
                 object symbol = getValue(symbols, i);
                 Dictionary<string, object> market = this.market(symbol);
@@ -3082,7 +3082,7 @@ public partial class binance : ccxt.binance
         {
             ((IList<object>)rawTickers).Add(message);
         }
-        for (int i = 0; i < getArrayLength(rawTickers); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(rawTickers); i++)
         {
             object ticker = getValue(rawTickers, i);
             string? eventVar = this.safeString(ticker, "e");
@@ -3618,7 +3618,7 @@ public partial class binance : ccxt.binance
             }
             var client = this.client(url);
             List<object> messageHashes = new List<object>(((IDictionary<string, ccxt.Exchange.Future>)client.futures).Keys);
-            for (int i = 0; i < messageHashes.Count; postFixIncrement(ref i))
+            for (int i = 0; i < messageHashes.Count; i++)
             {
                 string? messageHash = ((string)getValue(messageHashes, i));
                 ((WebSocketClient)client).reject(error, messageHash);
@@ -3645,12 +3645,12 @@ public partial class binance : ccxt.binance
                 { "type", "stock" },
             });
         }
-        for (int i = 0; i < clients.Count; postFixIncrement(ref i))
+        for (int i = 0; i < clients.Count; i++)
         {
             var client = getValue(clients, i);
             IDictionary<string, object> clientSubscriptions = this.safeDict(client as WebSocketClient, "subscriptions", new Dictionary<string, object>() {});
             List<object> subscriptionKeys = new List<object>(((IDictionary<string,object>)clientSubscriptions).Keys);
-            for (int j = 0; j < subscriptionKeys.Count; postFixIncrement(ref j))
+            for (int j = 0; j < subscriptionKeys.Count; j++)
             {
                 string? subscribeType = ((string)getValue(subscriptionKeys, j));
                 if (isEqual(subscribeType, type))
@@ -3946,7 +3946,7 @@ public partial class binance : ccxt.binance
         string? messageHash = this.safeString(message, "id");
         List<object> result = this.safeList(message, "result", new List<object>() {});
         List<object> positions = new List<object>() {};
-        for (int i = 0; i < result.Count; postFixIncrement(ref i))
+        for (int i = 0; i < result.Count; i++)
         {
             object parsed = this.parsePositionRisk(getValue(result, i));
             string? entryPrice = this.safeString(parsed, "entryPrice");
@@ -4137,7 +4137,7 @@ public partial class binance : ccxt.binance
             {
                 return;
             }
-            for (int i = 0; i < B.Count; postFixIncrement(ref i))
+            for (int i = 0; i < B.Count; i++)
             {
                 object entry = getValue(B, i);
                 string? currencyId = this.safeString(entry, "a");
@@ -4162,7 +4162,7 @@ public partial class binance : ccxt.binance
     public virtual object getAccountTypeFromSubscriptions(object subscriptions)
     {
         object accountType = "";
-        for (int i = 0; i < getArrayLength(subscriptions); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(subscriptions); i++)
         {
             object subscription = getValue(subscriptions, i);
             if ((isEqual(subscription, "spot")) || (isEqual(subscription, "margin")) || (isEqual(subscription, "future")) || (isEqual(subscription, "delivery")) || (isEqual(subscription, "option")))
@@ -4837,7 +4837,7 @@ public partial class binance : ccxt.binance
         parameters ??= new Dictionary<string, object>();
         object orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrdersWs(((string)symbol), since, limit, parameters));
         List<object> closedOrders = new List<object>() {};
-        for (int i = 0; i < getArrayLength(orders); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(orders); i++)
         {
             object order = getValue(orders, i);
             if (isEqual(getValue(order, "status"), "closed"))
@@ -5456,7 +5456,7 @@ public partial class binance : ccxt.binance
         //
         List<object> rates = this.safeList(message, "rates", new List<object>() {});
         Dictionary<string, object> tickers = new Dictionary<string, object>() {};
-        for (int i = 0; i < rates.Count; postFixIncrement(ref i))
+        for (int i = 0; i < rates.Count; i++)
         {
             IDictionary<string, object> rate = this.safeDict(rates, i, new Dictionary<string, object>() {});
             string? stockSymbol = this.safeString(rate, "s");
@@ -5543,7 +5543,7 @@ public partial class binance : ccxt.binance
         //     }
         //
         List<object> orders = this.safeList(message, "o", new List<object>() {});
-        for (int i = 0; i < orders.Count; postFixIncrement(ref i))
+        for (int i = 0; i < orders.Count; i++)
         {
             object order = getValue(orders, i);
             List<object> fills = this.safeList(order, "fi", new List<object>() {});
@@ -5578,7 +5578,7 @@ public partial class binance : ccxt.binance
                 { "O", this.safeInteger(order, "T") },
             };
             this.handleOrder(client as WebSocketClient, normalizedOrder);
-            for (int j = 0; j < fills.Count; postFixIncrement(ref j))
+            for (int j = 0; j < fills.Count; j++)
             {
                 object fill = getValue(fills, j);
                 bool isMaker = ((this.safeString(fill, "m") == "MAKER"));
@@ -5732,7 +5732,7 @@ public partial class binance : ccxt.binance
         object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(null, parameters));
         ((IDictionary<string,object>)this.positions)[(string)type] = new ArrayCacheBySymbolBySide();
         object cache = getValue(this.positions, type);
-        for (int i = 0; i < getArrayLength(positions); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(positions); i++)
         {
             object position = getValue(positions, i);
             double? contracts = this.safeNumber(position, "contracts", 0);
@@ -5796,7 +5796,7 @@ public partial class binance : ccxt.binance
         IDictionary<string, object> data = this.safeDict(message, "a", new Dictionary<string, object>() {});
         List<object> rawPositions = this.safeList(data, "P", new List<object>() {});
         List<object> newPositions = new List<object>() {};
-        for (int i = 0; i < rawPositions.Count; postFixIncrement(ref i))
+        for (int i = 0; i < rawPositions.Count; i++)
         {
             object rawPosition = getValue(rawPositions, i);
             Dictionary<string, object> position = ((Dictionary<string, object>)this.parseWsPosition(rawPosition));
@@ -5807,7 +5807,7 @@ public partial class binance : ccxt.binance
             callDynamically(cache, "append", new object[] {position});
         }
         List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, add(accountType, ":positions::"));
-        for (int i = 0; i < getArrayLength(messageHashes); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(messageHashes); i++)
         {
             object messageHash = getValue(messageHashes, i);
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
@@ -6221,7 +6221,7 @@ public partial class binance : ccxt.binance
                         if (!isTrue(this.isEmpty(fees)))
                         {
                             bool insertNewFeeCurrency = true;
-                            for (int i = 0; isLessThan(i, getArrayLength(fees)); postFixIncrement(ref i))
+                            for (int i = 0; isLessThan(i, getArrayLength(fees)); i++)
                             {
                                 object orderFee = getValue(fees, i);
                                 if (isEqual(getValue(orderFee, "currency"), getValue(tradeFee, "currency")))
@@ -6375,7 +6375,7 @@ public partial class binance : ccxt.binance
             return;
         }
         List<object> B = this.safeList(message, "B", new List<object>() {});
-        for (int i = 0; i < B.Count; postFixIncrement(ref i))
+        for (int i = 0; i < B.Count; i++)
         {
             object entry = getValue(B, i);
             string? currencyId = this.safeString(entry, "a");
@@ -6404,7 +6404,7 @@ public partial class binance : ccxt.binance
         object cache = getValue(this.positions, accountType);
         List<object> P = this.safeList(message, "P", new List<object>() {});
         List<object> newPositions = new List<object>() {};
-        for (int i = 0; i < P.Count; postFixIncrement(ref i))
+        for (int i = 0; i < P.Count; i++)
         {
             object rawPosition = getValue(P, i);
             Dictionary<string, object> position = ((Dictionary<string, object>)this.parseWsOptionsPosition(rawPosition));
@@ -6414,7 +6414,7 @@ public partial class binance : ccxt.binance
             callDynamically(cache, "append", new object[] {position});
         }
         List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, (accountType + ":positions::"));
-        for (int i = 0; i < getArrayLength(messageHashes); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(messageHashes); i++)
         {
             object messageHash = getValue(messageHashes, i);
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
@@ -6456,7 +6456,7 @@ public partial class binance : ccxt.binance
             ((WebSocketClient)client).reject(e, id);
             // public endpoint stores messageHash in subscriptions
             List<object> subscriptionKeys = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);
-            for (int i = 0; i < subscriptionKeys.Count; postFixIncrement(ref i))
+            for (int i = 0; i < subscriptionKeys.Count; i++)
             {
                 string? subscriptionHash = ((string)getValue(subscriptionKeys, i));
                 string? subscriptionId = this.safeString(getValue(((WebSocketClient)client).subscriptions, subscriptionHash), "id");

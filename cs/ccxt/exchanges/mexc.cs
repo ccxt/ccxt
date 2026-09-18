@@ -1485,7 +1485,7 @@ public partial class mexc : Exchange
         string? code = this.safeCurrencyCode(id);
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         List<object> chains = this.safeList(rawCurrency, "networkList", new List<object>() {});
-        for (int j = 0; j < chains.Count; postFixIncrement(ref j))
+        for (int j = 0; j < chains.Count; j++)
         {
             object chain = getValue(chains, j);
             string? networkId = this.safeString2(chain, "netWork", "network");
@@ -1613,7 +1613,7 @@ public partial class mexc : Exchange
         //
         List<object> data = this.safeList(response, "symbols", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (int i = 0; i < data.Count; postFixIncrement(ref i))
+        for (int i = 0; i < data.Count; i++)
         {
             object market = getValue(data, i);
             string? id = this.safeString(market, "symbol");
@@ -1749,7 +1749,7 @@ public partial class mexc : Exchange
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (int i = 0; i < data.Count; postFixIncrement(ref i))
+        for (int i = 0; i < data.Count; i++)
         {
             object market = getValue(data, i);
             string? id = this.safeString(market, "symbol");
@@ -3024,7 +3024,7 @@ public partial class mexc : Exchange
         }
         List<object> ordersRequests = new List<object>() {};
         string? symbol = null;
-        for (int i = 0; i < getArrayLength(orders); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(orders); i++)
         {
             object rawOrder = getValue(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
@@ -4227,7 +4227,7 @@ public partial class mexc : Exchange
         object response = ccxt.BaseExchange.FromDict(await this.FetchAccountHelper(marketType, query));
         List<object> data = this.safeList(response, "balances", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (int i = 0; i < data.Count; postFixIncrement(ref i))
+        for (int i = 0; i < data.Count; i++)
         {
             object account = getValue(data, i);
             string? currencyId = this.safeString2(account, "asset", "currency");
@@ -4360,7 +4360,7 @@ public partial class mexc : Exchange
         };
         if (isEqual(marketType, "margin"))
         {
-            for (int i = 0; i < getArrayLength(wallet); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(wallet); i++)
             {
                 object entry = getValue(wallet, i);
                 object bs = this.safeValue(entry, "baseAsset", new Dictionary<string, object>() {});
@@ -4379,7 +4379,7 @@ public partial class mexc : Exchange
             return this.safeBalance(result);
         } else if (isEqual(marketType, "swap"))
         {
-            for (int i = 0; i < getArrayLength(wallet); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(wallet); i++)
             {
                 object entry = getValue(wallet, i);
                 string? currencyId = this.safeString(entry, "currency");
@@ -4395,7 +4395,7 @@ public partial class mexc : Exchange
             return this.safeBalance(result);
         } else
         {
-            for (int i = 0; i < getArrayLength(wallet); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(wallet); i++)
             {
                 object entry = getValue(wallet, i);
                 string? currencyId = this.safeString(entry, "asset");
@@ -4903,7 +4903,7 @@ public partial class mexc : Exchange
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         List<object> resultList = this.safeList(data, "resultList", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (int i = 0; i < resultList.Count; postFixIncrement(ref i))
+        for (int i = 0; i < resultList.Count; i++)
         {
             object entry = getValue(resultList, i);
             Int64? timestamp = this.safeInteger(entry, "settleTime");
@@ -5087,7 +5087,7 @@ public partial class mexc : Exchange
         object data = this.safeValue(response, "data");
         List<object> result = this.safeList(data, "resultList", new List<object>() {});
         List<object> rates = new List<object>() {};
-        for (int i = 0; i < result.Count; postFixIncrement(ref i))
+        for (int i = 0; i < result.Count; i++)
         {
             object entry = getValue(result, i);
             string? marketId = this.safeString(entry, "symbol");
@@ -6416,7 +6416,7 @@ public partial class mexc : Exchange
     public virtual Dictionary<string, object> parseTransactionFees(object response, object codes = null)
     {
         Dictionary<string, object> withdrawFees = new Dictionary<string, object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); i++)
         {
             object entry = getValue(response, i);
             string? currencyId = this.safeString(entry, "coin");
@@ -6464,7 +6464,7 @@ public partial class mexc : Exchange
         //
         List<object> networkList = this.safeList(transaction, "networkList", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int j = 0; j < networkList.Count; postFixIncrement(ref j))
+        for (int j = 0; j < networkList.Count; j++)
         {
             object networkEntry = getValue(networkList, j);
             string? networkId = this.safeString(networkEntry, "network");
@@ -6554,7 +6554,7 @@ public partial class mexc : Exchange
         //
         List<object> networkList = this.safeList(fee, "networkList", new List<object>() {});
         Dictionary<string, object> result = this.depositWithdrawFee(fee);
-        for (int j = 0; j < networkList.Count; postFixIncrement(ref j))
+        for (int j = 0; j < networkList.Count; j++)
         {
             object networkEntry = getValue(networkList, j);
             string? networkId = this.safeString(networkEntry, "network");
@@ -6636,7 +6636,7 @@ public partial class mexc : Exchange
         string? marginMode = null;
         Int64? longLeverage = null;
         Int64? shortLeverage = null;
-        for (int i = 0; i < getArrayLength(leverage); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(leverage); i++)
         {
             object entry = getValue(leverage, i);
             Int64? openType = this.safeInteger(entry, "openType");

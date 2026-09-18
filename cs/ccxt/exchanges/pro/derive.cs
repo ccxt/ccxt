@@ -423,7 +423,7 @@ public partial class derive : ccxt.derive
         if ((status != null))
         {
             List<object> topics = new List<object>(((IDictionary<string,object>)status).Keys);
-            for (int i = 0; i < topics.Count; postFixIncrement(ref i))
+            for (int i = 0; i < topics.Count; i++)
             {
                 string? topic = ((string)getValue(topics, i));
                 if (getIndexOf(topic, "orderbook") >= 0)
@@ -495,7 +495,7 @@ public partial class derive : ccxt.derive
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             tradesArray = new ArrayCache(limit);
         }
-        for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(data); i++)
         {
             Dictionary<string, object> trade = this.parseTrade(getValue(data, i));
             callDynamically(tradesArray, "append", new object[] {trade});
@@ -652,7 +652,7 @@ public partial class derive : ccxt.derive
         IDictionary<string, object> parameters = this.safeDict(message, "params");
         object topic = this.safeString(parameters, "channel");
         List<object> rawOrders = this.safeList(parameters, "data", new List<object>() {});
-        for (int i = 0; i < rawOrders.Count; postFixIncrement(ref i))
+        for (int i = 0; i < rawOrders.Count; i++)
         {
             object data = getValue(rawOrders, i);
             Dictionary<string, object> parsed = this.parseOrder(data);
@@ -757,7 +757,7 @@ public partial class derive : ccxt.derive
         IDictionary<string, object> parameters = this.safeDict(message, "params");
         object topic = this.safeString(parameters, "channel");
         List<object> rawTrades = this.safeList(parameters, "data", new List<object>() {});
-        for (int i = 0; i < rawTrades.Count; postFixIncrement(ref i))
+        for (int i = 0; i < rawTrades.Count; i++)
         {
             Dictionary<string, object> trade = this.parseTrade(message);
             callDynamically(myTrades, "append", new object[] {trade});

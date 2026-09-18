@@ -741,7 +741,7 @@ public partial class onetrading : Exchange
         IDictionary<string, object> firstFuturesTier = this.safeDict(futuresTiers, 0, new Dictionary<string, object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         List<object> symbols = this.symbols;
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); i++)
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
@@ -813,7 +813,7 @@ public partial class onetrading : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         // const tiers = this.parseFeeTiers (feeTiers);
         List<object> symbols = this.symbols;
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); i++)
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
@@ -836,7 +836,7 @@ public partial class onetrading : Exchange
     {
         List<object> takerFees = new List<object>() {};
         List<object> makerFees = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(feeTiers)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(feeTiers)); i++)
         {
             object tier = getValue(feeTiers, i);
             double? volume = this.safeNumber(tier, "volume");
@@ -989,7 +989,7 @@ public partial class onetrading : Exchange
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         IList<object> rawTickers = this.toArray(response);
-        for (int i = 0; i < getArrayLength(rawTickers); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(rawTickers); i++)
         {
             Dictionary<string, object> ticker = this.parseTicker(getValue(rawTickers, i));
             string? symbol = ((string)getValue(ticker, "symbol"));
@@ -1286,7 +1286,7 @@ public partial class onetrading : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (int i = 0; i < balances.Count; postFixIncrement(ref i))
+        for (int i = 0; i < balances.Count; i++)
         {
             object balance = getValue(balances, i);
             string? currencyId = this.safeString(balance, "currency_code");

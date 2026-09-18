@@ -123,7 +123,7 @@ public partial class whitebit : ccxt.whitebit
         // }
         //
         List<object> parameters = this.safeList(message, "params", new List<object>() {});
-        for (int i = 0; i < parameters.Count; postFixIncrement(ref i))
+        for (int i = 0; i < parameters.Count; i++)
         {
             object data = getValue(parameters, i);
             string? marketId = this.safeString(data, 7);
@@ -262,7 +262,7 @@ public partial class whitebit : ccxt.whitebit
 
     public override void handleDeltas(object bookside, object deltas)
     {
-        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(deltas)); i++)
         {
             this.handleDelta(bookside, getValue(deltas, i));
         }
@@ -315,7 +315,7 @@ public partial class whitebit : ccxt.whitebit
         Int64 id = this.nonce();
         List<object> messageHashes = new List<object>() {};
         List<object> args = new List<object>() {};
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); i++)
         {
             Dictionary<string, object> market = this.market(getValue(symbols, i));
             ((IList<object>)messageHashes).Add(add("ticker:", (market.ContainsKey("symbol") ? market["symbol"] : null)));
@@ -363,7 +363,7 @@ public partial class whitebit : ccxt.whitebit
         (client as WebSocketClient).resolve(ticker, messageHash);
         // watchTickers
         List<object> messageHashes = new List<object>(((IDictionary<string, ccxt.Exchange.Future>)client.futures).Keys);
-        for (int i = 0; i < messageHashes.Count; postFixIncrement(ref i))
+        for (int i = 0; i < messageHashes.Count; i++)
         {
             string? currentMessageHash = ((string)getValue(messageHashes, i));
             if (getIndexOf(currentMessageHash, "tickers") >= 0 && getIndexOf(currentMessageHash, symbol) >= 0)
@@ -455,7 +455,7 @@ public partial class whitebit : ccxt.whitebit
         }
         object data = this.safeValue(parameters, 1, new List<object>() {});
         IList<object> parsedTrades = this.parseTrades(data, market);
-        for (int j = 0; j < getArrayLength(parsedTrades); postFixIncrement(ref j))
+        for (int j = 0; j < getArrayLength(parsedTrades); j++)
         {
             callDynamically(stored, "append", new object[] {getValue(parsedTrades, j)});
         }
@@ -934,7 +934,7 @@ public partial class whitebit : ccxt.whitebit
         }
         bool isMargin = (getIndexOf(method, "Margin") >= 0);
         List<object> data = this.safeList(message, "params", new List<object>() {});
-        for (int i = 0; i < data.Count; postFixIncrement(ref i))
+        for (int i = 0; i < data.Count; i++)
         {
             IDictionary<string, object> balanceDict = this.safeDict(data, i, new Dictionary<string, object>() {});
             ((IDictionary<string,object>)this.balance)["info"] = balanceDict;
@@ -953,7 +953,7 @@ public partial class whitebit : ccxt.whitebit
             } else
             {
                 List<object> keys = new List<object>(((IDictionary<string,object>)balanceDict).Keys);
-                for (int j = 0; j < keys.Count; postFixIncrement(ref j))
+                for (int j = 0; j < keys.Count; j++)
                 {
                     string? currencyId = ((string)getValue(keys, j));
                     IDictionary<string, object> rawBalance = this.safeDict(balanceDict, currencyId, new Dictionary<string, object>() {});
@@ -1273,7 +1273,7 @@ public partial class whitebit : ccxt.whitebit
         // as an object so we can't do indeById here
         IDictionary<string, object> subs = ((WebSocketClient)client).subscriptions;
         List<object> values = new List<object>(((IDictionary<string,object>)subs).Values);
-        for (int i = 0; i < values.Count; postFixIncrement(ref i))
+        for (int i = 0; i < values.Count; i++)
         {
             object subscription = getValue(values, i);
             if (!isEqual(subscription, true))

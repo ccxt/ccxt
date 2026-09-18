@@ -589,11 +589,11 @@ public partial class coinspot : Exchange
         object balances = this.safeValue2(response, "balance", "balances");
         if (((balances is IList<object>) || (balances.GetType().IsGenericType && balances.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            for (int i = 0; i < getArrayLength(balances); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(balances); i++)
             {
                 object currencies = getValue(balances, i);
                 List<object> currencyIds = new List<object>(((IDictionary<string,object>)currencies).Keys);
-                for (int j = 0; j < currencyIds.Count; postFixIncrement(ref j))
+                for (int j = 0; j < currencyIds.Count; j++)
                 {
                     object currencyId = getValue(currencyIds, j);
                     object balance = getValue(currencies, currencyId);
@@ -609,7 +609,7 @@ public partial class coinspot : Exchange
         } else
         {
             List<object> currencyIds = new List<object>(((IDictionary<string,object>)balances).Keys);
-            for (int i = 0; i < currencyIds.Count; postFixIncrement(ref i))
+            for (int i = 0; i < currencyIds.Count; i++)
             {
                 object currencyId = getValue(currencyIds, i);
                 string? code = this.safeCurrencyCode(currencyId);
@@ -803,7 +803,7 @@ public partial class coinspot : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         IDictionary<string, object> prices = this.safeDict(response, "prices", new Dictionary<string, object>() {});
         List<object> ids = new List<object>(((IDictionary<string,object>)prices).Keys);
-        for (int i = 0; i < ids.Count; postFixIncrement(ref i))
+        for (int i = 0; i < ids.Count; i++)
         {
             string? id = ((string)getValue(ids, i));
             Dictionary<string, object> market = this.safeMarket(id);
@@ -908,12 +908,12 @@ public partial class coinspot : Exchange
         //      ]
         // }
         List<object> buyTrades = this.safeList(response, "buyorders", new List<object>() {});
-        for (int i = 0; i < buyTrades.Count; postFixIncrement(ref i))
+        for (int i = 0; i < buyTrades.Count; i++)
         {
             ((IDictionary<string,object>)getValue(buyTrades, i))["side"] = "buy";
         }
         List<object> sellTrades = this.safeList(response, "sellorders", new List<object>() {});
-        for (int i = 0; i < sellTrades.Count; postFixIncrement(ref i))
+        for (int i = 0; i < sellTrades.Count; i++)
         {
             ((IDictionary<string,object>)getValue(sellTrades, i))["side"] = "sell";
         }

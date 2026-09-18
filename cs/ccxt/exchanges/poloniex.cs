@@ -1475,7 +1475,7 @@ public partial class poloniex : Exchange
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         List<object> chains = this.safeList(entry, "networkList", new List<object>() {});
         int chainsLength = chains.Count;
-        for (int j = 0; j < chainsLength; postFixIncrement(ref j))
+        for (int j = 0; j < chainsLength; j++)
         {
             object chain = getValue(chains, j);
             string? chainId = this.safeString(chain, "blockchain");
@@ -2093,7 +2093,7 @@ public partial class poloniex : Exchange
 
     public virtual object parseOpenOrders(object orders, object market, object result)
     {
-        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orders)); i++)
         {
             object order = getValue(orders, i);
             Dictionary<string, object> extended = this.extend(order, new Dictionary<string, object>() {
@@ -2809,7 +2809,7 @@ public partial class poloniex : Exchange
             ((IDictionary<string,object>)result)["timestamp"] = ts;
             ((IDictionary<string,object>)result)["datetime"] = this.iso8601(ts);
             List<object> details = this.safeList(response, "details", new List<object>() {});
-            for (int i = 0; i < details.Count; postFixIncrement(ref i))
+            for (int i = 0; i < details.Count; i++)
             {
                 object balance = getValue(details, i);
                 string? currencyId = this.safeString(balance, "ccy");
@@ -2825,11 +2825,11 @@ public partial class poloniex : Exchange
             return this.safeBalance(result);
         }
         // for spot
-        for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(response); i++)
         {
             object account = this.safeValue(response, i, new Dictionary<string, object>() {});
             object balances = this.safeValue(account, "balances");
-            for (int j = 0; isLessThan(j, getArrayLength(balances)); postFixIncrement(ref j))
+            for (int j = 0; isLessThan(j, getArrayLength(balances)); j++)
             {
                 object balance = this.safeValue(balances, j);
                 string? currencyId = this.safeString(balance, "currency");
@@ -2952,7 +2952,7 @@ public partial class poloniex : Exchange
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         List<object> symbols = this.symbols;
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); i++)
         {
             object symbol = getValue(symbols, i);
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
@@ -3028,7 +3028,7 @@ public partial class poloniex : Exchange
         object bids = this.safeValue(response, "bids");
         List<object> asksResult = new List<object>() {};
         List<object> bidsResult = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(asks)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(asks)); i++)
         {
             if (isLessThan((mod(i, 2)), 1))
             {
@@ -3037,7 +3037,7 @@ public partial class poloniex : Exchange
                 ((IList<object>)asksResult).Add(new List<object>() {price, amount});
             }
         }
-        for (int i = 0; isLessThan(i, getArrayLength(bids)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(bids)); i++)
         {
             if (isLessThan((mod(i, 2)), 1))
             {
@@ -3460,7 +3460,7 @@ public partial class poloniex : Exchange
         {
             entries = response;
         }
-        for (int i = 0; i < getArrayLength(entries); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(entries); i++)
         {
             object entry = getValue(entries, i);
             List<object> currencies = new List<object>(((IDictionary<string,object>)entry).Keys);
@@ -3496,7 +3496,7 @@ public partial class poloniex : Exchange
         Dictionary<string, object> depositWithdrawFees = new Dictionary<string, object>() {};
         codes = this.marketCodes(codes);
         List<object> responseKeys = new List<object>(((IDictionary<string,object>)response).Keys);
-        for (int i = 0; i < responseKeys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < responseKeys.Count; i++)
         {
             string? currencyId = ((string)getValue(responseKeys, i));
             string? code = this.safeCurrencyCode(currencyId);
@@ -3509,7 +3509,7 @@ public partial class poloniex : Exchange
                 int chainsLength = getArrayLength(childChains);
                 if (isGreaterThan(chainsLength, 0))
                 {
-                    for (int j = 0; isLessThan(j, getArrayLength(childChains)); postFixIncrement(ref j))
+                    for (int j = 0; isLessThan(j, getArrayLength(childChains)); j++)
                     {
                         object networkId = getValue(childChains, j);
                         networkId = ((string)networkId).Replace((string)code, (string)"");
@@ -3814,7 +3814,7 @@ public partial class poloniex : Exchange
         string? marketId = null;
         string? marginMode = null;
         List<object> data = this.safeList(leverage, "data", new List<object>() {});
-        for (int i = 0; i < data.Count; postFixIncrement(ref i))
+        for (int i = 0; i < data.Count; i++)
         {
             object entry = getValue(data, i);
             marketId = this.safeString(entry, "symbol");

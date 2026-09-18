@@ -12,7 +12,7 @@ public partial class testMainClass : BaseTest
         string method = "fetchMarketLeverageTiers";
         object tiers = await invokeExchangeDynamically(exchange, "fetchMarketLeverageTiers", symbol);
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, tiers, symbol);
-        for (int j = 0; j < getArrayLength(tiers); postFixIncrement(ref j))
+        for (int j = 0; j < getArrayLength(tiers); j++)
         {
             testLeverageTier(exchange, skippedProperties, method, getValue(tiers, j));
         }

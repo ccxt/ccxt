@@ -21,7 +21,7 @@ public partial class testMainClass : BaseTest
         assert(marketKeysLength > 0, ".markets objects keys length <= 0 (less than or equal to zero)");
         assert((symbolsLength == marketKeysLength), "number of .symbols is not equal to the number of .markets");
         List<object> marketValues = new List<object>(((IDictionary<string,object>)markets).Values);
-        for (int i = 0; i < marketValues.Count; postFixIncrement(ref i))
+        for (int i = 0; i < marketValues.Count; i++)
         {
             testMarket(exchange, skippedProperties, method, getValue(marketValues, i));
         }
@@ -29,7 +29,7 @@ public partial class testMainClass : BaseTest
         List<object> marketTypes = new List<object>() {"spot", "swap", "future", "option", "index"};
         List<object> collectedTypes = new List<object>() {};
         List<object> allMarkets = new List<object>(((IDictionary<string,object>)exchange.markets).Values);
-        for (int i = 0; i < allMarkets.Count; postFixIncrement(ref i))
+        for (int i = 0; i < allMarkets.Count; i++)
         {
             object market = getValue(allMarkets, i);
             if (!isTrue(exchange.inArray(getValue(market, "type"), collectedTypes)))
@@ -37,7 +37,7 @@ public partial class testMainClass : BaseTest
                 ((IList<object>)collectedTypes).Add(getValue(market, "type"));
             }
         }
-        for (int i = 0; i < getArrayLength(marketTypes); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(marketTypes); i++)
         {
             string? mType = ((string)getValue(marketTypes, i));
             if (!isEqual(getValue(exchange.has, mType), null) && !isEqual(getValue(exchange.has, mType), false))

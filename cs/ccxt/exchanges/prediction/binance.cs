@@ -190,11 +190,11 @@ public partial class binance : PredictionExchange
             object events = ccxt.BaseExchange.FromPredictionEventList(await this.FetchEvents(eventParams));
             int eventsLength = getArrayLength(events);
             List<object> queryMarkets = new List<object>() {};
-            for (int ei = 0; ei < eventsLength; postFixIncrement(ref ei))
+            for (int ei = 0; ei < eventsLength; ei++)
             {
                 IList<object> eventMarkets = (IList<object>)(this.safeList(getValue(events, ei), "markets", new List<object>() {}));
                 int eventMarketsLength = getArrayLength(eventMarkets);
-                for (int mi = 0; mi < eventMarketsLength; postFixIncrement(ref mi))
+                for (int mi = 0; mi < eventMarketsLength; mi++)
                 {
                     ((IList<object>)queryMarkets).Add(getValue(eventMarkets, mi));
                 }
@@ -207,13 +207,13 @@ public partial class binance : PredictionExchange
         List<object> parsedEvents = new List<object>() {};
         List<object> flatMarkets = new List<object>() {};
         int rawTopicsLength = getArrayLength(rawTopics);
-        for (int i = 0; i < rawTopicsLength; postFixIncrement(ref i))
+        for (int i = 0; i < rawTopicsLength; i++)
         {
             object parsedEvent = this.parseEvent(getValue(rawTopics, i));
             ((IList<object>)parsedEvents).Add(parsedEvent);
             IList<object> eventMarkets = (IList<object>)(this.safeList(parsedEvent, "markets", new List<object>() {}));
             int eventMarketsLength = getArrayLength(eventMarkets);
-            for (int mi = 0; mi < eventMarketsLength; postFixIncrement(ref mi))
+            for (int mi = 0; mi < eventMarketsLength; mi++)
             {
                 ((IList<object>)flatMarkets).Add(getValue(eventMarkets, mi));
             }
@@ -298,7 +298,7 @@ public partial class binance : PredictionExchange
             //
             IList<object> pageTopics = (IList<object>)(this.safeList(response, "marketTopics", new List<object>() {}));
             int pageTopicsLength = getArrayLength(pageTopics);
-            for (int i = 0; i < pageTopicsLength; postFixIncrement(ref i))
+            for (int i = 0; i < pageTopicsLength; i++)
             {
                 ((IList<object>)collected).Add(getValue(pageTopics, i));
             }
@@ -342,7 +342,7 @@ public partial class binance : PredictionExchange
     {
         List<object> result = new List<object>() {};
         int rawTopicsLength = getArrayLength(rawTopics);
-        for (int i = 0; i < rawTopicsLength; postFixIncrement(ref i))
+        for (int i = 0; i < rawTopicsLength; i++)
         {
             object rawTopic = getValue(rawTopics, i);
             IList<object> rawMarkets = (IList<object>)(this.safeList(rawTopic, "markets", new List<object>() {}));
@@ -403,11 +403,11 @@ public partial class binance : PredictionExchange
         List<object> tags = this.safeList(parameters, "tags", new List<object>() {});
         int tagsLength = tags.Count;
         List<object> allQueries = new List<object>() {};
-        for (int i = 0; i < getArrayLength(queries); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(queries); i++)
         {
             ((IList<object>)allQueries).Add(getValue(queries, i));
         }
-        for (int i = 0; i < tagsLength; postFixIncrement(ref i))
+        for (int i = 0; i < tagsLength; i++)
         {
             ((IList<object>)allQueries).Add(getValue(tags, i));
         }
@@ -471,13 +471,13 @@ public partial class binance : PredictionExchange
         }
         int rawTopicsLength = getArrayLength(rawTopics);
         List<object> result = new List<object>() {};
-        for (int i = 0; i < rawTopicsLength; postFixIncrement(ref i))
+        for (int i = 0; i < rawTopicsLength; i++)
         {
             object parsedEvent = this.parseEvent(getValue(rawTopics, i));
             ((IList<object>)result).Add(parsedEvent);
             IList<object> parsedMarkets = (IList<object>)(this.safeList(parsedEvent, "markets", new List<object>() {}));
             int parsedMarketsLength = getArrayLength(parsedMarkets);
-            for (int mi = 0; mi < parsedMarketsLength; postFixIncrement(ref mi))
+            for (int mi = 0; mi < parsedMarketsLength; mi++)
             {
                 object m = getValue(parsedMarkets, mi);
                 // prediction market rows are keyed by the unified 'market' handle
@@ -521,7 +521,7 @@ public partial class binance : PredictionExchange
         {
             limitVar = 50;
         }
-        for (int qi = 0; qi < queriesLength; postFixIncrement(ref qi))
+        for (int qi = 0; qi < queriesLength; qi++)
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "query", getValue(queries, qi) },
@@ -541,7 +541,7 @@ public partial class binance : PredictionExchange
             //     ]
             //
             int responseLength = getArrayLength(response);
-            for (int i = 0; i < responseLength; postFixIncrement(ref i))
+            for (int i = 0; i < responseLength; i++)
             {
                 object rawTopic = getValue(response, i);
                 string? topicId = this.safeString(rawTopic, "marketTopicId");
@@ -623,7 +623,7 @@ public partial class binance : PredictionExchange
         List<object> marketsList = new List<object>() {};
         bool anyActive = false;
         int rawMarketsLength = getArrayLength(rawMarkets);
-        for (int i = 0; i < rawMarketsLength; postFixIncrement(ref i))
+        for (int i = 0; i < rawMarketsLength; i++)
         {
             object parsed = this.parseTopicMarket(getValue(rawMarkets, i), rawTopic);
             ((IList<object>)marketsList).Add(parsed);
@@ -729,7 +729,7 @@ public partial class binance : PredictionExchange
         List<object> outcomes = new List<object>() {};
         object resolvedOutcomeRaw = null;
         int rawOutcomesLength = getArrayLength(rawOutcomes);
-        for (int oi = 0; oi < rawOutcomesLength; postFixIncrement(ref oi))
+        for (int oi = 0; oi < rawOutcomesLength; oi++)
         {
             object rawOutcome = getValue(rawOutcomes, oi);
             string? label = this.safeStringUpper(rawOutcome, "name");
@@ -961,7 +961,7 @@ public partial class binance : PredictionExchange
         Dictionary<string, object> responsesByMarketId = new Dictionary<string, object>() {};
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         int outcomesLength = getArrayLength(outcomes);
-        for (int i = 0; i < outcomesLength; postFixIncrement(ref i))
+        for (int i = 0; i < outcomesLength; i++)
         {
             IDictionary<string, object> outcomeObj = this.outcome(getValue(outcomes, i));
             IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
@@ -1054,7 +1054,7 @@ public partial class binance : PredictionExchange
             { "info", response },
         };
         List<object> balances = this.safeList(response, "items", new List<object>() {});
-        for (int i = 0; i < balances.Count; postFixIncrement(ref i))
+        for (int i = 0; i < balances.Count; i++)
         {
             object balance = getValue(balances, i);
             string? accountType = this.safeString(balance, "accountType");
@@ -1383,7 +1383,7 @@ public partial class binance : PredictionExchange
         Dictionary<string, object> requestedOutcomeSymbols = new Dictionary<string, object>() {};
         if ((outcomes != null))
         {
-            for (int i = 0; i < getArrayLength(outcomes); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(outcomes); i++)
             {
                 object requested = getValue(outcomes, i);
                 IDictionary<string, object> requestedOutcomeObj = ((IDictionary<string, object>)this.safeOutcome(requested));
@@ -1453,7 +1453,7 @@ public partial class binance : PredictionExchange
         }
         List<object> filtered = new List<object>() {};
         int positionsLength = getArrayLength(positions);
-        for (int i = 0; i < positionsLength; postFixIncrement(ref i))
+        for (int i = 0; i < positionsLength; i++)
         {
             object position = getValue(positions, i);
             string? positionOutcome = this.safeString(position, "outcome");
@@ -1788,7 +1788,7 @@ public partial class binance : PredictionExchange
             return ccxt.BaseExchange.ToDict(cachedWallet);
         }
         int walletLength = wallets.Count;
-        for (int i = 0; i < walletLength; postFixIncrement(ref i))
+        for (int i = 0; i < walletLength; i++)
         {
             string? w = this.safeString(getValue(wallets, i), "walletAddress", "");
             if (isEqual(w, walletAddress))
@@ -2043,7 +2043,7 @@ public partial class binance : PredictionExchange
             { "walletId", getValue(wallet, "walletId") },
         };
         // flatten cancelInfoList to dot list, eg. cancelInfoList[o].orderId=1234
-        for (int i = 0; i < getArrayLength(ids); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(ids); i++)
         {
             string key = (("cancelInfoList[" + this.numberToString(i)) + "].orderId");
             ((IDictionary<string,object>)request)[(string)key] = getValue(ids, i);
@@ -2069,7 +2069,7 @@ public partial class binance : PredictionExchange
         if (failedOrdersLength > 0)
         {
             object failedDetails = "";
-            for (int i = 0; i < failedOrdersLength; postFixIncrement(ref i))
+            for (int i = 0; i < failedOrdersLength; i++)
             {
                 object failedOrder = getValue(failedOrders, i);
                 string? failedOrderId = this.safeString(failedOrder, "orderId");
@@ -2084,7 +2084,7 @@ public partial class binance : PredictionExchange
         }
         List<object> orders = new List<object>() {};
         int canceledOrdersLength = canceledOrders.Count;
-        for (int i = 0; i < canceledOrdersLength; postFixIncrement(ref i))
+        for (int i = 0; i < canceledOrdersLength; i++)
         {
             object status = getValue(canceledOrders, i);
             Dictionary<string, object> order = new Dictionary<string, object>() {

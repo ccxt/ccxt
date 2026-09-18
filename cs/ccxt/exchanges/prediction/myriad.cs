@@ -289,7 +289,7 @@ public partial class myriad : PredictionExchange
         }
         List<object> flatMarkets = new List<object>() {};
         Dictionary<string, object> eventsDict = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(rawMarkets); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(rawMarkets); i++)
         {
             object raw = getValue(rawMarkets, i);
             object m = this.parseMyriadMarket(raw);
@@ -325,7 +325,7 @@ public partial class myriad : PredictionExchange
         object rest = this.omit(parameters, new List<object>() {"limit", "state"});
         Dictionary<string, object> seen = new Dictionary<string, object>() {};
         List<object> rawMarkets = new List<object>() {};
-        for (int i = 0; i < getArrayLength(queries); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(queries); i++)
         {
             object q = getValue(queries, i);
             Dictionary<string, object> response = await this.myriadPublicGetMarkets(this.extend(new Dictionary<string, object>() {
@@ -336,7 +336,7 @@ public partial class myriad : PredictionExchange
             bool responseIsArray = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
             object foundList = ((bool) (responseIsArray)) ? response : this.safeList(response, "data", new List<object>() {});
             object found = ((bool) ((foundList != null))) ? foundList : new List<object>() {};
-            for (int j = 0; j < getArrayLength(found); postFixIncrement(ref j))
+            for (int j = 0; j < getArrayLength(found); j++)
             {
                 object raw = getValue(found, j);
                 object networkId = this.safeString(raw, "networkId");
@@ -394,7 +394,7 @@ public partial class myriad : PredictionExchange
             {
                 break;
             }
-            for (int i = 0; i < rawMarketsLength; postFixIncrement(ref i))
+            for (int i = 0; i < rawMarketsLength; i++)
             {
                 if (isLessThan(collected, maxMarkets))
                 {
@@ -497,7 +497,7 @@ public partial class myriad : PredictionExchange
             List<object> questions = this.safeList(response, "data", new List<object>() {});
             int questionsLength = questions.Count;
             string idLower = ((string)id).ToLower();
-            for (int i = 0; i < questionsLength; postFixIncrement(ref i))
+            for (int i = 0; i < questionsLength; i++)
             {
                 IDictionary<string, object> q = this.safeDict(questions, i, new Dictionary<string, object>() {});
                 string? qId = this.safeString(q, "id", "");
@@ -530,7 +530,7 @@ public partial class myriad : PredictionExchange
         object rest = this.omit(parameters, new List<object>() {"limit"});
         Dictionary<string, object> seen = new Dictionary<string, object>() {};
         List<object> rawQuestions = new List<object>() {};
-        for (int i = 0; i < getArrayLength(queries); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(queries); i++)
         {
             object q = getValue(queries, i);
             Dictionary<string, object> response = await this.myriadPublicGetQuestions(this.extend(new Dictionary<string, object>() {
@@ -540,7 +540,7 @@ public partial class myriad : PredictionExchange
             bool responseIsArray = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
             object foundList = ((bool) (responseIsArray)) ? response : this.safeList(response, "data", new List<object>() {});
             object found = ((bool) ((foundList != null))) ? foundList : new List<object>() {};
-            for (int j = 0; j < getArrayLength(found); postFixIncrement(ref j))
+            for (int j = 0; j < getArrayLength(found); j++)
             {
                 object raw = getValue(found, j);
                 string? questionId = this.safeString(raw, "id");
@@ -593,7 +593,7 @@ public partial class myriad : PredictionExchange
             {
                 break;
             }
-            for (int i = 0; i < rawQuestionsLength; postFixIncrement(ref i))
+            for (int i = 0; i < rawQuestionsLength; i++)
             {
                 object rawQuestion = getValue(rawQuestions, i);
                 string? questionId = this.safeString(rawQuestion, "id");
@@ -689,7 +689,7 @@ public partial class myriad : PredictionExchange
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (int i = 0; i < data.Count; postFixIncrement(ref i))
+        for (int i = 0; i < data.Count; i++)
         {
             ((IList<object>)result).Add(this.parsePredictionPosition(getValue(data, i)));
         }
@@ -876,7 +876,7 @@ public partial class myriad : PredictionExchange
         }
         Int64? yParity = this.safeInteger(signature, "v");
         List<object> signedFields = new List<object>() {};
-        for (int i = 0; i < getArrayLength(fields); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(fields); i++)
         {
             ((IList<object>)signedFields).Add(getValue(fields, i));
         }
@@ -1142,7 +1142,7 @@ public partial class myriad : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         int ordersLength = getArrayLength(orders);
         List<object> orderOutcomes = new List<object>() {};
-        for (int i = 0; i < ordersLength; postFixIncrement(ref i))
+        for (int i = 0; i < ordersLength; i++)
         {
             string? __oc = this.safeString(getValue(orders, i), "outcome");
             if ((__oc != null))
@@ -1152,7 +1152,7 @@ public partial class myriad : PredictionExchange
         }
         await this.loadOutcomes(orderOutcomes);
         List<object> result = new List<object>() {};
-        for (int i = 0; i < ordersLength; postFixIncrement(ref i))
+        for (int i = 0; i < ordersLength; i++)
         {
             object o = getValue(orders, i);
             string? outcome = this.safeString(o, "outcome");
@@ -1465,7 +1465,7 @@ public partial class myriad : PredictionExchange
         if ((orderResponses != null))
         {
             int responsesLength = orderResponses.Count;
-            for (int i = 0; i < responsesLength; postFixIncrement(ref i))
+            for (int i = 0; i < responsesLength; i++)
             {
                 IDictionary<string, object> current = this.safeDict(orderResponses, i, new Dictionary<string, object>() {});
                 string? currentId = this.safeStringN(current, new List<object>() {"orderHash", "hash", "id"});
@@ -1746,7 +1746,7 @@ public partial class myriad : PredictionExchange
         List<object> rows = this.safeList(response, "data", new List<object>() {});
         List<object> result = new List<object>() {};
         int rowsLength = rows.Count;
-        for (int i = 0; i < rowsLength; postFixIncrement(ref i))
+        for (int i = 0; i < rowsLength; i++)
         {
             object row = getValue(rows, i);
             string? action = this.safeStringLower(row, "action");
@@ -1922,7 +1922,7 @@ public partial class myriad : PredictionExchange
         List<object> signedOrders = new List<object>() {};
         List<object> wrappers = new List<object>() {};
         string? networkId = this.safeString(this.options, "defaultNetworkId", "56");
-        for (int i = 0; i < idsLength; postFixIncrement(ref i))
+        for (int i = 0; i < idsLength; i++)
         {
             object id = getValue(ids, i);
             object fetched = this.getOrderResponseFromParams(id, paramsForLookup);
@@ -2203,7 +2203,7 @@ public partial class myriad : PredictionExchange
         object orders = ccxt.BaseExchange.FromPredictionOrderList(await this.FetchOrders(((string)outcome),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters)));
         List<object> trades = new List<object>() {};
         int ordersLength = getArrayLength(orders);
-        for (int i = 0; i < ordersLength; postFixIncrement(ref i))
+        for (int i = 0; i < ordersLength; i++)
         {
             object order = getValue(orders, i);
             ((IList<object>)trades).Add(this.orderToTrade(order));
@@ -2303,7 +2303,7 @@ public partial class myriad : PredictionExchange
         int n = getArrayLength(chars);
         string digits = "0123456789abcdef";
         string? result = "0";
-        for (int i = 0; i < n; postFixIncrement(ref i))
+        for (int i = 0; i < n; i++)
         {
             int v = getIndexOf(digits, getValue(chars, i));
             if (v > -1)
@@ -2328,7 +2328,7 @@ public partial class myriad : PredictionExchange
         {
             throw new ExchangeError ((string)(this.id + " fromWeiWithDecimals() missing decimals")) ;
         }
-        for (int i = 0; isLessThan(i, decimals); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, decimals); i++)
         {
             scale = (scale + "0");
         }
@@ -2437,7 +2437,7 @@ public partial class myriad : PredictionExchange
         double? takerFee = this.safeNumber(buyFees, "fee", 0.01);
         double? makerFee = this.safeNumber(sellFees, "fee", 0);
         List<object> outcomes = new List<object>() {};
-        for (int i = 0; i < getArrayLength(rawOutcomes); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(rawOutcomes); i++)
         {
             IDictionary<string, object> outcome = this.safeDict(rawOutcomes, i, new Dictionary<string, object>() {});
             string? outcomeId = this.safeString(outcome, "outcomeId", this.safeString(outcome, "id", ((object)i).ToString()));
@@ -2781,7 +2781,7 @@ public partial class myriad : PredictionExchange
         IList<object> outcomes = (IList<object>)(this.safeList(raw, "outcomes", new List<object>() {}));
         double? price = null;
         double? change = null;
-        for (int i = 0; i < getArrayLength(outcomes); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(outcomes); i++)
         {
             object o = getValue(outcomes, i);
             if (isEqual(this.safeString(o, "outcomeId", this.safeString(o, "id")), outcomeId))
@@ -2949,7 +2949,7 @@ public partial class myriad : PredictionExchange
         //
         IList<object> outcomes = (IList<object>)(this.safeList(response, "outcomes", new List<object>() {}));
         double? price = null;
-        for (int i = 0; i < getArrayLength(outcomes); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(outcomes); i++)
         {
             object o = getValue(outcomes, i);
             if ((this.safeString(o, "outcomeId", this.safeString(o, "id")) == outcomeId))
@@ -3010,7 +3010,7 @@ public partial class myriad : PredictionExchange
         IList<object> rawBids = (IList<object>)(this.safeList(response, "bids", new List<object>() {}));
         IList<object> rawAsks = (IList<object>)(this.safeList(response, "asks", new List<object>() {}));
         List<object> bids = new List<object>() {};
-        for (int i = 0; i < getArrayLength(rawBids); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(rawBids); i++)
         {
             object row = getValue(rawBids, i);
             string? rowPrice = Precise.stringDiv(this.safeString(row, 0), "1000000000000000000");
@@ -3018,7 +3018,7 @@ public partial class myriad : PredictionExchange
             ((IList<object>)bids).Add(new List<object> {this.parseNumber(rowPrice), this.parseNumber(rowAmount)});
         }
         List<object> asks = new List<object>() {};
-        for (int i = 0; i < getArrayLength(rawAsks); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(rawAsks); i++)
         {
             object row = getValue(rawAsks, i);
             string? rowPrice = Precise.stringDiv(this.safeString(row, 0), "1000000000000000000");
@@ -3103,7 +3103,7 @@ public partial class myriad : PredictionExchange
         //
         IList<object> outcomes = (IList<object>)(this.safeList(response, "outcomes", new List<object>() {}));
         object selectedOutcome = null;
-        for (int i = 0; i < getArrayLength(outcomes); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(outcomes); i++)
         {
             object oc = getValue(outcomes, i);
             string? currentId = this.safeString(oc, "id", this.safeString(oc, "outcomeId"));
@@ -3123,7 +3123,7 @@ public partial class myriad : PredictionExchange
         List<object> chartsList = this.safeList(selectedOutcome, "price_charts");
         if ((chartsList != null))
         {
-            for (int i = 0; i < chartsList.Count; postFixIncrement(ref i))
+            for (int i = 0; i < chartsList.Count; i++)
             {
                 object chartObj = getValue(chartsList, i);
                 if ((this.safeString(chartObj, "timeframe") == bucketKey))
@@ -3147,7 +3147,7 @@ public partial class myriad : PredictionExchange
             points = (IList<object>)(this.safeList(bucket, outcomeId, this.safeList(bucket, "data", new List<object>() {})));
         }
         List<object> usablePoints = new List<object>() {};
-        for (int i = 0; i < getArrayLength(points); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(points); i++)
         {
             object point = getValue(points, i);
             double? pointOpen = this.safeNumber(point, "open");
@@ -3212,7 +3212,7 @@ public partial class myriad : PredictionExchange
         await this.loadOutcomes(outcomes);
         Dictionary<string, object> outcomesByMarket = new Dictionary<string, object>() {};
         List<object> marketKeys = new List<object>() {};
-        for (int i = 0; i < getArrayLength(outcomes); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(outcomes); i++)
         {
             IDictionary<string, object> outcomeObj = this.outcome(getValue(outcomes, i));
             IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
@@ -3230,7 +3230,7 @@ public partial class myriad : PredictionExchange
             ((IDictionary<string,object>)outcomesByMarket)[(string)key] = grouped;
         }
         List<object> promises = new List<object>() {};
-        for (int i = 0; i < getArrayLength(marketKeys); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(marketKeys); i++)
         {
             object key = getValue(marketKeys, i);
             IList<object> grouped = (IList<object>)(getValue(outcomesByMarket, key));
@@ -3242,12 +3242,12 @@ public partial class myriad : PredictionExchange
             }, parameters)));
         }
         List<object> responses = await promiseAll(promises);
-        for (int i = 0; i < getArrayLength(marketKeys); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(marketKeys); i++)
         {
             object key = getValue(marketKeys, i);
             object response = getValue(responses, i);
             IList<object> grouped = (IList<object>)(getValue(outcomesByMarket, key));
-            for (int j = 0; j < getArrayLength(grouped); postFixIncrement(ref j))
+            for (int j = 0; j < getArrayLength(grouped); j++)
             {
                 object outcomeObj = getValue(grouped, j);
                 Dictionary<string, object> ticker = this.parsePredictionTicker(response, outcomeObj);
@@ -3315,7 +3315,7 @@ public partial class myriad : PredictionExchange
         object rowsList = ((bool) (responseIsArray)) ? response : this.safeList(response, "data", new List<object>() {});
         object rows = ((bool) ((rowsList != null))) ? rowsList : new List<object>() {};
         List<object> trades = new List<object>() {};
-        for (int i = 0; i < getArrayLength(rows); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(rows); i++)
         {
             object row = getValue(rows, i);
             string? action = this.safeString(row, "action");
@@ -3437,7 +3437,7 @@ public partial class myriad : PredictionExchange
             } else
             {
                 List<object> tagQueries = new List<object>() {};
-                for (int i = 0; i < requestedTagsLength; postFixIncrement(ref i))
+                for (int i = 0; i < requestedTagsLength; i++)
                 {
                     // tag slugs are hyphenated ('world-cup'); search with spaces so titles match
                     object tagSlug = getValue(requestedTags, i);
@@ -3457,14 +3457,14 @@ public partial class myriad : PredictionExchange
         Dictionary<string, object> seenMarketHandles = new Dictionary<string, object>() {};
         List<object> result = new List<object>() {};
         int rawQuestionsLength = getArrayLength(rawQuestions);
-        for (int i = 0; i < rawQuestionsLength; postFixIncrement(ref i))
+        for (int i = 0; i < rawQuestionsLength; i++)
         {
             object rawQuestion = getValue(rawQuestions, i);
             object ev = this.parseEvent(rawQuestion);
             List<object> evMarkets = this.safeList(ev, "markets", new List<object>() {});
             int evMarketsLength = evMarkets.Count;
             List<object> filteredMarkets = new List<object>() {};
-            for (int j = 0; j < evMarketsLength; postFixIncrement(ref j))
+            for (int j = 0; j < evMarketsLength; j++)
             {
                 IDictionary<string, object> m = this.safeDict(evMarkets, j, new Dictionary<string, object>() {});
                 string? marketHandle = this.safeString(m, "market");
@@ -3489,7 +3489,7 @@ public partial class myriad : PredictionExchange
             ((IList<object>)result).Add(ev);
         }
         int rawMarketsLength = getArrayLength(rawMarkets);
-        for (int i = 0; i < rawMarketsLength; postFixIncrement(ref i))
+        for (int i = 0; i < rawMarketsLength; i++)
         {
             object raw = getValue(rawMarkets, i);
             object m = this.parseMyriadMarket(raw);
@@ -3529,7 +3529,7 @@ public partial class myriad : PredictionExchange
         string? questionSlug = this.safeString(rawEvent, "slug", this.safeString(rawEvent, "id"));
         IList<object> rawMarkets = (IList<object>)(this.safeList(rawEvent, "markets", new List<object>() {}));
         List<object> marketsList = new List<object>() {};
-        for (int i = 0; i < getArrayLength(rawMarkets); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(rawMarkets); i++)
         {
             object rawMarket = getValue(rawMarkets, i);
             ((IList<object>)marketsList).Add(this.parseMyriadMarket(rawMarket, questionSlug));
@@ -3658,7 +3658,7 @@ public partial class myriad : PredictionExchange
         {
             List<object> lines = ((string)message).Split(new [] {((string)"\n")}, StringSplitOptions.None).ToList<object>();
             int linesLength = lines.Count;
-            for (int i = 0; i < linesLength; postFixIncrement(ref i))
+            for (int i = 0; i < linesLength; i++)
             {
                 string? line = ((string)getValue(lines, i));
                 if (((string)line).Length > 0)
@@ -3786,7 +3786,7 @@ public partial class myriad : PredictionExchange
         List<object> changes = this.safeList(data, "changes", new List<object>() {});
         int changesLength = changes.Count;
         Dictionary<string, object> updated = new Dictionary<string, object>() {};
-        for (int i = 0; i < changesLength; postFixIncrement(ref i))
+        for (int i = 0; i < changesLength; i++)
         {
             object change = getValue(changes, i);
             string? outcomeId = this.safeString(change, "outcome");
@@ -3811,7 +3811,7 @@ public partial class myriad : PredictionExchange
         }
         List<object> updatedSymbols = new List<object>(((IDictionary<string,object>)updated).Keys);
         int updatedLength = updatedSymbols.Count;
-        for (int k = 0; k < updatedLength; postFixIncrement(ref k))
+        for (int k = 0; k < updatedLength; k++)
         {
             string? sym = ((string)getValue(updatedSymbols, k));
             (client as WebSocketClient).resolve(this.getOrderBook(this.orderbooks, sym), ("orderbook::" + sym));
@@ -3950,7 +3950,7 @@ public partial class myriad : PredictionExchange
             }
             List<object> makers = this.safeList(data, "makers", new List<object>() {});
             int makersLength = makers.Count;
-            for (int i = 0; i < makersLength; postFixIncrement(ref i))
+            for (int i = 0; i < makersLength; i++)
             {
                 object maker = getValue(makers, i);
                 string? makerTrader = this.safeStringLower(maker, "trader");
@@ -3993,7 +3993,7 @@ public partial class myriad : PredictionExchange
                     this.myTrades = new ArrayCacheByOutcomeById(myTradesLimit);
                 }
                 object myStored = this.myTrades;
-                for (int k = 0; k < myLegsLength; postFixIncrement(ref k))
+                for (int k = 0; k < myLegsLength; k++)
                 {
                     callDynamically(myStored, "append", new object[] {getValue(myLegs, k)});
                 }
@@ -4047,7 +4047,7 @@ public partial class myriad : PredictionExchange
         var client = this.client(url);
         Dictionary<string, object> seenChannels = new Dictionary<string, object>() {};
         List<object> resolvedSymbols = new List<object>() {};
-        for (int i = 0; i < symbolsLength; postFixIncrement(ref i))
+        for (int i = 0; i < symbolsLength; i++)
         {
             IDictionary<string, object> outcomeObj = this.outcome(getValue(outcomes, i));
             IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
@@ -4094,7 +4094,7 @@ public partial class myriad : PredictionExchange
         List<object> ohlcvc = this.buildOHLCVC(((object)trades),((string)timeframeVar), 0, 2147483647);
         List<object> result = new List<object>() {};
         int ohlcvcLength = getArrayLength(ohlcvc);
-        for (int i = 0; i < ohlcvcLength; postFixIncrement(ref i))
+        for (int i = 0; i < ohlcvcLength; i++)
         {
             object candle = getValue(ohlcvc, i);
             ((IList<object>)result).Add(new List<object>() {getValue(candle, 0), getValue(candle, 1), getValue(candle, 2), getValue(candle, 3), getValue(candle, 4), getValue(candle, 5)});
@@ -4113,7 +4113,7 @@ public partial class myriad : PredictionExchange
         {
             this.tickers = this.createSafeDictionary();
         }
-        for (int i = 0; i < outcomesLength; postFixIncrement(ref i))
+        for (int i = 0; i < outcomesLength; i++)
         {
             object oc = getValue(outcomes, i);
             string? outcomeId = this.safeString(oc, "outcome");
@@ -4289,7 +4289,7 @@ public partial class myriad : PredictionExchange
         object positions = ccxt.BaseExchange.FromPredictionPositionList(await this.FetchPositions(null, new Dictionary<string, object>() { { "address", trader }, }));
         Dictionary<string, object> balances = new Dictionary<string, object>() {};
         int positionsLength = getArrayLength(positions);
-        for (int i = 0; i < positionsLength; postFixIncrement(ref i))
+        for (int i = 0; i < positionsLength; i++)
         {
             object p = getValue(positions, i);
             string? id = this.safeString(p, "id");

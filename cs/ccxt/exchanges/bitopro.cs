@@ -917,7 +917,7 @@ public partial class bitopro : Exchange
         double? maker = this.safeNumber(first, "makerFee");
         double? taker = this.safeNumber(first, "takerFee");
         List<object> symbols = this.symbols;
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); i++)
         {
             object symbol = getValue(symbols, i);
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
@@ -1067,7 +1067,7 @@ public partial class bitopro : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); i++)
         {
             object balance = getValue(response, i);
             string? currencyId = this.safeString(balance, "currency");
@@ -1346,11 +1346,11 @@ public partial class bitopro : Exchange
     {
         List<object> dataKeys = new List<object>(((IDictionary<string,object>)data).Keys);
         List<object> orders = new List<object>() {};
-        for (int i = 0; i < dataKeys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < dataKeys.Count; i++)
         {
             string? marketId = ((string)getValue(dataKeys, i));
             object orderIds = getValue(data, marketId);
-            for (int j = 0; isLessThan(j, getArrayLength(orderIds)); postFixIncrement(ref j))
+            for (int j = 0; isLessThan(j, getArrayLength(orderIds)); j++)
             {
                 ((IList<object>)orders).Add(this.safeOrder(new Dictionary<string, object>() {
                     { "info", getValue(orderIds, j) },

@@ -1690,7 +1690,7 @@ public partial class bullish : Exchange
         //
         List<object> rates = new List<object>() {};
         IList<object> result = this.toArray(response);
-        for (int i = 0; i < getArrayLength(result); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(result); i++)
         {
             object entry = getValue(result, i);
             string? datetime = this.safeString(entry, "updatedAtDatetime");
@@ -2583,7 +2583,7 @@ public partial class bullish : Exchange
         {
             List<object> response = await this.privateGetV1AccountsTradingAccounts(parameters);
             IList<object> accounts = this.toArray(response);
-            for (int i = 0; i < getArrayLength(accounts); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(accounts); i++)
             {
                 object account = getValue(accounts, i);
                 string? name = this.safeString(account, "tradingAccountName");
@@ -2754,7 +2754,7 @@ public partial class bullish : Exchange
             if ((network != null))
             {
                 // find the entry that matches the network or return first entry if not found and user did not specify a network
-                for (int i = 0; i < getArrayLength(safeResponse); postFixIncrement(ref i))
+                for (int i = 0; i < getArrayLength(safeResponse); i++)
                 {
                     IDictionary<string, object> entry = this.safeDict(safeResponse, i, new Dictionary<string, object>() {});
                     string? networkId = this.safeString(entry, "network");
@@ -2854,7 +2854,7 @@ public partial class bullish : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); i++)
         {
             object balance = getValue(response, i);
             string? symbol = this.safeString(balance, "assetSymbol");

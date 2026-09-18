@@ -850,7 +850,7 @@ public partial class tokocrypto : Exchange
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         List<object> list = this.safeList(data, "list", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (int i = 0; i < list.Count; postFixIncrement(ref i))
+        for (int i = 0; i < list.Count; i++)
         {
             object market = getValue(list, i);
             string? baseId = this.safeString(market, "baseAsset");
@@ -867,7 +867,7 @@ public partial class tokocrypto : Exchange
             string? status = this.safeString(market, "spotTradingEnable");
             bool active = ((status == "1"));
             List<object> permissions = this.safeList(market, "permissions", new List<object>() {});
-            for (int j = 0; j < permissions.Count; postFixIncrement(ref j))
+            for (int j = 0; j < permissions.Count; j++)
             {
                 if (isEqual(getValue(permissions, j), "TRD_GRP_003"))
                 {
@@ -1730,7 +1730,7 @@ public partial class tokocrypto : Exchange
         };
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         List<object> balances = this.safeList(data, "accountAssets", new List<object>() {});
-        for (int i = 0; i < balances.Count; postFixIncrement(ref i))
+        for (int i = 0; i < balances.Count; i++)
         {
             object balance = getValue(balances, i);
             string? currencyId = this.safeString(balance, "asset");
@@ -3029,7 +3029,7 @@ public partial class tokocrypto : Exchange
         {
             object limit = getValue(parameters, "limit");
             List<object> byLimit = this.safeList(config, "byLimit", new List<object>() {});
-            for (int i = 0; i < byLimit.Count; postFixIncrement(ref i))
+            for (int i = 0; i < byLimit.Count; i++)
             {
                 object entry = getValue(byLimit, i);
                 if (isLessThanOrEqual(limit, getValue(entry, 0)))

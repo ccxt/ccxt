@@ -1353,7 +1353,7 @@ public partial class blofin : Exchange
         Dictionary<string, object> response = await this.publicGetMarketFundingRateHistory(this.extend(request, parameters));
         List<object> rates = new List<object>() {};
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(data); i++)
         {
             object rate = getValue(data, i);
             Int64? timestamp = this.safeInteger(rate, "fundingTime");
@@ -1497,7 +1497,7 @@ public partial class blofin : Exchange
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         Int64? timestamp = this.safeInteger(data, "ts");
         List<object> details = this.safeList(data, "details", new List<object>() {});
-        for (int i = 0; i < getArrayLength(details); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(details); i++)
         {
             object balance = getValue(details, i);
             string? currencyId = this.safeString(balance, "currency");
@@ -1543,7 +1543,7 @@ public partial class blofin : Exchange
             { "info", response },
         };
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(data); i++)
         {
             object balance = getValue(data, i);
             string? currencyId = this.safeString(balance, "currency");
@@ -2067,7 +2067,7 @@ public partial class blofin : Exchange
             await this.loadMarkets();
         }
         List<object> ordersRequests = new List<object>() {};
-        for (int i = 0; i < getArrayLength(orders); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(orders); i++)
         {
             object rawOrder = getValue(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
@@ -2749,7 +2749,7 @@ public partial class blofin : Exchange
             ids = this.parseIds(ids);
             if ((tpslIds != null))
             {
-                for (int i = 0; isLessThan(i, getArrayLength(tpslIds)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(tpslIds)); i++)
                 {
                     ((IList<object>)request).Add(new Dictionary<string, object>() {
                         { "tpslId", getValue(tpslIds, i) },
@@ -2757,7 +2757,7 @@ public partial class blofin : Exchange
                     });
                 }
             }
-            for (int i = 0; i < getArrayLength(ids); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(ids); i++)
             {
                 if ((trigger == true))
                 {
@@ -2775,7 +2775,7 @@ public partial class blofin : Exchange
             }
         } else
         {
-            for (int i = 0; isLessThan(i, getArrayLength(clientOrderIds)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(clientOrderIds)); i++)
             {
                 ((IList<object>)request).Add(new Dictionary<string, object>() {
                     { "instId", getValue(market, "id") },
@@ -3163,7 +3163,7 @@ public partial class blofin : Exchange
         symbols = this.marketSymbols(symbols);
         object symbolsList = symbols;
         object instIds = "";
-        for (int i = 0; i < getArrayLength(symbolsList); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbolsList); i++)
         {
             object entry = getValue(symbolsList, i);
             Dictionary<string, object> entryMarket = this.market(entry);

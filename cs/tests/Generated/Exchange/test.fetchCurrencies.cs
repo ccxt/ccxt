@@ -31,7 +31,7 @@ public partial class testMainClass : BaseTest
             bool skipActive = (inOp(skippedProperties, "activeCurrenciesQuota"));
             bool skipMajorCurrencyCheck = (inOp(skippedProperties, "activeMajorCurrencies"));
             // loop
-            for (int i = 0; i < currenciesLength; postFixIncrement(ref i))
+            for (int i = 0; i < currenciesLength; i++)
             {
                 object currency = getValue(values, i);
                 testCurrency(exchange, skippedProperties, method, currency);
@@ -64,7 +64,7 @@ public partial class testMainClass : BaseTest
         // detect if there are currencies with different ids for the same code
         Dictionary<string, object> ids = new Dictionary<string, object>() {};
         List<object> keys = new List<object>(((IDictionary<string,object>)currencyValues).Keys);
-        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)getValue(keys, i));
             object currency = getValue(currencyValues, key);

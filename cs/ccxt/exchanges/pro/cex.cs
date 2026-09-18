@@ -108,7 +108,7 @@ public partial class cex : ccxt.cex
             { "info", data },
         };
         List<object> currencyIds = new List<object>(((IDictionary<string,object>)freeBalance).Keys);
-        for (int i = 0; i < currencyIds.Count; postFixIncrement(ref i))
+        for (int i = 0; i < currencyIds.Count; i++)
         {
             string? currencyId = ((string)getValue(currencyIds, i));
             Dictionary<string, object> account = this.account();
@@ -159,7 +159,7 @@ public partial class cex : ccxt.cex
         if ((client != null))
         {
             List<object> subscriptionKeys = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);
-            for (int i = 0; i < subscriptionKeys.Count; postFixIncrement(ref i))
+            for (int i = 0; i < subscriptionKeys.Count; i++)
             {
                 string? subscriptionKey = ((string)getValue(subscriptionKeys, i));
                 if (isEqual(subscriptionKey, subscriptionHash))
@@ -1021,7 +1021,7 @@ public partial class cex : ccxt.cex
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             myOrders = new ArrayCacheBySymbolById(limit);
         }
-        for (int i = 0; i < rawOrders.Count; postFixIncrement(ref i))
+        for (int i = 0; i < rawOrders.Count; i++)
         {
             object rawOrder = getValue(rawOrders, i);
             Dictionary<string, object> market = this.safeMarket(symbol);
@@ -1175,7 +1175,7 @@ public partial class cex : ccxt.cex
 
     public override void handleDeltas(object bookside, object deltas)
     {
-        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(deltas)); i++)
         {
             this.handleDelta(bookside, getValue(deltas, i));
         }
@@ -1257,7 +1257,7 @@ public partial class cex : ccxt.cex
         Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
         var stored = new ArrayCacheByTimestamp(limit);
         List<object> sorted = this.sortBy(data, 0);
-        for (int i = 0; i < getArrayLength(sorted); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(sorted); i++)
         {
             callDynamically(stored, "append", new object[] {this.parseOHLCV(getValue(sorted, i), market)});
         }
@@ -1325,7 +1325,7 @@ public partial class cex : ccxt.cex
         string messageHash = ("ohlcv:" + symbol);
         // const stored = this.safeValue (this.ohlcvs, symbol);
         object stored = getValue(getValue(this.ohlcvs, symbol), "unknown");
-        for (int i = 0; i < data.Count; postFixIncrement(ref i))
+        for (int i = 0; i < data.Count; i++)
         {
             List<object> ohlcv = new List<object> {this.safeTimestamp(getValue(data, i), 0), this.safeNumber(getValue(data, i), 1), this.safeNumber(getValue(data, i), 2), this.safeNumber(getValue(data, i), 3), this.safeNumber(getValue(data, i), 4), this.safeNumber(getValue(data, i), 5)};
             callDynamically(stored, "append", new object[] {ohlcv});

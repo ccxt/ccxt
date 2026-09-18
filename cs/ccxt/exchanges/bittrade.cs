@@ -658,7 +658,7 @@ public partial class bittrade : Exchange
             throw new ExchangeError ((string)(this.id + " markets not loaded")) ;
         }
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); i++)
         {
             object symbol = getValue(symbols, i);
             ((IDictionary<string,object>)result)[(string)symbol] = ccxt.BaseExchange.FromDict(await this.FetchTradingLimitsById(this.marketId(symbol), parameters));
@@ -784,7 +784,7 @@ public partial class bittrade : Exchange
             throw new NetworkError ((string)((this.id + " fetchMarkets() returned empty response: ") + this.json(markets))) ;
         }
         List<object> result = new List<object>() {};
-        for (int i = 0; i < markets.Count; postFixIncrement(ref i))
+        for (int i = 0; i < markets.Count; i++)
         {
             object market = getValue(markets, i);
             object baseId = this.safeString(market, "base-currency");
@@ -1080,7 +1080,7 @@ public partial class bittrade : Exchange
         List<object> tickers = this.safeList(response, "data", new List<object>() {});
         Int64? timestamp = this.safeInteger(response, "ts");
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; i < tickers.Count; postFixIncrement(ref i))
+        for (int i = 0; i < tickers.Count; i++)
         {
             string? marketId = this.safeString(getValue(tickers, i), "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
@@ -1298,10 +1298,10 @@ public partial class bittrade : Exchange
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (int i = 0; i < data.Count; postFixIncrement(ref i))
+        for (int i = 0; i < data.Count; i++)
         {
             List<object> trades = this.safeList(getValue(data, i), "data", new List<object>() {});
-            for (int j = 0; j < trades.Count; postFixIncrement(ref j))
+            for (int j = 0; j < trades.Count; j++)
             {
                 Dictionary<string, object> trade = this.parseTrade(getValue(trades, j), market);
                 ((IList<object>)result).Add(trade);
@@ -1499,7 +1499,7 @@ public partial class bittrade : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (int i = 0; i < balances.Count; postFixIncrement(ref i))
+        for (int i = 0; i < balances.Count; i++)
         {
             object balance = getValue(balances, i);
             string? currencyId = this.safeString(balance, "currency");
@@ -1717,7 +1717,7 @@ public partial class bittrade : Exchange
         {
             // pick the first account
             await this.loadAccounts();
-            for (int i = 0; i < getArrayLength(this.accounts); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(this.accounts); i++)
             {
                 object account = getValue(this.accounts, i);
                 if (isEqual(getValue(account, "type"), "spot"))
@@ -2105,7 +2105,7 @@ public partial class bittrade : Exchange
         }
         List<object> failed = this.safeList2(orders, "errors", "failed", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(success); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(success); i++)
         {
             object order = getValue(success, i);
             ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {
@@ -2114,7 +2114,7 @@ public partial class bittrade : Exchange
                 { "status", "canceled" },
             }));
         }
-        for (int i = 0; i < failed.Count; postFixIncrement(ref i))
+        for (int i = 0; i < failed.Count; i++)
         {
             object order = getValue(failed, i);
             ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {

@@ -581,7 +581,7 @@ public partial class bitso : Exchange
         List<object> markets = this.safeList(response, "payload", new List<object>() {});
         IDictionary<string, object> currencies = this.safeDict(this.options, "cachedCurrencies");
         List<object> result = new List<object>() {};
-        for (int i = 0; i < markets.Count; postFixIncrement(ref i))
+        for (int i = 0; i < markets.Count; i++)
         {
             object market = getValue(markets, i);
             string? id = this.safeString(market, "book");
@@ -607,7 +607,7 @@ public partial class bitso : Exchange
             };
             List<object> takerFees = new List<object>() {};
             List<object> makerFees = new List<object>() {};
-            for (int j = 0; j < feeTiers.Count; postFixIncrement(ref j))
+            for (int j = 0; j < feeTiers.Count; j++)
             {
                 object tier = getValue(feeTiers, j);
                 double? volume = this.safeNumber(tier, "volume");
@@ -765,7 +765,7 @@ public partial class bitso : Exchange
             { "timestamp", null },
             { "datetime", null },
         };
-        for (int i = 0; i < balances.Count; postFixIncrement(ref i))
+        for (int i = 0; i < balances.Count; i++)
         {
             object balance = getValue(balances, i);
             string? currencyId = this.safeString(balance, "currency");
@@ -1228,7 +1228,7 @@ public partial class bitso : Exchange
         object payload = this.safeValue(response, "payload", new Dictionary<string, object>() {});
         List<object> fees = this.safeList(payload, "fees", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; i < fees.Count; postFixIncrement(ref i))
+        for (int i = 0; i < fees.Count; i++)
         {
             object fee = getValue(fees, i);
             string? marketId = this.safeString(fee, "book");
@@ -1397,7 +1397,7 @@ public partial class bitso : Exchange
         //
         List<object> payload = this.safeList(response, "payload", new List<object>() {});
         List<object> orders = new List<object>() {};
-        for (int i = 0; i < payload.Count; postFixIncrement(ref i))
+        for (int i = 0; i < payload.Count; i++)
         {
             object id = getValue(payload, i);
             ((IList<object>)orders).Add(this.parseOrder(id, market));
@@ -1430,7 +1430,7 @@ public partial class bitso : Exchange
         //
         List<object> payload = this.safeList(response, "payload", new List<object>() {});
         List<object> canceledOrders = new List<object>() {};
-        for (int i = 0; i < payload.Count; postFixIncrement(ref i))
+        for (int i = 0; i < payload.Count; i++)
         {
             Dictionary<string, object> order = this.parseOrder(getValue(payload, i));
             ((IList<object>)canceledOrders).Add(order);
@@ -1805,7 +1805,7 @@ public partial class bitso : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         object payload = this.safeValue(response, "payload", new Dictionary<string, object>() {});
         List<object> depositFees = this.safeList(payload, "deposit_fees", new List<object>() {});
-        for (int i = 0; i < depositFees.Count; postFixIncrement(ref i))
+        for (int i = 0; i < depositFees.Count; i++)
         {
             object depositFee = getValue(depositFees, i);
             string? currencyId = this.safeString(depositFee, "currency");
@@ -1828,7 +1828,7 @@ public partial class bitso : Exchange
         }
         object withdrawalFees = this.safeValue(payload, "withdrawal_fees", new List<object>() {});
         List<object> currencyIds = new List<object>(((IDictionary<string,object>)withdrawalFees).Keys);
-        for (int i = 0; i < currencyIds.Count; postFixIncrement(ref i))
+        for (int i = 0; i < currencyIds.Count; i++)
         {
             string? currencyId = ((string)getValue(currencyIds, i));
             string? code = this.safeCurrencyCode(currencyId);
@@ -1960,7 +1960,7 @@ public partial class bitso : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         List<object> depositResponse = this.safeList(response, "deposit_fees", new List<object>() {});
         object withdrawalResponse = this.safeValue(response, "withdrawal_fees", new List<object>() {});
-        for (int i = 0; i < depositResponse.Count; postFixIncrement(ref i))
+        for (int i = 0; i < depositResponse.Count; i++)
         {
             object entry = getValue(depositResponse, i);
             string? currencyId = this.safeString(entry, "currency");
@@ -1985,7 +1985,7 @@ public partial class bitso : Exchange
             }
         }
         List<object> withdrawalKeys = new List<object>(((IDictionary<string,object>)withdrawalResponse).Keys);
-        for (int i = 0; i < withdrawalKeys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < withdrawalKeys.Count; i++)
         {
             string? currencyId = ((string)getValue(withdrawalKeys, i));
             string? code = this.safeCurrencyCode(currencyId);

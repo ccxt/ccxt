@@ -428,7 +428,7 @@ public partial class foxbit : Exchange
         List<object> networks = this.safeList(rawCurrency, "networks", new List<object>() {});
         string? type = this.safeStringLower(rawCurrency, "type");
         Dictionary<string, object> parsedNetworks = new Dictionary<string, object>() {};
-        for (int j = 0; j < networks.Count; postFixIncrement(ref j))
+        for (int j = 0; j < networks.Count; j++)
         {
             object network = getValue(networks, j);
             string? networkId = this.safeString(network, "code");
@@ -730,7 +730,7 @@ public partial class foxbit : Exchange
         // ]
         List<object> data = this.safeList(response, "data", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; i < data.Count; postFixIncrement(ref i))
+        for (int i = 0; i < data.Count; i++)
         {
             object entry = getValue(data, i);
             string? marketId = this.safeString(entry, "market_symbol");
@@ -925,7 +925,7 @@ public partial class foxbit : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (int i = 0; i < accounts.Count; postFixIncrement(ref i))
+        for (int i = 0; i < accounts.Count; i++)
         {
             object account = getValue(accounts, i);
             string? currencyId = this.safeString(account, "currency_symbol");
@@ -1130,7 +1130,7 @@ public partial class foxbit : Exchange
             await this.loadMarkets();
         }
         List<object> ordersRequests = new List<object>() {};
-        for (int i = 0; i < getArrayLength(orders); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(orders); i++)
         {
             IDictionary<string, object> order = this.safeDict(orders, i);
             string? symbol = this.safeString(order, "symbol");
@@ -2275,7 +2275,7 @@ public partial class foxbit : Exchange
                 query = this.urlencode(parameters);
                 url = add(url, ("?" + query));
             }
-            for (int i = 0; i < paramKeys.Count; postFixIncrement(ref i))
+            for (int i = 0; i < paramKeys.Count; i++)
             {
                 object key = getValue(paramKeys, i);
                 string? value = this.safeString(parameters, key);
@@ -2333,7 +2333,7 @@ public partial class foxbit : Exchange
         object detailsString = "";
         if ((details != null))
         {
-            for (int i = 0; i < details.Count; postFixIncrement(ref i))
+            for (int i = 0; i < details.Count; i++)
             {
                 detailsString = add(add(detailsString, getValue(details, i)), " ");
             }

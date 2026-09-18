@@ -571,7 +571,7 @@ public partial class lbank : Exchange
         string? code = this.safeCurrencyCode(id);
         object networksRaw = rawCurrency;
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
-        for (int j = 0; j < getArrayLength(networksRaw); postFixIncrement(ref j))
+        for (int j = 0; j < getArrayLength(networksRaw); j++)
         {
             object networkEntry = getValue(networksRaw, j);
             string? networkId = this.safeString(networkEntry, "chain");
@@ -667,7 +667,7 @@ public partial class lbank : Exchange
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (int i = 0; i < data.Count; postFixIncrement(ref i))
+        for (int i = 0; i < data.Count; i++)
         {
             object market = getValue(data, i);
             string? marketId = this.safeString(market, "symbol");
@@ -767,7 +767,7 @@ public partial class lbank : Exchange
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (int i = 0; i < data.Count; postFixIncrement(ref i))
+        for (int i = 0; i < data.Count; i++)
         {
             object market = getValue(data, i);
             string? marketId = this.safeString(market, "symbol");
@@ -1499,7 +1499,7 @@ public partial class lbank : Exchange
             object used = this.safeValue(data, "freeze", new Dictionary<string, object>() {});
             IDictionary<string, object> free = this.safeDict(data, "free", new Dictionary<string, object>() {});
             List<object> currencies = new List<object>(((IDictionary<string,object>)free).Keys);
-            for (int i = 0; i < currencies.Count; postFixIncrement(ref i))
+            for (int i = 0; i < currencies.Count; i++)
             {
                 string? currencyId = ((string)getValue(currencies, i));
                 string? code = this.safeCurrencyCode(currencyId);
@@ -1517,7 +1517,7 @@ public partial class lbank : Exchange
         object balances = this.safeValue(data, "balances");
         if ((balances != null))
         {
-            for (int i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(balances)); i++)
             {
                 object item = getValue(balances, i);
                 string? currencyId = this.safeString(item, "asset");
@@ -1536,7 +1536,7 @@ public partial class lbank : Exchange
         bool isArray = ((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
         if ((isArray == true))
         {
-            for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(data); i++)
             {
                 object item = getValue(data, i);
                 string? currencyId = this.safeString(item, "coin");
@@ -1800,7 +1800,7 @@ public partial class lbank : Exchange
         Dictionary<string, object> response = await this.spotPrivatePostSupplementCustomerTradeFee(this.extend(request, parameters));
         List<object> fees = this.safeList(response, "data", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; i < fees.Count; postFixIncrement(ref i))
+        for (int i = 0; i < fees.Count; i++)
         {
             object fee = this.parseTradingFee(getValue(fees, i));
             object symbol = getValue(fee, "symbol");
@@ -3027,7 +3027,7 @@ public partial class lbank : Exchange
         //
         List<object> result = this.safeList(response, "data", new List<object>() {});
         Dictionary<string, object> withdrawFees = new Dictionary<string, object>() {};
-        for (int i = 0; i < result.Count; postFixIncrement(ref i))
+        for (int i = 0; i < result.Count; i++)
         {
             object entry = getValue(result, i);
             string? currencyId = this.safeString(entry, "coin");
@@ -3037,7 +3037,7 @@ public partial class lbank : Exchange
             {
                 ((IDictionary<string,object>)withdrawFees)[(string)code] = new Dictionary<string, object>() {};
             }
-            for (int j = 0; j < networkList.Count; postFixIncrement(ref j))
+            for (int j = 0; j < networkList.Count; j++)
             {
                 object networkEntry = getValue(networkList, j);
                 double? fee = this.safeNumber(networkEntry, "withdrawFee");
@@ -3098,7 +3098,7 @@ public partial class lbank : Exchange
         //
         List<object> result = this.safeList(response, "data", new List<object>() {});
         Dictionary<string, object> withdrawFees = new Dictionary<string, object>() {};
-        for (int i = 0; i < result.Count; postFixIncrement(ref i))
+        for (int i = 0; i < result.Count; i++)
         {
             object item = getValue(result, i);
             object canWithdraw = this.safeValue(item, "canWithDraw");
@@ -3266,7 +3266,7 @@ public partial class lbank : Exchange
         //    ]
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); i++)
         {
             object fee = getValue(response, i);
             object canWithdraw = this.safeValue(fee, "canWithDraw");
@@ -3346,7 +3346,7 @@ public partial class lbank : Exchange
         Dictionary<string, object> result = this.depositWithdrawFee(fee);
         string? code = this.safeString(currency, "code");
         List<object> networkList = this.safeList(fee, "networkList", new List<object>() {});
-        for (int j = 0; j < networkList.Count; postFixIncrement(ref j))
+        for (int j = 0; j < networkList.Count; j++)
         {
             object networkEntry = getValue(networkList, j);
             object networkCode = this.networkIdToCode(this.safeString(networkEntry, "name"), code);
@@ -3471,7 +3471,7 @@ public partial class lbank : Exchange
         object numLines = this.parseToInt(divide(secretLength, lineLength));
         numLines = this.sum(numLines, 1);
         string pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
-        for (int i = 0; isLessThan(i, numLines); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, numLines); i++)
         {
             Int64 start = multiply(i, lineLength);
             Int64 end = ((Int64)this.sum(start, lineLength));

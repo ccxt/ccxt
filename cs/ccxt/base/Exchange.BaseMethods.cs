@@ -588,7 +588,7 @@ public partial class BaseExchange
 
     public virtual void handleDeltas(object orderbook, object deltas)
     {
-        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(deltas)); i++)
         {
             this.handleDelta(orderbook, getValue(deltas, i));
         }
@@ -604,7 +604,7 @@ public partial class BaseExchange
         priceKey ??= 0;
         amountKey ??= 1;
         countOrIdKey ??= 2;
-        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(deltas)); i++)
         {
             List<object> bidAsk = this.parseOrderBookBidAsk(getValue(deltas, i), priceKey, amountKey, countOrIdKey);
             (bookSide as ccxt.pro.IOrderBookSide).storeArray(bidAsk);
@@ -620,7 +620,7 @@ public partial class BaseExchange
     public virtual List<object> arraysConcat(object arraysOfArrays)
     {
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(arraysOfArrays); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(arraysOfArrays); i++)
         {
             result = this.arrayConcat(result, getValue(arraysOfArrays, i));
         }
@@ -634,7 +634,7 @@ public partial class BaseExchange
             timeframes = this.timeframes;
         }
         List<object> keys = new List<object>(((IDictionary<string,object>)timeframes).Keys);
-        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)getValue(keys, i));
             if (isEqual(getValue(timeframes, key), timeframe))
@@ -829,7 +829,7 @@ public partial class BaseExchange
     {
         List<object> result = new List<object>() {};
         List<object> messageHashes = new List<object>(((IDictionary<string, ccxt.Exchange.Future>)client.futures).Keys);
-        for (int i = 0; i < messageHashes.Count; postFixIncrement(ref i))
+        for (int i = 0; i < messageHashes.Count; i++)
         {
             string? messageHash = ((string)getValue(messageHashes, i));
             if (getIndexOf(messageHash, element) >= 0)
@@ -903,7 +903,7 @@ public partial class BaseExchange
         if (sinceIsDefined)
         {
             result = new List<object>() {};
-            for (int i = 0; isLessThan(i, getArrayLength(parsedArray)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(parsedArray)); i++)
             {
                 object entry = getValue(parsedArray, i);
                 object value = this.safeValue(entry, key);
@@ -935,7 +935,7 @@ public partial class BaseExchange
         if (valueIsDefined || sinceIsDefined)
         {
             result = new List<object>() {};
-            for (int i = 0; isLessThan(i, getArrayLength(parsedArray)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(parsedArray)); i++)
             {
                 object entry = getValue(parsedArray, i);
                 // safeValue (not entry[field]) so a missing field is a non-match, not a
@@ -1189,7 +1189,7 @@ public partial class BaseExchange
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         IList<object> arr = this.toArray(rawCurrencies);
-        for (int i = 0; i < getArrayLength(arr); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(arr); i++)
         {
             Dictionary<string, object> parsed = this.parseCurrency(getValue(arr, i));
             if ((parsed == null))
@@ -1210,7 +1210,7 @@ public partial class BaseExchange
     public virtual IList<object> parseMarkets(object markets)
     {
         List<object> result = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(markets)); i++)
         {
             ((IList<object>)result).Add(this.parseMarket(getValue(markets, i)));
         }
@@ -1612,7 +1612,7 @@ public partial class BaseExchange
         List<object> unifiedMarketTypes = new List<object>() {"spot", "swap", "future", "option"};
         List<object> subTypes = new List<object>() {"linear", "inverse"};
         // atm only support basic methods, eg: 'createOrder', 'fetchOrder', 'fetchOrders', 'fetchMyTrades'
-        for (int i = 0; i < getArrayLength(unifiedMarketTypes); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(unifiedMarketTypes); i++)
         {
             string? marketType = ((string)getValue(unifiedMarketTypes, i));
             // if marketType is not filled for this exchange, don't add that in `features`
@@ -1627,7 +1627,7 @@ public partial class BaseExchange
                 } else
                 {
                     ((IDictionary<string,object>)this.features)[(string)marketType] = new Dictionary<string, object>() {};
-                    for (int j = 0; j < getArrayLength(subTypes); postFixIncrement(ref j))
+                    for (int j = 0; j < getArrayLength(subTypes); j++)
                     {
                         string? subType = ((string)getValue(subTypes, j));
                         ((IDictionary<string,object>)getValue(this.features, marketType))[(string)subType] = this.featuresMapper(initialFeatures, marketType, subType);
@@ -1679,7 +1679,7 @@ public partial class BaseExchange
         }
         // other methods
         List<object> keys = new List<object>(((IDictionary<string,object>)featuresObj).Keys);
-        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)getValue(keys, i));
             object featureBlock = getValue(featuresObj, key);
@@ -1920,7 +1920,7 @@ public partial class BaseExchange
         int length = keys.Count;
         if ((length != 0))
         {
-            for (int i = 0; i < length; postFixIncrement(ref i))
+            for (int i = 0; i < length; i++)
             {
                 string? key = ((string)getValue(keys, i));
                 object network = getValue(networks, key);
@@ -2130,7 +2130,7 @@ public partial class BaseExchange
         // handle marketId conflicts
         // we insert spot markets first
         List<object> marketValues = this.sortBy(this.toArray(markets), "spot", true, true);
-        for (int i = 0; i < getArrayLength(marketValues); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(marketValues); i++)
         {
             object value = getValue(marketValues, i);
             if (inOp(this.markets_by_id, getValue(value, "id")))
@@ -2147,7 +2147,7 @@ public partial class BaseExchange
             // would clobber the fee defaults from this.fees['trading'] in the merge
             Dictionary<string, object> valueDefined = new Dictionary<string, object>() {};
             List<object> valueKeys = new List<object>(((IDictionary<string,object>)value).Keys);
-            for (int j = 0; j < valueKeys.Count; postFixIncrement(ref j))
+            for (int j = 0; j < valueKeys.Count; j++)
             {
                 string? valueKey = ((string)getValue(valueKeys, j));
                 if (!isEqual(getValue(value, valueKey), null))
@@ -2190,7 +2190,7 @@ public partial class BaseExchange
         {
             List<object> baseCurrencies = new List<object>() {};
             List<object> quoteCurrencies = new List<object>() {};
-            for (int i = 0; i < getArrayLength(values); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(values); i++)
             {
                 object market = getValue(values, i);
                 double? defaultCurrencyPrecision = ((bool) (isEqual(this.precisionMode, DECIMAL_PLACES))) ? 8 : this.parseNumber("1e-8");
@@ -2224,12 +2224,12 @@ public partial class BaseExchange
             Dictionary<string, object> groupedCurrencies = this.groupBy(allCurrencies, "code");
             List<object> codes = new List<object>(((IDictionary<string,object>)groupedCurrencies).Keys);
             List<object> resultingCurrencies = new List<object>() {};
-            for (int i = 0; i < codes.Count; postFixIncrement(ref i))
+            for (int i = 0; i < codes.Count; i++)
             {
                 string? code = ((string)getValue(codes, i));
                 List<object> groupedCurrenciesCode = this.safeList(groupedCurrencies, code, new List<object>() {});
                 object highestPrecisionCurrency = this.safeValue(groupedCurrenciesCode, 0);
-                for (int j = 1; j < getArrayLength(groupedCurrenciesCode); postFixIncrement(ref j))
+                for (int j = 1; j < getArrayLength(groupedCurrenciesCode); j++)
                 {
                     object currentCurrency = getValue(groupedCurrenciesCode, j);
                     if (isEqual(this.precisionMode, TICK_SIZE))
@@ -2279,7 +2279,7 @@ public partial class BaseExchange
         this.codes = sourceExchange.codes;
         // check marketHelperProps
         List<object> sourceExchangeHelpers = this.safeList(sourceExchange.options, "marketHelperProps", new List<object>() {});
-        for (int i = 0; i < getArrayLength(sourceExchangeHelpers); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(sourceExchangeHelpers); i++)
         {
             object helper = getValue(sourceExchangeHelpers, i);
             if (!isEqual(getValue(sourceExchange.options, helper), null))
@@ -2305,7 +2305,7 @@ public partial class BaseExchange
         ((IDictionary<string,object>)balance)["used"] = new Dictionary<string, object>() {};
         ((IDictionary<string,object>)balance)["total"] = new Dictionary<string, object>() {};
         Dictionary<string, object> debtBalance = new Dictionary<string, object>() {};
-        for (int i = 0; i < codes.Count; postFixIncrement(ref i))
+        for (int i = 0; i < codes.Count; i++)
         {
             string? code = ((string)getValue(codes, i));
             string? total = this.safeString(getValue(balance, code), "total");
@@ -2426,7 +2426,7 @@ public partial class BaseExchange
                 {
                     cost = "0";
                 }
-                for (int i = 0; i < getArrayLength(trades); postFixIncrement(ref i))
+                for (int i = 0; i < getArrayLength(trades); i++)
                 {
                     object trade = getValue(trades, i);
                     string? tradeAmount = this.safeString(trade, "amount");
@@ -2463,7 +2463,7 @@ public partial class BaseExchange
                         object tradeFees = this.safeValue(trade, "fees");
                         if ((tradeFees != null))
                         {
-                            for (int j = 0; isLessThan(j, getArrayLength(tradeFees)); postFixIncrement(ref j))
+                            for (int j = 0; isLessThan(j, getArrayLength(tradeFees)); j++)
                             {
                                 object tradeFee = getValue(tradeFees, j);
                                 ((IList<object>)fees).Add(this.extend(new Dictionary<string, object>() {}, tradeFee));
@@ -2492,7 +2492,7 @@ public partial class BaseExchange
                 reducedFees = new List<object>() {};
             }
             int reducedLength = getArrayLength(reducedFees);
-            for (int i = 0; i < reducedLength; postFixIncrement(ref i))
+            for (int i = 0; i < reducedLength; i++)
             {
                 ((IDictionary<string,object>)getValue(reducedFees, i))["cost"] = this.safeNumber(getValue(reducedFees, i), "cost");
                 if (inOp(getValue(reducedFees, i), "rate"))
@@ -2605,7 +2605,7 @@ public partial class BaseExchange
             price = average;
         }
         // we have trades with string values at this point so we will mutate them
-        for (int i = 0; i < getArrayLength(trades); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(trades); i++)
         {
             object entry = getValue(trades, i);
             ((IDictionary<string,object>)entry)["amount"] = this.safeNumber(entry, "amount");
@@ -2618,7 +2618,7 @@ public partial class BaseExchange
                 ((IDictionary<string,object>)tradeFee)["rate"] = this.safeNumber(tradeFee, "rate");
             }
             List<object> entryFees = this.safeList(entry, "fees", new List<object>() {});
-            for (int j = 0; j < getArrayLength(entryFees); postFixIncrement(ref j))
+            for (int j = 0; j < getArrayLength(entryFees); j++)
             {
                 ((IDictionary<string,object>)getValue(entryFees, j))["cost"] = this.safeNumber(getValue(entryFees, j), "cost");
             }
@@ -2714,7 +2714,7 @@ public partial class BaseExchange
         List<object> results = new List<object>() {};
         if (((orders is IList<object>) || (orders.GetType().IsGenericType && orders.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            for (int i = 0; i < getArrayLength(orders); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(orders); i++)
             {
                 Dictionary<string, object> parsed = this.parseOrder(getValue(orders, i), market); // don't inline this call
                 Dictionary<string, object> order = this.extend(parsed, parameters);
@@ -2723,7 +2723,7 @@ public partial class BaseExchange
         } else
         {
             List<object> ids = new List<object>(((IDictionary<string,object>)orders).Keys);
-            for (int i = 0; i < ids.Count; postFixIncrement(ref i))
+            for (int i = 0; i < ids.Count; i++)
             {
                 string? id = ((string)getValue(ids, i));
                 Dictionary<string, object> idExtended = this.extend(new Dictionary<string, object>() {
@@ -2930,7 +2930,7 @@ public partial class BaseExchange
                 reducedFees = new List<object>() {};
             }
             int reducedLength = getArrayLength(reducedFees);
-            for (int i = 0; i < reducedLength; postFixIncrement(ref i))
+            for (int i = 0; i < reducedLength; i++)
             {
                 ((List<object>)reducedFees)[Convert.ToInt32(i)] = this.parseFeeNumeric(getValue(reducedFees, i));
             }
@@ -2972,7 +2972,7 @@ public partial class BaseExchange
     {
         //  i.e. findNearestCeiling ([ 10, 30, 50],  23) returns 30
         int length = getArrayLength(arr);
-        for (int i = 0; i < length; postFixIncrement(ref i))
+        for (int i = 0; i < length; i++)
         {
             object current = getValue(arr, i);
             if (isLessThanOrEqual(providedValue, current))
@@ -2987,7 +2987,7 @@ public partial class BaseExchange
     {
         List<object> result = new List<object>() {};
         List<object> keys = new List<object>(((IDictionary<string,object>)obj).Keys);
-        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)getValue(keys, i));
             object item = getValue(obj, key);
@@ -3006,7 +3006,7 @@ public partial class BaseExchange
     {
         Dictionary<string, object> reversed = new Dictionary<string, object>() {};
         List<object> keys = new List<object>(((IDictionary<string,object>)dict).Keys);
-        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)getValue(keys, i));
             object value = getValue(dict, key);
@@ -3071,7 +3071,7 @@ public partial class BaseExchange
         //     ]
         //
         Dictionary<string, object> reduced = new Dictionary<string, object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(fees)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(fees)); i++)
         {
             object fee = getValue(fees, i);
             string? code = this.safeString(fee, "currency");
@@ -3107,7 +3107,7 @@ public partial class BaseExchange
         }
         List<object> result = new List<object>() {};
         List<object> feeValues = new List<object>(((IDictionary<string,object>)reduced).Values);
-        for (int i = 0; i < feeValues.Count; postFixIncrement(ref i))
+        for (int i = 0; i < feeValues.Count; i++)
         {
             List<object> reducedFeeValues = new List<object>(((IDictionary<string,object>)getValue(feeValues, i)).Values);
             result = this.arrayConcat(result, reducedFeeValues);
@@ -3337,7 +3337,7 @@ public partial class BaseExchange
         List<object> lows = this.safeList(ohlcvs, low, new List<object>() {});
         List<object> closes = this.safeList(ohlcvs, close, new List<object>() {});
         List<object> volumes = this.safeList(ohlcvs, volume, new List<object>() {});
-        for (int i = 0; i < getArrayLength(timestamps); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(timestamps); i++)
         {
             ((IList<object>)result).Add(new List<object>() {((bool) isTrue(ms)) ? this.safeInteger(timestamps, i) : this.safeTimestamp(timestamps, i), this.safeValue(opens, i), this.safeValue(highs, i), this.safeValue(lows, i), this.safeValue(closes, i), this.safeValue(volumes, i)});
         }
@@ -3360,7 +3360,7 @@ public partial class BaseExchange
         ((IDictionary<string,object>)result)[(string)low] = new List<object>() {};
         ((IDictionary<string,object>)result)[(string)close] = new List<object>() {};
         ((IDictionary<string,object>)result)[(string)volume] = new List<object>() {};
-        for (int i = 0; i < getArrayLength(ohlcvs); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(ohlcvs); i++)
         {
             object ts = ((bool) isTrue(ms)) ? getValue(getValue(ohlcvs, i), 0) : this.parseToInt(divide(getValue(getValue(ohlcvs, i), 0), 1000));
             object resultTimestamp = getValue(result, timestamp);
@@ -3473,7 +3473,7 @@ public partial class BaseExchange
             return this.toArray(symbols);
         }
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); i++)
         {
             object id = this.marketId(getValue(symbols, i));
             if ((id != null))
@@ -3491,7 +3491,7 @@ public partial class BaseExchange
             return this.toArray(codes);
         }
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(codes); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(codes); i++)
         {
             object id = this.currencyId(((string)getValue(codes, i)));
             if ((id != null))
@@ -3509,7 +3509,7 @@ public partial class BaseExchange
             return null;
         }
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); i++)
         {
             ((IList<object>)result).Add(this.market(getValue(symbols, i)));
         }
@@ -3551,7 +3551,7 @@ public partial class BaseExchange
         List<object> result = new List<object>() {};
         object marketType = null;
         object isLinearSubType = null;
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(symbols); i++)
         {
             Dictionary<string, object> market = this.market(getValue(symbols, i));
             if (isTrue(sameTypeOnly) && ((marketType != null)))
@@ -3590,7 +3590,7 @@ public partial class BaseExchange
             return this.toArray(codes);
         }
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(codes); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(codes); i++)
         {
             ((IList<object>)result).Add(this.commonCurrencyCode(((string)getValue(codes, i))));
         }
@@ -3604,7 +3604,7 @@ public partial class BaseExchange
         countOrIdKey ??= 2;
         bidasks = this.toArray(bidasks);
         List<object> result = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(bidasks)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(bidasks)); i++)
         {
             ((IList<object>)result).Add(this.parseOrderBookBidAsk(getValue(bidasks, i), priceKey, amountKey, countOrIdKey));
         }
@@ -3618,7 +3618,7 @@ public partial class BaseExchange
             return this.toArray(objects);
         }
         List<object> result = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(objects)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(objects)); i++)
         {
             string? objectValue = this.safeString(getValue(objects, i), key);
             if (isEqual(objectValue, value))
@@ -3706,7 +3706,7 @@ public partial class BaseExchange
         }
         IDictionary<string, object> replacements = this.safeDict(this.options, "defaultNetworkCodeReplacements", new Dictionary<string, object>() {});
         List<object> keys = new List<object>(((IDictionary<string,object>)replacements).Keys);
-        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; i++)
         {
             string? baseCoin = ((string)getValue(keys, i));
             object entry = getValue(replacements, baseCoin);
@@ -3770,7 +3770,7 @@ public partial class BaseExchange
         {
             currenciesToCheck = new List<object> {this.safeDict(this.currencies, currencyCode)};
         }
-        for (int i = 0; i < getArrayLength(currenciesToCheck); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(currenciesToCheck); i++)
         {
             IDictionary<string, object> networks = this.safeDict(getValue(currenciesToCheck, i), "networks", new Dictionary<string, object>() {});
             if (inOp(networks, networkCode))
@@ -3952,7 +3952,7 @@ public partial class BaseExchange
             return new List<object>() {};
         }
         List<object> results = new List<object>() {};
-        for (int i = 0; i < getArrayLength(ohlcvs); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(ohlcvs); i++)
         {
             ((IList<object>)results).Add(this.parseOHLCV(getValue(ohlcvs, i), market));
         }
@@ -3973,7 +3973,7 @@ public partial class BaseExchange
         bool noSymbols = ((symbols == null)) || (isEqual(symbolsLength, 0));
         if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(response); i++)
             {
                 object item = getValue(response, i);
                 string? id = ((bool) ((marketIdKey == null))) ? null : this.safeString(item, marketIdKey);
@@ -3988,7 +3988,7 @@ public partial class BaseExchange
         } else
         {
             List<object> keys = new List<object>(((IDictionary<string,object>)response).Keys);
-            for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+            for (int i = 0; i < keys.Count; i++)
             {
                 string? marketId = ((string)getValue(keys, i));
                 object item = getValue(response, marketId);
@@ -4019,7 +4019,7 @@ public partial class BaseExchange
                 {
                     throw new ExchangeError ((string)(this.id + " markets not loaded")) ;
                 }
-                for (int i = 0; isLessThan(i, getArrayLength(symbolsArray)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(symbolsArray)); i++)
                 {
                     object symbol = getValue(symbolsArray, i);
                     ((IDictionary<string,object>)markets)[(string)symbol] = this.deepExtend(getValue(markets, symbol), getValue(response, symbol));
@@ -4067,7 +4067,7 @@ public partial class BaseExchange
         symbols = this.marketSymbols(symbols);
         IList<object> positionsArray = this.toArray(positions);
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(positionsArray); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(positionsArray); i++)
         {
             Dictionary<string, object> position = this.extend(this.parsePosition(getValue(positionsArray, i)), parameters);
             ((IList<object>)result).Add(position);
@@ -4090,7 +4090,7 @@ public partial class BaseExchange
         symbols = this.marketSymbols(symbols);
         IList<object> ranksArray = this.toArray(ranks);
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(ranksArray); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(ranksArray); i++)
         {
             Dictionary<string, object> rank = this.extend(this.parseADLRank(getValue(ranksArray, i)), parameters);
             ((IList<object>)result).Add(rank);
@@ -4103,7 +4103,7 @@ public partial class BaseExchange
         parameters ??= new Dictionary<string, object>();
         IList<object> accountsArray = this.toArray(accounts);
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(accountsArray); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(accountsArray); i++)
         {
             Dictionary<string, object> account = this.extend(this.parseAccount(getValue(accountsArray, i)), parameters);
             ((IList<object>)result).Add(account);
@@ -4116,7 +4116,7 @@ public partial class BaseExchange
         parameters ??= new Dictionary<string, object>();
         IList<object> tradesArray = this.toArray(trades);
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(tradesArray); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(tradesArray); i++)
         {
             object parsed = null;
             if (isTrue(isWs))
@@ -4151,7 +4151,7 @@ public partial class BaseExchange
         parameters ??= new Dictionary<string, object>();
         IList<object> transactionsArray = this.toArray(transactions);
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(transactionsArray); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(transactionsArray); i++)
         {
             Dictionary<string, object> transaction = this.extend(this.parseTransaction(getValue(transactionsArray, i), currency), parameters);
             ((IList<object>)result).Add(transaction);
@@ -4166,7 +4166,7 @@ public partial class BaseExchange
         parameters ??= new Dictionary<string, object>();
         IList<object> transfersArray = this.toArray(transfers);
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(transfersArray); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(transfersArray); i++)
         {
             Dictionary<string, object> transfer = this.extend(this.parseTransfer(getValue(transfersArray, i), currency), parameters);
             ((IList<object>)result).Add(transfer);
@@ -4181,12 +4181,12 @@ public partial class BaseExchange
         parameters ??= new Dictionary<string, object>();
         List<object> result = new List<object>() {};
         IList<object> arrayData = this.toArray(data);
-        for (int i = 0; i < getArrayLength(arrayData); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(arrayData); i++)
         {
             object itemOrItems = this.parseLedgerEntry(getValue(arrayData, i), currency);
             if (((itemOrItems is IList<object>) || (itemOrItems.GetType().IsGenericType && itemOrItems.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
-                for (int j = 0; j < getArrayLength(itemOrItems); postFixIncrement(ref j))
+                for (int j = 0; j < getArrayLength(itemOrItems); j++)
                 {
                     ((IList<object>)result).Add(this.extend(getValue(itemOrItems, j), parameters));
                 }
@@ -4350,7 +4350,7 @@ public partial class BaseExchange
             newArray = this.toArray(objects);
         }
         List<object> results = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(newArray)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(newArray)); i++)
         {
             ((IList<object>)results).Add(getValue(getValue(newArray, i), key));
         }
@@ -4401,7 +4401,7 @@ public partial class BaseExchange
             }
         }
         List<object> results = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(objects)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(objects)); i++)
         {
             if (this.inArray(getValue(getValue(objects, i), key), values))
             {
@@ -4433,7 +4433,7 @@ public partial class BaseExchange
             }
         }
         List<object> results = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(objects)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(objects)); i++)
         {
             if (!this.inArray(getValue(getValue(objects, i), key), values))
             {
@@ -4468,7 +4468,7 @@ public partial class BaseExchange
         retryDelay = ((IList<object>)retryDelayparametersVariable)[0];
         parameters = ((IList<object>)retryDelayparametersVariable)[1];
         bool fetchDataCacheEnabled = isGreaterThan(this.fetchHistoryCacheSize, 0);
-        for (int i = 0; isLessThan(i, add(retries, 1)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, add(retries, 1)); i++)
         {
             Dictionary<string, object> fetchData = null;
             if (fetchDataCacheEnabled)
@@ -4581,7 +4581,7 @@ public partial class BaseExchange
         object oldest = mathMin(tradesLength, limit);
         IDictionary<string, object> options = this.safeDict(this.options, "buildOHLCVC", new Dictionary<string, object>() {});
         bool? skipZeroPrices = this.safeBool(options, "skipZeroPrices", true);
-        for (int i = 0; isLessThan(i, oldest); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, oldest); i++)
         {
             object trade = getValue(trades, i);
             object ts = getValue(trade, "timestamp");
@@ -4722,7 +4722,7 @@ public partial class BaseExchange
                             marketType = getValue(market, "type");
                         }
                     }
-                    for (int i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
+                    for (int i = 0; isLessThan(i, getArrayLength(markets)); i++)
                     {
                         object currentMarket = getValue(markets, i);
                         if (isEqual(getValue(currentMarket, marketType), true))
@@ -4801,7 +4801,7 @@ public partial class BaseExchange
         */
         error ??= true;
         List<object> keys = new List<object>(((IDictionary<string,object>)this.requiredCredentials).Keys);
-        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)getValue(keys, i));
             object credentialValue = getValue(this, key);
@@ -5164,7 +5164,7 @@ public partial class BaseExchange
     {
         // a helper for matching error strings exactly vs broadly
         List<object> keys = new List<object>(((IDictionary<string,object>)broad).Keys);
-        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)getValue(keys, i));
             if ((str != null))
@@ -5553,7 +5553,7 @@ public partial class BaseExchange
             return result;
         }
         List<object> fields = new List<object>() {"free", "used", "total", "debt"};
-        for (int i = 0; i < getArrayLength(fields); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(fields); i++)
         {
             string? field = ((string)getValue(fields, i));
             string? current = this.safeString(getValue(result, code), field);
@@ -5624,7 +5624,7 @@ public partial class BaseExchange
         {
             object marketsList = getValue(marketsById, symbol);
             string? defaultType = this.safeString2(this.options, "defaultType", "defaultSubType", "spot");
-            for (int i = 0; isLessThan(i, getArrayLength(marketsList)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(marketsList)); i++)
             {
                 object market = getValue(marketsList, i);
                 if (isEqual(getValue(market, defaultType), true))
@@ -5649,7 +5649,7 @@ public partial class BaseExchange
     {
         checkBaseCoin ??= false;
         List<object> leverageSuffixes = new List<object>() {"2L", "2S", "3L", "3S", "4L", "4S", "5L", "5S", "UP", "DOWN", "BULL", "BEAR"};
-        for (int i = 0; i < getArrayLength(leverageSuffixes); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(leverageSuffixes); i++)
         {
             string? leverageSuffix = ((string)getValue(leverageSuffixes, i));
             bool endsWithSuffix = ((string)currencyCode).EndsWith(((string)leverageSuffix));
@@ -5820,7 +5820,7 @@ public partial class BaseExchange
         if (isGreaterThan(precisionNumber, 0))
         {
             string parsedPrecision = "0.";
-            for (int i = 0; isLessThan(i, subtract(precisionNumber, 1)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, subtract(precisionNumber, 1)); i++)
             {
                 parsedPrecision = (parsedPrecision + "0");
             }
@@ -5828,7 +5828,7 @@ public partial class BaseExchange
         } else
         {
             string parsedPrecision = "1";
-            for (int i = 0; isLessThan(i, subtract(multiply(precisionNumber, -1), 1)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, subtract(multiply(precisionNumber, -1), 1)); i++)
             {
                 parsedPrecision = (parsedPrecision + "0");
             }
@@ -5861,7 +5861,7 @@ public partial class BaseExchange
             }
             object positivePrecision = parseInt(positivePrecisionString);
             string parsedPrecision = "1";
-            for (int i = 0; isLessThan(i, subtract(positivePrecision, 1)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, subtract(positivePrecision, 1)); i++)
             {
                 parsedPrecision = (parsedPrecision + "0");
             }
@@ -5963,7 +5963,7 @@ public partial class BaseExchange
         List<object> results = new List<object>() {};
         if (((pricesData is IList<object>) || (pricesData.GetType().IsGenericType && pricesData.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            for (int i = 0; i < getArrayLength(pricesData); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(pricesData); i++)
             {
                 Dictionary<string, object> priceData = this.extend(this.parseLastPrice(getValue(pricesData, i)), parameters);
                 ((IList<object>)results).Add(priceData);
@@ -5971,7 +5971,7 @@ public partial class BaseExchange
         } else
         {
             List<object> marketIds = new List<object>(((IDictionary<string,object>)pricesData).Keys);
-            for (int i = 0; i < marketIds.Count; postFixIncrement(ref i))
+            for (int i = 0; i < marketIds.Count; i++)
             {
                 string? marketId = ((string)getValue(marketIds, i));
                 Dictionary<string, object> market = this.safeMarket(marketId);
@@ -6011,7 +6011,7 @@ public partial class BaseExchange
         List<object> results = new List<object>() {};
         if (((tickers is IList<object>) || (tickers.GetType().IsGenericType && tickers.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            for (int i = 0; i < getArrayLength(tickers); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(tickers); i++)
             {
                 Dictionary<string, object> parsedTicker = this.parseTicker(getValue(tickers, i));
                 Dictionary<string, object> ticker = this.extend(parsedTicker, parameters);
@@ -6020,7 +6020,7 @@ public partial class BaseExchange
         } else
         {
             List<object> marketIds = new List<object>(((IDictionary<string,object>)tickers).Keys);
-            for (int i = 0; i < marketIds.Count; postFixIncrement(ref i))
+            for (int i = 0; i < marketIds.Count; i++)
             {
                 string? marketId = ((string)getValue(marketIds, i));
                 Dictionary<string, object> market = this.safeMarket(marketId);
@@ -6038,7 +6038,7 @@ public partial class BaseExchange
         indexed ??= true;
         parameters ??= new Dictionary<string, object>();
         object result = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(addresses)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(addresses)); i++)
         {
             Dictionary<string, object> address = this.extend(this.parseDepositAddress(getValue(addresses, i)), parameters);
             ((IList<object>)result).Add(address);
@@ -6057,7 +6057,7 @@ public partial class BaseExchange
     public virtual object parseBorrowInterests(object response, object market = null)
     {
         List<object> interests = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); i++)
         {
             object row = getValue(response, i);
             ((IList<object>)interests).Add(this.parseBorrowInterest(row, market));
@@ -6073,7 +6073,7 @@ public partial class BaseExchange
     public virtual object parseBorrowRateHistory(object response, string code, object since, object limit)
     {
         List<object> result = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); i++)
         {
             object item = getValue(response, i);
             object borrowRate = this.parseBorrowRate(item);
@@ -6086,7 +6086,7 @@ public partial class BaseExchange
     public virtual object parseIsolatedBorrowRates(object info)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(info)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(info)); i++)
         {
             object item = getValue(info, i);
             object borrowRate = this.parseIsolatedBorrowRate(item);
@@ -6099,7 +6099,7 @@ public partial class BaseExchange
     public virtual object parseFundingRateHistories(object response, object market = null, object since = null, object limit = null)
     {
         List<object> rates = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); i++)
         {
             object entry = getValue(response, i);
             ((IList<object>)rates).Add(this.parseFundingRateHistory(entry, market));
@@ -6123,7 +6123,7 @@ public partial class BaseExchange
     public virtual object parseFundingRates(object response, object symbols = null)
     {
         Dictionary<string, object> fundingRates = new Dictionary<string, object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); i++)
         {
             object entry = getValue(response, i);
             object parsed = this.parseFundingRate(entry);
@@ -6143,7 +6143,7 @@ public partial class BaseExchange
     public virtual object parseLongShortRatioHistory(object response, object market = null, object since = null, object limit = null)
     {
         List<object> rates = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); i++)
         {
             object entry = getValue(response, i);
             ((IList<object>)rates).Add(this.parseLongShortRatio(entry, market));
@@ -6359,7 +6359,7 @@ public partial class BaseExchange
     public virtual object parseOpenInterests(object response, object symbols = null)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); i++)
         {
             object entry = getValue(response, i);
             object parsed = this.parseOpenInterest(entry);
@@ -6374,7 +6374,7 @@ public partial class BaseExchange
     public virtual object parseOpenInterestsHistory(object response, object market = null, object since = null, object limit = null)
     {
         List<object> interests = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); i++)
         {
             object entry = getValue(response, i);
             object interest = this.parseOpenInterest(entry, market);
@@ -6634,7 +6634,7 @@ public partial class BaseExchange
         {
             responseKeys = new List<object>(((IDictionary<string,object>)response).Keys);
         }
-        for (int i = 0; isLessThan(i, getArrayLength(responseKeys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(responseKeys)); i++)
         {
             object entry = getValue(responseKeys, i);
             object dictionary = ((bool) isArray) ? entry : getValue(response, entry);
@@ -6693,7 +6693,7 @@ public partial class BaseExchange
             return fee;
         }
         string? currencyCode = this.safeString(currency, "code");
-        for (int i = 0; i < numNetworks; postFixIncrement(ref i))
+        for (int i = 0; i < numNetworks; i++)
         {
             string? network = ((string)getValue(networkKeys, i));
             if (isEqual(network, currencyCode))
@@ -6723,7 +6723,7 @@ public partial class BaseExchange
          * @returns {object[]} an array of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
          */
         List<object> result = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(incomes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(incomes)); i++)
         {
             object entry = getValue(incomes, i);
             object parsed = this.parseIncome(entry, market);
@@ -6761,7 +6761,7 @@ public partial class BaseExchange
         object timeframeVar = timeframe;
         timeframeVar ??= "1m";
         List<object> results = new List<object>() {};
-        for (int i = 0; i < getArrayLength(ohlcvs); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(ohlcvs); i++)
         {
             ((IList<object>)results).Add(this.parseWsOHLCV(getValue(ohlcvs, i), market));
         }
@@ -7063,7 +7063,7 @@ public partial class BaseExchange
                 throw new BadRequest ((string)((((this.id + " the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ") + ((object)maxCalls).ToString()) + " required calls is ") + ((object)requiredCalls).ToString())) ;
             }
         }
-        for (int i = 0; isLessThan(i, maxCalls); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, maxCalls); i++)
         {
             if ((!isEqual(until, null)) && (isGreaterThanOrEqual(currentSince, until)))
             {
@@ -7078,7 +7078,7 @@ public partial class BaseExchange
         }
         List<object> results = await promiseAll(tasks);
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(results); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(results); i++)
         {
             result = this.arrayConcat(result, getValue(results, i));
         }
@@ -7280,7 +7280,7 @@ public partial class BaseExchange
         fallbackToTimestamp ??= true;
         Dictionary<string, object> uniqueDic = new Dictionary<string, object>() {};
         List<object> uniqueResult = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(input)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(input)); i++)
         {
             object entry = getValue(input, i);
             string? uniqValue = ((bool) isTrue(fallbackToTimestamp)) ? this.safeStringN(entry, new List<object>() {"id", "timestamp", 0}) : this.safeString(entry, "id");
@@ -7301,7 +7301,7 @@ public partial class BaseExchange
     public virtual object removeRepeatedTradesFromArray(object input)
     {
         Dictionary<string, object> uniqueResult = new Dictionary<string, object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(input)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(input)); i++)
         {
             object entry = getValue(input, i);
             string? id = this.safeString(entry, "id");
@@ -7331,7 +7331,7 @@ public partial class BaseExchange
     {
         List<object> keys = new List<object>(((IDictionary<string,object>)dict).Keys);
         Dictionary<string, object> newDict = new Dictionary<string, object>() {};
-        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)getValue(keys, i));
             if (!this.inArray(key, removeKeys))
@@ -7391,7 +7391,7 @@ public partial class BaseExchange
          * @returns {object[]} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
          */
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(liquidations); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(liquidations); i++)
         {
             object entry = getValue(liquidations, i);
             object parsed = this.parseLiquidation(entry, market);
@@ -7416,7 +7416,7 @@ public partial class BaseExchange
         List<object> results = new List<object>() {};
         if (((greeks is IList<object>) || (greeks.GetType().IsGenericType && greeks.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            for (int i = 0; i < getArrayLength(greeks); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(greeks); i++)
             {
                 object parsedTicker = this.parseGreeks(getValue(greeks, i));
                 Dictionary<string, object> greek = this.extend(parsedTicker, parameters);
@@ -7425,7 +7425,7 @@ public partial class BaseExchange
         } else
         {
             List<object> marketIds = new List<object>(((IDictionary<string,object>)greeks).Keys);
-            for (int i = 0; i < marketIds.Count; postFixIncrement(ref i))
+            for (int i = 0; i < marketIds.Count; i++)
             {
                 string? marketId = ((string)getValue(marketIds, i));
                 Dictionary<string, object> market = this.safeMarket(marketId);
@@ -7446,7 +7446,7 @@ public partial class BaseExchange
     public virtual Dictionary<string, object> parseOptionChain(object response, object currencyKey = null, object symbolKey = null)
     {
         Dictionary<string, object> optionStructures = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(response); i++)
         {
             object info = getValue(response, i);
             string? currencyId = ((bool) ((currencyKey == null))) ? null : this.safeString(info, currencyKey);
@@ -7465,7 +7465,7 @@ public partial class BaseExchange
         {
             marketType = "swap"; // default to swap
         }
-        for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(response); i++)
         {
             object info = getValue(response, i);
             string? marketId = ((bool) ((symbolKey == null))) ? null : this.safeString(info, symbolKey);
@@ -7490,7 +7490,7 @@ public partial class BaseExchange
         {
             marketType = "swap"; // default to swap
         }
-        for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(response); i++)
         {
             object info = getValue(response, i);
             string? marketId = ((bool) ((symbolKey == null))) ? null : this.safeString(info, symbolKey);
@@ -7516,7 +7516,7 @@ public partial class BaseExchange
         List<object> result = new List<object>() {};
         IDictionary<string, object> fromCurrency = null;
         IDictionary<string, object> toCurrency = null;
-        for (int i = 0; i < getArrayLength(conversionsArray); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(conversionsArray); i++)
         {
             object entry = getValue(conversionsArray, i);
             string? fromId = ((bool) ((fromCurrencyKey == null))) ? null : this.safeString(entry, fromCurrencyKey);
@@ -7685,7 +7685,7 @@ public partial class BaseExchange
         {
             return ((List<object>)((object)(marginModifications)));
         }
-        for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(response); i++)
         {
             object info = getValue(response, i);
             string? marketId = ((bool) ((symbolKey == null))) ? null : this.safeString(info, symbolKey);
@@ -7763,7 +7763,7 @@ public partial class BaseExchange
         } else
         {
             List<object> clientSubscriptions = new List<object>(((IDictionary<string,object>)client.subscriptions).Keys);
-            for (int i = 0; i < clientSubscriptions.Count; postFixIncrement(ref i))
+            for (int i = 0; i < clientSubscriptions.Count; i++)
             {
                 string? sub = ((string)getValue(clientSubscriptions, i));
                 if (((sub != null)) && ((subHash != null)) && ((string)sub).StartsWith(((string)subHash)))
@@ -7772,7 +7772,7 @@ public partial class BaseExchange
                 }
             }
             List<object> clientFutures = new List<object>(((IDictionary<string, ccxt.Exchange.Future>)client.futures).Keys);
-            for (int i = 0; i < clientFutures.Count; postFixIncrement(ref i))
+            for (int i = 0; i < clientFutures.Count; i++)
             {
                 string? future = ((string)getValue(clientFutures, i));
                 if (((future != null)) && ((subHash != null)) && ((string)future).StartsWith(((string)subHash)))
@@ -7793,7 +7793,7 @@ public partial class BaseExchange
         if ((topic == "ohlcv"))
         {
             List<object> symbolsAndTimeframes = this.safeList(subscription, "symbolsAndTimeframes", new List<object>() {});
-            for (int i = 0; i < getArrayLength(symbolsAndTimeframes); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(symbolsAndTimeframes); i++)
             {
                 object symbolAndTimeFrame = getValue(symbolsAndTimeframes, i);
                 string? symbol = this.safeString(symbolAndTimeFrame, 0);
@@ -7816,7 +7816,7 @@ public partial class BaseExchange
             }
         } else if (symbolsLength > 0)
         {
-            for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(symbols); i++)
             {
                 object symbol = getValue(symbols, i);
                 if ((topic == "trades"))
@@ -7857,7 +7857,7 @@ public partial class BaseExchange
             {
                 this.positions = null;
                 List<object> clients = new List<object>(((IDictionary<string,object>)this.clients).Values);
-                for (int i = 0; i < clients.Count; postFixIncrement(ref i))
+                for (int i = 0; i < clients.Count; i++)
                 {
                     object client = getValue(clients, i);
                     object futures = (client as WebSocketClient).futures;
@@ -7869,7 +7869,7 @@ public partial class BaseExchange
             } else if (((topic == "ticker") || (topic == "markPrice")) && ((this.tickers != null)))
             {
                 List<object> tickerSymbols = new List<object>(((IDictionary<string,object>)this.tickers).Keys);
-                for (int i = 0; i < tickerSymbols.Count; postFixIncrement(ref i))
+                for (int i = 0; i < tickerSymbols.Count; i++)
                 {
                     string? tickerSymbol = ((string)getValue(tickerSymbols, i));
                     if (inOp(this.tickers, tickerSymbol))
@@ -7880,7 +7880,7 @@ public partial class BaseExchange
             } else if ((topic == "bidsasks") && ((this.bidsasks != null)))
             {
                 List<object> bidsaskSymbols = new List<object>(((IDictionary<string,object>)this.bidsasks).Keys);
-                for (int i = 0; i < bidsaskSymbols.Count; postFixIncrement(ref i))
+                for (int i = 0; i < bidsaskSymbols.Count; i++)
                 {
                     string? bidsaskSymbol = ((string)getValue(bidsaskSymbols, i));
                     if (inOp(this.bidsasks, bidsaskSymbol))

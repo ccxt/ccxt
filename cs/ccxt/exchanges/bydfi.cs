@@ -743,7 +743,7 @@ public partial class bydfi : Exchange
     {
         List<object> limits = new List<object>() {5, 10, 20, 50, 100, 500, 1000};
         object result = 1000;
-        for (int i = 0; i < getArrayLength(limits); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(limits); i++)
         {
             if (isEqual(limit, null))
             {
@@ -1586,7 +1586,7 @@ public partial class bydfi : Exchange
             throw new BadRequest ((string)(this.id + " createOrders() accepts a maximum of 5 orders")) ;
         }
         List<object> ordersRequests = new List<object>() {};
-        for (int i = 0; i < getArrayLength(orders); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(orders); i++)
         {
             object rawOrder = getValue(orders, i);
             string? symbol = this.safeString(rawOrder, "symbol");
@@ -1668,7 +1668,7 @@ public partial class bydfi : Exchange
             throw new BadRequest ((string)(this.id + " editOrders() accepts a maximum of 5 orders")) ;
         }
         List<object> ordersRequests = new List<object>() {};
-        for (int i = 0; i < getArrayLength(orders); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(orders); i++)
         {
             object rawOrder = getValue(orders, i);
             string? id = this.safeString(rawOrder, "id");
@@ -2974,7 +2974,7 @@ public partial class bydfi : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
         };
-        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); i++)
         {
             object balance = getValue(response, i);
             string? symbol = this.safeString(balance, "asset");

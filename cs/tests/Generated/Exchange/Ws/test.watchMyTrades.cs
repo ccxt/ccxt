@@ -34,7 +34,7 @@ public partial class testMainClass : BaseTest
             {
                 testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
                 now = exchange.milliseconds();
-                for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
+                for (int i = 0; i < getArrayLength(response); i++)
                 {
                     testTrade(exchange, skippedProperties, method, getValue(response, i), symbol, now, false);
                 }

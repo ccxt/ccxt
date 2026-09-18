@@ -3716,13 +3716,13 @@ public partial class bitget : Exchange
         }
         List<object> promises = new List<object>() {};
         bool fetchMargins = false;
-        for (int i = 0; i < getArrayLength(types); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(types); i++)
         {
             object type = getValue(types, i);
             if ((isEqual(type, "swap")) || (isEqual(type, "future")))
             {
                 List<object> subTypes = new List<object>() {"USDT-FUTURES", "COIN-FUTURES", "USDC-FUTURES", "SUSDT-FUTURES", "SCOIN-FUTURES", "SUSDC-FUTURES"};
-                for (int j = 0; j < getArrayLength(subTypes); postFixIncrement(ref j))
+                for (int j = 0; j < getArrayLength(subTypes); j++)
                 {
                     ((IList<object>)promises).Add(this.publicMixGetV2MixMarketContracts(this.extend(parameters, new Dictionary<string, object>() {
                         { "productType", getValue(subTypes, j) },
@@ -3742,7 +3742,7 @@ public partial class bitget : Exchange
         List<object> markets = new List<object>() {};
         ((IDictionary<string,object>)this.options)["crossMarginPairsData"] = new List<object>() {};
         ((IDictionary<string,object>)this.options)["isolatedMarginPairsData"] = new List<object>() {};
-        for (int i = 0; i < getArrayLength(results); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(results); i++)
         {
             IDictionary<string, object> res = this.safeDict(results, i);
             List<object> data = this.safeList(res, "data", new List<object>() {});
@@ -3756,7 +3756,7 @@ public partial class bitget : Exchange
                 // fail with bitget error 50001 "coin does not support cross"
                 List<object> crossKeys = new List<object>() {};
                 List<object> isolatedKeys = new List<object>() {};
-                for (int j = 0; j < data.Count; postFixIncrement(ref j))
+                for (int j = 0; j < data.Count; j++)
                 {
                     IDictionary<string, object> entry = this.safeDict(data, j, new Dictionary<string, object>() {});
                     string? entrySymbol = this.safeString(entry, "symbol");
@@ -3837,7 +3837,7 @@ public partial class bitget : Exchange
         //     }
         //
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(markets); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(markets); i++)
         {
             object market = getValue(markets, i);
             string? marketId = this.safeString(market, "symbol");
@@ -4002,7 +4002,7 @@ public partial class bitget : Exchange
     {
         List<object> subTypes = new List<object>() {"SPOT", "USDT-FUTURES", "COIN-FUTURES", "USDC-FUTURES"};
         List<object> promises = new List<object>() {};
-        for (int i = 0; i < getArrayLength(subTypes); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(subTypes); i++)
         {
             Dictionary<string, object> req = this.extend(parameters, new Dictionary<string, object>() {
                 { "category", getValue(subTypes, i) },
@@ -4011,7 +4011,7 @@ public partial class bitget : Exchange
         }
         List<object> results = await promiseAll(promises);
         List<object> markets = new List<object>() {};
-        for (int i = 0; i < getArrayLength(results); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(results); i++)
         {
             IDictionary<string, object> res = this.safeDict(results, i);
             List<object> data = this.safeList(res, "data", new List<object>() {});
@@ -4107,7 +4107,7 @@ public partial class bitget : Exchange
         //     }
         //
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(markets); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(markets); i++)
         {
             object market = getValue(markets, i);
             string? category = this.safeString(market, "category");
@@ -4325,7 +4325,7 @@ public partial class bitget : Exchange
             withdraw = false;
             deposit = false;
         }
-        for (int j = 0; j < chainsLength; postFixIncrement(ref j))
+        for (int j = 0; j < chainsLength; j++)
         {
             object chain = getValue(chains, j);
             string? networkId = this.safeString(chain, "chain");
@@ -4594,7 +4594,7 @@ public partial class bitget : Exchange
         //
         List<object> tiers = new List<object>() {};
         object minNotional = 0;
-        for (int i = 0; isLessThan(i, getArrayLength(info)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(info)); i++)
         {
             object item = getValue(info, i);
             double? minimumNotional = this.safeNumber2(item, "startUnit", "minTierValue");
@@ -6293,7 +6293,7 @@ public partial class bitget : Exchange
             //
             List<object> rows = this.safeList(utaResponse, "data", new List<object>() {});
             Dictionary<string, object> utaResult = new Dictionary<string, object>() {};
-            for (int i = 0; i < rows.Count; postFixIncrement(ref i))
+            for (int i = 0; i < rows.Count; i++)
             {
                 object entry = getValue(rows, i);
                 string? entryMarketId = this.safeString(entry, "symbol");
@@ -6407,7 +6407,7 @@ public partial class bitget : Exchange
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; i < data.Count; postFixIncrement(ref i))
+        for (int i = 0; i < data.Count; i++)
         {
             object entry = getValue(data, i);
             string? marketId = this.safeString(entry, "symbol");
@@ -6892,7 +6892,7 @@ public partial class bitget : Exchange
         //         "balance": "0.01"
         //     }
         //
-        for (int i = 0; isLessThan(i, getArrayLength(balance)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(balance)); i++)
         {
             object entry = getValue(balance, i);
             Dictionary<string, object> account = this.account();
@@ -6962,7 +6962,7 @@ public partial class bitget : Exchange
         //           // "symbol": "BTCUSDT" // only for isolated margin
         //       }
         //
-        for (int i = 0; isLessThan(i, getArrayLength(balance)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(balance)); i++)
         {
             object entry = getValue(balance, i);
             Dictionary<string, object> account = this.account();
@@ -7286,7 +7286,7 @@ public partial class bitget : Exchange
                 object parsedFeeDetail = parseJson(feeDetail);
                 List<object> feeValues = new List<object>(((IDictionary<string,object>)parsedFeeDetail).Values);
                 object feeObject = null;
-                for (int i = 0; i < feeValues.Count; postFixIncrement(ref i))
+                for (int i = 0; i < feeValues.Count; i++)
                 {
                     object feeValue = getValue(feeValues, i);
                     if (!isEqual(this.safeValue(feeValue, "feeCoinCode"), null))
@@ -8038,7 +8038,7 @@ public partial class bitget : Exchange
         List<object> ordersRequests = new List<object>() {};
         string? symbol = null;
         object marginMode = null;
-        for (int i = 0; i < getArrayLength(orders); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(orders); i++)
         {
             object rawOrder = getValue(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
@@ -8126,7 +8126,7 @@ public partial class bitget : Exchange
         List<object> ordersRequests = new List<object>() {};
         string? symbol = null;
         object marginMode = null;
-        for (int i = 0; i < getArrayLength(orders); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(orders); i++)
         {
             object rawOrder = getValue(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
@@ -8722,7 +8722,7 @@ public partial class bitget : Exchange
         productType = (string)((IList<object>)productTypeparametersVariable)[0];
         parameters = ((IList<object>)productTypeparametersVariable)[1];
         List<object> requestList = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(ids)); i++)
         {
             object individualId = getValue(ids, i);
             Dictionary<string, object> order = new Dictionary<string, object>() {
@@ -8795,7 +8795,7 @@ public partial class bitget : Exchange
         object trigger = this.safeValue2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         List<object> orderIdList = new List<object>() {};
-        for (int i = 0; i < getArrayLength(ids); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(ids); i++)
         {
             object individualId = getValue(ids, i);
             Dictionary<string, object> orderId = new Dictionary<string, object>() {
@@ -11039,7 +11039,7 @@ public partial class bitget : Exchange
             position = this.safeList(response, "data", new List<object>() {});
         }
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(position); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(position); i++)
         {
             ((IList<object>)result).Add(this.parsePosition(getValue(position, i), market));
         }
@@ -11380,7 +11380,7 @@ public partial class bitget : Exchange
             result = this.safeList(response, "data", new List<object>() {});
         }
         List<object> rates = new List<object>() {};
-        for (int i = 0; i < getArrayLength(result); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(result); i++)
         {
             object entry = getValue(result, i);
             string? marketId = this.safeString(entry, "symbol");
@@ -11796,7 +11796,7 @@ public partial class bitget : Exchange
     public virtual object parseFundingHistories(object contracts, object market = null, object since = null, object limit = null)
     {
         List<object> result = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(contracts)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(contracts)); i++)
         {
             object contract = getValue(contracts, i);
             // for non-uta, we've set bussinessType in request payload. Not sure why this existed.
@@ -12494,7 +12494,7 @@ public partial class bitget : Exchange
             } },
             { "networks", new Dictionary<string, object>() {} },
         };
-        for (int i = 0; i < chainsLength; postFixIncrement(ref i))
+        for (int i = 0; i < chainsLength; i++)
         {
             object chain = getValue(chains, i);
             string? networkId = this.safeString(chain, "chain");
@@ -13895,7 +13895,7 @@ public partial class bitget : Exchange
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        for (int i = 0; i < data.Count; postFixIncrement(ref i))
+        for (int i = 0; i < data.Count; i++)
         {
             object entry = getValue(data, i);
             string? id = this.safeString(entry, "coin");

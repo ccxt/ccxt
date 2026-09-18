@@ -358,7 +358,7 @@ public partial class bitbns : Exchange
         //
         List<object> result = new List<object>() {};
         IList<object> rawMarkets = this.toArray(response);
-        for (int i = 0; i < getArrayLength(rawMarkets); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(rawMarkets); i++)
         {
             object market = getValue(rawMarkets, i);
             string? id = this.safeString(market, "id");
@@ -595,7 +595,7 @@ public partial class bitbns : Exchange
         };
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> keys = new List<object>(((IDictionary<string,object>)data).Keys);
-        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)getValue(keys, i));
             List<object> parts = ((string)key).Split(new [] {((string)"availableorder")}, StringSplitOptions.None).ToList<object>();
