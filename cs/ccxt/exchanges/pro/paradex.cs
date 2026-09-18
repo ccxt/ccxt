@@ -58,7 +58,7 @@ public partial class paradex : ccxt.paradex
         object authenticated = this.safeValue(client.subscriptions, messageHash);
         if ((authenticated == null))
         {
-            object token = await this.authenticateRest();
+            string? token = await this.authenticateRest();
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "jsonrpc", "2.0" },
                 { "id", this.requestId() },

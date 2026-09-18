@@ -3450,7 +3450,7 @@ public partial class bullish : Exchange
         return ((string)token);
     }
 
-    public async virtual Task<object> handleToken(object parameters = null)
+    public async virtual Task<string?> handleToken(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64 now = this.milliseconds();
@@ -3458,10 +3458,10 @@ public partial class bullish : Exchange
         Int64? tokenExpires = this.safeInteger(this.options, "tokenExpires");
         if (((token == null)) || (isEqual(tokenExpires, null)) || (isGreaterThan(now, tokenExpires)))
         {
-            return await this.signIn();
+            return ((string?)((object)(await this.signIn())));
         } else
         {
-            return this.token;
+            return ((string?)((object)(this.token)));
         }
     }
 

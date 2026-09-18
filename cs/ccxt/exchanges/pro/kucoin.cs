@@ -234,7 +234,7 @@ public partial class kucoin : ccxt.kucoin
             request["symbol"] = GetValue(market, "id");
         }
         Dictionary<string, object> message = this.extend(request, parameters);
-        object url = await this.getUtaUrl();
+        string? url = await this.getUtaUrl();
         var client = this.client(url);
         if (!(inOp(client.subscriptions, subscribeHash)))
         {
@@ -243,10 +243,10 @@ public partial class kucoin : ccxt.kucoin
         return await this.watchMultiple(url, messageHashes, message, new List<object>() {subscribeHash}, subscription);
     }
 
-    public async virtual Task<object> getUtaUrl()
+    public async virtual Task<string?> getUtaUrl()
     {
         string? utaToken = await this.authenticateUta();
-        return add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "?token="), utaToken);
+        return ((string?)((object)(add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "?token="), utaToken))));
     }
 
     public async virtual Task<string?> authenticateUta()
@@ -3207,7 +3207,7 @@ public partial class kucoin : ccxt.kucoin
                 ((IList<object>)messageHashes).Add(add(add(messageHash, ":"), symbol));
             }
         }
-        object url = await this.getUtaUrl();
+        string? url = await this.getUtaUrl();
         var client = this.client(url);
         this.setPositionsCache(client, uta);
         object fetchPositionSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);

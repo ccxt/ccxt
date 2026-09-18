@@ -992,19 +992,19 @@ public partial class opinion : PredictionExchange
      * @description fetches and caches the per-wallet multi-signature address that owns order assets
      * @returns {string} the multi-sig wallet address for this.walletAddress on chain 56, or this.walletAddress itself if none exists yet
      */
-    public async virtual Task<object> loadMultiSignAddress()
+    public async virtual Task<string?> loadMultiSignAddress()
     {
         string? cached = this.safeString(this.options, "multiSignAddress");
         if ((cached != null))
         {
-            return cached;
+            return ((string?)((object)(cached)));
         }
         object response = await this.opinionPrivateGetUserAuth(new Dictionary<string, object>() {});
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         IDictionary<string, object> walletUsers = this.safeDict(result, "walletUsers", new Dictionary<string, object>() {});
         string? multiSignAddress = this.safeString(walletUsers, "56", this.walletAddress);
         ((IDictionary<string,object>)this.options)["multiSignAddress"] = multiSignAddress;
-        return multiSignAddress;
+        return ((string?)((object)(multiSignAddress)));
     }
 
     public virtual string signOpinionOrder(object order, object exchangeAddress)
@@ -1162,11 +1162,11 @@ public partial class opinion : PredictionExchange
         string? salt = this.numberToString(this.milliseconds());
         bool? postOnly = this.safeBool(parameters, "postOnly", false);
         object rest = this.omit(parameters, new List<object>() {"postOnly"});
-        object maker = await this.loadMultiSignAddress();
+        string? maker = await this.loadMultiSignAddress();
         // Ethereum addresses are case-insensitive - a checksummed multiSignAddress compared
         // against a differently-cased walletAddress with strict equality would pick the wrong
         // signatureType (0 EOA vs 2 Gnosis Safe) and break order signing/validation
-        string makerLower = ((string)maker).ToLower();
+        string makerLower = maker.ToLower();
         string walletAddressLower = ((string)this.walletAddress).ToLower();
         int signatureType = ((makerLower == walletAddressLower)) ? 0 : 2;
         Dictionary<string, object> order = new Dictionary<string, object>() {

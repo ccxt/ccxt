@@ -1895,6 +1895,15 @@ export const CSHARP_LOCAL_AWAIT_RETURN_TYPES = {
     'onboarding': 'Dictionary<string, object>',
     'prepareParadexDomain': 'Dictionary<string, object>',
     'ensureErc20Allowance': 'Dictionary<string, object>',
+    // the async venue url/auth helpers above (CSHARP_ASYNC_CORE_RETURNS): the generated
+    // signature prints Task<string?> at the declaration, so the awaited value is the string
+    // (or null) every return path of the declaration already boxes (U28 census)
+    'getUrlByMarketType': 'string?',
+    'getUtaUrl': 'string?',
+    'getListenKey': 'string?',
+    'handleToken': 'string?',
+    'authenticateRest': 'string?',
+    'loadMultiSignAddress': 'string?',
 };
 
 // `await promiseAll (...)` — the printer's rewrite of `await Promise.all (<one arg>)`
@@ -9730,6 +9739,15 @@ export const CSHARP_ASYNC_CORE_RETURNS = {
     'onboarding': 'Dictionary<string, object>',
     'prepareParadexDomain': 'Dictionary<string, object>',
     'ensureErc20Allowance': 'Dictionary<string, object>',
+    // The async venue url/auth helpers whose every return path boxes a string or null
+    // (pro: bybit/kucoin/xt, rest: bullish/paradex, prediction: opinion). Census per name and
+    // per site: campaigns/cs90/tools/U28/string_returns_census.py + sites.py, proof in REPORT.md.
+    'getUrlByMarketType': 'string?',
+    'getUtaUrl': 'string?',
+    'getListenKey': 'string?',
+    'handleToken': 'string?',
+    'authenticateRest': 'string?',
+    'loadMultiSignAddress': 'string?',
 };
 
 // the mapped C# return type for an async core declaration, or undefined to leave the
