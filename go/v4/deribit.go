@@ -1183,8 +1183,8 @@ func (this *Deribit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var instrumentsResponses any = []any{}
-	var result any = []any{}
+	var instrumentsResponses []any = []any{}
+	var result []any = []any{}
 	var parsedMarkets map[string]any = map[string]any{}
 	var fetchAllMarkets any = nil
 	var fetchAllMarketsparamsVariable []any = this.HandleOptionAndParams(params, "fetchMarkets", "fetchAllMarkets", true)
@@ -1194,7 +1194,7 @@ func (this *Deribit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 
 		instrumentsResponse := (<-this.PublicGetGetInstruments(params))
 		PanicOnError(instrumentsResponse)
-		AppendToArray(&instrumentsResponses, instrumentsResponse)
+		instrumentsResponses = append(instrumentsResponses, instrumentsResponse)
 	} else {
 
 		currenciesResponse := (<-this.PublicGetGetCurrencies(params))
@@ -1305,10 +1305,10 @@ func (this *Deribit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			//         "testnet":false
 			//     }
 			//
-			AppendToArray(&instrumentsResponses, instrumentsResponse)
+			instrumentsResponses = append(instrumentsResponses, instrumentsResponse)
 		}
 	}
-	for i := 0; i < GetArrayLength(instrumentsResponses); i++ {
+	for i := 0; i < len(instrumentsResponses); i++ {
 		var instrumentsResult any = this.SafeList(GetValue(instrumentsResponses, i), "result", []any{})
 		for k := 0; k < GetArrayLength(instrumentsResult); k++ {
 			var market any = GetValue(instrumentsResult, k)
@@ -1379,7 +1379,7 @@ func (this *Deribit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			}
 			var minTradeAmount *float64 = this.SafeNumber(market, "min_trade_amount")
 			var tickSize *float64 = this.SafeNumber(market, "tick_size")
-			AppendToArray(&result, map[string]any{
+			result = append(result, map[string]any{
 				"id":             id,
 				"symbol":         symbol,
 				"base":           base,
@@ -3784,11 +3784,11 @@ func (this *Deribit) ParseVolatilityHistory(volatility any) any {
 	//     }
 	//
 	var volatilityResult any = this.SafeList(volatility, "result", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(volatilityResult); i++ {
 		var timestamp *int64 = this.SafeInteger(GetValue(volatilityResult, i), 0)
 		var volatilityObj *float64 = this.SafeNumber(GetValue(volatilityResult, i), 1)
-		AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"info":       volatilityObj,
 			"timestamp":  timestamp,
 			"datetime":   this.Iso8601(timestamp),
@@ -4291,12 +4291,12 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	//        ]
 	//    }
 	//
-	var rates any = []any{}
+	var rates []any = []any{}
 	var result any = this.SafeList(response, "result", []any{})
 	for i := 0; i < GetArrayLength(result); i++ {
 		var fr any = GetValue(result, i)
 		var rate any = this.ParseFundingRate(fr, market)
-		AppendToArray(&rates, rate)
+		rates = append(rates, rate)
 	}
 
 	ch <- this.FilterBySymbolSinceLimit(rates, symbol, since, limit)

@@ -250,7 +250,7 @@ func (this *Mexc) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes21212)
 	}
 	symbols = this.MarketSymbols(symbols, nil)
-	var messageHashes any = []any{}
+	var messageHashes []any = []any{}
 	var firstSymbol *string = this.SafeString(symbols, 0)
 	var market any = nil
 	if firstSymbol != nil {
@@ -273,7 +273,7 @@ func (this *Mexc) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	} else {
 		request["method"] = "sub.tickers"
 		request["params"] = map[string]any{}
-		ccxt.AppendToArray(&messageHashes, "ticker")
+		messageHashes = append(messageHashes, "ticker")
 	}
 
 	ticker := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
@@ -370,7 +370,7 @@ func (this *Mexc) HandleTickers(client any, message any) {
 		return ""
 	}()
 	var topic any = ccxt.Add(messageHashPrefix, "ticker")
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(data); i++ {
 		var entry any = ccxt.GetValue(data, i)
 		var ticker any = nil
@@ -383,7 +383,7 @@ func (this *Mexc) HandleTickers(client any, message any) {
 		if symbol != nil {
 			ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 		}
-		ccxt.AppendToArray(&result, ticker)
+		result = append(result, ticker)
 		var messageHash any = ccxt.Add("ticker:", symbol)
 		client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 	}
@@ -490,14 +490,14 @@ func (this *Mexc) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	if !isSpot {
 		panic(ccxt.NotSupported(this.Id + " watchBidsAsks only support spot market"))
 	}
-	var messageHashes any = []any{}
-	var topics any = []any{}
+	var messageHashes []any = []any{}
+	var topics []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		if isSpot {
 			var market any = this.Market(ccxt.GetValue(symbols, i))
-			ccxt.AppendToArray(&topics, ccxt.Add("spot@public.aggre.bookTicker.v3.api.pb@100ms@", ccxt.GetValue(market, "id")))
+			topics = append(topics, ccxt.Add("spot@public.aggre.bookTicker.v3.api.pb@100ms@", ccxt.GetValue(market, "id")))
 		}
-		ccxt.AppendToArray(&messageHashes, ccxt.Add("bidask:", ccxt.GetValue(symbols, i)))
+		messageHashes = append(messageHashes, ccxt.Add("bidask:", ccxt.GetValue(symbols, i)))
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "spot")
 	var request map[string]any = map[string]any{
@@ -2083,7 +2083,7 @@ func (this *Mexc) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes176212)
 	}
 	symbols = this.MarketSymbols(symbols, nil)
-	var messageHashes any = []any{}
+	var messageHashes []any = []any{}
 	var firstSymbol *string = this.SafeString(symbols, 0)
 	var market any = nil
 	if firstSymbol != nil {
@@ -2106,7 +2106,7 @@ func (this *Mexc) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 	} else {
 		request["method"] = "unsub.tickers"
 		request["params"] = map[string]any{}
-		ccxt.AppendToArray(&messageHashes, "unsubscribe:ticker")
+		messageHashes = append(messageHashes, "unsubscribe:ticker")
 	}
 	var client ccxt.ClientInterface = this.Client(url)
 	this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes)
@@ -2153,14 +2153,14 @@ func (this *Mexc) unWatchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	if !isSpot {
 		panic(ccxt.NotSupported(this.Id + " watchBidsAsks only support spot market"))
 	}
-	var messageHashes any = []any{}
-	var topics any = []any{}
+	var messageHashes []any = []any{}
+	var topics []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		if isSpot {
 			var market any = this.Market(ccxt.GetValue(symbols, i))
-			ccxt.AppendToArray(&topics, ccxt.Add("spot@public.aggre.bookTicker.v3.api.pb@100ms@", ccxt.GetValue(market, "id")))
+			topics = append(topics, ccxt.Add("spot@public.aggre.bookTicker.v3.api.pb@100ms@", ccxt.GetValue(market, "id")))
 		}
-		ccxt.AppendToArray(&messageHashes, ccxt.Add("unsubscribe:bidask:", ccxt.GetValue(symbols, i)))
+		messageHashes = append(messageHashes, ccxt.Add("unsubscribe:bidask:", ccxt.GetValue(symbols, i)))
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "spot")
 	var request map[string]any = map[string]any{

@@ -1720,7 +1720,7 @@ func (this *Bydfi) createOrdersBody(ch chan any, orders any, optionalArgs ...any
 	if length > 5 {
 		panic(BadRequest(this.Id + " createOrders() accepts a maximum of 5 orders"))
 	}
-	var ordersRequests any = []any{}
+	var ordersRequests []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var rawOrder any = GetValue(orders, i)
 		var symbol *string = this.SafeString(rawOrder, "symbol")
@@ -1730,7 +1730,7 @@ func (this *Bydfi) createOrdersBody(ch chan any, orders any, optionalArgs ...any
 		var price *float64 = this.SafeNumber(rawOrder, "price")
 		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
 		var orderRequest any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, orderParams)
-		AppendToArray(&ordersRequests, orderRequest)
+		ordersRequests = append(ordersRequests, orderRequest)
 	}
 	var wallet any = "W001"
 	var walletparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "wallet", wallet)
@@ -1828,7 +1828,7 @@ func (this *Bydfi) editOrdersBody(ch chan any, orders any, optionalArgs ...any) 
 	if length > 5 {
 		panic(BadRequest(this.Id + " editOrders() accepts a maximum of 5 orders"))
 	}
-	var ordersRequests any = []any{}
+	var ordersRequests []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var rawOrder any = GetValue(orders, i)
 		var id *string = this.SafeString(rawOrder, "id")
@@ -1838,7 +1838,7 @@ func (this *Bydfi) editOrdersBody(ch chan any, orders any, optionalArgs ...any) 
 		var price *float64 = this.SafeNumber(rawOrder, "price")
 		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
 		var orderRequest any = this.CreateEditOrderRequest(id, symbol, "limit", side, amount, price, orderParams)
-		AppendToArray(&ordersRequests, orderRequest)
+		ordersRequests = append(ordersRequests, orderRequest)
 	}
 	var wallet any = "W001"
 	var walletparamsVariable []any = this.HandleOptionAndParams(params, "editOrder", "wallet", wallet)

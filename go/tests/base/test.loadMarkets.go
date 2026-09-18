@@ -32,12 +32,12 @@ func testLoadMarketsBody(ch chan any, exchange ccxt.ICoreExchange, skippedProper
 	}
 	// market-type coverage (inlined: a nested helper breaks Java emit into a missing TestLoadedMarketTypes class)
 	var marketTypes []any = []any{"spot", "swap", "future", "option", "index"}
-	var collectedTypes any = []any{}
+	var collectedTypes []any = []any{}
 	var allMarkets []any = ObjectValues(exchange.GetMarkets())
 	for i := 0; i < len(allMarkets); i++ {
 		var market any = GetValue(allMarkets, i)
 		if !EvalTruthy(exchange.InArray(GetValue(market, "type"), collectedTypes)) {
-			AppendToArray(&collectedTypes, GetValue(market, "type"))
+			collectedTypes = append(collectedTypes, GetValue(market, "type"))
 		}
 	}
 	for i := 0; i < len(marketTypes); i++ {

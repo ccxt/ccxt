@@ -563,7 +563,7 @@ func (this *Bitvavo) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *Bitvavo) ParseMarkets(markets any) any {
-	var result any = []any{}
+	var result []any = []any{}
 	var fees any = this.Fees
 	for i := 0; i < GetArrayLength(markets); i++ {
 		var market any = GetValue(markets, i)
@@ -573,7 +573,7 @@ func (this *Bitvavo) ParseMarkets(markets any) any {
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
 		var status *string = this.SafeString(market, "status")
-		AppendToArray(&result, this.SafeMarketStructure(map[string]any{
+		result = append(result, this.SafeMarketStructure(map[string]any{
 			"id":             id,
 			"symbol":         Add(Add(base, "/"), quote),
 			"base":           base,

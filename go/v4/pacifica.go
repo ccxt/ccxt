@@ -2216,7 +2216,7 @@ func (this *Pacifica) BatchOrdersRequest(actions any) any {
 func (this *Pacifica) CreateOrdersRequest(orders any, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var actions any = []any{}
+	var actions []any = []any{}
 	var timestamp int64 = this.Milliseconds() // unified sequence
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var order any = GetValue(orders, i)
@@ -2237,7 +2237,7 @@ func (this *Pacifica) CreateOrdersRequest(orders any, optionalArgs ...any) any {
 			"type": "Create",
 			"data": GetValue(requestList, 0),
 		}
-		AppendToArray(&actions, action)
+		actions = append(actions, action)
 	}
 	return this.BatchOrdersRequest(actions)
 }
@@ -2293,7 +2293,7 @@ func (this *Pacifica) createOrdersBody(ch chan any, orders any, optionalArgs ...
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
 	var results any = this.SafeList(data, "results", []any{})
-	var ordersToReturn any = []any{}
+	var ordersToReturn []any = []any{}
 	for i := 0; i < GetArrayLength(results); i++ {
 		var order any = GetValue(results, i)
 		var error *string = this.SafeString(order, "error")
@@ -2305,7 +2305,7 @@ func (this *Pacifica) createOrdersBody(ch chan any, orders any, optionalArgs ...
 			status = "open"
 		}
 		var orderId *string = this.SafeString(order, "order_id")
-		AppendToArray(&ordersToReturn, this.SafeOrder(map[string]any{
+		ordersToReturn = append(ordersToReturn, this.SafeOrder(map[string]any{
 			"info":   order,
 			"id":     orderId,
 			"status": status,
@@ -2377,7 +2377,7 @@ func (this *Pacifica) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
 	//
 	var data map[string]any = SafeMapTyped(response, "data")
 	var results any = this.SafeList(data, "results", []any{})
-	var ordersToReturn any = []any{}
+	var ordersToReturn []any = []any{}
 	for i := 0; i < GetArrayLength(results); i++ {
 		var order any = GetValue(results, i)
 		var error *string = this.SafeString(order, "error")
@@ -2388,7 +2388,7 @@ func (this *Pacifica) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
 		} else {
 			status = "canceled"
 		}
-		AppendToArray(&ordersToReturn, this.SafeOrder(map[string]any{
+		ordersToReturn = append(ordersToReturn, this.SafeOrder(map[string]any{
 			"info":   order,
 			"status": status,
 			"symbol": symbol,
@@ -2403,7 +2403,7 @@ func (this *Pacifica) CancelOrdersRequest(ids any, optionalArgs ...any) any {
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var actions any = []any{}
+	var actions []any = []any{}
 	for i := 0; i < GetArrayLength(ids); i++ {
 		var id any = GetValue(ids, i)
 		var request any = this.CancelOrderRequest(id, symbol, params)
@@ -2411,7 +2411,7 @@ func (this *Pacifica) CancelOrdersRequest(ids any, optionalArgs ...any) any {
 			"type": "Cancel",
 			"data": request,
 		}
-		AppendToArray(&actions, action)
+		actions = append(actions, action)
 	}
 	var clientOrderIds any = this.SafeList(params, "clientOrderIds", []any{})
 	params = this.Omit(params, "clientOrderIds")
@@ -2425,7 +2425,7 @@ func (this *Pacifica) CancelOrdersRequest(ids any, optionalArgs ...any) any {
 			"type": "Cancel",
 			"data": request,
 		}
-		AppendToArray(&actions, action)
+		actions = append(actions, action)
 	}
 	return this.BatchOrdersRequest(actions)
 }
@@ -2771,11 +2771,11 @@ func (this *Pacifica) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	// }
 	//
 	var data any = this.AddPaginationCursorToResult(response)
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(data); i++ {
 		var entry any = GetValue(data, i)
 		var timestamp *int64 = this.SafeInteger(entry, "created_at")
-		AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"info":        entry,
 			"symbol":      GetValue(market, "symbol"),
 			"fundingRate": this.SafeNumber(entry, "funding_rate"),
@@ -3564,9 +3564,9 @@ func (this *Pacifica) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	//   "last_order_id": 1557431179
 	// }
 	var data any = this.SafeList(response, "data", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(data); i++ {
-		AppendToArray(&result, this.ParsePosition(GetValue(data, i), nil))
+		result = append(result, this.ParsePosition(GetValue(data, i), nil))
 	}
 
 	ch <- this.FilterByArrayPositions(result, "symbol", symbols, false)
@@ -4691,9 +4691,9 @@ func (this *Pacifica) SortJsonKeys(value any) any {
 		}
 		return result
 	} else if IsArray(value) {
-		var result any = []any{}
+		var result []any = []any{}
 		for i := 0; i < GetArrayLength(value); i++ {
-			AppendToArray(&result, this.SortJsonKeys(GetValue(value, i)))
+			result = append(result, this.SortJsonKeys(GetValue(value, i)))
 		}
 		return result
 	} else {

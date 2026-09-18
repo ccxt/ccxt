@@ -292,20 +292,20 @@ func (this *Phemex) HandleTicker(client any, message any) {
 	//        "type": "snapshot",
 	//    }
 	//
-	var tickers any = []any{}
+	var tickers []any = []any{}
 	if ccxt.InOp(message, "market24h") {
 		var ticker any = this.SafeValue(message, "market24h")
-		ccxt.AppendToArray(&tickers, this.ParseSwapTicker(ticker))
+		tickers = append(tickers, this.ParseSwapTicker(ticker))
 	} else if ccxt.InOp(message, "spot_market24h") {
 		var ticker any = this.SafeValue(message, "spot_market24h")
-		ccxt.AppendToArray(&tickers, this.ParseTicker(ticker))
+		tickers = append(tickers, this.ParseTicker(ticker))
 	} else if ccxt.InOp(message, "data") {
 		var data any = this.SafeList(message, "data", []any{})
 		for i := 0; i < ccxt.GetArrayLength(data); i++ {
-			ccxt.AppendToArray(&tickers, this.ParsePerpetualTicker(ccxt.GetValue(data, i)))
+			tickers = append(tickers, this.ParsePerpetualTicker(ccxt.GetValue(data, i)))
 		}
 	}
-	for i := 0; i < ccxt.GetArrayLength(tickers); i++ {
+	for i := 0; i < len(tickers); i++ {
 		var ticker any = ccxt.GetValue(tickers, i)
 		var symbol any = ccxt.GetValue(ticker, "symbol")
 		var messageHash any = ccxt.Add("ticker:", symbol)
@@ -641,9 +641,9 @@ func (this *Phemex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var requestId any = this.RequestId()
 	var subscriptionHash any = ccxt.Add(name, ".subscribe")
-	var messageHashes any = []any{}
+	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		ccxt.AppendToArray(&messageHashes, ccxt.Add("ticker:", ccxt.GetValue(symbols, i)))
+		messageHashes = append(messageHashes, ccxt.Add("ticker:", ccxt.GetValue(symbols, i)))
 	}
 	var subscribe map[string]any = map[string]any{
 		"method": subscriptionHash,
@@ -1371,7 +1371,7 @@ func (this *Phemex) HandleOrders(client any, message any) {
 	//    ]
 	//
 	var trades any = []any{}
-	var parsedOrders any = []any{}
+	var parsedOrders []any = []any{}
 	if (ccxt.InOp(message, "closed")) || (ccxt.InOp(message, "fills")) || (ccxt.InOp(message, "open")) {
 		var closed any = this.SafeValue(message, "closed", []any{})
 		var open any = this.SafeValue(message, "open", []any{})
@@ -1384,7 +1384,7 @@ func (this *Phemex) HandleOrders(client any, message any) {
 		for i := 0; i < len(orders); i++ {
 			var rawOrder any = ccxt.GetValue(orders, i)
 			var parsedOrder any = this.ParseOrder(rawOrder)
-			ccxt.AppendToArray(&parsedOrders, parsedOrder)
+			parsedOrders = append(parsedOrders, parsedOrder)
 		}
 	} else {
 		var messageLength int = ccxt.GetArrayLength(message)
@@ -1399,7 +1399,7 @@ func (this *Phemex) HandleOrders(client any, message any) {
 				ccxt.AppendToArray(&trades, update)
 			}
 			var parsedOrder any = this.ParseWSSwapOrder(update)
-			ccxt.AppendToArray(&parsedOrders, parsedOrder)
+			parsedOrders = append(parsedOrders, parsedOrder)
 		}
 	}
 	this.HandleMyTrades(client, trades)
@@ -1410,7 +1410,7 @@ func (this *Phemex) HandleOrders(client any, message any) {
 	}
 	var typeVar any = nil
 	var stored any = this.Orders
-	for i := 0; i < ccxt.GetArrayLength(parsedOrders); i++ {
+	for i := 0; i < len(parsedOrders); i++ {
 		var parsed any = ccxt.GetValue(parsedOrders, i)
 		stored.(ccxt.Appender).Append(parsed)
 		var symbol any = ccxt.GetValue(parsed, "symbol")

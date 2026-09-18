@@ -78,31 +78,31 @@ func TestMarket(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	var isQuanto bool = (quanto != nil) && EvalTruthy(quanto)
 	var isInactiveMarket bool = (GetValue(market, "active") == false)
 	//
-	var emptyAllowedFor any = []any{"margin"}
+	var emptyAllowedFor []any = []any{"margin"}
 	if contract != true {
-		AppendToArray(&emptyAllowedFor, "contractSize")
-		AppendToArray(&emptyAllowedFor, "linear")
-		AppendToArray(&emptyAllowedFor, "inverse")
-		AppendToArray(&emptyAllowedFor, "quanto")
-		AppendToArray(&emptyAllowedFor, "settle")
-		AppendToArray(&emptyAllowedFor, "settleId")
+		emptyAllowedFor = append(emptyAllowedFor, "contractSize")
+		emptyAllowedFor = append(emptyAllowedFor, "linear")
+		emptyAllowedFor = append(emptyAllowedFor, "inverse")
+		emptyAllowedFor = append(emptyAllowedFor, "quanto")
+		emptyAllowedFor = append(emptyAllowedFor, "settle")
+		emptyAllowedFor = append(emptyAllowedFor, "settleId")
 	}
 	if (future != true) && (option != true) {
-		AppendToArray(&emptyAllowedFor, "expiry")
-		AppendToArray(&emptyAllowedFor, "expiryDatetime")
+		emptyAllowedFor = append(emptyAllowedFor, "expiry")
+		emptyAllowedFor = append(emptyAllowedFor, "expiryDatetime")
 	}
 	if option != true {
-		AppendToArray(&emptyAllowedFor, "optionType")
-		AppendToArray(&emptyAllowedFor, "strike")
+		emptyAllowedFor = append(emptyAllowedFor, "optionType")
+		emptyAllowedFor = append(emptyAllowedFor, "strike")
 	}
 	if isInactiveMarket {
-		AppendToArray(&emptyAllowedFor, "contractSize")
-		AppendToArray(&emptyAllowedFor, "settle")
-		AppendToArray(&emptyAllowedFor, "settleId")
-		AppendToArray(&emptyAllowedFor, "baseId")
-		AppendToArray(&emptyAllowedFor, "quoteId")
-		AppendToArray(&emptyAllowedFor, "base")
-		AppendToArray(&emptyAllowedFor, "quote")
+		emptyAllowedFor = append(emptyAllowedFor, "contractSize")
+		emptyAllowedFor = append(emptyAllowedFor, "settle")
+		emptyAllowedFor = append(emptyAllowedFor, "settleId")
+		emptyAllowedFor = append(emptyAllowedFor, "baseId")
+		emptyAllowedFor = append(emptyAllowedFor, "quoteId")
+		emptyAllowedFor = append(emptyAllowedFor, "base")
+		emptyAllowedFor = append(emptyAllowedFor, "quote")
 	}
 	if IsEqual(exchange.SafeString(market, "type"), "prediction") {
 		// prediction market rows carry the unified 'market' handle, the

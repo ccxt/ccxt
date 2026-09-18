@@ -946,8 +946,8 @@ func (this *Onetrading) fetchPrivateTradingFeesBody(ch chan any, optionalArgs ..
 func (this *Onetrading) ParseFeeTiers(feeTiers any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var takerFees any = []any{}
-	var makerFees any = []any{}
+	var takerFees []any = []any{}
+	var makerFees []any = []any{}
 	for i := 0; i < GetArrayLength(feeTiers); i++ {
 		var tier any = GetValue(feeTiers, i)
 		var volume *float64 = this.SafeNumber(tier, "volume")
@@ -955,8 +955,8 @@ func (this *Onetrading) ParseFeeTiers(feeTiers any, optionalArgs ...any) any {
 		var maker *string = this.SafeString(tier, "maker_fee")
 		maker = Precise.StringDiv(maker, "100")
 		taker = Precise.StringDiv(taker, "100")
-		AppendToArray(&makerFees, []any{volume, this.ParseNumber(maker)})
-		AppendToArray(&takerFees, []any{volume, this.ParseNumber(taker)})
+		makerFees = append(makerFees, []any{volume, this.ParseNumber(maker)})
+		takerFees = append(takerFees, []any{volume, this.ParseNumber(taker)})
 	}
 	return map[string]any{
 		"maker": makerFees,

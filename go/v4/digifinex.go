@@ -800,13 +800,13 @@ func (this *Digifinex) fetchMarketsV2Body(ch chan any, optionalArgs ...any) any 
 	marginModequeryVariable := this.HandleMarginModeAndParams("fetchMarketsV2", params)
 	marginMode := GetValue(marginModequeryVariable, 0)
 	query := GetValue(marginModequeryVariable, 1)
-	var promisesRaw any = []any{}
+	var promisesRaw []any = []any{}
 	if !IsEqual(marginMode, nil) {
-		AppendToArray(&promisesRaw, this.PublicSpotGetMarginSymbols(query))
+		promisesRaw = append(promisesRaw, this.PublicSpotGetMarginSymbols(query))
 	} else {
-		AppendToArray(&promisesRaw, this.PublicSpotGetTradesSymbols(query))
+		promisesRaw = append(promisesRaw, this.PublicSpotGetTradesSymbols(query))
 	}
-	AppendToArray(&promisesRaw, this.PublicSwapGetPublicInstruments(params))
+	promisesRaw = append(promisesRaw, this.PublicSwapGetPublicInstruments(params))
 
 	promises := (<-promiseAll(promisesRaw))
 	PanicOnError(promises)
@@ -867,7 +867,7 @@ func (this *Digifinex) fetchMarketsV2Body(ch chan any, optionalArgs ...any) any 
 	var spotData any = this.SafeValue(spotMarkets, "symbol_list", []any{})
 	var swapData any = this.SafeValue(swapMarkets, "data", []any{})
 	var response []any = this.ArrayConcat(spotData, swapData)
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < len(response); i++ {
 		var market any = GetValue(response, i)
 		var id *string = this.SafeString2(market, "symbol", "instrument_id")
@@ -921,7 +921,7 @@ func (this *Digifinex) fetchMarketsV2Body(ch chan any, optionalArgs ...any) any 
 			}
 		}
 		var isActive bool = (!IsEqual(isAllowed, 0))
-		AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"id":             id,
 			"symbol":         symbol,
 			"base":           base,
@@ -1004,7 +1004,7 @@ func (this *Digifinex) fetchMarketsV1Body(ch chan any, optionalArgs ...any) any 
 	//     }
 	//
 	var markets any = this.SafeList(response, "data", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(markets); i++ {
 		var market any = GetValue(markets, i)
 		var id *string = this.SafeString(market, "market")
@@ -1016,7 +1016,7 @@ func (this *Digifinex) fetchMarketsV1Body(ch chan any, optionalArgs ...any) any 
 		quoteId := GetValue(baseIdquoteIdVariable, 1)
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
-		AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"id":             id,
 			"symbol":         Add(Add(base, "/"), quote),
 			"base":           base,
@@ -2207,7 +2207,7 @@ func (this *Digifinex) createOrdersBody(ch chan any, orders any, optionalArgs ..
 		retRes174712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes174712)
 	}
-	var ordersRequests any = []any{}
+	var ordersRequests []any = []any{}
 	var symbol any = nil
 	var marginMode any = nil
 	for i := 0; i < GetArrayLength(orders); i++ {
@@ -2237,7 +2237,7 @@ func (this *Digifinex) createOrdersBody(ch chan any, orders any, optionalArgs ..
 			}
 		}
 		var orderRequest any = this.CreateOrderRequest(marketId, typeVar, side, amount, price, orderParams)
-		AppendToArray(&ordersRequests, orderRequest)
+		ordersRequests = append(ordersRequests, orderRequest)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{}
@@ -2286,7 +2286,7 @@ func (this *Digifinex) createOrdersBody(ch chan any, orders any, optionalArgs ..
 	} else {
 		data = this.SafeValue(response, "order_ids", []any{})
 	}
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var rawOrder any = GetValue(orders, i)
 		var individualOrder map[string]any = map[string]any{}
@@ -2294,7 +2294,7 @@ func (this *Digifinex) createOrdersBody(ch chan any, orders any, optionalArgs ..
 		individualOrder["instrument_id"] = GetValue(market, "id")
 		individualOrder["amount"] = this.SafeNumber(rawOrder, "amount")
 		individualOrder["price"] = this.SafeNumber(rawOrder, "price")
-		AppendToArray(&result, individualOrder)
+		result = append(result, individualOrder)
 	}
 
 	ch <- this.ParseOrders(result, market)
@@ -2600,10 +2600,10 @@ func (this *Digifinex) cancelOrderBody(ch chan any, id any, optionalArgs ...any)
 func (this *Digifinex) ParseCancelOrders(response any) any {
 	var success any = this.SafeList(response, "success", []any{})
 	var error any = this.SafeList(response, "error", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(success); i++ {
 		var order any = GetValue(success, i)
-		AppendToArray(&result, this.SafeOrder(map[string]any{
+		result = append(result, this.SafeOrder(map[string]any{
 			"info":   order,
 			"id":     order,
 			"status": "canceled",
@@ -2611,7 +2611,7 @@ func (this *Digifinex) ParseCancelOrders(response any) any {
 	}
 	for i := 0; i < GetArrayLength(error); i++ {
 		var order any = GetValue(error, i)
-		AppendToArray(&result, this.SafeOrder(map[string]any{
+		result = append(result, this.SafeOrder(map[string]any{
 			"info":          order,
 			"id":            this.SafeString2(order, "order-id", "order_id"),
 			"status":        "failed",
@@ -4497,13 +4497,13 @@ func (this *Digifinex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
 	//
 	var data any = this.SafeValue(response, "data", map[string]any{})
 	var result any = this.SafeList(data, "funding_rates", []any{})
-	var rates any = []any{}
+	var rates []any = []any{}
 	for i := 0; i < GetArrayLength(result); i++ {
 		var entry any = GetValue(result, i)
 		var marketId *string = this.SafeString(data, "instrument_id")
 		var symbolInner *string = this.SafeSymbol(marketId)
 		var timestamp *int64 = this.SafeInteger(entry, "time")
-		AppendToArray(&rates, map[string]any{
+		rates = append(rates, map[string]any{
 			"info":        entry,
 			"symbol":      symbolInner,
 			"fundingRate": this.SafeNumber(entry, "rate"),
@@ -4722,9 +4722,9 @@ func (this *Digifinex) fetchPositionsBody(ch chan any, optionalArgs ...any) any 
 		return "positions"
 	}()
 	var positions any = this.SafeList(response, positionRequest, []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(positions); i++ {
-		AppendToArray(&result, this.ParsePosition(GetValue(positions, i), market))
+		result = append(result, this.ParsePosition(GetValue(positions, i), market))
 	}
 
 	ch <- this.FilterByArrayPositions(result, "symbol", symbols, false)
@@ -5249,13 +5249,13 @@ func (this *Digifinex) ParseMarketLeverageTiers(info any, optionalArgs ...any) a
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var tiers any = []any{}
+	var tiers []any = []any{}
 	var brackets any = this.SafeValue(info, "open_max_limits", map[string]any{})
 	for i := 0; i < GetArrayLength(brackets); i++ {
 		var tier any = GetValue(brackets, i)
 		var marketId *string = this.SafeString(info, "instrument_id")
 		market = this.SafeMarket(marketId, market)
-		AppendToArray(&tiers, map[string]any{
+		tiers = append(tiers, map[string]any{
 			"tier":                  this.Sum(i, 1),
 			"symbol":                this.SafeSymbol(marketId, market, nil, "swap"),
 			"currency":              GetValue(market, "settle"),

@@ -1200,7 +1200,7 @@ func (this *Bitstamp) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//             "isin": "EZHKD4DNKHY3"
 	//         }
 	//
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(response); i++ {
 		var market any = GetValue(response, i)
 		baseIdquoteIdVariable := []any{this.SafeString(market, "base_currency"), this.SafeString(market, "counter_currency")}
@@ -1233,7 +1233,7 @@ func (this *Bitstamp) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			}
 			return nil
 		}()
-		AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"id":       this.SafeString(market, "market_symbol"),
 			"symbol":   symbol,
 			"base":     base,
@@ -3881,9 +3881,9 @@ func (this *Bitstamp) HandleErrors(httpCode any, reason any, url any, method any
 	var status *string = this.SafeString(response, "status")
 	var error any = this.SafeValue(response, "error")
 	if (status != nil && *status == "error") || (!IsEqual(error, nil)) {
-		var errors any = []any{}
+		var errors []any = []any{}
 		if IsString(error) {
-			AppendToArray(&errors, error)
+			errors = append(errors, error)
 		} else if !IsEqual(error, nil) {
 			var keys []string = ObjectKeys(error)
 			for i := 0; i < len(keys); i++ {
@@ -3892,17 +3892,17 @@ func (this *Bitstamp) HandleErrors(httpCode any, reason any, url any, method any
 				if IsArray(value) {
 					errors = this.ArrayConcat(errors, value)
 				} else {
-					AppendToArray(&errors, value)
+					errors = append(errors, value)
 				}
 			}
 		}
 		var reasonInner any = this.SafeValue(response, "reason", map[string]any{})
 		if IsString(reasonInner) {
-			AppendToArray(&errors, reasonInner)
+			errors = append(errors, reasonInner)
 		} else {
 			var all any = this.SafeList(reasonInner, "__all__", []any{})
 			for i := 0; i < GetArrayLength(all); i++ {
-				AppendToArray(&errors, GetValue(all, i))
+				errors = append(errors, GetValue(all, i))
 			}
 		}
 		var code *string = this.SafeString(response, "code")
@@ -3910,7 +3910,7 @@ func (this *Bitstamp) HandleErrors(httpCode any, reason any, url any, method any
 			panic(AuthenticationError(this.Id + " invalid signature, use the uid for the main account if you have subaccounts"))
 		}
 		var feedback any = Add(this.Id+" ", body)
-		for i := 0; i < GetArrayLength(errors); i++ {
+		for i := 0; i < len(errors); i++ {
 			var value any = GetValue(errors, i)
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], value, feedback)
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], value, feedback)

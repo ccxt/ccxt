@@ -582,15 +582,15 @@ func (this *Hyperliquid) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	var options any = this.SafeDict(this.Options, "fetchMarkets", map[string]any{})
 	var types any = this.SafeList(options, "types", []any{})
-	var rawPromises any = []any{}
+	var rawPromises []any = []any{}
 	for i := 0; i < GetArrayLength(types); i++ {
 		var marketType any = GetValue(types, i)
 		if IsEqual(marketType, "swap") {
-			AppendToArray(&rawPromises, this.FetchSwapMarketsAsync(params))
+			rawPromises = append(rawPromises, this.FetchSwapMarketsAsync(params))
 		} else if IsEqual(marketType, "spot") {
-			AppendToArray(&rawPromises, this.FetchSpotMarketsAsync(params))
+			rawPromises = append(rawPromises, this.FetchSpotMarketsAsync(params))
 		} else if IsEqual(marketType, "hip3") {
-			AppendToArray(&rawPromises, this.FetchHip3MarketsAsync(params))
+			rawPromises = append(rawPromises, this.FetchHip3MarketsAsync(params))
 		}
 	}
 
@@ -685,13 +685,13 @@ func (this *Hyperliquid) fetchHip3MarketsBody(ch chan any, optionalArgs ...any) 
 			AppendToArray(&fetchDexesList, dexName)
 		}
 	}
-	var rawPromises any = []any{}
+	var rawPromises []any = []any{}
 	for i := 0; i < GetArrayLength(fetchDexesList); i++ {
 		var request map[string]any = map[string]any{
 			"type": "metaAndAssetCtxs",
 			"dex":  this.SafeString(fetchDexesList, i),
 		}
-		AppendToArray(&rawPromises, this.PublicPostInfo(this.Extend(request, params)))
+		rawPromises = append(rawPromises, this.PublicPostInfo(this.Extend(request, params)))
 	}
 
 	promises := (<-promiseAll(rawPromises))
@@ -706,7 +706,7 @@ func (this *Hyperliquid) fetchHip3MarketsBody(ch chan any, optionalArgs ...any) 
 		var collateralToken *string = this.SafeString(meta, "collateralToken")
 		var universe any = this.SafeList(meta, "universe", []any{})
 		var assetCtxs any = this.SafeList(response, 1, []any{})
-		var result any = []any{}
+		var result []any = []any{}
 		// helper because some endpoints return just the coin name like: flx:crcl
 		// and we don't have the base/settle information and we can't assume it's USDC for hip3 markets
 		for j := 0; j < GetArrayLength(universe); j++ {
@@ -734,7 +734,7 @@ func (this *Hyperliquid) fetchHip3MarketsBody(ch chan any, optionalArgs ...any) 
 					"code":  hip3Code,
 				})
 			}
-			AppendToArray(&result, data)
+			result = append(result, data)
 		}
 		markets = this.ArrayConcat(markets, this.ParseMarkets(result))
 	}
@@ -832,11 +832,11 @@ func (this *Hyperliquid) fetchSwapMarketsBody(ch chan any, optionalArgs ...any) 
 	var meta map[string]any = SafeMapTyped(response, 0)
 	var universe any = this.SafeList(meta, "universe", []any{})
 	var assetCtxs any = this.SafeList(response, 1, []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(universe); i++ {
 		var data map[string]any = this.Extend(this.SafeDict(universe, i, map[string]any{}), this.SafeDict(assetCtxs, i, map[string]any{}))
 		data["baseId"] = i
-		AppendToArray(&result, data)
+		result = append(result, data)
 	}
 
 	ch <- this.ParseMarkets(result)
@@ -963,7 +963,7 @@ func (this *Hyperliquid) fetchSpotMarketsBody(ch chan any, optionalArgs ...any) 
 	var second any = this.SafeList(response, 1, []any{})
 	var meta any = this.SafeList(first, "universe", []any{})
 	var tokens any = this.SafeList(first, "tokens", []any{})
-	var markets any = []any{}
+	var markets []any = []any{}
 	for i := 0; i < GetArrayLength(meta); i++ {
 		var market any = this.SafeDict(meta, i, map[string]any{})
 		var index *int64 = this.SafeInteger(market, "index")
@@ -1061,7 +1061,7 @@ func (this *Hyperliquid) fetchSpotMarketsBody(ch chan any, optionalArgs ...any) 
 			"created": nil,
 			"info":    this.Extend(extraData, market),
 		}
-		AppendToArray(&markets, this.SafeMarketStructure(entry))
+		markets = append(markets, this.SafeMarketStructure(entry))
 	}
 
 	ch <- markets
@@ -1585,10 +1585,10 @@ func (this *Hyperliquid) fetchFundingRatesBody(ch chan any, optionalArgs ...any)
 	var meta map[string]any = SafeMapTyped(response, 0)
 	var universe any = this.SafeList(meta, "universe", []any{})
 	var assetCtxs any = this.SafeList(response, 1, []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(universe); i++ {
 		var data map[string]any = this.Extend(this.SafeDict(universe, i, map[string]any{}), this.SafeDict(assetCtxs, i, map[string]any{}))
-		AppendToArray(&result, data)
+		result = append(result, data)
 	}
 
 	ch <- this.ParseFundingRates(result, symbols)
@@ -2795,15 +2795,15 @@ func (this *Hyperliquid) createOrdersBody(ch chan any, orders any, optionalArgs 
 	var responseObj map[string]any = SafeMapTyped(response, "response")
 	var data map[string]any = SafeMapTyped(responseObj, "data")
 	var statuses any = this.SafeList(data, "statuses", []any{})
-	var ordersToBeParsed any = []any{}
+	var ordersToBeParsed []any = []any{}
 	for i := 0; i < GetArrayLength(statuses); i++ {
 		var order any = GetValue(statuses, i)
 		if IsEqual(order, "waitingForTrigger") {
-			AppendToArray(&ordersToBeParsed, map[string]any{
+			ordersToBeParsed = append(ordersToBeParsed, map[string]any{
 				"status": order,
 			}) // tp/sl orders can return a string like "waitingForTrigger",
 		} else {
-			AppendToArray(&ordersToBeParsed, order)
+			ordersToBeParsed = append(ordersToBeParsed, order)
 		}
 	}
 
@@ -2935,7 +2935,7 @@ func (this *Hyperliquid) CreateOrdersRequest(orders any, optionalArgs ...any) an
 	}
 	params = this.Omit(params, []any{"slippage", "clientOrderId", "client_id", "slippage", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "timeInForce"})
 	var nonce int64 = this.Milliseconds()
-	var orderReq any = []any{}
+	var orderReq []any = []any{}
 	var grouping any = "na"
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var rawOrder any = GetValue(orders, i)
@@ -2969,7 +2969,7 @@ func (this *Hyperliquid) CreateOrdersRequest(orders any, optionalArgs ...any) an
 				stopLossOrderType = "market"
 				takeProfitOrderType = "market"
 			} else if IsEqual(grouping, "normalTpsl") {
-				AppendToArray(&orderReq, mainOrderObj)
+				orderReq = append(orderReq, mainOrderObj)
 			} else {
 				panic(NotSupported(this.Id + " only support grouping normalTpsl and positionTpsl."))
 			}
@@ -2985,17 +2985,17 @@ func (this *Hyperliquid) CreateOrdersRequest(orders any, optionalArgs ...any) an
 					"takeProfitPrice": takeProfitOrderTriggerPrice,
 					"reduceOnly":      true,
 				}))
-				AppendToArray(&orderReq, orderObj)
+				orderReq = append(orderReq, orderObj)
 			}
 			if hasStopLoss {
 				var orderObj any = this.CreateOrderRequest(symbol, stopLossOrderType, triggerOrderSide, amount, stopLossOrderLimitPrice, this.Extend(orderParams, map[string]any{
 					"stopLossPrice": stopLossOrderTriggerPrice,
 					"reduceOnly":    true,
 				}))
-				AppendToArray(&orderReq, orderObj)
+				orderReq = append(orderReq, orderObj)
 			}
 		} else {
-			AppendToArray(&orderReq, mainOrderObj)
+			orderReq = append(orderReq, mainOrderObj)
 		}
 	}
 	var vaultAddress any = nil
@@ -3134,10 +3134,10 @@ func (this *Hyperliquid) cancelOrdersBody(ch chan any, ids any, optionalArgs ...
 	var innerResponse map[string]any = SafeMapTyped(response, "response")
 	var data map[string]any = SafeMapTyped(innerResponse, "data")
 	var statuses any = this.SafeList(data, "statuses", []any{})
-	var orders any = []any{}
+	var orders []any = []any{}
 	for i := 0; i < GetArrayLength(statuses); i++ {
 		var status any = GetValue(statuses, i)
-		AppendToArray(&orders, this.SafeOrder(map[string]any{
+		orders = append(orders, this.SafeOrder(map[string]any{
 			"info":   status,
 			"status": status,
 		}))
@@ -3253,7 +3253,7 @@ func (this *Hyperliquid) CancelOrdersRequest(ids any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"nonce": nonce,
 	}
-	var cancelReq any = []any{}
+	var cancelReq []any = []any{}
 	var cancelAction map[string]any = map[string]any{
 		"type":    "",
 		"cancels": []any{},
@@ -3265,7 +3265,7 @@ func (this *Hyperliquid) CancelOrdersRequest(ids any, optionalArgs ...any) any {
 		}
 		cancelAction["type"] = "cancelByCloid"
 		for i := 0; i < GetArrayLength(clientOrderId); i++ {
-			AppendToArray(&cancelReq, map[string]any{
+			cancelReq = append(cancelReq, map[string]any{
 				"asset": baseId,
 				"cloid": GetValue(clientOrderId, i),
 			})
@@ -3274,7 +3274,7 @@ func (this *Hyperliquid) CancelOrdersRequest(ids any, optionalArgs ...any) any {
 		cancelAction["type"] = "cancel"
 		for i := 0; i < GetArrayLength(ids); i++ {
 			var o any = this.ParseToNumeric(GetValue(ids, i))
-			AppendToArray(&cancelReq, map[string]any{
+			cancelReq = append(cancelReq, map[string]any{
 				"a": baseId,
 				"o": o,
 			})
@@ -3331,7 +3331,7 @@ func (this *Hyperliquid) cancelOrdersForSymbolsBody(ch chan any, orders any, opt
 	var request map[string]any = map[string]any{
 		"nonce": nonce,
 	}
-	var cancelReq any = []any{}
+	var cancelReq []any = []any{}
 	var cancelAction map[string]any = map[string]any{
 		"type":    "",
 		"cancels": []any{},
@@ -3372,7 +3372,7 @@ func (this *Hyperliquid) cancelOrdersForSymbolsBody(ch chan any, orders any, opt
 			}
 			return this.ParseToNumeric(id)
 		}())
-		AppendToArray(&cancelReq, cancelObj)
+		cancelReq = append(cancelReq, cancelObj)
 	}
 	cancelAction["type"] = func() any {
 		if cancelByCloid {
@@ -3503,7 +3503,7 @@ func (this *Hyperliquid) EditOrdersRequest(orders any, optionalArgs ...any) any 
 		}
 	}
 	params = this.Omit(params, []any{"slippage", "clientOrderId", "client_id", "slippage", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "timeInForce"})
-	var modifies any = []any{}
+	var modifies []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var rawOrder any = GetValue(orders, i)
 		var id *string = this.SafeString(rawOrder, "id")
@@ -3594,7 +3594,7 @@ func (this *Hyperliquid) EditOrdersRequest(orders any, optionalArgs ...any) any 
 			"oid":   this.ParseToInt(id),
 			"order": orderReq,
 		}
-		AppendToArray(&modifies, modifyReq)
+		modifies = append(modifies, modifyReq)
 	}
 	var nonce int64 = this.Milliseconds()
 	var modifyAction map[string]any = map[string]any{
@@ -3874,7 +3874,7 @@ func (this *Hyperliquid) fetchFundingRateHistoryBody(ch chan any, optionalArgs .
 	//         }
 	//     ]
 	//
-	var result any = []any{}
+	var result []any = []any{}
 	var fundings any = []any{}
 	if IsArray(response) {
 		fundings = response
@@ -3882,7 +3882,7 @@ func (this *Hyperliquid) fetchFundingRateHistoryBody(ch chan any, optionalArgs .
 	for i := 0; i < GetArrayLength(fundings); i++ {
 		var entry any = GetValue(fundings, i)
 		var timestamp *int64 = this.SafeInteger(entry, "time")
-		AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"info":        entry,
 			"symbol":      this.SafeSymbol(nil, market),
 			"fundingRate": this.SafeNumber(entry, "fundingRate"),
@@ -3978,7 +3978,7 @@ func (this *Hyperliquid) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) a
 	//         }
 	//     ]
 	//
-	var orderWithStatus any = []any{}
+	var orderWithStatus []any = []any{}
 	var rawOrders any = []any{}
 	if IsArray(response) {
 		rawOrders = response
@@ -3989,7 +3989,7 @@ func (this *Hyperliquid) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) a
 		if this.SafeString(order, "status") == nil {
 			extendOrder["ccxtStatus"] = "open"
 		}
-		AppendToArray(&orderWithStatus, this.Extend(order, extendOrder))
+		orderWithStatus = append(orderWithStatus, this.Extend(order, extendOrder))
 	}
 
 	ch <- this.ParseOrders(orderWithStatus, market, since, limit)
@@ -4841,9 +4841,9 @@ func (this *Hyperliquid) fetchPositionsBody(ch chan any, optionalArgs ...any) an
 	//     }
 	//
 	var data any = this.SafeList(response, "assetPositions", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(data); i++ {
-		AppendToArray(&result, this.ParsePosition(GetValue(data, i)))
+		result = append(result, this.ParsePosition(GetValue(data, i)))
 	}
 
 	ch <- this.FilterByArrayPositions(result, "symbol", symbols, false)
@@ -6291,11 +6291,11 @@ func (this *Hyperliquid) createSubAccountBody(ch chan any, name any, optionalArg
 func (this *Hyperliquid) ExtractTypeFromDelta(optionalArgs ...any) any {
 	data := GetArg(optionalArgs, 0, []any{})
 	_ = data
-	var records any = []any{}
+	var records []any = []any{}
 	for i := 0; i < GetArrayLength(data); i++ {
 		var record any = GetValue(data, i)
 		AddElementToObject(record, "type", GetValue(GetValue(record, "delta"), "type"))
-		AppendToArray(&records, record)
+		records = append(records, record)
 	}
 	return records
 }

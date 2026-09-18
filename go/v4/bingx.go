@@ -1663,11 +1663,11 @@ func (this *Bingx) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var requests any = []any{this.FetchSwapMarketsAsync(params)}
+	var requests []any = []any{this.FetchSwapMarketsAsync(params)}
 	var isSandbox *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	if isSandbox == nil || *isSandbox != true {
-		AppendToArray(&requests, this.FetchInverseSwapMarketsAsync(params))
-		AppendToArray(&requests, this.FetchSpotMarketsAsync(params)) // sandbox is swap only
+		requests = append(requests, this.FetchInverseSwapMarketsAsync(params))
+		requests = append(requests, this.FetchSpotMarketsAsync(params)) // sandbox is swap only
 	}
 
 	promises := (<-promiseAll(requests))
@@ -4365,19 +4365,19 @@ func (this *Bingx) createOrdersBody(ch chan any, orders any, optionalArgs ...any
 		retRes356212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes356212)
 	}
-	var ordersRequests any = []any{}
-	var marketIds any = []any{}
+	var ordersRequests []any = []any{}
+	var marketIds []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var rawOrder any = GetValue(orders, i)
 		var marketId *string = this.SafeString(rawOrder, "symbol", "")
 		var typeVar *string = this.SafeString(rawOrder, "type")
-		AppendToArray(&marketIds, marketId)
+		marketIds = append(marketIds, marketId)
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount *float64 = this.SafeNumber(rawOrder, "amount")
 		var price *float64 = this.SafeNumber(rawOrder, "price")
 		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
 		var orderRequest any = this.CreateOrderRequest(marketId, typeVar, side, amount, price, orderParams)
-		AppendToArray(&ordersRequests, orderRequest)
+		ordersRequests = append(ordersRequests, orderRequest)
 	}
 	var symbols any = this.MarketSymbols(marketIds, nil, false, true, true)
 	var symbolsLength int = GetArrayLength(symbols)
@@ -5192,11 +5192,11 @@ func (this *Bingx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) a
 	if areClientOrderIds {
 		idsToParse = clientOrderIds
 	}
-	var parsedIds any = []any{}
+	var parsedIds []any = []any{}
 	for i := 0; i < GetArrayLength(idsToParse); i++ {
 		var id any = GetValue(idsToParse, i)
 		var stringId string = ToString(id)
-		AppendToArray(&parsedIds, stringId)
+		parsedIds = append(parsedIds, stringId)
 	}
 	var response any = nil
 	if GetValue(market, "spot") == true {
@@ -7474,12 +7474,12 @@ func (this *Bingx) closeAllPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var data map[string]any = SafeMapTyped(response, "data")
 	var success any = this.SafeList(data, "success", []any{})
-	var positions any = []any{}
+	var positions []any = []any{}
 	for i := 0; i < GetArrayLength(success); i++ {
 		var position any = this.ParsePosition(map[string]any{
 			"positionId": GetValue(success, i),
 		})
-		AppendToArray(&positions, position)
+		positions = append(positions, position)
 	}
 
 	ch <- positions
@@ -7970,14 +7970,14 @@ func (this *Bingx) ParseMarketLeverageTiers(info any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var tiers any = []any{}
+	var tiers []any = []any{}
 	for i := 0; i < GetArrayLength(info); i++ {
 		var tier any = this.SafeDict(info, i)
 		var tierString *string = this.SafeString(tier, "tier")
 		var tierParts []string = Split(tierString, " ")
 		var marketId *string = this.SafeString(tier, "symbol")
 		market = this.SafeMarket(marketId, market, nil, "swap")
-		AppendToArray(&tiers, map[string]any{
+		tiers = append(tiers, map[string]any{
 			"tier":                  this.SafeNumber(tierParts, 1),
 			"symbol":                this.SafeSymbol(marketId, market),
 			"currency":              this.SafeString(market, "settle"),

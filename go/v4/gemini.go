@@ -808,9 +808,9 @@ func (this *Gemini) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	var method any = this.SafeValue(this.Options, "fetchMarketsMethod", "fetch_markets_from_api")
 	if IsEqual(method, "fetch_markets_from_web") {
-		var promises any = []any{}
-		AppendToArray(&promises, this.FetchMarketsFromWebAsync(params)) // get usd markets
-		AppendToArray(&promises, this.FetchUSDTMarketsAsync(params))    // get usdt markets
+		var promises []any = []any{}
+		promises = append(promises, this.FetchMarketsFromWebAsync(params)) // get usd markets
+		promises = append(promises, this.FetchUSDTMarketsAsync(params))    // get usdt markets
 
 		promisesResult := (<-promiseAll(promises))
 		PanicOnError(promisesResult)
@@ -848,7 +848,7 @@ func (this *Gemini) fetchMarketsFromWebBody(ch chan any, optionalArgs ...any) an
 	if numRows < 2 {
 		panic(NotSupported(error))
 	}
-	var result any = []any{}
+	var result []any = []any{}
 	// skip the first element (empty string)
 	for i := 1; i < numRows; i++ {
 		var row any = GetValue(rows, i)
@@ -880,7 +880,7 @@ func (this *Gemini) fetchMarketsFromWebBody(ch chan any, optionalArgs ...any) an
 		var baseId *string = this.SafeStringLower(amountPrecisionParts, 1, Replace(marketId, quoteId, ""))
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
-		AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"id":             marketId,
 			"symbol":         Add(Add(base, "/"), quote),
 			"base":           base,
@@ -965,7 +965,7 @@ func (this *Gemini) fetchUSDTMarketsBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var fetchUsdtMarkets any = this.SafeList(this.Options, "fetchUsdtMarkets", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(fetchUsdtMarkets); i++ {
 		var marketId any = GetValue(fetchUsdtMarkets, i)
 		var request map[string]any = map[string]any{
@@ -975,7 +975,7 @@ func (this *Gemini) fetchUSDTMarketsBody(ch chan any, optionalArgs ...any) any {
 
 		rawResponse := (<-this.PublicGetV1SymbolsDetailsSymbol(this.Extend(request, params)))
 		PanicOnError(rawResponse)
-		AppendToArray(&result, this.ParseMarket(rawResponse))
+		result = append(result, this.ParseMarket(rawResponse))
 	}
 
 	ch <- result
@@ -1001,50 +1001,50 @@ func (this *Gemini) fetchMarketsFromAPIBody(ch chan any, optionalArgs ...any) an
 	//         ...
 	//     ]
 	//
-	var result any = []any{}
+	var result []any = []any{}
 	var options any = this.SafeDict(this.Options, "fetchMarketsFromAPI", map[string]any{})
 	var brokenPairs any = this.SafeList(this.Options, "brokenPairs", []any{})
-	var marketIds any = []any{}
+	var marketIds []any = []any{}
 	var allMarketIds any = []any{}
 	if IsArray(marketIdsRaw) {
 		allMarketIds = marketIdsRaw
 	}
 	for i := 0; i < GetArrayLength(allMarketIds); i++ {
 		if !this.InArray(GetValue(allMarketIds, i), brokenPairs) {
-			AppendToArray(&marketIds, GetValue(allMarketIds, i))
+			marketIds = append(marketIds, GetValue(allMarketIds, i))
 		}
 	}
 	if EvalTruthy(this.SafeBool(options, "fetchDetailsForAllSymbols", false)) {
-		var promises any = []any{}
-		for i := 0; i < GetArrayLength(marketIds); i++ {
+		var promises []any = []any{}
+		for i := 0; i < len(marketIds); i++ {
 			var marketId any = GetValue(marketIds, i)
 			var request map[string]any = map[string]any{
 				"symbol": marketId,
 			}
-			AppendToArray(&promises, this.PublicGetV1SymbolsDetailsSymbol(this.Extend(request, params)))
+			promises = append(promises, this.PublicGetV1SymbolsDetailsSymbol(this.Extend(request, params)))
 		}
 
 		responses := (<-promiseAll(promises))
 		PanicOnError(responses)
 		for i := 0; i < GetArrayLength(responses); i++ {
-			AppendToArray(&result, this.ParseMarket(GetValue(responses, i)))
+			result = append(result, this.ParseMarket(GetValue(responses, i)))
 		}
 	} else {
 		// use trading-pairs info, if it was fetched
 		var tradingPairs any = this.SafeList(this.Options, "tradingPairs")
 		if !IsEqual(tradingPairs, nil) {
 			var indexedTradingPairs map[string]any = this.IndexBy(tradingPairs, 0)
-			for i := 0; i < GetArrayLength(marketIds); i++ {
+			for i := 0; i < len(marketIds); i++ {
 				var marketId any = GetValue(marketIds, i)
 				var pairInfo any = this.SafeList(indexedTradingPairs, ToUpper(marketId))
 				if !IsEqual(pairInfo, nil) && !this.InArray(marketId, brokenPairs) {
-					AppendToArray(&result, this.ParseMarket(pairInfo))
+					result = append(result, this.ParseMarket(pairInfo))
 				}
 			}
 		} else {
-			for i := 0; i < GetArrayLength(marketIds); i++ {
+			for i := 0; i < len(marketIds); i++ {
 				if !this.InArray(GetValue(marketIds, i), brokenPairs) {
-					AppendToArray(&result, this.ParseMarket(GetValue(marketIds, i)))
+					result = append(result, this.ParseMarket(GetValue(marketIds, i)))
 				}
 			}
 		}

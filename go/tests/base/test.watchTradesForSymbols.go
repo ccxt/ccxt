@@ -19,7 +19,7 @@ func testWatchTradesForSymbolsBody(ch chan any, exchange ccxt.ICoreExchange, ski
 	var ends any = now + 30000
 	var maxIdleTime int = 5000
 	var idle bool = false
-	var returnedSymbols any = []any{}
+	var returnedSymbols []any = []any{}
 	for (IsLessThan(now, ends)) && !idle {
 		var response any = nil
 		var success bool = true
@@ -61,7 +61,7 @@ func testWatchTradesForSymbolsBody(ch chan any, exchange ccxt.ICoreExchange, ski
 				TestTrade(exchange, skippedProperties, method, trade, symbol, now, true)
 				AssertInArray(exchange, skippedProperties, method, trade, "symbol", symbols)
 				if !EvalTruthy(exchange.InArray(symbol, returnedSymbols)) {
-					AppendToArray(&returnedSymbols, symbol)
+					returnedSymbols = append(returnedSymbols, symbol)
 				}
 			}
 			if IsGreaterThan(elapsedMs, maxIdleTime) {
@@ -69,7 +69,7 @@ func testWatchTradesForSymbolsBody(ch chan any, exchange ccxt.ICoreExchange, ski
 			}
 		}
 	}
-	Assert((GetArrayLength(returnedSymbols) == GetArrayLength(symbols)), Add(Add(logText, "only received part of symbols: "), exchange.Json(returnedSymbols)))
+	Assert((len(returnedSymbols) == GetArrayLength(symbols)), Add(Add(logText, "only received part of symbols: "), exchange.Json(returnedSymbols)))
 
 	ch <- true
 	return nil

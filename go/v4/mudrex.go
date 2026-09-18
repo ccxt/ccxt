@@ -617,7 +617,7 @@ func (this *Mudrex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var aggregated any = []any{}
+	var aggregated []any = []any{}
 	var offset any = 0
 	var pageLimit int = 100
 	var paging bool = true
@@ -651,7 +651,7 @@ func (this *Mudrex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			break
 		}
 		for i := 0; i < numItems; i++ {
-			AppendToArray(&aggregated, GetValue(items, i))
+			aggregated = append(aggregated, GetValue(items, i))
 		}
 		if numItems < pageLimit {
 			paging = false
@@ -660,9 +660,9 @@ func (this *Mudrex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			offset = this.Sum(offset, pageLimit)
 		}
 	}
-	var result any = []any{}
-	for i := 0; i < GetArrayLength(aggregated); i++ {
-		AppendToArray(&result, this.ParseMarket(GetValue(aggregated, i)))
+	var result []any = []any{}
+	for i := 0; i < len(aggregated); i++ {
+		result = append(result, this.ParseMarket(GetValue(aggregated, i)))
 	}
 
 	ch <- result
@@ -1306,9 +1306,9 @@ func (this *Mudrex) fetchOrdersByStateBody(ch chan any, state any, optionalArgs 
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var orders any = []any{}
+	var orders []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		AppendToArray(&orders, this.ParseOrder(GetValue(rows, i), market))
+		orders = append(orders, this.ParseOrder(GetValue(rows, i), market))
 	}
 
 	ch <- this.FilterBySymbolSinceLimit(orders, symbol, since, limit)
@@ -1455,13 +1455,13 @@ func (this *Mudrex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var rows []any = this.ToArray(data)
-	var outPos any = []any{}
+	var outPos []any = []any{}
 	for i := 0; i < len(rows); i++ {
 		var p any = GetValue(rows, i)
 		var symRaw *string = this.SafeString(p, "symbol")
 		var m any = this.SafeMarket(symRaw)
 		var pos any = this.ParsePosition(p, m)
-		AppendToArray(&outPos, pos)
+		outPos = append(outPos, pos)
 	}
 
 	ch <- this.FilterByArrayPositions(outPos, "symbol", symbols, false)
@@ -1798,7 +1798,7 @@ func (this *Mudrex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		// every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
 		pageSize = Multiply(limit, 2)
 	}
-	var allRows any = []any{}
+	var allRows []any = []any{}
 	var transactionsCount any = 0
 	var calls any = 0
 	var offset any = 0
@@ -1816,7 +1816,7 @@ func (this *Mudrex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		var dataLength int = GetArrayLength(data)
 		for i := 0; i < dataLength; i++ {
 			var entry any = GetValue(data, i)
-			AppendToArray(&allRows, entry)
+			allRows = append(allRows, entry)
 			if IsEqual(this.SafeString(entry, "fee_type"), "TRANSACTION") {
 				// count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
 				if (IsEqual(market, nil)) || (IsEqual(this.SafeString(entry, "symbol"), GetValue(market, "id"))) {
@@ -1834,26 +1834,26 @@ func (this *Mudrex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 	// a REBATE row is a partial refund of one fill's TRANSACTION fee, matched by symbol, time and notional - each rebate is consumed once, so equal fills sharing a key net exactly one refund apiece
-	var rebateKeys any = []any{}
-	var rebateAmounts any = []any{}
-	var transactions any = []any{}
-	var transactionKeys any = []any{}
-	for i := 0; i < GetArrayLength(allRows); i++ {
+	var rebateKeys []any = []any{}
+	var rebateAmounts []any = []any{}
+	var transactions []any = []any{}
+	var transactionKeys []any = []any{}
+	for i := 0; i < len(allRows); i++ {
 		var entry any = GetValue(allRows, i)
 		var feeType *string = this.SafeString(entry, "fee_type")
 		var pairKey any = Add(Add(Add(Add(this.SafeString(entry, "symbol", ""), ":"), this.SafeString(entry, "created_at", "")), ":"), this.SafeString(entry, "transaction_amount", ""))
 		if feeType != nil && *feeType == "TRANSACTION" {
-			AppendToArray(&transactions, entry)
-			AppendToArray(&transactionKeys, pairKey)
+			transactions = append(transactions, entry)
+			transactionKeys = append(transactionKeys, pairKey)
 		} else if feeType != nil && *feeType == "REBATE" {
-			AppendToArray(&rebateKeys, pairKey)
-			AppendToArray(&rebateAmounts, this.SafeString(entry, "fee_amount", "0"))
+			rebateKeys = append(rebateKeys, pairKey)
+			rebateAmounts = append(rebateAmounts, this.SafeString(entry, "fee_amount", "0"))
 		}
 	}
-	var rows any = []any{}
-	for i := 0; i < GetArrayLength(transactions); i++ {
+	var rows []any = []any{}
+	for i := 0; i < len(transactions); i++ {
 		var rebate any = nil
-		for j := 0; j < GetArrayLength(rebateKeys); j++ {
+		for j := 0; j < len(rebateKeys); j++ {
 			if IsEqual(GetValue(rebateKeys, j), GetValue(transactionKeys, i)) {
 				rebate = GetValue(rebateAmounts, j)
 				// blank the consumed key so the next equal fill matches the next rebate, never the same one twice
@@ -1862,9 +1862,9 @@ func (this *Mudrex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 			}
 		}
 		if rebate == nil {
-			AppendToArray(&rows, GetValue(transactions, i))
+			rows = append(rows, GetValue(transactions, i))
 		} else {
-			AppendToArray(&rows, this.Extend(GetValue(transactions, i), map[string]any{
+			rows = append(rows, this.Extend(GetValue(transactions, i), map[string]any{
 				"rebate_amount": rebate,
 			}))
 		}

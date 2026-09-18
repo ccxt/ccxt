@@ -653,14 +653,14 @@ func (this *Gemini) helperForWatchMultipleConstructBody(ch chan any, itemHashNam
 	if (ccxt.GetValue(firstMarket, "spot") != true) && (ccxt.GetValue(firstMarket, "linear") != true) {
 		panic(ccxt.NotSupported(this.Id + " watchMultiple supports only spot or linear-swap symbols"))
 	}
-	var messageHashes any = []any{}
-	var marketIds any = []any{}
+	var messageHashes []any = []any{}
+	var marketIds []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
 		var messageHash any = ccxt.Add(ccxt.Add(itemHashName, ":"), symbol)
-		ccxt.AppendToArray(&messageHashes, messageHash)
+		messageHashes = append(messageHashes, messageHash)
 		var market any = this.Market(symbol)
-		ccxt.AppendToArray(&marketIds, ccxt.GetValue(market, "id"))
+		marketIds = append(marketIds, ccxt.GetValue(market, "id"))
 	}
 	var queryStr string = ccxt.Join(marketIds, ",")
 	var url any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "/v1/multimarketdata?symbols="), queryStr), "&heartbeat=true&")
@@ -1035,9 +1035,9 @@ func (this *Gemini) HandleMessage(client any, message any) {
 		if ccxt.IsEqual(events, nil) {
 			return
 		}
-		var orderBookItems any = []any{}
-		var bidaskItems any = []any{}
-		var collectedEventsOfTrades any = []any{}
+		var orderBookItems []any = []any{}
+		var bidaskItems []any = []any{}
+		var collectedEventsOfTrades []any = []any{}
 		var eventsLength int = ccxt.GetArrayLength(events)
 		for i := 0; i < ccxt.GetArrayLength(events); i++ {
 			var event any = ccxt.GetValue(events, i)
@@ -1046,22 +1046,22 @@ func (this *Gemini) HandleMessage(client any, message any) {
 			var eventReason *string = this.SafeString(event, "reason")
 			var isBidAsk bool = (eventReason != nil && *eventReason == "top-of-book") || (isOrderBook && (eventReason != nil && *eventReason == "initial") && (eventsLength == 2))
 			if isBidAsk {
-				ccxt.AppendToArray(&bidaskItems, event)
+				bidaskItems = append(bidaskItems, event)
 			} else if isOrderBook {
-				ccxt.AppendToArray(&orderBookItems, event)
+				orderBookItems = append(orderBookItems, event)
 			} else if eventType != nil && *eventType == "trade" {
-				ccxt.AppendToArray(&collectedEventsOfTrades, ccxt.GetValue(events, i))
+				collectedEventsOfTrades = append(collectedEventsOfTrades, ccxt.GetValue(events, i))
 			}
 		}
-		var lengthBa int = ccxt.GetArrayLength(bidaskItems)
+		var lengthBa int = len(bidaskItems)
 		if lengthBa > 0 {
 			this.HandleBidsAsksForMultidata(client, bidaskItems, ts, eventId)
 		}
-		var lengthOb int = ccxt.GetArrayLength(orderBookItems)
+		var lengthOb int = len(orderBookItems)
 		if lengthOb > 0 {
 			this.HandleOrderBookForMultidata(client, orderBookItems, ts, eventId)
 		}
-		var lengthTrades int = ccxt.GetArrayLength(collectedEventsOfTrades)
+		var lengthTrades int = len(collectedEventsOfTrades)
 		if lengthTrades > 0 {
 			this.HandleTradesForMultidata(client, collectedEventsOfTrades, ts)
 		}

@@ -1196,12 +1196,12 @@ func (this *Btse) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 		ch <- rates
 		return nil
 	}
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(rates); i++ {
 		var rate any = GetValue(rates, i)
 		var timestamp *int64 = this.SafeInteger(rate, "timestamp")
 		if (timestamp == nil) || (IsLessThanOrEqual(timestamp, until)) {
-			AppendToArray(&result, rate)
+			result = append(result, rate)
 		}
 	}
 
@@ -1418,12 +1418,12 @@ func (this *Btse) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any {
 		var symbol any = GetValue(market, "symbol")
 		if IsEqual(symbols, nil) || this.InArray(symbol, symbols) {
 			var levels any = this.SafeList(entry, "riskLimits", []any{})
-			var tiers any = []any{}
+			var tiers []any = []any{}
 			for j := 0; j < GetArrayLength(levels); j++ {
 				var level any = GetValue(levels, j)
 				// the endpoint only reports the notional ladder, the
 				// per-tier leverage and margin rates are not available
-				AppendToArray(&tiers, map[string]any{
+				tiers = append(tiers, map[string]any{
 					"tier":                  this.SafeInteger(level, "level"),
 					"symbol":                symbol,
 					"currency":              GetValue(market, "settle"),
@@ -1717,12 +1717,12 @@ func (this *Btse) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any {
 	response := (<-this.PublicGetPublicApiMarketV1Ticker24hr(params))
 	PanicOnError(response)
 	var data any = this.SafeList(response, "data", []any{})
-	var rows any = []any{}
+	var rows []any = []any{}
 	for i := 0; i < GetArrayLength(data); i++ {
 		var row any = GetValue(data, i)
 		// spot rows do not carry an open interest
 		if this.SafeString(row, "openInterest") != nil {
-			AppendToArray(&rows, row)
+			rows = append(rows, row)
 		}
 	}
 
@@ -1819,12 +1819,12 @@ func (this *Btse) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	response := (<-this.PublicGetPublicApiMarketV1Ticker24hr(params))
 	PanicOnError(response)
 	var data any = this.SafeList(response, "data", []any{})
-	var rows any = []any{}
+	var rows []any = []any{}
 	for i := 0; i < GetArrayLength(data); i++ {
 		var row any = GetValue(data, i)
 		// spot rows do not carry a funding rate
 		if this.SafeString(row, "fundingRate") != nil {
-			AppendToArray(&rows, row)
+			rows = append(rows, row)
 		}
 	}
 
@@ -1965,12 +1965,12 @@ func (this *Btse) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 		ch <- trades
 		return nil
 	}
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(trades); i++ {
 		var trade any = GetValue(trades, i)
 		var timestamp *int64 = this.SafeInteger(trade, "timestamp")
 		if (timestamp == nil) || (IsLessThanOrEqual(timestamp, until)) {
-			AppendToArray(&result, trade)
+			result = append(result, trade)
 		}
 	}
 
@@ -3549,12 +3549,12 @@ func (this *Btse) requestWalletHistoryRowsBody(ch chan any, methodName any, hist
 		AddElementToObject(allowed, historyType, true)
 		AddElementToObject(allowed, this.Capitalize(ToLower(historyType)), true)
 	}
-	var rows any = []any{}
+	var rows []any = []any{}
 	for i := 0; i < GetArrayLength(rawRows); i++ {
 		var entry any = GetValue(rawRows, i)
 		var typeVar *string = this.SafeString(entry, "type", "")
 		if InOp(allowed, typeVar) {
-			AppendToArray(&rows, entry)
+			rows = append(rows, entry)
 		}
 	}
 

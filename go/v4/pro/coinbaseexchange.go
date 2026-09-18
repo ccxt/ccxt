@@ -86,11 +86,11 @@ func (this *Coinbaseexchange) subscribeBody(ch chan any, name any, optionalArgs 
 	}
 	var market any = nil
 	var messageHash any = messageHashStart
-	var productIds any = []any{}
+	var productIds []any = []any{}
 	if symbol != nil {
 		market = this.Market(symbol)
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", ccxt.GetValue(market, "id")))
-		ccxt.AppendToArray(&productIds, ccxt.GetValue(market, "id"))
+		productIds = append(productIds, ccxt.GetValue(market, "id"))
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	if ccxt.InOp(params, "signature") {
@@ -130,13 +130,13 @@ func (this *Coinbaseexchange) subscribeMultipleBody(ch chan any, name any, optio
 	}
 	var market any = nil
 	symbols = this.MarketSymbols(symbols)
-	var messageHashes any = []any{}
-	var productIds any = []any{}
+	var messageHashes []any = []any{}
+	var productIds []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
 		market = this.Market(symbol)
-		ccxt.AppendToArray(&productIds, ccxt.GetValue(market, "id"))
-		ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(messageHashStart, ":"), ccxt.GetValue(market, "symbol")))
+		productIds = append(productIds, ccxt.GetValue(market, "id"))
+		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(messageHashStart, ":"), ccxt.GetValue(market, "symbol")))
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	if ccxt.InOp(params, "signature") {
@@ -545,10 +545,10 @@ func (this *Coinbaseexchange) watchOrderBookForSymbolsBody(ch chan any, symbols 
 	}
 	symbols = this.MarketSymbols(symbols)
 	var marketIds any = this.MarketIds(symbols)
-	var messageHashes any = []any{}
+	var messageHashes []any = []any{}
 	for i := 0; i < symbolsLength; i++ {
 		var marketId any = ccxt.GetValue(marketIds, i)
-		ccxt.AppendToArray(&messageHashes, ccxt.Add(name+":", marketId))
+		messageHashes = append(messageHashes, ccxt.Add(name+":", marketId))
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var subscribe map[string]any = map[string]any{

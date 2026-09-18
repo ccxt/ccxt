@@ -3385,20 +3385,20 @@ func (this *Poloniex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	var timestamp *int64 = this.SafeInteger(response, "time")
 	var asks any = this.SafeValue(response, "asks")
 	var bids any = this.SafeValue(response, "bids")
-	var asksResult any = []any{}
-	var bidsResult any = []any{}
+	var asksResult []any = []any{}
+	var bidsResult []any = []any{}
 	for i := 0; i < GetArrayLength(asks); i++ {
 		if IsLessThan((Mod(i, 2)), 1) {
 			var price *float64 = this.SafeNumber(asks, i)
 			var amount *float64 = this.SafeNumber(asks, this.Sum(i, 1))
-			AppendToArray(&asksResult, []any{price, amount})
+			asksResult = append(asksResult, []any{price, amount})
 		}
 	}
 	for i := 0; i < GetArrayLength(bids); i++ {
 		if IsLessThan((Mod(i, 2)), 1) {
 			var price *float64 = this.SafeNumber(bids, i)
 			var amount *float64 = this.SafeNumber(bids, this.Sum(i, 1))
-			AppendToArray(&bidsResult, []any{price, amount})
+			bidsResult = append(bidsResult, []any{price, amount})
 		}
 	}
 

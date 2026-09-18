@@ -940,10 +940,10 @@ func (this *Coinbase) fetchPortfoliosBody(ch chan any, optionalArgs ...any) any 
 	response := (<-this.V3PrivateGetBrokeragePortfolios(params))
 	PanicOnError(response)
 	var portfolios any = this.SafeList(response, "portfolios", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(portfolios); i++ {
 		var portfolio any = GetValue(portfolios, i)
-		AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"id":   this.SafeString(portfolio, "uuid"),
 			"type": this.SafeString(portfolio, "type"),
 			"code": nil,
@@ -1825,7 +1825,7 @@ func (this *Coinbase) fetchMarketsV2Body(ch chan any, optionalArgs ...any) any {
 	var dataById map[string]any = this.IndexBy(data, "id")
 	var rates map[string]any = SafeMapTyped(this.SafeDict(exchangeRates, "data", map[string]any{}), "rates")
 	var baseIds []string = ObjectKeys(rates)
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < len(baseIds); i++ {
 		var baseId string = GetValue(baseIds, i).(string)
 		var base *string = this.SafeCurrencyCode(baseId)
@@ -1841,7 +1841,7 @@ func (this *Coinbase) fetchMarketsV2Body(ch chan any, optionalArgs ...any) any {
 				var quoteCurrency any = GetValue(data, j)
 				var quoteId *string = this.SafeString(quoteCurrency, "id")
 				var quote *string = this.SafeCurrencyCode(quoteId)
-				AppendToArray(&result, this.SafeMarketStructure(map[string]any{
+				result = append(result, this.SafeMarketStructure(map[string]any{
 					"id":             Add(baseId+"-", quoteId),
 					"symbol":         Add(Add(base, "/"), quote),
 					"base":           base,
@@ -1910,11 +1910,11 @@ func (this *Coinbase) fetchMarketsV3Body(ch chan any, optionalArgs ...any) any {
 	var usePrivateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMarkets", "usePrivate", false)
 	usePrivate = GetValue(usePrivateparamsVariable, 0)
 	params = GetValue(usePrivateparamsVariable, 1)
-	var spotUnresolvedPromises any = []any{}
+	var spotUnresolvedPromises []any = []any{}
 	if EvalTruthy(usePrivate) {
-		AppendToArray(&spotUnresolvedPromises, this.V3PrivateGetBrokerageProducts(params))
+		spotUnresolvedPromises = append(spotUnresolvedPromises, this.V3PrivateGetBrokerageProducts(params))
 	} else {
-		AppendToArray(&spotUnresolvedPromises, this.V3PublicGetBrokerageMarketProducts(params))
+		spotUnresolvedPromises = append(spotUnresolvedPromises, this.V3PublicGetBrokerageMarketProducts(params))
 	}
 	//
 	//    {
@@ -1962,7 +1962,7 @@ func (this *Coinbase) fetchMarketsV3Body(ch chan any, optionalArgs ...any) any {
 	//    }
 	//
 	if this.CheckRequiredCredentials(false) {
-		AppendToArray(&spotUnresolvedPromises, this.V3PrivateGetBrokerageTransactionSummary(params))
+		spotUnresolvedPromises = append(spotUnresolvedPromises, this.V3PrivateGetBrokerageTransactionSummary(params))
 	}
 	//
 	//    {
@@ -2070,20 +2070,20 @@ func (this *Coinbase) fetchMarketsV3Body(ch chan any, optionalArgs ...any) any {
 	var expiringFeeTier any = this.SafeDict(expiringFees, "fee_tier", map[string]any{})   // fee tier null?
 	var perpetualFeeTier any = this.SafeDict(perpetualFees, "fee_tier", map[string]any{}) // fee tier null?
 	var data any = this.SafeList(spot, "products", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(data); i++ {
-		AppendToArray(&result, this.ParseSpotMarket(GetValue(data, i), feeTier))
+		result = append(result, this.ParseSpotMarket(GetValue(data, i), feeTier))
 	}
 	var futureData any = this.SafeList(expiringFutures, "products", []any{})
 	for i := 0; i < GetArrayLength(futureData); i++ {
-		AppendToArray(&result, this.ParseContractMarket(GetValue(futureData, i), expiringFeeTier))
+		result = append(result, this.ParseContractMarket(GetValue(futureData, i), expiringFeeTier))
 	}
 	var perpetualData any = this.SafeList(perpetualFutures, "products", []any{})
 	for i := 0; i < GetArrayLength(perpetualData); i++ {
-		AppendToArray(&result, this.ParseContractMarket(GetValue(perpetualData, i), perpetualFeeTier))
+		result = append(result, this.ParseContractMarket(GetValue(perpetualData, i), perpetualFeeTier))
 	}
-	var newMarkets any = []any{}
-	for i := 0; i < GetArrayLength(result); i++ {
+	var newMarkets []any = []any{}
+	for i := 0; i < len(result); i++ {
 		var market any = GetValue(result, i)
 		var info any = this.SafeValue(market, "info", map[string]any{})
 		var realMarketIds any = this.SafeList(info, "alias_to", []any{})
@@ -2093,7 +2093,7 @@ func (this *Coinbase) fetchMarketsV3Body(ch chan any, optionalArgs ...any) any {
 		} else {
 			AddElementToObject(market, "alias", nil)
 		}
-		AppendToArray(&newMarkets, market)
+		newMarkets = append(newMarkets, market)
 	}
 
 	ch <- newMarkets
@@ -5910,10 +5910,10 @@ func (this *Coinbase) fetchDepositMethodIdBody(ch chan any, id any, optionalArgs
 func (this *Coinbase) ParseDepositMethodIds(ids any, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(ids); i++ {
 		var id map[string]any = this.Extend(this.ParseDepositMethodId(GetValue(ids, i)), params)
-		AppendToArray(&result, id)
+		result = append(result, id)
 	}
 	return result
 }
@@ -6611,7 +6611,7 @@ func (this *Coinbase) ParsePortfolioDetails(portfolioData any) any {
 	var portfolioName *string = this.SafeString(portfolioInfo, "name", "Unknown")
 	var portfolioUuid *string = this.SafeString(portfolioInfo, "uuid", "")
 	var spotPositions any = this.SafeList(breakdown, "spot_positions", []any{})
-	var parsedPositions any = []any{}
+	var parsedPositions []any = []any{}
 	for i := 0; i < GetArrayLength(spotPositions); i++ {
 		var position any = GetValue(spotPositions, i)
 		var currencyCode *string = this.SafeString(position, "asset", "Unknown")
@@ -6653,7 +6653,7 @@ func (this *Coinbase) ParsePortfolioDetails(portfolioData any) any {
 			"asset_color":                  this.SafeString(position, "asset_color", ""),
 			"account_type":                 this.SafeString(position, "account_type", ""),
 		}
-		AppendToArray(&parsedPositions, positionData)
+		parsedPositions = append(parsedPositions, positionData)
 	}
 	return parsedPositions
 }

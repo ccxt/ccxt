@@ -682,7 +682,7 @@ func (this *Gate) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 			limit = 50 // max 50 for options
 		}
 	}
-	var payload any = []any{}
+	var payload []any = []any{}
 	var channel any = ""
 	if isEuUrl {
 		channel = "spot.order_book_update"
@@ -698,7 +698,7 @@ func (this *Gate) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 		channel = ccxt.Add(messageType, ".order_book_update")
 		payload = []any{marketId, interval}
 		var stringLimit string = ccxt.ToString(limit)
-		ccxt.AppendToArray(&payload, stringLimit)
+		payload = append(payload, stringLimit)
 	}
 	var subscription map[string]any = map[string]any{
 		"symbol": symbol,
@@ -764,7 +764,7 @@ func (this *Gate) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 			limit = 50 // max 50 for options
 		}
 	}
-	var payload any = []any{}
+	var payload []any = []any{}
 	var channel any = ""
 	if isEuUrl {
 		channel = "spot.order_book_update"
@@ -780,7 +780,7 @@ func (this *Gate) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		channel = ccxt.Add(messageType, ".order_book_update")
 		payload = []any{marketId, interval}
 		var stringLimit string = ccxt.ToString(limit)
-		ccxt.AppendToArray(&payload, stringLimit)
+		payload = append(payload, stringLimit)
 	}
 	var subMessageHash any = ccxt.Add("orderbook"+":", symbol)
 	var messageHash any = ccxt.Add("unsubscribe:orderbook"+":", symbol)
@@ -1187,10 +1187,10 @@ func (this *Gate) subscribeWatchTickersAndBidsAsksBody(ch chan any, optionalArgs
 		}
 		return "bidask"
 	}()
-	var messageHashes any = []any{}
+	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
-		ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(prefix, ":"), symbol))
+		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(prefix, ":"), symbol))
 	}
 
 	tickerOrBidAsk := (<-this.SubscribePublicMultipleAsync(url, messageHashes, marketIds, channel, params))
@@ -1324,10 +1324,10 @@ func (this *Gate) watchTradesForSymbolsBody(ch chan any, symbols any, optionalAr
 	var market any = this.Market(ccxt.GetValue(symbols, 0))
 	var messageType any = this.GetTypeByMarket(market)
 	var channel any = ccxt.Add(messageType, ".trades")
-	var messageHashes any = []any{}
+	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
-		ccxt.AppendToArray(&messageHashes, ccxt.Add("trades:", symbol))
+		messageHashes = append(messageHashes, ccxt.Add("trades:", symbol))
 	}
 	var url any = this.GetUrlByMarket(market)
 
@@ -1371,12 +1371,12 @@ func (this *Gate) unWatchTradesForSymbolsBody(ch chan any, symbols any, optional
 	var market any = this.Market(ccxt.GetValue(symbols, 0))
 	var messageType any = this.GetTypeByMarket(market)
 	var channel any = ccxt.Add(messageType, ".trades")
-	var subMessageHashes any = []any{}
-	var messageHashes any = []any{}
+	var subMessageHashes []any = []any{}
+	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
-		ccxt.AppendToArray(&subMessageHashes, ccxt.Add("trades:", symbol))
-		ccxt.AppendToArray(&messageHashes, ccxt.Add("unsubscribe:trades:", symbol))
+		subMessageHashes = append(subMessageHashes, ccxt.Add("trades:", symbol))
+		messageHashes = append(messageHashes, ccxt.Add("unsubscribe:trades:", symbol))
 	}
 	var url any = this.GetUrlByMarket(market)
 
@@ -2018,7 +2018,7 @@ func (this *Gate) HandlePositions(client any, message any) {
 	var typeVar any = this.GetMarketTypeByUrl(client.(ccxt.ClientInterface).GetUrl())
 	var data any = this.SafeList(message, "result", []any{})
 	var cache any = ccxt.GetValue(this.Positions, typeVar)
-	var newPositions any = []any{}
+	var newPositions []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(data); i++ {
 		var rawPosition any = ccxt.GetValue(data, i)
 		var position any = this.ParsePosition(rawPosition)
@@ -2029,23 +2029,23 @@ func (this *Gate) HandlePositions(client any, message any) {
 			var prevLongPosition any = this.SafeDict(cache, ccxt.Add(symbol, "long"))
 			if !ccxt.IsEqual(prevLongPosition, nil) {
 				ccxt.AddElementToObject(position, "side", ccxt.GetValue(prevLongPosition, "side"))
-				ccxt.AppendToArray(&newPositions, position)
+				newPositions = append(newPositions, position)
 				cache.(ccxt.Appender).Append(position)
 			}
 			var prevShortPosition any = this.SafeDict(cache, ccxt.Add(symbol, "short"))
 			if !ccxt.IsEqual(prevShortPosition, nil) {
 				ccxt.AddElementToObject(position, "side", ccxt.GetValue(prevShortPosition, "side"))
-				ccxt.AppendToArray(&newPositions, position)
+				newPositions = append(newPositions, position)
 				cache.(ccxt.Appender).Append(position)
 			}
 			// if no prev position is found, default to long
 			if ccxt.IsEqual(prevLongPosition, nil) && ccxt.IsEqual(prevShortPosition, nil) {
 				ccxt.AddElementToObject(position, "side", "long")
-				ccxt.AppendToArray(&newPositions, position)
+				newPositions = append(newPositions, position)
 				cache.(ccxt.Appender).Append(position)
 			}
 		} else {
-			ccxt.AppendToArray(&newPositions, position)
+			newPositions = append(newPositions, position)
 			cache.(ccxt.Appender).Append(position)
 		}
 	}
@@ -2354,21 +2354,21 @@ func (this *Gate) watchMyLiquidationsForSymbolsBody(ch chan any, symbols any, op
 	query = ccxt.GetValue(subTypequeryVariable, 1)
 	var isInverse bool = (ccxt.IsEqual(subType, "inverse"))
 	var url any = this.GetUrlByMarketType(typeVar, isInverse)
-	var payload any = []any{}
+	var payload []any = []any{}
 	var messageHash any = ""
 	if ccxt.EvalTruthy(this.IsEmpty(symbols)) {
 		if (!ccxt.IsEqual(typeId, "futures")) && !isInverse {
 			panic(ccxt.BadRequest(this.Id + " watchMyLiquidationsForSymbols() does not support listening to all symbols, you must call watchMyLiquidations() instead for each symbol you wish to watch."))
 		}
 		messageHash = "myLiquidations"
-		ccxt.AppendToArray(&payload, "!all")
+		payload = append(payload, "!all")
 	} else {
 		var symbolsLength int = ccxt.GetArrayLength(symbols)
 		if symbolsLength != 1 {
 			panic(ccxt.BadRequest(this.Id + " watchMyLiquidationsForSymbols() only allows one symbol at a time. To listen to several symbols call watchMyLiquidationsForSymbols() several times."))
 		}
 		messageHash = ccxt.Add("myLiquidations::", ccxt.GetValue(symbols, 0))
-		ccxt.AppendToArray(&payload, ccxt.GetValue(market, "id"))
+		payload = append(payload, ccxt.GetValue(market, "id"))
 	}
 	var channel any = ccxt.Add(typeId, ".liquidates")
 

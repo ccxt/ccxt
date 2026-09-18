@@ -1343,7 +1343,7 @@ func (this *Phemex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var riskLimitsById map[string]any = this.IndexBy(riskLimits, "symbol")
 	var v1ProductsById map[string]any = this.IndexBy(v1ProductsData, "symbol")
 	var currenciesByCode map[string]any = this.IndexBy(currencies, "currency")
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(products); i++ {
 		var market any = GetValue(products, i)
 		var typeVar *string = this.SafeStringLower(market, "type")
@@ -1363,7 +1363,7 @@ func (this *Phemex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			})
 			market = this.ParseSpotMarket(market)
 		}
-		AppendToArray(&result, market)
+		result = append(result, market)
 	}
 
 	ch <- result
@@ -1489,10 +1489,10 @@ func (this *Phemex) CustomParseOrderBook(orderbook any, symbol any, optionalArgs
 	var sides []any = []any{bidsKey, asksKey}
 	for i := 0; i < len(sides); i++ {
 		var side any = GetValue(sides, i)
-		var orders any = []any{}
+		var orders []any = []any{}
 		var bidasks any = this.SafeValue(orderbook, side)
 		for k := 0; k < GetArrayLength(bidasks); k++ {
-			AppendToArray(&orders, this.CustomParseBidAsk(GetValue(bidasks, k), priceKey, amountKey, market))
+			orders = append(orders, this.CustomParseBidAsk(GetValue(bidasks, k), priceKey, amountKey, market))
 		}
 		AddElementToObject(result, side, orders)
 	}
@@ -4724,10 +4724,10 @@ func (this *Phemex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	//
 	var data any = this.SafeValue(response, "data", map[string]any{})
 	var positions any = this.SafeList(data, "positions", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(positions); i++ {
 		var position any = GetValue(positions, i)
-		AppendToArray(&result, this.ParsePosition(position))
+		result = append(result, this.ParsePosition(position))
 	}
 
 	ch <- this.FilterByArrayPositions(result, "symbol", symbols, false)
@@ -5077,13 +5077,13 @@ func (this *Phemex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 	//
 	var data any = this.SafeValue(response, "data", map[string]any{})
 	var rows any = this.SafeList(data, "rows", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(rows); i++ {
 		var entry any = GetValue(rows, i)
 		var timestamp *int64 = this.SafeInteger(entry, "createTime")
 		var execFee *string = this.SafeString2(entry, "execFeeEv", "execFeeRv")
 		var currencyCode *string = this.SafeCurrencyCode(this.SafeString(entry, "currency"))
-		AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"info":      entry,
 			"symbol":    this.SafeString(entry, "symbol"),
 			"code":      currencyCode,
@@ -5598,13 +5598,13 @@ func (this *Phemex) ParseMarketLeverageTiers(info any, optionalArgs ...any) any 
 	var marketId *string = this.SafeString(info, "symbol")
 	market = this.SafeMarket(marketId, market)
 	var riskLimits any = (GetValue(GetValue(market, "info"), "riskLimits"))
-	var tiers any = []any{}
+	var tiers []any = []any{}
 	var minNotional any = 0
 	for i := 0; i < GetArrayLength(riskLimits); i++ {
 		var tier any = GetValue(riskLimits, i)
 		var maxNotional *int64 = this.SafeInteger(tier, "limit")
 		var minNotionalResponse any = minNotional // java req
-		AppendToArray(&tiers, map[string]any{
+		tiers = append(tiers, map[string]any{
 			"tier":                  this.Sum(i, 1),
 			"symbol":                this.SafeSymbol(marketId, market),
 			"currency":              GetValue(market, "settle"),
@@ -6100,11 +6100,11 @@ func (this *Phemex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	//
 	var data any = this.SafeValue(response, "data", map[string]any{})
 	var rates any = this.SafeValue(data, "rows")
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(rates); i++ {
 		var item any = GetValue(rates, i)
 		var timestamp *int64 = this.SafeInteger(item, "fundingTime")
-		AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"info":        item,
 			"symbol":      symbol,
 			"fundingRate": this.SafeNumber(item, "fundingRate"),
@@ -6684,10 +6684,10 @@ func (this *Phemex) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) 
 	}
 	var data any = this.SafeValue(response, "data", map[string]any{})
 	var ranks any = this.SafeList(data, "positions", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(ranks); i++ {
 		var rank any = GetValue(ranks, i)
-		AppendToArray(&result, this.ParseADLRank(rank))
+		result = append(result, this.ParseADLRank(rank))
 	}
 
 	ch <- this.FilterByArrayADLRanks(result, "symbol", symbols, false)

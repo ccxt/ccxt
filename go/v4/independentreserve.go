@@ -446,7 +446,7 @@ func (this *Independentreserve) fetchMarketsBody(ch chan any, optionalArgs ...an
 	//         "Xrp": 1.0,
 	//     }
 	//
-	var result any = []any{}
+	var result []any = []any{}
 	var baseCurrencyIds []any = this.ToArray(baseCurrencies)
 	var quoteCurrencyIds []any = this.ToArray(quoteCurrencies)
 	for i := 0; i < len(baseCurrencyIds); i++ {
@@ -457,7 +457,7 @@ func (this *Independentreserve) fetchMarketsBody(ch chan any, optionalArgs ...an
 			var quoteId any = GetValue(quoteCurrencyIds, j)
 			var quote *string = this.SafeCurrencyCode(quoteId)
 			var id any = Add(Add(baseId, "/"), quoteId)
-			AppendToArray(&result, map[string]any{
+			result = append(result, map[string]any{
 				"id":             id,
 				"symbol":         Add(Add(base, "/"), quote),
 				"base":           base,
@@ -1513,12 +1513,12 @@ func (this *Independentreserve) Sign(path any, optionalArgs ...any) any {
 	} else {
 		this.CheckRequiredCredentials()
 		var nonce any = this.Nonce()
-		var auth any = []any{url, Add("apiKey=", this.ApiKey), "nonce=" + ToString(nonce)}
+		var auth []any = []any{url, Add("apiKey=", this.ApiKey), "nonce=" + ToString(nonce)}
 		var keys []string = ObjectKeys(params)
 		for i := 0; i < len(keys); i++ {
 			var key string = GetValue(keys, i).(string)
 			var value string = ToString(GetValue(params, key))
-			AppendToArray(&auth, key+"="+value)
+			auth = append(auth, key+"="+value)
 		}
 		var message string = Join(auth, ",")
 		var signature string = this.Hmac(this.Encode(message), this.Encode(this.Secret), sha256)

@@ -370,7 +370,7 @@ func (this *Pacifica) cancelOrdersWsBody(ch chan any, ids any, optionalArgs ...a
 	//
 	var data map[string]any = ccxt.SafeMapTyped(response, "data")
 	var results any = this.SafeList(data, "results", []any{})
-	var ordersToReturn any = []any{}
+	var ordersToReturn []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(results); i++ {
 		var order any = ccxt.GetValue(results, i)
 		var error *string = this.SafeString(order, "error")
@@ -385,7 +385,7 @@ func (this *Pacifica) cancelOrdersWsBody(ch chan any, ids any, optionalArgs ...a
 		} else {
 			status = "canceled"
 		}
-		ccxt.AppendToArray(&ordersToReturn, this.SafeOrder(map[string]any{
+		ordersToReturn = append(ordersToReturn, this.SafeOrder(map[string]any{
 			"id":            orderId,
 			"clientOrderId": clientOrderId,
 			"status":        status,
@@ -1004,7 +1004,7 @@ func (this *Pacifica) HandleWsTickers(client any, message any) any {
 	//     ],
 	// }
 	//
-	var parsedTickers any = []any{}
+	var parsedTickers []any = []any{}
 	var data any = this.SafeList(message, "data", []any{})
 	for i := 0; i < ccxt.GetArrayLength(data); i++ {
 		var info any = ccxt.GetValue(data, i)
@@ -1013,7 +1013,7 @@ func (this *Pacifica) HandleWsTickers(client any, message any) any {
 		var symbol any = ccxt.GetValue(market, "symbol")
 		var ticker any = this.ParseWsTicker(info, market)
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
-		ccxt.AppendToArray(&parsedTickers, ticker)
+		parsedTickers = append(parsedTickers, ticker)
 	}
 	var tickers map[string]any = this.IndexBy(parsedTickers, "symbol")
 	client.(ccxt.ClientInterface).Resolve(tickers, "tickers")

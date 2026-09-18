@@ -1347,10 +1347,10 @@ func (this *Btcmarkets) cancelOrdersBody(ch chan any, ids any, optionalArgs ...a
 		retRes105612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes105612)
 	}
-	var numericIds any = []any{}
+	var numericIds []any = []any{}
 	for i := 0; i < GetArrayLength(ids); i++ {
 		// numericIds[i] = parseInt (ids[i]);
-		AppendToArray(&numericIds, ParseInt(GetValue(ids, i)))
+		numericIds = append(numericIds, ParseInt(GetValue(ids, i)))
 	}
 	var request map[string]any = map[string]any{
 		"ids": numericIds,

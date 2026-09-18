@@ -961,7 +961,7 @@ func (this *Bitrue) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var promisesRaw any = []any{}
+	var promisesRaw []any = []any{}
 	var types any = nil
 	var defaultTypes []any = []any{"spot", "linear", "inverse"}
 	var fetchMarketsOptions any = this.SafeDict(this.Options, "fetchMarkets")
@@ -974,11 +974,11 @@ func (this *Bitrue) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	for i := 0; i < GetArrayLength(types); i++ {
 		var marketType any = GetValue(types, i)
 		if IsEqual(marketType, "spot") {
-			AppendToArray(&promisesRaw, this.SpotV1PublicGetExchangeInfo(params))
+			promisesRaw = append(promisesRaw, this.SpotV1PublicGetExchangeInfo(params))
 		} else if IsEqual(marketType, "linear") {
-			AppendToArray(&promisesRaw, this.FapiV1PublicGetContracts(params))
+			promisesRaw = append(promisesRaw, this.FapiV1PublicGetContracts(params))
 		} else if IsEqual(marketType, "inverse") {
-			AppendToArray(&promisesRaw, this.DapiV1PublicGetContracts(params))
+			promisesRaw = append(promisesRaw, this.DapiV1PublicGetContracts(params))
 		} else {
 			panic(ExchangeError(Add(Add(this.Id+" fetchMarkets() this.options fetchMarkets \"", marketType), "\" is not a supported market type")))
 		}

@@ -877,7 +877,7 @@ func (this *Hitbtc) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//         },
 	//     }
 	//
-	var result any = []any{}
+	var result []any = []any{}
 	var ids []string = ObjectKeys(response)
 	for i := 0; i < len(ids); i++ {
 		var id string = GetValue(ids, i).(string)
@@ -925,7 +925,7 @@ func (this *Hitbtc) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var stepString *string = this.SafeString(market, "tick_size")
 		var lot any = this.ParseNumber(lotString)
 		var step any = this.ParseNumber(stepString)
-		AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"id":             id,
 			"symbol":         symbol,
 			"base":           base,
@@ -3725,7 +3725,7 @@ func (this *Hitbtc) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	//    }
 	//
 	var contracts []string = ObjectKeys(response)
-	var rates any = []any{}
+	var rates []any = []any{}
 	for i := 0; i < len(contracts); i++ {
 		var marketId string = GetValue(contracts, i).(string)
 		var marketInner any = this.SafeMarket(marketId)
@@ -3735,7 +3735,7 @@ func (this *Hitbtc) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 			var symbolInner *string = this.SafeSymbol(GetValue(marketInner, "symbol"))
 			var fundingRate *float64 = this.SafeNumber(entry, "funding_rate")
 			var datetime *string = this.SafeString(entry, "timestamp")
-			AppendToArray(&rates, map[string]any{
+			rates = append(rates, map[string]any{
 				"info":        entry,
 				"symbol":      symbolInner,
 				"fundingRate": fundingRate,
@@ -3842,9 +3842,9 @@ func (this *Hitbtc) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	//         },
 	//     ]
 	//
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(response); i++ {
-		AppendToArray(&result, this.ParsePosition(GetValue(response, i)))
+		result = append(result, this.ParsePosition(GetValue(response, i)))
 	}
 
 	ch <- result
@@ -4116,13 +4116,13 @@ func (this *Hitbtc) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any
 	//         }
 	//     }
 	//
-	var results any = []any{}
+	var results []any = []any{}
 	var markets []string = ObjectKeys(response)
 	for i := 0; i < len(markets); i++ {
 		var marketId string = GetValue(markets, i).(string)
 		var marketInner any = this.SafeMarket(marketId)
 		var openInterest any = this.SafeDict(response, marketId, map[string]any{})
-		AppendToArray(&results, this.ParseOpenInterest(openInterest, marketInner))
+		results = append(results, this.ParseOpenInterest(openInterest, marketInner))
 	}
 
 	ch <- this.FilterByArray(results, "symbol", symbols)
@@ -4889,17 +4889,17 @@ func (this *Hitbtc) Sign(path any, optionalArgs ...any) any {
 	if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
 		var timestamp string = ToString(this.Nonce())
-		var payload any = []any{method, Add("/api/3/", implodedPath)}
+		var payload []any = []any{method, Add("/api/3/", implodedPath)}
 		if IsEqual(method, "GET") {
 			if getRequest != nil {
-				AppendToArray(&payload, getRequest)
+				payload = append(payload, getRequest)
 			}
 		} else {
 			if body != nil {
-				AppendToArray(&payload, body)
+				payload = append(payload, body)
 			}
 		}
-		AppendToArray(&payload, timestamp)
+		payload = append(payload, timestamp)
 		var payloadString string = Join(payload, "")
 		var signature string = this.Hmac(this.Encode(payloadString), this.Encode(this.Secret), sha256, "hex")
 		var secondPayload any = Add(Add(Add(Add(this.ApiKey, ":"), signature), ":"), timestamp)

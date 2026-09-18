@@ -941,7 +941,7 @@ func (this *Btcturk) ParseOHLCVs(ohlcvs any, optionalArgs ...any) any {
 	_ = limit
 	tail := GetArg(optionalArgs, 4, false)
 	_ = tail
-	var results any = []any{}
+	var results []any = []any{}
 	var timestamp any = this.SafeList(ohlcvs, "t", []any{})
 	var high any = this.SafeList(ohlcvs, "h", []any{})
 	var open any = this.SafeList(ohlcvs, "o", []any{})
@@ -957,7 +957,7 @@ func (this *Btcturk) ParseOHLCVs(ohlcvs any, optionalArgs ...any) any {
 			"close":     this.SafeNumber(close, i),
 			"volume":    this.SafeNumber(volume, i),
 		}
-		AppendToArray(&results, this.ParseOHLCV(ohlcv, market))
+		results = append(results, this.ParseOHLCV(ohlcv, market))
 	}
 	var sorted []any = this.SortBy(results, 0)
 	return this.FilterBySinceLimit(sorted, since, limit, 0, tail)

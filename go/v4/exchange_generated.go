@@ -565,34 +565,34 @@ func (this *BaseExchange) CheckProxyUrlSettings(optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 3, nil)
 	_ = body
-	var usedProxies any = []any{}
+	var usedProxies []any = []any{}
 	var proxyUrl any = nil
 	if !IsEqual(this.ProxyUrl, nil) {
-		AppendToArray(&usedProxies, "proxyUrl")
+		usedProxies = append(usedProxies, "proxyUrl")
 		proxyUrl = this.ProxyUrl
 	}
 	if !IsEqual(this.Proxy_url, nil) {
-		AppendToArray(&usedProxies, "proxy_url")
+		usedProxies = append(usedProxies, "proxy_url")
 		proxyUrl = this.Proxy_url
 	}
 	if !IsEqual(this.ProxyUrlCallback, nil) {
-		AppendToArray(&usedProxies, "proxyUrlCallback")
+		usedProxies = append(usedProxies, "proxyUrlCallback")
 		proxyUrl = this.CallDynamically("proxyUrlCallback", url, method, headers, body)
 	}
 	if !IsEqual(this.Proxy_url_callback, nil) {
-		AppendToArray(&usedProxies, "proxy_url_callback")
+		usedProxies = append(usedProxies, "proxy_url_callback")
 		proxyUrl = this.CallDynamically("proxy_url_callback", url, method, headers, body)
 	}
 	// backwards-compatibility
 	if !IsEqual(this.Proxy, nil) {
-		AppendToArray(&usedProxies, "proxy")
+		usedProxies = append(usedProxies, "proxy")
 		if IsFunction(this.Proxy) {
 			proxyUrl = this.CallDynamically("proxy", url, method, headers, body)
 		} else {
 			proxyUrl = this.Proxy
 		}
 	}
-	var length int = GetArrayLength(usedProxies)
+	var length int = len(usedProxies)
 	if length > 1 {
 		var joinedProxyNames string = Join(usedProxies, ",")
 		panic(InvalidProxySettings(this.Id + " you have multiple conflicting proxy settings (" + joinedProxyNames + "), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback"))
@@ -619,7 +619,7 @@ func (this *BaseExchange) CheckProxySettings(optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 3, nil)
 	_ = body
-	var usedProxies any = []any{}
+	var usedProxies []any = []any{}
 	var httpProxy any = nil
 	var httpsProxy any = nil
 	var socksProxy any = nil
@@ -627,7 +627,7 @@ func (this *BaseExchange) CheckProxySettings(optionalArgs ...any) any {
 	var isHttpProxyDefined bool = this.ValueIsDefined(this.HttpProxy)
 	var isHttp_proxy_defined bool = this.ValueIsDefined(this.Http_proxy)
 	if isHttpProxyDefined || isHttp_proxy_defined {
-		AppendToArray(&usedProxies, "httpProxy")
+		usedProxies = append(usedProxies, "httpProxy")
 		httpProxy = func() any {
 			if isHttpProxyDefined {
 				return this.HttpProxy
@@ -638,7 +638,7 @@ func (this *BaseExchange) CheckProxySettings(optionalArgs ...any) any {
 	var ishttpProxyCallbackDefined bool = this.ValueIsDefined(this.HttpProxyCallback)
 	var ishttp_proxy_callback_defined bool = this.ValueIsDefined(this.Http_proxy_callback)
 	if ishttpProxyCallbackDefined || ishttp_proxy_callback_defined {
-		AppendToArray(&usedProxies, "httpProxyCallback")
+		usedProxies = append(usedProxies, "httpProxyCallback")
 		httpProxy = func() any {
 			if ishttpProxyCallbackDefined {
 				return this.CallDynamically("httpProxyCallback", url, method, headers, body)
@@ -650,7 +650,7 @@ func (this *BaseExchange) CheckProxySettings(optionalArgs ...any) any {
 	var isHttpsProxyDefined bool = this.ValueIsDefined(this.HttpsProxy)
 	var isHttps_proxy_defined bool = this.ValueIsDefined(this.Https_proxy)
 	if isHttpsProxyDefined || isHttps_proxy_defined {
-		AppendToArray(&usedProxies, "httpsProxy")
+		usedProxies = append(usedProxies, "httpsProxy")
 		httpsProxy = func() any {
 			if isHttpsProxyDefined {
 				return this.HttpsProxy
@@ -661,7 +661,7 @@ func (this *BaseExchange) CheckProxySettings(optionalArgs ...any) any {
 	var ishttpsProxyCallbackDefined bool = this.ValueIsDefined(this.HttpsProxyCallback)
 	var ishttps_proxy_callback_defined bool = this.ValueIsDefined(this.Https_proxy_callback)
 	if ishttpsProxyCallbackDefined || ishttps_proxy_callback_defined {
-		AppendToArray(&usedProxies, "httpsProxyCallback")
+		usedProxies = append(usedProxies, "httpsProxyCallback")
 		httpsProxy = func() any {
 			if ishttpsProxyCallbackDefined {
 				return this.CallDynamically("httpsProxyCallback", url, method, headers, body)
@@ -673,7 +673,7 @@ func (this *BaseExchange) CheckProxySettings(optionalArgs ...any) any {
 	var isSocksProxyDefined bool = this.ValueIsDefined(this.SocksProxy)
 	var isSocks_proxy_defined bool = this.ValueIsDefined(this.Socks_proxy)
 	if isSocksProxyDefined || isSocks_proxy_defined {
-		AppendToArray(&usedProxies, "socksProxy")
+		usedProxies = append(usedProxies, "socksProxy")
 		socksProxy = func() any {
 			if isSocksProxyDefined {
 				return this.SocksProxy
@@ -684,7 +684,7 @@ func (this *BaseExchange) CheckProxySettings(optionalArgs ...any) any {
 	var issocksProxyCallbackDefined bool = this.ValueIsDefined(this.SocksProxyCallback)
 	var issocks_proxy_callback_defined bool = this.ValueIsDefined(this.Socks_proxy_callback)
 	if issocksProxyCallbackDefined || issocks_proxy_callback_defined {
-		AppendToArray(&usedProxies, "socksProxyCallback")
+		usedProxies = append(usedProxies, "socksProxyCallback")
 		socksProxy = func() any {
 			if issocksProxyCallbackDefined {
 				return this.CallDynamically("socksProxyCallback", url, method, headers, body)
@@ -693,7 +693,7 @@ func (this *BaseExchange) CheckProxySettings(optionalArgs ...any) any {
 		}()
 	}
 	// check
-	var length int = GetArrayLength(usedProxies)
+	var length int = len(usedProxies)
 	if length > 1 {
 		var joinedProxyNames string = Join(usedProxies, ",")
 		panic(InvalidProxySettings(this.Id + " you have multiple conflicting proxy settings (" + joinedProxyNames + "), please use only one from: httpProxy, httpsProxy, httpProxyCallback, httpsProxyCallback, socksProxy, socksProxyCallback"))
@@ -701,7 +701,7 @@ func (this *BaseExchange) CheckProxySettings(optionalArgs ...any) any {
 	return []any{httpProxy, httpsProxy, socksProxy}
 }
 func (this *BaseExchange) CheckWsProxySettings() any {
-	var usedProxies any = []any{}
+	var usedProxies []any = []any{}
 	var wsProxy any = nil
 	var wssProxy any = nil
 	var wsSocksProxy any = nil
@@ -709,7 +709,7 @@ func (this *BaseExchange) CheckWsProxySettings() any {
 	var isWsProxyDefined bool = this.ValueIsDefined(this.WsProxy)
 	var is_ws_proxy_defined bool = this.ValueIsDefined(this.Ws_proxy)
 	if isWsProxyDefined || is_ws_proxy_defined {
-		AppendToArray(&usedProxies, "wsProxy")
+		usedProxies = append(usedProxies, "wsProxy")
 		wsProxy = func() any {
 			if isWsProxyDefined {
 				return this.WsProxy
@@ -721,7 +721,7 @@ func (this *BaseExchange) CheckWsProxySettings() any {
 	var isWssProxyDefined bool = this.ValueIsDefined(this.WssProxy)
 	var is_wss_proxy_defined bool = this.ValueIsDefined(this.Wss_proxy)
 	if isWssProxyDefined || is_wss_proxy_defined {
-		AppendToArray(&usedProxies, "wssProxy")
+		usedProxies = append(usedProxies, "wssProxy")
 		wssProxy = func() any {
 			if isWssProxyDefined {
 				return this.WssProxy
@@ -733,7 +733,7 @@ func (this *BaseExchange) CheckWsProxySettings() any {
 	var isWsSocksProxyDefined bool = this.ValueIsDefined(this.WsSocksProxy)
 	var is_ws_socks_proxy_defined bool = this.ValueIsDefined(this.Ws_socks_proxy)
 	if isWsSocksProxyDefined || is_ws_socks_proxy_defined {
-		AppendToArray(&usedProxies, "wsSocksProxy")
+		usedProxies = append(usedProxies, "wsSocksProxy")
 		wsSocksProxy = func() any {
 			if isWsSocksProxyDefined {
 				return this.WsSocksProxy
@@ -742,7 +742,7 @@ func (this *BaseExchange) CheckWsProxySettings() any {
 		}()
 	}
 	// check
-	var length int = GetArrayLength(usedProxies)
+	var length int = len(usedProxies)
 	if length > 1 {
 		var joinedProxyNames string = Join(usedProxies, ",")
 		panic(InvalidProxySettings(this.Id + " you have multiple conflicting proxy settings (" + joinedProxyNames + "), please use only one from: wsProxy, wssProxy, wsSocksProxy"))
@@ -771,12 +771,12 @@ func (this *BaseExchange) CheckAddress(optionalArgs ...any) any {
 	return address
 }
 func (this *BaseExchange) FindMessageHashes(client *Client, element any) any {
-	var result any = []any{}
+	var result []any = []any{}
 	var messageHashes []string = ObjectKeys(client.Futures)
 	for i := 0; i < len(messageHashes); i++ {
 		var messageHash string = GetValue(messageHashes, i).(string)
 		if GetIndexOf(messageHash, element) >= 0 {
-			AppendToArray(&result, messageHash)
+			result = append(result, messageHash)
 		}
 	}
 	return result
@@ -835,14 +835,14 @@ func (this *BaseExchange) FilterBySinceLimit(array any, optionalArgs ...any) any
 	}
 	var sinceIsDefined bool = this.ValueIsDefined(since)
 	var parsedArray []any = this.ToArray(array)
-	var result any = parsedArray
+	var result []any = parsedArray
 	if sinceIsDefined {
 		result = []any{}
 		for i := 0; i < len(parsedArray); i++ {
 			var entry any = GetValue(parsedArray, i)
 			var value any = this.SafeValue(entry, key)
 			if (!IsEqual(value, nil)) && (!IsEqual(value, nil)) && (!IsEqual(value, 0)) && (IsGreaterThanOrEqual(value, since)) {
-				AppendToArray(&result, entry)
+				result = append(result, entry)
 			}
 		}
 	}
@@ -868,7 +868,7 @@ func (this *BaseExchange) FilterByValueSinceLimit(array any, field any, optional
 	var valueIsDefined bool = this.ValueIsDefined(value)
 	var sinceIsDefined bool = this.ValueIsDefined(since)
 	var parsedArray []any = this.ToArray(array)
-	var result any = parsedArray
+	var result []any = parsedArray
 	// single-pass filter for both symbol and since
 	if valueIsDefined || sinceIsDefined {
 		result = []any{}
@@ -892,7 +892,7 @@ func (this *BaseExchange) FilterByValueSinceLimit(array any, field any, optional
 				return true
 			}()
 			if EvalTruthy(firstCondition) && EvalTruthy(secondCondition) {
-				AppendToArray(&result, entry)
+				result = append(result, entry)
 			}
 		}
 	}
@@ -1301,9 +1301,9 @@ func (this *BaseExchange) ParseMarket(market any) any {
 	panic(NotSupported(this.Id + " parseMarket() is not supported yet"))
 }
 func (this *BaseExchange) ParseMarkets(markets any) any {
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(markets); i++ {
-		AppendToArray(&result, this.DerivedExchange.ParseMarket(GetValue(markets, i)))
+		result = append(result, this.DerivedExchange.ParseMarket(GetValue(markets, i)))
 	}
 	return result
 }
@@ -2369,7 +2369,7 @@ func (this *BaseExchange) SafeMarketStructure(optionalArgs ...any) any {
 func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 	currencies := GetArg(optionalArgs, 0, nil)
 	_ = currencies
-	var values any = []any{}
+	var values []any = []any{}
 	this.Markets_by_id = this.CreateSafeDictionary()
 	// handle marketId conflicts
 	// we insert spot markets first
@@ -2405,7 +2405,7 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 		} else {
 			market["subType"] = nil
 		}
-		AppendToArray(&values, market)
+		values = append(values, market)
 	}
 	this.Markets = this.MapToSafeMap(this.IndexBy(values, "symbol"))
 	var marketsSortedBySymbol map[string]any = this.Keysort(this.Markets)
@@ -2421,9 +2421,9 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 		// currencies is always undefined when called in constructor but not when called from loadMarkets
 		this.Currencies = this.MapToSafeMap(this.DeepExtend(this.Currencies, currencies))
 	} else {
-		var baseCurrencies any = []any{}
-		var quoteCurrencies any = []any{}
-		for i := 0; i < GetArrayLength(values); i++ {
+		var baseCurrencies []any = []any{}
+		var quoteCurrencies []any = []any{}
+		for i := 0; i < len(values); i++ {
 			var market any = GetValue(values, i)
 			var defaultCurrencyPrecision any = func() any {
 				if IsEqual(this.PrecisionMode, DECIMAL_PLACES) {
@@ -2439,7 +2439,7 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 					"code":      this.SafeString(market, "base"),
 					"precision": this.SafeValue2(marketPrecision, "base", "amount", defaultCurrencyPrecision),
 				})
-				AppendToArray(&baseCurrencies, currency)
+				baseCurrencies = append(baseCurrencies, currency)
 			}
 			if InOp(market, "quote") {
 				var currency any = this.SafeCurrencyStructure(map[string]any{
@@ -2448,7 +2448,7 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 					"code":      this.SafeString(market, "quote"),
 					"precision": this.SafeValue2(marketPrecision, "quote", "price", defaultCurrencyPrecision),
 				})
-				AppendToArray(&quoteCurrencies, currency)
+				quoteCurrencies = append(quoteCurrencies, currency)
 			}
 		}
 		baseCurrencies = this.SortBy(baseCurrencies, "code", false, "")
@@ -2458,7 +2458,7 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 		var allCurrencies []any = this.ArrayConcat(baseCurrencies, quoteCurrencies)
 		var groupedCurrencies map[string]any = this.GroupBy(allCurrencies, "code")
 		var codes []string = ObjectKeys(groupedCurrencies)
-		var resultingCurrencies any = []any{}
+		var resultingCurrencies []any = []any{}
 		for i := 0; i < len(codes); i++ {
 			var code string = GetValue(codes, i).(string)
 			var groupedCurrenciesCode any = this.SafeList(groupedCurrencies, code, []any{})
@@ -2481,7 +2481,7 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 					}()
 				}
 			}
-			AppendToArray(&resultingCurrencies, highestPrecisionCurrency)
+			resultingCurrencies = append(resultingCurrencies, highestPrecisionCurrency)
 		}
 		var sortedCurrencies []any = this.SortBy(resultingCurrencies, "code")
 		this.Currencies = this.MapToSafeMap(this.DeepExtend(this.Currencies, this.IndexBy(sortedCurrencies, "code")))
@@ -2879,14 +2879,14 @@ func (this *BaseExchange) ParseOrders(orders any, optionalArgs ...any) any {
 	if IsEqual(orders, nil) {
 		return []any{}
 	}
-	var results any = []any{}
+	var results []any = []any{}
 	if IsArray(orders) {
 		for i := 0; i < GetArrayLength(orders); i++ {
 
 			var parsed any = this.DerivedExchange.ParseOrder(GetValue(orders, i), market)
 			PanicOnError(parsed) // don't inline this call
 			var order map[string]any = this.Extend(parsed, params)
-			AppendToArray(&results, order)
+			results = append(results, order)
 		}
 	} else {
 		var ids []string = ObjectKeys(orders)
@@ -2899,7 +2899,7 @@ func (this *BaseExchange) ParseOrders(orders any, optionalArgs ...any) any {
 			var parsedOrder any = this.DerivedExchange.ParseOrder(idExtended, market)
 			PanicOnError(parsedOrder) // don't  inline these calls
 			var order map[string]any = this.Extend(parsedOrder, params)
-			AppendToArray(&results, order)
+			results = append(results, order)
 		}
 	}
 	results = this.SortBy(results, "timestamp")
@@ -3128,7 +3128,7 @@ func (this *BaseExchange) FindNearestCeiling(arr any, providedValue any) any {
 	return GetValue(arr, Subtract(length, 1))
 }
 func (this *BaseExchange) AddKeyInArrayItems(obj any, keyName any) any {
-	var result any = []any{}
+	var result []any = []any{}
 	var keys []string = ObjectKeys(obj)
 	for i := 0; i < len(keys); i++ {
 		var key string = GetValue(keys, i).(string)
@@ -3138,7 +3138,7 @@ func (this *BaseExchange) AddKeyInArrayItems(obj any, keyName any) any {
 		}
 		var itemWithKey map[string]any = this.Extend(map[string]any{}, item)
 		AddElementToObject(itemWithKey, keyName, key)
-		AppendToArray(&result, itemWithKey)
+		result = append(result, itemWithKey)
 	}
 	return result
 }
@@ -3551,7 +3551,7 @@ func (this *BaseExchange) ConvertTradingViewToOHLCV(ohlcvs any, optionalArgs ...
 	_ = volume
 	ms := GetArg(optionalArgs, 6, false)
 	_ = ms
-	var result any = []any{}
+	var result []any = []any{}
 	var timestamps any = this.SafeList(ohlcvs, timestamp, []any{})
 	var opens any = this.SafeList(ohlcvs, open, []any{})
 	var highs any = this.SafeList(ohlcvs, high, []any{})
@@ -3559,7 +3559,7 @@ func (this *BaseExchange) ConvertTradingViewToOHLCV(ohlcvs any, optionalArgs ...
 	var closes any = this.SafeList(ohlcvs, close, []any{})
 	var volumes any = this.SafeList(ohlcvs, volume, []any{})
 	for i := 0; i < GetArrayLength(timestamps); i++ {
-		AppendToArray(&result, []any{func() any {
+		result = append(result, []any{func() any {
 			if EvalTruthy(ms) {
 				return this.SafeInteger(timestamps, i)
 			}
@@ -3743,11 +3743,11 @@ func (this *BaseExchange) MarketIds(optionalArgs ...any) any {
 	if IsEqual(symbols, nil) {
 		return symbols
 	}
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(symbols); i++ {
 		var id any = this.MarketId(GetValue(symbols, i))
 		if id != nil {
-			AppendToArray(&result, id)
+			result = append(result, id)
 		}
 	}
 	return result
@@ -3758,11 +3758,11 @@ func (this *BaseExchange) CurrencyIds(optionalArgs ...any) any {
 	if IsEqual(codes, nil) {
 		return codes
 	}
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(codes); i++ {
 		var id any = this.CurrencyId(GetValue(codes, i))
 		if id != nil {
-			AppendToArray(&result, id)
+			result = append(result, id)
 		}
 	}
 	return result
@@ -3773,9 +3773,9 @@ func (this *BaseExchange) MarketsForSymbols(optionalArgs ...any) any {
 	if IsEqual(symbols, nil) {
 		return nil
 	}
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(symbols); i++ {
-		AppendToArray(&result, this.DerivedExchange.Market(GetValue(symbols, i)))
+		result = append(result, this.DerivedExchange.Market(GetValue(symbols, i)))
 	}
 	return result
 }
@@ -3814,7 +3814,7 @@ func (this *BaseExchange) MarketSymbols(optionalArgs ...any) any {
 		}
 		return symbols
 	}
-	var result any = []any{}
+	var result []any = []any{}
 	var marketType any = nil
 	var isLinearSubType any = nil
 	for i := 0; i < GetArrayLength(symbols); i++ {
@@ -3839,7 +3839,7 @@ func (this *BaseExchange) MarketSymbols(optionalArgs ...any) any {
 			isLinearSubType = GetValue(market, "linear")
 		}
 		var symbol *string = this.SafeString(market, "symbol", GetValue(symbols, i))
-		AppendToArray(&result, symbol)
+		result = append(result, symbol)
 	}
 	return result
 }
@@ -3849,9 +3849,9 @@ func (this *BaseExchange) MarketCodes(optionalArgs ...any) any {
 	if IsEqual(codes, nil) {
 		return codes
 	}
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(codes); i++ {
-		AppendToArray(&result, this.CommonCurrencyCode(GetValue(codes, i)))
+		result = append(result, this.CommonCurrencyCode(GetValue(codes, i)))
 	}
 	return result
 }
@@ -3863,9 +3863,9 @@ func (this *BaseExchange) ParseOrderBookBidsAsks(bidasks any, optionalArgs ...an
 	countOrIdKey := GetArg(optionalArgs, 2, 2)
 	_ = countOrIdKey
 	bidasks = this.ToArray(bidasks)
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(bidasks); i++ {
-		AppendToArray(&result, this.ParseOrderBookBidAsk(GetValue(bidasks, i), priceKey, amountKey, countOrIdKey))
+		result = append(result, this.ParseOrderBookBidAsk(GetValue(bidasks, i), priceKey, amountKey, countOrIdKey))
 	}
 	return result
 }
@@ -3875,11 +3875,11 @@ func (this *BaseExchange) FilterByKey(objects any, key any, optionalArgs ...any)
 	if value == nil {
 		return objects
 	}
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(objects); i++ {
 		var objectValue *string = this.SafeString(GetValue(objects, i), key)
 		if IsEqual(objectValue, value) {
-			AppendToArray(&result, GetValue(objects, i))
+			result = append(result, GetValue(objects, i))
 		}
 	}
 	return result
@@ -4198,9 +4198,9 @@ func (this *BaseExchange) ParseOHLCVs(ohlcvs any, optionalArgs ...any) any {
 	if IsEqual(ohlcvs, nil) {
 		return []any{}
 	}
-	var results any = []any{}
+	var results []any = []any{}
 	for i := 0; i < GetArrayLength(ohlcvs); i++ {
-		AppendToArray(&results, this.DerivedExchange.ParseOHLCV(GetValue(ohlcvs, i), market))
+		results = append(results, this.DerivedExchange.ParseOHLCV(GetValue(ohlcvs, i), market))
 	}
 	var sorted []any = this.SortBy(results, 0)
 	return this.FilterBySinceLimit(sorted, since, limit, 0, tail)
@@ -4321,10 +4321,10 @@ func (this *BaseExchange) ParsePositions(positions any, optionalArgs ...any) any
 	_ = params
 	symbols = this.MarketSymbols(symbols)
 	var positionsArray []any = this.ToArray(positions)
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < len(positionsArray); i++ {
 		var position map[string]any = this.Extend(this.DerivedExchange.ParsePosition(GetValue(positionsArray, i)), params)
-		AppendToArray(&result, position)
+		result = append(result, position)
 	}
 	return this.FilterByArrayPositions(result, "symbol", symbols, false)
 }
@@ -4343,10 +4343,10 @@ func (this *BaseExchange) ParseADLRanks(ranks any, optionalArgs ...any) any {
 	_ = params
 	symbols = this.MarketSymbols(symbols)
 	var ranksArray []any = this.ToArray(ranks)
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < len(ranksArray); i++ {
 		var rank map[string]any = this.Extend(this.DerivedExchange.ParseADLRank(GetValue(ranksArray, i)), params)
-		AppendToArray(&result, rank)
+		result = append(result, rank)
 	}
 	return this.FilterByArrayPositions(result, "symbol", symbols, false)
 }
@@ -4354,10 +4354,10 @@ func (this *BaseExchange) ParseAccounts(accounts any, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var accountsArray []any = this.ToArray(accounts)
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < len(accountsArray); i++ {
 		var account map[string]any = this.Extend(this.DerivedExchange.ParseAccount(GetValue(accountsArray, i)), params)
-		AppendToArray(&result, account)
+		result = append(result, account)
 	}
 	return result
 }
@@ -4371,7 +4371,7 @@ func (this *BaseExchange) ParseTradesHelper(isWs any, trades any, optionalArgs .
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 	var tradesArray []any = this.ToArray(trades)
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < len(tradesArray); i++ {
 		var parsed any = nil
 		if EvalTruthy(isWs) {
@@ -4384,7 +4384,7 @@ func (this *BaseExchange) ParseTradesHelper(isWs any, trades any, optionalArgs .
 			PanicOnError(parsed)
 		}
 		var trade map[string]any = this.Extend(parsed, params)
-		AppendToArray(&result, trade)
+		result = append(result, trade)
 	}
 	result = this.SortBy2(result, "timestamp", "id")
 	var symbol *string = this.SafeString(market, "symbol")
@@ -4422,10 +4422,10 @@ func (this *BaseExchange) ParseTransactions(transactions any, optionalArgs ...an
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 	var transactionsArray []any = this.ToArray(transactions)
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < len(transactionsArray); i++ {
 		var transaction map[string]any = this.Extend(this.DerivedExchange.ParseTransaction(GetValue(transactionsArray, i), currency), params)
-		AppendToArray(&result, transaction)
+		result = append(result, transaction)
 	}
 	result = this.SortBy(result, "timestamp")
 	var code any = func() any {
@@ -4446,10 +4446,10 @@ func (this *BaseExchange) ParseTransfers(transfers any, optionalArgs ...any) any
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 	var transfersArray []any = this.ToArray(transfers)
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < len(transfersArray); i++ {
 		var transfer map[string]any = this.Extend(this.DerivedExchange.ParseTransfer(GetValue(transfersArray, i), currency), params)
-		AppendToArray(&result, transfer)
+		result = append(result, transfer)
 	}
 	result = this.SortBy(result, "timestamp")
 	var code any = func() any {
@@ -4469,7 +4469,7 @@ func (this *BaseExchange) ParseLedger(data any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	var result any = []any{}
+	var result []any = []any{}
 	var arrayData []any = this.ToArray(data)
 	for i := 0; i < len(arrayData); i++ {
 
@@ -4477,10 +4477,10 @@ func (this *BaseExchange) ParseLedger(data any, optionalArgs ...any) any {
 		PanicOnError(itemOrItems)
 		if IsArray(itemOrItems) {
 			for j := 0; j < GetArrayLength(itemOrItems); j++ {
-				AppendToArray(&result, this.Extend(GetValue(itemOrItems, j), params))
+				result = append(result, this.Extend(GetValue(itemOrItems, j), params))
 			}
 		} else {
-			AppendToArray(&result, this.Extend(itemOrItems, params))
+			result = append(result, this.Extend(itemOrItems, params))
 		}
 	}
 	result = this.SortBy(result, "timestamp")
@@ -4622,9 +4622,9 @@ func (this *BaseExchange) GetListFromObjectValues(objects any, key any) any {
 	if !IsArray(objects) {
 		newArray = this.ToArray(objects)
 	}
-	var results any = []any{}
+	var results []any = []any{}
 	for i := 0; i < GetArrayLength(newArray); i++ {
-		AppendToArray(&results, GetValue(GetValue(newArray, i), key))
+		results = append(results, GetValue(GetValue(newArray, i), key))
 	}
 	return results
 }
@@ -4645,12 +4645,12 @@ func (this *BaseExchange) GetSymbolsForMarketType(optionalArgs ...any) any {
 		this.CheckRequiredArgument("getSymbolsForMarketType", subType, "subType", []any{"linear", "inverse", "quanto"})
 		filteredMarkets = this.FilterBy(filteredMarkets, "subType", subType)
 	}
-	var activeStatuses any = []any{}
+	var activeStatuses []any = []any{}
 	if EvalTruthy(symbolWithActiveStatus) {
-		AppendToArray(&activeStatuses, true)
+		activeStatuses = append(activeStatuses, true)
 	}
 	if EvalTruthy(symbolWithUnknownStatus) {
-		AppendToArray(&activeStatuses, nil)
+		activeStatuses = append(activeStatuses, nil)
 	}
 	filteredMarkets = this.FilterByArray(filteredMarkets, "active", activeStatuses, false)
 	return this.GetListFromObjectValues(filteredMarkets, "symbol")
@@ -4670,10 +4670,10 @@ func (this *BaseExchange) FilterByArray(objects any, key any, optionalArgs ...an
 			return objects
 		}
 	}
-	var results any = []any{}
+	var results []any = []any{}
 	for i := 0; i < GetArrayLength(objects); i++ {
 		if this.InArray(GetValue(GetValue(objects, i), key), values) {
-			AppendToArray(&results, GetValue(objects, i))
+			results = append(results, GetValue(objects, i))
 		}
 	}
 	// return indexed ? this.indexBy (results, key) : results;
@@ -4697,10 +4697,10 @@ func (this *BaseExchange) FilterOutByArray(objects any, key any, optionalArgs ..
 			return objects
 		}
 	}
-	var results any = []any{}
+	var results []any = []any{}
 	for i := 0; i < GetArrayLength(objects); i++ {
 		if !this.InArray(GetValue(GetValue(objects, i), key), values) {
-			AppendToArray(&results, GetValue(objects, i))
+			results = append(results, GetValue(objects, i))
 		}
 	}
 	// return indexed ? this.indexBy (results, key) : results;
@@ -4891,7 +4891,7 @@ func (this *BaseExchange) BuildOHLCVC(trades any, optionalArgs ...any) any {
 	limit := GetArg(optionalArgs, 2, 2147483647)
 	_ = limit
 	var ms any = Multiply(this.ParseTimeframe(timeframe), 1000)
-	var ohlcvs any = []any{}
+	var ohlcvs []any = []any{}
 	var i_timestamp int = 0
 	// const open = 1;
 	var i_high int = 2
@@ -4920,7 +4920,7 @@ func (this *BaseExchange) BuildOHLCVC(trades any, optionalArgs ...any) any {
 		if IsLessThan(openingTime, since) {
 			continue
 		}
-		var ohlcv_length int = GetArrayLength(ohlcvs)
+		var ohlcv_length int = len(ohlcvs)
 		var candle int64 = Subtract(ohlcv_length, 1).(int64)
 		if IsEqual(price, nil) {
 			panic(ArgumentsRequired(this.Id + " buildOHLCVC() requires a price argument"))
@@ -4931,7 +4931,7 @@ func (this *BaseExchange) BuildOHLCVC(trades any, optionalArgs ...any) any {
 		var isFirstCandle bool = (candle == OpNeg(1))
 		if isFirstCandle || IsGreaterThanOrEqual(openingTime, this.Sum(GetValue(GetValue(ohlcvs, candle), i_timestamp), ms)) {
 			// moved to a new timeframe -> create a new candle from opening trade
-			AppendToArray(&ohlcvs, []any{openingTime, price, price, price, price, GetValue(trade, "amount"), 1})
+			ohlcvs = append(ohlcvs, []any{openingTime, price, price, price, price, GetValue(trade, "amount"), 1})
 		} else {
 			// still processing the same timeframe -> update opening trade
 			var prevHigh any = GetValue(GetValue(ohlcvs, candle), i_high)
@@ -5031,9 +5031,9 @@ func (this *BaseExchange) ParseOrderBookBidAsk(bidask any, optionalArgs ...any) 
 	var price *float64 = this.SafeFloat(bidask, priceKey)
 	var amount *float64 = this.SafeFloat(bidask, amountKey)
 	var countOrId *int64 = this.SafeInteger(bidask, countOrIdKey)
-	var bidAsk any = []any{price, amount}
+	var bidAsk []any = []any{price, amount}
 	if countOrId != nil {
-		AppendToArray(&bidAsk, countOrId)
+		bidAsk = append(bidAsk, countOrId)
 	}
 	return bidAsk
 }
@@ -6664,11 +6664,11 @@ func (this *BaseExchange) ParseLastPrices(pricesData any, optionalArgs ...any) a
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var results any = []any{}
+	var results []any = []any{}
 	if IsArray(pricesData) {
 		for i := 0; i < GetArrayLength(pricesData); i++ {
 			var priceData map[string]any = this.Extend(this.DerivedExchange.ParseLastPrice(GetValue(pricesData, i)), params)
-			AppendToArray(&results, priceData)
+			results = append(results, priceData)
 		}
 	} else {
 		var marketIds []string = ObjectKeys(pricesData)
@@ -6678,7 +6678,7 @@ func (this *BaseExchange) ParseLastPrices(pricesData any, optionalArgs ...any) a
 			var market any = this.DerivedExchange.SafeMarket(marketId)
 			PanicOnError(market)
 			var priceData map[string]any = this.Extend(this.DerivedExchange.ParseLastPrice(GetValue(pricesData, marketId), market), params)
-			AppendToArray(&results, priceData)
+			results = append(results, priceData)
 		}
 	}
 	symbols = this.MarketSymbols(symbols)
@@ -6711,14 +6711,14 @@ func (this *BaseExchange) ParseTickers(tickers any, optionalArgs ...any) any {
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var results any = []any{}
+	var results []any = []any{}
 	if IsArray(tickers) {
 		for i := 0; i < GetArrayLength(tickers); i++ {
 
 			var parsedTicker any = this.DerivedExchange.ParseTicker(GetValue(tickers, i))
 			PanicOnError(parsedTicker)
 			var ticker map[string]any = this.Extend(parsedTicker, params)
-			AppendToArray(&results, ticker)
+			results = append(results, ticker)
 		}
 	} else {
 		var marketIds []string = ObjectKeys(tickers)
@@ -6731,7 +6731,7 @@ func (this *BaseExchange) ParseTickers(tickers any, optionalArgs ...any) any {
 			var parsed any = this.DerivedExchange.ParseTicker(GetValue(tickers, marketId), market)
 			PanicOnError(parsed)
 			var ticker map[string]any = this.Extend(parsed, params)
-			AppendToArray(&results, ticker)
+			results = append(results, ticker)
 		}
 	}
 	symbols = this.MarketSymbols(symbols)
@@ -6760,10 +6760,10 @@ func (this *BaseExchange) ParseDepositAddresses(addresses any, optionalArgs ...a
 func (this *BaseExchange) ParseBorrowInterests(response any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var interests any = []any{}
+	var interests []any = []any{}
 	for i := 0; i < GetArrayLength(response); i++ {
 		var row any = GetValue(response, i)
-		AppendToArray(&interests, this.DerivedExchange.ParseBorrowInterest(row, market))
+		interests = append(interests, this.DerivedExchange.ParseBorrowInterest(row, market))
 	}
 	return interests
 }
@@ -6773,13 +6773,13 @@ func (this *BaseExchange) ParseBorrowRate(info any, optionalArgs ...any) any {
 	panic(NotSupported(this.Id + " parseBorrowRate() is not supported yet"))
 }
 func (this *BaseExchange) ParseBorrowRateHistory(response any, code any, since any, limit any) any {
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(response); i++ {
 		var item any = GetValue(response, i)
 
 		var borrowRate any = this.DerivedExchange.ParseBorrowRate(item)
 		PanicOnError(borrowRate)
-		AppendToArray(&result, borrowRate)
+		result = append(result, borrowRate)
 	}
 	var sorted []any = this.SortBy(result, "timestamp")
 	return this.FilterByCurrencySinceLimit(sorted, code, since, limit)
@@ -6801,10 +6801,10 @@ func (this *BaseExchange) ParseFundingRateHistories(response any, optionalArgs .
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	var rates any = []any{}
+	var rates []any = []any{}
 	for i := 0; i < GetArrayLength(response); i++ {
 		var entry any = GetValue(response, i)
-		AppendToArray(&rates, this.DerivedExchange.ParseFundingRateHistory(entry, market))
+		rates = append(rates, this.DerivedExchange.ParseFundingRateHistory(entry, market))
 	}
 	var sorted []any = this.SortBy(rates, "timestamp")
 	var symbol any = func() any {
@@ -6859,10 +6859,10 @@ func (this *BaseExchange) ParseLongShortRatioHistory(response any, optionalArgs 
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	var rates any = []any{}
+	var rates []any = []any{}
 	for i := 0; i < GetArrayLength(response); i++ {
 		var entry any = GetValue(response, i)
-		AppendToArray(&rates, this.ParseLongShortRatio(entry, market))
+		rates = append(rates, this.ParseLongShortRatio(entry, market))
 	}
 	var sorted []any = this.SortBy(rates, "timestamp")
 	var symbol any = func() any {
@@ -7093,13 +7093,13 @@ func (this *BaseExchange) ParseOpenInterestsHistory(response any, optionalArgs .
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	var interests any = []any{}
+	var interests []any = []any{}
 	for i := 0; i < GetArrayLength(response); i++ {
 		var entry any = GetValue(response, i)
 
 		var interest any = this.DerivedExchange.ParseOpenInterest(entry, market)
 		PanicOnError(interest)
-		AppendToArray(&interests, interest)
+		interests = append(interests, interest)
 	}
 	var sorted []any = this.SortBy(interests, "timestamp")
 	var symbol *string = this.SafeString(market, "symbol")
@@ -7489,13 +7489,13 @@ func (this *BaseExchange) ParseIncomes(incomes any, optionalArgs ...any) any {
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(incomes); i++ {
 		var entry any = GetValue(incomes, i)
 
 		var parsed any = this.DerivedExchange.ParseIncome(entry, market)
 		PanicOnError(parsed)
-		AppendToArray(&result, parsed)
+		result = append(result, parsed)
 	}
 	var sorted []any = this.SortBy(result, "timestamp")
 	var symbol *string = this.SafeString(market, "symbol")
@@ -7532,9 +7532,9 @@ func (this *BaseExchange) ParseWsOHLCVs(ohlcvs any, optionalArgs ...any) any {
 	_ = since
 	limit := GetArg(optionalArgs, 3, nil)
 	_ = limit
-	var results any = []any{}
+	var results []any = []any{}
 	for i := 0; i < GetArrayLength(ohlcvs); i++ {
-		AppendToArray(&results, this.ParseWsOHLCV(GetValue(ohlcvs, i), market))
+		results = append(results, this.ParseWsOHLCV(GetValue(ohlcvs, i), market))
 	}
 	return results
 }
@@ -7891,7 +7891,7 @@ func (this *BaseExchange) fetchPaginatedCallDeterministicBody(ch chan any, metho
 	// unrecognized param into the underlying exchange request (e.g. binance -1104 errors)
 	params = this.Omit(params, "paginationDirection")
 	var current int64 = this.Milliseconds()
-	var tasks any = []any{}
+	var tasks []any = []any{}
 	var time any = Multiply(this.ParseTimeframe(timeframe), 1000)
 	maxEntriesPerRequest = this.RequireValue(maxEntriesPerRequest, "fetchPaginatedCallDeterministic() maxEntriesPerRequest is required")
 	var step any = Multiply(time, maxEntriesPerRequest)
@@ -7926,7 +7926,7 @@ func (this *BaseExchange) fetchPaginatedCallDeterministicBody(ch chan any, metho
 		if IsGreaterThanOrEqual(currentSince, current) {
 			break
 		}
-		AppendToArray(&tasks, this.SafeDeterministicCallAsync(method, symbol, currentSince, maxEntriesPerRequest, timeframe, params))
+		tasks = append(tasks, this.SafeDeterministicCallAsync(method, symbol, currentSince, maxEntriesPerRequest, timeframe, params))
 		currentSince = Subtract(this.Sum(currentSince, step), 1)
 	}
 
@@ -8210,7 +8210,7 @@ func (this *BaseExchange) RemoveRepeatedElementsFromArray(input any, optionalArg
 	fallbackToTimestamp := GetArg(optionalArgs, 0, true)
 	_ = fallbackToTimestamp
 	var uniqueDic map[string]any = map[string]any{}
-	var uniqueResult any = []any{}
+	var uniqueResult []any = []any{}
 	for i := 0; i < GetArrayLength(input); i++ {
 		var entry any = GetValue(input, i)
 		var uniqValue any = func() any {
@@ -8221,10 +8221,10 @@ func (this *BaseExchange) RemoveRepeatedElementsFromArray(input any, optionalArg
 		}()
 		if (uniqValue != nil) && !(InOp(uniqueDic, uniqValue)) {
 			AddElementToObject(uniqueDic, uniqValue, 1)
-			AppendToArray(&uniqueResult, entry)
+			uniqueResult = append(uniqueResult, entry)
 		}
 	}
-	var valuesLength int = GetArrayLength(uniqueResult)
+	var valuesLength int = len(uniqueResult)
 	if valuesLength > 0 {
 		return uniqueResult
 	}
@@ -8314,13 +8314,13 @@ func (this *BaseExchange) ParseLiquidations(liquidations any, optionalArgs ...an
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(liquidations); i++ {
 		var entry any = GetValue(liquidations, i)
 
 		var parsed any = this.DerivedExchange.ParseLiquidation(entry, market)
 		PanicOnError(parsed)
-		AppendToArray(&result, parsed)
+		result = append(result, parsed)
 	}
 	var sorted []any = this.SortBy(result, "timestamp")
 	var symbol *string = this.SafeString(market, "symbol")
@@ -8339,14 +8339,14 @@ func (this *BaseExchange) ParseAllGreeks(greeks any, optionalArgs ...any) any {
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var results any = []any{}
+	var results []any = []any{}
 	if IsArray(greeks) {
 		for i := 0; i < GetArrayLength(greeks); i++ {
 
 			var parsedTicker any = this.DerivedExchange.ParseGreeks(GetValue(greeks, i))
 			PanicOnError(parsedTicker)
 			var greek map[string]any = this.Extend(parsedTicker, params)
-			AppendToArray(&results, greek)
+			results = append(results, greek)
 		}
 	} else {
 		var marketIds []string = ObjectKeys(greeks)
@@ -8359,7 +8359,7 @@ func (this *BaseExchange) ParseAllGreeks(greeks any, optionalArgs ...any) any {
 			var parsed any = this.DerivedExchange.ParseGreeks(GetValue(greeks, marketId), market)
 			PanicOnError(parsed)
 			var greek map[string]any = this.Extend(parsed, params)
-			AppendToArray(&results, greek)
+			results = append(results, greek)
 		}
 	}
 	symbols = this.MarketSymbols(symbols)
@@ -8480,7 +8480,7 @@ func (this *BaseExchange) ParseConversions(conversions any, optionalArgs ...any)
 	params := GetArg(optionalArgs, 5, map[string]any{})
 	_ = params
 	var conversionsArray []any = this.ToArray(conversions)
-	var result any = []any{}
+	var result []any = []any{}
 	var fromCurrency any = nil
 	var toCurrency any = nil
 	for i := 0; i < len(conversionsArray); i++ {
@@ -8504,7 +8504,7 @@ func (this *BaseExchange) ParseConversions(conversions any, optionalArgs ...any)
 			toCurrency = this.SafeCurrency(toId)
 		}
 		var conversion map[string]any = this.Extend(this.DerivedExchange.ParseConversion(entry, fromCurrency, toCurrency), params)
-		AppendToArray(&result, conversion)
+		result = append(result, conversion)
 	}
 	var sorted []any = this.SortBy(result, "timestamp")
 	var currency any = nil
@@ -8641,7 +8641,7 @@ func (this *BaseExchange) ParseMarginModifications(response any, optionalArgs ..
 	_ = symbolKey
 	marketType := GetArg(optionalArgs, 2, nil)
 	_ = marketType
-	var marginModifications any = []any{}
+	var marginModifications []any = []any{}
 	if IsEqual(response, nil) {
 		return marginModifications
 	}
@@ -8657,7 +8657,7 @@ func (this *BaseExchange) ParseMarginModifications(response any, optionalArgs ..
 		var market any = this.DerivedExchange.SafeMarket(marketId, nil, nil, marketType)
 		PanicOnError(market)
 		if (IsEqual(symbols, nil)) || this.InArray(GetValue(market, "symbol"), symbols) {
-			AppendToArray(&marginModifications, this.DerivedExchange.ParseMarginModification(info, market))
+			marginModifications = append(marginModifications, this.DerivedExchange.ParseMarginModification(info, market))
 		}
 	}
 	return marginModifications

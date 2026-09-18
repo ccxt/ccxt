@@ -1039,7 +1039,7 @@ func (this *Bitfinex) HandleChecksum(client any, message any, subscription any) 
 		return
 	}
 	var depth int = 25 // covers the first 25 bids and asks
-	var stringArray any = []any{}
+	var stringArray []any = []any{}
 	var bids any = ccxt.GetValue(book, "bids")
 	var asks any = ccxt.GetValue(book, "asks")
 	var prec *string = this.SafeString(subscription, "prec", "P0")
@@ -1055,13 +1055,13 @@ func (this *Bitfinex) HandleChecksum(client any, message any, subscription any) 
 		var bid any = this.SafeValue(bids, i)
 		var ask any = this.SafeValue(asks, i)
 		if !ccxt.IsEqual(bid, nil) {
-			ccxt.AppendToArray(&stringArray, this.NumberToString(ccxt.GetValue(ccxt.GetValue(bids, i), idToCheck)))
-			ccxt.AppendToArray(&stringArray, this.NumberToString(ccxt.GetValue(ccxt.GetValue(bids, i), 1)))
+			stringArray = append(stringArray, this.NumberToString(ccxt.GetValue(ccxt.GetValue(bids, i), idToCheck)))
+			stringArray = append(stringArray, this.NumberToString(ccxt.GetValue(ccxt.GetValue(bids, i), 1)))
 		}
 		if !ccxt.IsEqual(ask, nil) {
-			ccxt.AppendToArray(&stringArray, this.NumberToString(ccxt.GetValue(ccxt.GetValue(asks, i), idToCheck)))
+			stringArray = append(stringArray, this.NumberToString(ccxt.GetValue(ccxt.GetValue(asks, i), idToCheck)))
 			var aski1 any = ccxt.GetValue(ccxt.GetValue(asks, i), 1)
-			ccxt.AppendToArray(&stringArray, this.NumberToString(ccxt.OpNeg(aski1)))
+			stringArray = append(stringArray, this.NumberToString(ccxt.OpNeg(aski1)))
 		}
 	}
 	var payload string = ccxt.Join(stringArray, ":")

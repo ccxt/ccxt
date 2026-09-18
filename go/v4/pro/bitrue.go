@@ -508,13 +508,13 @@ func (this *Bitrue) FindSwapMarketByWsBaseQuote(wsBaseQuote any) any {
 	return nil
 }
 func (this *Bitrue) ParseContractBidsAsks(bidsAsks any, symbol any) any {
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(bidsAsks); i++ {
 		var level any = ccxt.GetValue(bidsAsks, i)
 		var price *float64 = this.SafeNumber(level, 0)
 		var rawAmount *float64 = this.SafeNumber(level, 1)
 		var amount any = this.ConvertFromRawQuantity(symbol, rawAmount)
-		ccxt.AppendToArray(&result, []any{price, amount})
+		result = append(result, []any{price, amount})
 	}
 	return result
 }

@@ -1604,9 +1604,9 @@ func (this *Xt) fetchSwapAndFutureMarketsBody(ch chan any, optionalArgs ...any) 
 	return nil
 }
 func (this *Xt) ParseMarkets(markets any) any {
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(markets); i++ {
-		AppendToArray(&result, this.ParseMarket(GetValue(markets, i)))
+		result = append(result, this.ParseMarket(GetValue(markets, i)))
 	}
 	return result
 }
@@ -6041,14 +6041,14 @@ func (this *Xt) ParseMarketLeverageTiers(info any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var tiers any = []any{}
+	var tiers []any = []any{}
 	var brackets any = this.SafeList(info, "leverageBrackets", []any{})
 	for i := 0; i < GetArrayLength(brackets); i++ {
 		var tier any = GetValue(brackets, i)
 		var marketId *string = this.SafeString(info, "symbol")
 		market = this.SafeMarket(marketId, market, "_", "contract")
 		var minNotional *float64 = this.SafeNumber(GetValue(brackets, Subtract(i, 1)), "maxNominalValue", 0)
-		AppendToArray(&tiers, map[string]any{
+		tiers = append(tiers, map[string]any{
 			"tier":                  this.SafeInteger(tier, "bracket"),
 			"symbol":                this.SafeSymbol(marketId, market, "_", "contract"),
 			"currency":              GetValue(market, "settle"),
@@ -6157,13 +6157,13 @@ func (this *Xt) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) an
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
 	var items any = this.SafeList(result, "items", []any{})
-	var rates any = []any{}
+	var rates []any = []any{}
 	for i := 0; i < GetArrayLength(items); i++ {
 		var entry any = GetValue(items, i)
 		var marketId *string = this.SafeString(entry, "symbol")
 		var symbolInner *string = this.SafeSymbol(marketId, market)
 		var timestamp *int64 = this.SafeInteger(entry, "createdTime")
-		AppendToArray(&rates, map[string]any{
+		rates = append(rates, map[string]any{
 			"info":        entry,
 			"symbol":      symbolInner,
 			"fundingRate": this.SafeNumber(entry, "fundingRate"),
@@ -6620,10 +6620,10 @@ func (this *Xt) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
 	//
 	var data map[string]any = SafeMapTyped(response, "result")
 	var items any = this.SafeList(data, "items", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(items); i++ {
 		var entry any = GetValue(items, i)
-		AppendToArray(&result, this.ParseFundingHistory(entry, market))
+		result = append(result, this.ParseFundingHistory(entry, market))
 	}
 	var sorted []any = this.SortBy(result, "timestamp")
 
@@ -6730,13 +6730,13 @@ func (this *Xt) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any) 
 	subTypeparamsVariable := this.HandleSubTypeAndParams("fetchPosition", market, params)
 	subType = GetValue(subTypeparamsVariable, 0)
 	params = GetValue(subTypeparamsVariable, 1)
-	var promisesUnresolved any = []any{}
+	var promisesUnresolved []any = []any{}
 	if IsEqual(subType, "inverse") {
-		AppendToArray(&promisesUnresolved, this.PrivateInverseGetFutureUserV1PositionList(this.Extend(request, params)))
-		AppendToArray(&promisesUnresolved, this.PrivateInverseGetFutureUserV1PositionBreakList(this.Extend(request, params)))
+		promisesUnresolved = append(promisesUnresolved, this.PrivateInverseGetFutureUserV1PositionList(this.Extend(request, params)))
+		promisesUnresolved = append(promisesUnresolved, this.PrivateInverseGetFutureUserV1PositionBreakList(this.Extend(request, params)))
 	} else {
-		AppendToArray(&promisesUnresolved, this.PrivateLinearGetFutureUserV1PositionList(this.Extend(request, params)))
-		AppendToArray(&promisesUnresolved, this.PrivateLinearGetFutureUserV1PositionBreakList(this.Extend(request, params)))
+		promisesUnresolved = append(promisesUnresolved, this.PrivateLinearGetFutureUserV1PositionList(this.Extend(request, params)))
+		promisesUnresolved = append(promisesUnresolved, this.PrivateLinearGetFutureUserV1PositionBreakList(this.Extend(request, params)))
 	}
 	responsebreakResponseVariable := (<-promiseAll(promisesUnresolved))
 	response := GetValue(responsebreakResponseVariable, 0)
@@ -6831,13 +6831,13 @@ func (this *Xt) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	subTypeparamsVariable := this.HandleSubTypeAndParams("fetchPositions", nil, params)
 	subType = GetValue(subTypeparamsVariable, 0)
 	params = GetValue(subTypeparamsVariable, 1)
-	var promisesUnresolved any = []any{}
+	var promisesUnresolved []any = []any{}
 	if IsEqual(subType, "inverse") {
-		AppendToArray(&promisesUnresolved, this.PrivateInverseGetFutureUserV1PositionList(params))
-		AppendToArray(&promisesUnresolved, this.PrivateInverseGetFutureUserV1PositionBreakList(params))
+		promisesUnresolved = append(promisesUnresolved, this.PrivateInverseGetFutureUserV1PositionList(params))
+		promisesUnresolved = append(promisesUnresolved, this.PrivateInverseGetFutureUserV1PositionBreakList(params))
 	} else {
-		AppendToArray(&promisesUnresolved, this.PrivateLinearGetFutureUserV1PositionList(params))
-		AppendToArray(&promisesUnresolved, this.PrivateLinearGetFutureUserV1PositionBreakList(params))
+		promisesUnresolved = append(promisesUnresolved, this.PrivateLinearGetFutureUserV1PositionList(params))
+		promisesUnresolved = append(promisesUnresolved, this.PrivateLinearGetFutureUserV1PositionBreakList(params))
 	}
 	responsebreakResponseVariable := (<-promiseAll(promisesUnresolved))
 	response := GetValue(responsebreakResponseVariable, 0)
@@ -6886,13 +6886,13 @@ func (this *Xt) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	//
 	var positions any = this.SafeList(response, "result", []any{})
 	var breakBySymbolSide any = this.IndexPositionBreakList(this.SafeList(breakResponse, "result", []any{}))
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(positions); i++ {
 		var entry any = GetValue(positions, i)
 		var marketId *string = this.SafeString(entry, "symbol")
 		var marketInner any = this.SafeMarket(marketId, nil, nil, "contract")
 		var merged any = this.MergePositionBreakInfo(entry, breakBySymbolSide)
-		AppendToArray(&result, this.ParsePosition(merged, marketInner))
+		result = append(result, this.ParsePosition(merged, marketInner))
 	}
 
 	ch <- this.FilterByArrayPositions(result, "symbol", symbols, false)

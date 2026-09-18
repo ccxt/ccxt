@@ -609,13 +609,13 @@ func (this *Polymarket) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		rawEvents = (<-this.FetchRawEventsListAsync(rest))
 		ccxt.PanicOnError(rawEvents)
 	}
-	var flatMarkets any = []any{}
+	var flatMarkets []any = []any{}
 	var eventsDict map[string]any = map[string]any{}
 	for rei := 0; rei < ccxt.GetArrayLength(rawEvents); rei++ {
 		var rawEvent any = ccxt.GetValue(rawEvents, rei)
 		var ccxtMarkets any = this.ParseEventToMarkets(rawEvent)
 		for mi := 0; mi < ccxt.GetArrayLength(ccxtMarkets); mi++ {
-			ccxt.AppendToArray(&flatMarkets, ccxt.GetValue(ccxtMarkets, mi))
+			flatMarkets = append(flatMarkets, ccxt.GetValue(ccxtMarkets, mi))
 		}
 		var parsedEvent any = this.ParseEvent(rawEvent)
 		var eventSlug *string = this.SafeString(rawEvent, "slug")
@@ -674,7 +674,7 @@ func (this *Polymarket) fetchRawEventsBySearchBody(ch chan any, queries any, opt
 	}
 	var rest any = this.Omit(params, []any{"limit", "sort", "status", "searchIn", "eventId", "slug", "query", "queries", "searchPageSize", "maxSearchPages"})
 	var seen map[string]any = map[string]any{}
-	var rawEvents any = []any{}
+	var rawEvents []any = []any{}
 	for qi := 0; qi < ccxt.GetArrayLength(queries); qi++ {
 		var q any = ccxt.GetValue(queries, qi)
 		var baseRequest map[string]any = map[string]any{
@@ -712,37 +712,37 @@ func (this *Polymarket) fetchRawEventsBySearchBody(ch chan any, queries any, opt
 				totalPages = maxSearchPages
 			}
 		}
-		var remainingPages any = []any{}
+		var remainingPages []any = []any{}
 		for p := 2; ccxt.IsLessThanOrEqual(p, totalPages); p++ {
-			ccxt.AppendToArray(&remainingPages, p)
+			remainingPages = append(remainingPages, p)
 		}
-		var restPromises any = []any{}
-		for pi := 0; pi < ccxt.GetArrayLength(remainingPages); pi++ {
+		var restPromises []any = []any{}
+		for pi := 0; pi < len(remainingPages); pi++ {
 			var pageRequest map[string]any = map[string]any{
 				"page": ccxt.GetValue(remainingPages, pi),
 			}
 			pageRequest = this.Extend(this.Extend(pageRequest, baseRequest), rest)
-			ccxt.AppendToArray(&restPromises, this.GammaPublicGetPublicSearch(pageRequest))
+			restPromises = append(restPromises, this.GammaPublicGetPublicSearch(pageRequest))
 		}
 
 		restResponses := (<-ccxt.PromiseAll(restPromises))
 		ccxt.PanicOnError(restResponses)
-		var allEvents any = []any{}
+		var allEvents []any = []any{}
 		for fi := 0; fi < ccxt.GetArrayLength(firstEvents); fi++ {
-			ccxt.AppendToArray(&allEvents, ccxt.GetValue(firstEvents, fi))
+			allEvents = append(allEvents, ccxt.GetValue(firstEvents, fi))
 		}
 		for ri := 0; ri < ccxt.GetArrayLength(restResponses); ri++ {
 			var pageEvents any = this.SafeList(ccxt.GetValue(restResponses, ri), "events", []any{})
 			for ei := 0; ei < ccxt.GetArrayLength(pageEvents); ei++ {
-				ccxt.AppendToArray(&allEvents, ccxt.GetValue(pageEvents, ei))
+				allEvents = append(allEvents, ccxt.GetValue(pageEvents, ei))
 			}
 		}
-		for ei := 0; ei < ccxt.GetArrayLength(allEvents); ei++ {
+		for ei := 0; ei < len(allEvents); ei++ {
 			var rawEvent any = ccxt.GetValue(allEvents, ei)
 			var eventId *string = this.SafeString(rawEvent, "id")
 			if ((eventId != nil) && (eventId == nil || *eventId != "")) && !(ccxt.InOp(seen, eventId)) {
 				ccxt.AddElementToObject(seen, eventId, true)
-				ccxt.AppendToArray(&rawEvents, rawEvent)
+				rawEvents = append(rawEvents, rawEvent)
 			}
 		}
 	}
@@ -835,7 +835,7 @@ func (this *Polymarket) fetchRawEventsListBody(ch chan any, optionalArgs ...any)
 	var requestedTagsLength int = ccxt.GetArrayLength(requestedTags)
 	if requestedTagsLength > 1 {
 		var seen map[string]any = map[string]any{}
-		var unioned any = []any{}
+		var unioned []any = []any{}
 		for ti := 0; ti < requestedTagsLength; ti++ {
 			var singleTagParams map[string]any = this.Extend(map[string]any{}, params)
 			singleTagParams["tags"] = []any{ccxt.GetValue(requestedTags, ti)}
@@ -847,7 +847,7 @@ func (this *Polymarket) fetchRawEventsListBody(ch chan any, optionalArgs ...any)
 				var eventId *string = this.SafeString(rawEvent, "id")
 				if (eventId != nil) && !(ccxt.InOp(seen, eventId)) {
 					ccxt.AddElementToObject(seen, eventId, true)
-					ccxt.AppendToArray(&unioned, rawEvent)
+					unioned = append(unioned, rawEvent)
 				}
 			}
 		}
@@ -884,22 +884,22 @@ func (this *Polymarket) fetchRawEventsListBody(ch chan any, optionalArgs ...any)
 		return []any{}
 	}()
 	var firstPageLength int = ccxt.GetArrayLength(firstPage)
-	var allRawEvents any = []any{}
+	var allRawEvents []any = []any{}
 	for fi := 0; fi < firstPageLength; fi++ {
-		ccxt.AppendToArray(&allRawEvents, ccxt.GetValue(firstPage, fi))
+		allRawEvents = append(allRawEvents, ccxt.GetValue(firstPage, fi))
 	}
 	if ccxt.IsGreaterThanOrEqual(firstPageLength, pageSize) {
-		var offsets any = []any{}
+		var offsets []any = []any{}
 		for p := 1; ccxt.IsLessThan(p, maxPages); p++ {
-			ccxt.AppendToArray(&offsets, ccxt.Multiply(p, pageSize))
+			offsets = append(offsets, ccxt.Multiply(p, pageSize))
 		}
-		var restPromises any = []any{}
-		for oi := 0; oi < ccxt.GetArrayLength(offsets); oi++ {
+		var restPromises []any = []any{}
+		for oi := 0; oi < len(offsets); oi++ {
 			var pageRequest map[string]any = map[string]any{
 				"offset": ccxt.GetValue(offsets, oi),
 			}
 			pageRequest = this.Extend(pageRequest, baseRequest)
-			ccxt.AppendToArray(&restPromises, this.GammaPublicGetEvents(pageRequest))
+			restPromises = append(restPromises, this.GammaPublicGetEvents(pageRequest))
 		}
 
 		restPages := (<-ccxt.PromiseAll(restPromises))
@@ -913,11 +913,11 @@ func (this *Polymarket) fetchRawEventsListBody(ch chan any, optionalArgs ...any)
 			}()
 			var pageLength int = ccxt.GetArrayLength(page)
 			for pi := 0; pi < pageLength; pi++ {
-				ccxt.AppendToArray(&allRawEvents, ccxt.GetValue(page, pi))
+				allRawEvents = append(allRawEvents, ccxt.GetValue(page, pi))
 			}
 		}
 	}
-	var allRawEventsLength int = ccxt.GetArrayLength(allRawEvents)
+	var allRawEventsLength int = len(allRawEvents)
 	if ccxt.IsGreaterThan(allRawEventsLength, limit) {
 
 		ch <- this.ArraySlice(allRawEvents, 0, limit)
@@ -930,7 +930,7 @@ func (this *Polymarket) fetchRawEventsListBody(ch chan any, optionalArgs ...any)
 func (this *Polymarket) ParseEventToMarkets(event any) any {
 	var eventSlug *string = this.SafeString(event, "slug", this.SafeString(event, "id"))
 	var rawMarkets any = this.SafeList(event, "markets", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	//
 	// {
 	//    "id":"604489",
@@ -1070,7 +1070,7 @@ func (this *Polymarket) ParseEventToMarkets(event any) any {
 		// ccxt.Market outcome (no outcome suffix)
 		var marketSymbol any = this.SlugToMarketSymbol(eventSlug, marketSlug)
 		// Build outcomes array
-		var outcomes any = []any{}
+		var outcomes []any = []any{}
 		for oi := 0; oi < ccxt.GetArrayLength(outcomeLabels); oi++ {
 			var outcomeLabel any = ccxt.GetValue(outcomeLabels, oi)
 			var clobTokenId any = ccxt.GetValue(clobTokenIds, oi)
@@ -1099,7 +1099,7 @@ func (this *Polymarket) ParseEventToMarkets(event any) any {
 			// inner class, which cannot capture a reassigned local
 			var winner any = winnerRaw
 			var settleFraction any = settleFractionRaw
-			ccxt.AppendToArray(&outcomes, map[string]any{
+			outcomes = append(outcomes, map[string]any{
 				"outcome":        outcomeHandle,
 				"outcomeId":      clobTokenId,
 				"market":         marketSymbol,
@@ -1130,7 +1130,7 @@ func (this *Polymarket) ParseEventToMarkets(event any) any {
 		}()
 		// effectively-final copy for the market object literal below (reassigned in the loop)
 		var marketResolvedOutcome any = resolvedOutcome
-		ccxt.AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"id":              conditionId,
 			"market":          marketSymbol,
 			"marketType":      marketType,
@@ -1286,7 +1286,7 @@ func (this *Polymarket) FetchOutcomesAsync(outcomeSymbols any) <-chan any {
 func (this *Polymarket) fetchOutcomesBody(ch chan any, outcomeSymbols any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	var tokenIds any = []any{}
+	var tokenIds []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(outcomeSymbols); i++ {
 		var outcomeSymbol any = ccxt.GetValue(outcomeSymbols, i)
 		// only id-like symbols (no ':', no searchable words) belong in the by-id batch —
@@ -1294,10 +1294,10 @@ func (this *Polymarket) fetchOutcomesBody(ch chan any, outcomeSymbols any) any {
 		// maps that to `=== false`, while a literal `=== -1` passes through and never
 		// matches mb_strpos's false return
 		if (ccxt.GetIndexOf(outcomeSymbol, ":") < 0) && (ccxt.IsEqual(this.OutcomeSearchQuery(outcomeSymbol), nil)) {
-			ccxt.AppendToArray(&tokenIds, outcomeSymbol)
+			tokenIds = append(tokenIds, outcomeSymbol)
 		}
 	}
-	var tokenIdsLength int = ccxt.GetArrayLength(tokenIds)
+	var tokenIdsLength int = len(tokenIds)
 	if tokenIdsLength > 0 {
 		if this.Markets == nil {
 			this.Markets = this.CreateSafeDictionary()
@@ -1310,9 +1310,9 @@ func (this *Polymarket) fetchOutcomesBody(ch chan any, outcomeSymbols any) any {
 			if ccxt.IsGreaterThan(endIndex, tokenIdsLength) {
 				endIndex = tokenIdsLength
 			}
-			var chunk any = []any{}
+			var chunk []any = []any{}
 			for i := int(ccxt.ParseInt(startIndex)); ccxt.IsLessThan(i, endIndex); i++ {
-				ccxt.AppendToArray(&chunk, ccxt.GetValue(tokenIds, i))
+				chunk = append(chunk, ccxt.GetValue(tokenIds, i))
 			}
 			// gamma matches repeated clob_token_ids params — comma-joined ids are rejected
 			// with a validation error, so the list rides through urlencodeWithArrayRepeat
@@ -1463,32 +1463,32 @@ func (this *Polymarket) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 	retRes10488 := (<-this.LoadOutcomesAsync(outcomes))
 	ccxt.PanicOnError(retRes10488)
-	var targets any = []any{}
+	var targets []any = []any{}
 	for oi := 0; oi < ccxt.GetArrayLength(outcomes); oi++ {
-		ccxt.AppendToArray(&targets, ccxt.GetValue(outcomes, oi))
+		targets = append(targets, ccxt.GetValue(outcomes, oi))
 	}
 	var outcomesByTokenId map[string]any = map[string]any{}
-	var tokenIds any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(targets); i++ {
+	var tokenIds []any = []any{}
+	for i := 0; i < len(targets); i++ {
 		var outcomeObj any = this.Outcome(ccxt.GetValue(targets, i))
 		var tokenId *string = this.SafeString(outcomeObj, "outcomeId")
 		if (tokenId != nil) && !(ccxt.InOp(outcomesByTokenId, tokenId)) {
 			ccxt.AddElementToObject(outcomesByTokenId, tokenId, outcomeObj)
-			ccxt.AppendToArray(&tokenIds, tokenId)
+			tokenIds = append(tokenIds, tokenId)
 		}
 	}
 	var chunkSize *int64 = this.SafeInteger(this.Options, "fetchTickersBatchSize", 200)
 	var result map[string]any = map[string]any{}
-	var tokenIdsLength int = ccxt.GetArrayLength(tokenIds)
+	var tokenIdsLength int = len(tokenIds)
 	var startIndex any = 0
 	for ccxt.IsLessThan(startIndex, tokenIdsLength) {
 		var endIndex any = this.Sum(startIndex, chunkSize)
 		if ccxt.IsGreaterThan(endIndex, tokenIdsLength) {
 			endIndex = tokenIdsLength
 		}
-		var bookParams any = []any{}
+		var bookParams []any = []any{}
 		for i := int(ccxt.ParseInt(startIndex)); ccxt.IsLessThan(i, endIndex); i++ {
-			ccxt.AppendToArray(&bookParams, map[string]any{
+			bookParams = append(bookParams, map[string]any{
 				"token_id": ccxt.GetValue(tokenIds, i),
 			})
 		}
@@ -1850,9 +1850,9 @@ func (this *Polymarket) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ..
 		}
 	}
 	var bucketKeys []string = ccxt.ObjectKeys(buckets)
-	var unsortedCandles any = []any{}
+	var unsortedCandles []any = []any{}
 	for i := 0; i < len(bucketKeys); i++ {
-		ccxt.AppendToArray(&unsortedCandles, ccxt.GetValue(buckets, ccxt.GetValue(bucketKeys, i)))
+		unsortedCandles = append(unsortedCandles, ccxt.GetValue(buckets, ccxt.GetValue(bucketKeys, i)))
 	}
 	var candles []any = this.SortBy(unsortedCandles, 0)
 	var candlesLength int = len(candles)
@@ -2119,12 +2119,12 @@ func (this *Polymarket) fetchTradesBody(ch chan any, outcome any, optionalArgs .
 		}
 		return this.SafeList(response, "data", []any{})
 	}()
-	var filteredTrades any = []any{}
+	var filteredTrades []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(rawTrades); i++ {
 		var trade any = ccxt.GetValue(rawTrades, i)
 		var tradeAsset *string = this.SafeString(trade, "asset")
 		if ccxt.IsEqual(tradeAsset, tokenId) {
-			ccxt.AppendToArray(&filteredTrades, trade)
+			filteredTrades = append(filteredTrades, trade)
 		}
 	}
 
@@ -2219,7 +2219,7 @@ func (this *Polymarket) fetchOrderTradesBody(ch chan any, id any, optionalArgs .
 
 	trades := (<-this.FetchMyTradesAsync(outcome, nil, nil, params))
 	ccxt.PanicOnError(trades)
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(trades); i++ {
 		var trade any = ccxt.GetValue(trades, i)
 		var info map[string]any = ccxt.SafeMapTyped(trade, "info")
@@ -2231,7 +2231,7 @@ func (this *Polymarket) fetchOrderTradesBody(ch chan any, id any, optionalArgs .
 			}
 		}
 		if belongs {
-			ccxt.AppendToArray(&result, trade)
+			result = append(result, trade)
 		}
 	}
 
@@ -2429,13 +2429,13 @@ func (this *Polymarket) fetchPositionsBody(ch chan any, optionalArgs ...any) any
 		var outcomeObj any = this.Outcome(ccxt.GetValue(outcomes, i))
 		ccxt.AddElementToObject(wantedIds, ccxt.GetValue(outcomeObj, "outcomeId"), true)
 	}
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(parsed); i++ {
 		var position any = ccxt.GetValue(parsed, i)
 		var info map[string]any = ccxt.SafeMapTyped(position, "info")
 		var assetId *string = this.SafeString(info, "asset")
 		if (assetId != nil) && (ccxt.InOp(wantedIds, assetId)) {
-			ccxt.AppendToArray(&result, position)
+			result = append(result, position)
 		}
 	}
 
@@ -2773,20 +2773,20 @@ func (this *Polymarket) createOrdersBody(ch chan any, orders any, optionalArgs .
 	ccxt.PanicOnError(retRes19838)
 	// buildClobOrderBody resolves outcomes synchronously from the cache, so batch-warm the
 	// requested outcomes first (one gamma request for all uncached token ids)
-	var orderOutcomes any = []any{}
+	var orderOutcomes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(orders); i++ {
 		var o any = ccxt.GetValue(orders, i)
 		var __oc *string = this.SafeString(o, "outcome")
 		if __oc != nil {
-			ccxt.AppendToArray(&orderOutcomes, __oc)
+			orderOutcomes = append(orderOutcomes, __oc)
 		}
 	}
 
 	retRes19948 := (<-this.LoadOutcomesAsync(orderOutcomes))
 	ccxt.PanicOnError(retRes19948)
-	var bodies any = []any{}
-	var outcomes any = []any{}
-	var requests any = []any{}
+	var bodies []any = []any{}
+	var outcomes []any = []any{}
+	var requests []any = []any{}
 	var batchSalt int64 = this.Milliseconds()
 	for i := 0; i < ccxt.GetArrayLength(orders); i++ {
 		var o any = ccxt.GetValue(orders, i)
@@ -2798,24 +2798,24 @@ func (this *Polymarket) createOrdersBody(ch chan any, orders any, optionalArgs .
 			})
 		}
 		var built any = this.BuildClobOrderBody(this.SafeString(o, "outcome"), this.SafeString(o, "type"), this.SafeString(o, "side"), this.SafeNumber(o, "amount"), this.SafeNumber(o, "price"), orderParams)
-		ccxt.AppendToArray(&bodies, this.SafeDict(built, "body", map[string]any{}))
-		ccxt.AppendToArray(&outcomes, this.SafeDict(built, "outcome", map[string]any{}))
-		ccxt.AppendToArray(&requests, this.SafeDict(built, "request", map[string]any{}))
+		bodies = append(bodies, this.SafeDict(built, "body", map[string]any{}))
+		outcomes = append(outcomes, this.SafeDict(built, "outcome", map[string]any{}))
+		requests = append(requests, this.SafeDict(built, "request", map[string]any{}))
 	}
 
 	response := (<-this.ClobPrivatePostOrders(bodies))
 	ccxt.PanicOnError(response)
-	var result any = []any{}
+	var result []any = []any{}
 	if ccxt.IsArray(response) {
 		for i := 0; i < ccxt.GetArrayLength(response); i++ {
 			// request echo first so the response's real orderID/status win on overlap
 			var enriched map[string]any = this.Extend(ccxt.GetValue(requests, i), ccxt.GetValue(response, i))
 			var parsedItem any = this.ParsePredictionOrder(enriched, ccxt.GetValue(outcomes, i))
 			ccxt.AddElementToObject(parsedItem, "info", ccxt.GetValue(response, i)) // keep info the raw exchange response
-			ccxt.AppendToArray(&result, parsedItem)
+			result = append(result, parsedItem)
 		}
 	} else {
-		ccxt.AppendToArray(&result, this.ParsePredictionOrder(response))
+		result = append(result, this.ParsePredictionOrder(response))
 	}
 
 	ch <- result
@@ -3296,9 +3296,9 @@ func (this *Polymarket) cancelOrdersBody(ch chan any, ids any, optionalArgs ...a
 	response := (<-this.ClobPrivateDeleteOrders(ids))
 	ccxt.PanicOnError(response)
 	var canceled any = this.SafeList(response, "canceled", []any{})
-	var orders any = []any{}
+	var orders []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(canceled); i++ {
-		ccxt.AppendToArray(&orders, this.SafePredictionOrder(map[string]any{
+		orders = append(orders, this.SafePredictionOrder(map[string]any{
 			"id":     this.SafeString(canceled, i),
 			"status": "canceled",
 			"info":   response,
@@ -3353,9 +3353,9 @@ func (this *Polymarket) cancelAllOrdersBody(ch chan any, optionalArgs ...any) an
 		ccxt.PanicOnError(response)
 	}
 	var canceled any = this.SafeList(response, "canceled", []any{})
-	var orders any = []any{}
+	var orders []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(canceled); i++ {
-		ccxt.AppendToArray(&orders, this.SafePredictionOrder(map[string]any{
+		orders = append(orders, this.SafePredictionOrder(map[string]any{
 			"id":     this.SafeString(canceled, i),
 			"status": "canceled",
 			"info":   response,
@@ -3440,7 +3440,7 @@ func (this *Polymarket) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	if this.Markets == nil {
 		this.Markets = this.CreateSafeDictionary()
 	}
-	var result any = []any{}
+	var result []any = []any{}
 	for rei := 0; rei < ccxt.GetArrayLength(rawEvents); rei++ {
 		var rawEvent any = ccxt.GetValue(rawEvents, rei)
 		var eventForParsing any = rawEvent
@@ -3477,7 +3477,7 @@ func (this *Polymarket) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 			ccxt.AddElementToObject(this.Markets, ccxt.GetValue(m, "market"), m)
 		}
 		var parsedEvent any = this.ParseEvent(eventForParsing)
-		ccxt.AppendToArray(&result, parsedEvent)
+		result = append(result, parsedEvent)
 	}
 	// populateOutcomes rebuilds the outcome cache from the markets registered above; the
 	// shared applyEventFetchParams then caches (setEvents) and applies the unified
@@ -3621,11 +3621,11 @@ func (this *Polymarket) ParseEvent(rawEvent any) any {
 	// normalized (normalizeTagKey), so the display form is free to be the friendly one
 	var rawTags any = this.SafeList(rawEvent, "tags", []any{})
 	var rawTagsLength int = ccxt.GetArrayLength(rawTags)
-	var parsedTags any = []any{}
+	var parsedTags []any = []any{}
 	for ti := 0; ti < rawTagsLength; ti++ {
 		var tagLabel *string = this.SafeString2(ccxt.GetValue(rawTags, ti), "label", "slug")
 		if tagLabel != nil {
-			ccxt.AppendToArray(&parsedTags, tagLabel)
+			parsedTags = append(parsedTags, tagLabel)
 		}
 	}
 	return this.Extend(map[string]any{
@@ -3665,10 +3665,10 @@ func (this *Polymarket) ParseEvent(rawEvent any) any {
  * @returns {object[]} a list of event structures
  */
 func (this *Polymarket) ParseEvents(rawEvents any) any {
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(rawEvents); i++ {
 		var rawEvent any = ccxt.GetValue(rawEvents, i)
-		ccxt.AppendToArray(&result, this.ParseEvent(rawEvent))
+		result = append(result, this.ParseEvent(rawEvent))
 	}
 	return result
 }
@@ -4148,15 +4148,15 @@ func (this *Polymarket) HandleOrderBookSnapshot(client any, event any) {
 	var timestamp any = this.ParsePolyTimestamp(this.SafeString(event, "timestamp"))
 	var rawBids any = this.SafeList(event, "bids", []any{})
 	var rawAsks any = this.SafeList(event, "asks", []any{})
-	var bids any = []any{}
+	var bids []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(rawBids); i++ {
 		var b any = ccxt.GetValue(rawBids, i)
-		ccxt.AppendToArray(&bids, []any{this.SafeNumber(b, "price"), this.SafeNumber(b, "size")})
+		bids = append(bids, []any{this.SafeNumber(b, "price"), this.SafeNumber(b, "size")})
 	}
-	var asks any = []any{}
+	var asks []any = []any{}
 	for j := 0; j < ccxt.GetArrayLength(rawAsks); j++ {
 		var a any = ccxt.GetValue(rawAsks, j)
-		ccxt.AppendToArray(&asks, []any{this.SafeNumber(a, "price"), this.SafeNumber(a, "size")})
+		asks = append(asks, []any{this.SafeNumber(a, "price"), this.SafeNumber(a, "size")})
 	}
 	var outcomeObj any = this.SafeOutcome(outcome)
 	orderbook.(ccxt.OrderBookInterface).Reset(map[string]any{

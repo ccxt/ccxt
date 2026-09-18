@@ -1106,10 +1106,10 @@ func (this *Cryptomus) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArg
 	//     }
 	//
 	var result any = this.SafeList(response, "result", []any{})
-	var orders any = []any{}
+	var orders []any = []any{}
 	for i := 0; i < GetArrayLength(result); i++ {
 		var order any = GetValue(result, i)
-		AppendToArray(&orders, this.ParseOrder(order, market))
+		orders = append(orders, this.ParseOrder(order, market))
 	}
 
 	ch <- orders
@@ -1416,8 +1416,8 @@ func (this *Cryptomus) fetchTradingFeesBody(ch chan any, optionalArgs ...any) an
 func (this *Cryptomus) ParseFeeTiers(feeTiers any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var takerFees any = []any{}
-	var makerFees any = []any{}
+	var takerFees []any = []any{}
+	var makerFees []any = []any{}
 	for i := 0; i < GetArrayLength(feeTiers); i++ {
 		var tier any = GetValue(feeTiers, i)
 		var turnover *float64 = this.SafeNumber(tier, "from_turnover")
@@ -1425,8 +1425,8 @@ func (this *Cryptomus) ParseFeeTiers(feeTiers any, optionalArgs ...any) any {
 		var maker *string = this.SafeString(tier, "maker_percent")
 		maker = Precise.StringDiv(maker, "100")
 		taker = Precise.StringDiv(taker, "100")
-		AppendToArray(&makerFees, []any{turnover, this.ParseNumber(maker)})
-		AppendToArray(&takerFees, []any{turnover, this.ParseNumber(taker)})
+		makerFees = append(makerFees, []any{turnover, this.ParseNumber(maker)})
+		takerFees = append(takerFees, []any{turnover, this.ParseNumber(taker)})
 	}
 	return map[string]any{
 		"maker": makerFees,

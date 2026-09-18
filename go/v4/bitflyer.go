@@ -389,7 +389,7 @@ func (this *Bitflyer) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//
 	var markets []any = this.ArrayConcat(this.ToArray(jp_markets), this.ToArray(us_markets))
 	markets = this.ArrayConcat(markets, this.ToArray(eu_markets))
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < len(markets); i++ {
 		var market any = GetValue(markets, i)
 		var id *string = this.SafeString(market, "product_code")
@@ -447,7 +447,7 @@ func (this *Bitflyer) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 				symbol = Add(Add(symbol, "-"), this.Yymmdd(expiry))
 			}
 		}
-		AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"id":       id,
 			"symbol":   symbol,
 			"base":     base,

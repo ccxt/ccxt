@@ -359,7 +359,7 @@ func (this *Woofipro) HandleTickers(client any, message any) {
 	var topic *string = this.SafeString(message, "topic")
 	var data any = this.SafeList(message, "data", []any{})
 	var timestamp *int64 = this.SafeInteger(message, "ts")
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(data); i++ {
 		var marketId *string = this.SafeString(ccxt.GetValue(data, i), "symbol")
 		var market any = this.SafeMarket(marketId)
@@ -367,7 +367,7 @@ func (this *Woofipro) HandleTickers(client any, message any) {
 			"date": timestamp,
 		}), market)
 		ccxt.AddElementToObject(this.Tickers, ccxt.GetValue(market, "symbol"), ticker)
-		ccxt.AppendToArray(&result, ticker)
+		result = append(result, ticker)
 	}
 	client.(ccxt.ClientInterface).Resolve(result, topic)
 }
@@ -432,7 +432,7 @@ func (this *Woofipro) HandleBidAsk(client any, message any) {
 	var topic *string = this.SafeString(message, "topic")
 	var data any = this.SafeList(message, "data", []any{})
 	var timestamp *int64 = this.SafeInteger(message, "ts")
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(data); i++ {
 		var ticker any = this.ParseWsBidAsk(this.Extend(ccxt.GetValue(data, i), map[string]any{
 			"ts": timestamp,
@@ -440,7 +440,7 @@ func (this *Woofipro) HandleBidAsk(client any, message any) {
 		if !ccxt.IsEqual(ccxt.GetValue(ticker, "symbol"), nil) {
 			ccxt.AddElementToObject(this.Tickers, ccxt.GetValue(ticker, "symbol"), ticker)
 		}
-		ccxt.AppendToArray(&result, ticker)
+		result = append(result, ticker)
 	}
 	client.(ccxt.ClientInterface).Resolve(result, topic)
 }
@@ -1244,7 +1244,7 @@ func (this *Woofipro) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 		retRes101512 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes101512)
 	}
-	var messageHashes any = []any{}
+	var messageHashes []any = []any{}
 	symbols = this.MarketSymbols(symbols)
 	if !ccxt.EvalTruthy(this.IsEmpty(symbols)) {
 		if symbols == nil {
@@ -1255,10 +1255,10 @@ func (this *Woofipro) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 				panic(ccxt.ArgumentsRequired(this.Id + " watchPositions() symbols is required"))
 			}
 			var symbol any = ccxt.GetValue(symbols, i)
-			ccxt.AppendToArray(&messageHashes, ccxt.Add("positions::", symbol))
+			messageHashes = append(messageHashes, ccxt.Add("positions::", symbol))
 		}
 	} else {
-		ccxt.AppendToArray(&messageHashes, "positions")
+		messageHashes = append(messageHashes, "positions")
 	}
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "/"), this.AccountId)
 	var client ccxt.ClientInterface = this.Client(url)
@@ -1370,13 +1370,13 @@ func (this *Woofipro) HandlePositions(client any, message any) {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
 	var cache any = this.Positions
-	var newPositions any = []any{}
+	var newPositions []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(rawPositions); i++ {
 		var rawPosition any = ccxt.GetValue(rawPositions, i)
 		var marketId *string = this.SafeString(rawPosition, "symbol")
 		var market any = this.SafeMarket(marketId)
 		var position any = this.ParseWsPosition(rawPosition, market)
-		ccxt.AppendToArray(&newPositions, position)
+		newPositions = append(newPositions, position)
 		cache.(ccxt.Appender).Append(position)
 		var messageHash any = ccxt.Add("positions::", ccxt.GetValue(market, "symbol"))
 		client.(ccxt.ClientInterface).Resolve(position, messageHash)

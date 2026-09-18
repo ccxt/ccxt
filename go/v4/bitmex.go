@@ -2770,14 +2770,14 @@ func (this *Bitmex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		"ordType":  capitalizeOrderType,
 		"text":     brokerId,
 	}
-	var execInstructions any = []any{}
+	var execInstructions []any = []any{}
 	if reduceOnly == true {
-		AppendToArray(&execInstructions, "ReduceOnly")
+		execInstructions = append(execInstructions, "ReduceOnly")
 	}
 	if postOnly != nil && *postOnly == true {
-		AppendToArray(&execInstructions, "ParticipateDoNotInitiate")
+		execInstructions = append(execInstructions, "ParticipateDoNotInitiate")
 	}
-	var execInstLength int = GetArrayLength(execInstructions)
+	var execInstLength int = len(execInstructions)
 	if execInstLength > 0 {
 		request["execInst"] = Join(execInstructions, ",")
 	}
@@ -3613,7 +3613,7 @@ func (this *Bitmex) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 	response := (<-this.PublicGetInstrumentActiveAndIndices(params))
 	PanicOnError(response)
 	// same response as under "fetchMarkets"
-	var filteredResponse any = []any{}
+	var filteredResponse []any = []any{}
 	var rawItems []any = this.ToArray(response)
 	for i := 0; i < len(rawItems); i++ {
 		var item any = GetValue(rawItems, i)
@@ -3621,7 +3621,7 @@ func (this *Bitmex) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 		var market any = this.SafeMarket(marketId)
 		var swap *bool = this.SafeBool(market, "swap", false)
 		if swap != nil && *swap == true {
-			AppendToArray(&filteredResponse, item)
+			filteredResponse = append(filteredResponse, item)
 		}
 	}
 	symbols = this.MarketSymbols(symbols)
@@ -4630,9 +4630,9 @@ func (this *Bitmex) ParseSettlements(settlements any, optionalArgs ...any) any {
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(settlements); i++ {
-		AppendToArray(&result, this.ParseSettlement(GetValue(settlements, i), market))
+		result = append(result, this.ParseSettlement(GetValue(settlements, i), market))
 	}
 	var sorted []any = this.SortBy(result, "timestamp")
 	var symbol *string = this.SafeString(market, "symbol")

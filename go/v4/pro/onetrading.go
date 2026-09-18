@@ -1233,7 +1233,7 @@ func (this *Onetrading) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	if (marketId != nil) && (timeframe != nil) {
 		ccxt.AddElementToObject(ccxt.GetValue(subscription, marketId), timeframe, true)
 	}
-	var properties any = []any{}
+	var properties []any = []any{}
 	var marketIds []string = ccxt.ObjectKeys(subscription)
 	for i := 0; i < len(marketIds); i++ {
 		var marketIdtimeframes []string = ccxt.ObjectKeys(ccxt.GetValue(subscription, ccxt.GetValue(marketIds, i)))
@@ -1243,7 +1243,7 @@ func (this *Onetrading) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 				"instrument_code":  ccxt.GetValue(marketIds, i),
 				"time_granularity": marketTimeframeId,
 			}
-			ccxt.AppendToArray(&properties, property)
+			properties = append(properties, property)
 		}
 	}
 	var request map[string]any = map[string]any{

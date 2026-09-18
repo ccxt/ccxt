@@ -42,21 +42,21 @@ func TestOptionsNetworks(exchange ccxt.ICoreExchange, skippedProperties any) {
 		//
 		var networkCodes []string = ObjectKeys(GetValue(exchange.GetOptions(), "networks"))
 		// 3) ensure that the same network-id is not assigned to multiple networkCodes
-		var collectedNetworkIds any = []any{}
+		var collectedNetworkIds []any = []any{}
 		for i := 0; i < len(networkCodes); i++ {
 			var networkCode string = GetValue(networkCodes, i).(string)
 			var networkId any = GetValue(GetValue(exchange.GetOptions(), "networks"), networkCode)
 			if !EvalTruthy(exchange.InArray(networkCode, allowedUnifiedAliases)) {
 				Assert(!EvalTruthy(exchange.InArray(networkId, collectedNetworkIds)), Add(Add("exchange.options[\"networks\"] should not contain multiple non-unified networkCodes (in the list of unified-networks) with the same networkId: \"", networkId), "\""))
 			}
-			AppendToArray(&collectedNetworkIds, networkId)
+			collectedNetworkIds = append(collectedNetworkIds, networkId)
 		}
 		// 4) ensure that there are no same networkCode with different case (uppercase/lowercase)
-		var collectedNetworkCodes any = []any{}
+		var collectedNetworkCodes []any = []any{}
 		for i := 0; i < len(networkCodes); i++ {
 			var networkCodeLower string = ToLower((GetValue(networkCodes, i)))
 			Assert(!EvalTruthy(exchange.InArray(networkCodeLower, collectedNetworkCodes)), Add(Add("exchange.options[\"networks\"] contains multiple networkCodes with the same networkCode \"", GetValue(networkCodes, i)), "\" in different uppercase/lowercase format"))
-			AppendToArray(&collectedNetworkCodes, networkCodeLower)
+			collectedNetworkCodes = append(collectedNetworkCodes, networkCodeLower)
 		}
 		// 5) test networkCodeToId & networkIdToCode
 		for i := 0; i < len(networkCodes); i++ {

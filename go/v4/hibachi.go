@@ -1171,7 +1171,7 @@ func (this *Hibachi) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 		PanicOnError(retRes98212)
 	}
 	var nonce any = this.Nonce()
-	var requestOrders any = []any{}
+	var requestOrders []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var rawOrder any = GetValue(orders, i)
 		var symbol *string = this.SafeString(rawOrder, "symbol")
@@ -1182,7 +1182,7 @@ func (this *Hibachi) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
 		var orderRequest any = this.CreateOrderRequest(Add(nonce, i), symbol, typeVar, side, amount, price, orderParams)
 		AddElementToObject(orderRequest, "action", "place")
-		AppendToArray(&requestOrders, orderRequest)
+		requestOrders = append(requestOrders, orderRequest)
 	}
 	var request map[string]any = map[string]any{
 		"accountId": this.GetAccountId(),
@@ -1194,11 +1194,11 @@ func (this *Hibachi) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 	//
 	// { "orders": [ { nonce: '1754349993908', orderId: '589642085255349248' } ] }
 	//
-	var ret any = []any{}
+	var ret []any = []any{}
 	var responseOrders any = this.SafeList(response, "orders", []any{})
 	for i := 0; i < GetArrayLength(responseOrders); i++ {
 		var responseOrder any = GetValue(responseOrders, i)
-		AppendToArray(&ret, this.SafeOrder(map[string]any{
+		ret = append(ret, this.SafeOrder(map[string]any{
 			"info":   responseOrder,
 			"id":     this.SafeString(responseOrder, "orderId"),
 			"status": "pending",
@@ -1326,7 +1326,7 @@ func (this *Hibachi) editOrdersBody(ch chan any, orders any, optionalArgs ...any
 		PanicOnError(retRes108812)
 	}
 	var nonce any = this.Nonce()
-	var requestOrders any = []any{}
+	var requestOrders []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var rawOrder any = GetValue(orders, i)
 		var id *string = this.SafeString(rawOrder, "id")
@@ -1338,7 +1338,7 @@ func (this *Hibachi) editOrdersBody(ch chan any, orders any, optionalArgs ...any
 		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
 		var orderRequest any = this.EditOrderRequest(Add(nonce, i), id, symbol, typeVar, side, amount, price, orderParams)
 		AddElementToObject(orderRequest, "action", "modify")
-		AppendToArray(&requestOrders, orderRequest)
+		requestOrders = append(requestOrders, orderRequest)
 	}
 	var request map[string]any = map[string]any{
 		"accountId": this.GetAccountId(),
@@ -1350,11 +1350,11 @@ func (this *Hibachi) editOrdersBody(ch chan any, orders any, optionalArgs ...any
 	//
 	// { "orders": [ { "orderId": "589636801329628160" } ] }
 	//
-	var ret any = []any{}
+	var ret []any = []any{}
 	var responseOrders any = this.SafeList(response, "orders", []any{})
 	for i := 0; i < GetArrayLength(responseOrders); i++ {
 		var responseOrder any = GetValue(responseOrders, i)
-		AppendToArray(&ret, this.SafeOrder(map[string]any{
+		ret = append(ret, this.SafeOrder(map[string]any{
 			"info":   responseOrder,
 			"id":     this.SafeString(responseOrder, "orderId"),
 			"status": "pending",
@@ -1438,11 +1438,11 @@ func (this *Hibachi) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var orders any = []any{}
+	var orders []any = []any{}
 	for i := 0; i < GetArrayLength(ids); i++ {
 		var orderRequest any = this.CancelOrderRequest(GetValue(ids, i))
 		AddElementToObject(orderRequest, "action", "cancel")
-		AppendToArray(&orders, orderRequest)
+		orders = append(orders, orderRequest)
 	}
 	var request map[string]any = map[string]any{
 		"accountId": this.GetAccountId(),
@@ -1454,11 +1454,11 @@ func (this *Hibachi) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 	//
 	// { "orders": [ { "orderId": "589636801329628160" } ] }
 	//
-	var ret any = []any{}
+	var ret []any = []any{}
 	var responseOrders any = this.SafeList(response, "orders", []any{})
 	for i := 0; i < GetArrayLength(responseOrders); i++ {
 		var responseOrder any = GetValue(responseOrders, i)
-		AppendToArray(&ret, this.SafeOrder(map[string]any{
+		ret = append(ret, this.SafeOrder(map[string]any{
 			"info":   responseOrder,
 			"id":     this.SafeString(responseOrder, "orderId"),
 			"status": "canceled",
@@ -2784,9 +2784,9 @@ func (this *Hibachi) ParseSettlement(settlement any, optionalArgs ...any) any {
 func (this *Hibachi) ParseSettlements(settlements any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(settlements); i++ {
-		AppendToArray(&result, this.ParseSettlement(GetValue(settlements, i), market))
+		result = append(result, this.ParseSettlement(GetValue(settlements, i), market))
 	}
 	return result
 }
@@ -3070,11 +3070,11 @@ func (this *Hibachi) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	// }
 	//
 	var data any = this.SafeList(response, "data", []any{})
-	var rates any = []any{}
+	var rates []any = []any{}
 	for i := 0; i < GetArrayLength(data); i++ {
 		var entry any = GetValue(data, i)
 		var timestamp *int64 = this.SafeIntegerProduct(entry, "fundingTimestamp", 1000)
-		AppendToArray(&rates, map[string]any{
+		rates = append(rates, map[string]any{
 			"info":        entry,
 			"symbol":      symbol,
 			"fundingRate": this.SafeNumber(entry, "fundingRate"),

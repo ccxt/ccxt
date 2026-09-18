@@ -3348,7 +3348,7 @@ func (this *Hashkey) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 		retRes288512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes288512)
 	}
-	var ordersRequests any = []any{}
+	var ordersRequests []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var rawOrder any = GetValue(orders, i)
 		var symbol *string = this.SafeString(rawOrder, "symbol")
@@ -3362,7 +3362,7 @@ func (this *Hashkey) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 		if clientOrderId == nil {
 			AddElementToObject(orderRequest, "clientOrderId", this.Uuid()) // both spot and swap endpoints require clientOrderId
 		}
-		AppendToArray(&ordersRequests, orderRequest)
+		ordersRequests = append(ordersRequests, orderRequest)
 	}
 	var firstOrder any = GetValue(ordersRequests, 0)
 	var firstSymbol *string = this.SafeString(firstOrder, "symbol")
@@ -3383,11 +3383,11 @@ func (this *Hashkey) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 		panic(NotSupported(Add(Add(this.Id+" "+"createOrderRequest() is not supported for ", GetValue(market, "type")), " type of markets")))
 	}
 	var result any = this.SafeList(response, "result", []any{})
-	var responseOrders any = []any{}
+	var responseOrders []any = []any{}
 	for i := 0; i < GetArrayLength(result); i++ {
 		var responseEntry map[string]any = SafeMapTyped(result, i)
 		var responseOrder any = this.SafeDict(responseEntry, "order", map[string]any{})
-		AppendToArray(&responseOrders, responseOrder)
+		responseOrders = append(responseOrders, responseOrder)
 	}
 
 	ch <- this.ParseOrders(responseOrders)
@@ -4424,12 +4424,12 @@ func (this *Hashkey) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	//         ...
 	//     ]
 	//
-	var rates any = []any{}
+	var rates []any = []any{}
 	var rows []any = this.ToArray(response)
 	for i := 0; i < len(rows); i++ {
 		var entry any = GetValue(rows, i)
 		var timestamp *int64 = this.SafeInteger(entry, "settleTime")
-		AppendToArray(&rates, map[string]any{
+		rates = append(rates, map[string]any{
 			"info":        entry,
 			"symbol":      this.SafeSymbol(this.SafeString(entry, "symbol"), market, nil, "swap"),
 			"fundingRate": this.SafeNumber(entry, "settleRate"),
@@ -5011,11 +5011,11 @@ func (this *Hashkey) ParseMarketLeverageTiers(info any, optionalArgs ...any) any
 	var riskLimits any = this.SafeList(info, "riskLimits", []any{})
 	var marketId *string = this.SafeString(info, "symbol")
 	market = this.SafeMarket(marketId, market)
-	var tiers any = []any{}
+	var tiers []any = []any{}
 	for i := 0; i < GetArrayLength(riskLimits); i++ {
 		var tier any = GetValue(riskLimits, i)
 		var initialMarginRate *string = this.SafeString(tier, "initialMargin")
-		AppendToArray(&tiers, map[string]any{
+		tiers = append(tiers, map[string]any{
 			"tier":                  this.Sum(i, 1),
 			"symbol":                this.SafeSymbol(marketId, market),
 			"currency":              GetValue(market, "settle"),

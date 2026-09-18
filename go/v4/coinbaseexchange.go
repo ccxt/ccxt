@@ -847,7 +847,7 @@ func (this *Coinbaseexchange) fetchMarketsBody(ch chan any, optionalArgs ...any)
 	//         }
 	//     ]
 	//
-	var result any = []any{}
+	var result []any = []any{}
 	var rawMarkets []any = this.ToArray(response)
 	for i := 0; i < len(rawMarkets); i++ {
 		var market any = GetValue(rawMarkets, i)
@@ -861,7 +861,7 @@ func (this *Coinbaseexchange) fetchMarketsBody(ch chan any, optionalArgs ...any)
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
 		var status *string = this.SafeString(market, "status")
-		AppendToArray(&result, this.Extend(this.Fees["trading"], map[string]any{
+		result = append(result, this.Extend(this.Fees["trading"], map[string]any{
 			"id":             id,
 			"symbol":         Add(Add(base, "/"), quote),
 			"base":           base,

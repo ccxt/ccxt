@@ -305,12 +305,12 @@ func (this *Myriad) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		rawMarkets = (<-this.FetchRawMarketsListAsync(rest))
 		ccxt.PanicOnError(rawMarkets)
 	}
-	var flatMarkets any = []any{}
+	var flatMarkets []any = []any{}
 	var eventsDict map[string]any = map[string]any{}
 	for i := 0; i < ccxt.GetArrayLength(rawMarkets); i++ {
 		var raw any = ccxt.GetValue(rawMarkets, i)
 		var m any = this.ParseMyriadMarket(raw)
-		ccxt.AppendToArray(&flatMarkets, m)
+		flatMarkets = append(flatMarkets, m)
 		var ev any = this.ParseMarketToEvent(raw, m)
 		var evKey *string = this.SafeString(ev, "event")
 		if evKey != nil {
@@ -349,7 +349,7 @@ func (this *Myriad) fetchRawMarketsBySearchBody(ch chan any, queries any, option
 	var state *string = this.SafeString(params, "state", this.SafeString(this.Options, "defaultMarketStatus", "open"))
 	var rest any = this.Omit(params, []any{"limit", "state"})
 	var seen map[string]any = map[string]any{}
-	var rawMarkets any = []any{}
+	var rawMarkets []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(queries); i++ {
 		var q any = ccxt.GetValue(queries, i)
 
@@ -379,7 +379,7 @@ func (this *Myriad) fetchRawMarketsBySearchBody(ch chan any, queries any, option
 			var key any = ccxt.Add(ccxt.Add(networkId, ":"), marketId)
 			if !(ccxt.InOp(seen, key)) {
 				ccxt.AddElementToObject(seen, key, true)
-				ccxt.AppendToArray(&rawMarkets, raw)
+				rawMarkets = append(rawMarkets, raw)
 			}
 		}
 	}
@@ -416,7 +416,7 @@ func (this *Myriad) fetchRawMarketsListBody(ch chan any, optionalArgs ...any) an
 	// include both AMM and order-book markets so order-book trading methods can resolve their markets
 	var tradingModel *string = this.SafeString2(params, "tradingModel", "trading_model", this.SafeString(this.Options, "defaultTradingModel", "all"))
 	var rest any = this.Omit(params, []any{"state", "status", "limit", "tradingModel", "trading_model"})
-	var allRawMarkets any = []any{}
+	var allRawMarkets []any = []any{}
 	// track the running count with an explicit counter (avoids inline array .length / .slice,
 	// which the regex transpiler otherwise mistakes for string strlen()/mb_substr())
 	var collected any = 0
@@ -449,7 +449,7 @@ func (this *Myriad) fetchRawMarketsListBody(ch chan any, optionalArgs ...any) an
 		}
 		for i := 0; i < rawMarketsLength; i++ {
 			if ccxt.IsLessThan(collected, maxMarkets) {
-				ccxt.AppendToArray(&allRawMarkets, ccxt.GetValue(rawMarkets, i))
+				allRawMarkets = append(allRawMarkets, ccxt.GetValue(rawMarkets, i))
 				collected = this.Sum(collected, 1)
 			}
 		}
@@ -643,7 +643,7 @@ func (this *Myriad) fetchRawQuestionsBySearchBody(ch chan any, queries any, opti
 	var limit *int64 = this.SafeInteger(params, "limit", this.SafeInteger(this.Options, "defaultFetchEventsLimit", 50))
 	var rest any = this.Omit(params, []any{"limit"})
 	var seen map[string]any = map[string]any{}
-	var rawQuestions any = []any{}
+	var rawQuestions []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(queries); i++ {
 		var q any = ccxt.GetValue(queries, i)
 
@@ -670,7 +670,7 @@ func (this *Myriad) fetchRawQuestionsBySearchBody(ch chan any, queries any, opti
 			var questionId *string = this.SafeString(raw, "id")
 			if (questionId != nil) && !(ccxt.InOp(seen, questionId)) {
 				ccxt.AddElementToObject(seen, questionId, true)
-				ccxt.AppendToArray(&rawQuestions, raw)
+				rawQuestions = append(rawQuestions, raw)
 			}
 		}
 	}
@@ -702,7 +702,7 @@ func (this *Myriad) fetchRawQuestionsListBody(ch chan any, optionalArgs ...any) 
 	var maxQuestions *int64 = this.SafeInteger(params, "limit", this.SafeInteger(this.Options, "fetchEventsLimit", 1000))
 	var state *string = this.SafeString2(params, "state", "status", this.SafeString(this.Options, "defaultMarketStatus", "open"))
 	var rest any = this.Omit(params, []any{"state", "status", "limit", "tradingModel", "trading_model"})
-	var allRawQuestions any = []any{}
+	var allRawQuestions []any = []any{}
 	var seen map[string]any = map[string]any{}
 	var collected any = 0
 	var page any = 1
@@ -744,7 +744,7 @@ func (this *Myriad) fetchRawQuestionsListBody(ch chan any, optionalArgs ...any) 
 				ccxt.AddElementToObject(seen, questionId, true)
 			}
 			if ccxt.IsLessThan(collected, maxQuestions) {
-				ccxt.AppendToArray(&allRawQuestions, rawQuestion)
+				allRawQuestions = append(allRawQuestions, rawQuestion)
 				collected = this.Sum(collected, 1)
 			}
 		}
@@ -836,9 +836,9 @@ func (this *Myriad) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var data any = this.SafeList(response, "data", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(data); i++ {
-		ccxt.AppendToArray(&result, this.ParsePredictionPosition(ccxt.GetValue(data, i)))
+		result = append(result, this.ParsePredictionPosition(ccxt.GetValue(data, i)))
 	}
 
 	ch <- this.FilterByArray(result, "outcome", outcomes, false)
@@ -1032,13 +1032,13 @@ func (this *Myriad) SignEvmTransaction(tx any, privateKey any) any {
 		sHex = ccxt.Add("0", sHex)
 	}
 	var yParity *int64 = this.SafeInteger(signature, "v")
-	var signedFields any = []any{}
+	var signedFields []any = []any{}
 	for i := 0; i < len(fields); i++ {
-		ccxt.AppendToArray(&signedFields, ccxt.GetValue(fields, i))
+		signedFields = append(signedFields, ccxt.GetValue(fields, i))
 	}
-	ccxt.AppendToArray(&signedFields, this.RlpEncodeBytes(this.IntToRlpHex(yParity)))
-	ccxt.AppendToArray(&signedFields, this.RlpEncodeBytes(rHex))
-	ccxt.AppendToArray(&signedFields, this.RlpEncodeBytes(sHex))
+	signedFields = append(signedFields, this.RlpEncodeBytes(this.IntToRlpHex(yParity)))
+	signedFields = append(signedFields, this.RlpEncodeBytes(rHex))
+	signedFields = append(signedFields, this.RlpEncodeBytes(sHex))
 	return ccxt.Add("0x02", this.RlpEncodeList(signedFields))
 }
 func (this *Myriad) EthRpcAsync(rpcUrl any, method any, rpcParams any) <-chan any {
@@ -1372,17 +1372,17 @@ func (this *Myriad) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var ordersLength int = ccxt.GetArrayLength(orders)
-	var orderOutcomes any = []any{}
+	var orderOutcomes []any = []any{}
 	for i := 0; i < ordersLength; i++ {
 		var __oc *string = this.SafeString(ccxt.GetValue(orders, i), "outcome")
 		if __oc != nil {
-			ccxt.AppendToArray(&orderOutcomes, __oc)
+			orderOutcomes = append(orderOutcomes, __oc)
 		}
 	}
 
 	retRes10028 := (<-this.LoadOutcomesAsync(orderOutcomes))
 	ccxt.PanicOnError(retRes10028)
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < ordersLength; i++ {
 		var o any = ccxt.GetValue(orders, i)
 		var outcome *string = this.SafeString(o, "outcome")
@@ -1394,7 +1394,7 @@ func (this *Myriad) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 
 		placed := (<-this.CreateOrderbookOrderAsync(outcome, typeVar, side, amount, price, this.Extend(orderParams, params)))
 		ccxt.PanicOnError(placed)
-		ccxt.AppendToArray(&result, placed)
+		result = append(result, placed)
 	}
 
 	ch <- result
@@ -2043,7 +2043,7 @@ func (this *Myriad) fetchAmmOrdersBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var rows any = this.SafeList(response, "data", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	var rowsLength int = ccxt.GetArrayLength(rows)
 	for i := 0; i < rowsLength; i++ {
 		var row any = ccxt.GetValue(rows, i)
@@ -2055,7 +2055,7 @@ func (this *Myriad) fetchAmmOrdersBody(ch chan any, optionalArgs ...any) any {
 		if (!ccxt.IsEqual(rowOutcomeId, nil)) && (!ccxt.IsEqual(currentOutcomeId, rowOutcomeId)) {
 			continue
 		}
-		ccxt.AppendToArray(&result, this.ParseAmmEventToOrder(row, outcomeObj))
+		result = append(result, this.ParseAmmEventToOrder(row, outcomeObj))
 	}
 	var sorted []any = this.SortBy(result, "timestamp", true)
 
@@ -2251,8 +2251,8 @@ func (this *Myriad) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 	var networkIdParam *string = this.SafeString2(params, "networkId", "network_id")
 	params = this.Omit(params, []any{"orderResponse", "orderResponses", "rawOrder", "networkId", "network_id"})
 	var idsLength int = ccxt.GetArrayLength(ids)
-	var signedOrders any = []any{}
-	var wrappers any = []any{}
+	var signedOrders []any = []any{}
+	var wrappers []any = []any{}
 	var networkId *string = this.SafeString(this.Options, "defaultNetworkId", "56")
 	for i := 0; i < idsLength; i++ {
 		var id any = ccxt.GetValue(ids, i)
@@ -2283,11 +2283,11 @@ func (this *Myriad) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 		}
 		var message any = this.ClobOrderMessage(rawOrder)
 		var signature any = this.SignClobOrder(message, networkId)
-		ccxt.AppendToArray(&signedOrders, map[string]any{
+		signedOrders = append(signedOrders, map[string]any{
 			"order":     message,
 			"signature": signature,
 		})
-		ccxt.AppendToArray(&wrappers, this.Extend(fetched, map[string]any{
+		wrappers = append(wrappers, this.Extend(fetched, map[string]any{
 			"status":    "canceled",
 			"networkId": networkId,
 		}))
@@ -2630,11 +2630,11 @@ func (this *Myriad) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 	orders := (<-this.FetchOrdersAsync(outcome, since, limit, this.Extend(request, params)))
 	ccxt.PanicOnError(orders)
-	var trades any = []any{}
+	var trades []any = []any{}
 	var ordersLength int = ccxt.GetArrayLength(orders)
 	for i := 0; i < ordersLength; i++ {
 		var order any = ccxt.GetValue(orders, i)
-		ccxt.AppendToArray(&trades, this.OrderToTrade(order))
+		trades = append(trades, this.OrderToTrade(order))
 	}
 
 	ch <- this.FilterByValueSinceLimit(trades, "outcome", outcome, since, limit, "timestamp", true)
@@ -2866,7 +2866,7 @@ func (this *Myriad) ParseMyriadMarket(raw any, optionalArgs ...any) any {
 	var sellFees map[string]any = ccxt.SafeMapTyped(feesObj, "sell")
 	var takerFee *float64 = this.SafeNumber(buyFees, "fee", 0.01)
 	var makerFee *float64 = this.SafeNumber(sellFees, "fee", 0)
-	var outcomes any = []any{}
+	var outcomes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(rawOutcomes); i++ {
 		var outcome map[string]any = ccxt.SafeMapTyped(rawOutcomes, i)
 		var outcomeId *string = this.SafeString(outcome, "outcomeId", this.SafeString(outcome, "id", ccxt.ToString(i)))
@@ -2894,7 +2894,7 @@ func (this *Myriad) ParseMyriadMarket(raw any, optionalArgs ...any) any {
 		// reassigned local into the anonymous inner class it emits for a map literal)
 		var winner any = winnerRaw
 		var settleFraction any = settleFractionRaw
-		ccxt.AppendToArray(&outcomes, map[string]any{
+		outcomes = append(outcomes, map[string]any{
 			"id":             outcomeCompositeId,
 			"outcomeId":      outcomeCompositeId,
 			"outcome":        outcomeHandle,
@@ -2929,7 +2929,7 @@ func (this *Myriad) ParseMyriadMarket(raw any, optionalArgs ...any) any {
 		}
 		return "clob"
 	}()
-	var outcomesLength int = ccxt.GetArrayLength(outcomes)
+	var outcomesLength int = len(outcomes)
 	// effectively-final copy for the market object literal below (reassigned in the loop)
 	var marketResolvedOutcome any = resolvedOutcome
 	return map[string]any{
@@ -3467,13 +3467,13 @@ func (this *Myriad) fetchOrderBookBody(ch chan any, outcome any, optionalArgs ..
 	}
 	// the synthetic size must be a parsed float, an int literal breaks the typed go wrapper conversion
 	var synthSize any = this.ParseNumber("9999")
-	var bids any = []any{}
+	var bids []any = []any{}
 	if !ccxt.IsEqual(bid, nil) {
-		ccxt.AppendToArray(&bids, []any{bid, synthSize})
+		bids = append(bids, []any{bid, synthSize})
 	}
-	var asks any = []any{}
+	var asks []any = []any{}
 	if !ccxt.IsEqual(ask, nil) {
-		ccxt.AppendToArray(&asks, []any{ask, synthSize})
+		asks = append(asks, []any{ask, synthSize})
 	}
 	var orderbook map[string]any = map[string]any{
 		"outcome":   this.SafeOutcomeSymbol(outcome, outcomeObj),
@@ -3500,19 +3500,19 @@ func (this *Myriad) fetchOrderBookBody(ch chan any, outcome any, optionalArgs ..
 func (this *Myriad) ParseWeiOrderBook(response any, outcome any) any {
 	var rawBids any = this.SafeList(response, "bids", []any{})
 	var rawAsks any = this.SafeList(response, "asks", []any{})
-	var bids any = []any{}
+	var bids []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(rawBids); i++ {
 		var row any = ccxt.GetValue(rawBids, i)
 		var rowPrice *string = ccxt.Precise.StringDiv(this.SafeString(row, 0), "1000000000000000000")
 		var rowAmount *string = ccxt.Precise.StringDiv(this.SafeString(row, 1), "1000000000000000000")
-		ccxt.AppendToArray(&bids, []any{this.ParseNumber(rowPrice), this.ParseNumber(rowAmount)})
+		bids = append(bids, []any{this.ParseNumber(rowPrice), this.ParseNumber(rowAmount)})
 	}
-	var asks any = []any{}
+	var asks []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(rawAsks); i++ {
 		var row any = ccxt.GetValue(rawAsks, i)
 		var rowPrice *string = ccxt.Precise.StringDiv(this.SafeString(row, 0), "1000000000000000000")
 		var rowAmount *string = ccxt.Precise.StringDiv(this.SafeString(row, 1), "1000000000000000000")
-		ccxt.AppendToArray(&asks, []any{this.ParseNumber(rowPrice), this.ParseNumber(rowAmount)})
+		asks = append(asks, []any{this.ParseNumber(rowPrice), this.ParseNumber(rowAmount)})
 	}
 	var timestamp int64 = this.Milliseconds()
 	return map[string]any{
@@ -3647,14 +3647,14 @@ func (this *Myriad) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...any
 		var bucket any = this.SafeValue(priceCharts, bucketKey, map[string]any{})
 		points = this.SafeList(bucket, outcomeId, this.SafeList(bucket, "data", []any{}))
 	}
-	var usablePoints any = []any{}
+	var usablePoints []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(points); i++ {
 		var point any = ccxt.GetValue(points, i)
 		var pointOpen *float64 = this.SafeNumber(point, "open")
 		var pointPrice *float64 = this.SafeNumber(point, "price", this.SafeNumber(point, "value"))
 		var pointTs *int64 = this.SafeInteger(point, "timestamp")
 		if ((pointOpen != nil) || (pointPrice != nil)) && (pointTs != nil) {
-			ccxt.AppendToArray(&usablePoints, point)
+			usablePoints = append(usablePoints, point)
 		}
 	}
 
@@ -3743,7 +3743,7 @@ func (this *Myriad) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	retRes28558 := (<-this.LoadOutcomesAsync(outcomes))
 	ccxt.PanicOnError(retRes28558)
 	var outcomesByMarket map[string]any = map[string]any{}
-	var marketKeys any = []any{}
+	var marketKeys []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(outcomes); i++ {
 		var outcomeObj any = this.Outcome(ccxt.GetValue(outcomes, i))
 		var info any = this.SafeDict(outcomeObj, "info", map[string]any{})
@@ -3752,20 +3752,20 @@ func (this *Myriad) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		var key any = ccxt.Add(ccxt.Add(networkId, ":"), marketId)
 		if !(ccxt.InOp(outcomesByMarket, key)) {
 			ccxt.AddElementToObject(outcomesByMarket, key, []any{})
-			ccxt.AppendToArray(&marketKeys, key)
+			marketKeys = append(marketKeys, key)
 		}
 		// reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
 		var grouped any = ccxt.GetValue(outcomesByMarket, key)
 		ccxt.AppendToArray(&grouped, outcomeObj)
 		ccxt.AddElementToObject(outcomesByMarket, key, grouped)
 	}
-	var promises any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(marketKeys); i++ {
+	var promises []any = []any{}
+	for i := 0; i < len(marketKeys); i++ {
 		var key any = ccxt.GetValue(marketKeys, i)
 		var grouped any = ccxt.GetValue(outcomesByMarket, key)
 		var firstOutcome any = ccxt.GetValue(grouped, 0)
 		var info any = this.SafeDict(firstOutcome, "info", map[string]any{})
-		ccxt.AppendToArray(&promises, this.MyriadPublicGetMarketsId(this.Extend(map[string]any{
+		promises = append(promises, this.MyriadPublicGetMarketsId(this.Extend(map[string]any{
 			"id":         this.SafeString(info, "marketId"),
 			"network_id": this.SafeString(info, "networkId"),
 		}, params)))
@@ -3773,7 +3773,7 @@ func (this *Myriad) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 	responses := (<-ccxt.PromiseAll(promises))
 	ccxt.PanicOnError(responses)
-	for i := 0; i < ccxt.GetArrayLength(marketKeys); i++ {
+	for i := 0; i < len(marketKeys); i++ {
 		var key any = ccxt.GetValue(marketKeys, i)
 		var response any = ccxt.GetValue(responses, i)
 		var grouped any = ccxt.GetValue(outcomesByMarket, key)
@@ -3868,7 +3868,7 @@ func (this *Myriad) fetchTradesBody(ch chan any, outcome any, optionalArgs ...an
 		}
 		return []any{}
 	}()
-	var trades any = []any{}
+	var trades []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(rows); i++ {
 		var row any = ccxt.GetValue(rows, i)
 		var action *string = this.SafeString(row, "action")
@@ -3879,7 +3879,7 @@ func (this *Myriad) fetchTradesBody(ch chan any, outcome any, optionalArgs ...an
 		if (outcomeId != nil) && (rowOutcomeId != outcomeId && (rowOutcomeId == nil || outcomeId == nil || *rowOutcomeId != *outcomeId)) {
 			continue
 		}
-		ccxt.AppendToArray(&trades, row)
+		trades = append(trades, row)
 	}
 
 	ch <- this.ParsePredictionTrades(trades, outcomeObj, since, limit)
@@ -3995,11 +3995,11 @@ func (this *Myriad) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 			rawMarkets = this.SafeList(listResponses, 0, []any{})
 			rawQuestions = this.SafeList(listResponses, 1, []any{})
 		} else {
-			var tagQueries any = []any{}
+			var tagQueries []any = []any{}
 			for i := 0; i < requestedTagsLength; i++ {
 				// tag slugs are hyphenated ('world-cup'); search with spaces so titles match
 				var tagSlug any = ccxt.GetValue(requestedTags, i)
-				ccxt.AppendToArray(&tagQueries, ccxt.Replace(tagSlug, "-", " "))
+				tagQueries = append(tagQueries, ccxt.Replace(tagSlug, "-", " "))
 			}
 			// run both searches in parallel; some events are only discoverable from questions,
 			// while market search is still the primary source for market-level data
@@ -4014,14 +4014,14 @@ func (this *Myriad) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 		this.Markets = this.CreateSafeDictionary()
 	}
 	var seenMarketHandles map[string]any = map[string]any{}
-	var result any = []any{}
+	var result []any = []any{}
 	var rawQuestionsLength int = ccxt.GetArrayLength(rawQuestions)
 	for i := 0; i < rawQuestionsLength; i++ {
 		var rawQuestion any = ccxt.GetValue(rawQuestions, i)
 		var ev any = this.ParseEvent(rawQuestion)
 		var evMarkets any = this.SafeList(ev, "markets", []any{})
 		var evMarketsLength int = ccxt.GetArrayLength(evMarkets)
-		var filteredMarkets any = []any{}
+		var filteredMarkets []any = []any{}
 		for j := 0; j < evMarketsLength; j++ {
 			var m any = this.SafeDict(evMarkets, j, map[string]any{})
 			var marketHandle *string = this.SafeString(m, "market")
@@ -4032,15 +4032,15 @@ func (this *Myriad) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 				ccxt.AddElementToObject(seenMarketHandles, marketHandle, true)
 				ccxt.AddElementToObject(this.Markets, marketHandle, m)
 			}
-			ccxt.AppendToArray(&filteredMarkets, m)
+			filteredMarkets = append(filteredMarkets, m)
 		}
 		// skip question events that contribute no new markets after de-duplicating by market handle
-		var filteredMarketsLength int = ccxt.GetArrayLength(filteredMarkets)
+		var filteredMarketsLength int = len(filteredMarkets)
 		if (evMarketsLength > 0) && (filteredMarketsLength == 0) {
 			continue
 		}
 		ccxt.AddElementToObject(ev, "markets", filteredMarkets)
-		ccxt.AppendToArray(&result, ev)
+		result = append(result, ev)
 	}
 	var rawMarketsLength int = ccxt.GetArrayLength(rawMarkets)
 	for i := 0; i < rawMarketsLength; i++ {
@@ -4056,7 +4056,7 @@ func (this *Myriad) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 			ccxt.AddElementToObject(this.Markets, marketHandle, m)
 		}
 		var ev any = this.ParseMarketToEvent(raw, m)
-		ccxt.AppendToArray(&result, ev)
+		result = append(result, ev)
 	}
 	// setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache
 	this.SetEvents(result)
@@ -4080,10 +4080,10 @@ func (this *Myriad) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 func (this *Myriad) ParseEvent(rawEvent any) any {
 	var questionSlug *string = this.SafeString(rawEvent, "slug", this.SafeString(rawEvent, "id"))
 	var rawMarkets any = this.SafeList(rawEvent, "markets", []any{})
-	var marketsList any = []any{}
+	var marketsList []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(rawMarkets); i++ {
 		var rawMarket any = ccxt.GetValue(rawMarkets, i)
-		ccxt.AppendToArray(&marketsList, this.ParseMyriadMarket(rawMarket, questionSlug))
+		marketsList = append(marketsList, this.ParseMyriadMarket(rawMarket, questionSlug))
 	}
 	var endDate *string = this.SafeString(rawEvent, "expiresAt", this.SafeString(rawEvent, "endDate"))
 	return this.Extend(rawEvent, map[string]any{
@@ -4562,10 +4562,10 @@ func (this *Myriad) HandleTrades(client any, data any) {
 	// also surface the wallet's own fills (taker or maker leg) with their real execution prices
 	var myWallet any = this.WalletAddressOrUndefined()
 	if myWallet != nil {
-		var myLegs any = []any{}
+		var myLegs []any = []any{}
 		var takerTrader *string = this.SafeStringLower(taker, "trader")
 		if ccxt.IsEqual(takerTrader, myWallet) {
-			ccxt.AppendToArray(&myLegs, trade)
+			myLegs = append(myLegs, trade)
 		}
 		var makers any = this.SafeList(data, "makers", []any{})
 		var makersLength int = ccxt.GetArrayLength(makers)
@@ -4598,10 +4598,10 @@ func (this *Myriad) HandleTrades(client any, data any) {
 						"currency": this.SafeString(makerMarket, "quote"),
 					},
 				}, makerMarket)
-				ccxt.AppendToArray(&myLegs, makerTrade)
+				myLegs = append(myLegs, makerTrade)
 			}
 		}
-		var myLegsLength int = ccxt.GetArrayLength(myLegs)
+		var myLegsLength int = len(myLegs)
 		if myLegsLength > 0 {
 			if ccxt.IsEqual(this.MyTrades, nil) {
 				var myTradesLimit *int64 = this.SafeInteger(this.Options, "myTradesLimit", 1000)
@@ -4685,14 +4685,14 @@ func (this *Myriad) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	ccxt.PanicOnError(retRes35858)
 	var client any = this.Client(url)
 	var seenChannels map[string]any = map[string]any{}
-	var resolvedSymbols any = []any{}
+	var resolvedSymbols []any = []any{}
 	for i := 0; i < symbolsLength; i++ {
 		var outcomeObj any = this.Outcome(ccxt.GetValue(outcomes, i))
 		var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 		var networkId *string = this.SafeString(info, "networkId")
 		var marketId *string = this.SafeString(info, "marketId")
 		var channel any = ccxt.Add(ccxt.Add(ccxt.Add("prices:", networkId), ":"), marketId)
-		ccxt.AppendToArray(&resolvedSymbols, this.SafeOutcomeSymbol(ccxt.GetValue(outcomes, i), outcomeObj))
+		resolvedSymbols = append(resolvedSymbols, this.SafeOutcomeSymbol(ccxt.GetValue(outcomes, i), outcomeObj))
 		if ccxt.IsEqual(this.SafeValue(seenChannels, channel), nil) {
 			ccxt.AddElementToObject(seenChannels, channel, true)
 			var requestId any = this.RequestId(url)
@@ -4746,11 +4746,11 @@ func (this *Myriad) watchOHLCVBody(ch chan any, outcome any, optionalArgs ...any
 	trades := (<-this.WatchTradesAsync(outcome, since, limit, params))
 	ccxt.PanicOnError(trades)
 	var ohlcvc any = this.BuildOHLCVC(trades, timeframe, 0, 2147483647)
-	var result any = []any{}
+	var result []any = []any{}
 	var ohlcvcLength int = ccxt.GetArrayLength(ohlcvc)
 	for i := 0; i < ohlcvcLength; i++ {
 		var candle any = ccxt.GetValue(ohlcvc, i)
-		ccxt.AppendToArray(&result, []any{ccxt.GetValue(candle, 0), ccxt.GetValue(candle, 1), ccxt.GetValue(candle, 2), ccxt.GetValue(candle, 3), ccxt.GetValue(candle, 4), ccxt.GetValue(candle, 5)})
+		result = append(result, []any{ccxt.GetValue(candle, 0), ccxt.GetValue(candle, 1), ccxt.GetValue(candle, 2), ccxt.GetValue(candle, 3), ccxt.GetValue(candle, 4), ccxt.GetValue(candle, 5)})
 	}
 
 	ch <- this.FilterBySinceLimit(result, since, limit, 0, true)

@@ -1688,7 +1688,7 @@ func (this *Mexc) fetchSpotMarketsBody(ch chan any, optionalArgs ...any) any {
 	// - 'quoteAssetPrecision' & 'baseAssetPrecision' are not currency's real blockchain precision (to view currency's actual individual precision, refer to fetchCurrencies() method).
 	//
 	var data any = this.SafeList(response, "symbols", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(data); i++ {
 		var market any = GetValue(data, i)
 		var id *string = this.SafeString(market, "symbol")
@@ -1706,7 +1706,7 @@ func (this *Mexc) fetchSpotMarketsBody(ch chan any, optionalArgs ...any) any {
 		var makerCommission *float64 = this.SafeNumber(market, "makerCommission")
 		var takerCommission *float64 = this.SafeNumber(market, "takerCommission")
 		var maxQuoteAmount *float64 = this.SafeNumber(market, "maxQuoteAmount")
-		AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"id":             id,
 			"symbol":         Add(Add(base, "/"), quote),
 			"base":           base,
@@ -1833,7 +1833,7 @@ func (this *Mexc) fetchSwapMarketsBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var data any = this.SafeList(response, "data", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(data); i++ {
 		var market any = GetValue(data, i)
 		var id *string = this.SafeString(market, "symbol")
@@ -1845,7 +1845,7 @@ func (this *Mexc) fetchSwapMarketsBody(ch chan any, optionalArgs ...any) any {
 		var settle *string = this.SafeCurrencyCode(settleId)
 		var state *string = this.SafeString(market, "state")
 		var isLinear bool = (quote == settle || (quote != nil && settle != nil && *quote == *settle))
-		AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"id":             id,
 			"symbol":         Add(Add(Add(Add(base, "/"), quote), ":"), settle),
 			"base":           base,
@@ -3260,7 +3260,7 @@ func (this *Mexc) createOrdersBody(ch chan any, orders any, optionalArgs ...any)
 		retRes264912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes264912)
 	}
-	var ordersRequests any = []any{}
+	var ordersRequests []any = []any{}
 	var symbol any = nil
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var rawOrder any = GetValue(orders, i)
@@ -3286,7 +3286,7 @@ func (this *Mexc) createOrdersBody(ch chan any, orders any, optionalArgs ...any)
 		marginMode = GetValue(marginModeparamsVariable, 0)
 		params = GetValue(marginModeparamsVariable, 1)
 		var orderRequest any = this.CreateSpotOrderRequest(market, typeVar, side, amount, price, marginMode, orderParams)
-		AppendToArray(&ordersRequests, orderRequest)
+		ordersRequests = append(ordersRequests, orderRequest)
 	}
 	var request map[string]any = map[string]any{
 		"batchOrders": this.Json(ordersRequests),
@@ -4606,12 +4606,12 @@ func (this *Mexc) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 	response := (<-this.FetchAccountHelperAsync(marketType, query))
 	PanicOnError(response)
 	var data any = this.SafeList(response, "balances", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(data); i++ {
 		var account any = GetValue(data, i)
 		var currencyId *string = this.SafeString2(account, "asset", "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"id":   this.SafeString(account, "id"),
 			"type": this.SafeString(account, "type"),
 			"code": code,
@@ -5380,11 +5380,11 @@ func (this *Mexc) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 	//
 	var data any = this.SafeValue(response, "data", map[string]any{})
 	var resultList any = this.SafeList(data, "resultList", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(resultList); i++ {
 		var entry any = GetValue(resultList, i)
 		var timestamp *int64 = this.SafeInteger(entry, "settleTime")
-		AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"info":      entry,
 			"symbol":    symbol,
 			"code":      nil,
@@ -5601,13 +5601,13 @@ func (this *Mexc) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	//
 	var data any = this.SafeValue(response, "data")
 	var result any = this.SafeList(data, "resultList", []any{})
-	var rates any = []any{}
+	var rates []any = []any{}
 	for i := 0; i < GetArrayLength(result); i++ {
 		var entry any = GetValue(result, i)
 		var marketId *string = this.SafeString(entry, "symbol")
 		var symbolInner *string = this.SafeSymbol(marketId)
 		var timestamp *int64 = this.SafeInteger(entry, "settleTime")
-		AppendToArray(&rates, map[string]any{
+		rates = append(rates, map[string]any{
 			"info":        entry,
 			"symbol":      symbolInner,
 			"fundingRate": this.SafeNumber(entry, "fundingRate"),
@@ -5750,7 +5750,7 @@ func (this *Mexc) ParseMarketLeverageTiers(info any, optionalArgs ...any) any {
 	var riskIncrMmr *string = this.SafeString(info, "riskIncrMmr")
 	var riskIncrImr *string = this.SafeString(info, "riskIncrImr")
 	var floor any = "0"
-	var tiers any = []any{}
+	var tiers []any = []any{}
 	var quoteId *string = this.SafeString(info, "quoteCoin")
 	if riskIncrVol != nil && *riskIncrVol == "0" {
 		return []any{map[string]any{
@@ -5769,7 +5769,7 @@ func (this *Mexc) ParseMarketLeverageTiers(info any, optionalArgs ...any) any {
 		var minNotional any = this.ParseNumber(floor)
 		var mainMarginRate any = this.ParseNumber(maintenanceMarginRate)
 		var maxLev any = this.ParseNumber(Precise.StringDiv("1", initialMarginRate))
-		AppendToArray(&tiers, map[string]any{
+		tiers = append(tiers, map[string]any{
 			"tier":                  this.ParseNumber(Precise.StringDiv(cap, riskIncrVol)),
 			"symbol":                this.SafeSymbol(marketId, market, nil, "contract"),
 			"currency":              this.SafeCurrencyCode(quoteId),

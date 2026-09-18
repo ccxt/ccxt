@@ -1134,8 +1134,8 @@ func (this *Lighter) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 		request["integrator_taker_fee"] = GetValue(this.Options, "integratorTakerFee")
 		request["integrator_maker_fee"] = GetValue(this.Options, "integratorMakerFee")
 	}
-	var orders any = []any{}
-	AppendToArray(&orders, this.Extend(request, params))
+	var orders []any = []any{}
+	orders = append(orders, this.Extend(request, params))
 	if hasStopLoss || hasTakeProfit {
 		// group order
 		AddElementToObject(GetValue(orders, 0), "client_order_index", 0) // client order index should be 0
@@ -1158,7 +1158,7 @@ func (this *Lighter) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 				"reduceOnly":    true,
 			})), 0)
 			AddElementToObject(orderObj, "client_order_index", 0)
-			AppendToArray(&orders, orderObj)
+			orders = append(orders, orderObj)
 		}
 		if !IsEqual(takeProfit, nil) {
 			var orderObj any = GetValue(this.CreateOrderRequest(symbol, takeProfitOrderType, triggerOrderSide, 0, takeProfitOrderLimitPrice, this.Extend(params, map[string]any{
@@ -1166,7 +1166,7 @@ func (this *Lighter) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 				"reduceOnly":      true,
 			})), 0)
 			AddElementToObject(orderObj, "client_order_index", 0)
-			AppendToArray(&orders, orderObj)
+			orders = append(orders, orderObj)
 		}
 	}
 	return orders
@@ -1621,7 +1621,7 @@ func (this *Lighter) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var spotMarkets any = this.SafeList(response, "spot_order_book_details", []any{})
 	var swapMarkets any = this.SafeList(response, "order_book_details", []any{})
 	var markets []any = this.ArrayConcat(spotMarkets, swapMarkets)
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < len(markets); i++ {
 		var market any = GetValue(markets, i)
 		var id *string = this.SafeString(market, "market_id")
@@ -1665,7 +1665,7 @@ func (this *Lighter) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			return this.ParseNumber(this.ParsePrecision(priceDecimals))
 		}()
 		var quoteMultiplier *float64 = this.SafeNumber(market, "quote_multiplier")
-		AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"id":       id,
 			"symbol":   symbol,
 			"base":     base,
@@ -2319,11 +2319,11 @@ func (this *Lighter) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any
 	//     }
 	//
 	var data any = this.SafeList(response, "funding_rates", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(data); i++ {
 		var exchange *string = this.SafeString(GetValue(data, i), "exchange")
 		if exchange != nil && *exchange == "lighter" {
-			AppendToArray(&result, GetValue(data, i))
+			result = append(result, GetValue(data, i))
 		}
 	}
 
@@ -2566,13 +2566,13 @@ func (this *Lighter) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var allPositions any = []any{}
+	var allPositions []any = []any{}
 	var accounts any = this.SafeList(response, "accounts", []any{})
 	for i := 0; i < GetArrayLength(accounts); i++ {
 		var account any = GetValue(accounts, i)
 		var positions any = this.SafeList(account, "positions", []any{})
 		for j := 0; j < GetArrayLength(positions); j++ {
-			AppendToArray(&allPositions, GetValue(positions, j))
+			allPositions = append(allPositions, GetValue(positions, j))
 		}
 	}
 

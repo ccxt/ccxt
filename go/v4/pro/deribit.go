@@ -105,10 +105,10 @@ func (this *Deribit) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var messageHash string = "balance"
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var currencies any = this.SafeList(this.Options, "currencies", []any{})
-	var channels any = []any{}
+	var channels []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(currencies); i++ {
 		var currencyCode any = ccxt.GetValue(currencies, i)
-		ccxt.AppendToArray(&channels, ccxt.Add("user.portfolio.", currencyCode))
+		channels = append(channels, ccxt.Add("user.portfolio.", currencyCode))
 	}
 	var subscribe map[string]any = map[string]any{
 		"jsonrpc": "2.0",
@@ -279,10 +279,10 @@ func (this *Deribit) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		retRes22512 := (<-this.AuthenticateAsync())
 		ccxt.PanicOnError(retRes22512)
 	}
-	var channels any = []any{}
+	var channels []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var market any = this.Market(ccxt.GetValue(symbols, i))
-		ccxt.AppendToArray(&channels, ccxt.Add(ccxt.Add(ccxt.Add("ticker.", ccxt.GetValue(market, "id")), "."), interval))
+		channels = append(channels, ccxt.Add(ccxt.Add(ccxt.Add("ticker.", ccxt.GetValue(market, "id")), "."), interval))
 	}
 	var message map[string]any = map[string]any{
 		"jsonrpc": "2.0",
@@ -375,10 +375,10 @@ func (this *Deribit) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols, nil, false)
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var channels any = []any{}
+	var channels []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var market any = this.Market(ccxt.GetValue(symbols, i))
-		ccxt.AppendToArray(&channels, ccxt.Add("quote.", ccxt.GetValue(market, "id")))
+		channels = append(channels, ccxt.Add("quote.", ccxt.GetValue(market, "id")))
 	}
 	var message map[string]any = map[string]any{
 		"jsonrpc": "2.0",
@@ -853,13 +853,13 @@ func (this *Deribit) HandleOrderBook(client any, message any) {
 func (this *Deribit) CleanOrderBook(data any) any {
 	var bids any = this.SafeList(data, "bids", []any{})
 	var asks any = this.SafeList(data, "asks", []any{})
-	var cleanedBids any = []any{}
+	var cleanedBids []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(bids); i++ {
-		ccxt.AppendToArray(&cleanedBids, []any{ccxt.GetValue(ccxt.GetValue(bids, i), 1), ccxt.GetValue(ccxt.GetValue(bids, i), 2)})
+		cleanedBids = append(cleanedBids, []any{ccxt.GetValue(ccxt.GetValue(bids, i), 1), ccxt.GetValue(ccxt.GetValue(bids, i), 2)})
 	}
-	var cleanedAsks any = []any{}
+	var cleanedAsks []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(asks); i++ {
-		ccxt.AppendToArray(&cleanedAsks, []any{ccxt.GetValue(ccxt.GetValue(asks, i), 1), ccxt.GetValue(ccxt.GetValue(asks, i), 2)})
+		cleanedAsks = append(cleanedAsks, []any{ccxt.GetValue(ccxt.GetValue(asks, i), 1), ccxt.GetValue(ccxt.GetValue(asks, i), 2)})
 	}
 	ccxt.AddElementToObject(data, "bids", cleanedBids)
 	ccxt.AddElementToObject(data, "asks", cleanedAsks)
@@ -1160,8 +1160,8 @@ func (this *Deribit) watchMultipleWrapperBody(ch chan any, channelName any, chan
 		ccxt.PanicOnError(retRes92012)
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var rawSubscriptions any = []any{}
-	var messageHashes any = []any{}
+	var rawSubscriptions []any = []any{}
+	var messageHashes []any = []any{}
 	var isOHLCV bool = (ccxt.IsEqual(channelName, "chart.trades"))
 	var symbols any = func() any {
 		if isOHLCV {
@@ -1188,8 +1188,8 @@ func (this *Deribit) watchMultipleWrapperBody(ch chan any, channelName any, chan
 			market = this.Market(current)
 		}
 		var message any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(channelName, "."), ccxt.GetValue(market, "id")), "."), channelDescriptor)
-		ccxt.AppendToArray(&rawSubscriptions, message)
-		ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(channelName, "|"), ccxt.GetValue(market, "symbol")), "|"), channelDescriptor))
+		rawSubscriptions = append(rawSubscriptions, message)
+		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(channelName, "|"), ccxt.GetValue(market, "symbol")), "|"), channelDescriptor))
 	}
 	var request map[string]any = map[string]any{
 		"jsonrpc": "2.0",

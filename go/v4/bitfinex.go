@@ -903,7 +903,7 @@ func (this *Bitfinex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var securitiesMarketsIds any = this.SafeList(response, 2, []any{})
 	var marginIds any = this.SafeList(response, 3, []any{})
 	var markets []any = this.ArrayConcat(spotMarketsInfo, futuresMarketsInfo)
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < len(markets); i++ {
 		var pairObj any = GetValue(markets, i)
 		var id *string = this.SafeStringUpper(pairObj, 0)
@@ -945,7 +945,7 @@ func (this *Bitfinex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		}
 		var minOrderSizeString *string = this.SafeString(market, 3)
 		var maxOrderSizeString *string = this.SafeString(market, 4)
-		AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"id":       Add("t", id),
 			"symbol":   symbol,
 			"base":     base,
@@ -1154,13 +1154,13 @@ func (this *Bitfinex) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 	return nil
 }
 func (this *Bitfinex) ParseCurrenciesCustom(ids any, indexed any, indexedNetworks any) any {
-	var allowedIds any = []any{}
+	var allowedIds []any = []any{}
 	for i := 0; i < GetArrayLength(ids); i++ {
 		var id any = GetValue(ids, i)
 		if EndsWith(id, "F0") {
 			continue
 		}
-		AppendToArray(&allowedIds, id)
+		allowedIds = append(allowedIds, id)
 	}
 	var result map[string]any = map[string]any{}
 	var arr []any = this.ToArray(allowedIds)
@@ -1974,9 +1974,9 @@ func (this *Bitfinex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	//
 	var rawTrades []any = this.ToArray(response)
 	var trades []any = this.SortBy(rawTrades, 1)
-	var tradesList any = []any{}
+	var tradesList []any = []any{}
 	for i := 0; i < len(trades); i++ {
-		AppendToArray(&tradesList, map[string]any{
+		tradesList = append(tradesList, map[string]any{
 			"result": GetValue(trades, i),
 		}) // convert to array of dicts to match parseOrder signature
 	}
@@ -2429,7 +2429,7 @@ func (this *Bitfinex) createOrdersBody(ch chan any, orders any, optionalArgs ...
 		retRes194612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes194612)
 	}
-	var ordersRequests any = []any{}
+	var ordersRequests []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var rawOrder any = GetValue(orders, i)
 		var symbol *string = this.SafeString(rawOrder, "symbol")
@@ -2439,7 +2439,7 @@ func (this *Bitfinex) createOrdersBody(ch chan any, orders any, optionalArgs ...
 		var price *float64 = this.SafeNumber(rawOrder, "price")
 		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
 		var orderRequest any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, orderParams)
-		AppendToArray(&ordersRequests, []any{"on", orderRequest})
+		ordersRequests = append(ordersRequests, []any{"on", orderRequest})
 	}
 	var request map[string]any = map[string]any{
 		"ops": ordersRequests,
@@ -2472,12 +2472,12 @@ func (this *Bitfinex) createOrdersBody(ch chan any, orders any, optionalArgs ...
 	//         "Submitting 2 order operations."
 	//     ]
 	//
-	var results any = []any{}
+	var results []any = []any{}
 	var data any = this.SafeList(response, 4, []any{})
 	for i := 0; i < GetArrayLength(data); i++ {
 		var entry any = GetValue(data, i)
 		var individualOrder any = GetValue(entry, 4)
-		AppendToArray(&results, map[string]any{
+		results = append(results, map[string]any{
 			"result": GetValue(individualOrder, 0),
 		})
 	}
@@ -2519,9 +2519,9 @@ func (this *Bitfinex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 	response := (<-this.PrivatePostAuthWOrderCancelMulti(this.Extend(request, params)))
 	PanicOnError(response)
 	var orders any = this.SafeList(response, 4, []any{})
-	var ordersList any = []any{}
+	var ordersList []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
-		AppendToArray(&ordersList, map[string]any{
+		ordersList = append(ordersList, map[string]any{
 			"result": GetValue(orders, i),
 		})
 	}
@@ -2617,10 +2617,10 @@ func (this *Bitfinex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
 		retRes207712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes207712)
 	}
-	var numericIds any = []any{}
+	var numericIds []any = []any{}
 	for i := 0; i < GetArrayLength(ids); i++ {
 		// numericIds[i] = this.parseToNumeric (ids[i]);
-		AppendToArray(&numericIds, this.ParseToNumeric(GetValue(ids, i)))
+		numericIds = append(numericIds, this.ParseToNumeric(GetValue(ids, i)))
 	}
 	var request map[string]any = map[string]any{
 		"id": numericIds,
@@ -2683,9 +2683,9 @@ func (this *Bitfinex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
 	//     ]
 	//
 	var orders any = this.SafeList(response, 4, []any{})
-	var ordersList any = []any{}
+	var ordersList []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
-		AppendToArray(&ordersList, map[string]any{
+		ordersList = append(ordersList, map[string]any{
 			"result": GetValue(orders, i),
 		})
 	}
@@ -2855,9 +2855,9 @@ func (this *Bitfinex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 	//          ],
 	//      ]
 	//
-	var ordersList any = []any{}
+	var ordersList []any = []any{}
 	for i := 0; i < GetArrayLength(response); i++ {
-		AppendToArray(&ordersList, map[string]any{
+		ordersList = append(ordersList, map[string]any{
 			"result": GetValue(response, i),
 		})
 	}
@@ -2974,9 +2974,9 @@ func (this *Bitfinex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 	//          ]
 	//      ]
 	//
-	var ordersList any = []any{}
+	var ordersList []any = []any{}
 	for i := 0; i < GetArrayLength(response); i++ {
-		AppendToArray(&ordersList, map[string]any{
+		ordersList = append(ordersList, map[string]any{
 			"result": GetValue(response, i),
 		})
 	}
@@ -3032,9 +3032,9 @@ func (this *Bitfinex) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...
 	response := (<-this.PrivatePostAuthROrderSymbolIdTrades(this.Extend(request, params)))
 	PanicOnError(response)
 	var rawTrades []any = this.ToArray(response)
-	var tradesList any = []any{}
+	var tradesList []any = []any{}
 	for i := 0; i < len(rawTrades); i++ {
-		AppendToArray(&tradesList, map[string]any{
+		tradesList = append(tradesList, map[string]any{
 			"result": GetValue(rawTrades, i),
 		}) // convert to array of dicts to match parseOrder signature
 	}
@@ -3098,9 +3098,9 @@ func (this *Bitfinex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		response = (<-this.PrivatePostAuthRTradesHist(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	var tradesList any = []any{}
+	var tradesList []any = []any{}
 	for i := 0; i < GetArrayLength(response); i++ {
-		AppendToArray(&tradesList, map[string]any{
+		tradesList = append(tradesList, map[string]any{
 			"result": GetValue(response, i),
 		}) // convert to array of dicts to match parseOrder signature
 	}
@@ -3779,9 +3779,9 @@ func (this *Bitfinex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	//     ]
 	//
 	var rawPositions []any = this.ToArray(response)
-	var positionsList any = []any{}
+	var positionsList []any = []any{}
 	for i := 0; i < len(rawPositions); i++ {
-		AppendToArray(&positionsList, map[string]any{
+		positionsList = append(positionsList, map[string]any{
 			"result": GetValue(rawPositions, i),
 		})
 	}
@@ -4095,10 +4095,10 @@ func (this *Bitfinex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     ]
 	//
-	var ledgerObjects any = []any{}
+	var ledgerObjects []any = []any{}
 	for i := 0; i < GetArrayLength(response); i++ {
 		var item any = GetValue(response, i)
-		AppendToArray(&ledgerObjects, map[string]any{
+		ledgerObjects = append(ledgerObjects, map[string]any{
 			"result": item,
 		})
 	}
@@ -4270,19 +4270,19 @@ func (this *Bitfinex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	//   ]
 	//
 	var rawRatesData []any = this.ToArray(response)
-	var rates any = []any{}
+	var rates []any = []any{}
 	for i := 0; i < len(rawRatesData); i++ {
 		var fr any = GetValue(rawRatesData, i)
 		var rate any = this.ParseFundingRateHistory(fr, market)
-		AppendToArray(&rates, rate)
+		rates = append(rates, rate)
 	}
-	var reversedArray any = []any{}
+	var reversedArray []any = []any{}
 	var rawRates any = this.FilterBySymbolSinceLimit(rates, symbol, since, limit)
 	var ratesLength int = GetArrayLength(rawRates)
 	for i := 0; i < ratesLength; i++ {
 		var index any = Subtract(Subtract(ratesLength, i), 1)
 		var valueAtIndex any = GetValue(rawRates, index)
-		AppendToArray(&reversedArray, valueAtIndex)
+		reversedArray = append(reversedArray, valueAtIndex)
 	}
 
 	ch <- reversedArray

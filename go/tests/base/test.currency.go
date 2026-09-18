@@ -14,7 +14,7 @@ func TestCurrency(exchange ccxt.ICoreExchange, skippedProperties any, method any
 		"code": "BTC",
 	}
 	// todo: remove fee from empty
-	var emptyAllowedFor any = []any{"name", "fee"}
+	var emptyAllowedFor []any = []any{"name", "fee"}
 	// todo: info key needs to be added in base, when exchange does not have fetchCurrencies
 	var isNative bool = (!IsEqual(GetValue(exchange.GetHas(), "fetchCurrencies"), nil)) && (!IsEqual(GetValue(exchange.GetHas(), "fetchCurrencies"), false)) && (!IsEqual(GetValue(exchange.GetHas(), "fetchCurrencies"), "emulated"))
 	var currencyType any = exchange.SafeString(entry, "type")
@@ -40,13 +40,13 @@ func TestCurrency(exchange ccxt.ICoreExchange, skippedProperties any, method any
 		AssertInArray(exchange, skippedProperties, method, entry, "type", []any{"fiat", "crypto", "leveraged", "other", nil}) // todo: remove undefined
 		// only require "deposit" & "withdraw" values, when currency is not fiat, or when it's fiat, but not skipped
 		if (currencyType != "crypto") && (InOp(skippedProperties, "depositForNonCrypto")) {
-			AppendToArray(&emptyAllowedFor, "deposit")
+			emptyAllowedFor = append(emptyAllowedFor, "deposit")
 		}
 		if (currencyType != "crypto") && (InOp(skippedProperties, "withdrawForNonCrypto")) {
-			AppendToArray(&emptyAllowedFor, "withdraw")
+			emptyAllowedFor = append(emptyAllowedFor, "withdraw")
 		}
 		if (currencyType == "leveraged") || (currencyType == "other") {
-			AppendToArray(&emptyAllowedFor, "precision")
+			emptyAllowedFor = append(emptyAllowedFor, "precision")
 		}
 	}
 	//

@@ -2398,7 +2398,7 @@ func (this *Paradex) signOrderRequestBody(ch chan any, request any, optionalArgs
 			return this.ScaleNumber(GetValue(request, "price"))
 		}(),
 	}
-	var orderFields any = []any{map[string]any{
+	var orderFields []any = []any{map[string]any{
 		"name": "timestamp",
 		"type": "felt",
 	}, map[string]any{
@@ -2420,7 +2420,7 @@ func (this *Paradex) signOrderRequestBody(ch chan any, request any, optionalArgs
 	var messageTypes map[string]any = map[string]any{}
 	if EvalTruthy(modify) {
 		orderReq["id"] = GetValue(request, "id")
-		AppendToArray(&orderFields, map[string]any{
+		orderFields = append(orderFields, map[string]any{
 			"name": "id",
 			"type": "felt",
 		})
@@ -2648,7 +2648,7 @@ func (this *Paradex) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 		retRes198212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes198212)
 	}
-	var ordersRequests any = []any{}
+	var ordersRequests []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var rawOrder any = GetValue(orders, i)
 		var symbol *string = this.SafeString(rawOrder, "symbol")
@@ -2662,7 +2662,7 @@ func (this *Paradex) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 
 		orderRequest = (<-this.SignOrderRequestAsync(orderRequest))
 		PanicOnError(orderRequest)
-		AppendToArray(&ordersRequests, orderRequest)
+		ordersRequests = append(ordersRequests, orderRequest)
 	}
 
 	response := (<-this.PrivatePostOrdersBatch(ordersRequests))
@@ -2830,7 +2830,7 @@ func (this *Paradex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 	// }
 	//
 	var results any = this.SafeList(response, "results", []any{})
-	var orders any = []any{}
+	var orders []any = []any{}
 	for i := 0; i < GetArrayLength(results); i++ {
 		var result any = GetValue(results, i)
 		var marketId *string = this.SafeString(result, "market")
@@ -2844,7 +2844,7 @@ func (this *Paradex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 		} else if status != nil && *status == "NOT_FOUND" {
 			orderStatus = "rejected"
 		}
-		AppendToArray(&orders, this.SafeOrder(map[string]any{
+		orders = append(orders, this.SafeOrder(map[string]any{
 			"info":          result,
 			"id":            this.SafeString(result, "id"),
 			"clientOrderId": this.SafeString(result, "client_id"),
@@ -3674,11 +3674,11 @@ func (this *Paradex) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var rows any = this.SafeList(response, "results", []any{})
-	var deposits any = []any{}
+	var deposits []any = []any{}
 	for i := 0; i < GetArrayLength(rows); i++ {
 		var row any = GetValue(rows, i)
 		if IsEqual(GetValue(row, "kind"), "DEPOSIT") {
-			AppendToArray(&deposits, row)
+			deposits = append(deposits, row)
 		}
 	}
 
@@ -3769,11 +3769,11 @@ func (this *Paradex) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 	//     }
 	//
 	var rows any = this.SafeList(response, "results", []any{})
-	var deposits any = []any{}
+	var deposits []any = []any{}
 	for i := 0; i < GetArrayLength(rows); i++ {
 		var row any = GetValue(rows, i)
 		if IsEqual(GetValue(row, "kind"), "WITHDRAWAL") {
-			AppendToArray(&deposits, row)
+			deposits = append(deposits, row)
 		}
 	}
 
@@ -4623,12 +4623,12 @@ func (this *Paradex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	// not a settled payment: paradex recomputes it each second and accrues it
 	// into funding_index, so the series cannot be summed
 	var results any = this.SafeList(response, "results", []any{})
-	var rates any = []any{}
+	var rates []any = []any{}
 	for i := 0; i < GetArrayLength(results); i++ {
 		var rate any = GetValue(results, i)
 		var timestamp *int64 = this.SafeInteger(rate, "created_at")
 		var datetime *string = this.Iso8601(timestamp)
-		AppendToArray(&rates, map[string]any{
+		rates = append(rates, map[string]any{
 			"info":        rate,
 			"symbol":      GetValue(market, "symbol"),
 			"fundingRate": this.SafeNumber(rate, "funding_rate"),

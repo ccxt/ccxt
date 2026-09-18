@@ -695,9 +695,9 @@ func (this *Blockchaincom) ParseWsOrder(order any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(order, "symbol")
 	market = this.SafeMarket(marketId, market)
 	var tradeId *string = this.SafeString(order, "tradeId")
-	var trades any = []any{}
+	var trades []any = []any{}
 	if tradeId == nil || *tradeId != "0" {
-		ccxt.AppendToArray(&trades, map[string]any{
+		trades = append(trades, map[string]any{
 			"id": tradeId,
 		})
 	}

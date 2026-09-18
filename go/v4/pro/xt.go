@@ -1390,7 +1390,7 @@ func (this *Xt) HandleTickers(client any, message any) any {
 		}
 		return "contract"
 	}()
-	var newTickers any = []any{}
+	var newTickers []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(data); i++ {
 		var tickerData any = ccxt.GetValue(data, i)
 		var ticker any = this.ParseTicker(tickerData)
@@ -1398,7 +1398,7 @@ func (this *Xt) HandleTickers(client any, message any) any {
 		if symbol != nil {
 			ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 		}
-		ccxt.AppendToArray(&newTickers, ticker)
+		newTickers = append(newTickers, ticker)
 	}
 	var messageHashStart any = ccxt.Add(ccxt.Add(this.SafeString(message, "topic"), "::"), tradeType)
 	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), ccxt.Add(messageHashStart, "::"))

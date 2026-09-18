@@ -129,10 +129,10 @@ func (this *Bitvavo) watchPublicMultipleBody(ch chan any, methodName any, channe
 	}
 	symbols = this.MarketSymbols(symbols)
 	var messageHashes []any = []any{methodName}
-	var args any = []any{}
+	var args []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var market any = this.Market(ccxt.GetValue(symbols, i))
-		ccxt.AppendToArray(&args, ccxt.GetValue(market, "id"))
+		args = append(args, ccxt.GetValue(market, "id"))
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var request map[string]any = map[string]any{
@@ -236,7 +236,7 @@ func (this *Bitvavo) HandleTicker(client any, message any) {
 	this.HandleBidAsk(client, message)
 	var event *string = this.SafeString(message, "event")
 	var tickers any = this.SafeList(message, "data", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(tickers); i++ {
 		var data any = ccxt.GetValue(tickers, i)
 		var marketId *string = this.SafeString(data, "market")
@@ -245,7 +245,7 @@ func (this *Bitvavo) HandleTicker(client any, message any) {
 		var ticker any = this.ParseTicker(data, market)
 		var symbol any = ccxt.GetValue(ticker, "symbol")
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
-		ccxt.AppendToArray(&result, ticker)
+		result = append(result, ticker)
 		client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 	}
 	client.(ccxt.ClientInterface).Resolve(result, event)
@@ -289,13 +289,13 @@ func (this *Bitvavo) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 func (this *Bitvavo) HandleBidAsk(client any, message any) {
 	var event string = "bidask"
 	var tickers any = this.SafeList(message, "data", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(tickers); i++ {
 		var data any = ccxt.GetValue(tickers, i)
 		var ticker any = this.ParseWsBidAsk(data)
 		var symbol any = ccxt.GetValue(ticker, "symbol")
 		ccxt.AddElementToObject(this.Bidsasks, symbol, ticker)
-		ccxt.AppendToArray(&result, ticker)
+		result = append(result, ticker)
 		var messageHash any = ccxt.Add(event+":", symbol)
 		client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 	}
@@ -420,12 +420,12 @@ func (this *Bitvavo) watchTradesForSymbolsBody(ch chan any, symbols any, optiona
 	}
 	symbols = this.MarketSymbols(symbols, nil, false)
 	var name string = "trades"
-	var marketIds any = []any{}
-	var messageHashes any = []any{}
+	var marketIds []any = []any{}
+	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var market any = this.Market(ccxt.GetValue(symbols, i))
-		ccxt.AppendToArray(&marketIds, ccxt.GetValue(market, "id"))
-		ccxt.AppendToArray(&messageHashes, ccxt.Add(name+"@", ccxt.GetValue(market, "id")))
+		marketIds = append(marketIds, ccxt.GetValue(market, "id"))
+		messageHashes = append(messageHashes, ccxt.Add(name+"@", ccxt.GetValue(market, "id")))
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var request map[string]any = map[string]any{
@@ -501,12 +501,12 @@ func (this *Bitvavo) unWatchTradesForSymbolsBody(ch chan any, symbols any, optio
 	}
 	symbols = this.MarketSymbols(symbols, nil, false)
 	var name string = "trades"
-	var marketIds any = []any{}
-	var subMessageHashes any = []any{}
+	var marketIds []any = []any{}
+	var subMessageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var market any = this.Market(ccxt.GetValue(symbols, i))
-		ccxt.AppendToArray(&marketIds, ccxt.GetValue(market, "id"))
-		ccxt.AppendToArray(&subMessageHashes, ccxt.Add(name+"@", ccxt.GetValue(market, "id")))
+		marketIds = append(marketIds, ccxt.GetValue(market, "id"))
+		subMessageHashes = append(subMessageHashes, ccxt.Add(name+"@", ccxt.GetValue(market, "id")))
 	}
 	var channels []any = []any{map[string]any{
 		"name":    name,
@@ -670,7 +670,7 @@ func (this *Bitvavo) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
 		ccxt.PanicOnError(retRes50012)
 	}
 	var name string = "candles"
-	var messageHashes any = []any{}
+	var messageHashes []any = []any{}
 	var marketIdsByInterval map[string]any = map[string]any{}
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
 		var symbolAndTimeframe any = ccxt.GetValue(symbolsAndTimeframes, i)
@@ -687,13 +687,13 @@ func (this *Bitvavo) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
 			return marketIdsByInterval[*interval]
 		}()
 		ccxt.AppendToArray(&intervalIds, ccxt.GetValue(market, "id"))
-		ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("multi:"+name+"@", ccxt.GetValue(market, "id")), "_"), interval))
+		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("multi:"+name+"@", ccxt.GetValue(market, "id")), "_"), interval))
 	}
-	var channels any = []any{}
+	var channels []any = []any{}
 	var intervals []string = ccxt.ObjectKeys(marketIdsByInterval)
 	for i := 0; i < len(intervals); i++ {
 		var interval string = ccxt.GetValue(intervals, i).(string)
-		ccxt.AppendToArray(&channels, map[string]any{
+		channels = append(channels, map[string]any{
 			"name":     name,
 			"interval": []any{interval},
 			"markets":  marketIdsByInterval[interval],
@@ -772,7 +772,7 @@ func (this *Bitvavo) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframe
 		ccxt.PanicOnError(retRes56612)
 	}
 	var name string = "candles"
-	var subMessageHashes any = []any{}
+	var subMessageHashes []any = []any{}
 	var marketIdsByInterval map[string]any = map[string]any{}
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
 		var symbolAndTimeframe any = ccxt.GetValue(symbolsAndTimeframes, i)
@@ -790,14 +790,14 @@ func (this *Bitvavo) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframe
 		}()
 		ccxt.AppendToArray(&intervalIds, ccxt.GetValue(market, "id"))
 		// both the single-symbol and the multi-symbol watch hashes must be released
-		ccxt.AppendToArray(&subMessageHashes, ccxt.Add(ccxt.Add(ccxt.Add(name+"@", ccxt.GetValue(market, "id")), "_"), interval))
-		ccxt.AppendToArray(&subMessageHashes, ccxt.Add(ccxt.Add(ccxt.Add("multi:"+name+"@", ccxt.GetValue(market, "id")), "_"), interval))
+		subMessageHashes = append(subMessageHashes, ccxt.Add(ccxt.Add(ccxt.Add(name+"@", ccxt.GetValue(market, "id")), "_"), interval))
+		subMessageHashes = append(subMessageHashes, ccxt.Add(ccxt.Add(ccxt.Add("multi:"+name+"@", ccxt.GetValue(market, "id")), "_"), interval))
 	}
-	var channels any = []any{}
+	var channels []any = []any{}
 	var intervals []string = ccxt.ObjectKeys(marketIdsByInterval)
 	for i := 0; i < len(intervals); i++ {
 		var interval string = ccxt.GetValue(intervals, i).(string)
-		ccxt.AppendToArray(&channels, map[string]any{
+		channels = append(channels, map[string]any{
 			"name":     name,
 			"interval": []any{interval},
 			"markets":  marketIdsByInterval[interval],
@@ -898,12 +898,12 @@ func (this *Bitvavo) watchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 	}
 	symbols = this.MarketSymbols(symbols, nil, false)
 	var name string = "book"
-	var marketIds any = []any{}
-	var messageHashes any = []any{}
+	var marketIds []any = []any{}
+	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var market any = this.Market(ccxt.GetValue(symbols, i))
-		ccxt.AppendToArray(&marketIds, ccxt.GetValue(market, "id"))
-		ccxt.AppendToArray(&messageHashes, ccxt.Add(name+"@", ccxt.GetValue(market, "id")))
+		marketIds = append(marketIds, ccxt.GetValue(market, "id"))
+		messageHashes = append(messageHashes, ccxt.Add(name+"@", ccxt.GetValue(market, "id")))
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var request map[string]any = map[string]any{
@@ -982,12 +982,12 @@ func (this *Bitvavo) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, op
 	}
 	symbols = this.MarketSymbols(symbols, nil, false)
 	var name string = "book"
-	var marketIds any = []any{}
-	var subMessageHashes any = []any{}
+	var marketIds []any = []any{}
+	var subMessageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var market any = this.Market(ccxt.GetValue(symbols, i))
-		ccxt.AppendToArray(&marketIds, ccxt.GetValue(market, "id"))
-		ccxt.AppendToArray(&subMessageHashes, ccxt.Add(name+"@", ccxt.GetValue(market, "id")))
+		marketIds = append(marketIds, ccxt.GetValue(market, "id"))
+		subMessageHashes = append(subMessageHashes, ccxt.Add(name+"@", ccxt.GetValue(market, "id")))
 	}
 	var channels []any = []any{map[string]any{
 		"name":    name,
@@ -1205,9 +1205,9 @@ func (this *Bitvavo) unWatchChannelsBody(ch chan any, topic any, channels any, s
 		"action":   "unsubscribe",
 		"channels": channels,
 	}
-	var unsubHashes any = []any{}
+	var unsubHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(subMessageHashes); i++ {
-		ccxt.AppendToArray(&unsubHashes, ccxt.Add("unsubscribe:", ccxt.GetValue(subMessageHashes, i)))
+		unsubHashes = append(unsubHashes, ccxt.Add("unsubscribe:", ccxt.GetValue(subMessageHashes, i)))
 	}
 	var subscription map[string]any = this.Extend(map[string]any{
 		"topic":            topic,

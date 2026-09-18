@@ -355,12 +355,12 @@ func (this *Whitebit) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var method string = "market_subscribe"
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var id any = this.Nonce()
-	var messageHashes any = []any{}
-	var args any = []any{}
+	var messageHashes []any = []any{}
+	var args []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var market any = this.Market(ccxt.GetValue(symbols, i))
-		ccxt.AppendToArray(&messageHashes, ccxt.Add("ticker:", ccxt.GetValue(market, "symbol")))
-		ccxt.AppendToArray(&args, ccxt.GetValue(market, "id"))
+		messageHashes = append(messageHashes, ccxt.Add("ticker:", ccxt.GetValue(market, "symbol")))
+		args = append(args, ccxt.GetValue(market, "id"))
 	}
 	var request map[string]any = map[string]any{
 		"id":     id,

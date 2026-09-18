@@ -1015,7 +1015,7 @@ func (this *Delta) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var markets any = this.SafeList(response, "result", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(markets); i++ {
 		var market any = GetValue(markets, i)
 		var typeVar any = DerefScalar(this.SafeString(market, "contract_type"))
@@ -1080,7 +1080,7 @@ func (this *Delta) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			}
 		}
 		var state *string = this.SafeString(market, "state")
-		AppendToArray(&result, this.SafeMarketStructure(map[string]any{
+		result = append(result, this.SafeMarketStructure(map[string]any{
 			"id":        id,
 			"numericId": numericId,
 			"symbol":    symbol,
@@ -4007,9 +4007,9 @@ func (this *Delta) ParseSettlement(settlement any, market any) any {
 	}
 }
 func (this *Delta) ParseSettlements(settlements any, market any) any {
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(settlements); i++ {
-		AppendToArray(&result, this.ParseSettlement(GetValue(settlements, i), market))
+		result = append(result, this.ParseSettlement(GetValue(settlements, i), market))
 	}
 	return result
 }

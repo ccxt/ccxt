@@ -481,20 +481,20 @@ func (this *Bit2c) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 	// uncrosses the book. rows are positional price and amount pairs
 	var rawBids any = this.SafeList(orderbook, "bids", []any{})
 	var rawAsks any = this.SafeList(orderbook, "asks", []any{})
-	var bids any = []any{}
-	var asks any = []any{}
+	var bids []any = []any{}
+	var asks []any = []any{}
 	for i := 0; i < GetArrayLength(rawBids); i++ {
 		var bidRow any = GetValue(rawBids, i)
 		var bidAmount *string = this.SafeString(bidRow, 1)
 		if Precise.StringGt(bidAmount, "0") {
-			AppendToArray(&bids, bidRow)
+			bids = append(bids, bidRow)
 		}
 	}
 	for i := 0; i < GetArrayLength(rawAsks); i++ {
 		var askRow any = GetValue(rawAsks, i)
 		var askAmount *string = this.SafeString(askRow, 1)
 		if Precise.StringGt(askAmount, "0") {
-			AppendToArray(&asks, askRow)
+			asks = append(asks, askRow)
 		}
 	}
 	var filtered map[string]any = map[string]any{

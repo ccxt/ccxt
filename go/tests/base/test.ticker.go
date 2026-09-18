@@ -43,11 +43,11 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 		"quoteVolume":   exchange.ParseNumber("1.234"),
 	}
 	// todo: atm, many exchanges fail, so temporarily decrease stict mode
-	var emptyAllowedFor any = []any{"timestamp", "datetime", "open", "high", "low", "close", "last", "baseVolume", "quoteVolume", "previousClose", "bidVolume", "askVolume", "vwap", "change", "percentage", "average"}
+	var emptyAllowedFor []any = []any{"timestamp", "datetime", "open", "high", "low", "close", "last", "baseVolume", "quoteVolume", "previousClose", "bidVolume", "askVolume", "vwap", "change", "percentage", "average"}
 	// trick csharp-transpiler for string
 	if !EvalTruthy((Contains(ToString(method), "BidsAsks"))) {
-		AppendToArray(&emptyAllowedFor, "bid")
-		AppendToArray(&emptyAllowedFor, "ask")
+		emptyAllowedFor = append(emptyAllowedFor, "bid")
+		emptyAllowedFor = append(emptyAllowedFor, "ask")
 	}
 	AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor)
 	AssertTimestampAndDatetime(exchange, skippedProperties, method, entry)

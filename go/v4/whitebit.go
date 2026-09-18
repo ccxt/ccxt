@@ -3004,19 +3004,19 @@ func (this *Whitebit) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("cancelAllOrders", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
-	var requestType any = []any{}
+	var requestType []any = []any{}
 	if IsEqual(typeVar, "spot") {
 		var isMargin any = nil
 		var isMarginparamsVariable []any = this.HandleOptionAndParams(params, "cancelAllOrders", "isMargin", false)
 		isMargin = GetValue(isMarginparamsVariable, 0)
 		params = GetValue(isMarginparamsVariable, 1)
 		if EvalTruthy(isMargin) {
-			AppendToArray(&requestType, "margin")
+			requestType = append(requestType, "margin")
 		} else {
-			AppendToArray(&requestType, "spot")
+			requestType = append(requestType, "spot")
 		}
 	} else if IsEqual(typeVar, "swap") {
-		AppendToArray(&requestType, "futures")
+		requestType = append(requestType, "futures")
 	} else {
 		panic(NotSupported(Add(Add(this.Id+" cancelAllOrders() does not support ", typeVar), " type")))
 	}
@@ -3949,7 +3949,7 @@ func (this *Whitebit) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 		retRes300612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes300612)
 	}
-	var accounts any = []any{}
+	var accounts []any = []any{}
 
 	response := (<-this.V4PrivatePostSubAccountList(params))
 	PanicOnError(response)
@@ -3976,7 +3976,7 @@ func (this *Whitebit) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 		var subAccount any = this.SafeDict(subAccounts, i, map[string]any{})
 		var accountId *string = this.SafeString(subAccount, "id")
 		var accountName *string = this.SafeString(subAccount, "alias")
-		AppendToArray(&accounts, map[string]any{
+		accounts = append(accounts, map[string]any{
 			"id":   accountId,
 			"type": "subaccount",
 			"name": accountName,
@@ -4837,10 +4837,10 @@ func (this *Whitebit) ParseFundingHistories(contracts any, optionalArgs ...any) 
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(contracts); i++ {
 		var contract any = GetValue(contracts, i)
-		AppendToArray(&result, this.ParseFundingHistory(contract, market))
+		result = append(result, this.ParseFundingHistory(contract, market))
 	}
 	var sorted []any = this.SortBy(result, "timestamp")
 	return this.FilterBySinceLimit(sorted, since, limit)

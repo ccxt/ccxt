@@ -1481,13 +1481,13 @@ func (this *Weex) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	if !IsArray(response) {
 		response = []any{response}
 	}
-	var results any = []any{}
+	var results []any = []any{}
 	for i := 0; i < GetArrayLength(response); i++ {
 		var rawTicker any = GetValue(response, i)
 		// book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
 		var marketId *string = this.SafeString(rawTicker, "symbol")
 		var tickerMarket any = this.SafeMarket(marketId, nil, nil, marketType)
-		AppendToArray(&results, this.ParseTicker(rawTicker, tickerMarket))
+		results = append(results, this.ParseTicker(rawTicker, tickerMarket))
 	}
 
 	ch <- this.FilterByArrayTickers(results, "symbol", symbols)

@@ -876,7 +876,7 @@ func (this *Tokocrypto) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var data any = this.SafeValue(response, "data", map[string]any{})
 	var list any = this.SafeList(data, "list", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(list); i++ {
 		var market any = GetValue(list, i)
 		var baseId *string = this.SafeString(market, "baseAsset")
@@ -984,7 +984,7 @@ func (this *Tokocrypto) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			var filter any = this.SafeValue(filtersByType, "MIN_NOTIONAL", map[string]any{})
 			AddElementToObject(GetValue(entry["limits"], "cost"), "min", this.SafeNumber2(filter, "minNotional", "notional"))
 		}
-		AppendToArray(&result, entry)
+		result = append(result, entry)
 	}
 
 	ch <- result
