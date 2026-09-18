@@ -2656,20 +2656,20 @@ pub trait ExchangeBase:
         if (market != Value::Null) {
             let mut result: Value = self.extend(cleanStructure.clone(), &[market.clone()]);
             // set undefined swap/future/etc
-            if is_equal(&crate::value::get_value_k(&result, "spot"), &Value::Bool(true)) {
-                if (crate::value::get_value_k(&result, "contract") == Value::Null) {
+            if is_equal(&result.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null), &Value::Bool(true)) {
+                if (result.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null) == Value::Null) {
                     add_element_to_object(&mut result, &Value::Str("contract".to_string()), Value::Bool(false));
                 }
-                if (crate::value::get_value_k(&result, "swap") == Value::Null) {
+                if (result.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null) == Value::Null) {
                     add_element_to_object(&mut result, &Value::Str("swap".to_string()), Value::Bool(false));
                 }
-                if (crate::value::get_value_k(&result, "future") == Value::Null) {
+                if (result.as_map().and_then(|__m| __m.get("future")).cloned().unwrap_or(Value::Null) == Value::Null) {
                     add_element_to_object(&mut result, &Value::Str("future".to_string()), Value::Bool(false));
                 }
-                if (crate::value::get_value_k(&result, "option") == Value::Null) {
+                if (result.as_map().and_then(|__m| __m.get("option")).cloned().unwrap_or(Value::Null) == Value::Null) {
                     add_element_to_object(&mut result, &Value::Str("option".to_string()), Value::Bool(false));
                 }
-                if (crate::value::get_value_k(&result, "index") == Value::Null) {
+                if (result.as_map().and_then(|__m| __m.get("index")).cloned().unwrap_or(Value::Null) == Value::Null) {
                     add_element_to_object(&mut result, &Value::Str("index".to_string()), Value::Bool(false));
                 }
             }
@@ -2725,9 +2725,9 @@ pub trait ExchangeBase:
                     m.insert("limits".to_string(), self.limits.clone());
                 m
             }), self.fees.as_map().and_then(|__m| __m.get("trading")).cloned().unwrap_or(Value::Null), valueDefined.clone()]);
-            if is_equal(&crate::value::get_value_k(&market, "linear"), &Value::Bool(true)) {
+            if is_equal(&market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null), &Value::Bool(true)) {
                 add_element_to_object(&mut market, &Value::Str("subType".to_string()), Value::Str("linear".to_string()));
-            }  else if is_equal(&crate::value::get_value_k(&market, "inverse"), &Value::Bool(true)) {
+            }  else if is_equal(&market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null), &Value::Bool(true)) {
                 add_element_to_object(&mut market, &Value::Str("subType".to_string()), Value::Str("inverse".to_string()));
             }  else {
                 add_element_to_object(&mut market, &Value::Str("subType".to_string()), Value::Null);
