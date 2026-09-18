@@ -2684,7 +2684,7 @@ public partial class poloniex : Exchange
      */
     public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
     {
-        object idVar = id;
+        string idVar = id;
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         idVar = idVar.ToString();

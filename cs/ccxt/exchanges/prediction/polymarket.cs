@@ -3834,7 +3834,7 @@ public partial class polymarket : PredictionExchange
      */
     public async override Task<ccxt.Ticker> WatchTicker(string outcome, object parameters = null)
     {
-        object outcomeVar = outcome;
+        string outcomeVar = outcome;
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> outcomeObj = await this.loadOutcome(outcomeVar);
         string? tokenId = this.safeString(outcomeObj, "outcomeId");

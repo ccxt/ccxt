@@ -6810,7 +6810,7 @@ public partial class okx : Exchange
      */
     public async override Task<ccxt.DepositAddress> FetchDepositAddress(string code, object parameters = null)
     {
-        object codeVar = code;
+        string codeVar = code;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {

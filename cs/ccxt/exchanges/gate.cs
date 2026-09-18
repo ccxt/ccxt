@@ -6546,7 +6546,7 @@ public partial class gate : Exchange
         bool? trigger = this.safeBoolN(parameters, new List<object>() {"trigger", "is_stop_order", "stop"}, false);
         parameters = this.omit(parameters, new List<object>() {"is_stop_order", "stop", "trigger"});
         string? clientOrderId = this.safeString2(parameters, "text", "clientOrderId");
-        object orderId = id;
+        string? orderId = id;
         if ((clientOrderId != null))
         {
             parameters = this.omit(parameters, new List<object>() {"text", "clientOrderId"});
@@ -7012,7 +7012,7 @@ public partial class gate : Exchange
         //         }
         //     ]
         //
-        object result = response;
+        List<object> result = response;
         if (openSpotOrders)
         {
             List<object> spotResult = new List<object>() {};

@@ -4169,7 +4169,7 @@ public partial class myriad : PredictionExchange
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object outcomeVar = outcome;
+        string outcomeVar = outcome;
         parameters ??= new Dictionary<string, object>();
         string trader = this.walletAddressFromKeys();
         string? networkId = this.safeString(this.options, "defaultNetworkId", "56");
