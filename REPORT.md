@@ -85,9 +85,12 @@ determinism                   git diff -- cs/ sha256 664fd3437f8b9aad before == 
                               full REST + WS regen  (fixed point)
 tests tree                    `--force --tests` produces no diff (no write site in cs/tests carries
                               this family; the change is scoped to the exchange/base trees)
-farm                          HEAD 331b7b85165104de0ede1ee392c8ea3d7a5dcd07 job=824 exit=0
+farm                          code 331b7b85165104de0ede1ee392c8ea3d7a5dcd07 job=824 exit=0
                               "Build succeeded. 0 Warning(s) 0 Error(s)"
                               branch_update=unchanged generator=404e9daa7f0ab58d085ed04aaa61a19546dfeda2
+                              report tip 8b832cdcab78ea78b59970b9c3d71ebf45e4136c job=840 exit=0
+                              branch_update=unchanged  (REPORT.md is not a build input: every
+                              report-only tip carries the byte-identical cs/ tree of the code sha)
 ```
 
 `verify-diff.py` has no rule for an inline statement cast (it models cast removals that head a
