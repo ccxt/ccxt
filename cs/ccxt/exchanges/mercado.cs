@@ -607,7 +607,7 @@ public partial class mercado : Exchange
         {
             string? currencyId = ((string)currencyIds[i]);
             string? code = this.safeCurrencyCode(currencyId);
-            if (inOp(balances, currencyId))
+            if (((currencyId != null) && (balances?.ContainsKey(currencyId) == true)))
             {
                 object balance = this.safeValue(balances, currencyId, new Dictionary<string, object>() {});
                 Dictionary<string, object> account = this.account();

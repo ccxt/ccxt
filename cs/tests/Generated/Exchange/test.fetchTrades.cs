@@ -32,9 +32,9 @@ public partial class testMainClass : BaseTest
             //  for a one-sided result to be an implausible coincidence (see minTradesForBothSidesCheck)
             //
             Dictionary<string, object> grouped = exchange.groupBy(trades, "side");
-            string msg = ("Both sides of trades are not being returned, instead only one side is being returned. If this error happens consistently, then it might be an implementation issue" + testSharedMethods.logTemplate(exchange, method, trades));
-            assert((inOp(grouped, "buy")), msg);
-            assert((inOp(grouped, "sell")), msg);
+            string msg = add("Both sides of trades are not being returned, instead only one side is being returned. If this error happens consistently, then it might be an implementation issue", testSharedMethods.logTemplate(exchange, method, trades));
+            assert(((grouped?.ContainsKey("buy") == true)), msg);
+            assert(((grouped?.ContainsKey("sell") == true)), msg);
         }
         if (!(inOp(skippedProperties, "timestampSort")))
         {
@@ -86,10 +86,10 @@ public partial class testMainClass : BaseTest
                 bool priceDecreasing = Precise.stringLt(price, lastPrice);
                 if (priceIncreasing)
                 {
-                    assert(isEqual(side, "buy"), ("Price is increasing, but side is not `buy`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip" + testSharedMethods.logTemplate(exchange, method, pair)));
+                    assert(isEqual(side, "buy"), add("Price is increasing, but side is not `buy`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip", testSharedMethods.logTemplate(exchange, method, pair)));
                 } else if (priceDecreasing)
                 {
-                    assert(isEqual(side, "sell"), ("Price is decreasing, but side is not `sell`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip" + testSharedMethods.logTemplate(exchange, method, pair)));
+                    assert(isEqual(side, "sell"), add("Price is decreasing, but side is not `sell`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip", testSharedMethods.logTemplate(exchange, method, pair)));
                 }
             }
             lastPrice = price;

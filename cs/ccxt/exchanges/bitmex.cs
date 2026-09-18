@@ -1507,7 +1507,7 @@ public partial class bitmex : Exchange
         // why the hassle? urlencode in python is kinda broken for nested dicts.
         // E.g. self.urlencode({"filter": {"open": True}}) will return "filter={'open':+True}"
         // Bitmex doesn't like that. Hence resorting to this hack.
-        if (inOp(request, "filter"))
+        if ((request?.ContainsKey("filter") == true))
         {
             request["filter"] = this.json(GetValue(request, "filter"));
         }
@@ -1608,7 +1608,7 @@ public partial class bitmex : Exchange
         // why the hassle? urlencode in python is kinda broken for nested dicts.
         // E.g. self.urlencode({"filter": {"open": True}}) will return "filter={'open':+True}"
         // Bitmex doesn't like that. Hence resorting to this hack.
-        if (inOp(request, "filter"))
+        if ((request?.ContainsKey("filter") == true))
         {
             request["filter"] = this.json(GetValue(request, "filter"));
         }

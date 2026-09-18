@@ -4182,8 +4182,8 @@ public partial class weex : Exchange
         request = (Dictionary<string, object>)requestparametersVariable[0];
         parameters = requestparametersVariable[1];
         // the exchange rejects startTime and endTime when either is sent alone, they only work as a pair
-        bool hasSince = (inOp(request, "startTime"));
-        bool hasUntil = (inOp(request, "endTime"));
+        bool hasSince = ((request?.ContainsKey("startTime") == true));
+        bool hasUntil = ((request?.ContainsKey("endTime") == true));
         if (hasSince && !hasUntil)
         {
             request["endTime"] = this.milliseconds();

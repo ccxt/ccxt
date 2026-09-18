@@ -11507,6 +11507,9 @@ export function installCsharpLocalTypes (transpiler) {
     // list-index-reads section above) — the printer's bound proof needs the printed types of
     // both names, which this hook answers
     installCsharpListIndexReads (csharp);
+    // U60: `k in x` -> ContainsKey for the dict-typed locals THIS module retypes (see
+    // installCsharpDictInOp); installed after the rewrite wrapper so it records the final line
+    installCsharpDictInOp (csharp);
     csharp._localTypesPatched = true;
     // S22: the declared-type record has to wrap the rewrite above — it reads the line this
     // module actually emits, not the printer's `object ... = ` it replaced
@@ -11959,6 +11962,64 @@ function concatInner (node) {
         value = value.expression;
     }
     return value;
+}
+
+// U60: `k in x` -> `(x?.ContainsKey(k) == true)` on a dictionary THIS module retypes. The printer
+// emits ContainsKey itself only for a receiver its own tables name AND the checker proves a
+// dictionary; it asks csharpDeclaredDictReceiverType for the type the PRINTED declaration carries.
+export function installCsharpDictInOp (csharp) {
+    if (!csharp || csharp._dictInOpPatched || typeof csharp.printVariableDeclarationList !== 'function') {
+        return;
+    }
+    // enclosing function -> Map (source name -> Set (printed declaration types))
+    const declaredTypes = new WeakMap ();
+    const dictDeclaration = /^\s*(I?Dictionary<string, object>) ([A-Za-z_][A-Za-z0-9_]*) = /;
+    const upstreamDeclaration = csharp.printVariableDeclarationList.bind (csharp);
+    csharp.printVariableDeclarationList = (node, identation) => {
+        const printed = upstreamDeclaration (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (typeof printed === 'string' && declaration?.name?.kind === ts.SyntaxKind.Identifier) {
+            const match = dictDeclaration.exec (printed);
+            if (match !== null) {
+                const scope = enclosingFunctionScopeOf (csharp, declaration);
+                if (scope !== undefined) {
+                    let names = declaredTypes.get (scope);
+                    if (names === undefined) {
+                        names = new Map ();
+                        declaredTypes.set (scope, names);
+                    }
+                    let types = names.get (declaration.name.escapedText);
+                    if (types === undefined) {
+                        types = new Set ();
+                        names.set (declaration.name.escapedText, types);
+                    }
+                    types.add (match[1]);
+                }
+            }
+        }
+        return printed;
+    };
+    csharp.csharpDeclaredDictReceiverType = (node) => {
+        if (node?.kind !== ts.SyntaxKind.Identifier) {
+            return undefined;
+        }
+        const scope = enclosingFunctionScopeOf (csharp, node);
+        if (scope === undefined) {
+            return undefined;
+        }
+        const types = declaredTypes.get (scope)?.get (node.escapedText);
+        if (types === undefined || types.size !== 1) {
+            return undefined;
+        }
+        const type = types.values ().next ().value;
+        if ((type !== 'Dictionary<string, object>') && (type !== 'IDictionary<string, object>')) {
+            return undefined;
+        }
+        // the isEqual twin's proof: one binding, one declarator, read after the declaration — a
+        // parameter, a multi-binding name or an earlier read stays `object` and keeps the helper
+        return stringEqualityBindingIsProvable (scope, node) ? type : undefined;
+    };
+    csharp._dictInOpPatched = true;
 }
 
 // `isTrue (x)` in an if / while / && / || / ! condition: the ast printer's

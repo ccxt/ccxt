@@ -2505,7 +2505,7 @@ public partial class BaseExchange
                 // copy fee to avoid modification by reference
                 Dictionary<string, object> feeCopy = this.deepExtend(fee);
                 feeCopy["cost"] = this.safeNumber(feeCopy, "cost");
-                if (inOp(feeCopy, "rate"))
+                if ((feeCopy?.ContainsKey("rate") == true))
                 {
                     feeCopy["rate"] = this.safeNumber(feeCopy, "rate");
                 }
@@ -3084,7 +3084,7 @@ public partial class BaseExchange
                 {
                     continue;
                 }
-                if (!(inOp(reduced, feeCurrencyCode)))
+                if (!(((feeCurrencyCode != null) && (reduced?.ContainsKey(feeCurrencyCode) == true))))
                 {
                     reduced[(string)feeCurrencyCode] = new Dictionary<string, object>() {};
                 }
@@ -6558,7 +6558,7 @@ public partial class BaseExchange
          */
         IDictionary<string, object> accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         string lowercaseAccount = ((string)account).ToLower();
-        if (inOp(accountsByType, lowercaseAccount))
+        if (((lowercaseAccount != null) && (accountsByType?.ContainsKey(lowercaseAccount) == true)))
         {
             return getValue(accountsByType, lowercaseAccount);
         }
@@ -7284,7 +7284,7 @@ public partial class BaseExchange
         {
             object entry = getValue(input, i);
             string? uniqValue = isTrue(fallbackToTimestamp) ? this.safeStringN(entry, new List<object>() {"id", "timestamp", 0}) : this.safeString(entry, "id");
-            if ((uniqValue != null) && !(inOp(uniqueDic, uniqValue)))
+            if ((uniqValue != null) && !(((uniqValue != null) && (uniqueDic?.ContainsKey(uniqValue) == true))))
             {
                 uniqueDic[(string)uniqValue] = 1;
                 ((IList<object>)uniqueResult).Add(entry);
@@ -7318,7 +7318,7 @@ public partial class BaseExchange
                 }
                 id = add(add(((((("t_" + ((object)timestamp).ToString()) + "_") + side) + "_") + price), "_"), amount);
             }
-            if ((id != null) && !(inOp(uniqueResult, id)))
+            if ((id != null) && !(((id != null) && (uniqueResult?.ContainsKey(id) == true))))
             {
                 uniqueResult[(string)id] = entry;
             }

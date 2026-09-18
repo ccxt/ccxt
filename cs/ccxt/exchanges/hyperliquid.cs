@@ -3657,7 +3657,7 @@ public partial class hyperliquid : Exchange
             string? oid = this.safeString(entry, "oid");
             if ((oid != null))
             {
-                if (!(inOp(deduplicatedByOid, oid)))
+                if (!(((oid != null) && (deduplicatedByOid?.ContainsKey(oid) == true))))
                 {
                     deduplicatedByOid[(string)oid] = rawOrder;
                 } else
