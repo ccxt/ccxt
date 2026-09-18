@@ -1,0 +1,294 @@
+# U38 — numeric/bool literal inits: census + proof of unsafety, 0 sites typed
+
+Unit U38 (roster: `object x = 0;` (47) / numeric literals (71) / `true;` (25): int literal locals still
+object because of a later write with a different box — with the U35/S57 typed overloads `add(Int64,Int64)`
+these joins become Int64; retype only when every later write is a typed numeric expression; else document).
+Base `d847892a6fcf5699640862316303b6344a3e4daf` (PR #30530 head, branch cs-strict-INT), branch `cs90-U38`,
+worktree `/root/worktrees/cs90/U38`. **Not an `[AST]` unit** — no ast-transpiler edit, no pin bump, no
+hand-written `cs/ccxt/base` edit, no `ts/src` edit, no generated `cs/` change.
+
+## Result
+
+* casts removed: **0** · generated-tree sites typed: **0** · provable sites remaining in the family: **0**
+* one product change: a 4-line census comment above `numericLiteralType`
+  (`hotspot: build/csharp-local-types.js:2453-2456`). **No rule was changed** — the emitted tree is
+  byte-identical to the base (forced scoped regens over all 36 REST / 6 prediction / 6 ws ids of the
+  family: every exit 0, `git diff -- cs/` empty, `verify-diff.py HEAD` → `files=0 pairs=0 unexpected=0`).
+* Every one of the 96 family sites carries a specific, **measured** blocker (below). The family is
+  *fully accounted for*: not one site satisfies the roster's own retype condition, and the reason is
+  the box rule U23/U32 already recorded — an `int` literal init is only box-identical as `int`.
+
+## Why 0 is the answer (the rule, restated with U38 evidence)
+
+`object x = 0;` boxes a **System.Int32** (C# gives the literal the type `int`, then boxes it). The only
+box-identical spelling is `int x = 0;`. Every wider spelling *converts* the literal:
+
+| spelling | what the C# does to the literal | box at the declaration |
+|---|---|---|
+| `object x = 0;` (base) | boxes the `int` literal | Int32 |
+| `int x = 0;` | none — same literal type | Int32 (identical) |
+| `Int64 x = 0;` / `Int64? x = 0;` | implicit int → Int64 conversion | **Int64** (differs) |
+| `double x = 0;` | implicit int → double conversion | **double** (differs) |
+
+That conversion is the documented campaign rule (`build/csharp-local-types.js:2419-2430`: *"for a later
+`x = 0` write the declaration DOES select the conversion (`Int64? x; x = 0` boxes an Int64 where
+`object x; x = 0` boxes an Int32), so joinTypes() deliberately keeps rejecting it"*; `NUMERIC_BOOL_LOCAL_TYPES`
+retry comment at 5815-5822; U23 report §"WHY per site" row `limitVar = <integer literal>` (76 sites);
+cs90 U32 roster line; round-3 S32 rejected sub-case 5). `int x = 0;` needs **every later write to be
+int-typed**, and in this family no site has both that and an acceptable read surface — the classifier's
+own scan (which encodes the overload moves) rejects each one, and its rejections are correct:
+
+* `add(Int64,Int64)` → `Int64` and `sum(Int64,Int64)` → `Int64` (`Exchange.TranspileHelpers.cs:509`,
+  `Exchange.Generic.cs:418`): a write of a typed numeric expression **cannot** be stored in an `int`
+  local (CS0266) — the local would have to be `Int64`, i.e. the init converts.
+* `subtract(int,int)` exists and returns **Int32**, while the object path returns the Int64 box
+  (`Exchange.TranspileHelpers.cs:2558` / `add`'s object branch): an `int` local as a `-` operand moves
+  the call and changes the result's box (the rule at `build/csharp-local-types.js:4463-4477`).
+* element 0 of `handleOptionAndParams` is the caller's **raw** params value or the default
+  (`Exchange.BaseMethods.cs:4981-5012`: `safeValue2(parameters, …)` / `safeValue2(this.options, …)` /
+  `defaultValue`), so a `(int)` cast back would throw `InvalidCastException` on any string/Int64/bool
+  param where the untyped box flowed on.
+
+## Census (before == after)
+
+`bash campaigns/cs90/census.sh` on the base tree and on the committed tree — **identical**, as expected
+for a comment-only change:
+
+```
+locals: object=9304 typed=44132 typed%=82
+casts: (string)=2113 (IList<object>)=1922 (bool)=1 (object)=672 (Dictionary<string, object>)=334 (IDictionary<string,object>)=2563 (Int64)=133 (IDictionary<string, object>)=127 (List<object>)=102
+params: object=11635  returns: object=1080
+helpers: isTrue=1434 isEqual=12034 getValue=6761 add=8833 getArrayLength=704
+```
+
+Family (`grep -E '^\s+object NAME = (-?[0-9]+|true);'` over `cs/ccxt/exchanges/{,pro/,prediction/}*.cs`):
+
+| shape | n | roster | already typed (sibling proof that the mechanism works) |
+|---|---|---|---|
+| `object x = 0;` | 47 | 47 ✔ | `int x = 0;` **105** int-literal locals typed by the existing rules |
+| `object x = <other int literal>;` | 71 (incl. the 47) | 71 ✔ | — |
+| `object x = true;` | 25 | 25 ✔ | `bool x = true;` typed where the scan accepts |
+| `object x = false;` | 294 | U14's family (bool option locals) | U14 landed 398 typed declarations (WAVE1) |
+
+Same family outside the census scope (base + tests tiers, same blocker classes, not counted by
+`census.sh`, regenerated by the farm's own transpile): `cs/ccxt/base/Exchange.BaseMethods.cs` 18,
+`Exchange.Generic.cs` 1, `PredictionExchange.cs` 1, `cs/tests/Generated/TestMethods.cs` 8.
+
+## Method (how the blocker of every site was measured)
+
+1. **Installed-classifier probe** (`tools/U38/u38-probe.ts`, run in the worktree, deleted before the
+   commit): builds the real ts.Program batch over the family's `ts/src` roots, calls the exported
+   `csharpLocalDeclaration` for every numeric/bool literal-init declaration and prints the decision —
+   71 generated sites came back `undefined` (rejected), 0 came back typed-but-not-printed.
+2. **Temporary debug hook in the classifier** (`CS90_U38_DEBUG`, removed before the commit): logs the
+   initializer type, every later write's proven type, the joined type, and each use the retype scan
+   visits plus its rejecting parent. Raw logs: `tools/U38/dbg4-*.txt`, `dbg7-u38.txt`; the join and
+   classification scripts are `tools/U38/{site-census,join-probe,join-trace,classify,blockers}.py`.
+   This is the U23 method (instrumented transpile, logs kept as evidence, hook removed).
+3. Every claim above was then read back against the hand-written base bodies quoted in "Why 0" and
+   the emitted C# of the sites.
+
+## Blocker census — `object x = <int literal>` (71 sites)
+
+| class | n | proof |
+|---|---|---|
+| write join: unprovable write | 40 | the write's C# type cannot be named for an `int` target: `this.sum (x, N)` self-read accumulator (29), copy of an `object` local (4: kucoin `crossIndex`/`tickersIndex`/`contractIndex` = `nextIndex`, pro/onetrading `depth` = `limit`), `Math.min/max (…)` (3: hyperliquid `pricePrecision`), `x + N` add chain (2: hyperliquid `leadingZeros`, pro/apex `newTopicsCount`), object element read (1: bydfi `result = getValue(limits, i)`), `x * N` (1: mudrex `pageSize = multiply(limit, 2)`). All of these box Int64 through the typed twins (`add(Int64,Int64)`, `sum(Int64,Int64)`) or stay `object` ⇒ an `int` declaration is CS0266 / the `Int64` declaration converts the literal |
+| write join: box mismatch | 7 | the later write is `Int64?`/`double?`: `this.parseToInt (…)` (apex `leverage`, okx `timeOut`), `maxNotional` (bitget/coinex/gate/phemex `minNotional`), `this.safeInteger (…)` (prediction/polymarket `feeRate`) ⇒ the local would be `Int64?`/`double?` and `Int64? x = 0` converts the literal |
+| scan: destructuring element write | 14 | `[ x, params ] = this.handleOptionAndParams (…)`: element 0 is the caller's raw value (proof above) ⇒ no `(int)` cast is exact; the audited element-0 table (`DESTRUCTURED_ELEMENT0_TYPES`) names `Int64?`/`bool?`/`string?` only for the `handleParamInteger*`/`handleParamBool*`/`SafeString` helpers, and `int` + `Int64?` does not join |
+| scan: int `-` operand | 5 | `subtract(N, x)` / `x - 1` with an int sibling: `subtract(int,int)` boxes Int32 where the object path boxes Int64 (bitfinex `minusIndex`, bitopro `resultLength`, coinbase `maxLimit`, hyperliquid `significantDigits`, `integerDigits`) |
+| init: literal type unnameable | 3 | `2592000000` is typed **uint** by the C# compiler (> Int32.MaxValue) ⇒ `numericLiteralType` answers `undefined` (binance `msInThirtyDays`, revolutx `thirtyDays` ×2) |
+| scan: `+=` / add write | 2 | `errors += 1` prints `x = add(x, 1)` ⇒ `add(Int64,Int64)` returns Int64 (bullish `errors`, pro/kraken `i`) |
+
+## Blocker census — `object x = true;` (25 sites)
+
+| class | n | proof |
+|---|---|---|
+| destructuring element write | 23 | `[ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (…)` (21: bitget bithumb bitrue bittrade btse bybit coinbase coinex coinsph cryptocom cryptomus digifinex gate htx lbank okx poloniex tokocrypto pro/poloniex prediction/limitless), plus deepcoin `merged`, lighter `skipNonce`, prediction/limitless `warn` — **U14's family** (bool option locals; U14 landed 398 typed declarations with the `isTrue` element-0 coercion, WAVE1). The `true` literal init is box-identical as `bool`; the blocker is the element-0 proof, which U14 owns |
+| write unprovable | 2 | kucoin `isContractMarket` (`market['contract']`), weex `isSpot` (`market['spot']`): the write is a market-row BOOL read in **write** position. `marketRowBoolReadType` (U01's `MARKET_ROW_BOOL_KEYS`) is consulted for declaration initializers only (`build/csharp-local-types.js:5735`), and a bare assignment of the emitted `GetValue(market, "contract")` to a `bool?` local is CS0266 — typing needs a write-position key proof **plus** a new write-cast injection pass (none exists; `installDestructuredCasts` covers destructuring element reads only) |
+
+## Rejected sub-cases (each with its reason)
+
+1. **Retype to `Int64`/`Int64?`/`double?` (the roster's own route).** Rejected: the declaration converts
+   the literal (Int32 box → Int64/double box) — the U23/U32 rule, restated in the comment this unit
+   lands. This is the class the roster's "these joins become Int64" sentence would have produced.
+2. **Retype to `int` where every later write is int-typed.** Two sites qualify on the write side —
+   bitfinex `minusIndex` (`= 1`) and bitopro `resultLength` (`= result.Count`) — and both are rejected by
+   the scan on a **read**: `10 - minusIndex` / `resultLength - 1` bind `subtract(int,int)` (Int32 box)
+   where the object path returns the Int64 box. Not extended: the existing rule is deliberate
+   (`build/csharp-local-types.js:4463-4477`), the result flows into `object` parameters
+   (`this.safeString (ticker, subtract (10, minusIndex))`, `fetchPaginatedCallDeterministic (…)`) where a
+   `(Int64)` unboxing in the callee would throw, and no differential harness evidence exists for the class.
+3. **Destructuring element-0 sites (14 int + 23 bool).** Rejected: the element is the caller's raw params
+   value (`handleOptionAndParams` body quoted above) — a `(int)` cast is not an identity conversion. The
+   bool half is U14's family (owned by the lower unit number); the int half has no idempotent coercion
+   (`isTrue` has no int twin; `parseToInt` would normalise the value and box Int64).
+4. **`uint` literals (3 sites).** Rejected: `2592000000` boxes a UInt32 today; there is no `uint` spelling
+   in the campaign's type vocabulary, the census does not count it, and the scan's arithmetic rules do not
+   model it. Naming `Int64` would convert (box change).
+5. **`+=`/add-chain writes (2 int sites).** Rejected: `add(Int64,Int64)` returns Int64, so an `int` local is
+   CS0266 and an `Int64` local converts the init.
+6. **The two market-row bool writes (kucoin `isContractMarket`, weex `isSpot`).** Rejected: out of this
+   unit's family (the key proof is U01's `MARKET_ROW_BOOL_KEYS`, consulted for declarations only) and
+   typing them needs a new write-cast injection pass; yield 2 sites, hotspot veto, no.
+7. **Near-miss extension found and *not* taken:** `intMinusOperandIsIdentical` currently requires the `-`
+   sibling to be *provably* non-int; a sibling the classifier leaves `object` is emitted `object`, so
+   `subtract(object,object)` would bind identically and the int local would be safe. That unlocks exactly
+   1 site (hyperliquid `significantDigits`, whose sibling `integerDigits` stays `object`) for a change to
+   the shared veto in the hot classifier — rejected on yield/risk (and it would flip the sibling pair into
+   a mutual dependency).
+8. **The 105 already-typed `int x = <literal>` locals** are the accepted half of the same rule (their
+   writes are int literals / `.length` / `parseTimeframe`, their reads pass the scan) — evidence the
+   mechanism works and that the 71 are exactly the rejected remainder.
+
+## verify-diff.py
+
+```
+$ python3 campaigns/cs90/verify-diff.py HEAD
+files=0 pairs=0 unexpected=0
+```
+
+## Farm (dotnet is farm-only)
+
+```
+ccxt-farm build --targets cs --wait   -> FARM_JOB_LINE
+ccxt-farm status <sha>                -> FARM_STATUS_LINE
+ccxt-farm log <job> --step buildCS    -> FARM_LOG_LINE
+```
+
+`branch_update=unchanged` on the farm's own forced transpile is the fixed-point proof: the committed tree
+is what the generator emits. No `[Automated changes]` commit was merged back.
+
+## hotspot: lines
+
+```
+hotspot: build/csharp-local-types.js:2453-2456   U38 census comment above numericLiteralType (4 lines, no rule change)
+```
+
+No `build/csharpTranspiler.ts` change, no ast-transpiler `src`, no hand-written `cs/ccxt/base/*.cs`, no
+`ts/src`, no generated `cs/` file.
+
+## Residual risk
+
+* The unit changes nothing at runtime (comment only); the residual risk is *knowledge* risk: the two
+  near-miss mechanisms (2, 7 above) are documented but unproven, and a future unit that wants them needs a
+  differential harness for `subtract(int,int)`'s Int32 box and a write-cast injection pass.
+* The blocker census is measured with a temporary debug hook on the base tree; the hook is removed from the
+  committed file (the diff is 4 comment lines), so re-running the census from the committed tree needs the
+  probe (`tools/U38/u38-probe.ts`) again.
+* Sites outside the census scope (base/tests tiers, 28 sites) were classified by shape, not instrumented
+  one by one; they are the same `+=`/`sum`/retry-counter classes.
+* `object x = false;` (294) was not re-measured: it is U14's family by roster, and U14 landed.
+
+## Artifacts (campaign tooling, profile side — nothing new under `build/`)
+
+```
+campaigns/cs90/tools/U38/site-census.py     family census: site + later writes/reads per site
+campaigns/cs90/tools/U38/int-sites.json     71 int-literal sites with their writes/reads
+campaigns/cs90/tools/U38/bool-sites.json    all bool-literal sites (true/false)
+campaigns/cs90/tools/U38/u38-probe.ts       installed-classifier probe (kept out of the repo)
+campaigns/cs90/tools/U38/dbg4-*.txt         instrumented transpile logs (REST/prediction/ws)
+campaigns/cs90/tools/U38/dbg7-u38.txt       htx (the last untraced site)
+campaigns/cs90/tools/U38/blockers-*.txt     per-site blocker tables (the appendix below)
+campaigns/cs90/tools/U38/classify.py        blocker classification of the traces
+```
+
+## Appendix — every site, measured
+
+### int
+| alpaca.cs:1005 | `paginationCalls` | `10` | SCAN: destructuring element write |
+| apex.cs:2174 | `leverage` | `20` | JOIN: write box mismatch |
+| binance.cs:17897 | `msInThirtyDays` | `2592000000` | INIT-UNDEFINED (literal type unnameable) |
+| bitfinex.cs:1539 | `minusIndex` | `0` | SCAN: - operand (int box) |
+| bitfinex.cs:2154 | `flags` | `0` | JOIN: write unprovable |
+| bitfinex.cs:4598 | `flags` | `0` | JOIN: write unprovable |
+| bitget.cs:4596 | `minNotional` | `0` | JOIN: write box mismatch |
+| bitopro.cs:1028 | `i` | `0` | JOIN: write unprovable |
+| bitopro.cs:1030 | `resultLength` | `0` | SCAN: - operand (int box) |
+| bullish.cs:1516 | `errors` | `0` | SCAN: += / add write |
+| bydfi.cs:745 | `result` | `1000` | JOIN: write unprovable |
+| coinbase.cs:4355 | `maxLimit` | `300` | SCAN: - operand (int box) |
+| coinbaseinternational.cs:682 | `maxEntriesPerRequest` | `100` | SCAN: destructuring element write |
+| coinbaseinternational.cs:1188 | `maxEntriesPerRequest` | `100` | SCAN: destructuring element write |
+| coinbaseinternational.cs:2470 | `maxEntriesPerRequest` | `100` | SCAN: destructuring element write |
+| coinbaseinternational.cs:2567 | `maxEntriesPerRequest` | `100` | SCAN: destructuring element write |
+| coinex.cs:4207 | `minNotional` | `0` | JOIN: write box mismatch |
+| cryptomus.cs:633 | `level` | `0` | SCAN: destructuring element write |
+| dydx.cs:1522 | `subaccountId` | `0` | SCAN: destructuring element write |
+| dydx.cs:1604 | `goodTillBlockTimeInSeconds` | `2592000` | SCAN: destructuring element write |
+| dydx.cs:1810 | `goodTillBlockTimeInSeconds` | `2592000` | SCAN: destructuring element write |
+| dydx.cs:1817 | `subAccountId` | `0` | SCAN: destructuring element write |
+| dydx.cs:1912 | `subAccountId` | `0` | SCAN: destructuring element write |
+| gate.cs:8203 | `minNotional` | `0` | JOIN: write box mismatch |
+| hyperliquid.cs:796 | `pricePrecision` | `0` | JOIN: write unprovable |
+| hyperliquid.cs:806 | `significantDigits` | `5` | SCAN: - operand (int box) |
+| hyperliquid.cs:808 | `integerDigits` | `0` | SCAN: - operand (int box) |
+| hyperliquid.cs:818 | `leadingZeros` | `0` | JOIN: write unprovable |
+| hyperliquid.cs:942 | `pricePrecision` | `0` | JOIN: write unprovable |
+| hyperliquid.cs:1060 | `pricePrecision` | `0` | JOIN: write unprovable |
+| kucoin.cs:2211 | `crossIndex` | `0` | JOIN: write unprovable |
+| kucoin.cs:2212 | `isolatedIndex` | `0` | JOIN: write unprovable |
+| kucoin.cs:2213 | `tickersIndex` | `0` | JOIN: write unprovable |
+| kucoin.cs:2214 | `contractIndex` | `0` | JOIN: write unprovable |
+| kucoin.cs:2215 | `nextIndex` | `0` | JOIN: write unprovable |
+| mudrex.cs:564 | `offset` | `0` | JOIN: write unprovable |
+| mudrex.cs:1524 | `pageSize` | `0` | JOIN: write unprovable |
+| mudrex.cs:1531 | `transactionsCount` | `0` | JOIN: write unprovable |
+| mudrex.cs:1532 | `calls` | `0` | JOIN: write unprovable |
+| mudrex.cs:1533 | `offset` | `0` | JOIN: write unprovable |
+| okx.cs:5257 | `timeOut` | `0` | JOIN: write box mismatch |
+| paradex.cs:3540 | `leverage` | `1` | SCAN: destructuring element write |
+| phemex.cs:5289 | `minNotional` | `0` | JOIN: write box mismatch |
+| revolutx.cs:1338 | `thirtyDays` | `2592000000` | INIT-UNDEFINED (literal type unnameable) |
+| revolutx.cs:1478 | `thirtyDays` | `2592000000` | INIT-UNDEFINED (literal type unnameable) |
+| pro/apex.cs:276 | `newTopicsCount` | `0` | JOIN: write unprovable |
+| pro/grvt.cs:180 | `interval` | `500` | SCAN: destructuring element write |
+| pro/grvt.cs:602 | `interval` | `500` | SCAN: destructuring element write |
+| pro/htx.cs:645 | `delayTime` | `1000` | JOIN: write unprovable |
+| pro/kraken.cs:1140 | `i` | `0` | SCAN: += / add write |
+| pro/onetrading.cs:350 | `depth` | `0` | JOIN: write unprovable |
+| prediction/binance.cs:248 | `offset` | `0` | JOIN: write unprovable |
+| prediction/kalshi.cs:599 | `startIndex` | `0` | JOIN: write unprovable |
+| prediction/kalshi.cs:1227 | `startIndex` | `0` | JOIN: write unprovable |
+| prediction/kalshi.cs:2965 | `totalVolume` | `0` | JOIN: write unprovable |
+| prediction/kalshi.cs:2966 | `totalLiquidity` | `0` | JOIN: write unprovable |
+| prediction/limitless.cs:344 | `page` | `1` | JOIN: write unprovable |
+| prediction/limitless.cs:993 | `totalVolume` | `0` | JOIN: write unprovable |
+| prediction/limitless.cs:3435 | `page` | `1` | JOIN: write unprovable |
+| prediction/limitless.cs:3436 | `collected` | `0` | JOIN: write unprovable |
+| prediction/myriad.cs:379 | `collected` | `0` | JOIN: write unprovable |
+| prediction/myriad.cs:380 | `page` | `1` | JOIN: write unprovable |
+| prediction/myriad.cs:575 | `collected` | `0` | JOIN: write unprovable |
+| prediction/myriad.cs:576 | `page` | `1` | JOIN: write unprovable |
+| prediction/opinion.cs:172 | `page` | `1` | JOIN: write unprovable |
+| prediction/opinion.cs:173 | `fetchedRawCount` | `0` | JOIN: write unprovable |
+| prediction/opinion.cs:456 | `page` | `1` | JOIN: write unprovable |
+| prediction/opinion.cs:457 | `fetchedRawCount` | `0` | JOIN: write unprovable |
+| prediction/polymarket.cs:1272 | `startIndex` | `0` | JOIN: write unprovable |
+| prediction/polymarket.cs:1426 | `startIndex` | `0` | JOIN: write unprovable |
+| prediction/polymarket.cs:2572 | `feeRate` | `0` | JOIN: write box mismatch |
+### true
+| bitget.cs:7960 | `createMarketBuyOrderRequiresPrice` | `true` | SCAN: destructuring element write |
+| bithumb.cs:1926 | `createMarketBuyOrderRequiresPrice` | `true` | SCAN: destructuring element write |
+| bitrue.cs:2202 | `createMarketBuyOrderRequiresPrice` | `true` | SCAN: destructuring element write |
+| bittrade.cs:1929 | `createMarketBuyOrderRequiresPrice` | `true` | SCAN: destructuring element write |
+| btse.cs:2195 | `createMarketBuyOrderRequiresPrice` | `true` | SCAN: destructuring element write |
+| bybit.cs:5544 | `createMarketBuyOrderRequiresPrice` | `true` | SCAN: destructuring element write |
+| coinbase.cs:3557 | `createMarketBuyOrderRequiresPrice` | `true` | SCAN: destructuring element write |
+| coinex.cs:2772 | `createMarketBuyOrderRequiresPrice` | `true` | SCAN: destructuring element write |
+| coinsph.cs:1646 | `createMarketBuyOrderRequiresPrice` | `true` | SCAN: destructuring element write |
+| cryptocom.cs:2078 | `createMarketBuyOrderRequiresPrice` | `true` | SCAN: destructuring element write |
+| cryptomus.cs:849 | `createMarketBuyOrderRequiresPrice` | `true` | SCAN: destructuring element write |
+| deepcoin.cs:2661 | `merged` | `true` | SCAN: destructuring element write |
+| digifinex.cs:2219 | `createMarketBuyOrderRequiresPrice` | `true` | SCAN: destructuring element write |
+| gate.cs:5808 | `createMarketBuyOrderRequiresPrice` | `true` | SCAN: destructuring element write |
+| htx.cs:6325 | `createMarketBuyOrderRequiresPrice` | `true` | NO-TRACE |
+| kucoin.cs:12366 | `isContractMarket` | `true` | JOIN: write unprovable |
+| lbank.cs:1900 | `createMarketBuyOrderRequiresPrice` | `true` | SCAN: destructuring element write |
+| lighter.cs:1124 | `skipNonce` | `true` | SCAN: destructuring element write |
+| okx.cs:4378 | `createMarketBuyOrderRequiresPrice` | `true` | SCAN: destructuring element write |
+| poloniex.cs:2421 | `createMarketBuyOrderRequiresPrice` | `true` | SCAN: destructuring element write |
+| tokocrypto.cs:2051 | `createMarketBuyOrderRequiresPrice` | `true` | SCAN: destructuring element write |
+| weex.cs:2011 | `isSpot` | `true` | JOIN: write unprovable |
+| pro/poloniex.cs:249 | `createMarketBuyOrderRequiresPrice` | `true` | SCAN: destructuring element write |
+| prediction/limitless.cs:2413 | `createMarketBuyOrderRequiresPrice` | `true` | SCAN: destructuring element write |
+| prediction/limitless.cs:2758 | `warn` | `true` | SCAN: destructuring element write |
