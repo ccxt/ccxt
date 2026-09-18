@@ -164,5 +164,6 @@ proof to make; the `<other-write>` locals (`method`, `marketType`, `category`, `
   dotnet build (0 errors / 0 warnings from this diff) and `branch_update=unchanged` is the farm's own
   repo-wide `--force` transpile reproducing this tree byte-for-byte — i.e. the committed `cs/` tree is
   the generator's fixed point and the local regens missed no file.
-* tip commits after that one add only this report (no build input); their own farm note is recorded in
-  the unit summary.
+* tip commits after that one add only this report (no build input): `f22ab255e23` was gated as well —
+  `HEAD f22ab255e2300f5ca1911f8a400c1801be162808 job=756 exit=0 branch_update=unchanged`. A later
+  report-only edit (this line) changes no build input; `ccxt-farm status <sha>` remains the check.
