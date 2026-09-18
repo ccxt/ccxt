@@ -9764,7 +9764,7 @@ public partial class gate : Exchange
         {
             IDictionary<string, object> entry = this.safeDict(response, i, new Dictionary<string, object>() {});
             string? entryMarketId = this.safeString(entry, "name");
-            if (isEqual(entryMarketId, marketId))
+            if ((entryMarketId == marketId))
             {
                 return ccxt.BaseExchange.ToGreeks(this.parseGreeks(entry, market));
             }

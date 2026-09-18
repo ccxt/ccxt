@@ -1346,7 +1346,7 @@ public partial class aster : Exchange
             settleId = this.safeString(market, "marginAsset");
             settle = this.safeCurrencyCode(settleId);
             symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
-            linear = isEqual(settle, quote);
+            linear = (settle == quote);
             inverse = isEqual(settle, bs);
             contractSize = this.safeNumber2(market, "contractSize", "unit", this.parseNumber("1"));
         } else

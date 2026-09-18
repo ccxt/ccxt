@@ -1081,7 +1081,7 @@ public partial class bitso : Exchange
         string? takerOrMaker = null;
         if ((side != null))
         {
-            if (isEqual(side, makerSide))
+            if ((side == makerSide))
             {
                 takerOrMaker = "maker";
             } else

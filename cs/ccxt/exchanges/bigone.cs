@@ -1250,7 +1250,7 @@ public partial class bigone : Exchange
         string? takerOrMaker = null;
         if (((takerSide != null)) && ((side != null)) && (!isEqual(side, "SELF_TRADING")))
         {
-            takerOrMaker = ((bool) (isEqual(takerSide, side))) ? "taker" : "maker";
+            takerOrMaker = ((bool) ((takerSide == side))) ? "taker" : "maker";
         }
         if ((side == null))
         {

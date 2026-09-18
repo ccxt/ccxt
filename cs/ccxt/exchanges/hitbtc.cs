@@ -899,7 +899,7 @@ public partial class hitbtc : Exchange
                 contractSize = this.parseNumber("1");
                 settleId = feeCurrencyId;
                 settle = this.safeCurrencyCode(settleId);
-                linear = (((quote != null)) && (isEqual(quote, settle)));
+                linear = (((quote != null)) && ((quote == settle)));
                 inverse = !isTrue(linear);
                 symbol = add(add(symbol, ":"), settle);
                 if (future)

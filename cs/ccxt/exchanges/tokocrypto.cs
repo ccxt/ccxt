@@ -1984,7 +1984,7 @@ public partial class tokocrypto : Exchange
         object validOrderTypes = this.safeValue(getValue(market, "info"), "orderTypes");
         if (!this.inArray(uppercaseType, validOrderTypes))
         {
-            if (!isEqual(initialUppercaseType, uppercaseType))
+            if ((initialUppercaseType != uppercaseType))
             {
                 throw new InvalidOrder ((string)(add((add((this.id + " triggerPrice parameter is not allowed for "), symbol) + " "), typeVar) + " orders")) ;
             } else

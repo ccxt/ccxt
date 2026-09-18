@@ -5936,7 +5936,7 @@ public partial class bingx : Exchange
         string? network = this.safeString(transaction, "network");
         string? currencyId = this.safeString(transaction, "coin");
         string? code = this.safeCurrencyCode(currencyId, currency);
-        if (((code != null)) && ((network != null)) && (!isEqual(code, network)) && getIndexOf(code, network) >= 0)
+        if (((code != null)) && ((network != null)) && ((code != network)) && getIndexOf(code, network) >= 0)
         {
             if ((network != null))
             {

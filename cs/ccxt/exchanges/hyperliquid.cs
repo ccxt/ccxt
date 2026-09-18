@@ -4154,7 +4154,7 @@ public partial class hyperliquid : Exchange
             {
                 Dictionary<string, object> market = this.market(getValue(symbols, i));
                 string? currentDexName = this.getDexFromHip3Symbol(market);
-                if (!isEqual(currentDexName, dexName))
+                if ((currentDexName != dexName))
                 {
                     throw new NotSupported ((string)(add((this.id + " "), methodName) + " only supports fetching positions for one DEX at a time for HIP3 markets")) ;
                 }

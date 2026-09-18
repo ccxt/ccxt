@@ -5489,7 +5489,7 @@ public partial class kucoin : Exchange
                 symbol = marketId;
             } else
             {
-                if (!isEqual(symbol, marketId))
+                if ((symbol != marketId))
                 {
                     throw new BadRequest ((string)(this.id + " createOrders() requires all orders to have the same symbol")) ;
                 }
@@ -9493,7 +9493,7 @@ public partial class kucoin : Exchange
             {
                 object balance = getValue(data, i);
                 string? balanceType = this.safeString(balance, "type");
-                if (isEqual(balanceType, type))
+                if ((balanceType == type))
                 {
                     string? currencyId = this.safeString(balance, "currency");
                     string? codeInner2 = this.safeCurrencyCode(currencyId);

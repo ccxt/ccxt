@@ -5446,7 +5446,7 @@ public partial class bybit : Exchange
                         }
                     }
                 }
-                if (isTakeProfitOrder && isStopLossOrder && !isEqual(tpslModeSl, tpslModeTp))
+                if (isTakeProfitOrder && isStopLossOrder && (tpslModeSl != tpslModeTp))
                 {
                     throw new InvalidOrder ((string)(this.id + " createOrder() requires both stopLoss and takeProfit to be full or partial when using as OCO combination")) ;
                 }

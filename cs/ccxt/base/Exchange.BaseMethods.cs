@@ -6696,7 +6696,7 @@ public partial class BaseExchange
         for (int i = 0; i < numNetworks; postFixIncrement(ref i))
         {
             string? network = ((string)getValue(networkKeys, i));
-            if (isEqual(network, currencyCode))
+            if ((network == currencyCode))
             {
                 ((IDictionary<string,object>)fee)["withdraw"] = getValue(getValue(getValue(fee, "networks"), getValue(networkKeys, i)), "withdraw");
                 ((IDictionary<string,object>)fee)["deposit"] = getValue(getValue(getValue(fee, "networks"), getValue(networkKeys, i)), "deposit");
