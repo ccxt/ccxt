@@ -2763,7 +2763,7 @@ public class Coinsph extends CoinsphApi
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);
-            if (Helpers.isTrue(Helpers.isArray(Helpers.GetValue(query, key))))
+            if (Helpers.isTrue((Helpers.GetValue(query, key) instanceof List)))
             {
                 if (!Helpers.isEqual(i, 0))
                 {

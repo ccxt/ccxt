@@ -1485,7 +1485,7 @@ public class Tokocrypto extends TokocryptoApi
             // result omits the native markets instead of raising for them, unlike
             // the single symbol fetchTicker
             Object response = (this.binanceGetTicker24hr(parameters)).join();
-            if (!Helpers.isTrue(Helpers.isArray(response)))
+            if (!Helpers.isTrue((response instanceof List)))
             {
                 // a user-supplied symbol param makes the endpoint answer a single
                 // ticker object, the unified fetchTickers contract returns a
@@ -1561,7 +1561,7 @@ public class Tokocrypto extends TokocryptoApi
                 put( "symbol", Tokocrypto.this.getMarketIdByType(market) );
             }};
             Object response = (this.binanceGetTicker24hr(this.extend(request, parameters))).join();
-            if (Helpers.isTrue(Helpers.isArray(response)))
+            if (Helpers.isTrue((response instanceof List)))
             {
                 Object firstTicker = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
                 return this.parseTicker(firstTicker, market);
@@ -1736,7 +1736,7 @@ public class Tokocrypto extends TokocryptoApi
             //     }
             //
             Object data = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(Helpers.isArray(response)))
+            if (Helpers.isTrue((response instanceof List)))
             {
                 data = response;
             } else

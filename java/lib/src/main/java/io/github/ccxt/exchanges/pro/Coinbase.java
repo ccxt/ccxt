@@ -103,7 +103,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             Object market = null;
             Object messageHash = name;
             Object productIds = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(Helpers.isArray(symbol)))
+            if (Helpers.isTrue((symbol instanceof List)))
             {
                 Object symbols = this.marketSymbols(symbol);
                 Object marketIds = this.marketIds(symbols);
@@ -168,7 +168,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             Object watchMessageHash = name;
             Object unWatchMessageHash = ("unsubscribe:" + name);
             Object productIds = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(Helpers.isArray(symbol)))
+            if (Helpers.isTrue((symbol instanceof List)))
             {
                 Object symbols = this.marketSymbols(symbol);
                 Object marketIds = this.marketIds(symbols);

@@ -1027,7 +1027,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         //         }
         //     ]
         //
-        Object isArray = Helpers.isArray(message);
+        Object isArray = (message instanceof List);
         if (Helpers.isTrue(isArray))
         {
             this.handleOrder(client, message);

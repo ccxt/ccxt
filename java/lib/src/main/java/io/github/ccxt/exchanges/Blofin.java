@@ -1556,7 +1556,7 @@ public class Blofin extends BlofinApi
     public Object parseBalanceByType(Object response)
     {
         Object data = this.safeList(response, "data");
-        if ((!java.util.Objects.equals(data, null)) && Helpers.isTrue(Helpers.isArray(data)))
+        if ((!java.util.Objects.equals(data, null)) && Helpers.isTrue((data instanceof List)))
         {
             return this.parseFundingBalance(response);
         } else

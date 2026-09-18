@@ -1077,7 +1077,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         }
         String type = this.safeString(message, "type");
         Object data = this.safeValue(message, "data");
-        if (Helpers.isTrue(Helpers.isArray(data)))
+        if (Helpers.isTrue((data instanceof List)))
         {
             Object first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             String side = this.safeString(first, "S");

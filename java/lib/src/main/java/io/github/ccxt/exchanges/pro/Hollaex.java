@@ -452,7 +452,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         }
         Object stored = this.orders;
         Object rawOrders = null;
-        if (!Helpers.isTrue(Helpers.isArray(data)))
+        if (!Helpers.isTrue((data instanceof List)))
         {
             rawOrders = new ArrayList<Object>(Arrays.asList(data));
         } else

@@ -1745,7 +1745,7 @@ public class Hyperliquid extends HyperliquidApi
             //     ]
             //
             Object candles = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(Helpers.isArray(response)))
+            if (Helpers.isTrue((response instanceof List)))
             {
                 candles = response;
             }
@@ -1851,7 +1851,7 @@ public class Hyperliquid extends HyperliquidApi
             //     ]
             //
             Object fills = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(Helpers.isArray(response)))
+            if (Helpers.isTrue((response instanceof List)))
             {
                 fills = response;
             }
@@ -3120,7 +3120,7 @@ public class Hyperliquid extends HyperliquidApi
         Object baseId = this.parseToNumeric(((Map<String, Object>)market).get("baseId"));
         if (!java.util.Objects.equals(clientOrderId, null))
         {
-            if (!Helpers.isTrue(Helpers.isArray(clientOrderId)))
+            if (!Helpers.isTrue((clientOrderId instanceof List)))
             {
                 clientOrderId = new ArrayList<Object>(Arrays.asList(clientOrderId));
             }
@@ -3682,7 +3682,7 @@ final Object finalClientOrderId = clientOrderId;
             //
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             Object fundings = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(Helpers.isArray(response)))
+            if (Helpers.isTrue((response instanceof List)))
             {
                 fundings = response;
             }
@@ -3785,7 +3785,7 @@ final Object finalClientOrderId = clientOrderId;
             //
             List<Object> orderWithStatus = new ArrayList<Object>(Arrays.asList());
             Object rawOrders = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(Helpers.isArray(response)))
+            if (Helpers.isTrue((response instanceof List)))
             {
                 rawOrders = response;
             }
@@ -3966,7 +3966,7 @@ final Object finalClientOrderId = clientOrderId;
             // Deduplicate by oid, keeping the entry with the most recent statusTimestamp.
             Map<String, Object> deduplicatedByOid = new HashMap<String, Object>() {{}};
             Object historicalOrders = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(Helpers.isArray(response)))
+            if (Helpers.isTrue((response instanceof List)))
             {
                 historicalOrders = response;
             }
@@ -4391,7 +4391,7 @@ final Object finalClientOrderId = clientOrderId;
             //     ]
             //
             Object myFills = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(Helpers.isArray(response)))
+            if (Helpers.isTrue((response instanceof List)))
             {
                 myFills = response;
             }
@@ -5606,7 +5606,7 @@ final Object finalClientOrderId = clientOrderId;
             // ]
             //
             Object depositLedger = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(Helpers.isArray(response)))
+            if (Helpers.isTrue((response instanceof List)))
             {
                 depositLedger = response;
             }
@@ -5700,7 +5700,7 @@ final Object finalClientOrderId = clientOrderId;
             // ]
             //
             Object withdrawalLedger = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(Helpers.isArray(response)))
+            if (Helpers.isTrue((response instanceof List)))
             {
                 withdrawalLedger = response;
             }

@@ -3821,7 +3821,7 @@ public class Bitstamp extends BitstampApi
                 {
                     Object key = Helpers.GetValue(keys, i);
                     Object value = this.safeValue(error, key);
-                    if (Helpers.isTrue(Helpers.isArray(value)))
+                    if (Helpers.isTrue((value instanceof List)))
                     {
                         errors = this.arrayConcat(errors, value);
                     } else

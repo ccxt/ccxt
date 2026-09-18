@@ -2337,7 +2337,7 @@ public class Phemex extends PhemexApi
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String orderId = null;
         String takerOrMaker = null;
-        if (Helpers.isTrue(Helpers.isArray(trade)))
+        if (Helpers.isTrue((trade instanceof List)))
         {
             Object tradeLength = ((List<?>)trade).size();
             timestamp = this.safeIntegerProduct(trade, 0, 0.000001);
@@ -3805,7 +3805,7 @@ public class Phemex extends PhemexApi
             }
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
             Object order = data;
-            if (Helpers.isTrue(Helpers.isArray(data)))
+            if (Helpers.isTrue((data instanceof List)))
             {
                 Object numOrders = ((List<?>)data).size();
                 if (Helpers.isLessThan(numOrders, 1))
@@ -3959,7 +3959,7 @@ public class Phemex extends PhemexApi
                 throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
             }
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isArray(data)))
+            if (Helpers.isTrue((data instanceof List)))
             {
                 return this.parseOrders(data, market, since, limit);
             } else
@@ -4066,7 +4066,7 @@ public class Phemex extends PhemexApi
             //     }
             //
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isArray(data)))
+            if (Helpers.isTrue((data instanceof List)))
             {
                 return this.parseOrders(data, market, since, limit);
             } else

@@ -461,7 +461,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             Object newTickers = (this.subscribePublic(name, "tickers", symbols, this.deepExtend(request, parameters))).join();
             if (Helpers.isTrue(this.newUpdates))
             {
-                if (!Helpers.isTrue(Helpers.isArray(newTickers)))
+                if (!Helpers.isTrue((newTickers instanceof List)))
                 {
                     Map<String, Object> tickers = new HashMap<String, Object>() {{}};
                     Helpers.addElementToObject(tickers, Helpers.GetValue(newTickers, "symbol"), newTickers);
@@ -629,7 +629,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             Object newTickers = (this.subscribePublic(name, "bidask", symbols, this.deepExtend(request, parameters))).join();
             if (Helpers.isTrue(this.newUpdates))
             {
-                if (!Helpers.isTrue(Helpers.isArray(newTickers)))
+                if (!Helpers.isTrue((newTickers instanceof List)))
                 {
                     Map<String, Object> tickers = new HashMap<String, Object>() {{}};
                     Helpers.addElementToObject(tickers, Helpers.GetValue(newTickers, "symbol"), newTickers);
@@ -1099,7 +1099,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object data = this.safeValue(message, "params", new ArrayList<Object>(Arrays.asList()));
-        if (Helpers.isTrue(Helpers.isArray(data)))
+        if (Helpers.isTrue((data instanceof List)))
         {
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
@@ -1586,7 +1586,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         //
         String messageHash = this.safeString(message, "id");
         Object result = this.safeValue(message, "result", new HashMap<String, Object>() {{}});
-        if (Helpers.isTrue(Helpers.isArray(result)))
+        if (Helpers.isTrue((result instanceof List)))
         {
             List<Object> parsedOrders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)result).size(); i++)
@@ -1654,7 +1654,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             {
                 this.handleAuthenticate(client, message);
             }
-            if (Helpers.isTrue(Helpers.isArray(result)))
+            if (Helpers.isTrue((result instanceof List)))
             {
                 // to do improve this, not very reliable right now
                 Object first = this.safeDict(result, 0, new HashMap<String, Object>() {{}});

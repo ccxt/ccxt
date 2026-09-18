@@ -4469,7 +4469,7 @@ public class Pacifica extends PacificaApi
                 Helpers.addElementToObject(result, key, this.sortJsonKeys(Helpers.GetValue(value, key)));
             }
             return result;
-        } else if (Helpers.isTrue(Helpers.isArray(value)))
+        } else if (Helpers.isTrue((value instanceof List)))
         {
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)value).size(); i++)

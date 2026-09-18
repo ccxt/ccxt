@@ -3321,7 +3321,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         List<Object> resolvedMessageHashes = new ArrayList<Object>(Arrays.asList());
         Object rawTickers = new ArrayList<Object>(Arrays.asList());
         Map<String, Object> newTickers = new HashMap<String, Object>() {{}};
-        if (Helpers.isTrue(Helpers.isArray(message)))
+        if (Helpers.isTrue((message instanceof List)))
         {
             rawTickers = message;
         } else
@@ -4066,7 +4066,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         //
         String messageHash = this.safeString(message, "id");
         Object rawBalance = null;
-        if (Helpers.isTrue(Helpers.isArray(Helpers.GetValue(message, "result"))))
+        if (Helpers.isTrue((Helpers.GetValue(message, "result") instanceof List)))
         {
             // account.balance
             rawBalance = this.safeList(message, "result", new ArrayList<Object>(Arrays.asList()));
@@ -5840,7 +5840,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         if ((java.util.Objects.equals(e, "ORDER_TRADE_UPDATE")) || (java.util.Objects.equals(e, "ALGO_UPDATE")))
         {
             Object oField = this.safeValue(message, "o");
-            if (Helpers.isTrue(Helpers.isArray(oField)))
+            if (Helpers.isTrue((oField instanceof List)))
             {
                 // eOptions format: o is an array of orders with nested fi fills
                 this.handleOptionsOrderUpdate(client, message);
@@ -7053,7 +7053,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             put( "externalLockUpdate", "handleBalance");
         }};
         Object eventVar = this.safeString(message, "e");
-        if (Helpers.isTrue(Helpers.isArray(message)))
+        if (Helpers.isTrue((message instanceof List)))
         {
             Object arrayMessage = Helpers.GetValue(message, 0);
             eventVar = Helpers.add(this.safeString(arrayMessage, "e"), "@arr");

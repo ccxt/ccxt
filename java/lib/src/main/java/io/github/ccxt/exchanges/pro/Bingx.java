@@ -639,7 +639,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String messageHash = ("trade::" + symbol);
         Object trades = null;
-        if (Helpers.isTrue(Helpers.isArray(data)))
+        if (Helpers.isTrue((data instanceof List)))
         {
             trades = this.parseTrades(data, market);
         } else

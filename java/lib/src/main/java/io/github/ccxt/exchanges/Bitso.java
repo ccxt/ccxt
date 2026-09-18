@@ -1503,7 +1503,7 @@ public class Bitso extends BitsoApi
 
             Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            if (!Helpers.isTrue(Helpers.isArray(ids)))
+            if (!Helpers.isTrue((ids instanceof List)))
             {
                 throw new ArgumentsRequired((this.id + " cancelOrders() ids argument should be an array")) ;
             }
@@ -1717,7 +1717,7 @@ public class Bitso extends BitsoApi
                 put( "oid", id );
             }})).join();
             Object payload = this.safeValue(response, "payload");
-            if (Helpers.isTrue(Helpers.isArray(payload)))
+            if (Helpers.isTrue((payload instanceof List)))
             {
                 Object numOrders = ((List<?>)payload).size();
                 if (Helpers.isEqual(numOrders, 1))

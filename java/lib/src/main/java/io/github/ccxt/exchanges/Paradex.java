@@ -2676,8 +2676,8 @@ public class Paradex extends ParadexApi
             }
             Object clientOrderIds = this.safeListN(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")));
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")));
-            Boolean hasOrderIds = (!java.util.Objects.equals(ids, null)) && Helpers.isTrue((Helpers.isArray(ids)));
-            Boolean hasClientOrderIds = (!java.util.Objects.equals(clientOrderIds, null)) && Helpers.isTrue((Helpers.isArray(clientOrderIds)));
+            Boolean hasOrderIds = (!java.util.Objects.equals(ids, null)) && Helpers.isTrue(((ids instanceof List)));
+            Boolean hasClientOrderIds = (!java.util.Objects.equals(clientOrderIds, null)) && Helpers.isTrue(((clientOrderIds instanceof List)));
             if (!Helpers.isTrue(hasOrderIds) && !Helpers.isTrue(hasClientOrderIds))
             {
                 throw new ArgumentsRequired((this.id + " cancelOrders() requires a non-empty ids argument or a non-empty clientOrderIds parameter")) ;

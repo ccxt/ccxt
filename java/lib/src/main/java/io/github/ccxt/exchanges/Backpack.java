@@ -2918,7 +2918,7 @@ public class Backpack extends BackpackApi
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
         Object endpoint = Helpers.add("/", path);
         Object url = Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api);
-        Object sortedParams = ((Helpers.isTrue(Helpers.isArray(parameters)))) ? parameters : this.keysort(parameters);
+        Object sortedParams = ((Helpers.isTrue((parameters instanceof List)))) ? parameters : this.keysort(parameters);
         if (java.util.Objects.equals(api, "private"))
         {
             this.checkRequiredCredentials();

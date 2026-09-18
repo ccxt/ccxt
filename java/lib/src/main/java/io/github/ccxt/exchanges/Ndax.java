@@ -1329,7 +1329,7 @@ public class Ndax extends NdaxApi
             //     ]
             //
             List<Object> candles = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(Helpers.isArray(response)))
+            if (Helpers.isTrue((response instanceof List)))
             {
                 candles = response;
             }
@@ -1460,7 +1460,7 @@ public class Ndax extends NdaxApi
         Object takerOrMaker = null;
         Map<String, Object> fee = new HashMap<String, Object>() {{}};
         Object type = null;
-        if (Helpers.isTrue(Helpers.isArray(trade)))
+        if (Helpers.isTrue((trade instanceof List)))
         {
             priceString = this.safeString(trade, 3);
             amountString = this.safeString(trade, 2);

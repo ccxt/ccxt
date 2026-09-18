@@ -1620,7 +1620,7 @@ public class Alpaca extends AlpacaApi
                 (this.loadMarkets()).join();
             }
             List<Object> response = (this.traderPrivateDeleteV2Orders(parameters)).join();
-            if (Helpers.isTrue(Helpers.isArray(response)))
+            if (Helpers.isTrue((response instanceof List)))
             {
                 return this.parseOrders(response);
             } else
@@ -2333,7 +2333,7 @@ public class Alpaca extends AlpacaApi
                 //
                 List<Object> filtered = new ArrayList<Object>(Arrays.asList());
                 List<Object> ledger = new ArrayList<Object>(Arrays.asList());
-                if (Helpers.isTrue(Helpers.isArray(activities)))
+                if (Helpers.isTrue((activities instanceof List)))
                 {
                     ledger = activities;
                 }
@@ -2371,7 +2371,7 @@ public class Alpaca extends AlpacaApi
             //
             List<Object> results = new ArrayList<Object>(Arrays.asList());
             List<Object> transfers = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(Helpers.isArray(response)))
+            if (Helpers.isTrue((response instanceof List)))
             {
                 transfers = response;
             }

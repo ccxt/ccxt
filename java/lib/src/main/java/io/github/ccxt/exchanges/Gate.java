@@ -4855,7 +4855,7 @@ public class Gate extends GateApi
         //
         // Swap, Future, Option, Mark and Index price candles
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        if (Helpers.isTrue(Helpers.isArray(ohlcv)))
+        if (Helpers.isTrue((ohlcv instanceof List)))
         {
             return new ArrayList<Object>(Arrays.asList(this.safeTimestamp(ohlcv, 0), this.safeNumber(ohlcv, 5), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 6)));
         } else
@@ -8652,7 +8652,7 @@ final Object finalFloor = floor;
         //     ]
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        if (!Helpers.isTrue(Helpers.isArray(info)))
+        if (!Helpers.isTrue((info instanceof List)))
         {
             return this.parseEmulatedLeverageTiers(info, market);
         }
@@ -9064,7 +9064,7 @@ final Object finalI = i;
             }
             parameters = newParams;
             query = newParams;
-        } else if (Helpers.isTrue(Helpers.isArray(parameters)))
+        } else if (Helpers.isTrue((parameters instanceof List)))
         {
             // endpoints like createOrders use an array instead of an object
             // so we infer the settle from one of the elements

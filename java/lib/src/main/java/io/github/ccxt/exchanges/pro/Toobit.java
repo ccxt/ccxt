@@ -1385,7 +1385,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         Object cache = Helpers.GetValue(this.positions, accountType);
         // handleMessage's fallback dispatches one item at a time
         Object rawPositions = message;
-        if (!Helpers.isTrue(Helpers.isArray(message)))
+        if (!Helpers.isTrue((message instanceof List)))
         {
             rawPositions = new ArrayList<Object>(Arrays.asList(message));
         }

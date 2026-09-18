@@ -613,7 +613,7 @@ public class Coinspot extends CoinspotApi
             put( "info", response );
         }};
         Object balances = this.safeValue2(response, "balance", "balances");
-        if (Helpers.isTrue(Helpers.isArray(balances)))
+        if (Helpers.isTrue((balances instanceof List)))
         {
             for (var i = 0; i < ((List<?>)balances).size(); i++)
             {
@@ -1193,7 +1193,7 @@ public class Coinspot extends CoinspotApi
         Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
-        Object isVersionedApi = Helpers.isArray(api);
+        Object isVersionedApi = (api instanceof List);
         Object version = ((Helpers.isTrue(isVersionedApi))) ? Helpers.GetValue(api, 0) : null;
         Object accessType = ((Helpers.isTrue(isVersionedApi))) ? Helpers.GetValue(api, 1) : api;
         String endpoint = ("/" + this.implodeParams(path, parameters));

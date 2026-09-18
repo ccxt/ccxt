@@ -720,7 +720,7 @@ public class Bithumb extends BithumbApi
                         Object market = Helpers.GetValue(data, currencyId);
                         String base = this.safeCurrencyCode(currencyId);
                         Boolean active = true;
-                        if (Helpers.isTrue(Helpers.isArray(market)))
+                        if (Helpers.isTrue((market instanceof List)))
                         {
                             Object numElements = ((List<?>)market).size();
                             if (Helpers.isEqual(numElements, 0))
@@ -1276,7 +1276,7 @@ public class Bithumb extends BithumbApi
                         expectedMarketId = firstMarketId;
                     }
                     Object tickers = new ArrayList<Object>(Arrays.asList());
-                    if (Helpers.isTrue(Helpers.isArray(response)))
+                    if (Helpers.isTrue((response instanceof List)))
                     {
                         tickers = response;
                     } else if (Helpers.isTrue(this.isDictionary(response)))
@@ -1501,7 +1501,7 @@ public class Bithumb extends BithumbApi
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object timestamp = null;
-        if (Helpers.isTrue(Helpers.isArray(ohlcv)))
+        if (Helpers.isTrue((ohlcv instanceof List)))
         {
             timestamp = this.safeInteger2(ohlcv, 0, "timestamp");
         } else
@@ -3914,7 +3914,7 @@ public class Bithumb extends BithumbApi
         {
             Object key = Helpers.GetValue(keys, i);
             Object value = Helpers.GetValue(query, key);
-            if (Helpers.isTrue(Helpers.isArray(value)))
+            if (Helpers.isTrue((value instanceof List)))
             {
                 Object encodedKey = (this.encodeURIComponent(key) + "[]");
                 for (var j = 0; j < ((List<?>)value).size(); j++)

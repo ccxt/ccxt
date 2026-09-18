@@ -4380,7 +4380,7 @@ public Object describe()
         {
             return defaultValue;
         }
-        if (Helpers.isTrue(Helpers.isArray(value)))
+        if (Helpers.isTrue((value instanceof List)))
         {
             return value;
         }
@@ -4397,12 +4397,12 @@ public Object describe()
         */
         Object defaultValue = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object value = this.safeValue(dictionaryOrList, key1);
-        if ((!java.util.Objects.equals(value, null)) && Helpers.isTrue(Helpers.isArray(value)))
+        if ((!java.util.Objects.equals(value, null)) && Helpers.isTrue((value instanceof List)))
         {
             return value;
         }
         Object value2 = this.safeValue(dictionaryOrList, key2);
-        if ((!java.util.Objects.equals(value2, null)) && Helpers.isTrue(Helpers.isArray(value2)))
+        if ((!java.util.Objects.equals(value2, null)) && Helpers.isTrue((value2 instanceof List)))
         {
             return value2;
         }
@@ -4423,7 +4423,7 @@ public Object describe()
         {
             return defaultValue;
         }
-        if (Helpers.isTrue(Helpers.isArray(value)))
+        if (Helpers.isTrue((value instanceof List)))
         {
             return value;
         }
@@ -6588,7 +6588,7 @@ public Object describe()
             }
             // this.number = oldNumber; why parse trades as strings if you read the value using `safeString` ?
             Object tradesLength = 0;
-            Object isArray = Helpers.isArray(trades);
+            Object isArray = (trades instanceof List);
             if (Helpers.isTrue(isArray))
             {
                 tradesLength = ((List<?>)trades).size();
@@ -6924,7 +6924,7 @@ public Object describe()
             return new ArrayList<Object>(Arrays.asList());
         }
         Object results = new ArrayList<Object>(Arrays.asList());
-        if (Helpers.isTrue(Helpers.isArray(orders)))
+        if (Helpers.isTrue((orders instanceof List)))
         {
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
@@ -7950,7 +7950,7 @@ public Object describe()
     public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        if (Helpers.isTrue(Helpers.isArray(ohlcv)))
+        if (Helpers.isTrue((ohlcv instanceof List)))
         {
             return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 5)));
         }
@@ -8298,7 +8298,7 @@ public Object describe()
             symbolsLength = ((List<?>)symbols).size();
         }
         Boolean noSymbols = (java.util.Objects.equals(symbols, null)) || (Helpers.isEqual(symbolsLength, 0));
-        if (Helpers.isTrue(Helpers.isArray(response)))
+        if (Helpers.isTrue((response instanceof List)))
         {
             for (var i = 0; i < ((List<?>)response).size(); i++)
             {
@@ -8538,7 +8538,7 @@ public Object describe()
         for (var i = 0; i < ((List<?>)arrayData).size(); i++)
         {
             Object itemOrItems = this.parseLedgerEntry(Helpers.GetValue(arrayData, i), currency);
-            if (Helpers.isTrue(Helpers.isArray(itemOrItems)))
+            if (Helpers.isTrue((itemOrItems instanceof List)))
             {
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(itemOrItems)); j++)
                 {
@@ -8706,7 +8706,7 @@ public Object describe()
     public Object getListFromObjectValues(Object objects, Object key)
     {
         Object newArray = objects;
-        if (!Helpers.isTrue(Helpers.isArray(objects)))
+        if (!Helpers.isTrue((objects instanceof List)))
         {
             newArray = this.toArray(objects);
         }
@@ -10724,7 +10724,7 @@ public Object describe()
         Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
         List<Object> results = new ArrayList<Object>(Arrays.asList());
-        if (Helpers.isTrue(Helpers.isArray(pricesData)))
+        if (Helpers.isTrue((pricesData instanceof List)))
         {
             for (var i = 0; i < ((List<?>)pricesData).size(); i++)
             {
@@ -10773,7 +10773,7 @@ public Object describe()
         Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
         List<Object> results = new ArrayList<Object>(Arrays.asList());
-        if (Helpers.isTrue(Helpers.isArray(tickers)))
+        if (Helpers.isTrue((tickers instanceof List)))
         {
             for (var i = 0; i < ((List<?>)tickers).size(); i++)
             {
@@ -11462,7 +11462,7 @@ public Object describe()
         Object codes = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object currencyIdKey = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
         Map<String, Object> depositWithdrawFees = new HashMap<String, Object>() {{}};
-        Object isArray = Helpers.isArray(response);
+        Object isArray = (response instanceof List);
         Object responseKeys = response;
         if (!Helpers.isTrue(isArray))
         {
@@ -12327,7 +12327,7 @@ public Object describe()
         Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
         List<Object> results = new ArrayList<Object>(Arrays.asList());
-        if (Helpers.isTrue(Helpers.isArray(greeks)))
+        if (Helpers.isTrue((greeks instanceof List)))
         {
             for (var i = 0; i < ((List<?>)greeks).size(); i++)
             {

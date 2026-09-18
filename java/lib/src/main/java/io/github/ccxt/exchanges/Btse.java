@@ -2768,7 +2768,7 @@ public class Btse extends BtseApi
             // the normal futures endpoint responds with a single order dict, keep a
             // one element array guard in case a gateway wraps it
             Object order = response;
-            if (Helpers.isTrue(Helpers.isArray(response)))
+            if (Helpers.isTrue((response instanceof List)))
             {
                 order = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             }
@@ -2846,7 +2846,7 @@ public class Btse extends BtseApi
             }
             // accept a bare order dict, a data envelope and a one element array
             Object order = this.safeValue(response, "data", response);
-            if (Helpers.isTrue(Helpers.isArray(order)))
+            if (Helpers.isTrue((order instanceof List)))
             {
                 order = this.safeDict(order, 0, new HashMap<String, Object>() {{}});
             }
@@ -4369,7 +4369,7 @@ public class Btse extends BtseApi
             //     ]
             //
             List<Object> safeResponse = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(Helpers.isArray(response)))
+            if (Helpers.isTrue((response instanceof List)))
             {
                 safeResponse = response;
             }
@@ -4512,7 +4512,7 @@ public class Btse extends BtseApi
             throw new ExchangeError((String)feedback) ;
         }
         Object rows = new ArrayList<Object>(Arrays.asList());
-        if (Helpers.isTrue(Helpers.isArray(response)))
+        if (Helpers.isTrue((response instanceof List)))
         {
             rows = response;
         } else

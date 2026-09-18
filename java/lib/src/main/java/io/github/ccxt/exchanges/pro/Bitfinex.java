@@ -311,7 +311,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         Object data = this.safeValue(message, 1, new ArrayList<Object>(Arrays.asList()));
         Object ohlcvs = new ArrayList<Object>(Arrays.asList());
         Object first = this.safeValue(data, 0);
-        if (Helpers.isTrue(Helpers.isArray(first)))
+        if (Helpers.isTrue((first instanceof List)))
         {
             // snapshot
             ohlcvs = data;
@@ -1538,7 +1538,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         //        }
         //    }
         //
-        if (Helpers.isTrue(Helpers.isArray(message)))
+        if (Helpers.isTrue((message instanceof List)))
         {
             if (java.util.Objects.equals(Helpers.GetValue(message, 1), "hb"))
             {

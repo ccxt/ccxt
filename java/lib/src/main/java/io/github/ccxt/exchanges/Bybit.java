@@ -6705,7 +6705,7 @@ public class Bybit extends BybitApi
             //
             Object result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Object orders = this.safeList(result, "list");
-            if (!Helpers.isTrue(Helpers.isArray(orders)))
+            if (!Helpers.isTrue((orders instanceof List)))
             {
                 return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", response );
@@ -8532,7 +8532,7 @@ public class Bybit extends BybitApi
                 return (this.fetchPaginatedCallCursor("fetchPositions", symbols, null, null, parameters, "nextPageCursor", "cursor", null, 200)).join();
             }
             Object symbol = null;
-            if ((!java.util.Objects.equals(symbols, null)) && Helpers.isTrue(Helpers.isArray(symbols)))
+            if ((!java.util.Objects.equals(symbols, null)) && Helpers.isTrue((symbols instanceof List)))
             {
                 Object symbolsLength = ((List<?>)symbols).size();
                 if (Helpers.isGreaterThan(symbolsLength, 1))

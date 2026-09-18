@@ -887,7 +887,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(bidAsks)); i++)
         {
             Object bidAsk = Helpers.GetValue(bidAsks, i);
-            if (Helpers.isTrue(Helpers.isArray(bidAsk)))
+            if (Helpers.isTrue((bidAsk instanceof List)))
             {
                 Helpers.callDynamically(bookSide, "storeArray", new Object[]{this.parseOrderBookBidAsk(bidAsk)});
             } else
@@ -1096,7 +1096,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         String marketType = (((java.util.Objects.equals(rawMarketType, "futures")))) ? "contract" : "spot";
         Object result = this.safeValue(message, "result");
         Object results = new ArrayList<Object>(Arrays.asList());
-        if (Helpers.isTrue(Helpers.isArray(result)))
+        if (Helpers.isTrue((result instanceof List)))
         {
             results = this.safeList(message, "result", new ArrayList<Object>(Arrays.asList()));
         } else
@@ -1282,7 +1282,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         // }
         //
         Object result = this.safeValue(message, "result");
-        if (!Helpers.isTrue(Helpers.isArray(result)))
+        if (!Helpers.isTrue((result instanceof List)))
         {
             result = new ArrayList<Object>(Arrays.asList(result));
         }
@@ -1377,7 +1377,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         String rawMarketType = this.safeString(channelParts, 0);
         String marketType = (((java.util.Objects.equals(rawMarketType, "spot")))) ? "spot" : "contract";
         Object result = this.safeValue(message, "result");
-        if (!Helpers.isTrue(Helpers.isArray(result)))
+        if (!Helpers.isTrue((result instanceof List)))
         {
             result = new ArrayList<Object>(Arrays.asList(result));
         }

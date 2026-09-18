@@ -45,7 +45,7 @@ public class TestWatchLiquidationsForSymbols extends BaseTest {
             {
                 response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchLiquidationsForSymbols", new Object[]{new ArrayList<Object>(Arrays.asList(symbol))})).join();
                 now = System.currentTimeMillis();
-                Object isArray = Helpers.isArray(response);
+                Object isArray = (response instanceof List);
                 Assert(isArray, "response must be an array");
                 Object m3 = ((Helpers.add((((exchange.id + " ") + method) + "() returned "), ((List<?>)response).size()) + " liquidations"));
                 System.out.println(m3);

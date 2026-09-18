@@ -1145,7 +1145,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         String open = null;
         String volume = null;
         Object symbol = (((java.util.Objects.equals(market, null)))) ? null : ((Map<String, Object>)market).get("symbol");
-        if (Helpers.isTrue(Helpers.isArray(ticker)))
+        if (Helpers.isTrue((ticker instanceof List)))
         {
             last = this.safeString(ticker, 4);
             timestamp = this.milliseconds();

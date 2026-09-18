@@ -1583,7 +1583,7 @@ public class Toobit extends ToobitApi
                 response = (this.commonGetQuoteV1Klines(this.extend(request, parameters))).join();
             }
             Object candles = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(Helpers.isArray(response)))
+            if (Helpers.isTrue((response instanceof List)))
             {
                 candles = response;
             }
@@ -2836,7 +2836,7 @@ public class Toobit extends ToobitApi
             }
             List<Object> ordersList = new ArrayList<Object>(Arrays.asList());
             Object responseList = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(Helpers.isArray(response)))
+            if (Helpers.isTrue((response instanceof List)))
             {
                 responseList = response;
             }
@@ -3778,7 +3778,7 @@ public class Toobit extends ToobitApi
             if (Helpers.isTrue(isPost) || Helpers.isTrue(isDelete))
             {
                 // everything else except Batch-Orders
-                if (!Helpers.isTrue(Helpers.isArray(parameters)))
+                if (!Helpers.isTrue((parameters instanceof List)))
                 {
                     body = this.urlencode(queryExtended);
                 } else

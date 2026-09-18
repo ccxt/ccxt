@@ -1467,7 +1467,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         //
         String topic = this.safeString(message, "topic");
         Object data = this.safeValue(message, "data");
-        if (Helpers.isTrue(Helpers.isArray(data)))
+        if (Helpers.isTrue((data instanceof List)))
         {
             // algoexecutionreportv2
             for (var i = 0; i < ((List<?>)data).size(); i++)

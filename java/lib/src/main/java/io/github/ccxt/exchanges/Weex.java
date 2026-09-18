@@ -1442,7 +1442,7 @@ public class Weex extends WeexApi
                 //
                 response = (this.contractGetCapiV3MarketTicker24hr(this.extend(request, parameters))).join();
             }
-            if (!Helpers.isTrue(Helpers.isArray(response)))
+            if (!Helpers.isTrue((response instanceof List)))
             {
                 response = new ArrayList<Object>(Arrays.asList(response));
             }
@@ -1487,7 +1487,7 @@ public class Weex extends WeexApi
             {
                 response = (this.contractGetCapiV3MarketTickerBookTicker(parameters)).join();
             }
-            if (!Helpers.isTrue(Helpers.isArray(response)))
+            if (!Helpers.isTrue((response instanceof List)))
             {
                 response = new ArrayList<Object>(Arrays.asList(response));
             }

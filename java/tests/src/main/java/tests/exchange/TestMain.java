@@ -1297,7 +1297,7 @@ public class TestMain extends BaseTest
 
     public Object AssertPredictionEvents(BaseExchange exchange, Object events)
     {
-        Assert(Helpers.isArray(events), Helpers.add(exchange.id, " fetchEvents/fetchEvent should return a list"));
+        Assert((events instanceof List), Helpers.add(exchange.id, " fetchEvents/fetchEvent should return a list"));
         Object eventsLength = Helpers.getArrayLength(events);
         for (var i = 0; Helpers.isLessThan(i, eventsLength); i++)
         {
@@ -1344,7 +1344,7 @@ public class TestMain extends BaseTest
         Object tags = exchange.safeValue(eventVar, "tags");
         if (!java.util.Objects.equals(tags, null))
         {
-            Assert(Helpers.isArray(tags), Helpers.add(Helpers.add(exchange.id, " event tags must be a list"), logText));
+            Assert((tags instanceof List), Helpers.add(Helpers.add(exchange.id, " event tags must be a list"), logText));
         }
         Object info = exchange.safeValue(eventVar, "info");
         Assert(!java.util.Objects.equals(info, null), Helpers.add(Helpers.add(exchange.id, " event missing info"), logText));
@@ -1848,7 +1848,7 @@ public class TestMain extends BaseTest
         {
             return true;
         }
-        if (Helpers.isTrue(Helpers.isTrue(exchange.isDictionary(value)) || Helpers.isTrue(Helpers.isArray(value))))
+        if (Helpers.isTrue(Helpers.isTrue(exchange.isDictionary(value)) || Helpers.isTrue((value instanceof List))))
         {
             return false;  // a non-empty container, `!value` is false for containers in js
         }
@@ -1876,7 +1876,7 @@ public class TestMain extends BaseTest
         {
             return true;
         }
-        if (Helpers.isTrue(Helpers.isArray(value)))
+        if (Helpers.isTrue((value instanceof List)))
         {
             for (var i = 0; i < ((List<?>)value).size(); i++)
             {
@@ -1993,7 +1993,7 @@ public class TestMain extends BaseTest
                 // top-level wrapper.
                 this.AssertNewAndStoredOutputInner(exchange, skipKeys, newValue, storedValue, strictTypeCheck, key);
             }
-        } else if ((!java.util.Objects.equals(storedOutput, null)) && (!java.util.Objects.equals(newOutput, null)) && Helpers.isTrue(Helpers.isArray(storedOutput)) && Helpers.isTrue((Helpers.isArray(newOutput))))
+        } else if ((!java.util.Objects.equals(storedOutput, null)) && (!java.util.Objects.equals(newOutput, null)) && Helpers.isTrue((storedOutput instanceof List)) && Helpers.isTrue(((newOutput instanceof List))))
         {
             Object storedArrayLength = ((List<?>)storedOutput).size();
             Object newArrayLength = ((List<?>)newOutput).size();

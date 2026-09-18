@@ -714,7 +714,7 @@ public class Lighter extends LighterApi
                 // }
                 //
                 Object subAccounts = this.safeList(res, "sub_accounts");
-                if (Helpers.isTrue(Helpers.isArray(subAccounts)))
+                if (Helpers.isTrue((subAccounts instanceof List)))
                 {
                     Object account = this.safeDict(subAccounts, 0);
                     if (java.util.Objects.equals(account, null))

@@ -3032,7 +3032,7 @@ public class Htx extends HtxApi
         String askVolume = null;
         if (((Map<?, ?>)ticker).containsKey("bid"))
         {
-            if (!java.util.Objects.equals(((Map<String, Object>)ticker).get("bid"), null) && Helpers.isTrue(Helpers.isArray(((Map<String, Object>)ticker).get("bid"))))
+            if (!java.util.Objects.equals(((Map<String, Object>)ticker).get("bid"), null) && Helpers.isTrue((((Map<String, Object>)ticker).get("bid") instanceof List)))
             {
                 bid = this.safeString(((Map<String, Object>)ticker).get("bid"), 0);
                 bidVolume = this.safeString(((Map<String, Object>)ticker).get("bid"), 1);
@@ -3044,7 +3044,7 @@ public class Htx extends HtxApi
         }
         if (((Map<?, ?>)ticker).containsKey("ask"))
         {
-            if (!java.util.Objects.equals(((Map<String, Object>)ticker).get("ask"), null) && Helpers.isTrue(Helpers.isArray(((Map<String, Object>)ticker).get("ask"))))
+            if (!java.util.Objects.equals(((Map<String, Object>)ticker).get("ask"), null) && Helpers.isTrue((((Map<String, Object>)ticker).get("ask") instanceof List)))
             {
                 ask = this.safeString(((Map<String, Object>)ticker).get("ask"), 0);
                 askVolume = this.safeString(((Map<String, Object>)ticker).get("ask"), 1);
@@ -3979,7 +3979,7 @@ public class Htx extends HtxApi
             //     }
             //
             Object trades = this.safeValue(response, "data");
-            if (!Helpers.isTrue(Helpers.isArray(trades)))
+            if (!Helpers.isTrue((trades instanceof List)))
             {
                 trades = this.safeValue(trades, "trades");
             }
@@ -5170,7 +5170,7 @@ public class Htx extends HtxApi
             //     }
             //
             Object order = this.safeValue(response, "data");
-            if (Helpers.isTrue(Helpers.isArray(order)))
+            if (Helpers.isTrue((order instanceof List)))
             {
                 order = this.safeValue(order, 0);
             }
@@ -5428,7 +5428,7 @@ public class Htx extends HtxApi
                 }
             }
             Object orders = this.safeValue(response, "data");
-            if (!Helpers.isTrue(Helpers.isArray(orders)))
+            if (!Helpers.isTrue((orders instanceof List)))
             {
                 orders = this.safeValue(orders, "orders", new ArrayList<Object>(Arrays.asList()));
             }
@@ -6106,7 +6106,7 @@ public class Htx extends HtxApi
             //     }
             //
             Object orders = this.safeValue(response, "data");
-            if (!Helpers.isTrue(Helpers.isArray(orders)))
+            if (!Helpers.isTrue((orders instanceof List)))
             {
                 orders = this.safeValue(orders, "orders", new ArrayList<Object>(Arrays.asList()));
             }
@@ -7363,7 +7363,7 @@ public class Htx extends HtxApi
             } else
             {
                 Object data = this.safeValue(response, "data");
-                if (Helpers.isTrue(Helpers.isArray(data)))
+                if (Helpers.isTrue((data instanceof List)))
                 {
                     result = data;
                 } else
@@ -9462,7 +9462,7 @@ public class Htx extends HtxApi
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
         Object pathString = path;
         Object url = "/";
-        Object isArrayParams = Helpers.isArray(parameters);
+        Object isArrayParams = (parameters instanceof List);
         Object query = null;
         if (Helpers.isTrue(isArrayParams))
         {

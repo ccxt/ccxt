@@ -960,7 +960,7 @@ public class Bittrade extends BittradeApi
         String askVolume = null;
         if (((Map<?, ?>)ticker).containsKey("bid"))
         {
-            if (Helpers.isTrue(Helpers.isArray(((Map<String, Object>)ticker).get("bid"))))
+            if (Helpers.isTrue((((Map<String, Object>)ticker).get("bid") instanceof List)))
             {
                 bid = this.safeString(((Map<String, Object>)ticker).get("bid"), 0);
                 bidVolume = this.safeString(((Map<String, Object>)ticker).get("bid"), 1);
@@ -972,7 +972,7 @@ public class Bittrade extends BittradeApi
         }
         if (((Map<?, ?>)ticker).containsKey("ask"))
         {
-            if (Helpers.isTrue(Helpers.isArray(((Map<String, Object>)ticker).get("ask"))))
+            if (Helpers.isTrue((((Map<String, Object>)ticker).get("ask") instanceof List)))
             {
                 ask = this.safeString(((Map<String, Object>)ticker).get("ask"), 0);
                 askVolume = this.safeString(((Map<String, Object>)ticker).get("ask"), 1);

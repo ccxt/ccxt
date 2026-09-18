@@ -3101,7 +3101,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 String contractCode = this.safeString(message, "contract_code");
                 Object market = (((!java.util.Objects.equals(contractCode, null)))) ? this.safeMarket(contractCode) : null;
-                if (Helpers.isTrue(Helpers.isArray(data)))
+                if (Helpers.isTrue((data instanceof List)))
                 {
                     for (var i = 0; i < ((List<?>)data).size(); i++)
                     {

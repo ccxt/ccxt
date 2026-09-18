@@ -1775,7 +1775,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         Boolean spot = java.util.Objects.equals(topic, "ticketInfo");
         Boolean executionFast = java.util.Objects.equals(topic, "execution.fast");
         Object data = this.safeValue(message, "data", new ArrayList<Object>(Arrays.asList()));
-        if (!Helpers.isTrue(Helpers.isArray(data)))
+        if (!Helpers.isTrue((data instanceof List)))
         {
             data = this.safeList(data, "result", new ArrayList<Object>(Arrays.asList()));
         }
@@ -2157,7 +2157,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         //         ]
         //     }
         //
-        if (Helpers.isTrue(Helpers.isArray(Helpers.GetValue(message, "data"))))
+        if (Helpers.isTrue((Helpers.GetValue(message, "data") instanceof List)))
         {
             Object rawLiquidations = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)rawLiquidations).size(); i++)

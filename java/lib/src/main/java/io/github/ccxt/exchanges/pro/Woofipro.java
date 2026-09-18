@@ -1075,7 +1075,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         //
         String topic = this.safeString(message, "topic");
         Object data = this.safeValue(message, "data");
-        if (Helpers.isTrue(Helpers.isArray(data)))
+        if (Helpers.isTrue((data instanceof List)))
         {
             // algoexecutionreport
             for (var i = 0; i < ((List<?>)data).size(); i++)

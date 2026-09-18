@@ -1762,7 +1762,7 @@ public class Kraken extends KrakenApi
         String orderId = null;
         Object fee = null;
         Object symbol = null;
-        if (Helpers.isTrue(Helpers.isArray(trade)))
+        if (Helpers.isTrue((trade instanceof List)))
         {
             timestamp = this.safeTimestamp(trade, 2);
             side = (((java.util.Objects.equals(Helpers.GetValue(trade, 3), "s")))) ? "sell" : "buy";
@@ -3902,7 +3902,7 @@ final Object finalId = id;
             //
             Object rawWithdrawals = null;
             Object result = this.safeValue(response, "result");
-            if (!Helpers.isTrue(Helpers.isArray(result)))
+            if (!Helpers.isTrue((result instanceof List)))
             {
                 rawWithdrawals = this.addPaginationCursorToResult(result);
             } else

@@ -1825,7 +1825,7 @@ public class Bingx extends BingxApi
             //    }
             //
             Object ohlcvs = this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList()));
-            if (!Helpers.isTrue(Helpers.isArray(ohlcvs)))
+            if (!Helpers.isTrue((ohlcvs instanceof List)))
             {
                 ohlcvs = new ArrayList<Object>(Arrays.asList(ohlcvs));
             }
@@ -1870,7 +1870,7 @@ public class Bingx extends BingxApi
         //    ]
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        if (Helpers.isTrue(Helpers.isArray(ohlcv)))
+        if (Helpers.isTrue((ohlcv instanceof List)))
         {
             return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 5)));
         }
@@ -2987,7 +2987,7 @@ public class Bingx extends BingxApi
             {
                 response = (this.swapV2PublicGetQuotePremiumIndex(this.extend(request, parameters))).join();
             }
-            if (Helpers.isTrue(Helpers.isArray(((Map<String, Object>)response).get("data"))))
+            if (Helpers.isTrue((((Map<String, Object>)response).get("data") instanceof List)))
             {
                 return this.parseTicker(this.safeDict(((Map<String, Object>)response).get("data"), 0, new HashMap<String, Object>() {{}}), market);
             }
@@ -6917,7 +6917,7 @@ public class Bingx extends BingxApi
         {
             Object key = Helpers.GetValue(keys, i);
             Object value = Helpers.GetValue(parameters, key);
-            if (Helpers.isTrue(Helpers.isArray(value)))
+            if (Helpers.isTrue((value instanceof List)))
             {
                 Object arrStr = "[";
                 for (var j = 0; j < ((List<?>)value).size(); j++)
@@ -7559,7 +7559,7 @@ public class Bingx extends BingxApi
         {
             Object key = Helpers.GetValue(keys, i);
             Object value = Helpers.GetValue(parameters, key);
-            if (Helpers.isTrue(Helpers.isArray(value)))
+            if (Helpers.isTrue((value instanceof List)))
             {
                 Object arrStr = null;
                 for (var j = 0; j < ((List<?>)value).size(); j++)

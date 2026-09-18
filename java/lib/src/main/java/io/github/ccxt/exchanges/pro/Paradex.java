@@ -384,7 +384,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                 }} );
             }};
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
-            if (!java.util.Objects.equals(symbols, null) && Helpers.isTrue(Helpers.isArray(symbols)))
+            if (!java.util.Objects.equals(symbols, null) && Helpers.isTrue((symbols instanceof List)))
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {

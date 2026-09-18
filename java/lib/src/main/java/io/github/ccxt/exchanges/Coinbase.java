@@ -6585,7 +6585,7 @@ public class Coinbase extends CoinbaseApi
         Object errors = this.safeList(response, "errors");
         if (!java.util.Objects.equals(errors, null))
         {
-            if (Helpers.isTrue(Helpers.isArray(errors)))
+            if (Helpers.isTrue((errors instanceof List)))
             {
                 Object numErrors = ((List<?>)errors).size();
                 if (Helpers.isGreaterThan(numErrors, 0))

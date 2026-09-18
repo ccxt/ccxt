@@ -23,7 +23,7 @@ public class TestLoadMarkets extends BaseTest {
         String method = "loadMarkets";
         Object markets = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "loadMarkets", new Object[]{})).join();
         Assert(exchange.isDictionary(exchange.markets), ".markets is not a dict");
-        Assert(Helpers.isArray(exchange.symbols), ".symbols is not an array");
+        Assert((exchange.symbols instanceof List), ".symbols is not an array");
         Object symbolsLength = ((List<?>)exchange.symbols).size();
         Assert(!java.util.Objects.equals(exchange.markets, null), ".markets is undefined");
         Object marketKeys = Helpers.objectKeys(exchange.markets);

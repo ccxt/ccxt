@@ -2284,7 +2284,7 @@ public class Whitebit extends WhitebitApi
             //         },
             //     ]
             //
-            if (Helpers.isTrue(Helpers.isArray(response)))
+            if (Helpers.isTrue((response instanceof List)))
             {
                 return this.parseTrades(response, market, since, limit);
             } else

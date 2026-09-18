@@ -1208,7 +1208,7 @@ public class Cryptocom extends CryptocomApi
             if (!java.util.Objects.equals(symbols, null))
             {
                 Object symbol = null;
-                if (Helpers.isTrue(Helpers.isArray(symbols)))
+                if (Helpers.isTrue((symbols instanceof List)))
                 {
                     Object symbolsLength = ((List<?>)symbols).size();
                     if (Helpers.isGreaterThan(symbolsLength, 1))
@@ -4155,7 +4155,7 @@ public class Cryptocom extends CryptocomApi
             if (!java.util.Objects.equals(symbols, null))
             {
                 Object symbol = null;
-                if (Helpers.isTrue(Helpers.isArray(symbols)))
+                if (Helpers.isTrue((symbols instanceof List)))
                 {
                     Object symbolsLength = ((List<?>)symbols).size();
                     if (Helpers.isGreaterThan(symbolsLength, 1))
@@ -4277,7 +4277,7 @@ public class Cryptocom extends CryptocomApi
         }
         Object returnString = "";
         Object paramsKeys = null;
-        if (Helpers.isTrue(Helpers.isArray(obj)))
+        if (Helpers.isTrue((obj instanceof List)))
         {
             paramsKeys = obj;
         } else
@@ -4293,7 +4293,7 @@ public class Cryptocom extends CryptocomApi
             if (java.util.Objects.equals(value, "undefined"))
             {
                 returnString = (returnString + "null");
-            } else if (Helpers.isTrue(Helpers.isArray(value)))
+            } else if (Helpers.isTrue((value instanceof List)))
             {
                 for (var j = 0; j < ((List<?>)value).size(); j++)
                 {

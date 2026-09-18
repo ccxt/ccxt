@@ -57,11 +57,11 @@ public class TestSharedMethods extends BaseTest {
         Boolean same_string = ((entryKeyVal instanceof String)) && ((formatKeyVal instanceof String));
         Boolean same_numeric = ((entryKeyVal instanceof Long || entryKeyVal instanceof Integer || entryKeyVal instanceof Float || entryKeyVal instanceof Double)) && ((formatKeyVal instanceof Long || formatKeyVal instanceof Integer || formatKeyVal instanceof Float || formatKeyVal instanceof Double));
         Boolean same_boolean = ((java.util.Objects.equals(entryKeyVal, true)) || (java.util.Objects.equals(entryKeyVal, false))) && ((java.util.Objects.equals(formatKeyVal, true)) || (java.util.Objects.equals(formatKeyVal, false)));
-        Boolean same_array = Helpers.isTrue(Helpers.isArray(entryKeyVal)) && Helpers.isTrue(Helpers.isArray(formatKeyVal));
+        Boolean same_array = Helpers.isTrue((entryKeyVal instanceof List)) && Helpers.isTrue((formatKeyVal instanceof List));
         // PHP cannot tell an empty dict {} from an empty list [] (both are array()), so isDictionary
         // returns false for an empty {} format marker — accept a dict entry against an empty-array format
         Boolean formatIsEmptyArray = false;
-        if (Helpers.isTrue(Helpers.isArray(formatKeyVal)))
+        if (Helpers.isTrue((formatKeyVal instanceof List)))
         {
             Object formatLen = ((List<?>)formatKeyVal).size();
             formatIsEmptyArray = (Helpers.isEqual(formatLen, 0));
@@ -82,9 +82,9 @@ public class TestSharedMethods extends BaseTest {
         {
             emptyAllowedFor = concat(emptyAllowedFor, allowEmptySkips);
         }
-        if (Helpers.isTrue(Helpers.isArray(format)))
+        if (Helpers.isTrue((format instanceof List)))
         {
-            Assert(Helpers.isArray(entry), ("entry is not an array" + logText));
+            Assert((entry instanceof List), ("entry is not an array" + logText));
             Object realLength = ((List<?>)entry).size();
             Object expectedLength = ((List<?>)format).size();
             Assert(Helpers.isEqual(realLength, expectedLength), (("entry length is not equal to expected length of " + String.valueOf(expectedLength)) + logText));
@@ -134,7 +134,7 @@ public class TestSharedMethods extends BaseTest {
                     Assert(java.util.Objects.equals(typeAssertion, true), ((Helpers.add("\"", stringValue(key)) + "\" key is neither undefined, neither of expected type") + logText));
                     if (Helpers.isTrue(deep))
                     {
-                        if (Helpers.isTrue(exchange.isDictionary(value)) || Helpers.isTrue(Helpers.isArray(value)))
+                        if (Helpers.isTrue(exchange.isDictionary(value)) || Helpers.isTrue((value instanceof List)))
                         {
                             AssertStructure(exchange, skippedProperties, method, value, Helpers.GetValue(format, key), emptyAllowedFor, deep);
                         }
@@ -405,7 +405,7 @@ public class TestSharedMethods extends BaseTest {
         Object keyString = stringValue(key);
         if (Helpers.isTrue(((key instanceof Integer) || (key instanceof Long))))
         {
-            Assert(Helpers.isArray(entry), ("fee container is expected to be an array" + logText));
+            Assert((entry instanceof List), ("fee container is expected to be an array" + logText));
             Assert(Helpers.isLessThan(key, ((List<?>)entry).size()), ((Helpers.add("fee key ", keyString) + " was expected to be present in entry") + logText));
         } else
         {
@@ -735,7 +735,7 @@ public class TestSharedMethods extends BaseTest {
         // as false positive FAILs in the live tests on https://github.com/ccxt/ccxt/pull/29696
         Object hint = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Boolean isEmptyArrayResponse = false;
-        if (Helpers.isTrue(Helpers.isArray(response)))
+        if (Helpers.isTrue((response instanceof List)))
         {
             Object responseLength = ((List<?>)response).size();
             isEmptyArrayResponse = (Helpers.isEqual(responseLength, 0));
@@ -755,7 +755,7 @@ public class TestSharedMethods extends BaseTest {
         {
             logText = ((logText + " ") + hint);
         }
-        Assert(Helpers.isArray(entry), ("response is expected to be an array" + logText));
+        Assert((entry instanceof List), ("response is expected to be an array" + logText));
         if (!(Helpers.inOp(skippedProperties, "emptyResponse")))
         {
             return;

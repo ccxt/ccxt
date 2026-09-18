@@ -3864,7 +3864,7 @@ public class Bitfinex extends BitfinexApi
         // ["error", 11010, "ratelimit: error"]
         if (!java.util.Objects.equals(response, null))
         {
-            if (!Helpers.isTrue(Helpers.isArray(response)))
+            if (!Helpers.isTrue((response instanceof List)))
             {
                 String message = this.safeString2(response, "message", "error");
                 Object feedback = Helpers.add((this.id + " "), body);

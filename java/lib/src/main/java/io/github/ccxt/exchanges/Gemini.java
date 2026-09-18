@@ -1002,7 +1002,7 @@ public class Gemini extends GeminiApi
             Object brokenPairs = this.safeList(this.options, "brokenPairs", new ArrayList<Object>(Arrays.asList()));
             List<Object> marketIds = new ArrayList<Object>(Arrays.asList());
             List<Object> allMarketIds = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(Helpers.isArray(marketIdsRaw)))
+            if (Helpers.isTrue((marketIdsRaw instanceof List)))
             {
                 allMarketIds = marketIdsRaw;
             }
@@ -1108,7 +1108,7 @@ public class Gemini extends GeminiApi
         Object linear = null;
         Object inverse = null;
         Boolean isString = ((response instanceof String));
-        Object isArray = (Helpers.isArray(response));
+        Object isArray = ((response instanceof List));
         if (!Helpers.isTrue(isString) && !Helpers.isTrue(isArray))
         {
             marketId = this.safeStringLower(response, "symbol");
@@ -2745,7 +2745,7 @@ public class Gemini extends GeminiApi
             //     ]
             //
             List<Object> candles = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(Helpers.isArray(response)))
+            if (Helpers.isTrue((response instanceof List)))
             {
                 candles = response;
             }

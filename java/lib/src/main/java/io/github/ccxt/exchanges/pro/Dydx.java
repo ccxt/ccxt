@@ -320,7 +320,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
 
     public void handleDelta(Object bookside, Object delta)
     {
-        if (Helpers.isTrue(Helpers.isArray(delta)))
+        if (Helpers.isTrue((delta instanceof List)))
         {
             Double price = this.safeFloat(delta, 0);
             Double amount = this.safeFloat(delta, 1);

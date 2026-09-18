@@ -49,7 +49,7 @@ public class TestWatchTradesForSymbols extends BaseTest {
             Object elapsedMs = Helpers.subtract(now, startTime);
             if ((java.util.Objects.equals(success, true)) && (!java.util.Objects.equals(response, null)))
             {
-                Assert(Helpers.isArray(response), ((logText + "must return an array. ") + exchange.json(response)));
+                Assert((response instanceof List), ((logText + "must return an array. ") + exchange.json(response)));
                 for (var i = 0; i < ((List<?>)response).size(); i++)
                 {
                     Object trade = Helpers.GetValue(response, i);

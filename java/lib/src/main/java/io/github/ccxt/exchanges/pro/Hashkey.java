@@ -1109,7 +1109,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
 
     public void handleMessage(Client client, Object message)
     {
-        if (Helpers.isTrue(Helpers.isArray(message)))
+        if (Helpers.isTrue((message instanceof List)))
         {
             message = this.safeDict(message, 0, new HashMap<String, Object>() {{}});
         }

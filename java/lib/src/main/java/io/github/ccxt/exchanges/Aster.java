@@ -4614,7 +4614,7 @@ public class Aster extends AsterApi
             Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbols, null))
             {
-                if (!Helpers.isTrue(Helpers.isArray(symbols)))
+                if (!Helpers.isTrue((symbols instanceof List)))
                 {
                     throw new ArgumentsRequired((this.id + " fetchPositionsRisk() requires an array argument for symbols")) ;
                 }
@@ -4972,7 +4972,7 @@ public class Aster extends AsterApi
             Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbols, null))
             {
-                if (!Helpers.isTrue(Helpers.isArray(symbols)))
+                if (!Helpers.isTrue((symbols instanceof List)))
                 {
                     throw new ArgumentsRequired((this.id + " fetchPositions() requires an array argument for symbols")) ;
                 }
@@ -5440,7 +5440,7 @@ public class Aster extends AsterApi
         {
             Object key = Helpers.GetValue(keys, i);
             Object value = Helpers.GetValue(values, key);
-            Boolean isObj = Helpers.isTrue(Helpers.isArray(value)) || Helpers.isTrue(this.isDictionary(value));
+            Boolean isObj = Helpers.isTrue((value instanceof List)) || Helpers.isTrue(this.isDictionary(value));
             Object valueJsonified = ((Helpers.isTrue(isObj))) ? this.json(value) : String.valueOf(value);
             Object encoded = this.encodeURIComponent(valueJsonified);
             encodedString = (encodedString + (((key + "=") + encoded) + "&"));

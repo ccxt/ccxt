@@ -850,7 +850,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
 
     public void handleMessage(Client client, Object message)
     {
-        if (Helpers.isTrue(Helpers.isArray(message)))
+        if (Helpers.isTrue((message instanceof List)))
         {
             this.handleCryptoMessage(client, message);
             return;

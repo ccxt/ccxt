@@ -1068,7 +1068,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(bidasks)); i++)
         {
             Object bidask = Helpers.GetValue(bidasks, i);
-            if (Helpers.isTrue(Helpers.isArray(bidask)))
+            if (Helpers.isTrue((bidask instanceof List)))
             {
                 Helpers.callDynamically(bookside, "storeArray", new Object[]{bidask});
             } else

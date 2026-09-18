@@ -1995,7 +1995,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             List<Object> instruments = (this.v1PublicGetInstruments(parameters)).join();
             Map<String, Object> tickers = new HashMap<String, Object>() {{}};
             List<Object> rows = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(Helpers.isArray(instruments)))
+            if (Helpers.isTrue((instruments instanceof List)))
             {
                 rows = instruments;
             }

@@ -246,7 +246,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         //    ['buy', '1665467516704', '98070', "19057.7", "14541220"]
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        if (!Helpers.isTrue(Helpers.isArray(trade)))
+        if (!Helpers.isTrue((trade instanceof List)))
         {
             trade = Helpers.split(trade, ":");
         }
