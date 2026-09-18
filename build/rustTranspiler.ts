@@ -74,12 +74,9 @@ const RUST_BOOL_RUNTIME_FNS = new Set([
     'is_instance', 'in_op', 'starts_with', 'ends_with', 'is_true',
 ]);
 
-// rust-05: `self.safe_{number,value,bool,list,dict}_k(obj, key, optional_args)`
-// take `obj: Value` BY VALUE (rust/ccxt-base/src/exchange_stubs.rs), so the
+// rust-05: the five `safe_*_k` helpers below take `obj: Value` BY VALUE, so the
 // defensive `.clone()` `wrapVariadicCalls` adds to a bare-identifier object
-// argument is only ever needed to keep that local alive for a LATER read. When
-// the local is provably dead after the call, moving it in is equivalent and the
-// clone (a String copy / Arc bump on a COW `Value`) is dropped.
+// argument is only needed when that local is read again later.
 const RUST_BY_VALUE_OBJ_CALL = /\bself\.safe_(?:number|value|bool|list|dict)_k\(/;
 
 export class RustTranspilerBuilder {
@@ -3417,12 +3414,9 @@ export class RustTranspilerBuilder {
     }
 
     /**
-     * rust-05: `self.safe_{number,value,bool,list,dict}_k(obj, key, args)` take
-     * `obj: Value` BY VALUE. `wrapVariadicCalls` clones a bare-identifier `obj`
-     * defensively so the local survives later reads; when the local is provably
-     * dead after the call the move is equivalent, so the `.clone()` (a String
-     * copy / Arc bump on a COW `Value`) is dropped. Must run after
-     * `rewriteLiteralKeySafeCalls` so the `_k` shape exists.
+     * rust-05: drop the `.clone()` on the by-value `obj` argument of the five
+     * `safe_*_k` helpers when that local is provably dead after the call; must
+     * run after `rewriteLiteralKeySafeCalls` so the `_k` shape exists.
      */
     dropDeadFirstArgClones(content: string): string {
         const pattern = RUST_BY_VALUE_OBJ_CALL;
@@ -4852,9 +4846,9 @@ export class RustTranspilerBuilder {
     }
 
     /**
-     * rust-05: brace-balanced block index of `content` — one record per `{`,
-     * `parent` linking to the enclosing block. String/char/comment aware, so a
-     * `{` inside a doc comment or a panic message doesn't skew the nesting.
+     * rust-05: brace-balanced block index of `content` — string/char/comment
+     * aware (a `{` in a comment or panic message must not skew the nesting),
+     * `parent` linking each `{` to its enclosing block.
      */
     rustBlocksOf(content: string): Array<{ open: number, end: number, kind: string, parent: number, headerStart: number }> {
         const blocks: Array<any> = [];
@@ -4892,11 +4886,9 @@ export class RustTranspilerBuilder {
                 continue;
             }
             if (c === '{') {
-                // The header is the text since the previous statement start
-                // (`;`, comment, or newline), widened to the line start: a
-                // generated `while { ..cond..;.. } {` body line carries a `;`
-                // inside its condition, so the statement-start header alone
-                // would lose the `while` and the loop body would look plain.
+                // Header = line start to `{`: a generated `while { ..cond..;.. } {`
+                // body carries a `;` inside its condition, which a
+                // statement-start header would lose along with the `while`.
                 const header = content.slice(Math.min(headerStart, lineStart), i);
                 const kind = /\b(?:while|for|loop)\b/.test(header) ? 'loop'
                     : header.includes('|') ? 'closure'
@@ -4960,16 +4952,10 @@ export class RustTranspilerBuilder {
 
     /**
      * rust-05: true when the local `ident` can be MOVED into the call at
-     * `callStart` instead of cloned — it is never read again and it is
-     * re-created before every execution of the call:
-     *   (1) no `ident` occurrence after `callEnd` (the end of the first
-     *       argument, so a later argument of the SAME call counts as a read)
-     *       in the enclosing fn body;
-     *   (2) its declaration sits inside every enclosing loop/closure body
-     *       (a binding declared outside a loop would be moved on the first
-     *       iteration and read again on the second);
-     *   (3) no closure body starting before the call mentions it (a stored
-     *       closure could still borrow the binding).
+     * `callStart` instead of cloned — never read after `callEnd` (the end of the
+     * first argument, so a later argument of the same call counts), declared
+     * inside every enclosing loop/closure body, and no closure body starting
+     * before the call mentions it.
      */
     rustArgIsDeadAfter(content: string, blocks: any[], callStart: number, callEnd: number, ident: string): boolean {
         const word = new RegExp(`\\b${ident}\\b`);
