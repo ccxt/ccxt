@@ -2201,7 +2201,7 @@ public partial class coinsph : Exchange
             throw new InvalidAddress (add(this.id, " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account")) ;
         }
         string? networkCode = this.safeString(parameters, "network");
-        object networkId = ((networkCode == null)) ? null : this.networkCodeToId(networkCode, code);
+        string? networkId = ((networkCode == null)) ? null : this.networkCodeToId(networkCode, code);
         if ((networkId == null))
         {
             throw new BadRequest (add(this.id, " withdraw() require network parameter")) ;
@@ -2494,7 +2494,7 @@ public partial class coinsph : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         string? networkCode = this.safeString(parameters, "network");
-        object networkId = ((networkCode == null)) ? null : this.networkCodeToId(networkCode, code);
+        string? networkId = ((networkCode == null)) ? null : this.networkCodeToId(networkCode, code);
         if ((networkId == null))
         {
             throw new BadRequest (add(this.id, " fetchDepositAddress() require network parameter")) ;

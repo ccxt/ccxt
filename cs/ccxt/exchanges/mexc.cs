@@ -5302,7 +5302,7 @@ public partial class mexc : Exchange
             { "coin", GetValue(currency, "id") },
         };
         string? networkCode = this.safeString(parameters, "network");
-        object networkId = null;
+        string? networkId = null;
         if ((networkCode != null))
         {
             // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
@@ -5366,7 +5366,7 @@ public partial class mexc : Exchange
             throw new ArgumentsRequired (add(this.id, " createDepositAddress requires a `network` parameter")) ;
         }
         // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
-        object networkId = null;
+        string? networkId = null;
         string? networkUnified = this.networkIdToCode(networkCode, code);
         IDictionary<string, object> networks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
         if (((networkUnified != null)) && (inOp(networks, networkUnified)))
@@ -6287,7 +6287,7 @@ public partial class mexc : Exchange
             return ccxt.BaseExchange.ToTransaction(this.parseTransaction(responseForInternal, currency));
         }
         IDictionary<string, object> networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
-        object network = this.safeString2(parameters, "network", "netWork"); // this line allows the user to specify either ERC20 or ETH
+        string? network = this.safeString2(parameters, "network", "netWork"); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString(networks, network, network); // handle ETH > ERC-20 alias
         network = this.networkCodeToId(network, GetValue(currency, "code"));
         this.checkAddress(address);

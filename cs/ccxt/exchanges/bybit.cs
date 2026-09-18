@@ -7973,10 +7973,10 @@ public partial class bybit : Exchange
         IList<object> networkCodequeryVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
         var networkCode = networkCodequeryVariable[0];
         var query = networkCodequeryVariable[1];
-        object networkId = this.networkCodeToId(networkCode, code);
+        string? networkId = this.networkCodeToId(networkCode, code);
         if ((networkId != null))
         {
-            request["chain"] = ((string)networkId).ToUpper();
+            request["chain"] = networkId.ToUpper();
         }
         Dictionary<string, object> response = await this.privatePostV5AssetWithdrawCreate(this.extend(request, query));
         //

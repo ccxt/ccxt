@@ -3736,7 +3736,7 @@ public partial class BaseExchange
         return new List<object>() {networkCode, networkCode};
     }
 
-    public virtual object networkCodeToId(object networkCode, object currencyCode = null)
+    public virtual string? networkCodeToId(object networkCode, object currencyCode = null)
     {
         /**
          * @ignore
@@ -3749,7 +3749,7 @@ public partial class BaseExchange
          */
         if (isEqual(networkCode, null))
         {
-            return null;
+            return ((string?)((object)(null)));
         }
         IDictionary<string, object> networkIdsByCodes = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
         // try the preferred form first, fall back to its alternative (e.g. when only 'ETH' or only 'ERC20' is defined)
@@ -3759,7 +3759,7 @@ public partial class BaseExchange
         string? networkId = this.safeString2(networkIdsByCodes, preferredChain, alternativeChain);
         if ((networkId != null))
         {
-            return networkId;
+            return ((string?)((object)(networkId)));
         }
         // fall back to scanning loaded currencies
         List<object> currenciesToCheck = new List<object>() {};
@@ -3775,16 +3775,16 @@ public partial class BaseExchange
             IDictionary<string, object> networks = this.safeDict(getValue(currenciesToCheck, i), "networks", new Dictionary<string, object>() {});
             if (inOp(networks, networkCode))
             {
-                return this.safeString(getValue(networks, networkCode), "id");
+                return ((string?)((object)(this.safeString(getValue(networks, networkCode), "id"))));
             }
         }
         // before returning the original input, try to match if it's backward-maintained networkCode
         IDictionary<string, object> oldCodes = this.safeDict(this.options, "backwardSupportedNetworkCodes", new Dictionary<string, object>() {});
         if (inOp(oldCodes, networkCode))
         {
-            return this.networkCodeToId(getValue(oldCodes, networkCode), currencyCode);
+            return ((string?)((object)(this.networkCodeToId(getValue(oldCodes, networkCode), currencyCode))));
         }
-        return networkCode;
+        return ((string?)((object)(networkCode)));
     }
 
     public virtual string? networkIdToCode(object networkId = null, object currencyCode = null)
@@ -4918,12 +4918,12 @@ public partial class BaseExchange
         return ccxt.BaseExchange.ToDepositWithdrawFee(this.safeValue(fees, code));
     }
 
-    public virtual object getSupportedMapping(object key, object mapping = null)
+    public virtual string getSupportedMapping(object key, object mapping = null)
     {
         mapping ??= new Dictionary<string, object>();
         if (inOp(mapping, key))
         {
-            return getValue(mapping, key);
+            return ((string)((object)(getValue(mapping, key))));
         } else
         {
             throw new NotSupported (add(add(add(this.id, " "), key), " does not have a value in mapping")) ;
@@ -6547,7 +6547,7 @@ public partial class BaseExchange
         return null;
     }
 
-    public virtual object convertTypeToAccount(object account)
+    public virtual string? convertTypeToAccount(object account)
     {
         /**
          * @ignore
@@ -6560,17 +6560,17 @@ public partial class BaseExchange
         string lowercaseAccount = ((string)account).ToLower();
         if (inOp(accountsByType, lowercaseAccount))
         {
-            return getValue(accountsByType, lowercaseAccount);
+            return ((string?)((object)(getValue(accountsByType, lowercaseAccount))));
         }
         object markets = this.markets;
         object marketsById = this.markets_by_id;
         if ((((markets != null)) && (inOp(markets, account))) || (((marketsById != null)) && (inOp(marketsById, account))))
         {
             Dictionary<string, object> market = this.market(account);
-            return GetValue(market, "id");
+            return ((string?)((object)(GetValue(market, "id"))));
         } else
         {
-            return account;
+            return ((string?)((object)(account)));
         }
     }
 

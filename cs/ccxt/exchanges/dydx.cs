@@ -2799,7 +2799,7 @@ public partial class dydx : Exchange
     {
         if (!isEqual(this.walletAddress, null) && !isEqual(this.walletAddress, ""))
         {
-            return ((string?)((object)(this.walletAddress)));
+            return this.walletAddress;
         }
         IDictionary<string, object> dydxAccount = this.safeDict(this.options, "dydxAccount");
         if ((dydxAccount != null))

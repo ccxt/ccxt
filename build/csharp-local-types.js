@@ -1713,6 +1713,24 @@ export const CSHARP_LOCAL_THIS_RETURN_TYPES = {
     // retyped by the same proof (CSHARP_COLLECTION_RETURN_METHODS) this table mirrors.
     'outcome': 'IDictionary<string, object>',
     'safeOutcomeSymbol': 'string?',
+    // U33: the helpers retyped in CSHARP_METHOD_RETURN_TYPES below (their TS return type is
+    // `any`, so the string-returns table's stringishReturn gate cannot carry them; networkCodeToId's
+    // `Str` passes that gate but its htx override does not, see the entry below) plus the
+    // hand-written remove0xPrefix (cs/ccxt/base/Exchange.Encode.cs, `var str = (string)str2`
+    // unboxes the argument before either return, so both paths hand back that string).
+    // getSupportedMapping / getUrlByMarket / convertTypeToAccount / codeFromOptions each
+    // carry a per-declaration return-path census in the METHOD_RETURN_TYPES comment below.
+    'getSupportedMapping': 'string',
+    'getUrlByMarket': 'string?',
+    'convertTypeToAccount': 'string?',
+    'codeFromOptions': 'string?',
+    'remove0xPrefix': 'string',
+    'networkCodeToId': 'string?',
+    // Exchange.ETH.cs — `public string ethGetAddressFromPrivateKey(object privateKey)`
+    // (hand-written base; the ts/src declaration is annotated `: string`). Listed because it
+    // is the write producer that blocks the walletAddress family: lighter/myriad assign
+    // `walletAddress = this.ethGetAddressFromPrivateKey (this.privateKey)` into the local.
+    'ethGetAddressFromPrivateKey': 'string',
 };
 
 // Families whose declarations in the PREDICTION tree belong to another unit of the same
@@ -2432,6 +2450,10 @@ const CSHARP_LOCAL_WS_MEMBER_TYPES = {
     'isSandboxModeEnabled': 'bool',
     'orders': 'ccxt.pro.ArrayCache',
     'myTrades': 'ccxt.pro.ArrayCache',
+    // Exchange.Options.cs: `public string walletAddress { get; set; }` (U33). The read's C#
+    // static type IS the property's declared type, so the local names the box it already has;
+    // no other class in cs/ccxt/** declares or hides the member (census over cs/ccxt/**/*.cs).
+    'walletAddress': 'string',
 };
 
 // `let x: <alias> = undefined` -> nullable C# type (the null initialiser forces `?`)
@@ -9217,6 +9239,49 @@ export const CSHARP_METHOD_RETURN_TYPES = {
     'opinionWsUrl': 'string?',
     'urlEncodeQuery': 'string?',
     'urlencodeWithArrayBrackets': 'string?',
+    // U33 census: four sync helpers whose TS return type is `any` (a Dict index / a
+    // safeValue chain / an untyped urls-map read), so the CSHARP_STRING_RETURN_METHODS
+    // stringishReturn gate cannot name them — the wrapper below casts every return (null in,
+    // null out) and the nullable spelling keeps CS8603 out.
+    //   getSupportedMapping (base, 1 declaration): `if (key in mapping) return mapping[key];
+    //     else throw NotSupported` — never returns null, and all 9 in-tree call sites pass an
+    //     inline dict literal whose every value is a string (pro/hitbtc 2, pro/gate 6,
+    //     pro/bitget 1), so the `string` spelling is exact at every caller.
+    //   getUrlByMarket (pro/gate, 1 declaration): the three paths are
+    //     `urls['api'][market['type']]['usdt'|'btc']` for a contract market and
+    //     `urls['api'][market['type']]` otherwise; gate's urls['api'] holds 2 string leaves
+    //     ('ws', 'spot') and 3 dict-of-2-string leaves (swap/future/option), and a market
+    //     row's 'type' is one of spot/swap/future/option, so every reachable box is a string.
+    //   convertTypeToAccount (base, 1 declaration): 3 paths — options['accountsByType']
+    //     values (string-valued in every in-tree writer: okx/bigone/poloniex/bydfi/bitget
+    //     option tables), market['id'] (the MARKET_ROW_STRING_KEYS proof), and `account`,
+    //     whose own `((string)account).ToLower()` unbox at the top of the body throws before
+    //     any return for a non-string argument.
+    //   codeFromOptions (deribit, 1 declaration): the value is deribit's
+    //     options['code']/options[methodName]['code'] (string literals in describe()) or the
+    //     caller's params['code']; all 4 call sites immediately unbox the result with
+    //     `this.currency (((string)code))`, so the funnel adds no new failure mode there.
+    'getSupportedMapping': 'string',
+    'getUrlByMarket': 'string?',
+    'convertTypeToAccount': 'string?',
+    'codeFromOptions': 'string?',
+    // U33 census, 2 declarations (base Exchange.ts + htx's override): every return path of
+    // both boxes a string or null. Base: `undefined`, the `string? networkId` local, the
+    // safeString(networks[networkCode], 'id') read, the recursive call (fixpoint), and the
+    // `return networkCode` fallback — the caller's own argument, and the TS signature is
+    // `(networkCode: Str, …): Str`, with all 56 in-tree call sites passing a string-typed
+    // expression (47 × a handleNetworkCodeAndParams element-0 `string?` local, 6 × `network`,
+    // 1 × the recursion's `oldCodes[networkCode]` from the base default options table's 3
+    // string entries, 1 × defaultNetworkCode, 1 × hashkey's `string? networkId`). htx:
+    // `null`, `base.networkCodeToId (…)` (fixpoint), and the
+    // `options['networkChainIdsByNames'][currencyCode][networkCode]` / safeValue read of the
+    // map whose only writer is `[code][title] = safeString (chainEntry, 'chain')` (string?).
+    // The string-returns table cannot carry it: htx's override has no TS return annotation
+    // and its inferred type is not string-ish, so stringishReturn would keep the override's
+    // signature `object` while printMethodDefinition substitutes the base's `string?` — the
+    // override's four untyped returns would then be CS0266. This wrapper casts every return
+    // of every declaration, so the base + the override stay consistent (CS0508).
+    'networkCodeToId': 'string?',
 };
 
 // wrap printFunctionType() / printReturnStatement() so the methods above keep their real

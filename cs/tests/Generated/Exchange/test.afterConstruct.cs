@@ -66,7 +66,7 @@ public partial class testMainClass : BaseTest
                 string? networkCode = ((string)getValue(networkCodes, i));
                 object networkId = getValue(getValue(exchange.options, "networks"), networkCode);
                 // check networkCodeToId
-                object networkIdConverted = exchange.networkCodeToId(networkCode);
+                string? networkIdConverted = exchange.networkCodeToId(networkCode);
                 assert(isEqual(networkId, networkIdConverted), add(add(add(add(add(add(add(add("exchange.networkCodeToId (\"", networkCode), "\")=\""), networkIdConverted), "\" does not match exchange.options[\"networks\"][\""), networkCode), "\"]=\""), networkId), "\""));
                 // ensure it exists in networksById
                 assert(inOp(getValue(exchange.options, "networksById"), networkId), add(add("exchange.options[\"networksById\"] does not contain networkId \"", networkId), "\""));

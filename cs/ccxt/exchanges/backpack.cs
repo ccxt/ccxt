@@ -1769,7 +1769,7 @@ public partial class backpack : Exchange
         IList<object> networkCodequeryVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
         var networkCode = networkCodequeryVariable[0];
         var query = networkCodequeryVariable[1];
-        object networkId = this.networkCodeToId(networkCode, GetValue(currency, "code"));
+        string? networkId = this.networkCodeToId(networkCode, GetValue(currency, "code"));
         if ((networkId == null))
         {
             throw new BadRequest (add(this.id, " withdraw() requires a network parameter")) ;

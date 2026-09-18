@@ -4874,7 +4874,7 @@ public partial class xt : Exchange
         networkCode = (string)networkCodeparametersVariable[0];
         parameters = networkCodeparametersVariable[1];
         Dictionary<string, object> currency = this.currency(code);
-        object networkId = this.networkCodeToId(networkCode, code);
+        string? networkId = this.networkCodeToId(networkCode, code);
         this.checkRequiredArgument("fetchDepositAddress", networkId, "network");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", GetValue(currency, "id") },

@@ -793,7 +793,7 @@ public partial class grvt : Exchange
         {
             return new Dictionary<string, object>() {};
         }
-        object walletAddress = this.ethGetAddressFromPrivateKey(this.privateKey);
+        string walletAddress = this.ethGetAddressFromPrivateKey(this.privateKey);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "address", walletAddress },
             { "signature", this.defaultSignature() },
@@ -2345,7 +2345,7 @@ public partial class grvt : Exchange
         IList<object> networkCodequeryVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
         var networkCode = networkCodequeryVariable[0];
         var query = networkCodequeryVariable[1];
-        object networkId = this.networkCodeToId(networkCode, code);
+        string? networkId = this.networkCodeToId(networkCode, code);
         if ((networkId == null))
         {
             throw new BadRequest (add(this.id, " withdraw() requires a network parameter")) ;
@@ -3725,7 +3725,7 @@ public partial class grvt : Exchange
         string ethEncodedMessageHashed = add("0x", this.hash(ethEncodedMessage, keccak, "hex"));
         bool usesPrivKey = this.usesPrivateKey(); // py transpiler needs this line separated
         string? secretOrPrivkey = isTrue(usesPrivKey) ? this.privateKey : this.secret;
-        object privateKeyWithoutZero = this.remove0xPrefix(secretOrPrivkey);
+        string privateKeyWithoutZero = this.remove0xPrefix(secretOrPrivkey);
         Dictionary<string, object> signature = ecdsa(this.remove0xPrefix(ethEncodedMessageHashed), privateKeyWithoutZero, secp256k1, null);
         ((IDictionary<string,object>)getValue(request, "signature"))["r"] = this.formatSignatureRS(GetValue(signature, "r"));
         ((IDictionary<string,object>)getValue(request, "signature"))["s"] = this.formatSignatureRS(GetValue(signature, "s"));

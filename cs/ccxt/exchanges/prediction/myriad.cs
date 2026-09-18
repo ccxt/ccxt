@@ -1070,7 +1070,7 @@ public partial class myriad : PredictionExchange
         string? networkId = this.safeString(info, "networkId", this.safeString(this.options, "defaultNetworkId", "56"));
         string? marketId = this.safeString(info, "marketId");
         Int64? outcomeId = this.safeInteger(info, "outcomeId", 0);
-        object trader = this.ethGetAddressFromPrivateKey(this.privateKey);
+        string trader = this.ethGetAddressFromPrivateKey(this.privateKey);
         string typeStr = (isEqual(type, null)) ? "limit" : ((string)type).ToLower();
         string sideStr = ((string)((string)side)).ToLower();
         int sideInt = (sideStr == "buy") ? 0 : 1;
@@ -1253,7 +1253,7 @@ public partial class myriad : PredictionExchange
         {
             throw new BadRequest (add(this.id, " createAmmOrder is missing calldata from fetchTradeQuote")) ;
         }
-        object fromAddress = this.ethGetAddressFromPrivateKey(this.privateKey);
+        string fromAddress = this.ethGetAddressFromPrivateKey(this.privateKey);
         string? txHashParam = this.safeString2(parameters, "transactionHash", "txHash");
         bool hasPreBroadcastTxHash = ((txHashParam != null));
         bool? skipAllowance = this.safeBool(parameters, "skipAllowance", hasPreBroadcastTxHash);
@@ -1407,7 +1407,7 @@ public partial class myriad : PredictionExchange
      */
     public virtual Dictionary<string, object> clobOrderMessage(object rawOrder)
     {
-        object signer = this.safeString2(rawOrder, "trader", "user");
+        string? signer = this.safeString2(rawOrder, "trader", "user");
         if (!isEqual(this.privateKey, null))
         {
             signer = this.ethGetAddressFromPrivateKey(this.privateKey);
@@ -1859,7 +1859,7 @@ public partial class myriad : PredictionExchange
         {
             throw new ArgumentsRequired (add(this.id, " cancelAllOrders() requires a privateKey to sign the cancellation")) ;
         }
-        object trader = this.ethGetAddressFromPrivateKey(this.privateKey);
+        string trader = this.ethGetAddressFromPrivateKey(this.privateKey);
         string? marketId = this.safeString(parameters, "market_id", "0");
         string? networkId = this.safeString(parameters, "network_id", this.safeString(this.options, "defaultNetworkId", "56"));
         if (!isEqual(outcome, null))
@@ -2294,12 +2294,12 @@ public partial class myriad : PredictionExchange
     public virtual string? hexToDecimalString(object hexValue)
     {
         // portable hex -> decimal string (avoids convertToBigInt, which is not uniform across languages)
-        object stripped = this.remove0xPrefix(hexValue);
-        if (((stripped == null)) || (isEqual(stripped, "")))
+        string stripped = this.remove0xPrefix(hexValue);
+        if (((stripped == null)) || (stripped == ""))
         {
             return null;
         }
-        object chars = this.stringToCharsArray(((string)stripped).ToLower());
+        object chars = this.stringToCharsArray(stripped.ToLower());
         int n = getArrayLength(chars);
         string digits = "0123456789abcdef";
         string? result = "0";
@@ -4365,7 +4365,7 @@ public partial class myriad : PredictionExchange
         // the orders/positions channels are keyed by the lowercase trader address (Centrifugo channels
         // are case-sensitive); lowercase here so the channel matches regardless of the address checksum.
         // check length too: an unset walletAddress is an empty string (not undefined) in some languages
-        object address = this.walletAddress;
+        string address = this.walletAddress;
         bool hasWallet = ((address != null)) && (((string)this.walletAddress).Length > 0);
         if (!hasWallet)
         {
@@ -4375,7 +4375,7 @@ public partial class myriad : PredictionExchange
             }
             address = this.ethGetAddressFromPrivateKey(this.privateKey);
         }
-        return ((string)address).ToLower();
+        return address.ToLower();
     }
 
     public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)

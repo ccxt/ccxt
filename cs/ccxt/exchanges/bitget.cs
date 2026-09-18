@@ -4784,7 +4784,7 @@ public partial class bitget : Exchange
         uta = (bool?)((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
         Dictionary<string, object> currency = this.currency(code);
-        object networkId = this.networkCodeToId(networkCode, code);
+        string? networkId = this.networkCodeToId(networkCode, code);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "coin", GetValue(currency, "id") },
             { "address", address },

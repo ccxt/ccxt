@@ -920,7 +920,7 @@ public partial class hitbtc : ccxt.hitbtc
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchOrders", market, parameters);
         marketType = (string)marketTypeparametersVariable[0];
         parameters = marketTypeparametersVariable[1];
-        object name = this.getSupportedMapping(marketType, new Dictionary<string, object>() {
+        string name = this.getSupportedMapping(marketType, new Dictionary<string, object>() {
             { "spot", "spot_subscribe" },
             { "margin", "margin_subscribe" },
             { "swap", "futures_subscribe" },
@@ -1183,7 +1183,7 @@ public partial class hitbtc : ccxt.hitbtc
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchBalance", null, parameters);
         type = (string)typeparametersVariable[0];
         parameters = typeparametersVariable[1];
-        object name = this.getSupportedMapping(type, new Dictionary<string, object>() {
+        string name = this.getSupportedMapping(type, new Dictionary<string, object>() {
             { "spot", "spot_balance_subscribe" },
             { "swap", "futures_balance_subscribe" },
             { "future", "futures_balance_subscribe" },

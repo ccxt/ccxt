@@ -4951,7 +4951,7 @@ public partial class aster : Exchange
             // Sign using EIP-712 typed data per the AsterSignTransaction spec
             string? zeroAddress = this.safeString(this.options, "zeroAddress", "0x0000000000000000000000000000000000000000");
             Int64? v3ChainId = this.safeInteger(this.options, "v3ChainId", 1666);
-            object walletAddress = this.safeString(this.options, "cachedWalletAddress");
+            string? walletAddress = this.safeString(this.options, "cachedWalletAddress");
             object privateKeyHash = this.hash(this.encode(this.privateKey), keccak, "hex");
             string? cachedPrivateKeyHash = this.safeString(this.options, "privateKeyHashForCachedWalletAddress");
             if (((walletAddress == null)) || (!isEqual(cachedPrivateKeyHash, privateKeyHash)))
