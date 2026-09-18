@@ -56,7 +56,7 @@ func testWatchOrdersBody(ch chan any, exchange ccxt.ICoreExchange, skippedProper
 			}
 			AssertNonEmtpyArray(exchange, skippedProperties, method, response, symbol)
 			now = exchange.Milliseconds()
-			for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
+			for i := 0; i < GetArrayLength(response); i++ {
 				TestOrder(exchange, skippedProperties, method, GetValue(response, i), symbol, now)
 			}
 			AssertTimestampOrder(exchange, method, symbol, response)

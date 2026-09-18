@@ -120,33 +120,33 @@ public partial class BaseTest
             object defaultNetworkCodeReplacements = getValue(exchange.options, "defaultNetworkCodeReplacements");
             List<object> allNetworkCodes = new List<object>() {"ETH", "ERC20", "TRON", "TRX", "TRC20", "SOL", "BSC", "BEP20", "ARBITRUM", "AVAXC", "POL", "BASE", "SUI", "OPTIMISM", "OP", "NEAR", "CRO", "CRONOS", "BTC", "APT", "SCR", "KAVA", "TON", "Cardano", "ADA", "HECO", "HT", "MNT", "ALGO", "RUNE", "OSMO", "CELO", "HBAR", "FTM", "zkSync", "EraZK", "KLAY", "ACA", "STX", "XTZ", "NEO", "METIS"};
             List<object> allCurrencyCodes = new List<object>() {"Bitcoin", "BTC", "Ethereum", "ETH", "Tether", "USDT", "BNB", "BNB", "XRP", "XRP", "USDC", "USDC", "Solana", "SOL", "TRON", "TRX", "Dogecoin", "DOGE", "Hyperliquid", "HYPE", "Bitcoin Cash", "BCH", "Cardano", "ADA", "LEO", "Chainlink", "LINK", "Ethena", "USDe", "USDe", "Monero", "XMR", "Stellar", "XLM", "Dai", "DAI", "Litecoin", "LTC", "PayPal", "USD", "PYUSD", "Hedera", "HBAR", "Avalanche", "AVAX", "Zcash", "ZEC", "Bittensor", "TAO", "Sui", "SUI", "Shiba Inu", "SHIB", "Cronos", "CRO", "Toncoin", "TON", "WLFI", "Tether", "Gold", "XAUt", "", "PAX", "Gold", "PAXG", "Mantle", "MNT", "Uniswap", "UNI", "Polkadot", "DOT", "USDG", "OKB", "OKB", "Aster", "ASTER", "Aave", "AAVE", "NEAR", "NEAR", "Ripple", "USD", "RLUSD", "Polygon", "POL"};
-            for (int i = 0; isLessThan(i, getArrayLength(allNetworkCodes)); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(allNetworkCodes); postFixIncrement(ref i))
             {
                 string? randomNetworkCode = ((string)getValue(allNetworkCodes, i));
-                for (int j = 0; isLessThan(j, getArrayLength(allCurrencyCodes)); postFixIncrement(ref j))
+                for (int j = 0; j < getArrayLength(allCurrencyCodes); postFixIncrement(ref j))
                 {
                     string? randomCurrencyCode = ((string)getValue(allCurrencyCodes, j));
                     object result = exchange.networkIdToCode(randomNetworkCode, randomCurrencyCode);
                     List<object> keys = new List<object>(((IDictionary<string,object>)defaultNetworkCodeReplacements).Keys);
-                    for (int k = 0; isLessThan(k, getArrayLength(keys)); postFixIncrement(ref k))
+                    for (int k = 0; k < keys.Count; postFixIncrement(ref k))
                     {
                         string? chainBaseCoin = ((string)getValue(keys, k));
                         object chainMapping = getValue(defaultNetworkCodeReplacements, chainBaseCoin);
                         object primaryNetworkCode = getValue(chainMapping, "primary");
                         object secondaryNetworkCode = getValue(chainMapping, "secondary");
-                        object msg = add(add(add(add(add(add("network protocol test failed for networkCode:", randomNetworkCode), " & currencyCode: "), randomCurrencyCode), ", result: "), result), ", expected: ");
-                        if (isTrue(isEqual(randomNetworkCode, primaryNetworkCode)))
+                        object msg = (add((((("network protocol test failed for networkCode:" + randomNetworkCode) + " & currencyCode: ") + randomCurrencyCode) + ", result: "), result) + ", expected: ");
+                        if (isEqual(randomNetworkCode, primaryNetworkCode))
                         {
-                            if (isTrue(isEqual(randomCurrencyCode, chainBaseCoin)))
+                            if (isEqual(randomCurrencyCode, chainBaseCoin))
                             {
                                 Assert(isEqual(result, primaryNetworkCode), add(msg, primaryNetworkCode));
                             } else
                             {
                                 Assert(isEqual(result, secondaryNetworkCode), add(msg, secondaryNetworkCode));
                             }
-                        } else if (isTrue(isEqual(randomNetworkCode, secondaryNetworkCode)))
+                        } else if (isEqual(randomNetworkCode, secondaryNetworkCode))
                         {
-                            if (isTrue(isEqual(randomCurrencyCode, chainBaseCoin)))
+                            if (isEqual(randomCurrencyCode, chainBaseCoin))
                             {
                                 Assert(isEqual(result, primaryNetworkCode), add(msg, primaryNetworkCode));
                             } else

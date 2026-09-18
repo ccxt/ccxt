@@ -70,11 +70,11 @@ public class TestTicker extends BaseTest {
         // check market
         Object market = null;
         Boolean isUnrecognizedSymbol = false;
-        Boolean isFetchTickerCalled = Helpers.isEqual(method, "fetchTicker");
-        Object symbolForMarket = ((Helpers.isTrue((!Helpers.isEqual(symbol, null))))) ? symbol : exchange.safeString(entry, "symbol");
-        if (Helpers.isTrue(!Helpers.isEqual(symbolForMarket, null)))
+        Boolean isFetchTickerCalled = java.util.Objects.equals(method, "fetchTicker");
+        Object symbolForMarket = (((!java.util.Objects.equals(symbol, null)))) ? symbol : exchange.safeString(entry, "symbol");
+        if (!java.util.Objects.equals(symbolForMarket, null))
         {
-            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(exchange.markets, null))) && Helpers.isTrue((Helpers.inOp(exchange.markets, symbolForMarket)))))
+            if ((!java.util.Objects.equals(exchange.markets, null)) && (((Map<?, ?>)exchange.markets).containsKey(symbolForMarket)))
             {
                 market = exchange.market(symbolForMarket);
             } else
@@ -83,24 +83,24 @@ public class TestTicker extends BaseTest {
             }
         }
         // temp todo: skip inactive markets for now, as they sometimes have weird values and causing issues:
-        if (!Helpers.isTrue((Helpers.inOp(skippedProperties, "checkInactiveMarkets"))))
+        if (!(Helpers.inOp(skippedProperties, "checkInactiveMarkets")))
         {
-            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(market, null)) && Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "active"), false))))
+            if (!java.util.Objects.equals(market, null) && java.util.Objects.equals(((Map<String, Object>)market).get("active"), false))
             {
                 return;
             }
         }
-        if (Helpers.isTrue(Helpers.inOp(skippedProperties, "skipNonActiveMarkets")))
+        if (Helpers.inOp(skippedProperties, "skipNonActiveMarkets"))
         {
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(market, null)) || Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "active"), true)))))
+            if (java.util.Objects.equals(market, null) || (!java.util.Objects.equals(((Map<String, Object>)market).get("active"), true)))
             {
                 return;
             }
         }
         // only check "above zero" values if exchange is not supposed to have exotic index markets
-        Boolean isStandardMarket = (Helpers.isTrue(!Helpers.isEqual(market, null)) && Helpers.isTrue(exchange.inArray(Helpers.GetValue(market, "type"), new ArrayList<Object>(Arrays.asList("spot", "swap", "future", "option")))));
+        Boolean isStandardMarket = (!java.util.Objects.equals(market, null) && Helpers.isTrue(exchange.inArray(((Map<String, Object>)market).get("type"), new ArrayList<Object>(Arrays.asList("spot", "swap", "future", "option")))));
         Object valuesShouldBePositive = isStandardMarket; // || (market === undefined) atm, no check for index markets
-        if (Helpers.isTrue(Helpers.isTrue(valuesShouldBePositive) && !Helpers.isTrue((Helpers.inOp(skippedProperties, "positiveValues")))))
+        if (Helpers.isTrue(valuesShouldBePositive) && !(Helpers.inOp(skippedProperties, "positiveValues")))
         {
             TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "open", "0");
             TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "high", "0");
@@ -121,7 +121,7 @@ public class TestTicker extends BaseTest {
         //
         String lastString = exchange.safeString(entry, "last");
         String closeString = exchange.safeString(entry, "close");
-        Assert(Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(closeString, null))) && Helpers.isTrue((Helpers.isEqual(lastString, null))))) || Helpers.isTrue(Precise.stringEq(lastString, closeString)), Helpers.add("`last` != `close`", logText));
+        Assert(((java.util.Objects.equals(closeString, null)) && (java.util.Objects.equals(lastString, null))) || Helpers.isTrue(Precise.stringEq(lastString, closeString)), ("`last` != `close`" + logText));
         String openPrice = exchange.safeString(entry, "open");
         //
         // base & quote volumes
@@ -132,7 +132,7 @@ public class TestTicker extends BaseTest {
         Object low = exchange.omitZero(exchange.safeString(entry, "low"));
         Object open = exchange.omitZero(exchange.safeString(entry, "open"));
         Object close = exchange.omitZero(exchange.safeString(entry, "close"));
-        if (!Helpers.isTrue((Helpers.inOp(skippedProperties, "compareQuoteVolumeBaseVolume"))))
+        if (!(Helpers.inOp(skippedProperties, "compareQuoteVolumeBaseVolume")))
         {
             // Assert (baseVolumeDefined === quoteVolumeDefined, 'baseVolume or quoteVolume should be either both defined or both undefined' + logText); // No, exchanges might not report both values
             // skip the quoteVolume/baseVolume identity for inverse (coin-margined) contracts: their
@@ -140,7 +140,7 @@ public class TestTicker extends BaseTest {
             // far above baseVolume * high), so the spot-derived invariant does not hold there,
             // see https://github.com/ccxt/ccxt/pull/29563
             Object isInverse = exchange.safeBool(market, "inverse", false);
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(baseVolume, null))) && Helpers.isTrue((!Helpers.isEqual(quoteVolume, null)))) && Helpers.isTrue((!Helpers.isEqual(high, null)))) && Helpers.isTrue((!Helpers.isEqual(low, null)))) && Helpers.isTrue((!Helpers.isEqual(isInverse, true)))))
+            if ((!java.util.Objects.equals(baseVolume, null)) && (!java.util.Objects.equals(quoteVolume, null)) && (!java.util.Objects.equals(high, null)) && (!java.util.Objects.equals(low, null)) && (!java.util.Objects.equals(isInverse, true)))
             {
                 String baseLow = Precise.stringMul(baseVolume, low);
                 String baseHigh = Precise.stringMul(baseVolume, high);
@@ -148,7 +148,7 @@ public class TestTicker extends BaseTest {
                 Object mPrecision = exchange.safeDict(market, "precision");
                 String amountPrecision = exchange.safeString(mPrecision, "amount");
                 String tolerance = "1.0001";
-                if (Helpers.isTrue(!Helpers.isEqual(amountPrecision, null)))
+                if (!java.util.Objects.equals(amountPrecision, null))
                 {
                     baseLow = Precise.stringMul(Precise.stringSub(baseVolume, amountPrecision), low);
                     baseHigh = Precise.stringMul(Precise.stringAdd(baseVolume, amountPrecision), high);
@@ -174,8 +174,8 @@ public class TestTicker extends BaseTest {
                 Object quoteQuantum = exchange.parsePrecision(exchange.numberToString(quoteVolumeDecimals));
                 baseLow = Precise.stringSub(baseLow, quoteQuantum);
                 baseHigh = Precise.stringAdd(baseHigh, quoteQuantum);
-                Assert(Precise.stringGe(quoteVolume, baseLow), Helpers.add("quoteVolume should be => baseVolume * low", logText));
-                Assert(Precise.stringLe(quoteVolume, baseHigh), Helpers.add("quoteVolume should be <= baseVolume * high", logText));
+                Assert(Precise.stringGe(quoteVolume, baseLow), ("quoteVolume should be => baseVolume * low" + logText));
+                Assert(Precise.stringLe(quoteVolume, baseHigh), ("quoteVolume should be <= baseVolume * high" + logText));
             }
         }
         //
@@ -185,7 +185,7 @@ public class TestTicker extends BaseTest {
         // percentage is `(change/open) * 100`
         String changeString = exchange.safeString(entry, "change");
         String percentageString = exchange.safeString(entry, "percentage");
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(changeString, null))) && Helpers.isTrue((!Helpers.isEqual(open, null)))) && Helpers.isTrue((!Helpers.isEqual(close, null)))) && !Helpers.isTrue((Helpers.inOp(skippedProperties, "compareChange")))))
+        if ((!java.util.Objects.equals(changeString, null)) && (!java.util.Objects.equals(open, null)) && (!java.util.Objects.equals(close, null)) && !(Helpers.inOp(skippedProperties, "compareChange")))
         {
             // the window is the larger of two roundings: float residue on a change
             // safeTicker derived, which needs a part per million of the price, and an
@@ -197,7 +197,7 @@ public class TestTicker extends BaseTest {
             // like that reveals no rounding at all, so fall back to the price part
             // instead of letting it widen the window
             String changeWindow = pricePart;
-            if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(changeDecimals, 0)))
+            if (Helpers.isGreaterThanOrEqual(changeDecimals, 0))
             {
                 Object changeQuantum = exchange.parsePrecision(exchange.numberToString(changeDecimals));
                 // a change of "0" prints no decimals, so its apparent step is a whole unit
@@ -208,9 +208,9 @@ public class TestTicker extends BaseTest {
                 changeWindow = Precise.stringMax(pricePart, changeQuantum);
             }
             String difference = Precise.stringAbs(Precise.stringSub(changeString, Precise.stringSub(close, open)));
-            Assert(Precise.stringLe(difference, changeWindow), Helpers.add("`change` should be `last - open`", logText));
+            Assert(Precise.stringLe(difference, changeWindow), ("`change` should be `last - open`" + logText));
         }
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(changeString, null))) && Helpers.isTrue((!Helpers.isEqual(percentageString, null)))) && Helpers.isTrue((!Helpers.isEqual(open, null)))) && !Helpers.isTrue((Helpers.inOp(skippedProperties, "comparePercentage")))))
+        if ((!java.util.Objects.equals(changeString, null)) && (!java.util.Objects.equals(percentageString, null)) && (!java.util.Objects.equals(open, null)) && !(Helpers.inOp(skippedProperties, "comparePercentage")))
         {
             String derived = Precise.stringMul(Precise.stringDiv(changeString, open), "100");
             // exchanges round the percentage, so allow one part in fifty of the derived
@@ -219,58 +219,58 @@ public class TestTicker extends BaseTest {
             String relative = Precise.stringDiv(Precise.stringAbs(derived), "50");
             String allowed = Precise.stringMax(relative, "0.01");
             String gap = Precise.stringAbs(Precise.stringSub(percentageString, derived));
-            Assert(Precise.stringLe(gap, allowed), Helpers.add("`percentage` should be `(change/open) * 100`", logText));
+            Assert(Precise.stringLe(gap, allowed), ("`percentage` should be `(change/open) * 100`" + logText));
         }
         // open and close should be between High & Low
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(high, null)) && Helpers.isTrue(!Helpers.isEqual(low, null))) && !Helpers.isTrue((Helpers.inOp(skippedProperties, "compareOHLC")))))
+        if (!java.util.Objects.equals(high, null) && !java.util.Objects.equals(low, null) && !(Helpers.inOp(skippedProperties, "compareOHLC")))
         {
-            if (Helpers.isTrue(!Helpers.isEqual(open, null)))
+            if (!java.util.Objects.equals(open, null))
             {
-                Assert(Precise.stringGe(open, low), Helpers.add("open should be >= low", logText));
-                Assert(Precise.stringLe(open, high), Helpers.add("open should be <= high", logText));
+                Assert(Precise.stringGe(open, low), ("open should be >= low" + logText));
+                Assert(Precise.stringLe(open, high), ("open should be <= high" + logText));
             }
-            if (Helpers.isTrue(!Helpers.isEqual(close, null)))
+            if (!java.util.Objects.equals(close, null))
             {
-                Assert(Precise.stringGe(close, low), Helpers.add("close should be >= low", logText));
-                Assert(Precise.stringLe(close, high), Helpers.add("close should be <= high", logText));
+                Assert(Precise.stringGe(close, low), ("close should be >= low" + logText));
+                Assert(Precise.stringLe(close, high), ("close should be <= high" + logText));
             }
         }
         //
         // vwap
         //
         String vwap = exchange.safeString(entry, "vwap");
-        if (Helpers.isTrue(!Helpers.isEqual(vwap, null)))
+        if (!java.util.Objects.equals(vwap, null))
         {
             // todo
             // Assert (high !== undefined, 'vwap is defined, but high is not' + logText);
             // Assert (low !== undefined, 'vwap is defined, but low is not' + logText);
             // Assert (vwap >= low && vwap <= high)
             // todo: calc compare
-            Assert(!Helpers.isTrue(valuesShouldBePositive) || Helpers.isTrue(Precise.stringGe(vwap, "0")), Helpers.add("vwap is not greater than zero", logText));
-            if (Helpers.isTrue(!Helpers.isEqual(baseVolume, null)))
+            Assert(!Helpers.isTrue(valuesShouldBePositive) || Helpers.isTrue(Precise.stringGe(vwap, "0")), ("vwap is not greater than zero" + logText));
+            if (!java.util.Objects.equals(baseVolume, null))
             {
-                Assert(!Helpers.isEqual(quoteVolume, null), Helpers.add("baseVolume & vwap is defined, but quoteVolume is not", logText));
+                Assert(!java.util.Objects.equals(quoteVolume, null), ("baseVolume & vwap is defined, but quoteVolume is not" + logText));
             }
-            if (Helpers.isTrue(!Helpers.isEqual(quoteVolume, null)))
+            if (!java.util.Objects.equals(quoteVolume, null))
             {
-                Assert(!Helpers.isEqual(baseVolume, null), Helpers.add("quoteVolume & vwap is defined, but baseVolume is not", logText));
+                Assert(!java.util.Objects.equals(baseVolume, null), ("quoteVolume & vwap is defined, but baseVolume is not" + logText));
             }
         }
         String askString = exchange.safeString(entry, "ask");
         String bidString = exchange.safeString(entry, "bid");
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(askString, null))) && Helpers.isTrue((!Helpers.isEqual(bidString, null)))) && !Helpers.isTrue((Helpers.inOp(skippedProperties, "spread")))))
+        if ((!java.util.Objects.equals(askString, null)) && (!java.util.Objects.equals(bidString, null)) && !(Helpers.inOp(skippedProperties, "spread")))
         {
             // greater-or-equal: a locked book (bid == ask) is legitimate on thin markets, only a crossed book (ask < bid) is anomalous
             TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "ask", exchange.safeString(entry, "bid"));
         }
         // last price should be within 1% of the bid/ask median price, but let's check only targeted fetchTicker (where tests use major pair like BTC/USDT) to ensure the precision
         String allowedPercentageVariation = "0.01";
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(isFetchTickerCalled) && Helpers.isTrue(!Helpers.isEqual(lastString, null))) && Helpers.isTrue(!Helpers.isEqual(bidString, null))) && Helpers.isTrue(!Helpers.isEqual(askString, null))) && !Helpers.isTrue((Helpers.inOp(skippedProperties, "lastBetweenBidAsk")))))
+        if (Helpers.isTrue(isFetchTickerCalled) && !java.util.Objects.equals(lastString, null) && !java.util.Objects.equals(bidString, null) && !java.util.Objects.equals(askString, null) && !(Helpers.inOp(skippedProperties, "lastBetweenBidAsk")))
         {
             String medianPrice = Precise.stringDiv(Precise.stringAdd(bidString, askString), "2");
             String medianLow = Precise.stringMul(medianPrice, Precise.stringSub("1", allowedPercentageVariation));
             String medianHigh = Precise.stringMul(medianPrice, Precise.stringAdd("1", allowedPercentageVariation));
-            Assert(Helpers.isTrue(Precise.stringGe(lastString, medianLow)) && Helpers.isTrue(Precise.stringLe(lastString, medianHigh)), Helpers.add("last price should be within 1% of the bid/ask median price", logText));
+            Assert(Helpers.isTrue(Precise.stringGe(lastString, medianLow)) && Helpers.isTrue(Precise.stringLe(lastString, medianHigh)), ("last price should be within 1% of the bid/ask median price" + logText));
         }
         String percentage = exchange.safeString(entry, "percentage");
         String change = exchange.safeString(entry, "change");
@@ -281,59 +281,59 @@ public class TestTicker extends BaseTest {
         // intrinsic). the floors stay: a long option cannot lose more than its
         // premium, so percentage >= -100 and change >= -open hold for options too
         Object isOptionMarket = exchange.safeBool(market, "option", false);
-        if (Helpers.isTrue(!Helpers.isTrue((Helpers.inOp(skippedProperties, "maxIncrease"))) && !Helpers.isTrue(isUnrecognizedSymbol)))
+        if (!(Helpers.inOp(skippedProperties, "maxIncrease")) && !Helpers.isTrue(isUnrecognizedSymbol))
         {
             //
             // percentage
             //
             String maxIncrease = "1000"; // if the increase is more than 1000x the implementation is probably wrong - the bound needs to stay above real meme-coin pumps, which routinely exceed the old 100x cap (e.g. a legitimate +50000% daily move observed on poloniex MAME/USDT)
-            if (Helpers.isTrue(!Helpers.isEqual(percentage, null)))
+            if (!java.util.Objects.equals(percentage, null))
             {
                 // - should be above -100 and (for non-options) below MAX
-                Assert(Precise.stringGe(percentage, "-100"), Helpers.add("percentage should be above -100% ", logText));
-                if (Helpers.isTrue(!Helpers.isEqual(isOptionMarket, true)))
+                Assert(Precise.stringGe(percentage, "-100"), ("percentage should be above -100% " + logText));
+                if (!java.util.Objects.equals(isOptionMarket, true))
                 {
-                    Assert(Precise.stringLe(percentage, Precise.stringMul("+100", maxIncrease)), Helpers.add(Helpers.add(Helpers.add("percentage should be below ", maxIncrease), "00% "), logText));
+                    Assert(Precise.stringLe(percentage, Precise.stringMul("+100", maxIncrease)), ((("percentage should be below " + maxIncrease) + "00% ") + logText));
                 }
             }
             //
             // change
             //
             String approxValue = exchange.safeStringN(entry, new ArrayList<Object>(Arrays.asList("open", "close", "average", "bid", "ask", "vwap", "previousClose")));
-            if (Helpers.isTrue(!Helpers.isEqual(change, null)))
+            if (!java.util.Objects.equals(change, null))
             {
                 // - should be above -price and (for non-options) below +price*maxIncrease
-                Assert(Precise.stringGe(change, Precise.stringNeg(approxValue)), Helpers.add("change should be above -price ", logText));
-                if (Helpers.isTrue(!Helpers.isEqual(isOptionMarket, true)))
+                Assert(Precise.stringGe(change, Precise.stringNeg(approxValue)), ("change should be above -price " + logText));
+                if (!java.util.Objects.equals(isOptionMarket, true))
                 {
-                    Assert(Precise.stringLe(change, Precise.stringMul(approxValue, maxIncrease)), Helpers.add(Helpers.add(Helpers.add("change should be below ", maxIncrease), "x price "), logText));
+                    Assert(Precise.stringLe(change, Precise.stringMul(approxValue, maxIncrease)), ((("change should be below " + maxIncrease) + "x price ") + logText));
                 }
             }
         }
         //
         // ensure all expected values are defined
         //
-        if (Helpers.isTrue(!Helpers.isEqual(lastString, null)))
+        if (!java.util.Objects.equals(lastString, null))
         {
-            if (Helpers.isTrue(!Helpers.isEqual(percentage, null)))
+            if (!java.util.Objects.equals(percentage, null))
             {
                 // if one knows 'last' and 'percentage' values, then 'change', 'open' and 'average' values should be determinable.
-                Assert(Helpers.isTrue(!Helpers.isEqual(openPrice, null)) && Helpers.isTrue(!Helpers.isEqual(change, null)), Helpers.add("open & change should be defined if last & percentage are defined", logText)); // todo : add average price too
-            } else if (Helpers.isTrue(!Helpers.isEqual(change, null)))
+                Assert(!java.util.Objects.equals(openPrice, null) && !java.util.Objects.equals(change, null), ("open & change should be defined if last & percentage are defined" + logText)); // todo : add average price too
+            } else if (!java.util.Objects.equals(change, null))
             {
                 // if one knows 'last' and 'change' values, then 'percentage', 'open' and 'average' values should be determinable.
-                Assert(Helpers.isTrue(!Helpers.isEqual(openPrice, null)) && Helpers.isTrue(!Helpers.isEqual(percentage, null)), Helpers.add("open & percentage should be defined if last & change are defined", logText)); // todo : add average price too
+                Assert(!java.util.Objects.equals(openPrice, null) && !java.util.Objects.equals(percentage, null), ("open & percentage should be defined if last & change are defined" + logText)); // todo : add average price too
             }
-        } else if (Helpers.isTrue(!Helpers.isEqual(openPrice, null)))
+        } else if (!java.util.Objects.equals(openPrice, null))
         {
-            if (Helpers.isTrue(!Helpers.isEqual(percentage, null)))
+            if (!java.util.Objects.equals(percentage, null))
             {
                 // if one knows 'open' and 'percentage' values, then 'last', 'change' and 'average' values should be determinable.
-                Assert(Helpers.isTrue(!Helpers.isEqual(lastString, null)) && Helpers.isTrue(!Helpers.isEqual(change, null)), Helpers.add("last & change should be defined if open & percentage are defined", logText)); // todo : add average price too
-            } else if (Helpers.isTrue(!Helpers.isEqual(change, null)))
+                Assert(!java.util.Objects.equals(lastString, null) && !java.util.Objects.equals(change, null), ("last & change should be defined if open & percentage are defined" + logText)); // todo : add average price too
+            } else if (!java.util.Objects.equals(change, null))
             {
                 // if one knows 'open' and 'change' values, then 'last', 'percentage' and 'average' values should be determinable.
-                Assert(Helpers.isTrue(!Helpers.isEqual(lastString, null)) && Helpers.isTrue(!Helpers.isEqual(percentage, null)), Helpers.add("last & percentage should be defined if open & change are defined", logText)); // todo : add average price too
+                Assert(!java.util.Objects.equals(lastString, null) && !java.util.Objects.equals(percentage, null), ("last & percentage should be defined if open & change are defined" + logText)); // todo : add average price too
             }
         }
         //

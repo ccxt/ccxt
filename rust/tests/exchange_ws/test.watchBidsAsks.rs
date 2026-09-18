@@ -20,10 +20,10 @@ pub async fn testWatchBidsAsksHelper(mut exchange: Value, mut skippedProperties:
     let mut argParams: Value = get_arg(optional_args, 0, Value::Null);
     let mut method: Value = Value::Str("watchBidsAsks".to_string());
     let mut now: Value = exchange.milliseconds();
-    let mut ends: Value = add(&now, &Value::Int(15000));
+    let mut ends: Value = (match (&(now), &(Value::Int(15000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
     let mut maxIdleTime: Value = Value::Int(5000);
     let mut idle: Value = Value::Bool(false);
-    while is_true(&(is_less_than(&now, &ends))) && !is_true(&idle) {
+    while is_true(&(now.as_f64().unwrap_or(f64::NAN) < ends.as_f64().unwrap_or(f64::NAN))) && !is_true(&idle) {
         let mut success: Value = Value::Bool(true);
         let mut shouldReturn: Value = Value::Bool(false);
         let mut response: Value = Value::Map({
@@ -38,7 +38,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // for some exchanges, multi symbol methods might require symbols array to be present, so
             // so, if method throws "arguments-required" exception, we don't fail test, but just skip silently,
             // because tests will make a second call of this method with symbols array
-            if is_true(&(is_instance(&e, &Value::Str("ArgumentsRequired".to_string())))) && is_true(&(is_equal(&argSymbols, &Value::Null) || is_equal(&get_array_length(&argSymbols), &Value::Int(0)))) {
+            if (is_instance(&e, &Value::Str("ArgumentsRequired".to_string()))) && is_true(&(Value::Bool((argSymbols == Value::Null) || (Value::Int(argSymbols.len() as i64).as_f64() == Some(0.0))))) {
                 // todo: provide random symbols to try
                 // return false;
                 shouldReturn = Value::Bool(true);
@@ -51,23 +51,23 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if is_true(&shouldReturn) {
             return Value::Bool(false);
         }
-        if is_equal(&success, &Value::Bool(true)) {
+        if (success.as_bool() == Some(true)) {
             assert!(ccxt::runtime::is_true(&(exchange.is_dictionary(response.clone()))));
             let mut values: Value = object_values(&response);
             let mut checkedSymbol: Value = Value::Null;
-            if !is_equal(&argSymbols, &Value::Null) && is_equal(&get_array_length(&argSymbols), &Value::Int(1)) {
-                checkedSymbol = get_value(&argSymbols, &Value::Int(0));
+            if (argSymbols != Value::Null) && (Value::Int(argSymbols.len() as i64).as_f64() == Some(1.0)) {
+                checkedSymbol = argSymbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
             }
             crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), values.clone(), checkedSymbol.clone()]);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1481: bool = true;
-                while { if !__for_first_1481 { i = add(&i, &Value::Int(1)); } __for_first_1481 = false; is_less_than(&i, &get_array_length(&values)) } {
+                while { if !__for_first_1481 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1481 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(values.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 let mut ticker: Value = get_value(&values, &i);
                 testTicker(exchange.clone(), skippedProperties.clone(), method.clone(), ticker.clone(), checkedSymbol.clone());
             }
             }
-            if is_greater_than(&(subtract(&now, &startTime)), &maxIdleTime) {
+            if ((match (&(now), &(startTime)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).as_f64().unwrap_or(f64::NAN) > maxIdleTime.as_f64().unwrap_or(f64::NAN) {
                 idle = Value::Bool(true);
             }
         }

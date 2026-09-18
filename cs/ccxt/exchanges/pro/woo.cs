@@ -84,7 +84,7 @@ public partial class woo : ccxt.woo
 
     public async virtual Task<object> watchPublic(object messageHash, object message)
     {
-        string urlUid = ((bool) isTrue((!isEqual(this.uid, "")))) ? add("/", this.uid) : "";
+        string urlUid = ((bool) (!isEqual(this.uid, ""))) ? add("/", this.uid) : "";
         object url = add(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), urlUid);
         object requestId = this.requestId(url);
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
@@ -97,7 +97,7 @@ public partial class woo : ccxt.woo
     public async virtual Task<object> unwatchPublic(object subHash, object symbol, object topic, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string urlUid = ((bool) isTrue((!isEqual(this.uid, "")))) ? add("/", this.uid) : "";
+        string urlUid = ((bool) (!isEqual(this.uid, ""))) ? add("/", this.uid) : "";
         object url = add(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), urlUid);
         object requestId = this.requestId(url);
         string unsubHash = add("unsubscribe::", subHash);
@@ -115,7 +115,7 @@ public partial class woo : ccxt.woo
             { "unsubMessageHashes", new List<object>() {unsubHash} },
         };
         List<object> symbolsAndTimeframes = this.safeList(parameters, "symbolsAndTimeframes");
-        if (isTrue(!isEqual(symbolsAndTimeframes, null)))
+        if ((symbolsAndTimeframes != null))
         {
             ((IDictionary<string,object>)subscription)["symbolsAndTimeframes"] = symbolsAndTimeframes;
             parameters = this.omit(parameters, "symbolsAndTimeframes");
@@ -138,7 +138,7 @@ public partial class woo : ccxt.woo
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -148,7 +148,7 @@ public partial class woo : ccxt.woo
         parameters = ((IList<object>)methodparametersVariable)[1];
         Dictionary<string, object> market = this.market(symbol);
         object topic = add(add(getValue(market, "id"), "@"), method);
-        string urlUid = ((bool) isTrue((!isEqual(this.uid, "")))) ? add("/", this.uid) : "";
+        string urlUid = ((bool) (!isEqual(this.uid, ""))) ? add("/", this.uid) : "";
         object url = add(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), urlUid);
         object requestId = this.requestId(url);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -163,7 +163,7 @@ public partial class woo : ccxt.woo
             { "limit", limit },
             { "params", parameters },
         };
-        if (isTrue(isEqual(method, "orderbookupdate")))
+        if (isEqual(method, "orderbookupdate"))
         {
             ((IDictionary<string,object>)subscription)["method"] = this.handleOrderBookSubscription;
         }
@@ -184,7 +184,7 @@ public partial class woo : ccxt.woo
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -227,20 +227,20 @@ public partial class woo : ccxt.woo
         Dictionary<string, object> market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
         string? topic = this.safeString(message, "topic");
-        if (isTrue(isEqual(topic, null)))
+        if ((topic == null))
         {
             return;
         }
         string? method = this.safeString(((string)topic).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>(), 1);
-        if (isTrue(isEqual(method, "orderbookupdate")))
+        if ((method == "orderbookupdate"))
         {
-            if (!isTrue((inOp(this.orderbooks, symbol))))
+            if (!(inOp(this.orderbooks, symbol)))
             {
                 return;
             }
             ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
             Int64? timestamp = this.safeInteger(orderbook, "timestamp");
-            if (isTrue(isEqual(timestamp, null)))
+            if (isEqual(timestamp, null))
             {
                 ((IList<object>)(orderbook as ccxt.pro.OrderBook).cache).Add(message);
             } else
@@ -248,19 +248,19 @@ public partial class woo : ccxt.woo
                 try
                 {
                     Int64? ts = this.safeInteger(message, "ts");
-                    if (isTrue(isEqual(ts, null)))
+                    if (isEqual(ts, null))
                     {
                         return;
                     }
-                    if (isTrue(isGreaterThan(ts, timestamp)))
+                    if (isGreaterThan(ts, timestamp))
                     {
                         this.handleOrderBookMessage(client as WebSocketClient, message, orderbook);
-                        callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, topic});
+                        (client as WebSocketClient).resolve(orderbook, topic);
                     }
                 } catch(Exception e)
                 {
                     ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
-                    if (isTrue(!isEqual(topic, null)))
+                    if ((topic != null))
                     {
                         ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)topic);
                     }
@@ -269,7 +269,7 @@ public partial class woo : ccxt.woo
             }
         } else
         {
-            if (!isTrue((inOp(this.orderbooks, symbol))))
+            if (!(inOp(this.orderbooks, symbol)))
             {
                 Int64? defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
                 object subscription = this.safeValue(((WebSocketClient)client).subscriptions, topic);
@@ -280,7 +280,7 @@ public partial class woo : ccxt.woo
             Int64? timestamp = this.safeInteger(message, "ts");
             object snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks");
             (orderbook as IOrderBook).reset(snapshot);
-            callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, topic});
+            (client as WebSocketClient).resolve(orderbook, topic);
         }
     }
 
@@ -289,11 +289,11 @@ public partial class woo : ccxt.woo
         Int64? defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
         Int64? limit = this.safeInteger(subscription, "limit", defaultLimit);
         string? symbol = this.safeString(subscription, "symbol"); // watchOrderBook
-        if (isTrue(isEqual(symbol, null)))
+        if ((symbol == null))
         {
             return;
         }
-        if (isTrue(inOp(this.orderbooks, symbol)))
+        if (((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol))
         {
             ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
         }
@@ -311,7 +311,7 @@ public partial class woo : ccxt.woo
             Int64? limit = this.safeInteger(subscription, "limit", defaultLimit);
             object parameters = this.safeValue(subscription, "params");
             object snapshot = ccxt.BaseExchange.FromOrderBook(await this.FetchRestOrderBookSafe(symbol, limit, parameters));
-            if (isTrue(isEqual(this.safeOrderBook(this.orderbooks, symbol), null)))
+            if (isEqual(this.safeOrderBook(this.orderbooks, symbol), null))
             {
                 // if the orderbook is dropped before the snapshot is received
                 return;
@@ -323,11 +323,11 @@ public partial class woo : ccxt.woo
             {
                 object messageItem = getValue(messages, i);
                 Int64? ts = this.safeInteger(messageItem, "ts");
-                if (isTrue(isEqual(ts, null)))
+                if (isEqual(ts, null))
                 {
                     continue;
                 }
-                if (isTrue(isLessThan(ts, getValue(orderbook, "timestamp"))))
+                if (isLessThan(ts, getValue(orderbook, "timestamp")))
                 {
                     continue;
                 } else
@@ -335,14 +335,14 @@ public partial class woo : ccxt.woo
                     this.handleOrderBookMessage(client as WebSocketClient, messageItem, orderbook);
                 }
             }
-            if (isTrue(!isEqual(symbol, null)))
+            if ((symbol != null))
             {
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
             }
-            callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
+            (client as WebSocketClient).resolve(orderbook, messageHash);
         } catch(Exception e)
         {
-            if (isTrue(!isEqual(messageHash, null)))
+            if ((messageHash != null))
             {
                 ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
             }
@@ -388,7 +388,7 @@ public partial class woo : ccxt.woo
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -415,7 +415,7 @@ public partial class woo : ccxt.woo
     public async override Task<object> unWatchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -494,7 +494,7 @@ public partial class woo : ccxt.woo
         object ticker = this.parseWsTicker(data, market);
         ((IDictionary<string,object>)ticker)["symbol"] = getValue(market, "symbol");
         ((IDictionary<string,object>)this.tickers)[(string)getValue(market, "symbol")] = ticker;
-        callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, topic});
+        (client as WebSocketClient).resolve(ticker, topic);
         return message;
     }
 
@@ -510,7 +510,7 @@ public partial class woo : ccxt.woo
     public async override Task<ccxt.Tickers> WatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -538,13 +538,13 @@ public partial class woo : ccxt.woo
     public async override Task<object> unWatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
-        if (isTrue(!isEqual(symbols, null)))
+        if (!isEqual(symbols, null))
         {
-            throw new NotSupported ((string)add(this.id, " unWatchTickers() does not support a symbols argument. Only unwatch all tickers at once")) ;
+            throw new NotSupported ((string)(this.id + " unWatchTickers() does not support a symbols argument. Only unwatch all tickers at once")) ;
         }
         string topic = "ticker";
         string subHash = "tickers";
@@ -596,7 +596,7 @@ public partial class woo : ccxt.woo
             ((IDictionary<string,object>)this.tickers)[(string)getValue(market, "symbol")] = ticker;
             ((IList<object>)result).Add(ticker);
         }
-        callDynamically(client as WebSocketClient, "resolve", new object[] {result, topic});
+        (client as WebSocketClient).resolve(result, topic);
     }
 
     /**
@@ -611,7 +611,7 @@ public partial class woo : ccxt.woo
     public async override Task<ccxt.Tickers> WatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -643,13 +643,13 @@ public partial class woo : ccxt.woo
     public async override Task<object> unWatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
-        if (isTrue(!isEqual(symbols, null)))
+        if (!isEqual(symbols, null))
         {
-            throw new NotSupported ((string)add(this.id, " unWatchBidsAsks() does not support a symbols argument. Only unwatch all bidsAsks at once")) ;
+            throw new NotSupported ((string)(this.id + " unWatchBidsAsks() does not support a symbols argument. Only unwatch all bidsAsks at once")) ;
         }
         string subHash = "bbos";
         string topic = "bidsasks";
@@ -677,26 +677,26 @@ public partial class woo : ccxt.woo
         List<object> data = this.safeList(message, "data", new List<object>() {});
         Int64? timestamp = this.safeInteger(message, "ts");
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; i < data.Count; postFixIncrement(ref i))
         {
             IDictionary<string, object> ticker = this.safeDict(data, i);
-            if (isTrue(isEqual(ticker, null)))
+            if ((ticker == null))
             {
                 continue;
             }
             ((IDictionary<string,object>)ticker)["ts"] = timestamp;
             object parsedTicker = this.parseWsBidAsk(ticker);
             object symbol = getValue(parsedTicker, "symbol");
-            if (isTrue(!isEqual(symbol, null)))
+            if ((symbol != null))
             {
                 ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = parsedTicker;
             }
-            if (isTrue(!isEqual(symbol, null)))
+            if ((symbol != null))
             {
                 ((IDictionary<string,object>)result)[(string)symbol] = parsedTicker;
             }
         }
-        callDynamically(client as WebSocketClient, "resolve", new object[] {result, topic});
+        (client as WebSocketClient).resolve(result, topic);
     }
 
     public virtual object parseWsBidAsk(object ticker, object market = null)
@@ -735,13 +735,13 @@ public partial class woo : ccxt.woo
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
-        if (isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue((!isEqual(timeframeVar, "1m"))) && isTrue((!isEqual(timeframeVar, "5m")))) && isTrue((!isEqual(timeframeVar, "15m")))) && isTrue((!isEqual(timeframeVar, "30m")))) && isTrue((!isEqual(timeframeVar, "1h")))) && isTrue((!isEqual(timeframeVar, "1d")))) && isTrue((!isEqual(timeframeVar, "1w")))) && isTrue((!isEqual(timeframeVar, "1M")))))
+        if ((!isEqual(timeframeVar, "1m")) && (!isEqual(timeframeVar, "5m")) && (!isEqual(timeframeVar, "15m")) && (!isEqual(timeframeVar, "30m")) && (!isEqual(timeframeVar, "1h")) && (!isEqual(timeframeVar, "1d")) && (!isEqual(timeframeVar, "1w")) && (!isEqual(timeframeVar, "1M")))
         {
-            throw new ExchangeError ((string)add(this.id, " watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M")) ;
+            throw new ExchangeError ((string)(this.id + " watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
@@ -776,7 +776,7 @@ public partial class woo : ccxt.woo
         object timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -819,17 +819,17 @@ public partial class woo : ccxt.woo
         List<object> parsed = new List<object> {this.safeInteger(data, "startTime"), this.safeFloat(data, "open"), this.safeFloat(data, "high"), this.safeFloat(data, "low"), this.safeFloat(data, "close"), this.safeFloat(data, "volume")};
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
-        if (isTrue(isEqual(stored, null)))
+        if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCacheByTimestamp(limit);
-            if (isTrue(isTrue(!isEqual(symbol, null)) && isTrue(!isEqual(timeframe, null))))
+            if ((symbol != null) && (timeframe != null))
             {
                 ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)timeframe] = stored;
             }
         }
         callDynamically(stored, "append", new object[] {parsed});
-        callDynamically(client as WebSocketClient, "resolve", new object[] {stored, topic});
+        (client as WebSocketClient).resolve(stored, topic);
     }
 
     /**
@@ -848,7 +848,7 @@ public partial class woo : ccxt.woo
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -880,7 +880,7 @@ public partial class woo : ccxt.woo
     public async override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -915,14 +915,14 @@ public partial class woo : ccxt.woo
             { "timestamp", timestamp },
         }), market);
         object tradesArray = this.safeValue(this.trades, symbol);
-        if (isTrue(isEqual(tradesArray, null)))
+        if ((tradesArray == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             tradesArray = new ArrayCache(limit);
         }
         callDynamically(tradesArray, "append", new object[] {trade});
         ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArray;
-        callDynamically(client as WebSocketClient, "resolve", new object[] {tradesArray, topic});
+        (client as WebSocketClient).resolve(tradesArray, topic);
     }
 
     public override object parseWsTrade(object trade, object market = null)
@@ -976,14 +976,14 @@ public partial class woo : ccxt.woo
         Int64? timestamp = this.safeInteger(trade, "timestamp");
         bool? maker = this.safeBool(trade, "maker");
         string? takerOrMaker = null;
-        if (isTrue(!isEqual(maker, null)))
+        if (!isEqual(maker, null))
         {
             takerOrMaker = ((bool) isTrue(maker)) ? "maker" : "taker";
         }
         string? type = this.safeStringLower(trade, "type");
         Dictionary<string, object> fee = null;
         double? feeCost = this.safeNumber(trade, "fee");
-        if (isTrue(!isEqual(feeCost, null)))
+        if (!isEqual(feeCost, null))
         {
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
@@ -1010,11 +1010,11 @@ public partial class woo : ccxt.woo
     public virtual bool checkRequiredUid(object error = null)
     {
         error ??= true;
-        if (isTrue(isTrue((isEqual(this.uid, null))) || isTrue((isEqual(this.uid, "")))))
+        if ((isEqual(this.uid, null)) || (isEqual(this.uid, "")))
         {
             if (isTrue(error))
             {
-                throw new AuthenticationError ((string)add(this.id, " requires `uid` credential (woox calls it `application_id`)")) ;
+                throw new AuthenticationError ((string)(this.id + " requires `uid` credential (woox calls it `application_id`)")) ;
             } else
             {
                 return ((bool)((object)(false))!);
@@ -1033,10 +1033,10 @@ public partial class woo : ccxt.woo
         string eventVar = "auth";
         var future = client.reusableFuture(messageHash);
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
-        if (isTrue(isEqual(authenticated, null)))
+        if ((authenticated == null))
         {
             string ts = ((object)this.nonce()).ToString();
-            string auth = add("|", ts);
+            string auth = ("|" + ts);
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "event", eventVar },
@@ -1096,19 +1096,19 @@ public partial class woo : ccxt.woo
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         bool? trigger = this.safeBool2(parameters, "stop", "trigger", false);
-        string topic = ((bool) isTrue((isEqual(trigger, true)))) ? "algoexecutionreportv2" : "executionreport";
+        string topic = ((bool) ((trigger == true))) ? "algoexecutionreportv2" : "executionreport";
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         string messageHash = topic;
-        if (isTrue(!isEqual(symbolVar, null)))
+        if (!isEqual(symbolVar, null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
-            messageHash = add(messageHash, add(":", symbolVar));
+            messageHash = messageHash + add(":", symbolVar);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
@@ -1141,19 +1141,19 @@ public partial class woo : ccxt.woo
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         bool? trigger = this.safeBool2(parameters, "stop", "trigger", false);
-        string topic = ((bool) isTrue((isEqual(trigger, true)))) ? "algoexecutionreportv2" : "executionreport";
+        string topic = ((bool) ((trigger == true))) ? "algoexecutionreportv2" : "executionreport";
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         string messageHash = "myTrades";
-        if (isTrue(!isEqual(symbolVar, null)))
+        if (!isEqual(symbolVar, null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
-            messageHash = add(messageHash, add(":", symbolVar));
+            messageHash = messageHash + add(":", symbolVar);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
@@ -1249,7 +1249,7 @@ public partial class woo : ccxt.woo
         string? priceString = this.safeString(order, "price");
         double? price = this.safeNumber(order, "price");
         double? avgPrice = this.safeNumber(order, "avgPrice");
-        if (isTrue(isTrue(Precise.stringEq(priceString, "0")) && isTrue((!isEqual(avgPrice, null)))))
+        if (isTrue(Precise.stringEq(priceString, "0")) && (!isEqual(avgPrice, null)))
         {
             price = avgPrice;
         }
@@ -1322,14 +1322,14 @@ public partial class woo : ccxt.woo
         //
         string? topic = this.safeString(message, "topic");
         object data = this.safeValue(message, "data");
-        if (isTrue(((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             // algoexecutionreportv2
-            for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
             {
                 object order = getValue(data, i);
                 string? tradeId = ((string)this.omitZero(this.safeString(data, "tradeId")));
-                if (isTrue(!isEqual(tradeId, null)))
+                if ((tradeId != null))
                 {
                     this.handleMyTrade(client as WebSocketClient, order);
                 }
@@ -1339,7 +1339,7 @@ public partial class woo : ccxt.woo
         {
             // executionreport
             string? tradeId = ((string)this.omitZero(this.safeString(data, "tradeId")));
-            if (isTrue(!isEqual(tradeId, null)))
+            if ((tradeId != null))
             {
                 this.handleMyTrade(client as WebSocketClient, data);
             }
@@ -1352,9 +1352,9 @@ public partial class woo : ccxt.woo
         object parsed = this.parseWsOrder(message);
         string? symbol = this.safeString(parsed, "symbol");
         string? orderId = this.safeString(parsed, "id");
-        if (isTrue(!isEqual(symbol, null)))
+        if ((symbol != null))
         {
-            if (isTrue(isEqual(this.orders, null)))
+            if (isEqual(this.orders, null))
             {
                 Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
                 this.orders = new ArrayCacheBySymbolById(limit);
@@ -1362,15 +1362,15 @@ public partial class woo : ccxt.woo
             object cachedOrders = this.orders;
             object orders = this.safeValue((cachedOrders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
             object order = this.safeValue(orders, orderId);
-            if (isTrue(!isEqual(order, null)))
+            if ((order != null))
             {
                 object fee = this.safeValue(order, "fee");
-                if (isTrue(!isEqual(fee, null)))
+                if ((fee != null))
                 {
                     ((IDictionary<string,object>)parsed)["fee"] = fee;
                 }
                 object fees = this.safeValue(order, "fees");
-                if (isTrue(!isEqual(fees, null)))
+                if ((fees != null))
                 {
                     ((IDictionary<string,object>)parsed)["fees"] = fees;
                 }
@@ -1379,9 +1379,9 @@ public partial class woo : ccxt.woo
                 ((IDictionary<string,object>)parsed)["datetime"] = this.safeString(order, "datetime");
             }
             callDynamically(cachedOrders, "append", new object[] {parsed});
-            callDynamically(client as WebSocketClient, "resolve", new object[] {this.orders, topic});
+            (client as WebSocketClient).resolve(this.orders, topic);
             object messageHashSymbol = add(add(topic, ":"), symbol);
-            callDynamically(client as WebSocketClient, "resolve", new object[] {this.orders, messageHashSymbol});
+            (client as WebSocketClient).resolve(this.orders, messageHashSymbol);
         }
     }
 
@@ -1418,7 +1418,7 @@ public partial class woo : ccxt.woo
         //   }
         //
         object myTrades = this.myTrades;
-        if (isTrue(isEqual(myTrades, null)))
+        if ((myTrades == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             myTrades = new ArrayCacheBySymbolById(limit);
@@ -1426,9 +1426,9 @@ public partial class woo : ccxt.woo
         object trade = this.parseWsTrade(message);
         callDynamically(myTrades, "append", new object[] {trade});
         string messageHash = add("myTrades:", getValue(trade, "symbol"));
-        callDynamically(client as WebSocketClient, "resolve", new object[] {myTrades, messageHash});
+        (client as WebSocketClient).resolve(myTrades, messageHash);
         messageHash = "myTrades";
-        callDynamically(client as WebSocketClient, "resolve", new object[] {myTrades, messageHash});
+        (client as WebSocketClient).resolve(myTrades, messageHash);
     }
 
     /**
@@ -1445,7 +1445,7 @@ public partial class woo : ccxt.woo
     public async override Task<List<ccxt.Position>> WatchPositions(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -1453,15 +1453,15 @@ public partial class woo : ccxt.woo
         symbols = this.marketSymbols(symbols);
         if (!isTrue(this.isEmpty(symbols)))
         {
-            if (isTrue(isEqual(symbols, null)))
+            if (isEqual(symbols, null))
             {
-                throw new ArgumentsRequired ((string)add(this.id, " watchPositions() symbols is required")) ;
+                throw new ArgumentsRequired ((string)(this.id + " watchPositions() symbols is required")) ;
             }
-            for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
             {
-                if (isTrue(isEqual(symbols, null)))
+                if (isEqual(symbols, null))
                 {
-                    throw new ArgumentsRequired ((string)add(this.id, " watchPositions() symbols is required")) ;
+                    throw new ArgumentsRequired ((string)(this.id + " watchPositions() symbols is required")) ;
                 }
                 object symbol = getValue(symbols, i);
                 ((IList<object>)messageHashes).Add(add("positions::", symbol));
@@ -1475,7 +1475,7 @@ public partial class woo : ccxt.woo
         this.setPositionsCache(client as WebSocketClient, symbols);
         object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
         object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
-        if (isTrue(isTrue(isTrue((isEqual(fetchPositionsSnapshot, true))) && isTrue((isEqual(awaitPositionsSnapshot, true)))) && isTrue((isEqual(this.positions, null)))))
+        if ((isEqual(fetchPositionsSnapshot, true)) && (isEqual(awaitPositionsSnapshot, true)) && (isEqual(this.positions, null)))
         {
             object snapshot = await client.future("fetchPositionsSnapshot");
             return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true));
@@ -1495,10 +1495,10 @@ public partial class woo : ccxt.woo
     public virtual void setPositionsCache(WebSocketClient client, object type, object symbols = null)
     {
         object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", false);
-        if (isTrue(isEqual(fetchPositionsSnapshot, true)))
+        if (isEqual(fetchPositionsSnapshot, true))
         {
             string messageHash = "fetchPositionsSnapshot";
-            if (!isTrue((inOp(client.futures, messageHash))))
+            if (!(inOp(client.futures, messageHash)))
             {
                 client.future(messageHash);
                 this.spawn(this.loadPositionsSnapshot, new object[] { client, messageHash});
@@ -1514,21 +1514,21 @@ public partial class woo : ccxt.woo
         object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions());
         this.positions = new ArrayCacheBySymbolBySide();
         object cache = this.positions;
-        for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(positions); postFixIncrement(ref i))
         {
             object position = getValue(positions, i);
             double? contracts = this.safeNumber(position, "contracts", 0);
-            if (isTrue(isTrue((!isEqual(contracts, null))) && isTrue((isGreaterThan(contracts, 0)))))
+            if ((!isEqual(contracts, null)) && (isGreaterThan(contracts, 0)))
             {
                 callDynamically(cache, "append", new object[] {position});
             }
         }
         // don't remove the future from the .futures cache
-        if (isTrue(inOp(client.futures, messageHash)))
+        if (inOp(client.futures, messageHash))
         {
             Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve(cache);
-            callDynamically(client as WebSocketClient, "resolve", new object[] {cache, "positions"});
+            (client as WebSocketClient).resolve(cache, "positions");
         }
     }
 
@@ -1562,13 +1562,13 @@ public partial class woo : ccxt.woo
         object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
         IDictionary<string, object> rawPositions = this.safeDict(data, "positions", new Dictionary<string, object>() {});
         List<object> postitionsIds = new List<object>(((IDictionary<string,object>)rawPositions).Keys);
-        if (isTrue(isEqual(this.positions, null)))
+        if (isEqual(this.positions, null))
         {
             this.positions = new ArrayCacheBySymbolBySide();
         }
         object cache = this.positions;
         List<object> newPositions = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(postitionsIds)); postFixIncrement(ref i))
+        for (int i = 0; i < postitionsIds.Count; postFixIncrement(ref i))
         {
             string? marketId = ((string)getValue(postitionsIds, i));
             Dictionary<string, object> market = this.safeMarket(marketId);
@@ -1577,9 +1577,9 @@ public partial class woo : ccxt.woo
             ((IList<object>)newPositions).Add(position);
             callDynamically(cache, "append", new object[] {position});
             string messageHash = add("positions::", getValue(market, "symbol"));
-            callDynamically(client as WebSocketClient, "resolve", new object[] {position, messageHash});
+            (client as WebSocketClient).resolve(position, messageHash);
         }
-        callDynamically(client as WebSocketClient, "resolve", new object[] {newPositions, "positions"});
+        (client as WebSocketClient).resolve(newPositions, "positions");
     }
 
     /**
@@ -1593,7 +1593,7 @@ public partial class woo : ccxt.woo
     public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -1644,13 +1644,13 @@ public partial class woo : ccxt.woo
         ((IDictionary<string,object>)this.balance)["info"] = data;
         ((IDictionary<string,object>)this.balance)["timestamp"] = ts;
         ((IDictionary<string,object>)this.balance)["datetime"] = this.iso8601(ts);
-        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
         {
             string? key = ((string)getValue(keys, i));
             object value = getValue(balances, key);
             string? code = this.safeCurrencyCode(key);
             object account = this.account();
-            if (isTrue(isTrue((!isEqual(code, null))) && isTrue((inOp(this.balance, code)))))
+            if (((code != null)) && (inOp(this.balance, code)))
             {
                 account = getValue(this.balance, code);
             }
@@ -1659,13 +1659,13 @@ public partial class woo : ccxt.woo
             ((IDictionary<string,object>)account)["total"] = total;
             ((IDictionary<string,object>)account)["used"] = used;
             ((IDictionary<string,object>)account)["free"] = Precise.stringSub(total, used);
-            if (isTrue(!isEqual(code, null)))
+            if ((code != null))
             {
                 ((IDictionary<string,object>)this.balance)[(string)code] = account;
             }
         }
         this.balance = this.safeBalance(this.balance);
-        callDynamically(client as WebSocketClient, "resolve", new object[] {this.balance, "balance"});
+        (client as WebSocketClient).resolve(this.balance, "balance");
     }
 
     /**
@@ -1681,7 +1681,7 @@ public partial class woo : ccxt.woo
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -1712,12 +1712,12 @@ public partial class woo : ccxt.woo
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         object fundingRate = this.parseFundingRate(data);
         object symbol = getValue(fundingRate, "symbol");
-        if (isTrue(!isEqual(symbol, null)))
+        if ((symbol != null))
         {
             ((IDictionary<string,object>)this.fundingRates)[(string)symbol] = fundingRate;
         }
         string? messageHash = this.safeString(message, "topic");
-        callDynamically(client as WebSocketClient, "resolve", new object[] {fundingRate, messageHash});
+        (client as WebSocketClient).resolve(fundingRate, messageHash);
     }
 
     public virtual bool? handleErrorMessage(WebSocketClient client, object message)
@@ -1725,21 +1725,21 @@ public partial class woo : ccxt.woo
         //
         // {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
         //
-        if (!isTrue((inOp(message, "success"))))
+        if (!(inOp(message, "success")))
         {
             return ((bool?)((object)(false)));
         }
         bool? success = this.safeBool(message, "success");
-        if (isTrue(isEqual(success, true)))
+        if ((success == true))
         {
             return ((bool?)((object)(false)));
         }
         string? errorMessage = this.safeString(message, "errorMsg");
         try
         {
-            if (isTrue(!isEqual(errorMessage, null)))
+            if ((errorMessage != null))
             {
-                string feedback = add(add(this.id, " "), this.json(message));
+                string feedback = ((this.id + " ") + this.json(message));
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorMessage, feedback);
             }
             return ((bool?)((object)(false)));
@@ -1749,7 +1749,7 @@ public partial class woo : ccxt.woo
             {
                 string messageHash = "authenticated";
                 ((WebSocketClient)client).reject(error, messageHash);
-                if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
+                if (inOp(((WebSocketClient)client).subscriptions, messageHash))
                 {
                     ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
                 }
@@ -1773,11 +1773,11 @@ public partial class woo : ccxt.woo
         //     }
         //
         string? subscribeHash = this.safeString(message, "data");
-        string unsubscribeHash = add("unsubscribe::", subscribeHash);
+        string unsubscribeHash = ("unsubscribe::" + subscribeHash);
         IDictionary<string, object> subscription = this.safeDict(((WebSocketClient)client).subscriptions, unsubscribeHash, new Dictionary<string, object>() {});
         List<object> subMessageHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});
         List<object> unsubMessageHashes = this.safeList(subscription, "unsubMessageHashes", new List<object>() {});
-        for (int i = 0; isLessThan(i, getArrayLength(subMessageHashes)); postFixIncrement(ref i))
+        for (int i = 0; i < subMessageHashes.Count; postFixIncrement(ref i))
         {
             object subHash = getValue(subMessageHashes, i);
             object unsubHash = getValue(unsubMessageHashes, i);
@@ -1788,7 +1788,7 @@ public partial class woo : ccxt.woo
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        if (isTrue(isEqual(this.handleErrorMessage(client as WebSocketClient, message), true)))
+        if (isEqual(this.handleErrorMessage(client as WebSocketClient, message), true))
         {
             return;
         }
@@ -1813,41 +1813,41 @@ public partial class woo : ccxt.woo
         };
         string? eventVar = this.safeString(message, "event");
         object method = this.safeValue(methods, eventVar);
-        if (isTrue(!isEqual(method, null)))
+        if ((method != null))
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, message});
             return;
         }
         string? topic = this.safeString(message, "topic");
-        if (isTrue(!isEqual(topic, null)))
+        if ((topic != null))
         {
             method = this.safeValue(methods, topic);
-            if (isTrue(!isEqual(method, null)))
+            if ((method != null))
             {
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});
                 return;
             }
             List<object> splitTopic = ((string)topic).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
-            int splitLength = getArrayLength(splitTopic);
-            if (isTrue(isEqual(splitLength, 2)))
+            int splitLength = splitTopic.Count;
+            if ((splitLength == 2))
             {
                 string? name = this.safeString(splitTopic, 1);
-                if (isTrue(isEqual(name, null)))
+                if ((name == null))
                 {
                     return;
                 }
                 method = this.safeValue(methods, name);
-                if (isTrue(!isEqual(method, null)))
+                if ((method != null))
                 {
                     DynamicInvoker.InvokeMethod(method, new object[] { client, message});
                     return;
                 }
                 List<object> splitName = ((string)name).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
-                int splitNameLength = getArrayLength(splitTopic);
-                if (isTrue(isEqual(splitNameLength, 2)))
+                int splitNameLength = splitTopic.Count;
+                if ((splitNameLength == 2))
                 {
                     method = this.safeValue(methods, this.safeString(splitName, 0));
-                    if (isTrue(!isEqual(method, null)))
+                    if ((method != null))
                     {
                         DynamicInvoker.InvokeMethod(method, new object[] { client, message});
                     }
@@ -1898,7 +1898,7 @@ public partial class woo : ccxt.woo
         Dictionary<string, object> subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
         object subscription = this.safeValue(subscriptionsById, id, new Dictionary<string, object>() {});
         object method = this.safeValue(subscription, "method");
-        if (isTrue(!isEqual(method, null)))
+        if ((method != null))
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, message, subscription});
         }
@@ -1916,7 +1916,7 @@ public partial class woo : ccxt.woo
         //
         string messageHash = "authenticated";
         object success = this.safeValue(message, "success");
-        if (isTrue(isEqual(success, true)))
+        if (isEqual(success, true))
         {
             // client.resolve (message, messageHash);
             Future future = ((Future)this.safeValue((client as WebSocketClient).futures, "authenticated"));
@@ -1926,7 +1926,7 @@ public partial class woo : ccxt.woo
             var error = new AuthenticationError(this.json(message));
             ((WebSocketClient)client).reject(error, messageHash);
             // allows further authentication attempts
-            if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
+            if (inOp(((WebSocketClient)client).subscriptions, messageHash))
             {
                 ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)"authenticated");
             }

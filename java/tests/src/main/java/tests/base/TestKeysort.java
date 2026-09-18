@@ -18,7 +18,7 @@ public class TestKeysort extends BaseTest
                 put( "id", "sampleexchange" );
             }});
             // temporarily disable, as this test doesn't make sense in lib (bcz of GO) // todo: do something
-            if (Helpers.isTrue(Helpers.isGreaterThan(exchange.milliseconds(), 0)))
+            if (Helpers.isGreaterThan(exchange.milliseconds(), 0))
             {
                 return;
             }

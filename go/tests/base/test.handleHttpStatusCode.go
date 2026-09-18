@@ -180,6 +180,6 @@ func TestHandleHttpStatusCode() {
 	var skip any = exchange.HandleErrors(406, "Not Acceptable", "url", "GET", map[string]any{}, "{\"success\":false}", map[string]any{
 		"success": false,
 	}, map[string]any{}, "")
-	assert(ccxt.IsEqual(skip, nil), "the base handleErrors stub should return undefined")
+	assert((skip == nil), "the base handleErrors stub should return undefined")
 	exchange.HandleHttpStatusCode(406, "Not Acceptable", "url", "GET", "{\"success\":false}")
 }

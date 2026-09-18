@@ -14,7 +14,7 @@ pub fn testAggregate() {
             m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
         m
     }));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_greater_than(&exchange.milliseconds(), &Value::Int(0))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.milliseconds().as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));
     // @SKIP_START_GO
     let mut bids: Value = Value::List(vec![Value::List(vec![Value::Float(789.1), Value::Float(111.05)]), Value::List(vec![Value::Float(789.1), Value::Float(111.05)]), Value::List(vec![Value::Float(123.3), Value::Float(456.2)]), Value::List(vec![Value::Float(784.2), Value::Float(111.05)]), Value::List(vec![Value::Float(789.1), Value::Float(111.05)])]);
     let mut expectedBids: Value = Value::List(vec![Value::List(vec![Value::Float(123.3), Value::Float(456.2)]), Value::List(vec![Value::Float(784.2), Value::Float(111.05)]), Value::List(vec![Value::Float(789.1), Value::Float(333.15)])]);

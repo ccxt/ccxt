@@ -20,6 +20,6 @@ public partial class BaseTest
             };
             string expected = "v2/watchlists/1m/BTC/USDT";
             string? result = exchange.implodeParams(path, parameters);
-            Assert(isEqual(result, expected), add(add(add("implodeParams did not produce the expected result: ", result), " != "), expected));
+            Assert(isEqual(result, expected), ((("implodeParams did not produce the expected result: " + result) + " != ") + expected));
         }
 }

@@ -392,7 +392,7 @@ public partial class p2b : Exchange
         string? maxPrice = this.safeString(limits, "max_price");
         return ccxt.BaseExchange.ToDict(new Dictionary<string, object>() {
             { "id", marketId },
-            { "symbol", add(add(bs, "/"), quote) },
+            { "symbol", ((bs + "/") + quote) },
             { "base", bs },
             { "quote", quote },
             { "settle", null },
@@ -453,7 +453,7 @@ public partial class p2b : Exchange
     public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -499,7 +499,7 @@ public partial class p2b : Exchange
     public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -567,7 +567,7 @@ public partial class p2b : Exchange
         //    }
         //
         Int64? timestamp = this.safeIntegerProduct(ticker, "at", 1000);
-        if (isTrue(inOp(ticker, "ticker")))
+        if (inOp(ticker, "ticker"))
         {
             ticker = this.safeValue(ticker, "ticker");
         }
@@ -612,7 +612,7 @@ public partial class p2b : Exchange
     public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -620,7 +620,7 @@ public partial class p2b : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
         };
-        if (isTrue(!isEqual(limit, null)))
+        if (!isEqual(limit, null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -670,21 +670,21 @@ public partial class p2b : Exchange
     public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         Int64? lastId = this.safeInteger(parameters, "lastId");
-        if (isTrue(isEqual(lastId, null)))
+        if (isEqual(lastId, null))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " fetchTrades () requires an extra parameter params[\"lastId\"]")) ;
+            throw new ArgumentsRequired ((string)(this.id + " fetchTrades () requires an extra parameter params[\"lastId\"]")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
             { "lastId", lastId },
         };
-        if (isTrue(!isEqual(limit, null)))
+        if (!isEqual(limit, null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -756,10 +756,10 @@ public partial class p2b : Exchange
         //
         object timestamp = this.safeIntegerProduct2(trade, "time", "deal_time", 1000);
         string? takerOrMaker = this.safeString(trade, "role");
-        if (isTrue(isEqual(takerOrMaker, "1")))
+        if (isEqual(takerOrMaker, "1"))
         {
             takerOrMaker = "maker";
-        } else if (isTrue(isEqual(takerOrMaker, "2")))
+        } else if (isEqual(takerOrMaker, "2"))
         {
             takerOrMaker = "taker";
         }
@@ -801,7 +801,7 @@ public partial class p2b : Exchange
         object timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -810,7 +810,7 @@ public partial class p2b : Exchange
             { "market", getValue(market, "id") },
             { "interval", timeframeVar },
         };
-        if (isTrue(!isEqual(limit, null)))
+        if (!isEqual(limit, null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -869,7 +869,7 @@ public partial class p2b : Exchange
     public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -913,7 +913,7 @@ public partial class p2b : Exchange
             { "info", response },
         };
         List<object> keys = new List<object>(((IDictionary<string,object>)response).Keys);
-        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
         {
             string? currencyId = ((string)getValue(keys, i));
             object balance = getValue(response, currencyId);
@@ -945,13 +945,13 @@ public partial class p2b : Exchange
     public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
-        if (isTrue(isEqual(type, "market")))
+        if (isEqual(type, "market"))
         {
-            throw new BadRequest ((string)add(this.id, " createOrder () can only accept orders with type \"limit\"")) ;
+            throw new BadRequest ((string)(this.id + " createOrder () can only accept orders with type \"limit\"")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1000,11 +1000,11 @@ public partial class p2b : Exchange
     public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(symbol, null)))
+        if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((string)(this.id + " cancelOrder() requires a symbol argument")) ;
         }
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -1057,11 +1057,11 @@ public partial class p2b : Exchange
     public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(symbol, null)))
+        if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " fetchOpenOrders () requires the symbol argument")) ;
+            throw new ArgumentsRequired ((string)(this.id + " fetchOpenOrders () requires the symbol argument")) ;
         }
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -1069,7 +1069,7 @@ public partial class p2b : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
         };
-        if (isTrue(!isEqual(limit, null)))
+        if (!isEqual(limit, null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -1121,7 +1121,7 @@ public partial class p2b : Exchange
     public async override Task<List<ccxt.Trade>> FetchOrderTrades(string id, string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -1129,7 +1129,7 @@ public partial class p2b : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "orderId", id },
         };
-        if (isTrue(!isEqual(limit, null)))
+        if (!isEqual(limit, null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -1181,19 +1181,19 @@ public partial class p2b : Exchange
     {
         object sinceVar = since;
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(symbol, null)))
+        if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " fetchMyTrades() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((string)(this.id + " fetchMyTrades() requires a symbol argument")) ;
         }
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         object until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, "until");
-        if (isTrue(isEqual(until, null)))
+        if (isEqual(until, null))
         {
-            if (isTrue(isEqual(sinceVar, null)))
+            if (isEqual(sinceVar, null))
             {
                 until = this.milliseconds();
             } else
@@ -1201,13 +1201,13 @@ public partial class p2b : Exchange
                 until = add(sinceVar, 86400000);
             }
         }
-        if (isTrue(isEqual(sinceVar, null)))
+        if (isEqual(sinceVar, null))
         {
             sinceVar = subtract(until, 86400000);
         }
-        if (isTrue(isGreaterThan((subtract(until, sinceVar)), 86400000)))
+        if (isGreaterThan((subtract(until, sinceVar)), 86400000))
         {
-            throw new BadRequest ((string)add(this.id, " fetchMyTrades () the time between since and params[\"until\"] cannot be greater than 24 hours")) ;
+            throw new BadRequest ((string)(this.id + " fetchMyTrades () the time between since and params[\"until\"] cannot be greater than 24 hours")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         Int64? sinceSec = this.parseToInt(divide(sinceVar, 1000));
@@ -1217,7 +1217,7 @@ public partial class p2b : Exchange
             { "startTime", sinceSec },
             { "endTime", untilSec },
         };
-        if (isTrue(!isEqual(limit, null)))
+        if (!isEqual(limit, null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -1272,20 +1272,20 @@ public partial class p2b : Exchange
     {
         object sinceVar = since;
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         object until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, "until");
         IDictionary<string, object> market = null;
-        if (isTrue(!isEqual(symbol, null)))
+        if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
         }
-        if (isTrue(isEqual(until, null)))
+        if (isEqual(until, null))
         {
-            if (isTrue(isEqual(sinceVar, null)))
+            if (isEqual(sinceVar, null))
             {
                 until = this.milliseconds();
             } else
@@ -1293,13 +1293,13 @@ public partial class p2b : Exchange
                 until = add(sinceVar, 86400000);
             }
         }
-        if (isTrue(isEqual(sinceVar, null)))
+        if (isEqual(sinceVar, null))
         {
             sinceVar = subtract(until, 86400000);
         }
-        if (isTrue(isGreaterThan((subtract(until, sinceVar)), 86400000)))
+        if (isGreaterThan((subtract(until, sinceVar)), 86400000))
         {
-            throw new BadRequest ((string)add(this.id, " fetchClosedOrders () the time between since and params[\"until\"] cannot be greater than 24 hours")) ;
+            throw new BadRequest ((string)(this.id + " fetchClosedOrders () the time between since and params[\"until\"] cannot be greater than 24 hours")) ;
         }
         Int64? sinceSec = this.parseToInt(divide(sinceVar, 1000));
         Int64? untilSec = this.parseToInt(divide(until, 1000));
@@ -1307,11 +1307,11 @@ public partial class p2b : Exchange
             { "startTime", sinceSec },
             { "endTime", untilSec },
         };
-        if (isTrue(!isEqual(market, null)))
+        if ((market != null))
         {
             ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
         }
-        if (isTrue(!isEqual(limit, null)))
+        if (!isEqual(limit, null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
@@ -1345,7 +1345,7 @@ public partial class p2b : Exchange
         object result = this.safeValue(response, "result");
         List<object> orders = new List<object>() {};
         List<object> keys = new List<object>(((IDictionary<string,object>)result).Keys);
-        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
         {
             string? marketId = ((string)getValue(keys, i));
             object marketOrders = getValue(result, marketId);
@@ -1432,14 +1432,14 @@ public partial class p2b : Exchange
         parameters ??= new Dictionary<string, object>();
         object url = add(add(getValue(getValue(this.urls, "api"), api), "/"), this.implodeParams(path, parameters));
         parameters = this.omit(parameters, this.extractParams(path));
-        if (isTrue(isEqual(method, "GET")))
+        if (isEqual(method, "GET"))
         {
-            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))
+            if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
-                url = add(url, add("?", this.urlencode(parameters)));
+                url = add(url, ("?" + this.urlencode(parameters)));
             }
         }
-        if (isTrue(isEqual(api, "private")))
+        if (isEqual(api, "private"))
         {
             ((IDictionary<string,object>)parameters)["request"] = add("/api/v2/", path);
             ((IDictionary<string,object>)parameters)["nonce"] = ((object)this.nonce()).ToString();
@@ -1462,7 +1462,7 @@ public partial class p2b : Exchange
 
     public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
     {
-        if (isTrue(isEqual(response, null)))
+        if (isEqual(response, null))
         {
             return null;
         }
@@ -1472,13 +1472,13 @@ public partial class p2b : Exchange
         //     {"success":true,"errorCode":"","message":"","result":{...},"cache_time":1787611797.535462,"current_time":1787611797.535973}
         //
         bool? success = this.safeBool(response, "success", true);
-        if (isTrue(!isEqual(success, true)))
+        if ((success != true))
         {
             string? errorCode = this.safeString(response, "errorCode");
-            string feedback = add(add(this.id, " "), body);
+            string feedback = add((this.id + " "), body);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
             string codeAsString = ((object)code).ToString();
-            if (isTrue(isTrue((isLessThan(code, 400))) || !isTrue((inOp(this.httpExceptions, codeAsString)))))
+            if ((isLessThan(code, 400)) || !(this.httpExceptions.ContainsKey(codeAsString)))
             {
                 throw new ExchangeError ((string)feedback) ;
             }

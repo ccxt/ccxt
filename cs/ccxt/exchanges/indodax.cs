@@ -403,7 +403,7 @@ public partial class indodax : Exchange
         //
         List<object> result = new List<object>() {};
         IList<object> rawMarkets = this.toArray(response);
-        for (int i = 0; isLessThan(i, getArrayLength(rawMarkets)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(rawMarkets); postFixIncrement(ref i))
         {
             object market = getValue(rawMarkets, i);
             string? id = this.safeString(market, "id");
@@ -412,7 +412,7 @@ public partial class indodax : Exchange
             object bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
             Int64? isMaintenance = this.safeInteger(market, "is_maintenance");
-            bool inMaintenance = isTrue((!isEqual(isMaintenance, null))) && isTrue((!isEqual(isMaintenance, 0)));
+            bool inMaintenance = (!isEqual(isMaintenance, null)) && ((isMaintenance != 0));
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", add(add(bs, "/"), quote) },
@@ -428,7 +428,7 @@ public partial class indodax : Exchange
                 { "swap", false },
                 { "future", false },
                 { "option", false },
-                { "active", ((bool) isTrue(inMaintenance)) ? false : true },
+                { "active", ((bool) inMaintenance) ? false : true },
                 { "contract", false },
                 { "linear", null },
                 { "inverse", null },
@@ -481,14 +481,14 @@ public partial class indodax : Exchange
             { "datetime", this.iso8601(timestamp) },
         };
         List<object> currencyIds = new List<object>(((IDictionary<string,object>)free).Keys);
-        for (int i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
+        for (int i = 0; i < currencyIds.Count; postFixIncrement(ref i))
         {
             string? currencyId = ((string)getValue(currencyIds, i));
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(free, currencyId);
             ((IDictionary<string,object>)account)["used"] = this.safeString(used, currencyId);
-            if (isTrue(!isEqual(code, null)))
+            if ((code != null))
             {
                 ((IDictionary<string,object>)result)[(string)code] = account;
             }
@@ -507,7 +507,7 @@ public partial class indodax : Exchange
     public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -558,7 +558,7 @@ public partial class indodax : Exchange
     public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -586,8 +586,8 @@ public partial class indodax : Exchange
         //
         string? symbol = this.safeSymbol(null, market);
         object timestamp = this.safeTimestamp(ticker, "server_time");
-        string baseVolume = add("vol_", this.safeStringLower(market, "baseId"));
-        string quoteVolume = add("vol_", this.safeStringLower(market, "quoteId"));
+        string baseVolume = ("vol_" + this.safeStringLower(market, "baseId"));
+        string quoteVolume = ("vol_" + this.safeStringLower(market, "quoteId"));
         string? last = this.safeString(ticker, "last");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
@@ -625,7 +625,7 @@ public partial class indodax : Exchange
     public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -664,7 +664,7 @@ public partial class indodax : Exchange
     public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -688,7 +688,7 @@ public partial class indodax : Exchange
         IDictionary<string, object> tickers = this.safeDict(response, "tickers", new Dictionary<string, object>() {});
         List<object> keys = new List<object>(((IDictionary<string,object>)tickers).Keys);
         Dictionary<string, object> parsedTickers = new Dictionary<string, object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; i < keys.Count; postFixIncrement(ref i))
         {
             string? key = ((string)getValue(keys, i));
             object rawTicker = getValue(tickers, key);
@@ -734,7 +734,7 @@ public partial class indodax : Exchange
     public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -779,7 +779,7 @@ public partial class indodax : Exchange
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -793,11 +793,11 @@ public partial class indodax : Exchange
             { "tf", selectedTimeframe },
             { "symbol", getValue(market, "id") },
         };
-        if (isTrue(isEqual(limitVar, null)))
+        if (isEqual(limitVar, null))
         {
             limitVar = 1000;
         }
-        if (isTrue(!isEqual(since, null)))
+        if (!isEqual(since, null))
         {
             ((IDictionary<string,object>)request)["from"] = (Math.Floor(Double.Parse((divide(since, 1000)).ToString())));
         } else
@@ -875,9 +875,9 @@ public partial class indodax : Exchange
         //    }
         //
         object side = null;
-        if (isTrue(inOp(order, "type")))
+        if (inOp(order, "type"))
         {
-            side = getValue(order, "type");
+            side = ((IDictionary<string,object>)order)["type"];
         }
         string? status = this.parseOrderStatus(this.safeString(order, "status", "open"));
         object symbol = null;
@@ -888,16 +888,16 @@ public partial class indodax : Exchange
         string? filled = null;
         string? marketId = this.safeString(order, "pair");
         market = this.safeMarket(marketId, market);
-        if (isTrue(!isEqual(market, null)))
+        if (!isEqual(market, null))
         {
             symbol = getValue(market, "symbol");
             object quoteId = getValue(market, "quoteId");
             object baseId = getValue(market, "baseId");
-            if (isTrue(isTrue((isEqual(getValue(market, "quoteId"), "idr"))) && isTrue((inOp(order, "order_rp")))))
+            if ((isEqual(getValue(market, "quoteId"), "idr")) && (inOp(order, "order_rp")))
             {
                 quoteId = "rp";
             }
-            if (isTrue(isTrue((isEqual(getValue(market, "baseId"), "idr"))) && isTrue((inOp(order, "remain_rp")))))
+            if ((isEqual(getValue(market, "baseId"), "idr")) && (inOp(order, "remain_rp")))
             {
                 baseId = "rp";
             }
@@ -949,11 +949,11 @@ public partial class indodax : Exchange
     public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(symbol, null)))
+        if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " fetchOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((string)(this.id + " fetchOrder() requires a symbol argument")) ;
         }
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -985,13 +985,13 @@ public partial class indodax : Exchange
     public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (isTrue(!isEqual(symbol, null)))
+        if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["pair"] = getValue(market, "id");
@@ -1000,19 +1000,19 @@ public partial class indodax : Exchange
         IDictionary<string, object> openOrdersResult = this.safeDict(response, "return", new Dictionary<string, object>() {});
         object rawOrders = getValue(openOrdersResult, "orders");
         // { success: 1, return: { orders: null }} if no orders
-        if (isTrue(isTrue((isEqual(rawOrders, null))) || isTrue((isEqual(rawOrders, null)))))
+        if (((rawOrders == null)) || ((rawOrders == null)))
         {
             return ccxt.BaseExchange.ToOrderList(new List<object>() {});
         }
         // { success: 1, return: { orders: [ ... objects ] }} for orders fetched by symbol
-        if (isTrue(!isEqual(symbol, null)))
+        if (!isEqual(symbol, null))
         {
             return ccxt.BaseExchange.ToOrderList(this.parseOrders(rawOrders, market, since, limit));
         }
         // { success: 1, return: { orders: { marketid: [ ... objects ] }}} if all orders are fetched
         List<object> marketIds = new List<object>(((IDictionary<string,object>)rawOrders).Keys);
         List<object> exchangeOrders = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+        for (int i = 0; i < marketIds.Count; postFixIncrement(ref i))
         {
             string? marketId = ((string)getValue(marketIds, i));
             object marketOrders = getValue(rawOrders, marketId);
@@ -1037,11 +1037,11 @@ public partial class indodax : Exchange
     public async override Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(symbol, null)))
+        if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " fetchClosedOrders() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((string)(this.id + " fetchClosedOrders() requires a symbol argument")) ;
         }
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -1072,7 +1072,7 @@ public partial class indodax : Exchange
     public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -1084,21 +1084,21 @@ public partial class indodax : Exchange
         };
         bool priceIsRequired = false;
         bool quantityIsRequired = false;
-        if (isTrue(isEqual(type, "market")))
+        if (isEqual(type, "market"))
         {
-            if (isTrue(isEqual(side, "buy")))
+            if (isEqual(side, "buy"))
             {
                 string? quoteAmount = null;
                 double? cost = this.safeNumber(parameters, "cost");
                 parameters = this.omit(parameters, "cost");
-                if (isTrue(!isEqual(cost, null)))
+                if (!isEqual(cost, null))
                 {
                     quoteAmount = this.costToPrecision(symbol, cost);
                 } else
                 {
-                    if (isTrue(isEqual(price, null)))
+                    if (isEqual(price, null))
                     {
-                        throw new InvalidOrder ((string)add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price).")) ;
+                        throw new InvalidOrder ((string)(this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price).")) ;
                     }
                     string? amountString = this.numberToString(amount);
                     string? priceString = this.numberToString(price);
@@ -1110,24 +1110,24 @@ public partial class indodax : Exchange
             {
                 quantityIsRequired = true;
             }
-        } else if (isTrue(isEqual(type, "limit")))
+        } else if (isEqual(type, "limit"))
         {
             priceIsRequired = true;
             quantityIsRequired = true;
-            if (isTrue(isEqual(side, "buy")))
+            if (isEqual(side, "buy"))
             {
                 ((IDictionary<string,object>)request)[(string)((string)getValue(market, "quoteId"))] = this.parseToNumeric(this.costToPrecision(symbol, Precise.stringMul(this.numberToString(amount), this.numberToString(price))));
             }
         }
-        if (isTrue(priceIsRequired))
+        if (priceIsRequired)
         {
-            if (isTrue(isEqual(price, null)))
+            if (isEqual(price, null))
             {
-                throw new InvalidOrder ((string)add(add(add(this.id, " createOrder() requires a price argument for a "), type), " order")) ;
+                throw new InvalidOrder ((string)(add((this.id + " createOrder() requires a price argument for a "), type) + " order")) ;
             }
             ((IDictionary<string,object>)request)["price"] = price;
         }
-        if (isTrue(quantityIsRequired))
+        if (quantityIsRequired)
         {
             ((IDictionary<string,object>)request)[(string)((string)getValue(market, "baseId"))] = this.amountToPrecision(symbol, amount);
         }
@@ -1150,16 +1150,16 @@ public partial class indodax : Exchange
     public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(symbol, null)))
+        if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((string)(this.id + " cancelOrder() requires a symbol argument")) ;
         }
         object side = this.safeValue(parameters, "side");
-        if (isTrue(isEqual(side, null)))
+        if ((side == null))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires an extra \"side\" param")) ;
+            throw new ArgumentsRequired ((string)(this.id + " cancelOrder() requires an extra \"side\" param")) ;
         }
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -1205,7 +1205,7 @@ public partial class indodax : Exchange
     public async override Task<Dictionary<string, object>> FetchTransactionFee(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -1280,12 +1280,12 @@ public partial class indodax : Exchange
     public async override Task<List<ccxt.Transaction>> FetchDepositsWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (isTrue(!isEqual(since, null)))
+        if (!isEqual(since, null))
         {
             string startTime = this.yyyymmdd(since);
             ((IDictionary<string,object>)request)["start"] = startTime;
@@ -1354,16 +1354,16 @@ public partial class indodax : Exchange
         IDictionary<string, object> deposit = this.safeDict(data, "deposit", new Dictionary<string, object>() {});
         List<object> transactions = new List<object>() {};
         IDictionary<string, object> currency = null;
-        if (isTrue(isEqual(code, null)))
+        if (isEqual(code, null))
         {
             List<object> keys = new List<object>(((IDictionary<string,object>)withdraw).Keys);
-            for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+            for (int i = 0; i < keys.Count; postFixIncrement(ref i))
             {
                 object key = getValue(keys, i);
                 transactions = this.arrayConcat(transactions, getValue(withdraw, key));
             }
             keys = new List<object>(((IDictionary<string,object>)deposit).Keys);
-            for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+            for (int i = 0; i < keys.Count; postFixIncrement(ref i))
             {
                 object key = getValue(keys, i);
                 transactions = this.arrayConcat(transactions, getValue(deposit, key));
@@ -1398,7 +1398,7 @@ public partial class indodax : Exchange
         tagVar = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
         this.checkAddress(address);
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -1416,7 +1416,7 @@ public partial class indodax : Exchange
             { "withdraw_address", address },
             { "request_id", ((object)requestId).ToString() },
         };
-        if (isTrue(isTrue((!isEqual(tagVar, null))) && isTrue((!isEqual(tagVar, "")))))
+        if ((!isEqual(tagVar, null)) && (!isEqual(tagVar, "")))
         {
             ((IDictionary<string,object>)request)["withdraw_memo"] = tagVar;
         }
@@ -1487,7 +1487,7 @@ public partial class indodax : Exchange
         string? depositId = this.safeString(transaction, "deposit_id");
         double? feeCost = this.safeNumber(transaction, "fee");
         Dictionary<string, object> fee = null;
-        if (isTrue(!isEqual(feeCost, null)))
+        if (!isEqual(feeCost, null))
         {
             fee = new Dictionary<string, object>() {
                 { "currency", this.safeCurrencyCode(null, currency) },
@@ -1505,7 +1505,7 @@ public partial class indodax : Exchange
             { "address", this.safeString(transaction, "withdraw_address") },
             { "addressTo", null },
             { "amount", this.safeNumberN(transaction, new List<object>() {"amount", "withdraw_amount", "deposit_amount"}) },
-            { "type", ((bool) isTrue((isEqual(depositId, null)))) ? "withdraw" : "deposit" },
+            { "type", ((bool) ((depositId == null))) ? "withdraw" : "deposit" },
             { "currency", this.safeCurrencyCode(null, currency) },
             { "status", this.parseTransactionStatus(status) },
             { "updated", null },
@@ -1539,7 +1539,7 @@ public partial class indodax : Exchange
     public async override Task<List<ccxt.DepositAddress>> FetchDepositAddresses(object codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -1586,34 +1586,34 @@ public partial class indodax : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", data },
         };
-        for (int i = 0; isLessThan(i, getArrayLength(addressKeys)); postFixIncrement(ref i))
+        for (int i = 0; i < addressKeys.Count; postFixIncrement(ref i))
         {
             string? marketId = ((string)getValue(addressKeys, i));
             string? code = this.safeCurrencyCode(marketId);
             string? address = this.safeString(addresses, marketId);
-            if (isTrue(isTrue((!isEqual(address, null))) && isTrue((isTrue((isEqual(codes, null))) || isTrue((this.inArray(code, codes)))))))
+            if (((address != null)) && ((isEqual(codes, null)) || (this.inArray(code, codes))))
             {
                 this.checkAddress(address);
                 object network = null;
-                if (isTrue(inOp(networks, marketId)))
+                if (inOp(networks, marketId))
                 {
                     string? networkId = this.safeString(networks, marketId);
-                    if (isTrue(isEqual(networkId, null)))
+                    if ((networkId == null))
                     {
-                        throw new ExchangeError ((string)add(this.id, " fetchDepositAddresses() missing networkId")) ;
+                        throw new ExchangeError ((string)(this.id + " fetchDepositAddresses() missing networkId")) ;
                     }
-                    if (isTrue(isGreaterThanOrEqual(getIndexOf(networkId, ","), 0)))
+                    if (getIndexOf(networkId, ",") >= 0)
                     {
                         network = new List<object>() {};
-                        if (isTrue(isEqual(networkId, null)))
+                        if ((networkId == null))
                         {
-                            throw new ExchangeError ((string)add(this.id, " fetchDepositAddresses() missing networkId")) ;
+                            throw new ExchangeError ((string)(this.id + " fetchDepositAddresses() missing networkId")) ;
                         }
                         List<object> networkIds = ((string)networkId).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
-                        for (int j = 0; isLessThan(j, getArrayLength(networkIds)); postFixIncrement(ref j))
+                        for (int j = 0; j < networkIds.Count; postFixIncrement(ref j))
                         {
                             object _netIdTmp = this.networkIdToCode(getValue(networkIds, j), code);
-                            if (isTrue(!isEqual(_netIdTmp, null)))
+                            if ((_netIdTmp != null))
                             {
                                 ((IList<object>)network).Add(((string)_netIdTmp).ToUpper());
                             }
@@ -1621,14 +1621,14 @@ public partial class indodax : Exchange
                     } else
                     {
                         object _netIdTmp = this.networkIdToCode(networkId, code);
-                        if (isTrue(!isEqual(_netIdTmp, null)))
+                        if ((_netIdTmp != null))
                         {
                             network = ((string)_netIdTmp).ToUpper();
                         }
                     }
                 }
                 object finalNetwork = network; // java req
-                if (isTrue(!isEqual(code, null)))
+                if ((code != null))
                 {
                     ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
                         { "info", new Dictionary<string, object>() {} },
@@ -1649,14 +1649,14 @@ public partial class indodax : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object url = getValue(getValue(this.urls, "api"), api);
-        if (isTrue(isEqual(api, "public")))
+        if (isEqual(api, "public"))
         {
             object query = this.omit(parameters, this.extractParams(path));
-            string requestPath = add("/", this.implodeParams(path, parameters));
+            string requestPath = ("/" + this.implodeParams(path, parameters));
             url = add(url, requestPath);
-            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
+            if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                url = add(url, add("?", this.urlencodeWithArrayRepeat(query)));
+                url = add(url, ("?" + this.urlencodeWithArrayRepeat(query)));
             }
         } else
         {
@@ -1682,7 +1682,7 @@ public partial class indodax : Exchange
 
     public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
     {
-        if (isTrue(isEqual(response, null)))
+        if (isEqual(response, null))
         {
             return null;
         }
@@ -1690,32 +1690,32 @@ public partial class indodax : Exchange
         // or
         // [{ data, ... }, { ... }, ... ]
         // {"success":"1","status":"approved","withdraw_currency":"strm","withdraw_address":"0x2b9A8cd5535D99b419aEfFBF1ae8D90a7eBdb24E","withdraw_amount":"2165.05767839","fee":"21.11000000","amount_after_fee":"2143.94767839","submit_time":"1730759489","withdraw_id":"strm-3423","txid":""}
-        if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             return null;  // public endpoints may return []-arrays
         }
         object error = this.safeValue(response, "error", "");
-        if (isTrue(!isTrue((inOp(response, "success"))) && isTrue(isEqual(error, ""))))
+        if (!(inOp(response, "success")) && isEqual(error, ""))
         {
             return null;  // no 'success' property on public responses
         }
         string? status = this.safeString(response, "success");
-        if (isTrue(isEqual(status, "approved")))
+        if ((status == "approved"))
         {
             return null;
         }
-        if (isTrue(isEqual(this.safeInteger(response, "success", 0), 1)))
+        if ((this.safeInteger(response, "success", 0) == 1))
         {
             // { success: 1, return: { orders: [] }}
-            if (!isTrue((inOp(response, "return"))))
+            if (!(inOp(response, "return")))
             {
-                throw new ExchangeError ((string)add(add(this.id, ": malformed response: "), this.json(response))) ;
+                throw new ExchangeError ((string)((this.id + ": malformed response: ") + this.json(response))) ;
             } else
             {
                 return null;
             }
         }
-        string feedback = add(add(this.id, " "), body);
+        string feedback = add((this.id + " "), body);
         this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), error, feedback);
         this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), error, feedback);
         throw new ExchangeError ((string)feedback) ;

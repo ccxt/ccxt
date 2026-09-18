@@ -6,6 +6,7 @@ import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -29,11 +30,11 @@ public class TestFetchLeverageTiers extends BaseTest {
         TestSharedMethods.AssertDictionaryResponse(exchange, method, tiers, symbol);
         Object tierKeys = Helpers.objectKeys(tiers);
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, tierKeys, symbol);
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tierKeys)); i++)
+        for (var i = 0; i < ((List<?>)tierKeys).size(); i++)
         {
             Object tiersForSymbol = Helpers.GetValue(tiers, Helpers.GetValue(tierKeys, i));
             TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, tiersForSymbol, symbol);
-            for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(tiersForSymbol)); j++)
+            for (var j = 0; j < ((List<?>)tiersForSymbol).size(); j++)
             {
                 TestLeverageTier.testLeverageTier(exchange, skippedProperties, method, Helpers.GetValue(tiersForSymbol, j));
             }

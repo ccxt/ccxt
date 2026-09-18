@@ -146,7 +146,7 @@ func (this *testMainClass) initInnerBody(ch chan any, exchangeId any, symbolArgv
 		return nil
 	}
 	var newLine string = "\n"
-	Dump(Add(Add(Add(Add(newLine, ""), newLine), ""), "[INFO] TESTING "), this.Ext, map[string]any{
+	Dump(newLine+""+newLine+""+"[INFO] TESTING ", this.Ext, map[string]any{
 		"exchange": exchangeId,
 		"symbol":   symbolArgv,
 		"method":   methodArgv,
@@ -169,7 +169,7 @@ func (this *testMainClass) initInnerBody(ch chan any, exchangeId any, symbolArgv
 	retRes1528 := (<-this.ImportFilesAsync(exchange))
 	PanicOnError(retRes1528)
 	// ensure test files are found & filled
-	Assert(IsGreaterThan(GetArrayLength(ObjectKeys(this.TestFiles)), 0), "Test files were not loaded")
+	Assert((len(ObjectKeys(this.TestFiles)) > 0), "Test files were not loaded")
 	this.ExpandSettings(exchange)
 	this.CheckIfSpecificTestIsChosen(methodArgv)
 
@@ -184,10 +184,10 @@ func (this *testMainClass) CheckIfSpecificTestIsChosen(methodArgv any) {
 	if !IsEqual(methodArgv, nil) {
 		var testFileNames []string = ObjectKeys(this.TestFiles)
 		var possibleMethodNames []string = Split(methodArgv, ",") // i.e. `test.ts binance fetchBalance,fetchDeposits`
-		if IsGreaterThanOrEqual(GetArrayLength(possibleMethodNames), 1) {
-			for i := 0; IsLessThan(i, GetArrayLength(testFileNames)); i++ {
+		if len(possibleMethodNames) >= 1 {
+			for i := 0; i < len(testFileNames); i++ {
 				var testFileName any = GetValue(testFileNames, i)
-				for j := 0; IsLessThan(j, GetArrayLength(possibleMethodNames)); j++ {
+				for j := 0; j < len(possibleMethodNames); j++ {
 					var methodName any = GetValue(possibleMethodNames, j)
 					methodName = Replace(methodName, "()", "")
 					if IsEqual(testFileName, methodName) {
@@ -222,17 +222,22 @@ func (this *testMainClass) importFilesBody(ch chan any, exchange ccxt.ICoreExcha
 }
 func (this *testMainClass) LoadCredentialsFromEnv(exchange ccxt.ICoreExchange) {
 	var exchangeId any = exchange.GetId()
-	var reqCreds any = GetExchangeProp(exchange, Add("re", "quiredCredentials")) // dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
+	var reqCreds any = GetExchangeProp(exchange, "re"+"quiredCredentials") // dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
 	var objkeys []string = ObjectKeys(reqCreds)
-	for i := 0; IsLessThan(i, GetArrayLength(objkeys)); i++ {
+	for i := 0; i < len(objkeys); i++ {
 		var credential any = GetValue(objkeys, i)
 		var isRequired any = GetValue(reqCreds, credential)
-		if (IsEqual(isRequired, true)) && (IsEqual(GetExchangeProp(exchange, credential), nil)) {
+		if (isRequired == true) && (IsEqual(GetExchangeProp(exchange, credential), nil)) {
 			var fullKey any = Add(Add(exchangeId, "_"), credential)
 			var credentialEnvName string = ToUpper(fullKey) // example: KRAKEN_APIKEY
 			var envVars any = GetEnvVars()
-			var credentialValue any = Ternary((InOp(envVars, credentialEnvName)), GetValue(envVars, credentialEnvName), nil)
-			if !IsEqual(credentialValue, nil) && !IsEqual(credentialValue, "") {
+			var credentialValue any = func() any {
+				if InOp(envVars, credentialEnvName) {
+					return GetValue(envVars, credentialEnvName)
+				}
+				return nil
+			}()
+			if !IsEqual(credentialValue, nil) && (credentialValue != "") {
 				SetExchangeProp(exchange, credential, credentialValue)
 			}
 		}
@@ -256,10 +261,10 @@ func (this *testMainClass) ExpandSettings(exchange ccxt.ICoreExchange) {
 	var exchangeSettings any = exchange.SafeValue(allSettings, exchangeId, map[string]any{})
 	if !IsEqual(exchangeSettings, nil) {
 		var settingKeys []string = ObjectKeys(exchangeSettings)
-		for i := 0; IsLessThan(i, GetArrayLength(settingKeys)); i++ {
+		for i := 0; i < len(settingKeys); i++ {
 			var key any = GetValue(settingKeys, i)
 			var settingValue any = GetValue(exchangeSettings, key)
-			var settingIsEmpty bool = (IsEqual(settingValue, nil)) || (IsEqual(settingValue, nil)) || (IsEqual(settingValue, "")) || (IsEqual(settingValue, false)) || (IsEqual(settingValue, 0))
+			var settingIsEmpty bool = (IsEqual(settingValue, nil)) || (IsEqual(settingValue, nil)) || (settingValue == "") || (settingValue == false) || (IsEqual(settingValue, 0))
 			if !settingIsEmpty {
 				var finalValue any = nil
 				if EvalTruthy(exchange.IsDictionary(GetValue(exchangeSettings, key))) {
@@ -316,11 +321,11 @@ func (this *testMainClass) testMethodBody(ch chan any, methodName any, exchange 
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// todo: temporary skip for c#
-	if IsGreaterThanOrEqual(GetIndexOf(methodName, "OrderBook"), 0) && (this.Ext == "cs") {
+	if (GetIndexOf(methodName, "OrderBook") >= 0) && (this.Ext == "cs") {
 		AddElementToObject(exchange.GetOptions(), "checksum", false)
 	}
 	// todo: temporary skip for php
-	if IsGreaterThanOrEqual(GetIndexOf(methodName, "OrderBook"), 0) && (this.Ext == "php") {
+	if (GetIndexOf(methodName, "OrderBook") >= 0) && (this.Ext == "php") {
 
 		ch <- true
 		return nil
@@ -339,7 +344,7 @@ func (this *testMainClass) testMethodBody(ch chan any, methodName any, exchange 
 	}
 	var skipMessage any = nil
 	var supportedByExchange bool = (InOp(exchange.GetHas(), methodName)) && (!IsEqual(GetValue(exchange.GetHas(), methodName), nil)) && (!IsEqual(GetValue(exchange.GetHas(), methodName), false))
-	if !isLoadMarkets && ((IsGreaterThan(GetArrayLength(this.OnlySpecificTests), 0)) && (!IsEqual(exchange.InArray(methodName, this.OnlySpecificTests), true))) {
+	if !isLoadMarkets && ((GetArrayLength(this.OnlySpecificTests) > 0) && (!IsEqual(exchange.InArray(methodName, this.OnlySpecificTests), true))) {
 		skipMessage = "[INFO] IGNORED_TEST"
 	} else if !isLoadMarkets && !supportedByExchange && !isProxyTest && !isFeatureTest && !isConstructorTest {
 		skipMessage = "[INFO] UNSUPPORTED_TEST" // keep it aligned with the longest message
@@ -360,7 +365,7 @@ func (this *testMainClass) testMethodBody(ch chan any, methodName any, exchange 
 		PanicOnError(retRes32012)
 		Dump(this.AddPadding("[INFO] TESTING DONE", 25), name, methodName)
 	}
-	if !IsEqual(skipMessage, nil) && !IsEqual(skipMessage, "") {
+	if !IsEqual(skipMessage, nil) && (skipMessage != "") {
 		if EvalTruthy(this.Info) {
 			Dump(this.AddPadding(skipMessage, 25), name, methodName)
 		}
@@ -390,7 +395,7 @@ func (this *testMainClass) GetSkips(exchange ccxt.ICoreExchange, methodName any)
 	var finalSkips any = map[string]any{}
 	// check the exact method (i.e. `fetchTrades`) and language-specific (i.e. `fetchTrades.php`)
 	var methodNames []any = []any{methodName, Add(Add(methodName, "."), this.Ext)}
-	for i := 0; IsLessThan(i, GetArrayLength(methodNames)); i++ {
+	for i := 0; i < len(methodNames); i++ {
 		var mName any = GetValue(methodNames, i)
 		if InOp(this.SkippedMethods, mName) {
 			// if whole method is skipped, by assigning a string to it, i.e. "fetchOrders":"blabla"
@@ -412,7 +417,7 @@ func (this *testMainClass) GetSkips(exchange ccxt.ICoreExchange, methodName any)
 		"depositWithdrawFee": []any{"fetchDepositWithdrawFee", "fetchDepositWithdrawFees"},
 	}
 	var objectNames []string = ObjectKeys(objectSkips)
-	for i := 0; IsLessThan(i, GetArrayLength(objectNames)); i++ {
+	for i := 0; i < len(objectNames); i++ {
 		var objectName any = GetValue(objectNames, i)
 		var objectMethods any = GetValue(objectSkips, objectName)
 		if EvalTruthy(exchange.InArray(methodName, objectMethods)) {
@@ -459,7 +464,7 @@ func (this *testMainClass) testSafeBody(ch chan any, methodName any, exchange cc
 	_ = isPublic
 	var maxRetries int = 3
 	var argsStringified any = exchange.Json(args) // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
-	for i := 0; IsLessThan(i, maxRetries); i++ {
+	for i := 0; i < maxRetries; i++ {
 
 		{
 			func(this *testMainClass) (ret_ any) {
@@ -474,11 +479,16 @@ func (this *testMainClass) testSafeBody(ch chan any, methodName any, exchange cc
 							// RUNTEST_TIMED_OUT run-tests.js doesn't misreport a failed method as hung
 							Dump(this.AddPadding("[INFO] TESTING FAILED", 25), exchange.GetId(), methodName)
 							var e any = GetRootException(ex)
-							var isLoadMarkets bool = (IsEqual(methodName, "loadMarkets"))
+							var isLoadMarkets bool = (methodName == "loadMarkets")
 							var isAuthError bool = (IsInstance(e, AuthenticationError))
 							var isNotSupported bool = (IsInstance(e, NotSupported))
 							var isOperationFailed bool = (IsInstance(e, OperationFailed)) // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "OperationFailed", "InvalidNonce", ...
-							var lastUrlMsg any = Ternary(EvalTruthy(this.WsTests), "", Add(Add(" (Last url: ", this.GetLastRequestUrl(exchange)), " )"))
+							var lastUrlMsg any = func() any {
+								if EvalTruthy(this.WsTests) {
+									return ""
+								}
+								return Add(Add(" (Last url: ", this.GetLastRequestUrl(exchange)), " )")
+							}()
 							if isOperationFailed {
 								// if last retry was gone with same `tempFailure` error, then let's eventually return false
 								if i == Subtract(maxRetries, 1) {
@@ -508,7 +518,12 @@ func (this *testMainClass) testSafeBody(ch chan any, methodName any, exchange cc
 										}
 									}
 									// output the message
-									var failType any = Ternary(EvalTruthy(shouldFail), "[TEST_FAILURE]", "[TEST_WARNING]")
+									var failType any = func() any {
+										if EvalTruthy(shouldFail) {
+											return "[TEST_FAILURE]"
+										}
+										return "[TEST_WARNING]"
+									}()
 									Dump(failType, exchange.GetId(), methodName, argsStringified, lastUrlMsg, "Method could not be tested due to a repeated Network/Availability issues", " | ", ExceptionMessage(e))
 
 									ch <- retSuccess
@@ -586,7 +601,7 @@ func (this *testMainClass) testSafeBody(ch chan any, methodName any, exchange cc
 func (this *testMainClass) GetLastRequestUrl(exchange ccxt.ICoreExchange) any {
 	var fetchCache any = exchange.GetFetchCache()
 	var url any = ""
-	if IsGreaterThan(GetArrayLength(fetchCache), 0) {
+	if GetArrayLength(fetchCache) > 0 {
 		var lastEntry any = GetValue(fetchCache, Subtract(GetArrayLength(fetchCache), 1))
 		var lastRequest any = GetValue(lastEntry, "request")
 		if !IsEqual(lastRequest, nil) {
@@ -635,15 +650,15 @@ func (this *testMainClass) runPublicTestsBody(ch chan any, exchange ccxt.ICoreEx
 	var market any = exchange.Market(primarySymbol)
 	var isSpot any = GetValue(market, "spot")
 	if !EvalTruthy(this.WsTests) {
-		if IsEqual(isSpot, true) {
-			AddElementToObject(tests, "fetchCurrencies", []any{})
+		if isSpot == true {
+			tests["fetchCurrencies"] = []any{}
 		} else {
-			AddElementToObject(tests, "fetchFundingRates", []any{primarySymbol})
-			AddElementToObject(tests, "fetchFundingRate", []any{primarySymbol})
-			AddElementToObject(tests, "fetchFundingRateHistory", []any{primarySymbol})
-			AddElementToObject(tests, "fetchIndexOHLCV", []any{primarySymbol})
-			AddElementToObject(tests, "fetchMarkOHLCV", []any{primarySymbol})
-			AddElementToObject(tests, "fetchPremiumIndexOHLCV", []any{primarySymbol})
+			tests["fetchFundingRates"] = []any{primarySymbol}
+			tests["fetchFundingRate"] = []any{primarySymbol}
+			tests["fetchFundingRateHistory"] = []any{primarySymbol}
+			tests["fetchIndexOHLCV"] = []any{primarySymbol}
+			tests["fetchMarkOHLCV"] = []any{primarySymbol}
+			tests["fetchPremiumIndexOHLCV"] = []any{primarySymbol}
 		}
 	}
 	this.PublicTests = tests
@@ -664,7 +679,7 @@ func (this *testMainClass) runTestsBody(ch chan any, exchange ccxt.ICoreExchange
 	defer ReturnPanicError(ch)
 	var testNames []string = ObjectKeys(tests)
 	var promises any = []any{}
-	for i := 0; IsLessThan(i, GetArrayLength(testNames)); i++ {
+	for i := 0; i < len(testNames); i++ {
 		var testName any = GetValue(testNames, i)
 		var testArgs any = GetValue(tests, testName)
 		AppendToArray(&promises, this.TestSafeAsync(testName, exchange, testArgs, isPublicTest))
@@ -676,17 +691,22 @@ func (this *testMainClass) runTestsBody(ch chan any, exchange ccxt.ICoreExchange
 	PanicOnError(results)
 	// now count which test-methods retuned `false` from "testSafe" and dump that info below
 	var failedMethods any = []any{}
-	for i := 0; IsLessThan(i, GetArrayLength(testNames)); i++ {
+	for i := 0; i < len(testNames); i++ {
 		var testName any = GetValue(testNames, i)
 		var testReturnedValue any = GetValue(results, i)
-		if !IsEqual(testReturnedValue, true) {
+		if testReturnedValue != true {
 			AppendToArray(&failedMethods, testName)
 		}
 	}
-	var testPrefixString any = Ternary(EvalTruthy(isPublicTest), "PUBLIC_TESTS", "PRIVATE_TESTS")
-	if IsGreaterThan(GetArrayLength(failedMethods), 0) {
+	var testPrefixString any = func() any {
+		if EvalTruthy(isPublicTest) {
+			return "PUBLIC_TESTS"
+		}
+		return "PRIVATE_TESTS"
+	}()
+	if GetArrayLength(failedMethods) > 0 {
 		var errorsString string = Join(failedMethods, ", ")
-		Dump("[TEST_FAILURE]", exchange.GetId(), testPrefixString, Add("Failed methods : ", errorsString))
+		Dump("[TEST_FAILURE]", exchange.GetId(), testPrefixString, "Failed methods : "+errorsString)
 	}
 	if EvalTruthy(this.Info) {
 		Dump(this.AddPadding(Add(Add(Add("[INFO] END ", testPrefixString), " "), exchange.GetId()), 25))
@@ -721,17 +741,17 @@ func (this *testMainClass) GetTestSymbol(exchange ccxt.ICoreExchange, isSpot any
 	var symbol any = nil
 	var preferredSpotSymbol any = exchange.SafeString(this.SkippedSettingsForExchange, "preferredSpotSymbol")
 	var preferredSwapSymbol any = exchange.SafeString(this.SkippedSettingsForExchange, "preferredSwapSymbol")
-	if (IsEqual(isSpot, true)) && (!IsEqual(preferredSpotSymbol, nil)) && (!IsEqual(preferredSpotSymbol, "")) {
+	if (isSpot == true) && (!IsEqual(preferredSpotSymbol, nil)) && (preferredSpotSymbol != "") {
 		return preferredSpotSymbol
-	} else if (!IsEqual(isSpot, true)) && (!IsEqual(preferredSwapSymbol, nil)) && (!IsEqual(preferredSwapSymbol, "")) {
+	} else if (isSpot != true) && (!IsEqual(preferredSwapSymbol, nil)) && (preferredSwapSymbol != "") {
 		return preferredSwapSymbol
 	}
-	for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
+	for i := 0; i < GetArrayLength(symbols); i++ {
 		var s any = GetValue(symbols, i)
 		var market any = exchange.SafeValue(exchange.GetMarkets(), s)
 		if !IsEqual(market, nil) {
 			var active any = exchange.SafeValue(market, "active")
-			if (IsEqual(active, true)) || (IsEqual(active, nil)) {
+			if (active == true) || (IsEqual(active, nil)) {
 				symbol = s
 				break
 			}
@@ -746,7 +766,7 @@ func (this *testMainClass) GetExchangeCode(exchange ccxt.ICoreExchange, optional
 		codes = []any{"BTC", "ETH", "XRP", "LTC", "BCH", "EOS", "BNB", "BSV", "USDT"}
 	}
 	var code any = GetValue(codes, 0)
-	for i := 0; IsLessThan(i, GetArrayLength(codes)); i++ {
+	for i := 0; i < GetArrayLength(codes); i++ {
 		if InOp(exchange.GetCurrencies(), GetValue(codes, i)) {
 			return GetValue(codes, i)
 		}
@@ -759,7 +779,7 @@ func (this *testMainClass) GetMarketsFromExchange(exchange ccxt.ICoreExchange, o
 	var res map[string]any = map[string]any{}
 	var markets any = exchange.GetMarkets()
 	var keys []string = ObjectKeys(markets)
-	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
+	for i := 0; i < len(keys); i++ {
 		var key any = GetValue(keys, i)
 		var market any = GetValue(markets, key)
 		if EvalTruthy(spot) && (IsEqual(GetValue(market, "spot"), true)) {
@@ -777,17 +797,22 @@ func (this *testMainClass) GetValidSymbol(exchange ccxt.ICoreExchange, optionalA
 	var codes []any = []any{"BTC", "ETH", "XRP", "LTC", "BNB", "DASH", "DOGE", "ETC", "TRX", "USDT", "USDC", "USD", "GUSD", "EUR", "TUSD", "CNY", "JPY", "BRL"}
 	var spotSymbols []any = []any{"BTC/USDT", "BTC/USDC", "BTC/USD", "BTC/CNY", "BTC/EUR", "BTC/AUD", "BTC/BRL", "BTC/JPY", "ETH/USDT", "ETH/USDC", "ETH/USD", "ETH/CNY", "ETH/EUR", "ETH/AUD", "ETH/BRL", "ETH/JPY", "EUR/USDT", "EUR/USD", "EUR/USDC", "USDT/EUR", "USD/EUR", "USDC/EUR", "BTC/ETH", "ETH/BTC"}
 	var swapSymbols []any = []any{"BTC/USDT:USDT", "BTC/USD:USDT", "BTC/USDC:USDC", "BTC/USD:USDC", "BTC/USD:USD", "ETH/USDT:USDT", "ETH/USD:USDT", "ETH/USDC:USDC", "ETH/USD:USDC", "ETH/USD:USD", "BTC/USD:BTC", "ETH/USD:ETH"}
-	var targetSymbols any = Ternary(EvalTruthy(spot), spotSymbols, swapSymbols)
+	var targetSymbols any = func() any {
+		if EvalTruthy(spot) {
+			return spotSymbols
+		}
+		return swapSymbols
+	}()
 	var symbol any = this.GetTestSymbol(exchange, spot, targetSymbols)
 	// if symbols wasn't found from above hardcoded list, then try to locate any symbol which has our target hardcoded 'base' code
 	if IsEqual(symbol, nil) {
-		for i := 0; IsLessThan(i, GetArrayLength(codes)); i++ {
+		for i := 0; i < len(codes); i++ {
 			var currentCode any = GetValue(codes, i)
 			var marketsArrayForCurrentCode any = exchange.FilterBy(currentTypeMarkets, "base", currentCode)
 			var indexedMkts any = exchange.IndexBy(marketsArrayForCurrentCode, "symbol")
 			var symbolsArrayForCurrentCode []string = ObjectKeys(indexedMkts)
-			var symbolsLength int = GetArrayLength(symbolsArrayForCurrentCode)
-			if IsGreaterThan(symbolsLength, 0) {
+			var symbolsLength int = len(symbolsArrayForCurrentCode)
+			if symbolsLength > 0 {
 				symbol = this.GetTestSymbol(exchange, spot, symbolsArrayForCurrentCode)
 				break
 			}
@@ -797,15 +822,15 @@ func (this *testMainClass) GetValidSymbol(exchange ccxt.ICoreExchange, optionalA
 	if IsEqual(symbol, nil) {
 		var activeMarkets any = exchange.FilterBy(currentTypeMarkets, "active", true)
 		var activeSymbols any = []any{}
-		for i := 0; IsLessThan(i, GetArrayLength(activeMarkets)); i++ {
+		for i := 0; i < GetArrayLength(activeMarkets); i++ {
 			AppendToArray(&activeSymbols, GetValue(GetValue(activeMarkets, i), "symbol"))
 		}
 		symbol = this.GetTestSymbol(exchange, spot, activeSymbols)
 	}
 	if IsEqual(symbol, nil) {
 		var values []any = ObjectValues(currentTypeMarkets)
-		var valuesLength int = GetArrayLength(values)
-		if IsGreaterThan(valuesLength, 0) {
+		var valuesLength int = len(values)
+		if valuesLength > 0 {
 			var first any = GetValue(values, 0)
 			if !IsEqual(first, nil) {
 				symbol = GetValue(first, "symbol")
@@ -859,7 +884,12 @@ func (this *testMainClass) getMostActiveSymbolsBody(ch chan any, exchange ccxt.I
 	// an explicit per-exchange pin is a deliberate maintainer choice (it usually
 	// works around a venue-specific quirk), so never rank around it
 	var isSpot any = exchange.SafeBool(defaultMarket, "spot", false)
-	var preferredKey any = Ternary((IsEqual(isSpot, true)), "preferredSpotSymbol", "preferredSwapSymbol")
+	var preferredKey any = func() any {
+		if isSpot == true {
+			return "preferredSpotSymbol"
+		}
+		return "preferredSwapSymbol"
+	}()
 	var preferredSymbol any = exchange.SafeString(this.SkippedSettingsForExchange, preferredKey)
 	if !IsEqual(preferredSymbol, nil) {
 
@@ -908,7 +938,7 @@ func (this *testMainClass) getMostActiveSymbolsBody(ch chan any, exchange ccxt.I
 	var settle any = exchange.SafeString(defaultMarket, "settle")
 	var candidates any = []any{}
 	var tickerSymbols []string = ObjectKeys(tickers)
-	for i := 0; IsLessThan(i, GetArrayLength(tickerSymbols)); i++ {
+	for i := 0; i < len(tickerSymbols); i++ {
 		var tickerSymbol any = GetValue(tickerSymbols, i)
 		var market any = exchange.SafeDict(exchange.GetMarkets(), tickerSymbol)
 		if !IsEqual(market, nil) {
@@ -918,13 +948,13 @@ func (this *testMainClass) getMostActiveSymbolsBody(ch chan any, exchange ccxt.I
 			var sameType bool = IsEqual(exchange.SafeString(market, "type"), marketType)
 			var sameQuote bool = IsEqual(exchange.SafeString(market, "quote"), quote)
 			var sameSettle bool = IsEqual(exchange.SafeString(market, "settle"), settle)
-			if (IsEqual(isActive, true)) && sameType && sameQuote && sameSettle {
+			if (isActive == true) && sameType && sameQuote && sameSettle {
 				var ticker any = exchange.SafeDict(tickers, tickerSymbol, map[string]any{})
 				var volume any = this.GetTickerVolume(exchange, ticker)
 				if IsGreaterThan(volume, 0) {
 					var entry map[string]any = map[string]any{}
-					AddElementToObject(entry, "symbol", tickerSymbol)
-					AddElementToObject(entry, "volume", volume)
+					entry["symbol"] = tickerSymbol
+					entry["volume"] = volume
 					AppendToArray(&candidates, entry)
 				}
 			}
@@ -938,7 +968,7 @@ func (this *testMainClass) getMostActiveSymbolsBody(ch chan any, exchange ccxt.I
 		return nil
 	}
 	var result any = []any{exchange.SafeString(GetValue(ranked, 0), "symbol")}
-	if IsGreaterThan(rankedLength, 1) {
+	if rankedLength > 1 {
 		AppendToArray(&result, exchange.SafeString(GetValue(ranked, 1), "symbol"))
 	}
 
@@ -970,7 +1000,7 @@ func (this *testMainClass) testExchangeBody(ch chan any, exchange ccxt.ICoreExch
 	// `has` values can be true, false, undefined or 'emulated', so only false/undefined mean unsupported
 	var hasSpot bool = (!IsEqual(GetValue(exchange.GetHas(), "spot"), nil)) && (!IsEqual(GetValue(exchange.GetHas(), "spot"), false))
 	var hasSwap bool = (!IsEqual(GetValue(exchange.GetHas(), "swap"), nil)) && (!IsEqual(GetValue(exchange.GetHas(), "swap"), false))
-	if !IsEqual(providedSymbol, nil) {
+	if providedSymbol != nil {
 		var market any = exchange.Market(providedSymbol)
 		if IsEqual(GetValue(market, "spot"), true) {
 			spotSymbols = []any{providedSymbol}
@@ -1080,10 +1110,10 @@ func (this *testMainClass) runPredictionTestsBody(ch chan any, exchange ccxt.ICo
 		// (hyperliquid re-assigns outcome ids), which would strand a stale pin
 		var pinFound bool = false
 		var pinnedKeys []string = ObjectKeys(exchange.GetMarkets())
-		for i := 0; IsLessThan(i, GetArrayLength(pinnedKeys)); i++ {
+		for i := 0; i < len(pinnedKeys); i++ {
 			var pinnedMarket any = GetValue(exchange.GetMarkets(), GetValue(pinnedKeys, i))
 			var pinnedOutcomes any = exchange.SafeList(pinnedMarket, "outcomes", []any{})
-			for j := 0; IsLessThan(j, GetArrayLength(pinnedOutcomes)); j++ {
+			for j := 0; j < GetArrayLength(pinnedOutcomes); j++ {
 				if IsEqual(exchange.SafeString(GetValue(pinnedOutcomes, j), "outcome"), outcomeSymbol) {
 					pinFound = true
 					break
@@ -1100,11 +1130,11 @@ func (this *testMainClass) runPredictionTestsBody(ch chan any, exchange ccxt.ICo
 	}
 	if IsEqual(outcomeSymbol, nil) {
 		var marketKeys []string = ObjectKeys(exchange.GetMarkets())
-		for i := 0; IsLessThan(i, GetArrayLength(marketKeys)); i++ {
+		for i := 0; i < len(marketKeys); i++ {
 			var market any = GetValue(exchange.GetMarkets(), GetValue(marketKeys, i))
 			var outcomesList any = exchange.SafeList(market, "outcomes", []any{})
 			var outcomesListLength int = GetArrayLength(outcomesList)
-			if IsGreaterThan(outcomesListLength, 0) {
+			if outcomesListLength > 0 {
 				outcomeSymbol = exchange.SafeString(GetValue(outcomesList, 0), "outcome")
 				if !IsEqual(outcomeSymbol, nil) {
 					break
@@ -1148,7 +1178,7 @@ func (this *testMainClass) runPredictionTestsBody(ch chan any, exchange ccxt.ICo
 				// venues with bounded listings may opt out via options['allowUnscopedFetchEvents']
 				var exchangeOptions any = GetExchangeProp(exchange, "options", map[string]any{})
 				var allowUnscopedFetchEvents any = exchange.SafeBool(exchangeOptions, "allowUnscopedFetchEvents", false)
-				if !IsEqual(allowUnscopedFetchEvents, true) {
+				if allowUnscopedFetchEvents != true {
 					var unscopedError any = ""
 
 					{
@@ -1173,7 +1203,7 @@ func (this *testMainClass) runPredictionTestsBody(ch chan any, exchange ccxt.ICo
 						}(this)
 
 					}
-					Assert(IsGreaterThanOrEqual(GetIndexOf(unscopedError, "requires at least one of"), 0), Add(Add(exchange.GetId(), " fetchEvents () without a scope must throw ArgumentsRequired, got: "), unscopedError))
+					Assert((GetIndexOf(unscopedError, "requires at least one of") >= 0), Add(Add(exchange.GetId(), " fetchEvents () without a scope must throw ArgumentsRequired, got: "), unscopedError))
 				}
 				// every venue requires fetchEvents to be scoped; a skip-tests.json
 				// preferredEventQuery supplies a query known to match the venue's markets
@@ -1189,7 +1219,7 @@ func (this *testMainClass) runPredictionTestsBody(ch chan any, exchange ccxt.ICo
 				}
 				var eventParams map[string]any = map[string]any{}
 				if !IsEqual(eventQuery, nil) {
-					AddElementToObject(eventParams, "query", eventQuery)
+					eventParams["query"] = eventQuery
 				}
 
 				events := (<-CallExchangeMethodDynamically(exchange, "fetchEvents", []any{eventParams}))
@@ -1201,7 +1231,7 @@ func (this *testMainClass) runPredictionTestsBody(ch chan any, exchange ccxt.ICo
 				}, "events", []any{})
 				this.AssertPredictionEvents(exchange, eventsList)
 				var eventsLength int = GetArrayLength(eventsList)
-				if IsGreaterThan(eventsLength, 0) {
+				if eventsLength > 0 {
 					eventId = exchange.SafeString(GetValue(eventsList, 0), "id")
 				}
 				if (!IsEqual(eventId, nil)) && (IsEqual(exchange.SafeBool(exchange.GetHas(), "fetchEvent", false), true)) {
@@ -1228,11 +1258,11 @@ func (this *testMainClass) runPredictionTestsBody(ch chan any, exchange ccxt.ICo
 				// category) declared in skip-tests.json preferredEventScopes as an array of param dicts
 				var extraScopes any = exchange.SafeList(this.SkippedSettingsForExchange, "preferredEventScopes", []any{})
 				var extraScopesLength int = GetArrayLength(extraScopes)
-				for si := 0; IsLessThan(si, extraScopesLength); si++ {
+				for si := 0; si < extraScopesLength; si++ {
 					AppendToArray(&scopesToTest, GetValue(extraScopes, si))
 				}
 				var scopesToTestLength int = GetArrayLength(scopesToTest)
-				for sj := 0; IsLessThan(sj, scopesToTestLength); sj++ {
+				for sj := 0; sj < scopesToTestLength; sj++ {
 					var scope any = GetValue(scopesToTest, sj)
 					// fetchEvents scoped by a single parameter must return a non-empty, valid list
 
@@ -1242,7 +1272,7 @@ func (this *testMainClass) runPredictionTestsBody(ch chan any, exchange ccxt.ICo
 						"events": scopedEvents,
 					}, "events", []any{})
 					var scopedListLength int = GetArrayLength(scopedList)
-					Assert(IsGreaterThan(scopedListLength, 0), Add(Add(Add(exchange.GetId(), " fetchEvents scoped by "), exchange.Json(scope)), " returned no events - the parameter path may be broken"))
+					Assert((scopedListLength > 0), Add(Add(Add(exchange.GetId(), " fetchEvents scoped by "), exchange.Json(scope)), " returned no events - the parameter path may be broken"))
 					this.AssertPredictionEvents(exchange, scopedList)
 				}
 				if !IsEqual(eventQuery, nil) {
@@ -1257,7 +1287,7 @@ func (this *testMainClass) runPredictionTestsBody(ch chan any, exchange ccxt.ICo
 						"events": limited,
 					}, "events", []any{})
 					var limitedListLength int = GetArrayLength(limitedList)
-					Assert(IsLessThanOrEqual(limitedListLength, 1), Add(exchange.GetId(), " fetchEvents did not honour limit=1"))
+					Assert((limitedListLength <= 1), Add(exchange.GetId(), " fetchEvents did not honour limit=1"))
 				}
 				return nil
 			}(this)
@@ -1270,7 +1300,7 @@ func (this *testMainClass) runPredictionTestsBody(ch chan any, exchange ccxt.ICo
 		// unbounded scan (options.loadAllOutcomes false) must throw ArgumentsRequired
 		// instead of silently returning a capped subset
 		var canServeAllTickers any = exchange.SafeBool(exchange.GetOptions(), "loadAllOutcomes", false)
-		if (!IsEqual(canServeAllTickers, true)) && (IsEqual(exchange.SafeBool(exchange.GetHas(), "fetchTickers", false), true)) {
+		if (canServeAllTickers != true) && (IsEqual(exchange.SafeBool(exchange.GetHas(), "fetchTickers", false), true)) {
 			var tickersError any = ""
 
 			{
@@ -1298,7 +1328,7 @@ func (this *testMainClass) runPredictionTestsBody(ch chan any, exchange ccxt.ICo
 				}
 
 			}
-			Assert(IsGreaterThanOrEqual(GetIndexOf(tickersError, "requires an outcomes argument"), 0), Add(Add(exchange.GetId(), " fetchTickers () without outcomes must throw ArgumentsRequired, got: "), tickersError))
+			Assert((GetIndexOf(tickersError, "requires an outcomes argument") >= 0), Add(Add(exchange.GetId(), " fetchTickers () without outcomes must throw ArgumentsRequired, got: "), tickersError))
 		}
 	}
 	Dump("[INFO:MAIN] Selected prediction OUTCOME:", outcomeSymbol, "| EVENT:", exchange.Json(eventId))
@@ -1352,7 +1382,7 @@ func (this *testMainClass) runPredictionTestsBody(ch chan any, exchange ccxt.ICo
 func (this *testMainClass) AssertPredictionEvents(exchange ccxt.ICoreExchange, events any) any {
 	Assert(IsArray(events), Add(exchange.GetId(), " fetchEvents/fetchEvent should return a list"))
 	var eventsLength int = GetArrayLength(events)
-	for i := 0; IsLessThan(i, eventsLength); i++ {
+	for i := 0; i < eventsLength; i++ {
 		this.AssertPredictionEvent(exchange, GetValue(events, i))
 	}
 	return true
@@ -1368,7 +1398,7 @@ func (this *testMainClass) AssertPredictionEvent(exchange ccxt.ICoreExchange, ev
 	Assert(!IsEqual(markets, nil), Add(Add(exchange.GetId(), " event missing markets"), logText))
 	var marketsLength int = GetArrayLength(markets)
 	Assert(IsEqual(exchange.SafeString(event, "symbol"), nil), Add(Add(exchange.GetId(), " event must not carry the deprecated symbol key"), logText))
-	for i := 0; IsLessThan(i, marketsLength); i++ {
+	for i := 0; i < marketsLength; i++ {
 		var market any = GetValue(markets, i)
 		Assert(IsEqual(exchange.IsDictionary(market), true), Add(Add(exchange.GetId(), " event market should be a dict"), logText))
 		Assert(!IsEqual(exchange.SafeString(market, "market"), nil), Add(Add(exchange.GetId(), " event market missing the unified market handle"), logText))
@@ -1377,7 +1407,7 @@ func (this *testMainClass) AssertPredictionEvent(exchange ccxt.ICoreExchange, ev
 		var outcomes any = exchange.SafeList(market, "outcomes")
 		Assert(!IsEqual(outcomes, nil), Add(Add(exchange.GetId(), " event market missing outcomes"), logText))
 		var outcomesLength int = GetArrayLength(outcomes)
-		for j := 0; IsLessThan(j, outcomesLength); j++ {
+		for j := 0; j < outcomesLength; j++ {
 			Assert(IsEqual(exchange.SafeString(GetValue(outcomes, j), "symbol"), nil), Add(Add(exchange.GetId(), " event outcome must not carry the deprecated symbol key"), logText))
 		}
 	}
@@ -1601,7 +1631,7 @@ func (this *testMainClass) runPrivateTestsBody(ch chan any, exchange ccxt.ICoreE
 		"fetchLedgerEntry":               []any{code},
 	}
 	if EvalTruthy(GetCliArgValue("--fundedTests")) {
-		AddElementToObject(tests, "createOrder", []any{symbol})
+		tests["createOrder"] = []any{symbol}
 	}
 	if EvalTruthy(this.WsTests) {
 		tests = map[string]any{
@@ -1615,18 +1645,18 @@ func (this *testMainClass) runPrivateTestsBody(ch chan any, exchange ccxt.ICoreE
 	var market any = exchange.Market(symbol)
 	var isSpot any = GetValue(market, "spot")
 	if !EvalTruthy(this.WsTests) {
-		if IsEqual(isSpot, true) {
-			AddElementToObject(tests, "fetchCurrencies", []any{})
+		if isSpot == true {
+			tests["fetchCurrencies"] = []any{}
 		} else {
 			// derivatives only
-			AddElementToObject(tests, "fetchPositions", []any{symbol}) // this test fetches all positions for 1 symbol
-			AddElementToObject(tests, "fetchPosition", []any{symbol})
-			AddElementToObject(tests, "fetchPositionRisk", []any{symbol})
-			AddElementToObject(tests, "setPositionMode", []any{symbol})
-			AddElementToObject(tests, "setMarginMode", []any{symbol})
-			AddElementToObject(tests, "fetchOpenInterestHistory", []any{symbol})
-			AddElementToObject(tests, "fetchFundingRateHistory", []any{symbol})
-			AddElementToObject(tests, "fetchFundingHistory", []any{symbol})
+			tests["fetchPositions"] = []any{symbol} // this test fetches all positions for 1 symbol
+			tests["fetchPosition"] = []any{symbol}
+			tests["fetchPositionRisk"] = []any{symbol}
+			tests["setPositionMode"] = []any{symbol}
+			tests["setMarginMode"] = []any{symbol}
+			tests["fetchOpenInterestHistory"] = []any{symbol}
+			tests["fetchFundingRateHistory"] = []any{symbol}
+			tests["fetchFundingHistory"] = []any{symbol}
 		}
 	}
 	// const combinedTests = exchange.GetdeepExtend() (this.publicTests, privateTests);
@@ -1658,7 +1688,7 @@ func (this *testMainClass) testProxiesBody(ch chan any, exchange ccxt.ICoreExcha
 	// try proxy several times
 	var maxRetries int = 3
 	var exceptionMessageString any = nil
-	for j := 0; IsLessThan(j, maxRetries); j++ {
+	for j := 0; j < maxRetries; j++ {
 
 		{
 			func(this *testMainClass) (ret_ any) {
@@ -1709,7 +1739,7 @@ func (this *testMainClass) CheckConstructor(exchange ccxt.ICoreExchange) {
 	if IsEqual(exchange.GetId(), "binance") {
 		Assert(IsEqual(exchange.GetHostname(), nil) || IsEqual(exchange.GetHostname(), ""), "binance.com hostname should be empty")
 		Assert(IsEqual(GetValue(GetValue(exchange.GetUrls(), "api"), "public"), "https://api.binance.com/api/v3"), Add("https://api.binance.com/api/v3 does not match: ", GetValue(GetValue(exchange.GetUrls(), "api"), "public")))
-		Assert((InOp(GetValue(GetValue(exchange.GetApi(), "sapi"), "get"), "lending/union/account")), Add("SAPI should contain the endpoint lending/union/account, ", JsonStringify(GetValue(GetValue(exchange.GetApi(), "sapi"), "get"))))
+		Assert((InOp(GetValue(GetValue(exchange.GetApi(), "sapi"), "get"), "lending/union/account")), "SAPI should contain the endpoint lending/union/account, "+JsonStringify(GetValue(GetValue(exchange.GetApi(), "sapi"), "get")))
 	} else if IsEqual(exchange.GetId(), "binanceus") {
 		Assert(IsEqual(exchange.GetHostname(), "binance.us"), Add("binance.us hostname does not match ", exchange.GetHostname()))
 		Assert(IsEqual(GetValue(GetValue(exchange.GetUrls(), "api"), "public"), "https://api.binance.us/api/v3"), Add("https://api.binance.us/api/v3 does not match: ", GetValue(GetValue(exchange.GetUrls(), "api"), "public")))
@@ -1735,9 +1765,9 @@ func (this *testMainClass) testReturnResponseHeadersBody(ch chan any, exchange c
 	var info any = GetValue(ticker, "info")
 	var headers any = GetValue(info, "responseHeaders")
 	var headersKeys []string = ObjectKeys(headers)
-	Assert(IsGreaterThan(GetArrayLength(headersKeys), 0), "Response headers should not be empty")
+	Assert((len(headersKeys) > 0), "Response headers should not be empty")
 	var headerValues []any = ObjectValues(headers)
-	Assert(IsGreaterThan(GetArrayLength(headerValues), 0), "Response headers values should not be empty")
+	Assert((len(headerValues) > 0), "Response headers values should not be empty")
 	exchange.SetReturnResponseHeaders(false)
 
 	ch <- true
@@ -1856,7 +1886,7 @@ func (this *testMainClass) AssertStaticError(cond any, message any, calculatedOu
 	if !IsEqual(key, nil) {
 		errorMessage = Add(Add("[", key), "]")
 	}
-	errorMessage = Add(errorMessage, Add(Add(Add(" computed: ", storedString), " stored: "), calculatedString))
+	errorMessage = Add(errorMessage, " computed: "+storedString+" stored: "+calculatedString)
 	Assert(cond, errorMessage)
 }
 func (this *testMainClass) LoadMarketsFromFile(id any) any {
@@ -1886,7 +1916,7 @@ func (this *testMainClass) LoadStaticData(folder any, optionalArgs ...any) any {
 	targetExchange := GetArg(optionalArgs, 0, nil)
 	_ = targetExchange
 	var result map[string]any = map[string]any{}
-	if !IsEqual(targetExchange, nil) && !IsEqual(targetExchange, "") {
+	if !IsEqual(targetExchange, nil) && (targetExchange != "") {
 		// read a single exchange
 		var path any = Add(Add(folder, targetExchange), ".json")
 		if !EvalTruthy(IoFileExists(path)) {
@@ -1897,7 +1927,7 @@ func (this *testMainClass) LoadStaticData(folder any, optionalArgs ...any) any {
 		return result
 	}
 	var files any = IoDirRead(folder)
-	for i := 0; IsLessThan(i, GetArrayLength(files)); i++ {
+	for i := 0; i < GetArrayLength(files); i++ {
 		var file any = GetValue(files, i)
 		// the only non-json entry in the static dirs is the prediction/ subfolder (prediction
 		// fixtures live under static/<type>/prediction/). skip it by name — a string-equality
@@ -1908,20 +1938,20 @@ func (this *testMainClass) LoadStaticData(folder any, optionalArgs ...any) any {
 		}
 		var exchangeName string = Replace(file, ".json", "")
 		var content any = IoFileRead(Add(folder, file))
-		AddElementToObject(result, exchangeName, content)
+		result[exchangeName] = content
 	}
 	return result
 }
 func (this *testMainClass) RemoveHostnamefromUrl(url any) any {
-	if IsEqual(url, nil) {
+	if url == nil {
 		return nil
 	}
 	var urlParts []string = Split(url, "/")
 	var res any = ""
-	for i := 0; IsLessThan(i, GetArrayLength(urlParts)); i++ {
-		if IsGreaterThan(i, 2) {
+	for i := 0; i < len(urlParts); i++ {
+		if i > 2 {
 			var current any = GetValue(urlParts, i)
-			if IsGreaterThan(GetIndexOf(current, "?"), OpNeg(1)) {
+			if IsGreaterThan(GetIndexOf(current, "?"), -1) {
 				// handle urls like this: /v1/account/accounts?AccessK
 				var currentParts []string = Split(current, "?")
 				res = Add(res, "/")
@@ -1937,16 +1967,16 @@ func (this *testMainClass) RemoveHostnamefromUrl(url any) any {
 func (this *testMainClass) UrlencodedToDict(url any) any {
 	var result map[string]any = map[string]any{}
 	var parts []string = Split(url, "&")
-	for i := 0; IsLessThan(i, GetArrayLength(parts)); i++ {
+	for i := 0; i < len(parts); i++ {
 		var part any = GetValue(parts, i)
 		var keyValue []string = Split(part, "=")
-		var keysLength int = GetArrayLength(keyValue)
+		var keysLength int = len(keyValue)
 		if keysLength != 2 {
 			continue
 		}
 		var key any = GetValue(keyValue, 0)
 		var value any = GetValue(keyValue, 1)
-		if (!IsEqual(value, nil)) && ((StartsWith(value, "[")) || (StartsWith(value, "{"))) {
+		if (value != nil) && ((StartsWith(value, "[")) || (StartsWith(value, "{"))) {
 			// some exchanges might return something like this: timestamp=1699382693405&batchOrders=[{\"symbol\":\"LTCUSDT\",\"side\":\"BUY\",\"newClientOrderI
 			value = JsonParse(value)
 		}
@@ -1959,7 +1989,7 @@ func (this *testMainClass) UrlencodedToDict(url any) any {
 // note: a plain `value === 0` is not enough, php's strict comparison says `0.0 !== 0`, so a
 // computed float zero would not be treated as empty and would mismatch a stored null (#30082)
 func (this *testMainClass) IsEmptyOutputValue(exchange ccxt.ICoreExchange, value any) any {
-	if (IsEqual(value, nil)) || (IsEqual(value, false)) || (IsEqual(value, "")) {
+	if (IsEqual(value, nil)) || (value == false) || (value == "") {
 		return true
 	}
 	if EvalTruthy(exchange.IsDictionary(value)) || IsArray(value) {
@@ -1986,7 +2016,7 @@ func (this *testMainClass) IsVacantValue(exchange ccxt.ICoreExchange, value any)
 		return true
 	}
 	if IsArray(value) {
-		for i := 0; IsLessThan(i, GetArrayLength(value)); i++ {
+		for i := 0; i < GetArrayLength(value); i++ {
 			if !EvalTruthy(this.IsVacantValue(exchange, GetValue(value, i))) {
 				return false
 			}
@@ -1995,7 +2025,7 @@ func (this *testMainClass) IsVacantValue(exchange ccxt.ICoreExchange, value any)
 	}
 	if EvalTruthy(exchange.IsDictionary(value)) {
 		var keys []string = ObjectKeys(value)
-		for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
+		for i := 0; i < len(keys); i++ {
 			if !EvalTruthy(this.IsVacantValue(exchange, GetValue(value, GetValue(keys, i)))) {
 				return false
 			}
@@ -2009,7 +2039,7 @@ func (this *testMainClass) CountSignificantKeys(exchange ccxt.ICoreExchange, tar
 	// all and which carry no data here (see isVacantValue)
 	var keys []string = ObjectKeys(target)
 	var count any = 0
-	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
+	for i := 0; i < len(keys); i++ {
 		var key any = GetValue(keys, i)
 		if !EvalTruthy((exchange.InArray(key, otherKeys))) && EvalTruthy(this.IsVacantValue(exchange, GetValue(target, key))) {
 			continue
@@ -2048,8 +2078,8 @@ func (this *testMainClass) AssertNewAndStoredOutputInner(exchange ccxt.ICoreExch
 	if EvalTruthy(exchange.IsDictionary(storedOutput)) && EvalTruthy(exchange.IsDictionary(newOutput)) {
 		var storedOutputKeys []string = ObjectKeys(storedOutput)
 		var newOutputKeys []string = ObjectKeys(newOutput)
-		var storedKeysLength any = GetArrayLength(storedOutputKeys)
-		var newKeysLength any = GetArrayLength(newOutputKeys)
+		var storedKeysLength any = len(storedOutputKeys)
+		var newKeysLength any = len(newOutputKeys)
 		if this.Lang == "C#" {
 			// the unified types are structs there, so an unpopulated field still
 			// comes back (as an explicit null) and a unified key with no struct
@@ -2059,7 +2089,7 @@ func (this *testMainClass) AssertNewAndStoredOutputInner(exchange ccxt.ICoreExch
 		}
 		this.AssertStaticError((storedKeysLength == newKeysLength), "output length mismatch", storedOutput, newOutput)
 		// iterate over the keys
-		for i := 0; IsLessThan(i, GetArrayLength(storedOutputKeys)); i++ {
+		for i := 0; i < len(storedOutputKeys); i++ {
 			var key any = GetValue(storedOutputKeys, i)
 			if EvalTruthy(exchange.InArray(key, skipKeys)) {
 				continue
@@ -2085,20 +2115,40 @@ func (this *testMainClass) AssertNewAndStoredOutputInner(exchange ccxt.ICoreExch
 		var storedArrayLength int = GetArrayLength(storedOutput)
 		var newArrayLength int = GetArrayLength(newOutput)
 		this.AssertStaticError((storedArrayLength == newArrayLength), "output length mismatch", storedOutput, newOutput)
-		for i := 0; IsLessThan(i, GetArrayLength(storedOutput)); i++ {
+		for i := 0; i < GetArrayLength(storedOutput); i++ {
 			var storedItem any = GetValue(storedOutput, i)
 			var newItem any = GetValue(newOutput, i)
 			this.AssertNewAndStoredOutputInner(exchange, skipKeys, newItem, storedItem, strictTypeCheck)
 		}
 	} else {
 		// built-in types like strings, numbers, booleans
-		var sanitizedNewOutput any = Ternary(EvalTruthy((IsNullValue(newOutput))), nil, newOutput) // we store undefined as nulls in the json file so we need to convert it back
-		var sanitizedStoredOutput any = Ternary(EvalTruthy((IsNullValue(storedOutput))), nil, storedOutput)
+		var sanitizedNewOutput any = func() any {
+			if EvalTruthy((IsNullValue(newOutput))) {
+				return nil
+			}
+			return newOutput
+		}() // we store undefined as nulls in the json file so we need to convert it back
+		var sanitizedStoredOutput any = func() any {
+			if EvalTruthy((IsNullValue(storedOutput))) {
+				return nil
+			}
+			return storedOutput
+		}()
 		// a truthiness test here turns a real 0 / 0.0 / "" into "undefined", which a
 		// typed core hits constantly (its Num fields are real doubles, so an unset
 		// cost arrives as 0.0 rather than as a string). Test for undefined instead.
-		var newOutputString any = Ternary((!IsEqual(sanitizedNewOutput, nil)), ToString(sanitizedNewOutput), "undefined")
-		var storedOutputString any = Ternary((!IsEqual(sanitizedStoredOutput, nil)), ToString(sanitizedStoredOutput), "undefined")
+		var newOutputString any = func() any {
+			if !IsEqual(sanitizedNewOutput, nil) {
+				return ToString(sanitizedNewOutput)
+			}
+			return "undefined"
+		}()
+		var storedOutputString any = func() any {
+			if !IsEqual(sanitizedStoredOutput, nil) {
+				return ToString(sanitizedStoredOutput)
+			}
+			return "undefined"
+		}()
 		var messageError any = Add(Add(Add("output value mismatch:", newOutputString), " != "), storedOutputString)
 		if EvalTruthy(strictTypeCheck) && (this.Lang != "C#") {
 			// upon building the request we want strict type check to make sure all the types are correct
@@ -2266,12 +2316,12 @@ func (this *testMainClass) AssertStaticRequestOutput(exchange ccxt.ICoreExchange
 		// remove the host part from the url
 		var firstPath any = this.RemoveHostnamefromUrl(storedUrl)
 		var secondPath any = this.RemoveHostnamefromUrl(requestUrl)
-		this.AssertStaticError(IsEqual(firstPath, secondPath), "url mismatch", firstPath, secondPath)
+		this.AssertStaticError((firstPath == secondPath), "url mismatch", firstPath, secondPath)
 	}
 	// body (aka storedOutput and newOutput) is not defined and information is in the url
 	// example: "https://open-api.bingx.com/openApi/spot/v1/trade/order?quoteOrderQty=5&side=BUY&symbol=LTC-USDT&timestamp=1698777135343&type=MARKET&signature=d55a7e4f7f9dbe56c4004c9f3ab340869d3cb004e2f0b5b861e5fbd1762fd9a0
 	if (IsEqual(storedOutput, nil)) && (IsEqual(newOutput, nil)) {
-		if (!IsEqual(storedUrl, nil)) && (!IsEqual(requestUrl, nil)) {
+		if (storedUrl != nil) && (requestUrl != nil) {
 			var storedUrlParts []string = Split(storedUrl, "?")
 			var newUrlParts []string = Split(requestUrl, "?")
 			var storedUrlQuery any = exchange.SafeValue(storedUrlParts, 1)
@@ -2287,17 +2337,17 @@ func (this *testMainClass) AssertStaticRequestOutput(exchange ccxt.ICoreExchange
 			return true
 		}
 	}
-	if IsEqual(typeVar, "json") && (!IsEqual(storedOutput, nil)) && (!IsEqual(newOutput, nil)) {
+	if (typeVar == "json") && (!IsEqual(storedOutput, nil)) && (!IsEqual(newOutput, nil)) {
 		if IsString(storedOutput) {
 			storedOutput = JsonParse(storedOutput)
 		}
 		if IsString(newOutput) {
 			newOutput = JsonParse(newOutput)
 		}
-	} else if IsEqual(typeVar, "urlencoded") && (!IsEqual(storedOutput, nil)) && (!IsEqual(newOutput, nil)) {
+	} else if (typeVar == "urlencoded") && (!IsEqual(storedOutput, nil)) && (!IsEqual(newOutput, nil)) {
 		storedOutput = this.UrlencodedToDict(storedOutput)
 		newOutput = this.UrlencodedToDict(newOutput)
-	} else if IsEqual(typeVar, "both") {
+	} else if typeVar == "both" {
 		if (IsEqual(StartsWith(storedOutput, "{"), true)) || (IsEqual(StartsWith(storedOutput, "["), true)) {
 			storedOutput = JsonParse(storedOutput)
 			newOutput = JsonParse(newOutput)
@@ -2318,7 +2368,7 @@ func (this *testMainClass) SanitizeDataInput(input any) any {
 		return nil
 	}
 	var newInput any = []any{}
-	for i := 0; IsLessThan(i, GetArrayLength(input)); i++ {
+	for i := 0; i < GetArrayLength(input); i++ {
 		var current any = GetValue(input, i)
 		if EvalTruthy(IsNullValue(current)) {
 			AppendToArray(&newInput, nil)
@@ -2398,9 +2448,14 @@ func (this *testMainClass) testRequestStaticallyBody(ch chan any, exchange ccxt.
 			// silently corrupt when a header literal contains a local/parameter name of sign ()
 			var storedHeaders any = exchange.SafeDict(data, "headers")
 			if !IsEqual(storedHeaders, nil) {
-				var sentHeaders any = Ternary((!IsEqual(exchange.GetLast_request_headers(), nil)), exchange.GetLast_request_headers(), map[string]any{})
+				var sentHeaders any = func() any {
+					if !IsEqual(exchange.GetLast_request_headers(), nil) {
+						return exchange.GetLast_request_headers()
+					}
+					return map[string]any{}
+				}()
 				var storedHeaderKeys []string = ObjectKeys(storedHeaders)
-				for i := 0; IsLessThan(i, GetArrayLength(storedHeaderKeys)); i++ {
+				for i := 0; i < len(storedHeaderKeys); i++ {
 					var headerKey any = GetValue(storedHeaderKeys, i)
 					var storedHeaderValue any = GetValue(storedHeaders, headerKey)
 					var sentHeaderValue any = exchange.SafeString(sentHeaders, headerKey)
@@ -2482,7 +2537,7 @@ func (this *testMainClass) injectWsMessagesBody(ch chan any, exchange ccxt.ICore
 	// timeout
 	sequential := GetArg(optionalArgs, 0, false)
 	_ = sequential
-	for i := 0; IsLessThan(i, GetArrayLength(messages)); i++ {
+	for i := 0; i < GetArrayLength(messages); i++ {
 		var waited any = 0
 		for !EvalTruthy(WsClientHasPendingFutures(exchange, url)) && (IsLessThan(waited, 5000)) {
 
@@ -2554,7 +2609,7 @@ func (this *testMainClass) watchAndAssertSequenceBody(ch chan any, exchange ccxt
 				}
 			}()
 			// try block:
-			for i := 0; IsLessThan(i, GetArrayLength(expectedResults)); i++ {
+			for i := 0; i < GetArrayLength(expectedResults); i++ {
 
 				result := (<-CallExchangeMethodDynamically(exchange, method, input))
 				PanicOnError(result)
@@ -2586,8 +2641,8 @@ func (this *testMainClass) AssertWsSentMessages(exchange ccxt.ICoreExchange, url
 	var sentMessages any = GetWsSentMessages(exchange, url)
 	var sentLength int = GetArrayLength(sentMessages)
 	var expectedLength int = GetArrayLength(expectedSent)
-	Assert(IsEqual(sentLength, expectedLength), Add(Add(Add(Add(Add("sent ws messages count mismatch: sent ", ToString(sentLength)), ", expected "), ToString(expectedLength)), " "), JsonStringify(sentMessages)))
-	for i := 0; IsLessThan(i, expectedLength); i++ {
+	Assert(IsEqual(sentLength, expectedLength), "sent ws messages count mismatch: sent "+ToString(sentLength)+", expected "+ToString(expectedLength)+" "+JsonStringify(sentMessages))
+	for i := 0; i < expectedLength; i++ {
 		var unifiedSent any = JsonParse(JsonStringify(GetValue(sentMessages, i)))
 		this.AssertStaticResponseOutput(exchange, sentSkipKeys, unifiedSent, GetValue(expectedSent, i))
 	}
@@ -2675,13 +2730,23 @@ func (this *testMainClass) testExchangeWsStaticallyBody(ch chan any, exchangeNam
 	defer ReturnPanicError(ch)
 	testName := GetArg(optionalArgs, 0, nil)
 	_ = testName
-	var globalOptions any = Ternary(IsEqual(GetValue(exchangeData, "options"), nil), map[string]any{}, GetValue(exchangeData, "options"))
-	var methods any = Ternary(IsEqual(GetValue(exchangeData, "methods"), nil), map[string]any{}, GetValue(exchangeData, "methods"))
+	var globalOptions any = func() any {
+		if IsEqual(GetValue(exchangeData, "options"), nil) {
+			return map[string]any{}
+		}
+		return GetValue(exchangeData, "options")
+	}()
+	var methods any = func() any {
+		if IsEqual(GetValue(exchangeData, "methods"), nil) {
+			return map[string]any{}
+		}
+		return GetValue(exchangeData, "methods")
+	}()
 	var methodsNames []string = ObjectKeys(methods)
-	for i := 0; IsLessThan(i, GetArrayLength(methodsNames)); i++ {
+	for i := 0; i < len(methodsNames); i++ {
 		var method any = GetValue(methodsNames, i)
 		var results any = GetValue(methods, method)
-		for j := 0; IsLessThan(j, GetArrayLength(results)); j++ {
+		for j := 0; j < GetArrayLength(results); j++ {
 			var result any = GetValue(results, j)
 			var description any = GetValue(result, "description")
 			if (!IsEqual(testName, nil)) && (!IsEqual(testName, description)) {
@@ -2692,11 +2757,11 @@ func (this *testMainClass) testExchangeWsStaticallyBody(ch chan any, exchangeNam
 			// and would leak state across entries otherwise
 			var exchange ccxt.ICoreExchange = this.InitOfflineExchange(exchangeName, true)
 			var isDisabled any = exchange.SafeBool(result, "disabled", false)
-			if IsEqual(isDisabled, true) {
+			if isDisabled == true {
 				continue
 			}
 			var disabledString any = exchange.SafeString(result, "disabled", "")
-			if !IsEqual(disabledString, "") {
+			if disabledString != "" {
 				continue
 			}
 			var isDisabledCSharp any = exchange.SafeString(result, "disabledCS")
@@ -2715,17 +2780,21 @@ func (this *testMainClass) testExchangeWsStaticallyBody(ch chan any, exchangeNam
 			if (!IsEqual(isDisabledPhp, nil)) && (this.Lang == "PHP") {
 				continue
 			}
+			var isDisabledRust any = exchange.SafeString(result, "disabledRS")
+			if (!IsEqual(isDisabledRust, nil)) && (this.Lang == "RUST") {
+				continue
+			}
 			exchange.ExtendExchangeOptions(globalOptions)
 			var testExchangeOptions any = exchange.SafeValue(result, "options", map[string]any{})
 			exchange.ExtendExchangeOptions(testExchangeOptions)
 			var skipKeys any = exchange.SafeValue(exchangeData, "skipKeys", []any{})
 
-			retRes218316 := (<-this.TestWsStaticallyAsync(exchange, method, skipKeys, result))
-			PanicOnError(retRes218316)
+			retRes218716 := (<-this.TestWsStaticallyAsync(exchange, method, skipKeys, result))
+			PanicOnError(retRes218716)
 			if !EvalTruthy(IsSync()) {
 
-				retRes218520 := (<-Close(exchange))
-				PanicOnError(retRes218520)
+				retRes218920 := (<-Close(exchange))
+				PanicOnError(retRes218920)
 			}
 		}
 	}
@@ -2815,8 +2884,8 @@ func (this *testMainClass) InitOfflineExchange(exchangeName any, optionalArgs ..
 		},
 	}
 	if exchangeName == "grvt" {
-		AddElementToObject(options, "apiKey", "")
-		AddElementToObject(options, "secret", "")
+		options["apiKey"] = ""
+		options["secret"] = ""
 	}
 	var exchange ccxt.ICoreExchange = InitExchange(exchangeName, options, isWs)
 	if !IsEqual(currencies, nil) {
@@ -2826,9 +2895,9 @@ func (this *testMainClass) InitOfflineExchange(exchangeName any, optionalArgs ..
 	// outcome-addressed methods (fetchOrderBook/fetchTrades/createOrder/...) resolve offline
 	if !IsEqual(predictionEvents, nil) {
 		var eventMarkets any = []any{}
-		for i := 0; IsLessThan(i, GetArrayLength(predictionEvents)); i++ {
+		for i := 0; i < GetArrayLength(predictionEvents); i++ {
 			var evMarkets any = exchange.SafeList(GetValue(predictionEvents, i), "markets", []any{})
-			for j := 0; IsLessThan(j, GetArrayLength(evMarkets)); j++ {
+			for j := 0; j < GetArrayLength(evMarkets); j++ {
 				var evMarket any = GetValue(evMarkets, j)
 				// every market row must carry the unified market handle (PredictionMarket
 				// declares it required) — enforce it on the fixtures so a venue that stops
@@ -2839,7 +2908,7 @@ func (this *testMainClass) InitOfflineExchange(exchangeName any, optionalArgs ..
 				AppendToArray(&eventMarkets, evMarket)
 			}
 		}
-		if IsGreaterThan(GetArrayLength(eventMarkets), 0) {
+		if GetArrayLength(eventMarkets) > 0 {
 			exchange.SetMarkets(eventMarkets)
 		}
 	}
@@ -2888,10 +2957,10 @@ func (this *testMainClass) testExchangeRequestStaticallyBody(ch chan any, exchan
 	exchange.ExtendExchangeOptions(globalOptions)
 	var methods any = exchange.SafeValue(exchangeData, "methods", map[string]any{})
 	var methodsNames []string = ObjectKeys(methods)
-	for i := 0; IsLessThan(i, GetArrayLength(methodsNames)); i++ {
+	for i := 0; i < len(methodsNames); i++ {
 		var method any = GetValue(methodsNames, i)
 		var results any = GetValue(methods, method)
-		for j := 0; IsLessThan(j, GetArrayLength(results)); j++ {
+		for j := 0; j < GetArrayLength(results); j++ {
 			var result any = GetValue(results, j)
 			var oldExchangeOptions any = exchange.GetOptions() // snapshot options;
 			var testExchangeOptions any = exchange.SafeValue(result, "options", map[string]any{})
@@ -2902,19 +2971,19 @@ func (this *testMainClass) testExchangeRequestStaticallyBody(ch chan any, exchan
 				continue
 			}
 			var isDisabled any = exchange.SafeBool(result, "disabled", false)
-			if IsEqual(isDisabled, true) {
+			if isDisabled == true {
 				continue
 			}
 			var disabledString any = exchange.SafeString(result, "disabled", "")
-			if !IsEqual(disabledString, "") {
+			if disabledString != "" {
 				continue
 			}
 			var isDisabledCSharp any = exchange.SafeBool(result, "disabledCS", false)
-			if (IsEqual(isDisabledCSharp, true)) && (this.Lang == "C#") {
+			if (isDisabledCSharp == true) && (this.Lang == "C#") {
 				continue
 			}
 			var isDisabledGo any = exchange.SafeBool(result, "disabledGO", false)
-			if (IsEqual(isDisabledGo, true)) && (this.Lang == "GO") {
+			if (isDisabledGo == true) && (this.Lang == "GO") {
 				continue
 			}
 			var isDisabledRust any = exchange.SafeBool(result, "disabledRS", false)
@@ -2922,22 +2991,22 @@ func (this *testMainClass) testExchangeRequestStaticallyBody(ch chan any, exchan
 				continue
 			}
 			var isDisabledJava any = exchange.SafeBool(result, "disabledJava", false)
-			if (IsEqual(isDisabledJava, true)) && (this.Lang == "java") {
+			if (isDisabledJava == true) && (this.Lang == "java") {
 				continue
 			}
 			var typeVar any = exchange.SafeString(exchangeData, "outputType")
 			var skipKeys any = exchange.SafeValue(exchangeData, "skipKeys", []any{})
 
-			retRes238216 := (<-this.TestRequestStaticallyAsync(exchange, method, result, typeVar, skipKeys))
-			PanicOnError(retRes238216)
+			retRes238616 := (<-this.TestRequestStaticallyAsync(exchange, method, result, typeVar, skipKeys))
+			PanicOnError(retRes238616)
 			// reset options
 			exchange.SetOptions(exchange.ConvertToSafeDictionary(exchange.DeepExtend(oldExchangeOptions, map[string]any{})))
 		}
 	}
 	if !EvalTruthy(IsSync()) {
 
-		retRes238912 := (<-Close(exchange))
-		PanicOnError(retRes238912)
+		retRes239312 := (<-Close(exchange))
+		PanicOnError(retRes239312)
 	}
 
 	ch <- true // in c# methods that will be used with promiseAll need to return something
@@ -2980,10 +3049,10 @@ func (this *testMainClass) testExchangeResponseStaticallyBody(ch chan any, excha
 	// exchange.Setoptions(exchange.GetdeepExtend() (exchange.Getoptions(), options); // custom options to be used in the tests)
 	exchange.ExtendExchangeOptions(options)
 	var methodsNames []string = ObjectKeys(methods)
-	for i := 0; IsLessThan(i, GetArrayLength(methodsNames)); i++ {
+	for i := 0; i < len(methodsNames); i++ {
 		var method any = GetValue(methodsNames, i)
 		var results any = GetValue(methods, method)
-		for j := 0; IsLessThan(j, GetArrayLength(results)); j++ {
+		for j := 0; j < GetArrayLength(results); j++ {
 			var result any = GetValue(results, j)
 			var description any = exchange.SafeValue(result, "description")
 			var oldExchangeOptions any = exchange.GetOptions() // snapshot options;
@@ -2991,22 +3060,22 @@ func (this *testMainClass) testExchangeResponseStaticallyBody(ch chan any, excha
 			// exchange.Setoptions(exchange.GetdeepExtend() (oldExchangeOptions, testExchangeOptions); // custom options to be used in the tests)
 			exchange.ExtendExchangeOptions(exchange.DeepExtend(oldExchangeOptions, testExchangeOptions))
 			var isDisabled any = exchange.SafeBool(result, "disabled", false)
-			if IsEqual(isDisabled, true) {
+			if isDisabled == true {
 				continue
 			}
 			var isDisabledCSharp any = exchange.SafeBool(result, "disabledCS", false)
-			if (IsEqual(isDisabledCSharp, true)) && (this.Lang == "C#") {
+			if (isDisabledCSharp == true) && (this.Lang == "C#") {
 				continue
 			}
 			var isDisabledPHP any = exchange.SafeBool(result, "disabledPHP", false)
-			if (IsEqual(isDisabledPHP, true)) && (this.Lang == "PHP") {
+			if (isDisabledPHP == true) && (this.Lang == "PHP") {
 				continue
 			}
 			if (!IsEqual(testName, nil)) && (!IsEqual(testName, description)) {
 				continue
 			}
 			var isDisabledGO any = exchange.SafeBool(result, "disabledGO", false)
-			if (IsEqual(isDisabledGO, true)) && (this.Lang == "GO") {
+			if (isDisabledGO == true) && (this.Lang == "GO") {
 				continue
 			}
 			var isDisabledRust any = exchange.SafeBool(result, "disabledRS", false)
@@ -3014,13 +3083,13 @@ func (this *testMainClass) testExchangeResponseStaticallyBody(ch chan any, excha
 				continue
 			}
 			var isDisabledJava any = exchange.SafeBool(result, "disabledJava", false)
-			if (IsEqual(isDisabledJava, true)) && (this.Lang == "java") {
+			if (isDisabledJava == true) && (this.Lang == "java") {
 				continue
 			}
 			var skipKeys any = exchange.SafeValue(exchangeData, "skipKeys", []any{})
 
-			retRes246116 := (<-this.TestResponseStaticallyAsync(exchange, method, skipKeys, result))
-			PanicOnError(retRes246116)
+			retRes246516 := (<-this.TestResponseStaticallyAsync(exchange, method, skipKeys, result))
+			PanicOnError(retRes246516)
 			// reset options
 			// exchange.Setoptions(exchange.GetdeepExtend() (oldExchangeOptions, {});)
 			exchange.ExtendExchangeOptions(exchange.DeepExtend(oldExchangeOptions, map[string]any{}))
@@ -3028,8 +3097,8 @@ func (this *testMainClass) testExchangeResponseStaticallyBody(ch chan any, excha
 	}
 	if !EvalTruthy(IsSync()) {
 
-		retRes246812 := (<-Close(exchange))
-		PanicOnError(retRes246812)
+		retRes247212 := (<-Close(exchange))
+		PanicOnError(retRes247212)
 	}
 
 	ch <- true // in c# methods that will be used with promiseAll need to return something
@@ -3044,7 +3113,7 @@ func (this *testMainClass) GetNumberOfTestsFromExchange(exchange ccxt.ICoreExcha
 	var sum any = 0
 	var methods any = GetValue(exchangeData, "methods")
 	var methodsNames []string = ObjectKeys(methods)
-	for i := 0; IsLessThan(i, GetArrayLength(methodsNames)); i++ {
+	for i := 0; i < len(methodsNames); i++ {
 		var method any = GetValue(methodsNames, i)
 		var results any = GetValue(methods, method)
 		var resultsLength int = GetArrayLength(results)
@@ -3057,27 +3126,27 @@ func (this *testMainClass) CheckIfExchangeIsDisabled(exchangeName any, exchangeD
 	// prediction-market exchanges exist only in the async namespaces in python/php,
 	// so their fixtures declare asyncOnly and the sync harness skips them
 	var isAsyncOnly any = exchange.SafeBool(exchangeData, "asyncOnly", false)
-	if (IsEqual(isAsyncOnly, true)) && EvalTruthy(IsSync()) {
+	if (isAsyncOnly == true) && EvalTruthy(IsSync()) {
 		Dump(Add(Add("[TEST_WARNING] Exchange ", exchangeName), " is async-only, skipped by the sync test harness"))
 		return true
 	}
 	var isDisabledPy any = exchange.SafeBool(exchangeData, "disabledPy", false)
-	if (IsEqual(isDisabledPy, true)) && (this.Lang == "PY") {
+	if (isDisabledPy == true) && (this.Lang == "PY") {
 		Dump(Add(Add("[TEST_WARNING] Exchange ", exchangeName), " is disabled in python"))
 		return true
 	}
 	var isDisabledPHP any = exchange.SafeBool(exchangeData, "disabledPHP", false)
-	if (IsEqual(isDisabledPHP, true)) && (this.Lang == "PHP") {
+	if (isDisabledPHP == true) && (this.Lang == "PHP") {
 		Dump(Add(Add("[TEST_WARNING] Exchange ", exchangeName), " is disabled in php"))
 		return true
 	}
 	var isDisabledCSharp any = exchange.SafeBool(exchangeData, "disabledCS", false)
-	if (IsEqual(isDisabledCSharp, true)) && (this.Lang == "C#") {
+	if (isDisabledCSharp == true) && (this.Lang == "C#") {
 		Dump(Add(Add("[TEST_WARNING] Exchange ", exchangeName), " is disabled in c#"))
 		return true
 	}
 	var isDisabledGO any = exchange.SafeBool(exchangeData, "disabledGO", false)
-	if (IsEqual(isDisabledGO, true)) && (this.Lang == "GO") {
+	if (isDisabledGO == true) && (this.Lang == "GO") {
 		Dump(Add(Add("[TEST_WARNING] Exchange ", exchangeName), " is disabled in go"))
 		return true
 	}
@@ -3087,7 +3156,7 @@ func (this *testMainClass) CheckIfExchangeIsDisabled(exchangeName any, exchangeD
 		return true
 	}
 	var isDisabledJava any = exchange.SafeBool(exchangeData, "disabledJava", false)
-	if (IsEqual(isDisabledJava, true)) && (this.Lang == "java") {
+	if (isDisabledJava == true) && (this.Lang == "java") {
 		Dump(Add(Add("[TEST_WARNING] Exchange ", exchangeName), " is disabled in java"))
 		return true
 	}
@@ -3106,8 +3175,8 @@ func (this *testMainClass) runStaticRequestTestsBody(ch chan any, optionalArgs .
 	testName := GetArg(optionalArgs, 1, nil)
 	_ = testName
 
-	retRes25328 := (<-this.RunStaticTestsAsync("request", targetExchange, testName))
-	PanicOnError(retRes25328)
+	retRes25368 := (<-this.RunStaticTestsAsync("request", targetExchange, testName))
+	PanicOnError(retRes25368)
 
 	ch <- true
 	return nil
@@ -3140,13 +3209,13 @@ func (this *testMainClass) runStaticTestsBody(ch chan any, typeVar any, optional
 	var exchange ccxt.ICoreExchange = InitExchange("Exchange", map[string]any{}) // tmp to do the calculations until we have the ast-transpiler transpiling this code
 	var promises any = []any{}
 	var sum any = 0
-	if !IsEqual(targetExchange, nil) && !IsEqual(targetExchange, "") {
+	if !IsEqual(targetExchange, nil) && (targetExchange != "") {
 		Dump(Add("[INFO:MAIN] Exchange to test: ", targetExchange))
 	}
-	if !IsEqual(testName, nil) && !IsEqual(testName, "") {
+	if !IsEqual(testName, nil) && (testName != "") {
 		Dump(Add("[INFO:MAIN] Testing only: ", testName))
 	}
-	for i := 0; IsLessThan(i, GetArrayLength(exchanges)); i++ {
+	for i := 0; i < len(exchanges); i++ {
 		var exchangeName any = GetValue(exchanges, i)
 		var exchangeData any = GetValue(staticData, exchangeName)
 		var disabled any = this.CheckIfExchangeIsDisabled(exchangeName, exchangeData)
@@ -3188,8 +3257,8 @@ func (this *testMainClass) runStaticTestsBody(ch chan any, typeVar any, optional
 			}()
 			// try block:
 
-			retRes257512 := (<-promiseAll(promises))
-			PanicOnError(retRes257512)
+			retRes257912 := (<-promiseAll(promises))
+			PanicOnError(retRes257912)
 			return nil
 		}(this)
 
@@ -3197,7 +3266,12 @@ func (this *testMainClass) runStaticTestsBody(ch chan any, typeVar any, optional
 	if EvalTruthy(this.RequestTestsFailed) || EvalTruthy(this.ResponseTestsFailed) || EvalTruthy(this.StaticWsTestsFailed) {
 		ExitScript(1)
 	} else {
-		var prefix any = Ternary(EvalTruthy((IsSync())), "[SYNC]", "")
+		var prefix any = func() any {
+			if EvalTruthy((IsSync())) {
+				return "[SYNC]"
+			}
+			return ""
+		}()
 		var successMessage any = Add(Add(Add(Add(Add(Add(Add(Add("[", this.Lang), "]"), prefix), "[TEST_SUCCESS] "), ToString(sum)), " static "), typeVar), " tests passed.")
 		Dump(Add("[INFO]", successMessage))
 	}
@@ -3221,8 +3295,8 @@ func (this *testMainClass) runStaticResponseTestsBody(ch chan any, optionalArgs 
 	test := GetArg(optionalArgs, 1, nil)
 	_ = test
 
-	retRes26018 := (<-this.RunStaticTestsAsync("response", exchangeName, test))
-	PanicOnError(retRes26018)
+	retRes26058 := (<-this.RunStaticTestsAsync("response", exchangeName, test))
+	PanicOnError(retRes26058)
 
 	ch <- true
 	return nil
@@ -3250,8 +3324,8 @@ func (this *testMainClass) runStaticWsTestsBody(ch chan any, optionalArgs ...any
 		return nil
 	}
 
-	retRes26148 := (<-this.RunStaticTestsAsync("ws", exchangeName, test))
-	PanicOnError(retRes26148)
+	retRes26188 := (<-this.RunStaticTestsAsync("ws", exchangeName, test))
+	PanicOnError(retRes26188)
 
 	ch <- true
 	return nil
@@ -3267,10 +3341,10 @@ func (this *testMainClass) runBrokerIdTestsBody(ch chan any) any {
 	//  -----------------------------------------------------------------------------
 	//  --- Init of brokerId tests functions-----------------------------------------
 	//  -----------------------------------------------------------------------------
-	var promises []any = []any{this.TestBinanceAsync(), this.TestOkxAsync(), this.TestCryptocomAsync(), this.TestBybitAsync(), this.TestKucoinAsync(), this.TestKucoinfuturesAsync(), this.TestBitgetAsync(), this.TestMexcAsync(), this.TestHtxAsync(), this.TestWooAsync(), this.TestCoinexAsync(), this.TestBingxAsync(), this.TestPhemexAsync(), this.TestBlofinAsync(), this.TestCoinbaseinternationalAsync(), this.TestCoinbaseAdvancedAsync(), this.TestWoofiProAsync(), this.TestXTAsync(), this.TestParadexAsync(), this.TestHashkeyAsync(), this.TestCryptomusAsync(), this.TestDeriveAsync(), this.TestModeTradeAsync(), this.TestBackpackAsync(), this.TestToobitAsync(), this.TestWeexAsync(), this.TestFoxbitAsync()}
+	var promises []any = []any{this.TestBinanceAsync(), this.TestOkxAsync(), this.TestCryptocomAsync(), this.TestBybitAsync(), this.TestKucoinAsync(), this.TestKucoinfuturesAsync(), this.TestBitgetAsync(), this.TestMexcAsync(), this.TestHtxAsync(), this.TestWooAsync(), this.TestCoinexAsync(), this.TestBingxAsync(), this.TestPhemexAsync(), this.TestBlofinAsync(), this.TestCoinbaseinternationalAsync(), this.TestCoinbaseAdvancedAsync(), this.TestWoofiProAsync(), this.TestXTAsync(), this.TestParadexAsync(), this.TestHashkeyAsync(), this.TestCryptomusAsync(), this.TestDeriveAsync(), this.TestModeTradeAsync(), this.TestBackpackAsync(), this.TestToobitAsync(), this.TestWeexAsync(), this.TestFoxbitAsync(), this.TestBithumbAsync()}
 
-	retRes26528 := (<-promiseAll(promises))
-	PanicOnError(retRes26528)
+	retRes26578 := (<-promiseAll(promises))
+	PanicOnError(retRes26578)
 	var successMessage any = Add(Add("[", this.Lang), "][TEST_SUCCESS] brokerId tests passed.")
 	Dump(Add("[INFO]", successMessage))
 	ExitScript(0)
@@ -3308,8 +3382,8 @@ func (this *testMainClass) testBinanceBody(ch chan any) any {
 			}()
 			// try block:
 
-			retRes266612 := (<-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000))
-			PanicOnError(retRes266612)
+			retRes267112 := (<-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000))
+			PanicOnError(retRes267112)
 			return nil
 		}(this)
 
@@ -3335,8 +3409,8 @@ func (this *testMainClass) testBinanceBody(ch chan any) any {
 			}()
 			// try block:
 
-			retRes267612 := (<-exchange.CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000))
-			PanicOnError(retRes267612)
+			retRes268112 := (<-exchange.CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000))
+			PanicOnError(retRes268112)
 			return nil
 		}(this)
 
@@ -3359,8 +3433,8 @@ func (this *testMainClass) testBinanceBody(ch chan any) any {
 			}()
 			// try block:
 
-			retRes268212 := (<-exchange.CreateOrderAsync("BTC/USD:BTC", "limit", "buy", 1, 20000))
-			PanicOnError(retRes268212)
+			retRes268712 := (<-exchange.CreateOrderAsync("BTC/USD:BTC", "limit", "buy", 1, 20000))
+			PanicOnError(retRes268712)
 			return nil
 		}(this)
 
@@ -3391,10 +3465,10 @@ func (this *testMainClass) testBinanceBody(ch chan any) any {
 			}()
 			// try block:
 
-			retRes269612 := (<-exchange.CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 0.002, 102000, map[string]any{
+			retRes270112 := (<-exchange.CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 0.002, 102000, map[string]any{
 				"triggerPrice": 101000,
 			}))
-			PanicOnError(retRes269612)
+			PanicOnError(retRes270112)
 			var checkOrderRequest any = this.UrlencodedToDict(exchange.GetLast_request_body())
 			var algoOrderIdDefined bool = (!IsEqual(GetValue(checkOrderRequest, "algoOrderId"), nil))
 			Assert(algoOrderIdDefined, "binance - swap clientOrderId needs to be sent as algoOrderId but algoOrderId is not defined")
@@ -3435,22 +3509,22 @@ func (this *testMainClass) testBinanceBody(ch chan any) any {
 				"amount": 1,
 			}}
 
-			retRes272312 := (<-exchange.CreateOrdersAsync(orders))
-			PanicOnError(retRes272312)
+			retRes272812 := (<-exchange.CreateOrdersAsync(orders))
+			PanicOnError(retRes272812)
 			return nil
 		}(this)
 
 	}
 	var batchOrders any = GetValue(createOrdersRequest, "batchOrders")
-	for i := 0; IsLessThan(i, GetArrayLength(batchOrders)); i++ {
+	for i := 0; i < GetArrayLength(batchOrders); i++ {
 		var current any = GetValue(batchOrders, i)
 		var currentClientOrderId any = GetValue(current, "newClientOrderId")
 		Assert(IsEqual(StartsWith(currentClientOrderId, swapIdString), true), Add(Add(Add("binance createOrders - clientOrderId: ", currentClientOrderId), " does not start with swapId"), swapIdString))
 	}
 	if !EvalTruthy(IsSync()) {
 
-		retRes273412 := (<-Close(exchange))
-		PanicOnError(retRes273412)
+		retRes273912 := (<-Close(exchange))
+		PanicOnError(retRes273912)
 	}
 
 	ch <- true
@@ -3484,8 +3558,8 @@ func (this *testMainClass) testOkxBody(ch chan any) any {
 			}()
 			// try block:
 
-			retRes274412 := (<-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000))
-			PanicOnError(retRes274412)
+			retRes274912 := (<-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000))
+			PanicOnError(retRes274912)
 			return nil
 		}(this)
 
@@ -3494,7 +3568,7 @@ func (this *testMainClass) testOkxBody(ch chan any) any {
 	var idString string = ToString(id)
 	Assert(IsEqual(StartsWith(clientOrderId, idString), true), Add(Add(Add("okx - spot clientOrderId: ", clientOrderId), " does not start with id: "), idString))
 	var spotTag any = GetValue(GetValue(spotOrderRequest, 0), "tag")
-	Assert(IsEqual(spotTag, id), Add(Add(Add("okx - id: ", id), " different from spot tag: "), spotTag))
+	Assert(IsEqual(spotTag, id), Add("okx - id: "+id+" different from spot tag: ", spotTag))
 	var swapOrderRequest any = map[string]any{}
 
 	{
@@ -3513,8 +3587,8 @@ func (this *testMainClass) testOkxBody(ch chan any) any {
 			}()
 			// try block:
 
-			retRes275512 := (<-exchange.CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000))
-			PanicOnError(retRes275512)
+			retRes276012 := (<-exchange.CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000))
+			PanicOnError(retRes276012)
 			return nil
 		}(this)
 
@@ -3522,11 +3596,11 @@ func (this *testMainClass) testOkxBody(ch chan any) any {
 	var clientOrderIdSwap any = GetValue(GetValue(swapOrderRequest, 0), "clOrdId")
 	Assert(IsEqual(StartsWith(clientOrderIdSwap, idString), true), Add(Add(Add("okx - swap clientOrderId: ", clientOrderIdSwap), " does not start with id: "), idString))
 	var swapTag any = GetValue(GetValue(swapOrderRequest, 0), "tag")
-	Assert(IsEqual(swapTag, id), Add(Add(Add("okx - id: ", id), " different from swap tag: "), swapTag))
+	Assert(IsEqual(swapTag, id), Add("okx - id: "+id+" different from swap tag: ", swapTag))
 	if !EvalTruthy(IsSync()) {
 
-		retRes276412 := (<-Close(exchange))
-		PanicOnError(retRes276412)
+		retRes276912 := (<-Close(exchange))
+		PanicOnError(retRes276912)
 	}
 
 	ch <- true
@@ -3543,8 +3617,8 @@ func (this *testMainClass) testCryptocomBody(ch chan any) any {
 	var exchange ccxt.ICoreExchange = this.InitOfflineExchange("cryptocom")
 	var id string = "CCXT"
 
-	retRes27728 := (<-exchange.LoadMarketsAsync())
-	PanicOnError(retRes27728)
+	retRes27778 := (<-exchange.LoadMarketsAsync())
+	PanicOnError(retRes27778)
 	var request any = map[string]any{}
 
 	{
@@ -3563,18 +3637,18 @@ func (this *testMainClass) testCryptocomBody(ch chan any) any {
 			}()
 			// try block:
 
-			retRes277512 := (<-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000))
-			PanicOnError(retRes277512)
+			retRes278012 := (<-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000))
+			PanicOnError(retRes278012)
 			return nil
 		}(this)
 
 	}
 	var brokerId any = GetValue(GetValue(request, "params"), "broker_id")
-	Assert(IsEqual(brokerId, id), Add(Add(Add("cryptocom - id: ", id), " different from  broker_id: "), brokerId))
+	Assert(IsEqual(brokerId, id), Add("cryptocom - id: "+id+" different from  broker_id: ", brokerId))
 	if !EvalTruthy(IsSync()) {
 
-		retRes278212 := (<-Close(exchange))
-		PanicOnError(retRes278212)
+		retRes278712 := (<-Close(exchange))
+		PanicOnError(retRes278712)
 	}
 
 	ch <- true
@@ -3603,24 +3677,144 @@ func (this *testMainClass) testBybitBody(ch chan any) any {
 					ret_ = func(this *testMainClass) any {
 						// catch block:
 						// we expect an error here, we're only interested in the headers
-						reqHeaders = Ternary((!IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil)), exchange.GetLast_request_headers(), map[string]any{})
+						reqHeaders = func() any {
+							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+								return exchange.GetLast_request_headers()
+							}
+							return map[string]any{}
+						}()
 						return nil
 					}(this)
 				}
 			}()
 			// try block:
 
-			retRes279312 := (<-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000))
-			PanicOnError(retRes279312)
+			retRes279812 := (<-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000))
+			PanicOnError(retRes279812)
 			return nil
 		}(this)
 
 	}
-	Assert(IsEqual(GetValue(reqHeaders, "Referer"), id), Add(Add("bybit - id: ", id), " not in headers."))
+	Assert(IsEqual(GetValue(reqHeaders, "Referer"), id), "bybit - id: "+id+" not in headers.")
 	if !EvalTruthy(IsSync()) {
 
-		retRes280012 := (<-Close(exchange))
-		PanicOnError(retRes280012)
+		retRes280512 := (<-Close(exchange))
+		PanicOnError(retRes280512)
+	}
+
+	ch <- true
+	return nil
+}
+func (this *testMainClass) TestBithumbAsync() <-chan any {
+	ch := make(chan any, 1)
+	go this.testBithumbBody(ch)
+	return ch
+}
+func (this *testMainClass) testBithumbBody(ch chan any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var exchange ccxt.ICoreExchange = this.InitOfflineExchange("bithumb")
+	var id string = "CCXT"
+	var reqHeaders any = map[string]any{}
+
+	{
+		func(this *testMainClass) (ret_ any) {
+			defer func() {
+				if e := recover(); e != nil {
+					if e == "break" {
+						return
+					}
+					ret_ = func(this *testMainClass) any {
+						// catch block:
+						// we expect an error here, we're only interested in the headers
+						reqHeaders = func() any {
+							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+								return exchange.GetLast_request_headers()
+							}
+							return map[string]any{}
+						}()
+						return nil
+					}(this)
+				}
+			}()
+			// try block:
+			// default path: generation 2, the versioned (jwt-signed) endpoints
+
+			retRes281612 := (<-exchange.CreateOrderAsync("BTC/KRW", "limit", "buy", 1, 20000))
+			PanicOnError(retRes281612)
+			return nil
+		}(this)
+
+	}
+	Assert(IsEqual(GetValue(reqHeaders, "OPEN-API-PARTNER"), id), "bithumb - id: "+id+" not in headers (v2 endpoints).")
+	reqHeaders = map[string]any{}
+
+	{
+		func(this *testMainClass) (ret_ any) {
+			defer func() {
+				if e := recover(); e != nil {
+					if e == "break" {
+						return
+					}
+					ret_ = func(this *testMainClass) any {
+						// catch block:
+						reqHeaders = func() any {
+							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+								return exchange.GetLast_request_headers()
+							}
+							return map[string]any{}
+						}()
+						return nil
+					}(this)
+				}
+			}()
+			// try block:
+			// legacy path: generation 1, the hmac-signed endpoints
+
+			retRes282512 := (<-exchange.CreateOrderAsync("BTC/KRW", "limit", "buy", 1, 20000, map[string]any{
+				"generation": 1,
+			}))
+			PanicOnError(retRes282512)
+			return nil
+		}(this)
+
+	}
+	Assert(IsEqual(GetValue(reqHeaders, "OPEN-API-PARTNER"), id), "bithumb - id: "+id+" not in headers (legacy endpoints).")
+	reqHeaders = map[string]any{}
+
+	{
+		func(this *testMainClass) (ret_ any) {
+			defer func() {
+				if e := recover(); e != nil {
+					if e == "break" {
+						return
+					}
+					ret_ = func(this *testMainClass) any {
+						// catch block:
+						reqHeaders = func() any {
+							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+								return exchange.GetLast_request_headers()
+							}
+							return map[string]any{}
+						}()
+						return nil
+					}(this)
+				}
+			}()
+			// try block:
+			// public endpoints carry the partner header as well
+
+			retRes283312 := (<-exchange.FetchTickerAsync("BTC/KRW"))
+			PanicOnError(retRes283312)
+			return nil
+		}(this)
+
+	}
+	Assert(IsEqual(GetValue(reqHeaders, "OPEN-API-PARTNER"), id), "bithumb - id: "+id+" not in headers (public endpoints).")
+	if !EvalTruthy(IsSync()) {
+
+		retRes283912 := (<-Close(exchange))
+		PanicOnError(retRes283912)
 	}
 
 	ch <- true
@@ -3639,12 +3833,12 @@ func (this *testMainClass) testKucoinBody(ch chan any) any {
 	var reqHeaders any = map[string]any{}
 	var spotId any = GetValue(GetValue(GetValue(exchange.GetOptions(), "partner"), "spot"), "id")
 	var spotKey any = GetValue(GetValue(GetValue(exchange.GetOptions(), "partner"), "spot"), "key")
-	Assert(IsEqual(spotId, "ccxt"), Add(Add("kucoin - id: ", spotId), " not in options"))
-	Assert(IsEqual(spotKey, "9e58cc35-5b5e-4133-92ec-166e3f077cb8"), Add(Add("kucoin - key: ", spotKey), " not in options."))
+	Assert((spotId == "ccxt"), Add(Add("kucoin - id: ", spotId), " not in options"))
+	Assert((spotKey == "9e58cc35-5b5e-4133-92ec-166e3f077cb8"), Add(Add("kucoin - key: ", spotKey), " not in options."))
 	var futureId any = GetValue(GetValue(GetValue(exchange.GetOptions(), "partner"), "future"), "id")
 	var futureKey any = GetValue(GetValue(GetValue(exchange.GetOptions(), "partner"), "future"), "key")
-	Assert(IsEqual(futureId, "ccxtfutures"), Add(Add("kucoin - id: ", futureId), " not in options."))
-	Assert(IsEqual(futureKey, "1b327198-f30c-4f14-a0ac-918871282f15"), Add(Add("kucoin - key: ", futureKey), " not in options."))
+	Assert((futureId == "ccxtfutures"), Add(Add("kucoin - id: ", futureId), " not in options."))
+	Assert((futureKey == "1b327198-f30c-4f14-a0ac-918871282f15"), Add(Add("kucoin - key: ", futureKey), " not in options."))
 
 	{
 		func(this *testMainClass) (ret_ any) {
@@ -3656,21 +3850,26 @@ func (this *testMainClass) testKucoinBody(ch chan any) any {
 					ret_ = func(this *testMainClass) any {
 						// catch block:
 						// we expect an error here, we're only interested in the headers
-						reqHeaders = Ternary((!IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil)), exchange.GetLast_request_headers(), map[string]any{})
+						reqHeaders = func() any {
+							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+								return exchange.GetLast_request_headers()
+							}
+							return map[string]any{}
+						}()
 						return nil
 					}(this)
 				}
 			}()
 			// try block:
 
-			retRes281812 := (<-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000))
-			PanicOnError(retRes281812)
+			retRes285712 := (<-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000))
+			PanicOnError(retRes285712)
 			return nil
 		}(this)
 
 	}
 	var id string = "ccxt"
-	Assert(IsEqual(GetValue(reqHeaders, "KC-API-PARTNER"), id), Add(Add("kucoin - id: ", id), " not in headers for spot orders."))
+	Assert(IsEqual(GetValue(reqHeaders, "KC-API-PARTNER"), id), "kucoin - id: "+id+" not in headers for spot orders.")
 
 	{
 		func(this *testMainClass) (ret_ any) {
@@ -3681,22 +3880,27 @@ func (this *testMainClass) testKucoinBody(ch chan any) any {
 					}
 					ret_ = func(this *testMainClass) any {
 						// catch block:
-						reqHeaders = Ternary((!IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil)), exchange.GetLast_request_headers(), map[string]any{})
+						reqHeaders = func() any {
+							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+								return exchange.GetLast_request_headers()
+							}
+							return map[string]any{}
+						}()
 						return nil
 					}(this)
 				}
 			}()
 			// try block:
 
-			retRes282612 := (<-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000, map[string]any{
+			retRes286512 := (<-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000, map[string]any{
 				"uta": true,
 			}))
-			PanicOnError(retRes282612)
+			PanicOnError(retRes286512)
 			return nil
 		}(this)
 
 	}
-	Assert(IsEqual(GetValue(reqHeaders, "KC-API-PARTNER"), id), Add(Add("kucoin - id: ", id), " not in headers for spot uta orders."))
+	Assert(IsEqual(GetValue(reqHeaders, "KC-API-PARTNER"), id), "kucoin - id: "+id+" not in headers for spot uta orders.")
 	id = "ccxtfutures"
 
 	{
@@ -3708,20 +3912,25 @@ func (this *testMainClass) testKucoinBody(ch chan any) any {
 					}
 					ret_ = func(this *testMainClass) any {
 						// catch block:
-						reqHeaders = Ternary((!IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil)), exchange.GetLast_request_headers(), map[string]any{})
+						reqHeaders = func() any {
+							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+								return exchange.GetLast_request_headers()
+							}
+							return map[string]any{}
+						}()
 						return nil
 					}(this)
 				}
 			}()
 			// try block:
 
-			retRes283312 := (<-exchange.CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000))
-			PanicOnError(retRes283312)
+			retRes287212 := (<-exchange.CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000))
+			PanicOnError(retRes287212)
 			return nil
 		}(this)
 
 	}
-	Assert(IsEqual(GetValue(reqHeaders, "KC-API-PARTNER"), id), Add(Add("kucoin - id: ", id), " not in headers for swap orders."))
+	Assert(IsEqual(GetValue(reqHeaders, "KC-API-PARTNER"), id), "kucoin - id: "+id+" not in headers for swap orders.")
 
 	{
 		func(this *testMainClass) (ret_ any) {
@@ -3732,26 +3941,31 @@ func (this *testMainClass) testKucoinBody(ch chan any) any {
 					}
 					ret_ = func(this *testMainClass) any {
 						// catch block:
-						reqHeaders = Ternary((!IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil)), exchange.GetLast_request_headers(), map[string]any{})
+						reqHeaders = func() any {
+							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+								return exchange.GetLast_request_headers()
+							}
+							return map[string]any{}
+						}()
 						return nil
 					}(this)
 				}
 			}()
 			// try block:
 
-			retRes283912 := (<-exchange.CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000, map[string]any{
+			retRes287812 := (<-exchange.CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000, map[string]any{
 				"uta": true,
 			}))
-			PanicOnError(retRes283912)
+			PanicOnError(retRes287812)
 			return nil
 		}(this)
 
 	}
-	Assert(IsEqual(GetValue(reqHeaders, "KC-API-PARTNER"), id), Add(Add("kucoin - id: ", id), " not in headers for swap uta orders."))
+	Assert(IsEqual(GetValue(reqHeaders, "KC-API-PARTNER"), id), "kucoin - id: "+id+" not in headers for swap uta orders.")
 	if !EvalTruthy(IsSync()) {
 
-		retRes284512 := (<-Close(exchange))
-		PanicOnError(retRes284512)
+		retRes288412 := (<-Close(exchange))
+		PanicOnError(retRes288412)
 	}
 
 	ch <- true
@@ -3771,7 +3985,7 @@ func (this *testMainClass) testKucoinfuturesBody(ch chan any) any {
 	var futureId any = GetValue(GetValue(GetValue(exchange.GetOptions(), "partner"), "future"), "id")
 	var futureKey any = GetValue(GetValue(GetValue(exchange.GetOptions(), "partner"), "future"), "key")
 	Assert(IsEqual(futureId, id), Add(Add("kucoinfutures - id: ", futureId), " not in options."))
-	Assert(IsEqual(futureKey, "1b327198-f30c-4f14-a0ac-918871282f15"), Add(Add("kucoinfutures - key: ", futureKey), " not in options."))
+	Assert((futureKey == "1b327198-f30c-4f14-a0ac-918871282f15"), Add(Add("kucoinfutures - key: ", futureKey), " not in options."))
 
 	{
 		func(this *testMainClass) (ret_ any) {
@@ -3782,7 +3996,12 @@ func (this *testMainClass) testKucoinfuturesBody(ch chan any) any {
 					}
 					ret_ = func(this *testMainClass) any {
 						// catch block:
-						reqHeaders = Ternary((!IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil)), exchange.GetLast_request_headers(), map[string]any{})
+						reqHeaders = func() any {
+							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+								return exchange.GetLast_request_headers()
+							}
+							return map[string]any{}
+						}()
 						return nil
 					}(this)
 				}
@@ -3790,13 +4009,13 @@ func (this *testMainClass) testKucoinfuturesBody(ch chan any) any {
 			// try block:
 			AddElementToObject(exchange.GetOptions(), "uta", false)
 
-			retRes286012 := (<-exchange.CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000))
-			PanicOnError(retRes286012)
+			retRes289912 := (<-exchange.CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000))
+			PanicOnError(retRes289912)
 			return nil
 		}(this)
 
 	}
-	Assert(IsEqual(GetValue(reqHeaders, "KC-API-PARTNER"), id), Add(Add("kucoinfutures - id: ", id), " not in headers."))
+	Assert(IsEqual(GetValue(reqHeaders, "KC-API-PARTNER"), id), "kucoinfutures - id: "+id+" not in headers.")
 
 	{
 		func(this *testMainClass) (ret_ any) {
@@ -3807,7 +4026,12 @@ func (this *testMainClass) testKucoinfuturesBody(ch chan any) any {
 					}
 					ret_ = func(this *testMainClass) any {
 						// catch block:
-						reqHeaders = Ternary((!IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil)), exchange.GetLast_request_headers(), map[string]any{})
+						reqHeaders = func() any {
+							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+								return exchange.GetLast_request_headers()
+							}
+							return map[string]any{}
+						}()
 						return nil
 					}(this)
 				}
@@ -3815,17 +4039,17 @@ func (this *testMainClass) testKucoinfuturesBody(ch chan any) any {
 			// try block:
 			AddElementToObject(exchange.GetOptions(), "uta", true)
 
-			retRes286712 := (<-exchange.CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000))
-			PanicOnError(retRes286712)
+			retRes290612 := (<-exchange.CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000))
+			PanicOnError(retRes290612)
 			return nil
 		}(this)
 
 	}
-	Assert(IsEqual(GetValue(reqHeaders, "KC-API-PARTNER"), id), Add(Add("kucoinfutures - id: ", id), " not in headers for uta orders."))
+	Assert(IsEqual(GetValue(reqHeaders, "KC-API-PARTNER"), id), "kucoinfutures - id: "+id+" not in headers for uta orders.")
 	if !EvalTruthy(IsSync()) {
 
-		retRes287312 := (<-Close(exchange))
-		PanicOnError(retRes287312)
+		retRes291212 := (<-Close(exchange))
+		PanicOnError(retRes291212)
 	}
 
 	ch <- true
@@ -3842,7 +4066,7 @@ func (this *testMainClass) testBitgetBody(ch chan any) any {
 	var exchange ccxt.ICoreExchange = this.InitOfflineExchange("bitget")
 	var reqHeaders any = map[string]any{}
 	var id string = "p4sve"
-	Assert(IsEqual(GetValue(exchange.GetOptions(), "broker"), id), Add(Add("bitget - id: ", id), " not in options"))
+	Assert(IsEqual(GetValue(exchange.GetOptions(), "broker"), id), "bitget - id: "+id+" not in options")
 
 	{
 		func(this *testMainClass) (ret_ any) {
@@ -3853,24 +4077,29 @@ func (this *testMainClass) testBitgetBody(ch chan any) any {
 					}
 					ret_ = func(this *testMainClass) any {
 						// catch block:
-						reqHeaders = Ternary((!IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil)), exchange.GetLast_request_headers(), map[string]any{})
+						reqHeaders = func() any {
+							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+								return exchange.GetLast_request_headers()
+							}
+							return map[string]any{}
+						}()
 						return nil
 					}(this)
 				}
 			}()
 			// try block:
 
-			retRes288412 := (<-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000))
-			PanicOnError(retRes288412)
+			retRes292312 := (<-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000))
+			PanicOnError(retRes292312)
 			return nil
 		}(this)
 
 	}
-	Assert(IsEqual(GetValue(reqHeaders, "X-CHANNEL-API-CODE"), id), Add(Add("bitget - id: ", id), " not in headers."))
+	Assert(IsEqual(GetValue(reqHeaders, "X-CHANNEL-API-CODE"), id), "bitget - id: "+id+" not in headers.")
 	if !EvalTruthy(IsSync()) {
 
-		retRes289012 := (<-Close(exchange))
-		PanicOnError(retRes289012)
+		retRes292912 := (<-Close(exchange))
+		PanicOnError(retRes292912)
 	}
 
 	ch <- true
@@ -3887,10 +4116,10 @@ func (this *testMainClass) testMexcBody(ch chan any) any {
 	var exchange ccxt.ICoreExchange = this.InitOfflineExchange("mexc")
 	var reqHeaders any = map[string]any{}
 	var id string = "CCXT"
-	Assert(IsEqual(GetValue(exchange.GetOptions(), "broker"), id), Add(Add("mexc - id: ", id), " not in options"))
+	Assert(IsEqual(GetValue(exchange.GetOptions(), "broker"), id), "mexc - id: "+id+" not in options")
 
-	retRes29008 := (<-exchange.LoadMarketsAsync())
-	PanicOnError(retRes29008)
+	retRes29398 := (<-exchange.LoadMarketsAsync())
+	PanicOnError(retRes29398)
 
 	{
 		func(this *testMainClass) (ret_ any) {
@@ -3901,24 +4130,29 @@ func (this *testMainClass) testMexcBody(ch chan any) any {
 					}
 					ret_ = func(this *testMainClass) any {
 						// catch block:
-						reqHeaders = Ternary((!IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil)), exchange.GetLast_request_headers(), map[string]any{})
+						reqHeaders = func() any {
+							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+								return exchange.GetLast_request_headers()
+							}
+							return map[string]any{}
+						}()
 						return nil
 					}(this)
 				}
 			}()
 			// try block:
 
-			retRes290212 := (<-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000))
-			PanicOnError(retRes290212)
+			retRes294112 := (<-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000))
+			PanicOnError(retRes294112)
 			return nil
 		}(this)
 
 	}
-	Assert(IsEqual(GetValue(reqHeaders, "source"), id), Add(Add("mexc - id: ", id), " not in headers."))
+	Assert(IsEqual(GetValue(reqHeaders, "source"), id), "mexc - id: "+id+" not in headers.")
 	if !EvalTruthy(IsSync()) {
 
-		retRes290812 := (<-Close(exchange))
-		PanicOnError(retRes290812)
+		retRes294712 := (<-Close(exchange))
+		PanicOnError(retRes294712)
 	}
 
 	ch <- true
@@ -3953,8 +4187,8 @@ func (this *testMainClass) testHtxBody(ch chan any) any {
 			}()
 			// try block:
 
-			retRes291912 := (<-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000))
-			PanicOnError(retRes291912)
+			retRes295812 := (<-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000))
+			PanicOnError(retRes295812)
 			return nil
 		}(this)
 
@@ -3981,8 +4215,8 @@ func (this *testMainClass) testHtxBody(ch chan any) any {
 			}()
 			// try block:
 
-			retRes292912 := (<-exchange.CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000))
-			PanicOnError(retRes292912)
+			retRes296812 := (<-exchange.CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000))
+			PanicOnError(retRes296812)
 			return nil
 		}(this)
 
@@ -4005,8 +4239,8 @@ func (this *testMainClass) testHtxBody(ch chan any) any {
 			}()
 			// try block:
 
-			retRes293512 := (<-exchange.CreateOrderAsync("BTC/USD:BTC", "limit", "buy", 1, 20000))
-			PanicOnError(retRes293512)
+			retRes297412 := (<-exchange.CreateOrderAsync("BTC/USD:BTC", "limit", "buy", 1, 20000))
+			PanicOnError(retRes297412)
 			return nil
 		}(this)
 
@@ -4017,8 +4251,8 @@ func (this *testMainClass) testHtxBody(ch chan any) any {
 	Assert(IsEqual(StartsWith(clientOrderIdInverse, idString), true), Add(Add(Add("htx - swap inverse channel_code ", clientOrderIdInverse), " does not start with id: "), idString))
 	if !EvalTruthy(IsSync()) {
 
-		retRes294412 := (<-Close(exchange))
-		PanicOnError(retRes294412)
+		retRes298312 := (<-Close(exchange))
+		PanicOnError(retRes298312)
 	}
 
 	ch <- true
@@ -4053,8 +4287,8 @@ func (this *testMainClass) testWooBody(ch chan any) any {
 			}()
 			// try block:
 
-			retRes295512 := (<-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000))
-			PanicOnError(retRes295512)
+			retRes299412 := (<-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000))
+			PanicOnError(retRes299412)
 			return nil
 		}(this)
 
@@ -4081,10 +4315,10 @@ func (this *testMainClass) testWooBody(ch chan any) any {
 			}()
 			// try block:
 
-			retRes296512 := (<-exchange.CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000, map[string]any{
+			retRes300412 := (<-exchange.CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000, map[string]any{
 				"stopPrice": 30000,
 			}))
-			PanicOnError(retRes296512)
+			PanicOnError(retRes300412)
 			return nil
 		}(this)
 
@@ -4093,8 +4327,8 @@ func (this *testMainClass) testWooBody(ch chan any) any {
 	Assert(IsEqual(StartsWith(clientOrderIdStop, idString), true), Add(Add(Add("woo - brokerId: ", clientOrderIdStop), " does not start with id: "), idString))
 	if !EvalTruthy(IsSync()) {
 
-		retRes297212 := (<-Close(exchange))
-		PanicOnError(retRes297212)
+		retRes301112 := (<-Close(exchange))
+		PanicOnError(retRes301112)
 	}
 
 	ch <- true
@@ -4110,7 +4344,7 @@ func (this *testMainClass) testCoinexBody(ch chan any) any {
 	defer ReturnPanicError(ch)
 	var exchange ccxt.ICoreExchange = this.InitOfflineExchange("coinex")
 	var id string = "x-167673045"
-	Assert(IsEqual(GetValue(exchange.GetOptions(), "brokerId"), id), Add(Add("coinex - id: ", id), " not in options"))
+	Assert(IsEqual(GetValue(exchange.GetOptions(), "brokerId"), id), "coinex - id: "+id+" not in options")
 	var spotOrderRequest any = map[string]any{}
 
 	{
@@ -4129,8 +4363,8 @@ func (this *testMainClass) testCoinexBody(ch chan any) any {
 			}()
 			// try block:
 
-			retRes298312 := (<-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000))
-			PanicOnError(retRes298312)
+			retRes302212 := (<-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000))
+			PanicOnError(retRes302212)
 			return nil
 		}(this)
 
@@ -4140,8 +4374,8 @@ func (this *testMainClass) testCoinexBody(ch chan any) any {
 	Assert(IsEqual(StartsWith(clientOrderId, idString), true), Add(Add(Add("coinex - clientOrderId: ", clientOrderId), " does not start with id: "), idString))
 	if !EvalTruthy(IsSync()) {
 
-		retRes299112 := (<-Close(exchange))
-		PanicOnError(retRes299112)
+		retRes303012 := (<-Close(exchange))
+		PanicOnError(retRes303012)
 	}
 
 	ch <- true
@@ -4158,7 +4392,7 @@ func (this *testMainClass) testBingxBody(ch chan any) any {
 	var exchange ccxt.ICoreExchange = this.InitOfflineExchange("bingx")
 	var reqHeaders any = map[string]any{}
 	var id string = "CCXT"
-	Assert(IsEqual(GetValue(exchange.GetOptions(), "broker"), id), Add(Add("bingx - id: ", id), " not in options"))
+	Assert(IsEqual(GetValue(exchange.GetOptions(), "broker"), id), "bingx - id: "+id+" not in options")
 
 	{
 		func(this *testMainClass) (ret_ any) {
@@ -4170,24 +4404,29 @@ func (this *testMainClass) testBingxBody(ch chan any) any {
 					ret_ = func(this *testMainClass) any {
 						// catch block:
 						// we expect an error here, we're only interested in the headers
-						reqHeaders = Ternary((!IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil)), exchange.GetLast_request_headers(), map[string]any{})
+						reqHeaders = func() any {
+							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+								return exchange.GetLast_request_headers()
+							}
+							return map[string]any{}
+						}()
 						return nil
 					}(this)
 				}
 			}()
 			// try block:
 
-			retRes300212 := (<-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000))
-			PanicOnError(retRes300212)
+			retRes304112 := (<-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000))
+			PanicOnError(retRes304112)
 			return nil
 		}(this)
 
 	}
-	Assert(IsEqual(GetValue(reqHeaders, "X-SOURCE-KEY"), id), Add(Add("bingx - id: ", id), " not in headers."))
+	Assert(IsEqual(GetValue(reqHeaders, "X-SOURCE-KEY"), id), "bingx - id: "+id+" not in headers.")
 	if !EvalTruthy(IsSync()) {
 
-		retRes300912 := (<-Close(exchange))
-		PanicOnError(retRes300912)
+		retRes304812 := (<-Close(exchange))
+		PanicOnError(retRes304812)
 	}
 
 	ch <- true
@@ -4221,8 +4460,8 @@ func (this *testMainClass) testPhemexBody(ch chan any) any {
 			}()
 			// try block:
 
-			retRes301912 := (<-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000))
-			PanicOnError(retRes301912)
+			retRes305812 := (<-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000))
+			PanicOnError(retRes305812)
 			return nil
 		}(this)
 
@@ -4232,8 +4471,8 @@ func (this *testMainClass) testPhemexBody(ch chan any) any {
 	Assert(IsEqual(StartsWith(clientOrderId, idString), true), Add(Add(Add("phemex - clOrdID: ", clientOrderId), " does not start with id: "), idString))
 	if !EvalTruthy(IsSync()) {
 
-		retRes302712 := (<-Close(exchange))
-		PanicOnError(retRes302712)
+		retRes306612 := (<-Close(exchange))
+		PanicOnError(retRes306612)
 	}
 
 	ch <- true
@@ -4267,8 +4506,8 @@ func (this *testMainClass) testBlofinBody(ch chan any) any {
 			}()
 			// try block:
 
-			retRes303712 := (<-exchange.CreateOrderAsync("LTC/USDT:USDT", "market", "buy", 1))
-			PanicOnError(retRes303712)
+			retRes307612 := (<-exchange.CreateOrderAsync("LTC/USDT:USDT", "market", "buy", 1))
+			PanicOnError(retRes307612)
 			return nil
 		}(this)
 
@@ -4278,8 +4517,8 @@ func (this *testMainClass) testBlofinBody(ch chan any) any {
 	Assert(IsEqual(StartsWith(brokerId, idString), true), Add(Add(Add("blofin - brokerId: ", brokerId), " does not start with id: "), idString))
 	if !EvalTruthy(IsSync()) {
 
-		retRes304512 := (<-Close(exchange))
-		PanicOnError(retRes304512)
+		retRes308412 := (<-Close(exchange))
+		PanicOnError(retRes308412)
 	}
 
 	ch <- true
@@ -4332,8 +4571,8 @@ func (this *testMainClass) testCoinbaseinternationalBody(ch chan any) any {
 			}()
 			// try block:
 
-			retRes307412 := (<-exchange.CreateOrderAsync("BTC/USDC:USDC", "limit", "buy", 1, 20000))
-			PanicOnError(retRes307412)
+			retRes311312 := (<-exchange.CreateOrderAsync("BTC/USDC:USDC", "limit", "buy", 1, 20000))
+			PanicOnError(retRes311312)
 			return nil
 		}(this)
 
@@ -4342,8 +4581,8 @@ func (this *testMainClass) testCoinbaseinternationalBody(ch chan any) any {
 	Assert(IsEqual(StartsWith(clientOrderId, ToString(id)), true), "clientOrderId does not start with id")
 	if !EvalTruthy(IsSync()) {
 
-		retRes308112 := (<-Close(exchange))
-		PanicOnError(retRes308112)
+		retRes312012 := (<-Close(exchange))
+		PanicOnError(retRes312012)
 	}
 
 	ch <- true
@@ -4378,8 +4617,8 @@ func (this *testMainClass) testCoinbaseAdvancedBody(ch chan any) any {
 			}()
 			// try block:
 
-			retRes309212 := (<-exchange.CreateOrderAsync("BTC/USDC", "limit", "buy", 1, 20000))
-			PanicOnError(retRes309212)
+			retRes313112 := (<-exchange.CreateOrderAsync("BTC/USDC", "limit", "buy", 1, 20000))
+			PanicOnError(retRes313112)
 			return nil
 		}(this)
 
@@ -4388,8 +4627,8 @@ func (this *testMainClass) testCoinbaseAdvancedBody(ch chan any) any {
 	Assert(IsEqual(StartsWith(clientOrderId, ToString(id)), true), "clientOrderId does not start with id")
 	if !EvalTruthy(IsSync()) {
 
-		retRes309912 := (<-Close(exchange))
-		PanicOnError(retRes309912)
+		retRes313812 := (<-Close(exchange))
+		PanicOnError(retRes313812)
 	}
 
 	ch <- true
@@ -4412,8 +4651,8 @@ func (this *testMainClass) testWoofiProBody(ch chan any) any {
 	exchange.SetSecret("secretsecretsecretsecretsecretsecretsecrets")
 	var id string = "CCXT"
 
-	retRes31118 := (<-exchange.LoadMarketsAsync())
-	PanicOnError(retRes31118)
+	retRes31508 := (<-exchange.LoadMarketsAsync())
+	PanicOnError(retRes31508)
 	var request any = map[string]any{}
 
 	{
@@ -4432,18 +4671,18 @@ func (this *testMainClass) testWoofiProBody(ch chan any) any {
 			}()
 			// try block:
 
-			retRes311412 := (<-exchange.CreateOrderAsync("BTC/USDC:USDC", "limit", "buy", 1, 20000))
-			PanicOnError(retRes311412)
+			retRes315312 := (<-exchange.CreateOrderAsync("BTC/USDC:USDC", "limit", "buy", 1, 20000))
+			PanicOnError(retRes315312)
 			return nil
 		}(this)
 
 	}
 	var brokerId any = GetValue(request, "order_tag")
-	Assert(IsEqual(brokerId, id), Add(Add(Add("woofipro - id: ", id), " different from  broker_id: "), brokerId))
+	Assert(IsEqual(brokerId, id), Add("woofipro - id: "+id+" different from  broker_id: ", brokerId))
 	if !EvalTruthy(IsSync()) {
 
-		retRes312112 := (<-Close(exchange))
-		PanicOnError(retRes312112)
+		retRes316012 := (<-Close(exchange))
+		PanicOnError(retRes316012)
 	}
 
 	ch <- true
@@ -4477,14 +4716,14 @@ func (this *testMainClass) testXTBody(ch chan any) any {
 			}()
 			// try block:
 
-			retRes313112 := (<-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000))
-			PanicOnError(retRes313112)
+			retRes317012 := (<-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000))
+			PanicOnError(retRes317012)
 			return nil
 		}(this)
 
 	}
 	var spotMedia any = GetValue(spotOrderRequest, "media")
-	Assert(IsEqual(spotMedia, id), Add(Add(Add("xt - id: ", id), " different from swap tag: "), spotMedia))
+	Assert(IsEqual(spotMedia, id), Add("xt - id: "+id+" different from swap tag: ", spotMedia))
 	var swapOrderRequest any = map[string]any{}
 
 	{
@@ -4503,18 +4742,18 @@ func (this *testMainClass) testXTBody(ch chan any) any {
 			}()
 			// try block:
 
-			retRes313912 := (<-exchange.CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000))
-			PanicOnError(retRes313912)
+			retRes317812 := (<-exchange.CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000))
+			PanicOnError(retRes317812)
 			return nil
 		}(this)
 
 	}
 	var swapMedia any = GetValue(swapOrderRequest, "clientMedia")
-	Assert(IsEqual(swapMedia, id), Add(Add(Add("xt - id: ", id), " different from swap tag: "), swapMedia))
+	Assert(IsEqual(swapMedia, id), Add("xt - id: "+id+" different from swap tag: ", swapMedia))
 	if !EvalTruthy(IsSync()) {
 
-		retRes314612 := (<-Close(exchange))
-		PanicOnError(retRes314612)
+		retRes318512 := (<-Close(exchange))
+		PanicOnError(retRes318512)
 	}
 
 	ch <- true
@@ -4563,10 +4802,10 @@ func (this *testMainClass) testParadexBody(ch chan any) any {
 	})
 	var reqHeaders any = map[string]any{}
 	var id string = "CCXT"
-	Assert(IsEqual(GetValue(exchange.GetOptions(), "broker"), id), Add(Add("paradex - id: ", id), " not in options"))
+	Assert(IsEqual(GetValue(exchange.GetOptions(), "broker"), id), "paradex - id: "+id+" not in options")
 
-	retRes31648 := (<-exchange.LoadMarketsAsync())
-	PanicOnError(retRes31648)
+	retRes32038 := (<-exchange.LoadMarketsAsync())
+	PanicOnError(retRes32038)
 
 	{
 		func(this *testMainClass) (ret_ any) {
@@ -4577,24 +4816,29 @@ func (this *testMainClass) testParadexBody(ch chan any) any {
 					}
 					ret_ = func(this *testMainClass) any {
 						// catch block:
-						reqHeaders = Ternary((!IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil)), exchange.GetLast_request_headers(), map[string]any{})
+						reqHeaders = func() any {
+							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+								return exchange.GetLast_request_headers()
+							}
+							return map[string]any{}
+						}()
 						return nil
 					}(this)
 				}
 			}()
 			// try block:
 
-			retRes316612 := (<-exchange.CreateOrderAsync("BTC/USD:USDC", "limit", "buy", 1, 20000))
-			PanicOnError(retRes316612)
+			retRes320512 := (<-exchange.CreateOrderAsync("BTC/USD:USDC", "limit", "buy", 1, 20000))
+			PanicOnError(retRes320512)
 			return nil
 		}(this)
 
 	}
-	Assert(IsEqual(GetValue(reqHeaders, "PARADEX-PARTNER"), id), Add(Add("paradex - id: ", id), " not in headers"))
+	Assert(IsEqual(GetValue(reqHeaders, "PARADEX-PARTNER"), id), "paradex - id: "+id+" not in headers")
 	if !EvalTruthy(IsSync()) {
 
-		retRes317212 := (<-Close(exchange))
-		PanicOnError(retRes317212)
+		retRes321112 := (<-Close(exchange))
+		PanicOnError(retRes321112)
 	}
 
 	ch <- true
@@ -4622,24 +4866,29 @@ func (this *testMainClass) testHashkeyBody(ch chan any) any {
 					ret_ = func(this *testMainClass) any {
 						// catch block:
 						// we expect an error here, we're only interested in the headers
-						reqHeaders = Ternary((!IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil)), exchange.GetLast_request_headers(), map[string]any{})
+						reqHeaders = func() any {
+							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+								return exchange.GetLast_request_headers()
+							}
+							return map[string]any{}
+						}()
 						return nil
 					}(this)
 				}
 			}()
 			// try block:
 
-			retRes318212 := (<-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000))
-			PanicOnError(retRes318212)
+			retRes322112 := (<-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000))
+			PanicOnError(retRes322112)
 			return nil
 		}(this)
 
 	}
-	Assert(IsEqual(GetValue(reqHeaders, "INPUT-SOURCE"), id), Add(Add("hashkey - id: ", id), " not in headers."))
+	Assert(IsEqual(GetValue(reqHeaders, "INPUT-SOURCE"), id), "hashkey - id: "+id+" not in headers.")
 	if !EvalTruthy(IsSync()) {
 
-		retRes318912 := (<-Close(exchange))
-		PanicOnError(retRes318912)
+		retRes322812 := (<-Close(exchange))
+		PanicOnError(retRes322812)
 	}
 
 	ch <- true
@@ -4672,18 +4921,18 @@ func (this *testMainClass) testCryptomusBody(ch chan any) any {
 			}()
 			// try block:
 
-			retRes319812 := (<-exchange.CreateOrderAsync("BTC/USDT", "limit", "sell", 1, 20000))
-			PanicOnError(retRes319812)
+			retRes323712 := (<-exchange.CreateOrderAsync("BTC/USDT", "limit", "sell", 1, 20000))
+			PanicOnError(retRes323712)
 			return nil
 		}(this)
 
 	}
 	var tag string = "ccxt"
-	Assert(IsEqual(GetValue(request, "tag"), tag), Add(Add("cryptomus - tag: ", tag), " not in request."))
+	Assert(IsEqual(GetValue(request, "tag"), tag), "cryptomus - tag: "+tag+" not in request.")
 	if !EvalTruthy(IsSync()) {
 
-		retRes320512 := (<-Close(exchange))
-		PanicOnError(retRes320512)
+		retRes324412 := (<-Close(exchange))
+		PanicOnError(retRes324412)
 	}
 
 	ch <- true
@@ -4704,7 +4953,7 @@ func (this *testMainClass) testDeriveBody(ch chan any) any {
 	}
 	var exchange ccxt.ICoreExchange = this.InitOfflineExchange("derive")
 	var id string = "0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749"
-	Assert(IsEqual(GetValue(exchange.GetOptions(), "id"), id), Add(Add("derive - id: ", id), " not in options"))
+	Assert(IsEqual(GetValue(exchange.GetOptions(), "id"), id), "derive - id: "+id+" not in options")
 	var request any = map[string]any{}
 
 	{
@@ -4730,17 +4979,17 @@ func (this *testMainClass) testDeriveBody(ch chan any) any {
 			exchange.SetWalletAddress("0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749")
 			exchange.SetPrivateKey("0x7b77bb7b20e92bbb85f2a22b330b896959229a5790e35f2f290922de3fb22ad5")
 
-			retRes322612 := (<-exchange.CreateOrderAsync("LBTC/USDC", "limit", "sell", 0.01, 3000, params))
-			PanicOnError(retRes322612)
+			retRes326512 := (<-exchange.CreateOrderAsync("LBTC/USDC", "limit", "sell", 0.01, 3000, params))
+			PanicOnError(retRes326512)
 			return nil
 		}(this)
 
 	}
-	Assert(IsEqual(GetValue(request, "referral_code"), id), Add(Add("derive - referral_code: ", id), " not in request."))
+	Assert(IsEqual(GetValue(request, "referral_code"), id), "derive - referral_code: "+id+" not in request.")
 	if !EvalTruthy(IsSync()) {
 
-		retRes323212 := (<-Close(exchange))
-		PanicOnError(retRes323212)
+		retRes327112 := (<-Close(exchange))
+		PanicOnError(retRes327112)
 	}
 
 	ch <- true
@@ -4763,8 +5012,8 @@ func (this *testMainClass) testModeTradeBody(ch chan any) any {
 	exchange.SetSecret("secretsecretsecretsecretsecretsecretsecrets")
 	var id string = "CCXTMODE"
 
-	retRes32448 := (<-exchange.LoadMarketsAsync())
-	PanicOnError(retRes32448)
+	retRes32838 := (<-exchange.LoadMarketsAsync())
+	PanicOnError(retRes32838)
 	var request any = map[string]any{}
 
 	{
@@ -4783,18 +5032,18 @@ func (this *testMainClass) testModeTradeBody(ch chan any) any {
 			}()
 			// try block:
 
-			retRes324712 := (<-exchange.CreateOrderAsync("BTC/USDC:USDC", "limit", "buy", 1, 20000))
-			PanicOnError(retRes324712)
+			retRes328612 := (<-exchange.CreateOrderAsync("BTC/USDC:USDC", "limit", "buy", 1, 20000))
+			PanicOnError(retRes328612)
 			return nil
 		}(this)
 
 	}
 	var brokerId any = GetValue(request, "order_tag")
-	Assert(IsEqual(brokerId, id), Add(Add(Add("modetrade - id: ", id), " different from  broker_id: "), brokerId))
+	Assert(IsEqual(brokerId, id), Add("modetrade - id: "+id+" different from  broker_id: ", brokerId))
 	if !EvalTruthy(IsSync()) {
 
-		retRes325412 := (<-Close(exchange))
-		PanicOnError(retRes325412)
+		retRes329312 := (<-Close(exchange))
+		PanicOnError(retRes329312)
 	}
 
 	ch <- true
@@ -4824,24 +5073,29 @@ func (this *testMainClass) testBackpackBody(ch chan any) any {
 					ret_ = func(this *testMainClass) any {
 						// catch block:
 						// we expect an error here, we're only interested in the headers
-						reqHeaders = Ternary((!IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil)), exchange.GetLast_request_headers(), map[string]any{})
+						reqHeaders = func() any {
+							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+								return exchange.GetLast_request_headers()
+							}
+							return map[string]any{}
+						}()
 						return nil
 					}(this)
 				}
 			}()
 			// try block:
 
-			retRes326612 := (<-exchange.CreateOrderAsync("ETH/USDC", "limit", "buy", 1, 5000))
-			PanicOnError(retRes326612)
+			retRes330512 := (<-exchange.CreateOrderAsync("ETH/USDC", "limit", "buy", 1, 5000))
+			PanicOnError(retRes330512)
 			return nil
 		}(this)
 
 	}
-	Assert(IsEqual(GetValue(reqHeaders, "X-Broker-Id"), id), Add(Add("backpack - id: ", id), " not in headers."))
+	Assert(IsEqual(GetValue(reqHeaders, "X-Broker-Id"), id), "backpack - id: "+id+" not in headers.")
 	if !EvalTruthy(IsSync()) {
 
-		retRes327312 := (<-Close(exchange))
-		PanicOnError(retRes327312)
+		retRes331212 := (<-Close(exchange))
+		PanicOnError(retRes331212)
 	}
 
 	ch <- true
@@ -4869,24 +5123,29 @@ func (this *testMainClass) testToobitBody(ch chan any) any {
 					ret_ = func(this *testMainClass) any {
 						// catch block:
 						// we expect an error here, we're only interested in the headers
-						reqHeaders = Ternary((!IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil)), exchange.GetLast_request_headers(), map[string]any{})
+						reqHeaders = func() any {
+							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+								return exchange.GetLast_request_headers()
+							}
+							return map[string]any{}
+						}()
 						return nil
 					}(this)
 				}
 			}()
 			// try block:
 
-			retRes328312 := (<-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000))
-			PanicOnError(retRes328312)
+			retRes332212 := (<-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000))
+			PanicOnError(retRes332212)
 			return nil
 		}(this)
 
 	}
-	Assert(IsEqual(GetValue(reqHeaders, "X-BB-API-PLATFORM"), id), Add(Add("toobit - id: ", id), " not in headers."))
+	Assert(IsEqual(GetValue(reqHeaders, "X-BB-API-PLATFORM"), id), "toobit - id: "+id+" not in headers.")
 	if !EvalTruthy(IsSync()) {
 
-		retRes329012 := (<-Close(exchange))
-		PanicOnError(retRes329012)
+		retRes332912 := (<-Close(exchange))
+		PanicOnError(retRes332912)
 	}
 
 	ch <- true
@@ -4902,7 +5161,7 @@ func (this *testMainClass) testWeexBody(ch chan any) any {
 	defer ReturnPanicError(ch)
 	var exchange ccxt.ICoreExchange = this.InitOfflineExchange("weex")
 	var id string = "b-WEEX111125"
-	Assert(IsEqual(GetValue(exchange.GetOptions(), "partner"), id), Add(Add("weex - id: ", id), " not in options"))
+	Assert(IsEqual(GetValue(exchange.GetOptions(), "partner"), id), "weex - id: "+id+" not in options")
 	var request any = map[string]any{}
 
 	{
@@ -4921,8 +5180,8 @@ func (this *testMainClass) testWeexBody(ch chan any) any {
 			}()
 			// try block:
 
-			retRes330112 := (<-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000))
-			PanicOnError(retRes330112)
+			retRes334012 := (<-exchange.CreateOrderAsync("BTC/USDT", "limit", "buy", 1, 20000))
+			PanicOnError(retRes334012)
 			return nil
 		}(this)
 
@@ -4946,8 +5205,8 @@ func (this *testMainClass) testWeexBody(ch chan any) any {
 			}()
 			// try block:
 
-			retRes330812 := (<-exchange.CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000))
-			PanicOnError(retRes330812)
+			retRes334712 := (<-exchange.CreateOrderAsync("BTC/USDT:USDT", "limit", "buy", 1, 20000))
+			PanicOnError(retRes334712)
 			return nil
 		}(this)
 
@@ -4978,26 +5237,31 @@ func (this *testMainClass) testFoxbitBody(ch chan any) any {
 					ret_ = func(this *testMainClass) any {
 						// catch block:
 						// we expect an error here, we're only interested in the headers
-						reqHeaders = Ternary((!IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil)), exchange.GetLast_request_headers(), map[string]any{})
+						reqHeaders = func() any {
+							if !IsEqual(exchange.GetLast_request_headers(), nil) && !IsEqual(exchange.GetLast_request_headers(), nil) {
+								return exchange.GetLast_request_headers()
+							}
+							return map[string]any{}
+						}()
 						return nil
 					}(this)
 				}
 			}()
 			// try block:
 
-			retRes332112 := (<-exchange.CreateOrderAsync("BTC/BRL", "limit", "buy", 1, 20000))
-			PanicOnError(retRes332112)
+			retRes336012 := (<-exchange.CreateOrderAsync("BTC/BRL", "limit", "buy", 1, 20000))
+			PanicOnError(retRes336012)
 			return nil
 		}(this)
 
 	}
-	Assert(IsEqual(GetValue(reqHeaders, "X-FB-CLIENT"), id), Add(Add("foxbit - id: ", id), " not in headers."))
+	Assert(IsEqual(GetValue(reqHeaders, "X-FB-CLIENT"), id), "foxbit - id: "+id+" not in headers.")
 	var version any = exchange.GetCcxtVersion()
 	Assert(IsEqual(GetValue(reqHeaders, "X-FB-CLIENT-VERSION"), version), Add(Add("foxbit - version: ", version), " not in headers."))
 	if !EvalTruthy(IsSync()) {
 
-		retRes333012 := (<-Close(exchange))
-		PanicOnError(retRes333012)
+		retRes336912 := (<-Close(exchange))
+		PanicOnError(retRes336912)
 	}
 
 	ch <- true

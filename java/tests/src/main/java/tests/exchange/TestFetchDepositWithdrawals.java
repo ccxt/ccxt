@@ -4,6 +4,7 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -21,7 +22,7 @@ public class TestFetchDepositWithdrawals extends BaseTest {
         Object transactions = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTransactions", new Object[]{code})).join();
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, transactions, code);
         Object now = exchange.milliseconds();
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(transactions)); i++)
+        for (var i = 0; i < ((List<?>)transactions).size(); i++)
         {
             TestDepositWithdrawal.testDepositWithdrawal(exchange, skippedProperties, method, Helpers.GetValue(transactions, i), code, now);
         }

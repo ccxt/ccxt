@@ -37,11 +37,11 @@ fn helperTestHandleMarketTypeAndParams() {
     // case #1, should prevail: param
     //
     let mut marketType1params1Variable = exchange.handle_market_type_and_params(Value::Str("fetchX".to_string()), &[market.clone(), initialParams.clone(), Value::Str("valueDefault".to_string())]);
-    let mut marketType1: Value = get_value(&marketType1params1Variable, &Value::Int(0));
-    let mut params1: Value = get_value(&marketType1params1Variable, &Value::Int(1));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(in_op(&initialParams, &Value::Str("defaultType".to_string()))))));
+    let mut marketType1: Value = marketType1params1Variable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+    let mut params1: Value = marketType1params1Variable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(matches!(&initialParams, Value::Dict(__d) if __d.contains_key("defaultType"))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(Value::Bool(in_op(&params1, &Value::Str("defaultType".to_string())))))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&marketType1, &Value::Str("valueFromParam".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(marketType1.as_str() == Some("valueFromParam")))));
     //
     // case #2, should prevail: market.type
     //
@@ -49,9 +49,9 @@ fn helperTestHandleMarketTypeAndParams() {
     let mut m = indexmap::IndexMap::new();
     m
 }), Value::Str("valueDefault".to_string())]);
-    let mut marketType2: Value = get_value(&marketType2params2Variable, &Value::Int(0));
-    let mut params2: Value = get_value(&marketType2params2Variable, &Value::Int(1));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&marketType2, &Value::Str("spot".to_string()))))));
+    let mut marketType2: Value = marketType2params2Variable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+    let mut params2: Value = marketType2params2Variable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(marketType2.as_str() == Some("spot")))));
     //
     // case #3, should prevail: valueDefault
     //
@@ -59,9 +59,9 @@ fn helperTestHandleMarketTypeAndParams() {
     let mut m = indexmap::IndexMap::new();
     m
 }), Value::Str("valueDefault".to_string())]);
-    let mut marketType3: Value = get_value(&marketType3params3Variable, &Value::Int(0));
-    let mut params3: Value = get_value(&marketType3params3Variable, &Value::Int(1));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&marketType3, &Value::Str("valueDefault".to_string()))))));
+    let mut marketType3: Value = marketType3params3Variable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+    let mut params3: Value = marketType3params3Variable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(marketType3.as_str() == Some("valueDefault")))));
     //
     // case #4, should prevail: method options
     //
@@ -69,9 +69,9 @@ fn helperTestHandleMarketTypeAndParams() {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-    let mut marketType4: Value = get_value(&marketType4params4Variable, &Value::Int(0));
-    let mut params4: Value = get_value(&marketType4params4Variable, &Value::Int(1));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&marketType4, &Value::Str("valueFromMethodOptions".to_string()))))));
+    let mut marketType4: Value = marketType4params4Variable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+    let mut params4: Value = marketType4params4Variable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(marketType4.as_str() == Some("valueFromMethodOptions")))));
     //
     // case #5, should prevail: options
     //
@@ -79,9 +79,9 @@ fn helperTestHandleMarketTypeAndParams() {
     let mut m = indexmap::IndexMap::new();
     m
 }), Value::Null]);
-    let mut marketType5: Value = get_value(&marketType5params5Variable, &Value::Int(0));
-    let mut params5: Value = get_value(&marketType5params5Variable, &Value::Int(1));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&marketType5, &Value::Str("valueFromOptions".to_string()))))));
+    let mut marketType5: Value = marketType5params5Variable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+    let mut params5: Value = marketType5params5Variable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(marketType5.as_str() == Some("valueFromOptions")))));
     //
     // case #6, should prevail: spot (because hardcoded in base)
     //
@@ -90,11 +90,11 @@ fn helperTestHandleMarketTypeAndParams() {
     let mut m = indexmap::IndexMap::new();
     m
 }), Value::Null]);
-    let mut marketType6: Value = get_value(&marketType6params6Variable, &Value::Int(0));
-    let mut params6: Value = get_value(&marketType6params6Variable, &Value::Int(1));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&marketType6, &Value::Str("spot".to_string()))))));
+    let mut marketType6: Value = marketType6params6Variable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+    let mut params6: Value = marketType6params6Variable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(marketType6.as_str() == Some("spot")))));
     // fake assertion to avoid unused vars
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_equal(&params1, &Value::Null) || !is_equal(&params2, &Value::Null) || !is_equal(&params3, &Value::Null) || !is_equal(&params4, &Value::Null) || !is_equal(&params5, &Value::Null) || !is_equal(&params6, &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool((params1 != Value::Null) || (params2 != Value::Null) || (params3 != Value::Null) || (params4 != Value::Null) || (params5 != Value::Null) || (params6 != Value::Null)))));
 }
 fn helperTestHandleNetworkRequest() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
@@ -122,11 +122,11 @@ fn helperTestHandleNetworkRequest() {
     let mut m = indexmap::IndexMap::new();
     m
 }), Value::Str("chain_id".to_string()), &[currencyCode.clone(), Value::Bool(false)]);
-    let mut request1: Value = get_value(&request1params1Variable, &Value::Int(0));
-    let mut params1: Value = get_value(&request1params1Variable, &Value::Int(1));
+    let mut request1: Value = request1params1Variable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+    let mut params1: Value = request1params1Variable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
     assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(Value::Bool(in_op(&params1, &Value::Str("network".to_string())))))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(in_op(&request1, &Value::Str("chain_id".to_string()))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&request1, &Value::Str("chain_id".to_string())), &Value::Str("Xyz".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(request1.as_map().and_then(|__m| __m.get("chain_id")).cloned().unwrap_or(Value::Null).as_str() == Some("Xyz")))));
 }
 pub fn testHandleMethods() {
     helperTestHandleMarketTypeAndParams();

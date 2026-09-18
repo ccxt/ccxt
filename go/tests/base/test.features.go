@@ -17,7 +17,7 @@ func testFeaturesBody(ch chan any, exchange ccxt.ICoreExchange, skippedPropertie
 	var subTypes []any = []any{"linear", "inverse"}
 	var features any = exchange.GetFeatures()
 	var keys []string = ObjectKeys(features)
-	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
+	for i := 0; i < len(keys); i++ {
 		AssertInArray(exchange, skippedProperties, "features", keys, i, marketTypes)
 		var marketType any = GetValue(keys, i)
 		var value any = GetValue(features, marketType)
@@ -29,7 +29,7 @@ func testFeaturesBody(ch chan any, exchange ccxt.ICoreExchange, skippedPropertie
 			TestFeaturesInner(exchange, skippedProperties, value)
 		} else {
 			var subKeys []string = ObjectKeys(value)
-			for j := 0; IsLessThan(j, GetArrayLength(subKeys)); j++ {
+			for j := 0; j < len(subKeys); j++ {
 				var subKey any = GetValue(subKeys, j)
 				AssertInArray(exchange, skippedProperties, "features", subKeys, j, subTypes)
 				var subValue any = GetValue(value, subKey)
@@ -123,7 +123,7 @@ func TestFeaturesInner(exchange ccxt.ICoreExchange, skippedProperties any, featu
 	}
 	var featureKeys []string = ObjectKeys(featureObj)
 	var allMethods []string = ObjectKeys(exchange.GetHas())
-	for i := 0; IsLessThan(i, GetArrayLength(featureKeys)); i++ {
+	for i := 0; i < len(featureKeys); i++ {
 		AssertInArray(exchange, skippedProperties, "features", featureKeys, i, allMethods)
 		AssertStructure(exchange, skippedProperties, "features", featureObj, format, nil, true) // deep structure check
 	}

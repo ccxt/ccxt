@@ -6,6 +6,7 @@ import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -24,7 +25,7 @@ public class TestFetchMarginModes extends BaseTest {
         TestSharedMethods.AssertDictionaryResponse(exchange, method, marginModes, symbol);
         Object marginModeKeys = Helpers.objectKeys(marginModes);
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, marginModes, symbol);
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marginModeKeys)); i++)
+        for (var i = 0; i < ((List<?>)marginModeKeys).size(); i++)
         {
             Object marginMode = Helpers.GetValue(marginModes, Helpers.GetValue(marginModeKeys, i));
             TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, marginMode, symbol);

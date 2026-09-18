@@ -268,14 +268,14 @@ public partial class BaseTest
                 { "bids", new List<object>() {new List<object>() {100, 1, "a"}, new List<object>() {101, 0, "ghost"}, new List<object>() {102, 1, "c"}} },
                 { "asks", new List<object>() {new List<object>() {200, 0, "ghost"}, new List<object>() {201, 1, "d"}} },
             }, 2);
-            Assert(isEqual(getArrayLength(getValue(noopDeltas, "bids")), 2));
-            Assert(isEqual(getArrayLength(getValue(noopDeltas, "asks")), 1));
+            Assert((getArrayLength(getValue(noopDeltas, "bids")) == 2));
+            Assert((getArrayLength(getValue(noopDeltas, "asks")) == 1));
             Assert(!isEqual(getValue(getValue(noopDeltas, "bids"), 0), null));
             Assert(!isEqual(getValue(getValue(noopDeltas, "bids"), 1), null));
             Assert(!isEqual(getValue(getValue(noopDeltas, "asks"), 0), null));
             noopDeltas.limit();
-            Assert(isEqual(getArrayLength(getValue(noopDeltas, "bids")), 2));
-            Assert(isEqual(getArrayLength(getValue(noopDeltas, "asks")), 1));
+            Assert((getArrayLength(getValue(noopDeltas, "bids")) == 2));
+            Assert((getArrayLength(getValue(noopDeltas, "asks")) == 1));
             
         // --------------------------------------------------------------------------------------------------------------------
         
@@ -390,10 +390,10 @@ public partial class BaseTest
             // every row must be a well formed price and amount pair, the php
             // corruption produced rows holding only an amount
             List<object> desyncSides = new List<object>() {getValue(desyncBook, "bids"), getValue(desyncBook, "asks")};
-            for (int i = 0; isLessThan(i, getArrayLength(desyncSides)); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(desyncSides); postFixIncrement(ref i))
             {
                 object side = getValue(desyncSides, i);
-                for (int k = 0; isLessThan(k, getArrayLength(side)); postFixIncrement(ref k))
+                for (int k = 0; k < getArrayLength(side); postFixIncrement(ref k))
                 {
                     object row = getValue(side, k);
                     Assert(isGreaterThanOrEqual(getArrayLength(row), 2));

@@ -19,14 +19,14 @@ func TestCurrency(exchange ccxt.ICoreExchange, skippedProperties any, method any
 	var isNative bool = (!IsEqual(GetValue(exchange.GetHas(), "fetchCurrencies"), nil)) && (!IsEqual(GetValue(exchange.GetHas(), "fetchCurrencies"), false)) && (!IsEqual(GetValue(exchange.GetHas(), "fetchCurrencies"), "emulated"))
 	var currencyType any = exchange.SafeString(entry, "type")
 	if isNative == true {
-		AddElementToObject(format, "info", map[string]any{})
+		format["info"] = map[string]any{}
 		// todo: 'name': 'Bitcoin', // uppercase string, base currency, 2 or more letters
-		AddElementToObject(format, "withdraw", true)                            // withdraw enabled
-		AddElementToObject(format, "deposit", true)                             // deposit enabled
-		AddElementToObject(format, "precision", exchange.ParseNumber("0.0001")) // in case of SIGNIFICANT_DIGITS it will be 4 - number of digits "after the dot"
-		AddElementToObject(format, "fee", exchange.ParseNumber("0.001"))
-		AddElementToObject(format, "networks", map[string]any{})
-		AddElementToObject(format, "limits", map[string]any{
+		format["withdraw"] = true                            // withdraw enabled
+		format["deposit"] = true                             // deposit enabled
+		format["precision"] = exchange.ParseNumber("0.0001") // in case of SIGNIFICANT_DIGITS it will be 4 - number of digits "after the dot"
+		format["fee"] = exchange.ParseNumber("0.001")
+		format["networks"] = map[string]any{}
+		format["limits"] = map[string]any{
 			"withdraw": map[string]any{
 				"min": exchange.ParseNumber("0.01"),
 				"max": exchange.ParseNumber("1000"),
@@ -35,17 +35,17 @@ func TestCurrency(exchange ccxt.ICoreExchange, skippedProperties any, method any
 				"min": exchange.ParseNumber("0.01"),
 				"max": exchange.ParseNumber("1000"),
 			},
-		})
-		AddElementToObject(format, "type", "crypto")                                                                          // crypto, fiat, leverage, other
+		}
+		format["type"] = "crypto"                                                                                             // crypto, fiat, leverage, other
 		AssertInArray(exchange, skippedProperties, method, entry, "type", []any{"fiat", "crypto", "leveraged", "other", nil}) // todo: remove undefined
 		// only require "deposit" & "withdraw" values, when currency is not fiat, or when it's fiat, but not skipped
-		if !IsEqual(currencyType, "crypto") && (InOp(skippedProperties, "depositForNonCrypto")) {
+		if (currencyType != "crypto") && (InOp(skippedProperties, "depositForNonCrypto")) {
 			AppendToArray(&emptyAllowedFor, "deposit")
 		}
-		if !IsEqual(currencyType, "crypto") && (InOp(skippedProperties, "withdrawForNonCrypto")) {
+		if (currencyType != "crypto") && (InOp(skippedProperties, "withdrawForNonCrypto")) {
 			AppendToArray(&emptyAllowedFor, "withdraw")
 		}
-		if IsEqual(currencyType, "leveraged") || IsEqual(currencyType, "other") {
+		if (currencyType == "leveraged") || (currencyType == "other") {
 			AppendToArray(&emptyAllowedFor, "precision")
 		}
 	}
@@ -54,7 +54,7 @@ func TestCurrency(exchange ccxt.ICoreExchange, skippedProperties any, method any
 	// check if empty networks should be skipped
 	var networks any = exchange.SafeDict(entry, "networks", map[string]any{})
 	var networkKeys []string = ObjectKeys(networks)
-	var networkKeysLength int = GetArrayLength(networkKeys)
+	var networkKeysLength int = len(networkKeys)
 	if (networkKeysLength == 0) && (InOp(skippedProperties, "skipCurrenciesWithoutNetworks")) {
 		return
 	}
@@ -70,9 +70,9 @@ func TestCurrency(exchange ccxt.ICoreExchange, skippedProperties any, method any
 						// catch block:
 						var message any = exchange.ExceptionMessage(e)
 						// check structure if key is numeric, not string
-						if IsGreaterThanOrEqual(GetIndexOf(message, "\"id\" key"), 0) {
+						if GetIndexOf(message, "\"id\" key") >= 0 {
 							// @ts-ignore
-							AddElementToObject(format, "id", 123)
+							format["id"] = 123
 							AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor)
 						} else {
 							Assert((message == ""), message)
@@ -100,12 +100,12 @@ func TestCurrency(exchange ccxt.ICoreExchange, skippedProperties any, method any
 		AssertGreaterOrEqual(exchange, skippedProperties, method, depositLimits, "max", "0")
 		// max should be more than min (withdrawal limits)
 		var minStringWithdrawal any = exchange.SafeString(withdrawLimits, "min")
-		if !IsEqual(minStringWithdrawal, nil) {
+		if minStringWithdrawal != nil {
 			AssertGreaterOrEqual(exchange, skippedProperties, method, withdrawLimits, "max", minStringWithdrawal)
 		}
 		// max should be more than min (deposit limits)
 		var minStringDeposit any = exchange.SafeString(depositLimits, "min")
-		if !IsEqual(minStringDeposit, nil) {
+		if minStringDeposit != nil {
 			AssertGreaterOrEqual(exchange, skippedProperties, method, depositLimits, "max", minStringDeposit)
 		}
 		// check valid ID & CODE

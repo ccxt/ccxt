@@ -7,6 +7,7 @@ import io.github.ccxt.errors.*;
 import tests.exchange.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -40,11 +41,11 @@ public class TestWatchMyTrades extends BaseTest {
                 // continue;
                 success = false;
             }
-            if (Helpers.isTrue(Helpers.isEqual(success, true)))
+            if (java.util.Objects.equals(success, true))
             {
                 TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
                 now = exchange.milliseconds();
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+                for (var i = 0; i < ((List<?>)response).size(); i++)
                 {
                     TestTrade.testTrade(exchange, skippedProperties, method, Helpers.GetValue(response, i), symbol, now, false);
                 }

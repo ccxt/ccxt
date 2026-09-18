@@ -40,14 +40,14 @@ pub fn testLiquidation(mut exchange: Value, mut skippedProperties: Value, mut me
     let mut contractSize: Value = exchange.safe_string(entry.clone(), Value::Str("contractSize".to_string()), &[]);
     let mut price: Value = exchange.safe_string(entry.clone(), Value::Str("price".to_string()), &[]);
     let mut baseValue: Value = exchange.safe_string(entry.clone(), Value::Str("baseValue".to_string()), &[]);
-    if is_true(&(!is_equal(&contracts, &Value::Null))) && is_true(&(!is_equal(&contracts, &Value::Str("".to_string())))) && is_true(&(!is_equal(&contractSize, &Value::Null))) && is_true(&(!is_equal(&contractSize, &Value::Str("".to_string())))) {
+    if is_true(&(Value::Bool(contracts != Value::Null))) && is_true(&(Value::Bool(contracts.as_str() != Some("")))) && is_true(&(Value::Bool(contractSize != Value::Null))) && is_true(&(Value::Bool(contractSize.as_str() != Some("")))) {
         assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringEq(&baseValue, &ccxt::precise::Precise::stringMul(&contracts, &contractSize)))));
-        if is_true(&(!is_equal(&price, &Value::Null))) && is_true(&(!is_equal(&price, &Value::Str("".to_string())))) {
+        if is_true(&(Value::Bool(price != Value::Null))) && is_true(&(Value::Bool(price.as_str() != Some("")))) {
             assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringEq(&baseValue, &ccxt::precise::Precise::stringMul(&ccxt::precise::Precise::stringMul(&contracts, &contractSize), &price)))));
         }
     }
     // if singular was called, then symbol needs to be asserted
-    if is_equal(&method, &Value::Str("watchLiquidations".to_string())) || is_equal(&method, &Value::Str("fetchLiquidations".to_string())) {
+    if (method.as_str() == Some("watchLiquidations")) || (method.as_str() == Some("fetchLiquidations")) {
         crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("symbol".to_string()).clone(), symbol.clone()]);
     }
 }

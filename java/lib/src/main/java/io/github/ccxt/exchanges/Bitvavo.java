@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 public class Bitvavo extends BitvavoApi
 {
@@ -528,7 +529,7 @@ public class Bitvavo extends BitvavoApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.publicGetTime(parameters)).join();
             //
             //     { "time": 1590379519148 }
@@ -551,7 +552,7 @@ public class Bitvavo extends BitvavoApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             List<Object> response = (this.publicGetMarkets(parameters)).join();
             //
             //    {
@@ -607,7 +608,7 @@ final Object finalBase = base;
                 put( "swap", false );
                 put( "future", false );
                 put( "option", false );
-                put( "active", (Helpers.isEqual(finalStatus, "trading")) );
+                put( "active", (java.util.Objects.equals(finalStatus, "trading")) );
                 put( "contract", false );
                 put( "linear", null );
                 put( "inverse", null );
@@ -661,7 +662,7 @@ final Object finalBase = base;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             List<Object> response = (this.publicGetAssets(parameters)).join();
             //
             //     [
@@ -742,18 +743,18 @@ final Object finalBase = base;
         Object isFiat = this.inArray(code, fiatCurrencies);
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         Object networksArray = this.safeList(rawCurrency, "networks", new ArrayList<Object>(Arrays.asList()));
-        Boolean deposit = Helpers.isEqual(this.safeString(rawCurrency, "depositStatus"), "OK");
-        Boolean withdrawal = Helpers.isEqual(this.safeString(rawCurrency, "withdrawalStatus"), "OK");
+        Boolean deposit = java.util.Objects.equals(this.safeString(rawCurrency, "depositStatus"), "OK");
+        Boolean withdrawal = java.util.Objects.equals(this.safeString(rawCurrency, "withdrawalStatus"), "OK");
         Boolean active = Helpers.isTrue(deposit) && Helpers.isTrue(withdrawal);
         Double withdrawFee = this.safeNumber(rawCurrency, "withdrawalFee");
         String precision = this.safeString(rawCurrency, "decimals", "8");
         Double minWithdraw = this.safeNumber(rawCurrency, "withdrawalMinAmount");
         // btw, absolutely all of them have 1 network atm
-        for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networksArray)); j++)
+        for (var j = 0; j < ((List<?>)networksArray).size(); j++)
         {
             Object networkId = Helpers.GetValue(networksArray, j);
             Object networkCode = this.networkIdToCode(networkId, code);
-            if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
+            if (!java.util.Objects.equals(networkCode, null))
             {
                 final Object finalNetworkCode = networkCode;
                 final Object finalDeposit = deposit;
@@ -819,14 +820,14 @@ final Object finalBase = base;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "market", Helpers.GetValue(market, "id") );
+                put( "market", ((Map<String, Object>)market).get("id") );
             }};
             Object response = (this.publicGetTicker24h(this.extend(request, parameters))).join();
             //
@@ -870,7 +871,7 @@ final Object finalBase = base;
         //         "timestamp":1590381666900
         //     }
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(ticker, "market");
         String symbol = this.safeSymbol(marketId, market, "-");
         Long timestamp = this.safeInteger(ticker, "timestamp");
@@ -916,9 +917,9 @@ final Object finalBase = base;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -964,10 +965,10 @@ final Object finalBase = base;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object since = Helpers.getArg(optionalArgs, 0, null);
-            Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -981,15 +982,15 @@ final Object finalBase = base;
                 return (this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, parameters)).join();
             }
             Object request = new HashMap<String, Object>() {{
-                put( "market", Helpers.GetValue(market, "id") );
+                put( "market", ((Map<String, Object>)market).get("id") );
             }};
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000));
+                ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 1000));
             }
-            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            if (!java.util.Objects.equals(since, null))
             {
-                Helpers.addElementToObject(request, "start", since);
+                ((Map<String, Object>)request).put("start", since);
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters);
             request = ((List<Object>) requestparametersVariable).get(0);
@@ -1007,7 +1008,7 @@ final Object finalBase = base;
             //     ]
             //
             return this.parseTrades(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
@@ -1069,7 +1070,7 @@ final Object finalBase = base;
         //         "feeCurrency": "EUR"
         //     }
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "amount");
         Long timestamp = this.safeInteger(trade, "timestamp");
@@ -1079,13 +1080,13 @@ final Object finalBase = base;
         String symbol = this.safeSymbol(marketId, market, "-");
         Object taker = this.safeValue(trade, "taker");
         String takerOrMaker = null;
-        if (Helpers.isTrue(!Helpers.isEqual(taker, null)))
+        if (!java.util.Objects.equals(taker, null))
         {
-            takerOrMaker = ((Helpers.isTrue((Helpers.isEqual(taker, true))))) ? "taker" : "maker";
+            takerOrMaker = (((java.util.Objects.equals(taker, true)))) ? "taker" : "maker";
         }
         String feeCostString = this.safeString(trade, "fee");
         Object fee = null;
-        if (Helpers.isTrue(!Helpers.isEqual(feeCostString, null)))
+        if (!java.util.Objects.equals(feeCostString, null))
         {
             String feeCurrencyId = this.safeString(trade, "feeCurrency");
             String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
@@ -1128,8 +1129,8 @@ final Object finalBase = base;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -1159,12 +1160,12 @@ final Object finalBase = base;
         //         }
         //     }
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object feesValue = this.safeValue(fees, "fees");
         Double maker = this.safeNumber(feesValue, "maker");
         Double taker = this.safeNumber(feesValue, "taker");
         Map<String, Object> result = new HashMap<String, Object>() {{}};
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(this.symbols)); i++)
+        for (var i = 0; i < ((List<?>)this.symbols).size(); i++)
         {
             Object symbol = Helpers.GetValue(this.symbols, i);
             Helpers.addElementToObject(result, symbol, new HashMap<String, Object>() {{
@@ -1193,14 +1194,14 @@ final Object finalBase = base;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "market", Helpers.GetValue(market, "id") );
+                put( "market", ((Map<String, Object>)market).get("id") );
             }};
             Map<String, Object> response = (this.privateGetAccountFees(this.extend(request, parameters))).join();
             //
@@ -1218,7 +1219,7 @@ final Object finalBase = base;
 
     public Object parseTradingFee(Object fee, Object... optionalArgs)
     {
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         return new HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", Bitvavo.this.safeSymbol(null, market) );
@@ -1244,19 +1245,19 @@ final Object finalBase = base;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "market", Helpers.GetValue(market, "id") );
+                put( "market", ((Map<String, Object>)market).get("id") );
             }};
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(request, "depth", limit);
+                ((Map<String, Object>)request).put("depth", limit);
             }
             Map<String, Object> response = (this.publicGetMarketBook(this.extend(request, parameters))).join();
             //
@@ -1275,7 +1276,7 @@ final Object finalBase = base;
             //         ]
             //     }
             //
-            Object orderbook = this.parseOrderBook(response, Helpers.GetValue(market, "symbol"));
+            Object orderbook = this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"));
             Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(response, "nonce"));
             return orderbook;
         }).thenApply(OrderBook::new);
@@ -1294,41 +1295,41 @@ final Object finalBase = base;
         //         "0.04788623"
         //     ]
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 5)));
     }
 
     public Object fetchOHLCVRequest(Object symbol, Object... optionalArgs)
     {
-        Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
-        Object since = Helpers.getArg(optionalArgs, 1, null);
-        Object limit = Helpers.getArg(optionalArgs, 2, null);
-        Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+        Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
+        Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+        Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+        Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         Object request = new HashMap<String, Object>() {{
-            put( "market", Helpers.GetValue(market, "id") );
+            put( "market", ((Map<String, Object>)market).get("id") );
             put( "interval", Bitvavo.this.safeString(Bitvavo.this.timeframes, timeframe, timeframe) );
         }};
-        if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+        if (!java.util.Objects.equals(since, null))
         {
             // https://github.com/ccxt/ccxt/issues/9227
             int duration = this.parseTimeframe(timeframe);
-            Helpers.addElementToObject(request, "start", since);
-            if (Helpers.isTrue(Helpers.isEqual(limit, null)))
+            ((Map<String, Object>)request).put("start", since);
+            if (java.util.Objects.equals(limit, null))
             {
                 limit = 1440;
             } else
             {
                 limit = Helpers.mathMin(limit, 1440);
             }
-            Helpers.addElementToObject(request, "end", this.sum(since, Helpers.multiply(Helpers.multiply(limit, duration), 1000)));
+            ((Map<String, Object>)request).put("end", this.sum(since, Helpers.multiply(Helpers.multiply(limit, duration), 1000)));
         }
         List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters);
         request = ((List<Object>) requestparametersVariable).get(0);
         parameters = ((List<Object>) requestparametersVariable).get(1);
-        if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+        if (!java.util.Objects.equals(limit, null))
         {
-            Helpers.addElementToObject(request, "limit", limit); // default 1440, max 1440
+            ((Map<String, Object>)request).put("limit", limit); // default 1440, max 1440
         }
         return this.extend(request, parameters);
     }
@@ -1352,11 +1353,11 @@ final Object finalBase = base;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -1379,7 +1380,7 @@ final Object finalBase = base;
             //     ]
             //
             return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
 
@@ -1398,7 +1399,7 @@ final Object finalBase = base;
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
             Helpers.addElementToObject(account, "used", this.safeString(balance, "inOrder"));
-            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            if (!java.util.Objects.equals(code, null))
             {
                 Helpers.addElementToObject(result, code, account);
             }
@@ -1419,8 +1420,8 @@ final Object finalBase = base;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -1452,8 +1453,8 @@ final Object finalBase = base;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -1475,7 +1476,7 @@ final Object finalBase = base;
             //
             Object accounts = this.safeList(response, "items", new ArrayList<Object>(Arrays.asList()));
             return this.parseAccounts(accounts);
-        }).thenApply(res -> Helpers.toTypedList(res, Account::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Account::new).collect(Collectors.toList()));
 
     }
 
@@ -1510,8 +1511,8 @@ final Object finalBase = base;
         return BaseExchange.supplyAsync(() -> {
             Object fromAccount = fromAccount3;
             Object toAccount = toAccount3;
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -1519,37 +1520,37 @@ final Object finalBase = base;
             Object subaccountId = this.safeString(parameters, "subaccountId");
             parameters = this.omit(parameters, "subaccountId");
             String direction = null;
-            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(fromAccount, "master"))) && Helpers.isTrue((Helpers.isEqual(toAccount, "master")))))
+            if ((java.util.Objects.equals(fromAccount, "master")) && (java.util.Objects.equals(toAccount, "master")))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " transfer() requires fromAccount and toAccount to be different (one master and one subaccount id)")) ;
-            } else if (Helpers.isTrue(Helpers.isEqual(fromAccount, "master")))
+                throw new ArgumentsRequired((this.id + " transfer() requires fromAccount and toAccount to be different (one master and one subaccount id)")) ;
+            } else if (java.util.Objects.equals(fromAccount, "master"))
             {
                 direction = "masterToSub";
-                if (Helpers.isTrue(Helpers.isEqual(subaccountId, null)))
+                if (java.util.Objects.equals(subaccountId, null))
                 {
                     subaccountId = toAccount;
                 }
-            } else if (Helpers.isTrue(Helpers.isEqual(toAccount, "master")))
+            } else if (java.util.Objects.equals(toAccount, "master"))
             {
                 direction = "subToMaster";
-                if (Helpers.isTrue(Helpers.isEqual(subaccountId, null)))
+                if (java.util.Objects.equals(subaccountId, null))
                 {
                     subaccountId = fromAccount;
                 }
             } else
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " transfer() requires either fromAccount or toAccount to be master")) ;
+                throw new ArgumentsRequired((this.id + " transfer() requires either fromAccount or toAccount to be master")) ;
             }
-            if (Helpers.isTrue(Helpers.isEqual(subaccountId, null)))
+            if (java.util.Objects.equals(subaccountId, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " transfer() requires a subaccount id (provide it as fromAccount/toAccount or params.subaccountId)")) ;
+                throw new ArgumentsRequired((this.id + " transfer() requires a subaccount id (provide it as fromAccount/toAccount or params.subaccountId)")) ;
             }
             final Object finalSubaccountId = subaccountId;
             final Object finalDirection = direction;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "subaccountId", finalSubaccountId );
                 put( "direction", finalDirection );
-                put( "symbol", Helpers.GetValue(currency, "id") );
+                put( "symbol", ((Map<String, Object>)currency).get("id") );
                 put( "amount", Bitvavo.this.currencyToPrecision(code, amount) );
             }};
             Map<String, Object> response = (this.privatePostSubaccountsTransfers(this.extend(request, parameters))).join();
@@ -1588,33 +1589,33 @@ final Object finalBase = base;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object code = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Object request = new HashMap<String, Object>() {{}};
             Object currency = null;
-            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            if (!java.util.Objects.equals(code, null))
             {
                 currency = this.currency(code);
-                Helpers.addElementToObject(request, "symbol", Helpers.GetValue(currency, "id"));
+                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)currency).get("id"));
             }
             String subaccountId = this.safeString(parameters, "subaccountId");
-            if (Helpers.isTrue(Helpers.isEqual(subaccountId, null)))
+            if (java.util.Objects.equals(subaccountId, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " fetchTransfers() requires a subaccountId parameter")) ;
+                throw new ArgumentsRequired((this.id + " fetchTransfers() requires a subaccountId parameter")) ;
             }
-            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            if (!java.util.Objects.equals(since, null))
             {
-                Helpers.addElementToObject(request, "start", since);
+                ((Map<String, Object>)request).put("start", since);
             }
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(request, "limit", limit);
+                ((Map<String, Object>)request).put("limit", limit);
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters);
             request = ((List<Object>) requestparametersVariable).get(0);
@@ -1641,7 +1642,7 @@ final Object finalBase = base;
             //
             Object items = this.safeList(response, "items", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransfers(items, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, TransferEntry::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
     }
 
@@ -1660,14 +1661,14 @@ final Object finalBase = base;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object code = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Object currency = null;
-            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            if (!java.util.Objects.equals(code, null))
             {
                 currency = this.currency(code);
             }
@@ -1704,24 +1705,24 @@ final Object finalBase = base;
 
     public Object parseTransfer(Object transfer, Object... optionalArgs)
     {
-        Object currency = Helpers.getArg(optionalArgs, 0, null);
+        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String currencyId = this.safeString(transfer, "symbol");
         String code = this.safeCurrencyCode(currencyId, currency);
         String subaccountId = this.safeString(transfer, "subaccountId");
         String direction = this.safeString(transfer, "direction");
         String fromAccount = null;
         String toAccount = null;
-        if (Helpers.isTrue(Helpers.isEqual(direction, "masterToSub")))
+        if (java.util.Objects.equals(direction, "masterToSub"))
         {
             fromAccount = "master";
             toAccount = subaccountId;
-        } else if (Helpers.isTrue(Helpers.isEqual(direction, "subToMaster")))
+        } else if (java.util.Objects.equals(direction, "subToMaster"))
         {
             fromAccount = subaccountId;
             toAccount = "master";
         }
         Long timestamp = this.safeInteger(transfer, "createdAt");
-        if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
+        if (java.util.Objects.equals(timestamp, null))
         {
             timestamp = this.parse8601(this.safeString(transfer, "createdAt"));
         }
@@ -1755,14 +1756,14 @@ final Object finalBase = base;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", Helpers.GetValue(currency, "id") );
+                put( "symbol", ((Map<String, Object>)currency).get("id") );
             }};
             Map<String, Object> response = (this.privateGetDeposit(this.extend(request, parameters))).join();
             //
@@ -1787,26 +1788,26 @@ final Object finalBase = base;
 
     public Object createOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
-        Object price = Helpers.getArg(optionalArgs, 0, null);
-        Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-        if (Helpers.isTrue(Helpers.isEqual(type, null)))
+        Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+        if (java.util.Objects.equals(type, null))
         {
-            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired((this.id + " requires a type argument")) ;
         }
-        if (Helpers.isTrue(Helpers.isEqual(side, null)))
+        if (java.util.Objects.equals(side, null))
         {
-            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired((this.id + " requires a side argument")) ;
         }
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         final Object finalSide = side;
         final Object finalType = type;
         Map<String, Object> request = new HashMap<String, Object>() {{
-            put( "market", Helpers.GetValue(market, "id") );
+            put( "market", ((Map<String, Object>)market).get("id") );
             put( "side", finalSide );
             put( "orderType", finalType );
         }};
-        Boolean isMarketOrder = Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "market"))) || Helpers.isTrue((Helpers.isEqual(type, "stopLoss")))) || Helpers.isTrue((Helpers.isEqual(type, "takeProfit")));
-        Boolean isLimitOrder = Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "limit"))) || Helpers.isTrue((Helpers.isEqual(type, "stopLossLimit")))) || Helpers.isTrue((Helpers.isEqual(type, "takeProfitLimit")));
+        Boolean isMarketOrder = (java.util.Objects.equals(type, "market")) || (java.util.Objects.equals(type, "stopLoss")) || (java.util.Objects.equals(type, "takeProfit"));
+        Boolean isLimitOrder = (java.util.Objects.equals(type, "limit")) || (java.util.Objects.equals(type, "stopLossLimit")) || (java.util.Objects.equals(type, "takeProfitLimit"));
         String timeInForce = this.safeString(parameters, "timeInForce");
         Object triggerPrice = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "triggerAmount")));
         Object postOnly = this.isPostOnly(isMarketOrder, false, parameters);
@@ -1816,7 +1817,7 @@ final Object finalBase = base;
         if (Helpers.isTrue(isMarketOrder))
         {
             Object cost = null;
-            if (Helpers.isTrue(!Helpers.isEqual(price, null)))
+            if (!java.util.Objects.equals(price, null))
             {
                 Object priceString = this.numberToString(price);
                 Object amountString = this.numberToString(amount);
@@ -1826,74 +1827,74 @@ final Object finalBase = base;
             {
                 cost = this.safeNumber(parameters, "cost");
             }
-            if (Helpers.isTrue(!Helpers.isEqual(cost, null)))
+            if (!java.util.Objects.equals(cost, null))
             {
-                Object precision = Helpers.GetValue(this.currency(Helpers.GetValue(market, "quote")), "precision");
-                Helpers.addElementToObject(request, "amountQuote", this.decimalToPrecision(cost, TRUNCATE, precision, this.precisionMode));
+                Object precision = ((Map<String, Object>)this.currency(((Map<String, Object>)market).get("quote"))).get("precision");
+                ((Map<String, Object>)request).put("amountQuote", this.decimalToPrecision(cost, TRUNCATE, precision, this.precisionMode));
             } else
             {
-                Helpers.addElementToObject(request, "amount", this.amountToPrecision(symbol, amount));
+                ((Map<String, Object>)request).put("amount", this.amountToPrecision(symbol, amount));
             }
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("cost")));
         } else if (Helpers.isTrue(isLimitOrder))
         {
-            Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
-            Helpers.addElementToObject(request, "amount", this.amountToPrecision(symbol, amount));
+            ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
+            ((Map<String, Object>)request).put("amount", this.amountToPrecision(symbol, amount));
         }
-        Boolean isTakeProfit = Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(takeProfitPrice, null))) || Helpers.isTrue((Helpers.isEqual(type, "takeProfit")))) || Helpers.isTrue((Helpers.isEqual(type, "takeProfitLimit")));
-        Boolean isStopLoss = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(stopLossPrice, null))) || Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(triggerPrice, null))) && Helpers.isTrue((!Helpers.isTrue(isTakeProfit))))) || Helpers.isTrue((Helpers.isEqual(type, "stopLoss")))) || Helpers.isTrue((Helpers.isEqual(type, "stopLossLimit")));
+        Boolean isTakeProfit = (!java.util.Objects.equals(takeProfitPrice, null)) || (java.util.Objects.equals(type, "takeProfit")) || (java.util.Objects.equals(type, "takeProfitLimit"));
+        Boolean isStopLoss = (!java.util.Objects.equals(stopLossPrice, null)) || (!java.util.Objects.equals(triggerPrice, null)) && Helpers.isTrue((!Helpers.isTrue(isTakeProfit))) || (java.util.Objects.equals(type, "stopLoss")) || (java.util.Objects.equals(type, "stopLossLimit"));
         if (Helpers.isTrue(isStopLoss))
         {
-            if (Helpers.isTrue(!Helpers.isEqual(stopLossPrice, null)))
+            if (!java.util.Objects.equals(stopLossPrice, null))
             {
                 triggerPrice = stopLossPrice;
             }
-            Helpers.addElementToObject(request, "orderType", ((Helpers.isTrue(isMarketOrder))) ? "stopLoss" : "stopLossLimit");
+            ((Map<String, Object>)request).put("orderType", ((Helpers.isTrue(isMarketOrder))) ? "stopLoss" : "stopLossLimit");
         } else if (Helpers.isTrue(isTakeProfit))
         {
-            if (Helpers.isTrue(!Helpers.isEqual(takeProfitPrice, null)))
+            if (!java.util.Objects.equals(takeProfitPrice, null))
             {
                 triggerPrice = takeProfitPrice;
             }
-            Helpers.addElementToObject(request, "orderType", ((Helpers.isTrue(isMarketOrder))) ? "takeProfit" : "takeProfitLimit");
+            ((Map<String, Object>)request).put("orderType", ((Helpers.isTrue(isMarketOrder))) ? "takeProfit" : "takeProfitLimit");
         }
-        if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
+        if (!java.util.Objects.equals(triggerPrice, null))
         {
-            Helpers.addElementToObject(request, "triggerAmount", this.priceToPrecision(symbol, triggerPrice));
-            Helpers.addElementToObject(request, "triggerType", "price");
-            Helpers.addElementToObject(request, "triggerReference", "lastTrade"); // 'bestBid', 'bestAsk', 'midPrice'
+            ((Map<String, Object>)request).put("triggerAmount", this.priceToPrecision(symbol, triggerPrice));
+            ((Map<String, Object>)request).put("triggerType", "price");
+            ((Map<String, Object>)request).put("triggerReference", "lastTrade"); // 'bestBid', 'bestAsk', 'midPrice'
         }
-        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(timeInForce, null))) && Helpers.isTrue((!Helpers.isEqual(timeInForce, "PO")))))
+        if ((!java.util.Objects.equals(timeInForce, null)) && (!java.util.Objects.equals(timeInForce, "PO")))
         {
-            Helpers.addElementToObject(request, "timeInForce", timeInForce);
+            ((Map<String, Object>)request).put("timeInForce", timeInForce);
         }
         if (Helpers.isTrue(postOnly))
         {
-            Helpers.addElementToObject(request, "postOnly", true);
+            ((Map<String, Object>)request).put("postOnly", true);
         }
         Object operatorId = null;
         List<Object> operatorIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "operatorId");
         operatorId = ((List<Object>) operatorIdparametersVariable).get(0);
         parameters = ((List<Object>) operatorIdparametersVariable).get(1);
-        if (Helpers.isTrue(!Helpers.isEqual(operatorId, null)))
+        if (!java.util.Objects.equals(operatorId, null))
         {
-            Helpers.addElementToObject(request, "operatorId", this.parseToInt(operatorId));
+            ((Map<String, Object>)request).put("operatorId", this.parseToInt(operatorId));
         } else
         {
-            throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
+            throw new ArgumentsRequired((this.id + " createOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
         }
         Object selfTradePrevention = null;
         List<Object> selfTradePreventionparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "selfTradePrevention");
         selfTradePrevention = ((List<Object>) selfTradePreventionparametersVariable).get(0);
         parameters = ((List<Object>) selfTradePreventionparametersVariable).get(1);
-        if (Helpers.isTrue(!Helpers.isEqual(selfTradePrevention, null)))
+        if (!java.util.Objects.equals(selfTradePrevention, null))
         {
-            if (Helpers.isTrue(Helpers.isEqual(selfTradePrevention, "EXPIRE_BOTH")))
+            if (java.util.Objects.equals(selfTradePrevention, "EXPIRE_BOTH"))
             {
-                Helpers.addElementToObject(request, "selfTradePrevention", "cancelBoth");
+                ((Map<String, Object>)request).put("selfTradePrevention", "cancelBoth");
             } else
             {
-                Helpers.addElementToObject(request, "selfTradePrevention", selfTradePrevention);
+                ((Map<String, Object>)request).put("selfTradePrevention", selfTradePrevention);
             }
         }
         return this.extend(request, parameters);
@@ -1928,9 +1929,9 @@ final Object finalBase = base;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -1984,52 +1985,52 @@ final Object finalBase = base;
 
     public Object editOrderRequest(Object id, Object symbol, Object type, Object side, Object... optionalArgs)
     {
-        Object amount = Helpers.getArg(optionalArgs, 0, null);
-        Object price = Helpers.getArg(optionalArgs, 1, null);
-        Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
+        Object amount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object price = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+        Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
         Object request = new HashMap<String, Object>() {{}};
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         Double amountRemaining = this.safeNumber(parameters, "amountRemaining");
         String triggerPrice = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "triggerAmount")));
         parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("amountRemaining", "triggerPrice", "stopPrice", "triggerAmount")));
-        if (Helpers.isTrue(!Helpers.isEqual(price, null)))
+        if (!java.util.Objects.equals(price, null))
         {
-            Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
+            ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
         }
-        if (Helpers.isTrue(!Helpers.isEqual(amount, null)))
+        if (!java.util.Objects.equals(amount, null))
         {
-            Helpers.addElementToObject(request, "amount", this.amountToPrecision(symbol, amount));
+            ((Map<String, Object>)request).put("amount", this.amountToPrecision(symbol, amount));
         }
-        if (Helpers.isTrue(!Helpers.isEqual(amountRemaining, null)))
+        if (!java.util.Objects.equals(amountRemaining, null))
         {
-            Helpers.addElementToObject(request, "amountRemaining", this.amountToPrecision(symbol, amountRemaining));
+            ((Map<String, Object>)request).put("amountRemaining", this.amountToPrecision(symbol, amountRemaining));
         }
-        if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
+        if (!java.util.Objects.equals(triggerPrice, null))
         {
-            Helpers.addElementToObject(request, "triggerAmount", this.priceToPrecision(symbol, triggerPrice));
+            ((Map<String, Object>)request).put("triggerAmount", this.priceToPrecision(symbol, triggerPrice));
         }
         request = this.extend(request, parameters);
         if (Helpers.isTrue(this.isEmpty(request)))
         {
-            throw new ArgumentsRequired(Helpers.add(this.id, " editOrder() requires an amount argument, or a price argument, or non-empty params")) ;
+            throw new ArgumentsRequired((this.id + " editOrder() requires an amount argument, or a price argument, or non-empty params")) ;
         }
         String clientOrderId = this.safeString(parameters, "clientOrderId");
-        if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
+        if (java.util.Objects.equals(clientOrderId, null))
         {
-            Helpers.addElementToObject(request, "orderId", id);
+            ((Map<String, Object>)request).put("orderId", id);
         }
         Object operatorId = null;
         List<Object> operatorIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "editOrder", "operatorId");
         operatorId = ((List<Object>) operatorIdparametersVariable).get(0);
         parameters = ((List<Object>) operatorIdparametersVariable).get(1);
-        if (Helpers.isTrue(!Helpers.isEqual(operatorId, null)))
+        if (!java.util.Objects.equals(operatorId, null))
         {
-            Helpers.addElementToObject(request, "operatorId", this.parseToInt(operatorId));
+            ((Map<String, Object>)request).put("operatorId", this.parseToInt(operatorId));
         } else
         {
-            throw new ArgumentsRequired(Helpers.add(this.id, " editOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
+            throw new ArgumentsRequired((this.id + " editOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
         }
-        Helpers.addElementToObject(request, "market", Helpers.GetValue(market, "id"));
+        ((Map<String, Object>)request).put("market", ((Map<String, Object>)market).get("id"));
         return request;
     }
 
@@ -2052,10 +2053,10 @@ final Object finalBase = base;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object amount = Helpers.getArg(optionalArgs, 0, null);
-            Object price = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object amount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object price = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -2069,31 +2070,31 @@ final Object finalBase = base;
 
     public Object cancelOrderRequest(Object id, Object... optionalArgs)
     {
-        Object symbol = Helpers.getArg(optionalArgs, 0, null);
-        Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-        if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+        Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+        if (java.util.Objects.equals(symbol, null))
         {
-            throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
         }
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         Map<String, Object> request = new HashMap<String, Object>() {{
-            put( "market", Helpers.GetValue(market, "id") );
+            put( "market", ((Map<String, Object>)market).get("id") );
         }};
         String clientOrderId = this.safeString(parameters, "clientOrderId");
-        if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
+        if (java.util.Objects.equals(clientOrderId, null))
         {
-            Helpers.addElementToObject(request, "orderId", id);
+            ((Map<String, Object>)request).put("orderId", id);
         }
         Object operatorId = null;
         List<Object> operatorIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelOrder", "operatorId");
         operatorId = ((List<Object>) operatorIdparametersVariable).get(0);
         parameters = ((List<Object>) operatorIdparametersVariable).get(1);
-        if (Helpers.isTrue(!Helpers.isEqual(operatorId, null)))
+        if (!java.util.Objects.equals(operatorId, null))
         {
-            Helpers.addElementToObject(request, "operatorId", this.parseToInt(operatorId));
+            ((Map<String, Object>)request).put("operatorId", this.parseToInt(operatorId));
         } else
         {
-            throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
+            throw new ArgumentsRequired((this.id + " cancelOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
         }
         return this.extend(request, parameters);
     }
@@ -2113,9 +2114,9 @@ final Object finalBase = base;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -2146,29 +2147,29 @@ final Object finalBase = base;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object market = null;
-            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                Helpers.addElementToObject(request, "market", Helpers.GetValue(market, "id"));
+                ((Map<String, Object>)request).put("market", ((Map<String, Object>)market).get("id"));
             }
             Object operatorId = null;
             List<Object> operatorIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "cancelAllOrders", "operatorId");
             operatorId = ((List<Object>) operatorIdparametersVariable).get(0);
             parameters = ((List<Object>) operatorIdparametersVariable).get(1);
-            if (Helpers.isTrue(!Helpers.isEqual(operatorId, null)))
+            if (!java.util.Objects.equals(operatorId, null))
             {
-                Helpers.addElementToObject(request, "operatorId", this.parseToInt(operatorId));
+                ((Map<String, Object>)request).put("operatorId", this.parseToInt(operatorId));
             } else
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " canceAllOrders() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
+                throw new ArgumentsRequired((this.id + " canceAllOrders() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
             }
             List<Object> response = (this.privateDeleteOrders(this.extend(request, parameters))).join();
             //
@@ -2179,7 +2180,7 @@ final Object finalBase = base;
             //     ]
             //
             return this.parseOrders(response, market);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -2198,16 +2199,16 @@ final Object finalBase = base;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isGreaterThan(timeout, 300000)))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (Helpers.isGreaterThan(timeout, 300000))
             {
-                throw new BadRequest(Helpers.add(this.id, " cancelAllOrdersAfter() timeout should be less than or equal to 300000 milliseconds")) ;
+                throw new BadRequest((this.id + " cancelAllOrdersAfter() timeout should be less than or equal to 300000 milliseconds")) ;
             }
-            if (Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThan(timeout, 0))) && Helpers.isTrue((Helpers.isLessThan(timeout, 10000)))))
+            if ((Helpers.isGreaterThan(timeout, 0)) && (Helpers.isLessThan(timeout, 10000)))
             {
-                throw new BadRequest(Helpers.add(this.id, " cancelAllOrdersAfter() timeout should be 0 or greater than or equal to 10000 milliseconds")) ;
+                throw new BadRequest((this.id + " cancelAllOrdersAfter() timeout should be 0 or greater than or equal to 10000 milliseconds")) ;
             }
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -2218,7 +2219,7 @@ final Object finalBase = base;
             final Object finalCodGroupId = codGroupId;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "codGroupId", finalCodGroupId );
-                put( "expiryAfterSeconds", ((Helpers.isTrue((Helpers.isGreaterThan(timeout, 0))))) ? ((Object) Bitvavo.this.parseToInt(Helpers.divide(timeout, 1000))) : 0 );
+                put( "expiryAfterSeconds", (((Helpers.isGreaterThan(timeout, 0)))) ? ((Object) Bitvavo.this.parseToInt(Helpers.divide(timeout, 1000))) : 0 );
             }};
             Map<String, Object> response = (this.privatePostCancelOrdersAfter(this.extend(request, parameters))).join();
             //
@@ -2247,24 +2248,24 @@ final Object finalBase = base;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(symbol, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired((this.id + " fetchOrder() requires a symbol argument")) ;
             }
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "market", Helpers.GetValue(market, "id") );
+                put( "market", ((Map<String, Object>)market).get("id") );
             }};
             String clientOrderId = this.safeString(parameters, "clientOrderId");
-            if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
+            if (java.util.Objects.equals(clientOrderId, null))
             {
-                Helpers.addElementToObject(request, "orderId", id);
+                ((Map<String, Object>)request).put("orderId", id);
             }
             Map<String, Object> response = (this.privateGetOrder(this.extend(request, parameters))).join();
             //
@@ -2308,21 +2309,21 @@ final Object finalBase = base;
 
     public Object fetchOrdersRequest(Object... optionalArgs)
     {
-        Object symbol = Helpers.getArg(optionalArgs, 0, null);
-        Object since = Helpers.getArg(optionalArgs, 1, null);
-        Object limit = Helpers.getArg(optionalArgs, 2, null);
-        Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+        Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+        Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+        Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         Object request = new HashMap<String, Object>() {{
-            put( "market", Helpers.GetValue(market, "id") );
+            put( "market", ((Map<String, Object>)market).get("id") );
         }};
-        if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+        if (!java.util.Objects.equals(since, null))
         {
-            Helpers.addElementToObject(request, "start", since);
+            ((Map<String, Object>)request).put("start", since);
         }
-        if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+        if (!java.util.Objects.equals(limit, null))
         {
-            Helpers.addElementToObject(request, "limit", limit); // default 500, max 1000
+            ((Map<String, Object>)request).put("limit", limit); // default 500, max 1000
         }
         List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters);
         request = ((List<Object>) requestparametersVariable).get(0);
@@ -2348,15 +2349,15 @@ final Object finalBase = base;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(symbol, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired((this.id + " fetchOrders() requires a symbol argument")) ;
             }
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -2408,7 +2409,7 @@ final Object finalBase = base;
             //     ]
             //
             return this.parseOrders(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -2428,20 +2429,20 @@ final Object finalBase = base;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object market = null;
-            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                Helpers.addElementToObject(request, "market", Helpers.GetValue(market, "id"));
+                ((Map<String, Object>)request).put("market", ((Map<String, Object>)market).get("id"));
             }
             List<Object> response = (this.privateGetOrdersOpen(this.extend(request, parameters))).join();
             //
@@ -2481,7 +2482,7 @@ final Object finalBase = base;
             //     ]
             //
             return this.parseOrders(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -2552,12 +2553,12 @@ final Object finalBase = base;
         //         "postOnly": true,
         //     }
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String id = this.safeString(order, "orderId");
         Long timestamp = this.safeInteger(order, "created");
         String marketId = this.safeString(order, "market");
         market = this.safeMarket(marketId, market, "-");
-        Object symbol = Helpers.GetValue(market, "symbol");
+        Object symbol = ((Map<String, Object>)market).get("symbol");
         String status = this.parseOrderStatus(this.safeString(order, "status"));
         String side = this.safeString(order, "side");
         String type = this.safeString(order, "orderType");
@@ -2566,7 +2567,7 @@ final Object finalBase = base;
         String remaining = this.safeString(order, "amountRemaining");
         String filled = this.safeString(order, "filledAmount");
         String cost = this.safeString(order, "filledAmountQuote");
-        if (Helpers.isTrue(Helpers.isEqual(cost, null)))
+        if (java.util.Objects.equals(cost, null))
         {
             String amountQuote = this.safeString(order, "amountQuote");
             String amountQuoteRemaining = this.safeString(order, "amountQuoteRemaining");
@@ -2574,7 +2575,7 @@ final Object finalBase = base;
         }
         Object fee = null;
         Double feeCost = this.safeNumber(order, "feePaid");
-        if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
+        if (!java.util.Objects.equals(feeCost, null))
         {
             String feeCurrencyId = this.safeString(order, "feeCurrency");
             String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
@@ -2617,21 +2618,21 @@ final Object finalBase = base;
 
     public Object fetchMyTradesRequest(Object... optionalArgs)
     {
-        Object symbol = Helpers.getArg(optionalArgs, 0, null);
-        Object since = Helpers.getArg(optionalArgs, 1, null);
-        Object limit = Helpers.getArg(optionalArgs, 2, null);
-        Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+        Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+        Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+        Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         Object request = new HashMap<String, Object>() {{
-            put( "market", Helpers.GetValue(market, "id") );
+            put( "market", ((Map<String, Object>)market).get("id") );
         }};
-        if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+        if (!java.util.Objects.equals(since, null))
         {
-            Helpers.addElementToObject(request, "start", since);
+            ((Map<String, Object>)request).put("start", since);
         }
-        if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+        if (!java.util.Objects.equals(limit, null))
         {
-            Helpers.addElementToObject(request, "limit", limit); // default 500, max 1000
+            ((Map<String, Object>)request).put("limit", limit); // default 500, max 1000
         }
         List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("end", request, parameters);
         request = ((List<Object>) requestparametersVariable).get(0);
@@ -2657,15 +2658,15 @@ final Object finalBase = base;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(symbol, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
+                throw new ArgumentsRequired((this.id + " fetchMyTrades() requires a symbol argument")) ;
             }
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -2698,7 +2699,7 @@ final Object finalBase = base;
             //     ]
             //
             return this.parseTrades(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
@@ -2720,27 +2721,27 @@ final Object finalBase = base;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object code = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Object request = new HashMap<String, Object>() {{}};
             Object currency = null;
-            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            if (!java.util.Objects.equals(code, null))
             {
                 currency = this.currency(code);
             }
-            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            if (!java.util.Objects.equals(since, null))
             {
-                Helpers.addElementToObject(request, "fromDate", since);
+                ((Map<String, Object>)request).put("fromDate", since);
             }
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(request, "maxItems", Helpers.mathMin(limit, 100));
+                ((Map<String, Object>)request).put("maxItems", Helpers.mathMin(limit, 100));
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("toDate", request, parameters);
             request = ((List<Object>) requestparametersVariable).get(0);
@@ -2771,7 +2772,7 @@ final Object finalBase = base;
             //
             Object items = this.safeList(response, "items", new ArrayList<Object>(Arrays.asList()));
             return this.parseLedger(items, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
     }
 
@@ -2791,13 +2792,13 @@ final Object finalBase = base;
 
     public Object parseLedgerEntry(Object item, Object... optionalArgs)
     {
-        Object currency = Helpers.getArg(optionalArgs, 0, null);
+        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String rawType = this.safeString(item, "type");
         Object type = this.parseLedgerEntryType(rawType);
         String currencyId = this.safeString(item, "receivedCurrency");
         String amount = this.safeString(item, "receivedAmount");
         String direction = "in";
-        if (Helpers.isTrue(Helpers.isEqual(amount, null)))
+        if (java.util.Objects.equals(amount, null))
         {
             currencyId = this.safeString(item, "sentCurrency");
             amount = this.safeString(item, "sentAmount");
@@ -2808,7 +2809,7 @@ final Object finalBase = base;
         Long timestamp = this.parse8601(this.safeString(item, "executedAt"));
         Object fee = null;
         String feeCost = this.safeString(item, "feesAmount");
-        if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
+        if (!java.util.Objects.equals(feeCost, null))
         {
             String feeCurrencyId = this.safeString(item, "feesCurrency");
             String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
@@ -2842,17 +2843,17 @@ final Object finalBase = base;
 
     public Object withdrawRequest(String code, Object amount, Object address, Object... optionalArgs)
     {
-        Object tag = Helpers.getArg(optionalArgs, 0, null);
-        Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+        Object tag = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
         Map<String, Object> currency = (Map<String, Object>) this.currency(code);
         Map<String, Object> request = new HashMap<String, Object>() {{
-            put( "symbol", Helpers.GetValue(currency, "id") );
+            put( "symbol", ((Map<String, Object>)currency).get("id") );
             put( "amount", Bitvavo.this.currencyToPrecision(code, amount) );
             put( "address", address );
         }};
-        if (Helpers.isTrue(!Helpers.isEqual(tag, null)))
+        if (!java.util.Objects.equals(tag, null))
         {
-            Helpers.addElementToObject(request, "paymentId", tag);
+            ((Map<String, Object>)request).put("paymentId", tag);
         }
         return this.extend(request, parameters);
     }
@@ -2874,13 +2875,13 @@ final Object finalBase = base;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object tag = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            Object tag = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             tag = ((List<Object>) tagparametersVariable).get(0);
             parameters = ((List<Object>) tagparametersVariable).get(1);
             this.checkAddress(address);
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -2901,24 +2902,24 @@ final Object finalBase = base;
 
     public Object fetchWithdrawalsRequest(Object... optionalArgs)
     {
-        Object code = Helpers.getArg(optionalArgs, 0, null);
-        Object since = Helpers.getArg(optionalArgs, 1, null);
-        Object limit = Helpers.getArg(optionalArgs, 2, null);
-        Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+        Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+        Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+        Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         Object currency = null;
-        if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+        if (!java.util.Objects.equals(code, null))
         {
             currency = this.currency(code);
-            Helpers.addElementToObject(request, "symbol", Helpers.GetValue(currency, "id"));
+            ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)currency).get("id"));
         }
-        if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+        if (!java.util.Objects.equals(since, null))
         {
-            Helpers.addElementToObject(request, "start", since);
+            ((Map<String, Object>)request).put("start", since);
         }
-        if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+        if (!java.util.Objects.equals(limit, null))
         {
-            Helpers.addElementToObject(request, "limit", limit); // default 500, max 1000
+            ((Map<String, Object>)request).put("limit", limit); // default 500, max 1000
         }
         return this.extend(request, parameters);
     }
@@ -2939,17 +2940,17 @@ final Object finalBase = base;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object code = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Object request = this.fetchWithdrawalsRequest(code, since, limit, parameters);
             Object currency = null;
-            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            if (!java.util.Objects.equals(code, null))
             {
                 currency = this.currency(code);
             }
@@ -2971,30 +2972,30 @@ final Object finalBase = base;
             return this.parseTransactions(response, currency, since, limit, new HashMap<String, Object>() {{
                 put( "type", "withdrawal" );
             }});
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
 
     public Object fetchDepositsRequest(Object... optionalArgs)
     {
-        Object code = Helpers.getArg(optionalArgs, 0, null);
-        Object since = Helpers.getArg(optionalArgs, 1, null);
-        Object limit = Helpers.getArg(optionalArgs, 2, null);
-        Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+        Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+        Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+        Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         Object currency = null;
-        if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+        if (!java.util.Objects.equals(code, null))
         {
             currency = this.currency(code);
-            Helpers.addElementToObject(request, "symbol", Helpers.GetValue(currency, "id"));
+            ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)currency).get("id"));
         }
-        if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+        if (!java.util.Objects.equals(since, null))
         {
-            Helpers.addElementToObject(request, "start", since);
+            ((Map<String, Object>)request).put("start", since);
         }
-        if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+        if (!java.util.Objects.equals(limit, null))
         {
-            Helpers.addElementToObject(request, "limit", limit); // default 500, max 1000
+            ((Map<String, Object>)request).put("limit", limit); // default 500, max 1000
         }
         return this.extend(request, parameters);
     }
@@ -3015,17 +3016,17 @@ final Object finalBase = base;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object code = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Object request = this.fetchDepositsRequest(code, since, limit, parameters);
             Object currency = null;
-            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            if (!java.util.Objects.equals(code, null))
             {
                 currency = this.currency(code);
             }
@@ -3045,7 +3046,7 @@ final Object finalBase = base;
             return this.parseTransactions(response, currency, since, limit, new HashMap<String, Object>() {{
                 put( "type", "deposit" );
             }});
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
 
@@ -3100,7 +3101,7 @@ final Object finalBase = base;
         //         "txId":"0x5167b473fd37811f9ef22364c3d54726a859ef9d98934b3a1e11d7baa8d2c2e2"
         //     }
         //
-        Object currency = Helpers.getArg(optionalArgs, 0, null);
+        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object id = null;
         Long timestamp = this.safeInteger(transaction, "timestamp");
         String currencyId = this.safeString(transaction, "symbol");
@@ -3111,7 +3112,7 @@ final Object finalBase = base;
         String txid = this.safeString(transaction, "txId");
         Object fee = null;
         Double feeCost = this.safeNumber(transaction, "fee");
-        if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
+        if (!java.util.Objects.equals(feeCost, null))
         {
             final Object finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
@@ -3120,7 +3121,7 @@ final Object finalBase = base;
             }};
         }
         String type = null;
-        if (Helpers.isTrue(Helpers.isTrue((Helpers.inOp(transaction, "success"))) || Helpers.isTrue((Helpers.inOp(transaction, "address")))))
+        if ((((Map<?, ?>)transaction).containsKey("success")) || (((Map<?, ?>)transaction).containsKey("address")))
         {
             type = "withdrawal";
         } else
@@ -3173,7 +3174,7 @@ final Object finalBase = base;
         //       "message": ""
         //   }
         //
-        Object currency = Helpers.getArg(optionalArgs, 0, null);
+        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", fee );
             put( "withdraw", new HashMap<String, Object>() {{
@@ -3189,16 +3190,16 @@ final Object finalBase = base;
         Object networks = this.safeValue(fee, "networks");
         Object networkId = this.safeValue(networks, 0); // Bitvavo currently only supports one network per currency
         String currencyCode = this.safeString(currency, "code");
-        if (Helpers.isTrue(Helpers.isEqual(networkId, "Mainnet")))
+        if (java.util.Objects.equals(networkId, "Mainnet"))
         {
             networkId = currencyCode;
         }
         Object networkCode = this.networkIdToCode(networkId, currencyCode);
-        if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
+        if (!java.util.Objects.equals(networkCode, null))
         {
             Helpers.addElementToObject(Helpers.GetValue(result, "networks"), networkCode, new HashMap<String, Object>() {{
-    put( "deposit", Helpers.GetValue(result, "deposit") );
-    put( "withdraw", Helpers.GetValue(result, "withdraw") );
+    put( "deposit", ((Map<String, Object>)result).get("deposit") );
+    put( "withdraw", ((Map<String, Object>)result).get("withdraw") );
 }});
         }
         return result;
@@ -3218,9 +3219,9 @@ final Object finalBase = base;
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object codes = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object codes = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -3251,28 +3252,28 @@ final Object finalBase = base;
 
     public Object sign(Object path, Object... optionalArgs)
     {
-        Object api = Helpers.getArg(optionalArgs, 0, "public");
-        Object method = Helpers.getArg(optionalArgs, 1, "GET");
-        Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
-        Object headers = Helpers.getArg(optionalArgs, 3, null);
-        Object body = Helpers.getArg(optionalArgs, 4, null);
+        Object api = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public";
+        Object method = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET";
+        Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+        Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
+        Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
         Object query = this.omit(parameters, this.extractParams(path));
-        Object url = Helpers.add(Helpers.add(Helpers.add("/", this.version), "/"), this.implodeParams(path, parameters));
-        Boolean getOrDelete = Helpers.isTrue((Helpers.isEqual(method, "GET"))) || Helpers.isTrue((Helpers.isEqual(method, "DELETE")));
+        Object url = ((Helpers.add("/", this.version) + "/") + this.implodeParams(path, parameters));
+        Boolean getOrDelete = (java.util.Objects.equals(method, "GET")) || (java.util.Objects.equals(method, "DELETE"));
         if (Helpers.isTrue(getOrDelete))
         {
-            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
+            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
             {
-                url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
+                url = (url + ("?" + this.urlencode(query)));
             }
         }
-        if (Helpers.isTrue(Helpers.isEqual(api, "private")))
+        if (java.util.Objects.equals(api, "private"))
         {
             this.checkRequiredCredentials();
             Object payload = "";
             if (!Helpers.isTrue(getOrDelete))
             {
-                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
+                if (((List<?>)Helpers.objectKeys(query)).size() > 0)
                 {
                     body = this.json(query);
                     payload = body;
@@ -3291,10 +3292,10 @@ final Object finalBase = base;
             }};
             if (!Helpers.isTrue(getOrDelete))
             {
-                Helpers.addElementToObject(headers, "Content-Type", "application/json");
+                ((Map<String, Object>)headers).put("Content-Type", "application/json");
             }
         }
-        url = Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api), url);
+        url = Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), url);
         final Object finalUrl = url;
         final Object finalMethod = method;
         final Object finalBody = body;
@@ -3309,7 +3310,7 @@ final Object finalBase = base;
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
     {
-        if (Helpers.isTrue(Helpers.isEqual(response, null)))
+        if (java.util.Objects.equals(response, null))
         {
             return null;  // fallback to default error handler
         }
@@ -3320,11 +3321,11 @@ final Object finalBase = base;
         //
         String errorCode = this.safeString(response, "errorCode");
         String error = this.safeString(response, "error");
-        if (Helpers.isTrue(!Helpers.isEqual(errorCode, null)))
+        if (!java.util.Objects.equals(errorCode, null))
         {
-            Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
-            this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), error, feedback);
-            this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), errorCode, feedback);
+            Object feedback = ((this.id + " ") + body);
+            this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), error, feedback);
+            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
             throw new ExchangeError((String)feedback) ;
         }
         return null;
@@ -3332,8 +3333,8 @@ final Object finalBase = base;
 
     public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Object... optionalArgs)
     {
-        Object config = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-        if (Helpers.isTrue(Helpers.isTrue((Helpers.inOp(config, "noMarket"))) && !Helpers.isTrue((Helpers.inOp(parameters, "market")))))
+        Object config = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+        if ((((Map<?, ?>)config).containsKey("noMarket")) && !(Helpers.inOp(parameters, "market")))
         {
             return Helpers.GetValue(config, "noMarket");
         }

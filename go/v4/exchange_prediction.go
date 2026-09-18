@@ -98,20 +98,20 @@ func  (this *PredictionExchange) RequireEventQuery(optionalArgs ...any) any  {
     var slug *string = this.SafeString(params, "slug")
     var queriesLength int =     GetArrayLength(queries)
     var tagsLength int =     GetArrayLength(tags)
-    if ((query != nil)) || (IsGreaterThan(queriesLength, 0)) || (IsGreaterThan(tagsLength, 0)) || ((eventId != nil)) || ((slug != nil)) {
+    if (query != nil) || (queriesLength > 0) || (tagsLength > 0) || (eventId != nil) || (slug != nil) {
         return nil
     }
     var extraScopeParams any = this.SafeList(this.Options, "eventScopeParams", []any{})
     var extraScopeParamsLength int =     GetArrayLength(extraScopeParams)
     var extraNames any = ""
-    for i := 0; IsLessThan(i, extraScopeParamsLength); i++ {
+    for i := 0; (i < extraScopeParamsLength); i++ {
         var scopeKey any = GetValue(extraScopeParams, i)
         if InOp(params, scopeKey) {
             return nil
         }
         extraNames = Add(Add(extraNames, ", "), scopeKey)
     }
-    panic(ArgumentsRequired(Add(Add(Add(this.Id, " fetchEvents() requires at least one of query, queries, tags, eventId, slug"), extraNames), " to scope the search")))
+    panic(ArgumentsRequired(Add(Add(this.Id + " fetchEvents() requires at least one of query, queries, tags, eventId, slug", extraNames), " to scope the search")))
 }
 func  (this *PredictionExchange) ApplyEventFetchParams(events any, optionalArgs ...any) any  {
     // applies the unified fetchEvents options client-side (eventId/slug/status/searchIn/sort/limit)
@@ -126,12 +126,12 @@ func  (this *PredictionExchange) ApplyEventFetchParams(events any, optionalArgs 
     var result any = events
     var eventId *string = this.SafeString(params, "eventId")
     var slug *string = this.SafeString(params, "slug")
-    if ((eventId != nil)) || ((slug != nil)) {
+    if (eventId != nil) || (slug != nil) {
         var filtered any = []any{}
-        for i := 0; IsLessThan(i, GetArrayLength(result)); i++ {
+        for i := 0; (i < GetArrayLength(result)); i++ {
             var event any = GetValue(result, i)
-            var idMatch bool = ((eventId != nil)) && (IsEqual(this.SafeString(event, "id"), eventId))
-            var slugMatch bool = ((slug != nil)) && (IsEqual(this.SafeString(event, "slug"), slug))
+            var idMatch bool = (eventId != nil) && (IsEqual(this.SafeString(event, "id"), eventId))
+            var slugMatch bool = (slug != nil) && (IsEqual(this.SafeString(event, "slug"), slug))
             if idMatch || slugMatch {
                 AppendToArray(&filtered, event)
             }
@@ -146,7 +146,7 @@ func  (this *PredictionExchange) ApplyEventFetchParams(events any, optionalArgs 
     if !IsEqual(queries, nil) {
         queriesLength = GetArrayLength(queries)
     }
-    if IsGreaterThan(queriesLength, 0) {
+    if (queriesLength > 0) {
         result = this.FilterEventsBySearchIn(result, queries, this.SafeString(params, "searchIn"))
     }
     var sort *string = this.SafeString(params, "sort")
@@ -159,11 +159,11 @@ func  (this *PredictionExchange) ApplyEventFetchParams(events any, optionalArgs 
         } else if (sort != nil && *sort == "newest") {
             sortKey = "created"
         }
-        if !IsEqual(sortKey, nil) {
+        if (sortKey != nil) {
             // normalize the sort key on every row first — sortBy reads it with a raw
             // subscript, which raises KeyError/undefined-index in Python/PHP when a
             // venue's parsed event omits the field (JS alone tolerates the miss)
-            for i := 0; IsLessThan(i, GetArrayLength(result)); i++ {
+            for i := 0; (i < GetArrayLength(result)); i++ {
                 AddElementToObject(GetValue(result, i), sortKey, this.SafeNumber(GetValue(result, i), sortKey, 0))
             }
             result = this.SortBy(result, sortKey, true, 0)
@@ -186,16 +186,16 @@ func  (this *PredictionExchange) FilterEventsByStatus(events any, optionalArgs .
     // 'active' | 'inactive' | 'closed' | 'all' — 'inactive' and 'closed' are interchangeable
     status := GetArg(optionalArgs, 0, nil)
     _ = status
-    if (IsEqual(status, nil)) || ((status == "all")) {
+    if (status == nil) || (status == "all") {
         return events
     }
     var wantActive bool =     ((status == "active"))
     var result any = []any{}
-    for i := 0; IsLessThan(i, GetArrayLength(events)); i++ {
+    for i := 0; (i < GetArrayLength(events)); i++ {
         var event any = GetValue(events, i)
-        var isActive any = this.SafeBool(event, "active")
+        var isActive *bool = this.SafeBool(event, "active")
         // keep events whose status is unknown (already filtered server-side, no `active` field)
-        if (IsEqual(isActive, nil)) || ((isActive == wantActive)) {
+        if (isActive == nil) || (isActive != nil && *isActive == wantActive) {
             AppendToArray(&result, event)
         }
     }
@@ -210,30 +210,30 @@ func  (this *PredictionExchange) FilterEventsBySearchIn(events any, queries any,
     if !IsEqual(queries, nil) {
         queriesLength = GetArrayLength(queries)
     }
-    if (IsEqual(searchIn, nil)) || (IsEqual(queries, nil)) || ((queriesLength == 0)) {
+    if (searchIn == nil) || (IsEqual(queries, nil)) || (queriesLength == 0) {
         return events
     }
-    var checkTitle bool = ((searchIn == "title")) || ((searchIn == "both"))
-    var checkDescription bool = ((searchIn == "description")) || ((searchIn == "both"))
+    var checkTitle bool = (searchIn == "title") || (searchIn == "both")
+    var checkDescription bool = (searchIn == "description") || (searchIn == "both")
     var result any = []any{}
-    for i := 0; IsLessThan(i, GetArrayLength(events)); i++ {
+    for i := 0; (i < GetArrayLength(events)); i++ {
         var event any = GetValue(events, i)
         var title *string = this.SafeStringLower(event, "title", "")
         var description *string = this.SafeStringLower(event, "description", "")
         var matched bool = false
-        for qi := 0; IsLessThan(qi, GetArrayLength(queries)); qi++ {
+        for qi := 0; (qi < GetArrayLength(queries)); qi++ {
             var q string = ToLower(GetValue(queries, qi))
             if (title == nil) {
-                panic(ExchangeError(Add(this.Id, " filterEventsBySearchIn() missing title")))
+                panic(ExchangeError(this.Id + " filterEventsBySearchIn() missing title"))
             }
-            if checkTitle && (IsGreaterThanOrEqual(GetIndexOf(title, q), 0)) {
+            if checkTitle && (GetIndexOf(title, q) >= 0) {
                 matched = true
                 break
             }
             if (description == nil) {
-                panic(ExchangeError(Add(this.Id, " filterEventsBySearchIn() missing description")))
+                panic(ExchangeError(this.Id + " filterEventsBySearchIn() missing description"))
             }
-            if checkDescription && (IsGreaterThanOrEqual(GetIndexOf(description, q), 0)) {
+            if checkDescription && (GetIndexOf(description, q) >= 0) {
                 matched = true
                 break
             }
@@ -255,10 +255,10 @@ func  (this *PredictionExchange) NormalizeTagKey(tag any) any  {
     var chars []string = this.StringToCharsArray(lower)
     var s any = ""
     var pendingSep bool = false
-    for i := 0; IsLessThan(i, GetArrayLength(chars)); i++ {
+    for i := 0; (i < len(chars)); i++ {
         var ch any = GetValue(chars, i)
-        if IsGreaterThanOrEqual(GetIndexOf(allowed, ch), 0) {
-            if pendingSep && ((s != "")) {
+        if (GetIndexOf(allowed, ch) >= 0) {
+            if pendingSep && (s != "") {
                 s = Add(s, " ")
             }
             s = Add(s, ch)
@@ -274,11 +274,11 @@ func  (this *PredictionExchange) FilterEventsByTags(events any, optionalArgs ...
     // object tags ({ slug, title, ... }) since venues differ. no-op when no tags requested
     tags := GetArg(optionalArgs, 0, nil)
     _ = tags
-    if (IsEqual(tags, nil)) || ((GetArrayLength(tags) == 0)) {
+    if (IsEqual(tags, nil)) || (GetArrayLength(tags) == 0) {
         return events
     }
     var wanted any = []any{}
-    for i := 0; IsLessThan(i, GetArrayLength(tags)); i++ {
+    for i := 0; (i < GetArrayLength(tags)); i++ {
         var wantedKey any = this.NormalizeTagKey(GetValue(tags, i))
         if (wantedKey != "") {
             // an empty normalized key would substring-match every tag
@@ -286,11 +286,11 @@ func  (this *PredictionExchange) FilterEventsByTags(events any, optionalArgs ...
         }
     }
     var result any = []any{}
-    for i := 0; IsLessThan(i, GetArrayLength(events)); i++ {
+    for i := 0; (i < GetArrayLength(events)); i++ {
         var event any = GetValue(events, i)
         var eventTags any = this.SafeList(event, "tags", []any{})
         var matched bool = false
-        for ti := 0; IsLessThan(ti, GetArrayLength(eventTags)); ti++ {
+        for ti := 0; (ti < GetArrayLength(eventTags)); ti++ {
             var tag any = GetValue(eventTags, ti)
             var tagLabel any = nil
             if IsString(tag) {
@@ -298,10 +298,10 @@ func  (this *PredictionExchange) FilterEventsByTags(events any, optionalArgs ...
             } else {
                 tagLabel = this.SafeString2(tag, "slug", "title")
             }
-            if !IsEqual(tagLabel, nil) {
+            if (tagLabel != nil) {
                 var tagKey any = this.NormalizeTagKey(tagLabel)
-                for wi := 0; IsLessThan(wi, GetArrayLength(wanted)); wi++ {
-                    if IsGreaterThanOrEqual(GetIndexOf(tagKey, GetValue(wanted, wi)), 0) {
+                for wi := 0; (wi < GetArrayLength(wanted)); wi++ {
+                    if (GetIndexOf(tagKey, GetValue(wanted, wi)) >= 0) {
                         matched = true
                         break
                     }
@@ -327,7 +327,7 @@ func (this *PredictionExchange) fetchEventsBody(ch chan any, optionalArgs ...any
     defer ReturnPanicError(ch)
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
-        panic(NotSupported(Add(this.Id, " fetchEvents() is not supported yet")))
+        panic(NotSupported(this.Id + " fetchEvents() is not supported yet"))
 }
 func  (this *PredictionExchange) FetchEventAsync(id any, optionalArgs ...any) <- chan any {
     ch := make(chan any, 1)
@@ -339,7 +339,7 @@ func (this *PredictionExchange) fetchEventBody(ch chan any, id any, optionalArgs
     defer ReturnPanicError(ch)
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
-        panic(NotSupported(Add(this.Id, " fetchEvent() is not supported yet")))
+        panic(NotSupported(this.Id + " fetchEvent() is not supported yet"))
 }
 func  (this *PredictionExchange) SetEvents(events any) any  {
     // merge (not reset) so successive scoped fetchEvents calls accumulate into the cache.
@@ -351,7 +351,7 @@ func  (this *PredictionExchange) SetEvents(events any) any  {
     if IsEqual(this.Events_by_slug, nil) {
         this.Events_by_slug = map[string]any {}
     }
-    for i := 0; IsLessThan(i, GetArrayLength(events)); i++ {
+    for i := 0; (i < GetArrayLength(events)); i++ {
         var event any = GetValue(events, i)
         var id *string = this.SafeString(event, "id")
         var slug *string = this.SafeString(event, "slug")
@@ -377,7 +377,7 @@ func  (this *PredictionExchange) EventsList() any  {
     var result any = []any{}
     var seen map[string]any = map[string]any {}
     var keys []string = ObjectKeys(this.Events)
-    for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
+    for i := 0; (i < len(keys)); i++ {
         var event any = GetValue(this.Events, GetValue(keys, i))
         var identity *string = this.SafeString2(event, "id", "event", GetValue(keys, i))
         if !(InOp(seen, identity)) {
@@ -444,14 +444,14 @@ func  (this *PredictionExchange) GetEvent(eventIdOrSlug any) any  {
     if (!IsEqual(this.Events_by_slug, nil)) && (InOp(this.Events_by_slug, eventIdOrSlug)) {
         return GetValue(this.Events_by_slug, eventIdOrSlug)
     }
-    panic(BadSymbol(Add(Add(Add(this.Id, " has no cached event "), eventIdOrSlug), " - call fetchEvents ({ 'query': ... }) first")))
+    panic(BadSymbol(Add(Add(this.Id + " has no cached event ", eventIdOrSlug), " - call fetchEvents ({ 'query': ... }) first")))
 }
 func  (this *PredictionExchange) Outcome(outcomeSymbol any) any  {
-    if IsEqual(outcomeSymbol, nil) {
-        panic(ArgumentsRequired(Add(this.Id, " outcome() requires an outcomeSymbol argument")))
+    if (outcomeSymbol == nil) {
+        panic(ArgumentsRequired(this.Id + " outcome() requires an outcomeSymbol argument"))
     }
     if (IsEqual(this.Outcomes, nil)) || EvalTruthy(this.IsEmpty(this.Outcomes)) {
-        panic(ExchangeError(Add(this.Id, " outcomes not loaded - call loadOutcomes () or an outcome-addressed method first")))
+        panic(ExchangeError(this.Id + " outcomes not loaded - call loadOutcomes () or an outcome-addressed method first"))
     }
     if InOp(this.Outcomes, outcomeSymbol) {
         return GetValue(this.Outcomes, outcomeSymbol)
@@ -459,13 +459,13 @@ func  (this *PredictionExchange) Outcome(outcomeSymbol any) any  {
     if (!IsEqual(this.Outcomes_by_id, nil)) && (InOp(this.Outcomes_by_id, outcomeSymbol)) {
         return GetValue(this.Outcomes_by_id, outcomeSymbol)
     }
-    panic(BadSymbol(Add(Add(Add(this.Id, " does not have outcome "), outcomeSymbol), " - pass a known outcome handle or outcomeId, or call fetchEvents ()/loadOutcomes () first")))
+    panic(BadSymbol(Add(Add(this.Id + " does not have outcome ", outcomeSymbol), " - pass a known outcome handle or outcomeId, or call fetchEvents ()/loadOutcomes () first")))
 }
 func  (this *PredictionExchange) HasOutcome(outcomeIdOrSymbol any) any  {
     // sync cache-only membership probe — never throws and never fetches. this is the predicate
     // behind loadOutcome's fast path and loadOutcomes' miss filter; safeOutcome (stub on miss)
     // and outcome (throws on miss) are the accessors
-    if IsEqual(outcomeIdOrSymbol, nil) {
+    if (outcomeIdOrSymbol == nil) {
         return false
     }
     if (!IsEqual(this.Outcomes, nil)) && (InOp(this.Outcomes, outcomeIdOrSymbol)) {
@@ -479,7 +479,7 @@ func  (this *PredictionExchange) HasOutcome(outcomeIdOrSymbol any) any  {
 func  (this *PredictionExchange) SafeOutcome(outcomeIdOrSymbol any, optionalArgs ...any) any  {
     outcomeObj := GetArg(optionalArgs, 0, nil)
     _ = outcomeObj
-    if !IsEqual(outcomeIdOrSymbol, nil) {
+    if (outcomeIdOrSymbol != nil) {
         if (!IsEqual(this.Outcomes, nil)) && (InOp(this.Outcomes, outcomeIdOrSymbol)) {
             return GetValue(this.Outcomes, outcomeIdOrSymbol)
         }
@@ -534,14 +534,14 @@ func  (this *PredictionExchange) ShortenSlug(slug any) any  {
         "percent": "pct",
     }
     var stopWords []any = []any{"will", "the", "a", "an", "after", "before", "in", "at", "by", "of", "there", "be", "to", "or", "and", "for", "on", "its", "that", "this", "from", "with", "as", "is", "are", "was", "were", "?", "how", "many", "who", "what", "when", "where", "which", "much"}
-    var lower any = Ternary((IsEqual(slug, nil)), "", ToLower(slug))
+    var lower any = func() any { if (slug == nil) { return "" }; return ToLower(slug) }()
     var allowed string = "abcdefghijklmnopqrstuvwxyz0123456789"
     var chars []string = this.StringToCharsArray(lower)
     var s any = ""
     var lastDash bool = true // start true to drop leading separators
-    for i := 0; IsLessThan(i, GetArrayLength(chars)); i++ {
+    for i := 0; (i < len(chars)); i++ {
         var ch any = GetValue(chars, i)
-        if IsGreaterThanOrEqual(GetIndexOf(allowed, ch), 0) {
+        if (GetIndexOf(allowed, ch) >= 0) {
             s = Add(s, ch)
             lastDash = false
         } else if !lastDash {
@@ -550,7 +550,7 @@ func  (this *PredictionExchange) ShortenSlug(slug any) any  {
         }
     }
     var replacementKeys []string = ObjectKeys(replacements)
-    for i := 0; IsLessThan(i, GetArrayLength(replacementKeys)); i++ {
+    for i := 0; (i < len(replacementKeys)); i++ {
         var replacementKey any = GetValue(replacementKeys, i)
         var replacementValue *string = this.SafeString(replacements, replacementKey)
         if (replacementValue != nil) {
@@ -559,9 +559,9 @@ func  (this *PredictionExchange) ShortenSlug(slug any) any  {
     }
     var rawParts []string = Split(s, "-")
     var parts any = []any{}
-    for i := 0; IsLessThan(i, GetArrayLength(rawParts)); i++ {
+    for i := 0; (i < len(rawParts)); i++ {
         var w any = GetValue(rawParts, i)
-        if IsGreaterThan(GetLength(w), 0) && !this.InArray(w, stopWords) {
+        if (GetLength(w) > 0) && !this.InArray(w, stopWords) {
             AppendToArray(&parts, w)
         }
     }
@@ -580,7 +580,7 @@ func  (this *PredictionExchange) SlugToMarketSymbol(eventSlug any, marketSlug an
     // already-unique handles stay clean.
     var marketPart any = this.ShortenSlug(marketSlug)
     var eventPart any = this.ShortenSlug(eventSlug)
-    if (IsEqual(eventPart, nil)) || ((eventPart == "")) || ((eventPart == marketPart)) {
+    if (eventPart == nil) || (eventPart == "") || (eventPart == marketPart) {
         return marketPart
     }
     return Add(Add(eventPart, "_"), marketPart)
@@ -592,7 +592,7 @@ func  (this *PredictionExchange) SlugToOutcomeSymbol(eventSlug any, marketSlug a
     // removal so labels like "UP OR DOWN" survive intact) — venue labels with spaces or
     // currency symbols ("JD Vance", a dollar-sign price) yield clean handles (JD_VANCE, 120)
     // instead of leaking raw text into the outcome handle
-    if IsEqual(outcome, nil) {
+    if (outcome == nil) {
         outcome = ""
     }
     var upper string = ToUpper(outcome)
@@ -600,10 +600,10 @@ func  (this *PredictionExchange) SlugToOutcomeSymbol(eventSlug any, marketSlug a
     var chars []string = this.StringToCharsArray(upper)
     var label any = ""
     var pendingSep bool = false
-    for i := 0; IsLessThan(i, GetArrayLength(chars)); i++ {
+    for i := 0; (i < len(chars)); i++ {
         var ch any = GetValue(chars, i)
-        if IsGreaterThanOrEqual(GetIndexOf(allowed, ch), 0) {
-            if pendingSep && ((label != "")) {
+        if (GetIndexOf(allowed, ch) >= 0) {
+            if pendingSep && (label != "") {
                 label = Add(label, "_")
             }
             label = Add(label, ch)
@@ -626,10 +626,10 @@ func  (this *PredictionExchange) SetMarkets(markets any, optionalArgs ...any) an
     _ = currencies
     var marketsList []any = this.ToArray(markets)
     var aliased any = []any{}
-    for i := 0; IsLessThan(i, GetArrayLength(marketsList)); i++ {
+    for i := 0; (i < len(marketsList)); i++ {
         var row any = GetValue(marketsList, i)
         var copy map[string]any = this.Extend(map[string]any {}, row)
-        AddElementToObject(copy, "symbol", this.SafeString2(row, "market", "symbol"))
+        copy["symbol"] = this.SafeString2(row, "market", "symbol")
         AppendToArray(&aliased, copy)
     }
     var stored any = this.BaseExchange.SetMarkets(aliased, currencies)
@@ -637,7 +637,7 @@ func  (this *PredictionExchange) SetMarkets(markets any, optionalArgs ...any) an
     // structures from this.markets (hyperliquid groups its outcome markets that way),
     // so a leftover 'symbol' key would leak the deprecated field back to the caller
     var marketKeys []string = ObjectKeys(stored)
-    for i := 0; IsLessThan(i, GetArrayLength(marketKeys)); i++ {
+    for i := 0; (i < len(marketKeys)); i++ {
         var key any = GetValue(marketKeys, i)
         AddElementToObject(stored, key, this.Omit(GetValue(stored, key), "symbol"))
     }
@@ -658,7 +658,7 @@ func  (this *PredictionExchange) IndexMarketOutcomes(market any)  {
         this.Outcomes_by_id = map[string]any {}
     }
     var outcomesList any = this.SafeList(market, "outcomes", []any{})
-    for j := 0; IsLessThan(j, GetArrayLength(outcomesList)); j++ {
+    for j := 0; (j < GetArrayLength(outcomesList)); j++ {
         var oc any = GetValue(outcomesList, j)
         var ocSymbol any = this.SafeString2(oc, "outcome", "symbol")
         var ocId *string = this.SafeString2(oc, "outcomeId", "id")
@@ -667,7 +667,7 @@ func  (this *PredictionExchange) IndexMarketOutcomes(market any)  {
         // missing-key access that throws in Python/PHP, unlike TS undefined
         AddElementToObject(oc, "outcomeId", ocId)
         AddElementToObject(oc, "market", this.SafeString2(oc, "market", "marketSymbol"))
-        if !IsEqual(ocSymbol, nil) {
+        if (ocSymbol != nil) {
             // shortenSlug is lossy, so two different markets can produce the same handle.
             // on a real collision of same handle but different outcomeId, disambiguate the
             // second one deterministically instead of silently overwriting the first —
@@ -675,10 +675,10 @@ func  (this *PredictionExchange) IndexMarketOutcomes(market any)  {
             var existing any = this.SafeValue(this.Outcomes, ocSymbol)
             if !IsEqual(existing, nil) {
                 var existingId *string = this.SafeString(existing, "outcomeId")
-                if ((existingId != nil)) && ((ocId != nil)) && ((existingId != ocId && (existingId == nil || ocId == nil || *existingId != *ocId))) {
+                if (existingId != nil) && (ocId != nil) && (existingId != ocId && (existingId == nil || ocId == nil || *existingId != *ocId)) {
                     var idLen int =                     GetLength(ocId)
                     var suffix any = ocId
-                    if IsGreaterThan(idLen, 6) {
+                    if (idLen > 6) {
                         suffix = Slice(ocId, Subtract(idLen, 6), nil)
                     }
                     ocSymbol = Add(Add(ocSymbol, "_"), ToUpper(suffix))
@@ -705,7 +705,7 @@ func  (this *PredictionExchange) PopulateOutcomes()  {
         return
     }
     var marketKeys []string = ObjectKeys(this.Markets)
-    for i := 0; IsLessThan(i, GetArrayLength(marketKeys)); i++ {
+    for i := 0; (i < len(marketKeys)); i++ {
         this.IndexMarketOutcomes(GetValue(this.Markets, GetValue(marketKeys, i)))
     }
 }
@@ -720,7 +720,7 @@ func  (this *PredictionExchange) IndexEventOutcomes(event any)  {
     }
     var markets any = this.SafeList(event, "markets", []any{})
     var marketsLength int =     GetArrayLength(markets)
-    for i := 0; IsLessThan(i, marketsLength); i++ {
+    for i := 0; (i < marketsLength); i++ {
         var m any = GetValue(markets, i)
         var marketHandle *string = this.SafeString2(m, "market", "symbol")
         if (marketHandle != nil) {
@@ -756,20 +756,20 @@ func (this *PredictionExchange) loadOutcomesBody(ch chan any, optionalArgs ...an
         _ = params
         if !IsEqual(outcomes, nil) {
             var missing any = []any{}
-            for i := 0; IsLessThan(i, GetArrayLength(outcomes)); i++ {
+            for i := 0; (i < GetArrayLength(outcomes)); i++ {
                 if EvalTruthy(reload) || !EvalTruthy(this.HasOutcome(GetValue(outcomes, i))) {
                     AppendToArray(&missing, GetValue(outcomes, i))
                 }
             }
             var missingLength int =         GetArrayLength(missing)
             var wasWarm bool = (!IsEqual(this.Outcomes, nil)) && !EvalTruthy(this.IsEmpty(this.Outcomes))
-            var loadAll any = this.SafeBool(this.Options, "loadAllOutcomes", false)
-            if (IsGreaterThan(missingLength, 0)) && ((loadAll == true)) && !wasWarm && !EvalTruthy(reload) {
+            var loadAll *bool = this.SafeBool(this.Options, "loadAllOutcomes", false)
+            if (missingLength > 0) && (loadAll != nil && *loadAll == true) && !wasWarm && !EvalTruthy(reload) {
     
                 retRes71716 := (<-this.LoadOutcomesAsync())
                 PanicOnError(retRes71716)
                 var stillMissing any = []any{}
-                for i := 0; IsLessThan(i, missingLength); i++ {
+                for i := 0; (i < missingLength); i++ {
                     if !EvalTruthy(this.HasOutcome(GetValue(missing, i))) {
                         AppendToArray(&stillMissing, GetValue(missing, i))
                     }
@@ -777,7 +777,7 @@ func (this *PredictionExchange) loadOutcomesBody(ch chan any, optionalArgs ...an
                 missing = stillMissing
                 missingLength = GetArrayLength(missing)
             }
-            if IsGreaterThan(missingLength, 0) {
+            if (missingLength > 0) {
     
                 retRes72816 := <-this.DerivedExchange.FetchOutcomesAsync(missing)
                 PanicOnError(retRes72816)
@@ -815,7 +815,7 @@ func  (this *PredictionExchange) FetchOutcomesAsync(outcomeSymbols any) <- chan 
 func (this *PredictionExchange) fetchOutcomesBody(ch chan any, outcomeSymbols any) any {
     defer close(ch)
     defer ReturnPanicError(ch)
-        for i := 0; IsLessThan(i, GetArrayLength(outcomeSymbols)); i++ {
+        for i := 0; (i < GetArrayLength(outcomeSymbols)); i++ {
     
             retRes75012 := <-this.DerivedExchange.FetchOutcomeAsync(GetValue(outcomeSymbols, i))
             PanicOnError(retRes75012)
@@ -841,8 +841,8 @@ func (this *PredictionExchange) loadOutcomeBody(ch chan any, outcomeSymbol any, 
         // sane on venues whose full universe is one cheap request (hyperliquid)
         reload := GetArg(optionalArgs, 0, false)
         _ = reload
-        if IsEqual(outcomeSymbol, nil) {
-            panic(ArgumentsRequired(Add(this.Id, " loadOutcome() requires an outcomeSymbol argument")))
+        if (outcomeSymbol == nil) {
+            panic(ArgumentsRequired(this.Id + " loadOutcome() requires an outcomeSymbol argument"))
         }
         if !EvalTruthy(reload) {
             if EvalTruthy(this.HasOutcome(outcomeSymbol)) {
@@ -862,8 +862,8 @@ func (this *PredictionExchange) loadOutcomeBody(ch chan any, outcomeSymbol any, 
                     return nil
                 }
             }
-            var loadAll any = this.SafeBool(this.Options, "loadAllOutcomes", false)
-            if ((loadAll == true)) && !wasWarm {
+            var loadAll *bool = this.SafeBool(this.Options, "loadAllOutcomes", false)
+            if (loadAll != nil && *loadAll == true) && !wasWarm {
                 // a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
                 // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
                 // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
@@ -891,7 +891,7 @@ func  (this *PredictionExchange) OutcomeSearchQuery(outcomeSymbol any) any  {
     // carry no searchable words
     var marketPart any = outcomeSymbol
     var colonIndex int = GetIndexOf(outcomeSymbol, ":")
-    if IsGreaterThanOrEqual(colonIndex, 0) {
+    if (colonIndex >= 0) {
         marketPart = Slice(outcomeSymbol, 0, colonIndex)
     }
     if (GetIndexOf(marketPart, "0x") == 0) {
@@ -903,7 +903,7 @@ func  (this *PredictionExchange) OutcomeSearchQuery(outcomeSymbol any) any  {
     var words any = []any{}
     var hasLetters bool = false
     var letters string = "abcdefghijklmnopqrstuvwxyz"
-    for i := 0; IsLessThan(i, GetArrayLength(rawWords)); i++ {
+    for i := 0; (i < len(rawWords)); i++ {
         var word any = GetValue(rawWords, i)
         // inline .length so the php transpiler emits strlen() — the standalone
         // `const n = str.length;` statement form wrongly becomes count() (array)
@@ -912,8 +912,8 @@ func  (this *PredictionExchange) OutcomeSearchQuery(outcomeSymbol any) any  {
         }
         var wordHasLetters bool = false
         var chars []string = this.StringToCharsArray(word)
-        for ci := 0; IsLessThan(ci, GetArrayLength(chars)); ci++ {
-            if IsGreaterThanOrEqual(GetIndexOf(letters, GetValue(chars, ci)), 0) {
+        for ci := 0; (ci < len(chars)); ci++ {
+            if (GetIndexOf(letters, GetValue(chars, ci)) >= 0) {
                 wordHasLetters = true
                 break
             }
@@ -929,7 +929,7 @@ func  (this *PredictionExchange) OutcomeSearchQuery(outcomeSymbol any) any  {
         hasLetters = true
     }
     var wordsLength int =     GetArrayLength(words)
-    if ((wordsLength == 0)) || !hasLetters {
+    if (wordsLength == 0) || !hasLetters {
         // a purely numeric/symbolic handle is an id, not searchable text
         return nil
     }
@@ -949,7 +949,7 @@ func (this *PredictionExchange) fetchOutcomeBody(ch chan any, outcomeSymbol any)
         // re-checks the cache. venues with a real by-id fetch (kalshi by ticker, polymarket by
         // token id) override this with a cheaper single fetch and fall back to super on a miss.
         var searchQuery any = this.OutcomeSearchQuery(outcomeSymbol)
-        if (!IsEqual(searchQuery, nil)) && EvalTruthy(this.SafeBool(this.Has, "fetchEvents", false)) {
+        if (searchQuery != nil) && EvalTruthy(this.SafeBool(this.Has, "fetchEvents", false)) {
             var searchLimit *int64 = this.SafeInteger(this.Options, "fetchOutcomeSearchLimit", 10)
             
                 {
@@ -987,7 +987,7 @@ func (this *PredictionExchange) fetchOutcomeBody(ch chan any, outcomeSymbol any)
                 return nil
             }
         }
-        panic(BadSymbol(Add(Add(Add(this.Id, " could not resolve outcome "), outcomeSymbol), " — call fetchEvents ({ 'query': ... }) first, or pass a known outcomeId")))
+        panic(BadSymbol(Add(Add(this.Id + " could not resolve outcome ", outcomeSymbol), " — call fetchEvents ({ 'query': ... }) first, or pass a known outcomeId")))
 }
 /**
  * @method
@@ -1007,7 +1007,7 @@ func (this *PredictionExchange) fetchTickerBody(ch chan any, outcome any, option
     defer ReturnPanicError(ch)
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
-        panic(NotSupported(Add(this.Id, " fetchTicker() is not supported yet")))
+        panic(NotSupported(this.Id + " fetchTicker() is not supported yet"))
 }
 /**
  * @method
@@ -1029,7 +1029,7 @@ func (this *PredictionExchange) fetchTickersBody(ch chan any, optionalArgs ...an
         _ = outcomes
         params := GetArg(optionalArgs, 1, map[string]any {})
         _ = params
-        panic(NotSupported(Add(this.Id, " fetchTickers() is not supported yet")))
+        panic(NotSupported(this.Id + " fetchTickers() is not supported yet"))
 }
 /**
  * @method
@@ -1052,7 +1052,7 @@ func (this *PredictionExchange) fetchOrderBookBody(ch chan any, outcome any, opt
         _ = limit
         params := GetArg(optionalArgs, 1, map[string]any {})
         _ = params
-        panic(NotSupported(Add(this.Id, " fetchOrderBook() is not supported yet")))
+        panic(NotSupported(this.Id + " fetchOrderBook() is not supported yet"))
 }
 /**
  * @method
@@ -1111,7 +1111,7 @@ func (this *PredictionExchange) fetchTradesBody(ch chan any, outcome any, option
         _ = limit
         params := GetArg(optionalArgs, 2, map[string]any {})
         _ = params
-        panic(NotSupported(Add(this.Id, " fetchTrades() is not supported yet")))
+        panic(NotSupported(this.Id + " fetchTrades() is not supported yet"))
 }
 /**
  * @method
@@ -1137,7 +1137,7 @@ func (this *PredictionExchange) createOrderBody(ch chan any, outcome any, typeVa
         _ = price
         params := GetArg(optionalArgs, 1, map[string]any {})
         _ = params
-        panic(NotSupported(Add(this.Id, " createOrder() is not supported yet")))
+        panic(NotSupported(this.Id + " createOrder() is not supported yet"))
 }
 /**
  * @method
@@ -1160,7 +1160,7 @@ func (this *PredictionExchange) cancelOrderBody(ch chan any, id any, optionalArg
         _ = outcome
         params := GetArg(optionalArgs, 1, map[string]any {})
         _ = params
-        panic(NotSupported(Add(this.Id, " cancelOrder() is not supported yet")))
+        panic(NotSupported(this.Id + " cancelOrder() is not supported yet"))
 }
 /**
  * @method
@@ -1180,7 +1180,7 @@ func (this *PredictionExchange) watchTickerBody(ch chan any, outcome any, option
     defer ReturnPanicError(ch)
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
-        panic(NotSupported(Add(this.Id, " watchTicker() is not supported yet")))
+        panic(NotSupported(this.Id + " watchTicker() is not supported yet"))
 }
 /**
  * @method
@@ -1203,7 +1203,7 @@ func (this *PredictionExchange) watchOrderBookBody(ch chan any, outcome any, opt
         _ = limit
         params := GetArg(optionalArgs, 1, map[string]any {})
         _ = params
-        panic(NotSupported(Add(this.Id, " watchOrderBook() is not supported yet")))
+        panic(NotSupported(this.Id + " watchOrderBook() is not supported yet"))
 }
 /**
  * @method
@@ -1229,7 +1229,7 @@ func (this *PredictionExchange) watchTradesBody(ch chan any, outcome any, option
         _ = limit
         params := GetArg(optionalArgs, 2, map[string]any {})
         _ = params
-        panic(NotSupported(Add(this.Id, " watchTrades() is not supported yet")))
+        panic(NotSupported(this.Id + " watchTrades() is not supported yet"))
 }
 /**
  * @method
@@ -1257,7 +1257,7 @@ func (this *PredictionExchange) fetchOrdersBody(ch chan any, optionalArgs ...any
         _ = limit
         params := GetArg(optionalArgs, 3, map[string]any {})
         _ = params
-        panic(NotSupported(Add(this.Id, " fetchOrders() is not supported yet")))
+        panic(NotSupported(this.Id + " fetchOrders() is not supported yet"))
 }
 /**
  * @method
@@ -1285,7 +1285,7 @@ func (this *PredictionExchange) fetchOpenOrdersBody(ch chan any, optionalArgs ..
         _ = limit
         params := GetArg(optionalArgs, 3, map[string]any {})
         _ = params
-        panic(NotSupported(Add(this.Id, " fetchOpenOrders() is not supported yet")))
+        panic(NotSupported(this.Id + " fetchOpenOrders() is not supported yet"))
 }
 /**
  * @method
@@ -1313,7 +1313,7 @@ func (this *PredictionExchange) fetchClosedOrdersBody(ch chan any, optionalArgs 
         _ = limit
         params := GetArg(optionalArgs, 3, map[string]any {})
         _ = params
-        panic(NotSupported(Add(this.Id, " fetchClosedOrders() is not supported yet")))
+        panic(NotSupported(this.Id + " fetchClosedOrders() is not supported yet"))
 }
 /**
  * @method
@@ -1342,7 +1342,7 @@ func (this *PredictionExchange) fetchOrderTradesBody(ch chan any, id any, option
         _ = limit
         params := GetArg(optionalArgs, 3, map[string]any {})
         _ = params
-        panic(NotSupported(Add(this.Id, " fetchOrderTrades() is not supported yet")))
+        panic(NotSupported(this.Id + " fetchOrderTrades() is not supported yet"))
 }
 /**
  * @method
@@ -1370,7 +1370,7 @@ func (this *PredictionExchange) fetchMyTradesBody(ch chan any, optionalArgs ...a
         _ = limit
         params := GetArg(optionalArgs, 3, map[string]any {})
         _ = params
-        panic(NotSupported(Add(this.Id, " fetchMyTrades() is not supported yet")))
+        panic(NotSupported(this.Id + " fetchMyTrades() is not supported yet"))
 }
 /**
  * @method
@@ -1390,7 +1390,7 @@ func (this *PredictionExchange) fetchPositionBody(ch chan any, outcome any, opti
     defer ReturnPanicError(ch)
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
-        panic(NotSupported(Add(this.Id, " fetchPosition() is not supported yet")))
+        panic(NotSupported(this.Id + " fetchPosition() is not supported yet"))
 }
 /**
  * @method
@@ -1412,7 +1412,7 @@ func (this *PredictionExchange) fetchPositionsBody(ch chan any, optionalArgs ...
         _ = outcomes
         params := GetArg(optionalArgs, 1, map[string]any {})
         _ = params
-        panic(NotSupported(Add(this.Id, " fetchPositions() is not supported yet")))
+        panic(NotSupported(this.Id + " fetchPositions() is not supported yet"))
 }
 /**
  * @method
@@ -1432,7 +1432,7 @@ func (this *PredictionExchange) fetchTradingFeeBody(ch chan any, outcome any, op
     defer ReturnPanicError(ch)
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
-        panic(NotSupported(Add(this.Id, " fetchTradingFee() is not supported yet")))
+        panic(NotSupported(this.Id + " fetchTradingFee() is not supported yet"))
 }
 /**
  * @method
@@ -1452,7 +1452,7 @@ func (this *PredictionExchange) fetchOpenInterestBody(ch chan any, outcome any, 
     defer ReturnPanicError(ch)
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
-        panic(NotSupported(Add(this.Id, " fetchOpenInterest() is not supported yet")))
+        panic(NotSupported(this.Id + " fetchOpenInterest() is not supported yet"))
 }
 /**
  * @method
@@ -1472,7 +1472,7 @@ func (this *PredictionExchange) createOrdersBody(ch chan any, orders any, option
     defer ReturnPanicError(ch)
         params := GetArg(optionalArgs, 0, map[string]any {})
         _ = params
-        panic(NotSupported(Add(this.Id, " createOrders() is not supported yet")))
+        panic(NotSupported(this.Id + " createOrders() is not supported yet"))
 }
 /**
  * @method
@@ -1495,7 +1495,7 @@ func (this *PredictionExchange) cancelOrdersBody(ch chan any, ids any, optionalA
         _ = outcome
         params := GetArg(optionalArgs, 1, map[string]any {})
         _ = params
-        panic(NotSupported(Add(this.Id, " cancelOrders() is not supported yet")))
+        panic(NotSupported(this.Id + " cancelOrders() is not supported yet"))
 }
 /**
  * @method
@@ -1525,7 +1525,7 @@ func (this *PredictionExchange) createMarketBuyOrderWithCostBody(ch chan any, ou
                 ch <- retRes116319
                 return nil
         }
-        panic(NotSupported(Add(this.Id, " createMarketBuyOrderWithCost() is not supported yet")))
+        panic(NotSupported(this.Id + " createMarketBuyOrderWithCost() is not supported yet"))
 }
 /**
  * @method
@@ -1553,7 +1553,7 @@ func (this *PredictionExchange) createMarketSellOrderWithCostBody(ch chan any, o
                 ch <- retRes117919
                 return nil
         }
-        panic(NotSupported(Add(this.Id, " createMarketSellOrderWithCost() is not supported yet")))
+        panic(NotSupported(this.Id + " createMarketSellOrderWithCost() is not supported yet"))
 }
 /**
  * @method
@@ -1575,7 +1575,7 @@ func (this *PredictionExchange) watchTickersBody(ch chan any, optionalArgs ...an
         _ = outcomes
         params := GetArg(optionalArgs, 1, map[string]any {})
         _ = params
-        panic(NotSupported(Add(this.Id, " watchTickers() is not supported yet")))
+        panic(NotSupported(this.Id + " watchTickers() is not supported yet"))
 }
 /**
  * @method
@@ -1603,7 +1603,7 @@ func (this *PredictionExchange) watchOrdersBody(ch chan any, optionalArgs ...any
         _ = limit
         params := GetArg(optionalArgs, 3, map[string]any {})
         _ = params
-        panic(NotSupported(Add(this.Id, " watchOrders() is not supported yet")))
+        panic(NotSupported(this.Id + " watchOrders() is not supported yet"))
 }
 /**
  * @method
@@ -1631,7 +1631,7 @@ func (this *PredictionExchange) watchMyTradesBody(ch chan any, optionalArgs ...a
         _ = limit
         params := GetArg(optionalArgs, 3, map[string]any {})
         _ = params
-        panic(NotSupported(Add(this.Id, " watchMyTrades() is not supported yet")))
+        panic(NotSupported(this.Id + " watchMyTrades() is not supported yet"))
 }
 /**
  * @method
@@ -1659,7 +1659,7 @@ func (this *PredictionExchange) watchPositionsBody(ch chan any, optionalArgs ...
         _ = limit
         params := GetArg(optionalArgs, 3, map[string]any {})
         _ = params
-        panic(NotSupported(Add(this.Id, " watchPositions() is not supported yet")))
+        panic(NotSupported(this.Id + " watchPositions() is not supported yet"))
 }
 /**
  * @method
@@ -1688,7 +1688,7 @@ func (this *PredictionExchange) fetchSettlementsBody(ch chan any, optionalArgs .
         _ = limit
         params := GetArg(optionalArgs, 3, map[string]any {})
         _ = params
-        panic(NotSupported(Add(this.Id, " fetchSettlements() is not supported yet")))
+        panic(NotSupported(this.Id + " fetchSettlements() is not supported yet"))
 }
 func  (this *PredictionExchange) SafePredictionOrder(outcomeOrder any, optionalArgs ...any) any  {
     // build the prediction order directly (do NOT delegate to the crypto safeOrder, which injects
@@ -1711,14 +1711,14 @@ func  (this *PredictionExchange) SafePredictionOrder(outcomeOrder any, optionalA
     var trades any = this.ParsePredictionTrades(rawTrades, outcomeObj)
     var tradesLength int =     GetArrayLength(trades)
     var feeList any = []any{}
-    if IsGreaterThan(tradesLength, 0) {
-        if IsEqual(filled, nil) {
+    if (tradesLength > 0) {
+        if (filled == nil) {
             filled = "0"
         }
-        if IsEqual(cost, nil) {
+        if (cost == nil) {
             cost = "0"
         }
-        for i := 0; IsLessThan(i, tradesLength); i++ {
+        for i := 0; (i < tradesLength); i++ {
             var trade any = GetValue(trades, i)
             var tradeAmount *string = this.SafeString(trade, "amount")
             if (tradeAmount != nil) {
@@ -1746,31 +1746,31 @@ func  (this *PredictionExchange) SafePredictionOrder(outcomeOrder any, optionalA
         }
     }
     // fill any totals the venue left undefined (linear, contract size 1)
-    if (IsEqual(filled, nil)) && (!IsEqual(amount, nil)) && ((remaining != nil)) {
+    if (filled == nil) && (amount != nil) && (remaining != nil) {
         filled = Precise.StringSub(amount, remaining)
     }
-    if ((remaining == nil)) && (!IsEqual(amount, nil)) && (!IsEqual(filled, nil)) {
+    if (remaining == nil) && (amount != nil) && (filled != nil) {
         remaining = Precise.StringSub(amount, filled)
     }
-    if (IsEqual(amount, nil)) && (!IsEqual(filled, nil)) && ((remaining != nil)) {
+    if (amount == nil) && (filled != nil) && (remaining != nil) {
         amount = Precise.StringAdd(filled, remaining)
     }
-    if (IsEqual(average, nil)) && (!IsEqual(filled, nil)) && (!IsEqual(cost, nil)) && Precise.StringGt(filled, "0") {
+    if (average == nil) && (filled != nil) && (cost != nil) && Precise.StringGt(filled, "0") {
         average = Precise.StringDiv(cost, filled)
     }
-    if (IsEqual(cost, nil)) && (!IsEqual(filled, nil)) {
-        var multiplyPrice any = Ternary((!IsEqual(average, nil)), average, price)
-        if !IsEqual(multiplyPrice, nil) {
+    if (cost == nil) && (filled != nil) {
+        var multiplyPrice any = func() any { if (average != nil) { return average }; return price }()
+        if (multiplyPrice != nil) {
             cost = Precise.StringMul(filled, multiplyPrice)
         }
     }
     var fee any = this.SafeDict(outcomeOrder, "fee")
     // own-line length reads so the regex transpiler emits count() (array), not strlen()
     var feeListLength int =     GetArrayLength(feeList)
-    if (IsEqual(fee, nil)) && (IsGreaterThan(feeListLength, 0)) {
+    if (IsEqual(fee, nil)) && (feeListLength > 0) {
         var reduced any = this.ReduceFeesByCurrency(feeList)
         var reducedLength int =         GetArrayLength(reduced)
-        if IsGreaterThan(reducedLength, 0) {
+        if (reducedLength > 0) {
             fee = GetValue(reduced, 0)
         }
     }
@@ -1779,19 +1779,19 @@ func  (this *PredictionExchange) SafePredictionOrder(outcomeOrder any, optionalA
     var orderType *string = this.SafeString(outcomeOrder, "type")
     var timeInForce any = this.SafeString(outcomeOrder, "timeInForce")
     var postOnly any = this.SafeBool(outcomeOrder, "postOnly")
-    if IsEqual(timeInForce, nil) {
+    if (timeInForce == nil) {
         if (orderType != nil && *orderType == "market") {
             timeInForce = "IOC"
         }
-        if IsEqual(postOnly, true) {
+        if (postOnly == true) {
             timeInForce = "PO"
         }
-    } else if IsEqual(postOnly, nil) {
+    } else if (postOnly == nil) {
         postOnly = ((timeInForce == "PO"))
     }
     var timestamp *int64 = this.SafeInteger(outcomeOrder, "timestamp")
     var datetime any = this.SafeString(outcomeOrder, "datetime")
-    if IsEqual(datetime, nil) {
+    if (datetime == nil) {
         datetime = this.Iso8601(timestamp)
     }
     var result map[string]any = map[string]any {
@@ -1831,12 +1831,12 @@ func  (this *PredictionExchange) SafePredictionTrade(trade any, optionalArgs ...
     var price *string = this.SafeString(trade, "price")
     var amount *string = this.SafeString(trade, "amount")
     var cost *string = this.SafeString(trade, "cost")
-    if ((cost == nil)) && ((price != nil)) && ((amount != nil)) {
+    if (cost == nil) && (price != nil) && (amount != nil) {
         cost = Precise.StringMul(price, amount)
     }
     var timestamp *int64 = this.SafeInteger(trade, "timestamp")
     var datetime any = this.SafeString(trade, "datetime")
-    if IsEqual(datetime, nil) {
+    if (datetime == nil) {
         datetime = this.Iso8601(timestamp)
     }
     var result map[string]any = map[string]any {
@@ -1872,18 +1872,18 @@ func  (this *PredictionExchange) SafePredictionTicker(ticker any, optionalArgs .
     var change *string = this.SafeString(ticker, "change")
     var percentage any = this.OmitZero(this.SafeString(ticker, "percentage"))
     var average any = this.OmitZero(this.SafeString(ticker, "average"))
-    if ((change == nil)) && (!IsEqual(open, nil)) && (!IsEqual(close, nil)) {
+    if (change == nil) && (open != nil) && (close != nil) {
         change = Precise.StringSub(close, open)
     }
-    if (IsEqual(percentage, nil)) && ((change != nil)) && (!IsEqual(open, nil)) && Precise.StringGt(open, "0") {
+    if (percentage == nil) && (change != nil) && (open != nil) && Precise.StringGt(open, "0") {
         percentage = Precise.StringMul(Precise.StringDiv(change, open), "100")
     }
-    if (IsEqual(average, nil)) && (!IsEqual(open, nil)) && (!IsEqual(close, nil)) {
+    if (average == nil) && (open != nil) && (close != nil) {
         average = Precise.StringDiv(Precise.StringAdd(open, close), "2")
     }
     var timestamp *int64 = this.SafeInteger(ticker, "timestamp")
     var datetime any = this.SafeString(ticker, "datetime")
-    if IsEqual(datetime, nil) {
+    if (datetime == nil) {
         datetime = this.Iso8601(timestamp)
     }
     var result map[string]any = map[string]any {
@@ -1918,7 +1918,7 @@ func  (this *PredictionExchange) SafePredictionPosition(position any) any  {
     // leverage/marginMode/liquidation block the prediction type omits)
     var timestamp *int64 = this.SafeInteger(position, "timestamp")
     var datetime any = this.SafeString(position, "datetime")
-    if IsEqual(datetime, nil) {
+    if (datetime == nil) {
         datetime = this.Iso8601(timestamp)
     }
     var result map[string]any = map[string]any {
@@ -1956,36 +1956,36 @@ func  (this *PredictionExchange) SafePredictionOrderBook(orderbook any, optional
     outcomeObj := GetArg(optionalArgs, 0, nil)
     _ = outcomeObj
     var fallback *string = this.SafeString2(orderbook, "outcome", "symbol")
-    AddElementToObject(orderbook, "outcome", Ternary((IsEqual(outcomeObj, nil)), fallback, this.SafeString(outcomeObj, "outcome", fallback)))
-    AddElementToObject(orderbook, "outcomeId", Ternary((IsEqual(outcomeObj, nil)), this.SafeString(orderbook, "outcomeId"), this.SafeString(outcomeObj, "outcomeId")))
-    AddElementToObject(orderbook, "market", Ternary((IsEqual(outcomeObj, nil)), this.SafeString(orderbook, "market"), this.SafeString(outcomeObj, "market")))
+    AddElementToObject(orderbook, "outcome", func() any { if (IsEqual(outcomeObj, nil)) { return fallback }; return this.SafeString(outcomeObj, "outcome", fallback) }())
+    AddElementToObject(orderbook, "outcomeId", func() any { if (IsEqual(outcomeObj, nil)) { return this.SafeString(orderbook, "outcomeId") }; return this.SafeString(outcomeObj, "outcomeId") }())
+    AddElementToObject(orderbook, "market", func() any { if (IsEqual(outcomeObj, nil)) { return this.SafeString(orderbook, "market") }; return this.SafeString(outcomeObj, "market") }())
     // omit (not delete) — `del dict['symbol']` raises KeyError in python/php when absent
     return this.Omit(orderbook, "symbol")
 }
 func  (this *PredictionExchange) ParsePredictionTicker(ticker any, optionalArgs ...any) any  {
     market := GetArg(optionalArgs, 0, nil)
     _ = market
-    panic(NotSupported(Add(this.Id, " parsePredictionTicker() is not supported yet")))
+    panic(NotSupported(this.Id + " parsePredictionTicker() is not supported yet"))
 }
 func  (this *PredictionExchange) ParsePredictionOrder(order any, optionalArgs ...any) any  {
     market := GetArg(optionalArgs, 0, nil)
     _ = market
-    panic(NotSupported(Add(this.Id, " parsePredictionOrder() is not supported yet")))
+    panic(NotSupported(this.Id + " parsePredictionOrder() is not supported yet"))
 }
 func  (this *PredictionExchange) ParsePredictionTrade(trade any, optionalArgs ...any) any  {
     market := GetArg(optionalArgs, 0, nil)
     _ = market
-    panic(NotSupported(Add(this.Id, " parsePredictionTrade() is not supported yet")))
+    panic(NotSupported(this.Id + " parsePredictionTrade() is not supported yet"))
 }
 func  (this *PredictionExchange) ParsePredictionPosition(position any, optionalArgs ...any) any  {
     market := GetArg(optionalArgs, 0, nil)
     _ = market
-    panic(NotSupported(Add(this.Id, " parsePredictionPosition() is not supported yet")))
+    panic(NotSupported(this.Id + " parsePredictionPosition() is not supported yet"))
 }
 func  (this *PredictionExchange) ParsePredictionOpenInterest(interest any, optionalArgs ...any) any  {
     market := GetArg(optionalArgs, 0, nil)
     _ = market
-    panic(NotSupported(Add(this.Id, " parsePredictionOpenInterest() is not supported yet")))
+    panic(NotSupported(this.Id + " parsePredictionOpenInterest() is not supported yet"))
 }
 /**
  * @ignore
@@ -2014,7 +2014,7 @@ func  (this *PredictionExchange) ParsePredictionTrades(trades any, optionalArgs 
     _ = params
     var rows []any = this.ToArray(trades)
     var results any = []any{}
-    for i := 0; IsLessThan(i, GetArrayLength(rows)); i++ {
+    for i := 0; (i < len(rows)); i++ {
         var parsed any = this.DerivedExchange.(IPredictionDispatch).ParsePredictionTrade(GetValue(rows, i), outcomeObj)
         var trade map[string]any = this.Extend(parsed, params)
         AppendToArray(&results, trade)
@@ -2047,7 +2047,7 @@ func  (this *PredictionExchange) ParsePredictionOrders(orders any, optionalArgs 
     _ = params
     var rows []any = this.ToArray(orders)
     var results any = []any{}
-    for i := 0; IsLessThan(i, GetArrayLength(rows)); i++ {
+    for i := 0; (i < len(rows)); i++ {
         var parsed any = this.DerivedExchange.(IPredictionDispatch).ParsePredictionOrder(GetValue(rows, i), outcomeObj)
         var order map[string]any = this.Extend(parsed, params)
         AppendToArray(&results, order)
@@ -2074,7 +2074,7 @@ func  (this *PredictionExchange) ParsePredictionPositions(positions any, optiona
     _ = params
     var rows []any = this.ToArray(positions)
     var results any = []any{}
-    for i := 0; IsLessThan(i, GetArrayLength(rows)); i++ {
+    for i := 0; (i < len(rows)); i++ {
         var parsed any = this.DerivedExchange.(IPredictionDispatch).ParsePredictionPosition(GetValue(rows, i))
         var position map[string]any = this.Extend(parsed, params)
         AppendToArray(&results, position)
@@ -2127,7 +2127,7 @@ func  (this *PredictionExchange) CostToPredictionPrecision(outcome any, cost any
 // per-language prediction base skeletons don't carry; this base
 // sendEvmTransaction dispatches to the exchange's signEvmTransaction override
 func  (this *PredictionExchange) PadHexToEven(hex any) any  {
-    if IsEqual(hex, nil) {
+    if (hex == nil) {
         return ""
     }
     // prepend a nibble so the hex has an even number of characters (whole bytes)
@@ -2138,15 +2138,15 @@ func  (this *PredictionExchange) PadHexToEven(hex any) any  {
     return hex
 }
 func  (this *PredictionExchange) PadHexAddress(address any) any  {
-    if IsEqual(address, nil) {
+    if (address == nil) {
         return ""
     }
     // left-pads a 20-byte address to a 32-byte ABI word (24 leading zero bytes)
     var stripped string = this.Remove0xPrefix(address)
-    return Add("000000000000000000000000", stripped)
+    return "000000000000000000000000" + stripped
 }
 func  (this *PredictionExchange) RlpEncodeBytes(hex any) any  {
-    if IsEqual(hex, nil) {
+    if (hex == nil) {
         return ""
     }
     // RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
@@ -2154,7 +2154,7 @@ func  (this *PredictionExchange) RlpEncodeBytes(hex any) any  {
     if (byteLength == 0) {
         return "80"
     }
-    if ((byteLength == 1)) && (IsLessThan(hex, "80")) {
+    if (byteLength == 1) && (IsLessThan(hex, "80")) {
         return hex
     }
     if IsLessThan(byteLength, 56) {
@@ -2167,7 +2167,7 @@ func  (this *PredictionExchange) RlpEncodeBytes(hex any) any  {
 }
 func  (this *PredictionExchange) RlpEncodeList(items any) any  {
     var concatenated any = ""
-    for i := 0; IsLessThan(i, GetArrayLength(items)); i++ {
+    for i := 0; (i < GetArrayLength(items)); i++ {
         concatenated = Add(concatenated, GetValue(items, i))
     }
     var byteLength any = this.ParseToInt(Divide(GetLength(concatenated), 2))
@@ -2181,7 +2181,7 @@ func  (this *PredictionExchange) RlpEncodeList(items any) any  {
 }
 func  (this *PredictionExchange) IntToRlpHex(value any) any  {
     if IsEqual(value, nil) {
-        panic(ArgumentsRequired(Add(this.Id, " intToRlpHex() requires a value argument")))
+        panic(ArgumentsRequired(this.Id + " intToRlpHex() requires a value argument"))
     }
     // an integer as its minimal big-endian byte hex; 0 is the empty byte string
     if (value == 0) {
@@ -2194,7 +2194,7 @@ func  (this *PredictionExchange) IntToRlpHex(value any) any  {
 func  (this *PredictionExchange) HexToRlpBytes(hexValue any) any  {
     // a hex value (e.g. an RPC result) as minimal big-endian byte hex; leading zero bytes
     // are stripped and 0 becomes the empty byte string (RLP integer encoding)
-    if IsEqual(hexValue, nil) {
+    if (hexValue == nil) {
         return ""
     }
     var h any = this.Remove0xPrefix(hexValue)
@@ -2204,7 +2204,7 @@ func  (this *PredictionExchange) HexToRlpBytes(hexValue any) any  {
         start = Add(start, 1)
     }
     h = Slice(h, start, nil)
-    if IsEqual(h, "") {
+    if (h == "") {
         return ""
     }
     h = this.PadHexToEven(h)
@@ -2212,7 +2212,7 @@ func  (this *PredictionExchange) HexToRlpBytes(hexValue any) any  {
 }
 // eslint-disable-next-line no-unused-vars
 func  (this *PredictionExchange) SignEvmTransaction(tx any, privateKey any) any  {
-    panic(NotSupported(Add(this.Id, " signEvmTransaction() must be overridden by the exchange")))
+    panic(NotSupported(this.Id + " signEvmTransaction() must be overridden by the exchange"))
 }
 func  (this *PredictionExchange) EthRpcAsync(rpcUrl any, method any, rpcParams any) <- chan any {
     ch := make(chan any, 1)
@@ -2236,7 +2236,7 @@ func (this *PredictionExchange) ethRpcBody(ch chan any, rpcUrl any, method any, 
         PanicOnError(response)
         var rpcError any = this.SafeValue(response, "error")
         if !IsEqual(rpcError, nil) {
-            panic(ExchangeError(Add(Add(Add(Add(this.Id, " rpc "), method), " error: "), this.Json(rpcError))))
+            panic(ExchangeError(Add(Add(Add(this.Id + " rpc ", method), " error: "), this.Json(rpcError))))
         }
     
             // the result is either a hex string (nonce/gasPrice/txhash) or an object (receipt) —
@@ -2288,7 +2288,7 @@ func (this *PredictionExchange) waitForTransactionReceiptBody(ch chan any, rpcUr
         timeout := GetArg(optionalArgs, 0, 60000)
         _ = timeout
         var start int64 = this.Milliseconds()
-        for IsLessThan((Subtract(this.Milliseconds(), start)), timeout) {
+        for IsLessThan((this.Milliseconds() - start), timeout) {
     
             receipt:= (<-this.EthRpcAsync(rpcUrl, "eth_getTransactionReceipt", []any{txHash}))
             PanicOnError(receipt)
@@ -2301,7 +2301,7 @@ func (this *PredictionExchange) waitForTransactionReceiptBody(ch chan any, rpcUr
             retRes179012 := (<-this.Sleep(2000))
             PanicOnError(retRes179012)
         }
-        panic(ExchangeError(Add(Add(Add(this.Id, " transaction "), txHash), " not mined within timeout")))
+        panic(ExchangeError(Add(Add(this.Id + " transaction ", txHash), " not mined within timeout")))
 }
 
 func (this *PredictionExchange) CallEndpointAsync(endpointName string, args ...any) <-chan any {

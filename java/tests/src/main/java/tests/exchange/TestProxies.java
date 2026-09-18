@@ -40,12 +40,12 @@ public class TestProxies extends BaseTest {
         var httpProxy = ((List<Object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable).get(1);
         var httpsProxy = ((List<Object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable).get(2);
         var socksProxy = ((List<Object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable).get(3);
-        exchange.proxyUrl = Helpers.add(Helpers.add("http://", proxyServerIp), ":8090/proxy_url.php?caller=https://ccxt.com&url=");
+        exchange.proxyUrl = (("http://" + proxyServerIp) + ":8090/proxy_url.php?caller=https://ccxt.com&url=");
         String encodedColon = "%3A";
         String encodedSlash = "%2F";
-        Object ipCheckUrl = Helpers.add(Helpers.add(Helpers.add(Helpers.add("https", encodedColon), encodedSlash), encodedSlash), "api.ipify.org");
+        Object ipCheckUrl = (((("https" + encodedColon) + encodedSlash) + encodedSlash) + "api.ipify.org");
         Object response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetch", new Object[]{ipCheckUrl})).join();
-        Assert(Helpers.isEqual(response, proxyServerIp), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " test failed. Returned response is "), response), " while it should be \""), proxyServerIp), "\""));
+        Assert(java.util.Objects.equals(response, proxyServerIp), (((Helpers.add((((exchange.id + " ") + method) + " test failed. Returned response is "), response) + " while it should be \"") + proxyServerIp) + "\""));
         // reset the instance property
         TestSharedMethods.setProxyOptions(exchange, skippedProperties, proxyUrl, httpProxy, httpsProxy, socksProxy);
         return true;
@@ -64,10 +64,10 @@ public class TestProxies extends BaseTest {
         var httpProxy = ((List<Object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable).get(1);
         var httpsProxy = ((List<Object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable).get(2);
         var socksProxy = ((List<Object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable).get(3);
-        exchange.httpProxy = Helpers.add(Helpers.add("http://", proxyServerIp), ":8911");
+        exchange.httpProxy = (("http://" + proxyServerIp) + ":8911");
         String ipCheckUrl = "https://api.ipify.org/";
         Object response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetch", new Object[]{ipCheckUrl})).join();
-        Assert(Helpers.isEqual(response, proxyServerIp), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " test failed. Returned response is "), response), " while it should be \""), proxyServerIp), "\""));
+        Assert(java.util.Objects.equals(response, proxyServerIp), (((Helpers.add((((exchange.id + " ") + method) + " test failed. Returned response is "), response) + " while it should be \"") + proxyServerIp) + "\""));
         // reset the instance property
         TestSharedMethods.setProxyOptions(exchange, skippedProperties, proxyUrl, httpProxy, httpsProxy, socksProxy);
         return true;
@@ -87,11 +87,11 @@ public class TestProxies extends BaseTest {
         var httpsProxy = ((List<Object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable).get(2);
         var socksProxy = ((List<Object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable).get(3);
         List<Object> possibleOptionsArray = new ArrayList<Object>(Arrays.asList("proxyUrl", "proxyUrlCallback", "proxy_url", "proxy_url_callback", "httpProxy", "httpProxyCallback", "http_proxy", "http_proxy_callback", "httpsProxy", "httpsProxyCallback", "https_proxy", "https_proxy_callback", "socksProxy", "socksProxyCallback", "socks_proxy", "socks_proxy_callback"));
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(possibleOptionsArray)); i++)
+        for (var i = 0; i < ((List<?>)possibleOptionsArray).size(); i++)
         {
-            for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(possibleOptionsArray)); j++)
+            for (var j = 0; j < ((List<?>)possibleOptionsArray).size(); j++)
             {
-                if (Helpers.isTrue(!Helpers.isEqual(j, i)))
+                if (!Helpers.isEqual(j, i))
                 {
                     Object proxyFirst = Helpers.GetValue(possibleOptionsArray, i);
                     String proxySecond = (String) Helpers.GetValue(possibleOptionsArray, j);
@@ -105,7 +105,7 @@ public class TestProxies extends BaseTest {
                     {
                         exceptionCaught = true;
                     }
-                    Assert(exceptionCaught, Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " test failed. No exception was thrown, while "), proxyFirst), " and "), proxySecond), " were set together"));
+                    Assert(exceptionCaught, (((((((exchange.id + " ") + method) + " test failed. No exception was thrown, while ") + proxyFirst) + " and ") + proxySecond) + " were set together"));
                     // reset to undefined
                     exchange.setProperty(exchange, proxyFirst, null);
                     exchange.setProperty(exchange, proxySecond, null);

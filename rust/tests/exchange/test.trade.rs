@@ -63,12 +63,12 @@ pub fn testTrade(mut exchange: Value, mut skippedProperties: Value, mut method: 
     crate::tests_support::shared::assert_fee_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("fee".to_string()).clone()]);
     if !is_true(&(Value::Bool(in_op(&skippedProperties, &Value::Str("fees".to_string()))))) {
         // todo: remove undefined check and probably non-empty array check later
-        if !is_equal(&get_value(&entry, &Value::Str("fees".to_string())), &Value::Null) {
+        if (entry.as_map().and_then(|__m| __m.get("fees")).cloned().unwrap_or(Value::Null) != Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1439: bool = true;
-                while { if !__for_first_1439 { i = add(&i, &Value::Int(1)); } __for_first_1439 = false; is_less_than(&i, &get_array_length(&get_value(&entry, &Value::Str("fees".to_string())))) } {
-                crate::tests_support::shared::assert_fee_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), get_value(&entry, &Value::Str("fees".to_string())).clone(), i.clone()]);
+                while { if !__for_first_1439 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1439 = false; is_less_than(&i, &get_array_length(&get_value(&entry, &Value::Str("fees".to_string())))) } {
+                crate::tests_support::shared::assert_fee_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.as_map().and_then(|__m| __m.get("fees")).cloned().unwrap_or(Value::Null).clone(), i.clone()]);
             }
             }
         }

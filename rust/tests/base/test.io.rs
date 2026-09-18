@@ -15,11 +15,11 @@ pub fn testIo() {
         m
     }));
     let mut ms: Value = exchange.milliseconds();
-    let mut fileName: Value = add(&add(&Value::Str("ccxt-test-io-".to_string()), &to_string_val(&ms)), &Value::Str(".ccxtfile".to_string()));
+    let mut fileName: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ccxt-test-io-".to_string()), to_string_val(&ms))), Value::Str(".ccxtfile".to_string())));
     // upper tmp dir
     let mut tempDir: Value = exchange.get_temp_dir();
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_equal(&tempDir, &Value::Null) && !is_equal(&tempDir, &Value::Str("".to_string()))))));
-    let mut filePath: Value = add(&tempDir, &fileName); // '../../../../../../../../../../../../tmp/' + fileName;
+    assert!(ccxt::runtime::is_true(&(Value::Bool((tempDir != Value::Null) && (tempDir.as_str() != Some(""))))));
+    let mut filePath: Value = Value::Str(format!("{}{}", tempDir, fileName)); // '../../../../../../../../../../../../tmp/' + fileName;
     let mut fileContent: Value = Value::Str("hello world".to_string());
     assert!(ccxt::runtime::is_true(&(exchange.write_file(filePath.clone(), fileContent.clone()))));
     assert!(ccxt::runtime::is_true(&(exchange.exists_file(filePath.clone()))));

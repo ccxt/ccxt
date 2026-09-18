@@ -18,7 +18,7 @@ pub async fn testFetchPositions(mut exchange: Value, mut skippedProperties: Valu
     {
                 let mut i: Value = Value::Int(0);
         let mut __for_first_1470: bool = true;
-        while { if !__for_first_1470 { i = add(&i, &Value::Int(1)); } __for_first_1470 = false; is_less_than(&i, &get_array_length(&positions)) } {
+        while { if !__for_first_1470 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1470 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(positions.len() as i64).as_f64().unwrap_or(f64::NAN) } {
         testPosition(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&positions, &i), Value::Null, now.clone());
     }
     }
@@ -26,12 +26,12 @@ pub async fn testFetchPositions(mut exchange: Value, mut skippedProperties: Valu
     // with symbol
     let mut positionsForSymbol: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_positions", vec![Value::List(vec![symbol.clone()])]).await;
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_array(&positionsForSymbol)))));
-    let mut positionsForSymbolLength: Value = get_array_length(&positionsForSymbol);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_less_than_or_equal(&positionsForSymbolLength, &Value::Int(4))))));
+    let mut positionsForSymbolLength: Value = Value::Int(positionsForSymbol.len() as i64);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(positionsForSymbolLength.as_f64().unwrap_or(f64::NAN) <= Value::Int(4).as_f64().unwrap_or(f64::NAN)))));
     {
                 let mut i: Value = Value::Int(0);
         let mut __for_first_1471: bool = true;
-        while { if !__for_first_1471 { i = add(&i, &Value::Int(1)); } __for_first_1471 = false; is_less_than(&i, &get_array_length(&positionsForSymbol)) } {
+        while { if !__for_first_1471 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1471 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(positionsForSymbol.len() as i64).as_f64().unwrap_or(f64::NAN) } {
         testPosition(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&positionsForSymbol, &i), symbol.clone(), now.clone());
     }
     }

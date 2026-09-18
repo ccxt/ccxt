@@ -18,7 +18,7 @@ pub async fn testFetchOrders(mut exchange: Value, mut skippedProperties: Value, 
     {
                 let mut i: Value = Value::Int(0);
         let mut __for_first_1469: bool = true;
-        while { if !__for_first_1469 { i = add(&i, &Value::Int(1)); } __for_first_1469 = false; is_less_than(&i, &get_array_length(&orders)) } {
+        while { if !__for_first_1469 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1469 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(orders.len() as i64).as_f64().unwrap_or(f64::NAN) } {
         testOrder(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&orders, &i), symbol.clone(), now.clone());
     }
     }

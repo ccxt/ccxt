@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
 {
@@ -95,18 +96,18 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             this.checkRequiredCredentials();
             // Hash the challenge with the SHA-256 algorithm
             // Base64-decode your api_secret
             // Use the result of step 2 to hash the result of step 1 with the HMAC-SHA-512 algorithm
             // Base64-encode the result of step 3
-            Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
+            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             String messageHash = "challenge";
             Client client = this.client(url);
             io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
-            if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
+            if (java.util.Objects.equals(authenticated, null))
             {
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "event", "challenge" );
@@ -135,8 +136,8 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             Object orderbook = (this.watchMultiHelper("orderbook", "book", symbols, new HashMap<String, Object>() {{
                 put( "limit", limit );
             }}, parameters)).join();
@@ -159,34 +160,34 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         final Object symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
+            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "feed", name );
             }};
             List<Object> marketIds = new ArrayList<Object>(Arrays.asList());
             Object messageHash = name;
-            if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
+            if (java.util.Objects.equals(symbols, null))
             {
                 symbols = new ArrayList<Object>(Arrays.asList());
             }
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
+            for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
                 ((List<Object>)marketIds).add(this.marketId(symbol));
             }
-            Object length = Helpers.getArrayLength(symbols);
-            if (Helpers.isTrue(Helpers.isEqual(length, 1)))
+            Object length = ((List<?>)symbols).size();
+            if (Helpers.isEqual(length, 1))
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(marketIds, 0));
-                messageHash = Helpers.add(Helpers.add(messageHash, ":"), Helpers.GetValue(market, "symbol"));
+                messageHash = ((messageHash + ":") + ((Map<String, Object>)market).get("symbol"));
             }
-            Helpers.addElementToObject(subscribe, "product_ids", marketIds);
+            ((Map<String, Object>)subscribe).put("product_ids", marketIds);
             Map<String, Object> request = this.extend(subscribe, parameters);
             return (this.watch(url, messageHash, request, messageHash, null)).join();
         });
@@ -207,19 +208,19 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             (this.authenticate()).join();
-            Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
+            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "feed", name );
                 put( "api_key", Krakenfutures.this.apiKey );
-                put( "original_challenge", Helpers.GetValue(Krakenfutures.this.options, "challenge") );
-                put( "signed_challenge", Helpers.GetValue(Krakenfutures.this.options, "signedChallenge") );
+                put( "original_challenge", ((Map<String, Object>)Krakenfutures.this.options).get("challenge") );
+                put( "signed_challenge", ((Map<String, Object>)Krakenfutures.this.options).get("signedChallenge") );
             }};
             Map<String, Object> request = this.extend(subscribe, parameters);
             return (this.watch(url, messageHash, request, messageHash, null)).join();
@@ -241,8 +242,8 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         final Object symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -267,9 +268,9 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -300,8 +301,8 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             Object ticker = (this.watchMultiHelper("bidask", "ticker_lite", symbols, null, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -330,11 +331,11 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object since = Helpers.getArg(optionalArgs, 0, null);
-            Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
+            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
             return (this.watchTradesForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
@@ -354,9 +355,9 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object since = Helpers.getArg(optionalArgs, 0, null);
-            Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
+            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
             Object trades = (this.watchMultiHelper("trade", "trade", symbols, null, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -365,7 +366,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
@@ -384,8 +385,8 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             return (this.watchOrderBookForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(limit), (Object)(parameters))).join();
         }).thenApply(OrderBook::new);
 
@@ -407,28 +408,28 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             String messageHash = "";
             symbols = this.marketSymbols(symbols);
-            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(symbols, null))) && !Helpers.isTrue(this.isEmpty(symbols))))
+            if ((!java.util.Objects.equals(symbols, null)) && !Helpers.isTrue(this.isEmpty(symbols)))
             {
-                messageHash = Helpers.add("::", String.join(",", (List<String>)symbols));
+                messageHash = ("::" + String.join(",", (List<String>)symbols));
             }
-            messageHash = Helpers.add("positions", messageHash);
+            messageHash = ("positions" + messageHash);
             Object newPositions = (this.subscribePrivate("open_positions", messageHash, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
                 return newPositions;
             }
             return this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
 
@@ -460,7 +461,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         //        timestamp: 1698608414910
         //    }
         //
-        if (Helpers.isTrue(Helpers.isEqual(this.positions, null)))
+        if (java.util.Objects.equals(this.positions, null))
         {
             // krakenfutures positions carry no id (parseWsPosition always sets
             // 'id': undefined), so key by symbol + side instead of by-id, see
@@ -469,7 +470,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         }
         Object cache = this.positions;
         Object rawPositions = this.safeList(message, "positions");
-        if (Helpers.isTrue(Helpers.isEqual(rawPositions, null)))
+        if (java.util.Objects.equals(rawPositions, null))
         {
             // an open_positions frame without the positions key is malformed;
             // do not resolve with a fabricated empty list (the caller cannot
@@ -477,7 +478,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             return;
         }
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawPositions)); i++)
+        for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
         {
             Object rawPosition = Helpers.GetValue(rawPositions, i);
             Object position = this.parseWsPosition(rawPosition);
@@ -488,7 +489,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             Helpers.callDynamically(cache, "append", new Object[]{position});
         }
         Object messageHashes = this.findMessageHashes(client, "positions::");
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messageHashes)); i++)
+        for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
             Object parts = Helpers.split(messageHash, "::");
@@ -523,7 +524,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         //            pnl_currency: 'USD'
         //        }
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(position, "instrument");
         String hedged = "both";
         String balanceString = this.safeString(position, "balance");
@@ -581,11 +582,11 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -601,19 +602,19 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 messageHash = "orders:verbose";
             }
             String feed = this.safeString(parameters, "feed");
-            if (Helpers.isTrue(!Helpers.isEqual(feed, null)))
+            if (!java.util.Objects.equals(feed, null))
             {
                 name = feed;
                 messageHash = "orders";
-                if (Helpers.isTrue(Helpers.isEqual(feed, "open_orders_verbose")))
+                if (java.util.Objects.equals(feed, "open_orders_verbose"))
                 {
                     messageHash = "orders:verbose";
                 }
             }
-            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                messageHash = Helpers.add(messageHash, Helpers.add(":", Helpers.GetValue(market, "symbol")));
+                messageHash = (messageHash + (":" + ((Map<String, Object>)market).get("symbol")));
             }
             Object orders = (this.subscribePrivate(name, messageHash, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
@@ -621,7 +622,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(orders, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -641,20 +642,20 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Object name = "fills";
             String messageHash = "myTrades";
-            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                messageHash = Helpers.add(messageHash, Helpers.add(":", Helpers.GetValue(market, "symbol")));
+                messageHash = (messageHash + (":" + ((Map<String, Object>)market).get("symbol")));
             }
             Object trades = (this.subscribePrivate(name, messageHash, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
@@ -662,7 +663,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
@@ -680,8 +681,8 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -691,11 +692,11 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             List<Object> accountparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchBalance", "account");
             account = ((List<Object>) accountparametersVariable).get(0);
             parameters = ((List<Object>) accountparametersVariable).get(1);
-            if (Helpers.isTrue(!Helpers.isEqual(account, null)))
+            if (!java.util.Objects.equals(account, null))
             {
-                if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(account, "futures")) && Helpers.isTrue(!Helpers.isEqual(account, "flex_futures"))))
+                if (!java.util.Objects.equals(account, "futures") && !java.util.Objects.equals(account, "flex_futures"))
                 {
-                    throw new ArgumentsRequired(Helpers.add(this.id, " watchBalance account must be either 'futures' or 'flex_futures'")) ;
+                    throw new ArgumentsRequired((this.id + " watchBalance account must be either 'futures' or 'flex_futures'")) ;
                 }
                 messageHash = Helpers.add(messageHash, Helpers.add(":", account));
             }
@@ -744,21 +745,21 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         //
         String channel = this.safeString(message, "feed");
         String marketId = this.safeString(message, "product_id");
-        if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
+        if (!java.util.Objects.equals(marketId, null))
         {
             Map<String, Object> market = (Map<String, Object>) this.market(marketId);
-            Object symbol = Helpers.GetValue(market, "symbol");
+            Object symbol = ((Map<String, Object>)market).get("symbol");
             Object messageHash = this.getMessageHash("trade", null, symbol);
-            if (Helpers.isTrue(Helpers.isEqual(this.safeList(this.trades, symbol), null)))
+            if (java.util.Objects.equals(this.safeList(this.trades, symbol), null))
             {
                 Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
                 Helpers.addElementToObject(this.trades, symbol, new ArrayCache(((Number)tradesLimit).intValue()));
             }
             io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
-            if (Helpers.isTrue(Helpers.isEqual(channel, "trade_snapshot")))
+            if (java.util.Objects.equals(channel, "trade_snapshot"))
             {
                 Object trades = this.safeList(message, "trades", new ArrayList<Object>(Arrays.asList()));
-                Object length = Helpers.getArrayLength(trades);
+                Object length = ((List<?>)trades).size();
                 for (var i = 0; Helpers.isLessThan(i, length); i++)
                 {
                     Object index = Helpers.subtract(Helpers.subtract(length, 1), i); // need reverse to correct chronology
@@ -805,7 +806,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         //         "reduce_only": false
         //     }
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(trade, "product_id");
         market = this.safeMarket(marketId, market);
         Long timestamp = this.safeInteger(trade, "time");
@@ -861,7 +862,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         //        "ts": 1648708187469
         //    }
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeInteger(trade, "tradeTime");
         String marketId = this.safeString(trade, "symbol");
         return this.safeTrade(new HashMap<String, Object>() {{
@@ -956,19 +957,19 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         //     }
         //
         Object orders = this.orders;
-        if (Helpers.isTrue(Helpers.isEqual(orders, null)))
+        if (java.util.Objects.equals(orders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit");
             orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             this.orders = orders;
         }
         Object order = this.safeValue(message, "order");
-        if (Helpers.isTrue(!Helpers.isEqual(order, null)))
+        if (!java.util.Objects.equals(order, null))
         {
             String marketId = this.safeString(order, "instrument");
             String feed = this.safeString(message, "feed");
             String messageHash = "orders";
-            if (Helpers.isTrue(Helpers.isEqual(feed, "open_orders_verbose")))
+            if (java.util.Objects.equals(feed, "open_orders_verbose"))
             {
                 messageHash = "orders:verbose";
             }
@@ -977,21 +978,21 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             Object previousOrders = this.safeValue(((io.github.ccxt.ws.ArrayCache)orders).hashmap, symbol, new HashMap<String, Object>() {{}});
             Object previousOrder = this.safeValue(previousOrders, orderId);
             String reason = this.safeString(message, "reason");
-            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(previousOrder, null))) || Helpers.isTrue((Helpers.isEqual(reason, "edited_by_user")))))
+            if ((java.util.Objects.equals(previousOrder, null)) || (java.util.Objects.equals(reason, "edited_by_user")))
             {
                 Object parsed = this.parseWsOrder(order);
                 Helpers.callDynamically(orders, "append", new Object[]{parsed});
                 client.resolve(orders, messageHash);
-                client.resolve(orders, Helpers.add(Helpers.add(messageHash, ":"), symbol));
+                client.resolve(orders, ((messageHash + ":") + symbol));
             } else
             {
                 Object trade = this.parseWsTrade(order);
-                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(previousOrder, "trades"), null)))
+                if (java.util.Objects.equals(Helpers.GetValue(previousOrder, "trades"), null))
                 {
                     Helpers.addElementToObject(previousOrder, "trades", new ArrayList<Object>(Arrays.asList()));
                 }
                 ((List<Object>)Helpers.GetValue(previousOrder, "trades")).add(trade);
-                Helpers.addElementToObject(previousOrder, "lastTradeTimestamp", Helpers.GetValue(trade, "timestamp"));
+                Helpers.addElementToObject(previousOrder, "lastTradeTimestamp", ((Map<String, Object>)trade).get("timestamp"));
                 String totalCost = "0";
                 String totalAmount = "0";
                 Object trades = Helpers.GetValue(previousOrder, "trades");
@@ -1006,36 +1007,36 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                     Helpers.addElementToObject(previousOrder, "average", Precise.stringDiv(totalCost, totalAmount));
                 }
                 Helpers.addElementToObject(previousOrder, "cost", totalCost);
-                Object filledString = this.numberToString(Helpers.GetValue(trade, "amount"));
+                Object filledString = this.numberToString(((Map<String, Object>)trade).get("amount"));
                 String stringOrderFilled = this.safeString(previousOrder, "filled", "0");
                 String totalFilled = Precise.stringAdd(stringOrderFilled, filledString);
                 Helpers.addElementToObject(previousOrder, "filled", totalFilled);
                 String prevAmountString = this.safeString(previousOrder, "amount");
                 String remaining = Precise.stringSub(prevAmountString, totalFilled);
                 Helpers.addElementToObject(previousOrder, "remaining", remaining);
-                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(previousOrder, "fee"), null)))
+                if (java.util.Objects.equals(Helpers.GetValue(previousOrder, "fee"), null))
                 {
                     Helpers.addElementToObject(previousOrder, "fee", new HashMap<String, Object>() {{
     put( "rate", null );
     put( "cost", "0" );
-    put( "currency", Krakenfutures.this.numberToString(Krakenfutures.this.safeString(Helpers.GetValue(trade, "fee"), "currency")) );
+    put( "currency", Krakenfutures.this.numberToString(Krakenfutures.this.safeString(((Map<String, Object>)trade).get("fee"), "currency")) );
 }});
                 }
-                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(Helpers.GetValue(previousOrder, "fee"), "cost"), null))) && Helpers.isTrue((!Helpers.isEqual(this.safeNumber(Helpers.GetValue(trade, "fee"), "cost"), null)))))
+                if ((!java.util.Objects.equals(Helpers.GetValue(Helpers.GetValue(previousOrder, "fee"), "cost"), null)) && (!java.util.Objects.equals(this.safeNumber(((Map<String, Object>)trade).get("fee"), "cost"), null)))
                 {
                     Object stringOrderCost = this.numberToString(Helpers.GetValue(Helpers.GetValue(previousOrder, "fee"), "cost"));
-                    Object stringTradeCost = this.numberToString(this.safeNumber(Helpers.GetValue(trade, "fee"), "cost"));
+                    Object stringTradeCost = this.numberToString(this.safeNumber(((Map<String, Object>)trade).get("fee"), "cost"));
                     Helpers.addElementToObject(Helpers.GetValue(previousOrder, "fee"), "cost", Precise.stringAdd(stringOrderCost, stringTradeCost));
                 }
                 // update the newUpdates count
                 Helpers.callDynamically(orders, "append", new Object[]{this.safeOrder(previousOrder)});
-                client.resolve(orders, Helpers.add(Helpers.add(messageHash, ":"), symbol));
+                client.resolve(orders, ((messageHash + ":") + symbol));
                 client.resolve(orders, messageHash);
             }
         } else
         {
             Object isCancel = this.safeValue(message, "is_cancel");
-            if (Helpers.isTrue(Helpers.isEqual(isCancel, true)))
+            if (java.util.Objects.equals(isCancel, true))
             {
                 // Kraken documents is_cancel as "fully filled, cancelled, or
                 // rejected". Derive unified status from `reason` instead of
@@ -1043,13 +1044,13 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 // so consumers can tell a user cancel from liquidation, etc.
                 String reason = this.safeString(message, "reason");
                 String status = "canceled";
-                if (Helpers.isTrue(Helpers.isEqual(reason, "full_fill")))
+                if (java.util.Objects.equals(reason, "full_fill"))
                 {
                     status = "closed";
                 }
                 String feed = this.safeString(message, "feed");
                 String messageHash = "orders";
-                if (Helpers.isTrue(Helpers.isEqual(feed, "open_orders_verbose")))
+                if (java.util.Objects.equals(feed, "open_orders_verbose"))
                 {
                     messageHash = "orders:verbose";
                 }
@@ -1057,7 +1058,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
                 {
                     Object currentOrder = Helpers.GetValue(orders, i);
-                    if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(currentOrder, "id"), Helpers.GetValue(message, "order_id"))))
+                    if (Helpers.isEqual(Helpers.GetValue(currentOrder, "id"), Helpers.GetValue(message, "order_id")))
                     {
                         final Object finalReason = reason;
                         Map<String, Object> info = this.extend(this.safeDict(currentOrder, "info", new HashMap<String, Object>() {{}}), new HashMap<String, Object>() {{
@@ -1069,7 +1070,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
     put( "info", info );
 }}));
                         client.resolve(orders, messageHash);
-                        client.resolve(orders, Helpers.add(Helpers.add(messageHash, ":"), Helpers.GetValue(currentOrder, "symbol")));
+                        client.resolve(orders, Helpers.add((messageHash + ":"), Helpers.GetValue(currentOrder, "symbol")));
                         break;
                     }
                 }
@@ -1132,32 +1133,32 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         String feed = this.safeString(message, "feed");
         String messageHash = "orders";
-        if (Helpers.isTrue(Helpers.isEqual(feed, "open_orders_verbose_snapshot")))
+        if (java.util.Objects.equals(feed, "open_orders_verbose_snapshot"))
         {
             messageHash = "orders:verbose";
         }
         Map<String, Object> symbols = new HashMap<String, Object>() {{}};
         Object cachedOrders = this.orders;
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
+        for (var i = 0; i < ((List<?>)orders).size(); i++)
         {
             Object order = Helpers.GetValue(orders, i);
             Object parsed = this.parseWsOrder(order);
-            Object symbol = Helpers.GetValue(parsed, "symbol");
-            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            Object symbol = ((Map<String, Object>)parsed).get("symbol");
+            if (!java.util.Objects.equals(symbol, null))
             {
                 Helpers.addElementToObject(symbols, symbol, true);
             }
             Helpers.callDynamically(cachedOrders, "append", new Object[]{parsed});
         }
         Object length = Helpers.getArrayLength(this.orders);
-        if (Helpers.isTrue(Helpers.isGreaterThan(length, 0)))
+        if (Helpers.isGreaterThan(length, 0))
         {
             client.resolve(this.orders, messageHash);
             Object keys = Helpers.objectKeys(symbols);
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
+            for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object symbol = Helpers.GetValue(keys, i);
-                Object symbolMessageHash = Helpers.add(Helpers.add(messageHash, ":"), symbol);
+                Object symbolMessageHash = ((messageHash + ":") + symbol);
                 client.resolve(this.orders, symbolMessageHash);
             }
         }
@@ -1203,14 +1204,14 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         //        "reduce_only": false
         //    }
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object isCancelled = this.safeValue(order, "is_cancel");
         Object unparsedOrder = order;
         String status = null;
-        if (Helpers.isTrue(!Helpers.isEqual(isCancelled, null)))
+        if (!java.util.Objects.equals(isCancelled, null))
         {
             unparsedOrder = this.safeValue(order, "order");
-            if (Helpers.isTrue(Helpers.isEqual(isCancelled, true)))
+            if (java.util.Objects.equals(isCancelled, true))
             {
                 status = "cancelled";
             }
@@ -1232,7 +1233,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             put( "type", Krakenfutures.this.safeString(finalUnparsedOrder, "type") );
             put( "timeInForce", null );
             put( "postOnly", null );
-            put( "side", ((Helpers.isTrue((Helpers.isEqual(finalDirection, 0))))) ? "buy" : "sell" );
+            put( "side", (((Helpers.isEqual(finalDirection, 0)))) ? "buy" : "sell" );
             put( "price", Krakenfutures.this.safeString(finalUnparsedOrder, "limit_price") );
             put( "stopPrice", Krakenfutures.this.safeString(finalUnparsedOrder, "stop_price") );
             put( "triggerPrice", Krakenfutures.this.safeString(finalUnparsedOrder, "stop_price") );
@@ -1285,11 +1286,11 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         //    }
         //
         String marketId = this.safeString(message, "product_id");
-        if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
+        if (!java.util.Objects.equals(marketId, null))
         {
             Object ticker = this.parseWsTicker(message);
-            Object symbol = Helpers.GetValue(ticker, "symbol");
-            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            Object symbol = ((Map<String, Object>)ticker).get("symbol");
+            if (!java.util.Objects.equals(symbol, null))
             {
                 Helpers.addElementToObject(this.tickers, symbol, ticker);
             }
@@ -1317,11 +1318,11 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         //    }
         //
         String marketId = this.safeString(message, "product_id");
-        if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
+        if (!java.util.Objects.equals(marketId, null))
         {
             Object ticker = this.parseWsTicker(message);
-            Object symbol = Helpers.GetValue(ticker, "symbol");
-            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            Object symbol = ((Map<String, Object>)ticker).get("symbol");
+            if (!java.util.Objects.equals(symbol, null))
             {
                 Helpers.addElementToObject(this.bidsasks, symbol, ticker);
             }
@@ -1380,11 +1381,11 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         //        "volumeQuote": 6899673.0
         //    }
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(ticker, "product_id");
         Map<String, Object> marketResolved = (Map<String, Object>) this.safeMarket(marketId, market);
         market = marketResolved;
-        Object symbol = Helpers.GetValue(marketResolved, "symbol");
+        Object symbol = ((Map<String, Object>)marketResolved).get("symbol");
         Long timestamp = this.parse8601(this.safeString(ticker, "lastTime"));
         String last = this.safeString(ticker, "last");
         return this.safeTicker(new HashMap<String, Object>() {{
@@ -1446,7 +1447,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         //
         String marketId = this.safeString(message, "product_id");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-        Object symbol = Helpers.GetValue(market, "symbol");
+        Object symbol = ((Map<String, Object>)market).get("symbol");
         Object messageHash = this.getMessageHash("orderbook", null, symbol);
         Object subscription = this.safeDict(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});
         Long limit = this.safeInteger(subscription, "limit");
@@ -1454,16 +1455,16 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         Object bids = this.safeList(message, "bids");
-        if (Helpers.isTrue(Helpers.isEqual(bids, null)))
+        if (java.util.Objects.equals(bids, null))
         {
             return;
         }
         Object asks = this.safeList(message, "asks");
-        if (Helpers.isTrue(Helpers.isEqual(asks, null)))
+        if (java.util.Objects.equals(asks, null))
         {
             return;
         }
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(bids)); i++)
+        for (var i = 0; i < ((List<?>)bids).size(); i++)
         {
             Object bid = Helpers.GetValue(bids, i);
             Double price = this.safeNumber(bid, "price");
@@ -1471,7 +1472,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             Object bidsSide = Helpers.GetValue(orderbook, "bids");
             Helpers.callDynamically(bidsSide, "store", new Object[]{price, qty});
         }
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(asks)); i++)
+        for (var i = 0; i < ((List<?>)asks).size(); i++)
         {
             Object ask = Helpers.GetValue(asks, i);
             Double price = this.safeNumber(ask, "price");
@@ -1500,14 +1501,14 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         //
         String marketId = this.safeString(message, "product_id");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-        Object symbol = Helpers.GetValue(market, "symbol");
+        Object symbol = ((Map<String, Object>)market).get("symbol");
         Object messageHash = this.getMessageHash("orderbook", null, symbol);
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         String side = this.safeString(message, "side");
         Double price = this.safeNumber(message, "price");
         Double qty = this.safeNumber(message, "qty");
         Long timestamp = this.safeInteger(message, "timestamp");
-        if (Helpers.isTrue(Helpers.isEqual(side, "sell")))
+        if (java.util.Objects.equals(side, "sell"))
         {
             Object asks = Helpers.GetValue(orderbook, "asks");
             Helpers.callDynamically(asks, "store", new Object[]{price, qty});
@@ -1673,7 +1674,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         Object flexFutures = this.safeValue(message, "flex_futures");
         String messageHash = "balances";
         Long timestamp = this.safeInteger(message, "timestamp");
-        if (Helpers.isTrue(!Helpers.isEqual(holding, null)))
+        if (!java.util.Objects.equals(holding, null))
         {
             Object holdingKeys = Helpers.objectKeys(holding); // cashAccount
             Map<String, Object> holdingResult = new HashMap<String, Object>() {{
@@ -1681,13 +1682,13 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 put( "timestamp", timestamp );
                 put( "datetime", Krakenfutures.this.iso8601(timestamp) );
             }};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(holdingKeys)); i++)
+            for (var i = 0; i < ((List<?>)holdingKeys).size(); i++)
             {
                 Object key = Helpers.GetValue(holdingKeys, i);
                 String code = this.safeCurrencyCode(key);
                 Object newAccount = this.account();
                 Helpers.addElementToObject(newAccount, "total", this.safeString(holding, key));
-                if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                if (!java.util.Objects.equals(code, null))
                 {
                     Helpers.addElementToObject(holdingResult, code, newAccount);
                 }
@@ -1696,7 +1697,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             Helpers.addElementToObject(this.balance, "cash", this.safeBalance(Helpers.GetValue(this.balance, "cash")));
             client.resolve(holdingResult, messageHash);
         }
-        if (Helpers.isTrue(!Helpers.isEqual(futures, null)))
+        if (!java.util.Objects.equals(futures, null))
         {
             Object futuresKeys = Helpers.objectKeys(futures); // marginAccount
             Map<String, Object> futuresResult = new HashMap<String, Object>() {{
@@ -1704,7 +1705,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 put( "timestamp", timestamp );
                 put( "datetime", Krakenfutures.this.iso8601(timestamp) );
             }};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(futuresKeys)); i++)
+            for (var i = 0; i < ((List<?>)futuresKeys).size(); i++)
             {
                 Object key = Helpers.GetValue(futuresKeys, i);
                 String symbol = this.safeSymbol(key);
@@ -1716,16 +1717,16 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 Helpers.addElementToObject(newAccount, "used", this.safeString(future, "initial_margin"));
                 Helpers.addElementToObject(newAccount, "total", this.safeString(future, "balance"));
                 Helpers.addElementToObject(futuresResult, symbol, new HashMap<String, Object>() {{}});
-                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(symbol, null))) && Helpers.isTrue((!Helpers.isEqual(code, null)))))
+                if ((!java.util.Objects.equals(symbol, null)) && (!java.util.Objects.equals(code, null)))
                 {
                     Helpers.addElementToObject(Helpers.GetValue(futuresResult, symbol), code, newAccount);
                 }
             }
             Helpers.addElementToObject(this.balance, "margin", futuresResult);
             Helpers.addElementToObject(this.balance, "margin", this.safeBalance(Helpers.GetValue(this.balance, "margin")));
-            client.resolve(Helpers.GetValue(this.balance, "margin"), Helpers.add(messageHash, "futures"));
+            client.resolve(Helpers.GetValue(this.balance, "margin"), (messageHash + "futures"));
         }
-        if (Helpers.isTrue(!Helpers.isEqual(flexFutures, null)))
+        if (!java.util.Objects.equals(flexFutures, null))
         {
             Object flexFutureCurrencies = this.safeDict(flexFutures, "currencies", new HashMap<String, Object>() {{}});
             Object flexFuturesKeys = Helpers.objectKeys(flexFutureCurrencies); // multi-collateral margin account
@@ -1734,7 +1735,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 put( "timestamp", timestamp );
                 put( "datetime", Krakenfutures.this.iso8601(timestamp) );
             }};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(flexFuturesKeys)); i++)
+            for (var i = 0; i < ((List<?>)flexFuturesKeys).size(); i++)
             {
                 Object key = Helpers.GetValue(flexFuturesKeys, i);
                 Object flexFuture = this.safeValue(flexFutureCurrencies, key);
@@ -1743,14 +1744,14 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 Helpers.addElementToObject(newAccount, "free", this.safeString(flexFuture, "available"));
                 Helpers.addElementToObject(newAccount, "used", this.safeString(flexFuture, "collateral_value"));
                 Helpers.addElementToObject(newAccount, "total", this.safeString(flexFuture, "quantity"));
-                if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                if (!java.util.Objects.equals(code, null))
                 {
                     Helpers.addElementToObject(flexFuturesResult, code, newAccount);
                 }
             }
             Helpers.addElementToObject(this.balance, "flex", flexFuturesResult);
             Helpers.addElementToObject(this.balance, "flex", this.safeBalance(Helpers.GetValue(this.balance, "flex")));
-            client.resolve(Helpers.GetValue(this.balance, "flex"), Helpers.add(messageHash, "flex_futures"));
+            client.resolve(Helpers.GetValue(this.balance, "flex"), (messageHash + "flex_futures"));
         }
         client.resolve(this.balance, messageHash);
     }
@@ -1784,28 +1785,28 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         //
         Object trades = this.safeList(message, "fills", new ArrayList<Object>(Arrays.asList()));
         Object stored = this.myTrades;
-        if (Helpers.isTrue(Helpers.isEqual(stored, null)))
+        if (java.util.Objects.equals(stored, null))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             this.myTrades = stored;
         }
         Map<String, Object> tradeSymbols = new HashMap<String, Object>() {{}};
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(trades)); i++)
+        for (var i = 0; i < ((List<?>)trades).size(); i++)
         {
             Object trade = Helpers.GetValue(trades, i);
             Object parsedTrade = this.parseWsMyTrade(trade);
-            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(parsedTrade, "symbol"), null)))
+            if (!java.util.Objects.equals(((Map<String, Object>)parsedTrade).get("symbol"), null))
             {
-                Helpers.addElementToObject(tradeSymbols, Helpers.GetValue(parsedTrade, "symbol"), true);
+                Helpers.addElementToObject(tradeSymbols, ((Map<String, Object>)parsedTrade).get("symbol"), true);
             }
             Helpers.callDynamically(stored, "append", new Object[]{parsedTrade});
         }
         Object tradeSymbolKeys = Helpers.objectKeys(tradeSymbols);
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tradeSymbolKeys)); i++)
+        for (var i = 0; i < ((List<?>)tradeSymbolKeys).size(); i++)
         {
             Object symbol = Helpers.GetValue(tradeSymbolKeys, i);
-            String messageHash = Helpers.add("myTrades:", symbol);
+            String messageHash = ("myTrades:" + symbol);
             client.resolve(stored, messageHash);
         }
         client.resolve(stored, "myTrades");
@@ -1831,7 +1832,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         //        "order_type": "limit"
         //    }
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeInteger(trade, "time");
         String marketId = this.safeString(trade, "instrument");
         market = this.safeMarket(marketId, market);
@@ -1847,7 +1848,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             put( "symbol", Krakenfutures.this.safeString(finalMarket, "symbol") );
             put( "order", Krakenfutures.this.safeString(trade, "order_id") );
             put( "type", Krakenfutures.this.safeString(trade, "type") );
-            put( "side", ((Helpers.isTrue((Helpers.isEqual(finalIsBuy, true))))) ? "buy" : "sell" );
+            put( "side", (((java.util.Objects.equals(finalIsBuy, true)))) ? "buy" : "sell" );
             put( "takerOrMaker", Krakenfutures.this.safeString(trade, "fill_type") );
             put( "price", Krakenfutures.this.safeString(trade, "price") );
             put( "amount", Krakenfutures.this.safeString(trade, "qty") );
@@ -1865,14 +1866,14 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object subscriptionArgs = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object subscriptionArgs = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
+            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             // symbols are required
             symbols = this.marketSymbols(symbols, null, false, true, false);
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
@@ -1884,12 +1885,12 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
                 if (!Helpers.isTrue(this.subscriptionExistsForHash(url, messageHash)))
                 {
-                    ((List<Object>)rawSubs).add(Helpers.GetValue(market, "id"));
+                    ((List<Object>)rawSubs).add(((Map<String, Object>)market).get("id"));
                 }
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object length = Helpers.getArrayLength(rawSubs);
-            if (Helpers.isTrue(Helpers.isGreaterThan(length, 0)))
+            Object length = ((List<?>)rawSubs).size();
+            if (Helpers.isGreaterThan(length, 0))
             {
                 request = new HashMap<String, Object>() {{
                     put( "event", "subscribe" );
@@ -1905,27 +1906,27 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
     public Object subscriptionExistsForHash(Object url, Object hash)
     {
         Client client = this.client(url);
-        return (Helpers.inOp(client.subscriptions, hash));
+        return (((Map<?, ?>)client.subscriptions).containsKey(hash));
     }
 
     public Object getMessageHash(Object unifiedElementName, Object... optionalArgs)
     {
         // unifiedElementName can be : orderbook, trade, ticker, bidask ...
         // subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
-        Object subChannelName = Helpers.getArg(optionalArgs, 0, null);
-        Object symbol = Helpers.getArg(optionalArgs, 1, null);
-        Boolean withSymbol = !Helpers.isEqual(symbol, null);
+        Object subChannelName = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object symbol = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+        Boolean withSymbol = !java.util.Objects.equals(symbol, null);
         Object messageHash = unifiedElementName;
         if (!Helpers.isTrue(withSymbol))
         {
-            messageHash = Helpers.add(messageHash, "s");
+            messageHash = (messageHash + "s");
         } else
         {
-            messageHash = Helpers.add(messageHash, Helpers.add(":", symbol));
+            messageHash = (messageHash + (":" + symbol));
         }
-        if (Helpers.isTrue(!Helpers.isEqual(subChannelName, null)))
+        if (!java.util.Objects.equals(subChannelName, null))
         {
-            messageHash = Helpers.add(messageHash, Helpers.add("#", subChannelName));
+            messageHash = (messageHash + ("#" + subChannelName));
         }
         return messageHash;
     }
@@ -1948,13 +1949,13 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         // below rejects every pending future on the connection, so a stray
         // re-subscribe warning would kill unrelated in-flight watch* calls —
         // mirrors the bitmart 90008 fix.
-        if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(errMsg, null)) && Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(errMsg, "Already subscribed"), 0))))
+        if (!java.util.Objects.equals(errMsg, null) && Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(errMsg, "Already subscribed"), 0))
         {
             return false;
         }
         try
         {
-            throw new ExchangeError(Helpers.add(Helpers.add(this.id, " "), errMsg)) ;
+            throw new ExchangeError((String)Helpers.add((this.id + " "), errMsg)) ;
         } catch(Exception error)
         {
             client.reject(error);
@@ -1965,16 +1966,16 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
     public void handleMessage(Client client, Object message)
     {
         String eventVar = this.safeString(message, "event");
-        if (Helpers.isTrue(Helpers.isEqual(eventVar, "challenge")))
+        if (java.util.Objects.equals(eventVar, "challenge"))
         {
             this.handleAuthenticate(client, message);
-        } else if (Helpers.isTrue(Helpers.isEqual(eventVar, "alert")))
+        } else if (java.util.Objects.equals(eventVar, "alert"))
         {
             this.handleErrorMessage(client, message);
-        } else if (Helpers.isTrue(Helpers.isEqual(eventVar, "pong")))
+        } else if (java.util.Objects.equals(eventVar, "pong"))
         {
             client.lastPong = ((Number)this.milliseconds()).longValue();
-        } else if (Helpers.isTrue(Helpers.isEqual(eventVar, null)))
+        } else if (java.util.Objects.equals(eventVar, null))
         {
             String feed = this.safeString(message, "feed");
             Map<String, Object> methods = new HashMap<String, Object>() {{
@@ -1995,7 +1996,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 put( "open_positions", "handlePositions");
             }};
             Object method = this.safeValue(methods, feed);
-            if (Helpers.isTrue(!Helpers.isEqual(method, null)))
+            if (!java.util.Objects.equals(method, null))
             {
                 Helpers.callDynamically(this, method, new Object[] {client, message});
             }
@@ -2017,7 +2018,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         //
         Object eventVar = this.safeValue(message, "event");
         String messageHash = "challenge";
-        if (Helpers.isTrue(!Helpers.isEqual(eventVar, "error")))
+        if (!java.util.Objects.equals(eventVar, "error"))
         {
             Object challenge = this.safeValue(message, "message");
             Object hashedChallenge = this.hash(this.encode(challenge), sha256(), "binary");
@@ -2029,9 +2030,9 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             ((io.github.ccxt.ws.Future)future).resolve(true);
         } else
         {
-            var error = new AuthenticationError(Helpers.add(Helpers.add(this.id, " "), this.json(message)));
+            var error = new AuthenticationError(((this.id + " ") + this.json(message)));
             client.reject(error, messageHash);
-            if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
+            if (((Map<?, ?>)client.subscriptions).containsKey(messageHash))
             {
                 ((Map<String,Object>)client.subscriptions).remove(messageHash);
             }

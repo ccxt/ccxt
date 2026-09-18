@@ -26,6 +26,6 @@ public partial class BaseTest
             string expected2b = "d[0]=1&d[1]=2&b[c]=2&b[target]=%2B%26";
             string expected2d = "d[0]=1&d[1]=2&b[target]=%2B%26&b[c]=2";
             string result2 = exchange.urlencodeNested(dict2);
-            Assert(isTrue(isTrue(isTrue(isEqual(result2, expected2a)) || isTrue(isEqual(result2, expected2b))) || isTrue(isEqual(result2, expected2c))) || isTrue(isEqual(result2, expected2d)), add(add(add(add(add(add(add(add(add("urlencodeNested: expected ", expected2a), " or "), expected2b), " or "), expected2c), " or "), expected2d), " but got "), result2));
+            Assert(isEqual(result2, expected2a) || isEqual(result2, expected2b) || isEqual(result2, expected2c) || isEqual(result2, expected2d), ((((((((("urlencodeNested: expected " + expected2a) + " or ") + expected2b) + " or ") + expected2c) + " or ") + expected2d) + " but got ") + result2));
         }
 }

@@ -93,6 +93,62 @@ export const CCXT_GO_HELPER_RETURN_TYPES = {
 // `var x []byte = ...` into a reference to that value.
 const EXTRA_GO_TYPE_NAMES = [ 'byte' ];
 
+// Fields of the hand-written `BaseExchange` (go/v4/exchange.go) whose Go type is a
+// native string-keyed map of `any`. `this.<field>["k"]` is then the same read as
+// `GetValue(this.<field>, "k")`: a missing key gives the `any` nil in both cases,
+// and a nil map reads as nil rather than panicking. Fields typed `*sync.Map`
+// (Options, Markets, Currencies, MarketsById, ...), `any` (Urls) or a slice
+// (Symbols, Codes, Ids) are deliberately absent — they are not indexable in Go.
+export const CCXT_GO_EXCHANGE_MAP_FIELDS = {
+    'Has': 'map[string]any',
+    'Api': 'map[string]any',
+    'TransformedApi': 'map[string]any',
+    'RequiredCredentials': 'map[string]any',
+    'HttpExceptions': 'map[string]any',
+    'Timeframes': 'map[string]any',
+    'Features': 'map[string]any',
+    'Exceptions': 'map[string]any',
+    'Precision': 'map[string]any',
+    'UserAgents': 'map[string]any',
+    'TokenBucket': 'map[string]any',
+    'CommonCurrencies': 'map[string]any',
+    'Limits': 'map[string]any',
+    'Fees': 'map[string]any',
+    'Status': 'map[string]any',
+};
+
+// the Go map type of `this.<field>`, or undefined for every other expression shape
+export function ccxtGoIndexableThisField (goTranspiler, node) {
+    if (typeof goTranspiler.isGoThisPropertyAccessExpression !== 'function') {
+        return undefined;
+    }
+    if (!goTranspiler.isGoThisPropertyAccessExpression (node)) {
+        return undefined;
+    }
+    const field = goTranspiler.transformPropertyAccessExpressionName (node.name.text, node.name);
+    return CCXT_GO_EXCHANGE_MAP_FIELDS[field];
+}
+
+// teach the Go printer's `goIndexableTypeOf` the exchange fields above, so an
+// element access on one of them prints as a native map index instead of GetValue
+export function installCcxtGoIndexableTypes (goTranspiler) {
+    if (goTranspiler === undefined || goTranspiler.__ccxtGoIndexableTypesInstalled) {
+        return;
+    }
+    if (typeof goTranspiler.goIndexableTypeOf !== 'function') {
+        return; // older printer without the element-access typing: nothing to extend
+    }
+    const upstream = goTranspiler.goIndexableTypeOf;
+    goTranspiler.goIndexableTypeOf = function (node, printed) {
+        const known = upstream.call (this, node, printed);
+        if (known !== undefined) {
+            return known;
+        }
+        return ccxtGoIndexableThisField (this, node);
+    };
+    goTranspiler.__ccxtGoIndexableTypesInstalled = true;
+}
+
 function scopeMentionsIdentifier (scope, name) {
     if (scope === undefined || typeof scope.forEachChild !== 'function') {
         return true; // cannot prove it is safe → treat as shadowed

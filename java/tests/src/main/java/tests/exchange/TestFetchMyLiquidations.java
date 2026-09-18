@@ -4,6 +4,8 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -18,14 +20,14 @@ public class TestFetchMyLiquidations extends BaseTest {
         return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchMyLiquidations";
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchMyLiquidations"), null)) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchMyLiquidations"), false))))
+        if (java.util.Objects.equals(((Map<String, Object>)exchange.has).get("fetchMyLiquidations"), null) || java.util.Objects.equals(((Map<String, Object>)exchange.has).get("fetchMyLiquidations"), false))
         {
             return true;
         }
         Object items = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchMyLiquidations", new Object[]{code})).join();
-        Assert(Helpers.isArray(items), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), code), " must return an array. "), exchange.json(items)));
+        Assert(Helpers.isArray(items), ((((((exchange.id + " ") + method) + " ") + code) + " must return an array. ") + exchange.json(items)));
         // const now = exchange.milliseconds ();
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(items)); i++)
+        for (var i = 0; i < ((List<?>)items).size(); i++)
         {
             TestLiquidation.testLiquidation(exchange, skippedProperties, method, Helpers.GetValue(items, i), code);
         }

@@ -6,6 +6,7 @@ import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.base.Precise;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -28,7 +29,7 @@ public class TestFetchTrades extends BaseTest {
         //
         Object now = exchange.milliseconds();
         Boolean isPublicTrade = true;
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(trades)); i++)
+        for (var i = 0; i < ((List<?>)trades).size(); i++)
         {
             TestTrade.testTrade(exchange, skippedProperties, method, Helpers.GetValue(trades, i), symbol, now, isPublicTrade);
         }
@@ -36,22 +37,22 @@ public class TestFetchTrades extends BaseTest {
         // test if both sides are being returned
         //
         Integer minTradesForBothSidesCheck = 99;
-        if (Helpers.isTrue(!Helpers.isTrue((Helpers.inOp(skippedProperties, "requireBothSides"))) && Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(trades), minTradesForBothSidesCheck))))
+        if (!(Helpers.inOp(skippedProperties, "requireBothSides")) && Helpers.isGreaterThan(((List<?>)trades).size(), minTradesForBothSidesCheck))
         {
             //
             //  Check whether both "buy" and "sell" are returned from trades, when there are enough trades
             //  for a one-sided result to be an implausible coincidence (see minTradesForBothSidesCheck)
             //
             Object grouped = exchange.groupBy(trades, "side");
-            String msg = Helpers.add("Both sides of trades are not being returned, instead only one side is being returned. If this error happens consistently, then it might be an implementation issue", TestSharedMethods.logTemplate(exchange, method, trades));
-            Assert((Helpers.inOp(grouped, "buy")), msg);
-            Assert((Helpers.inOp(grouped, "sell")), msg);
+            String msg = ("Both sides of trades are not being returned, instead only one side is being returned. If this error happens consistently, then it might be an implementation issue" + TestSharedMethods.logTemplate(exchange, method, trades));
+            Assert((((Map<?, ?>)grouped).containsKey("buy")), msg);
+            Assert((((Map<?, ?>)grouped).containsKey("sell")), msg);
         }
-        if (!Helpers.isTrue((Helpers.inOp(skippedProperties, "timestampSort"))))
+        if (!(Helpers.inOp(skippedProperties, "timestampSort")))
         {
             TestSharedMethods.AssertTimestampOrder(exchange, method, symbol, trades);
         }
-        if (Helpers.isTrue(!Helpers.isTrue((Helpers.inOp(skippedProperties, "side"))) && !Helpers.isTrue((Helpers.inOp(skippedProperties, "sideSequence")))))
+        if (!(Helpers.inOp(skippedProperties, "side")) && !(Helpers.inOp(skippedProperties, "sideSequence")))
         {
             (helperTestFetchTradesSideSequence(exchange, skippedProperties, symbol, method, trades)).join();
         }
@@ -81,7 +82,7 @@ public class TestFetchTrades extends BaseTest {
         String lastPrice = null;
         Object lastSide = null;
         Object lastTrade = null;
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(trades)); i++)
+        for (var i = 0; i < ((List<?>)trades).size(); i++)
         {
             Object trade = Helpers.GetValue(trades, i);
             Object ts = Helpers.GetValue(trade, "timestamp");
@@ -92,7 +93,7 @@ public class TestFetchTrades extends BaseTest {
             Object isSamePrice = Precise.stringEq(price, lastPrice);
             Boolean isSameSide = Helpers.isEqual(side, lastSide);
             // we are only interested in trades that have: same timestamp, same side, but different(!) price
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(isSameTs) && Helpers.isTrue(isSameSide)) && !Helpers.isTrue(isSamePrice)))
+            if (Helpers.isTrue(isSameTs) && Helpers.isTrue(isSameSide) && !Helpers.isTrue(isSamePrice))
             {
                 final Object finalLastTrade = lastTrade;
                 Map<String, Object> pair = new HashMap<String, Object>() {{
@@ -103,10 +104,10 @@ public class TestFetchTrades extends BaseTest {
                 Object priceDecreasing = Precise.stringLt(price, lastPrice);
                 if (Helpers.isTrue(priceIncreasing))
                 {
-                    Assert(Helpers.isEqual(side, "buy"), Helpers.add("Price is increasing, but side is not `buy`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip", TestSharedMethods.logTemplate(exchange, method, pair)));
+                    Assert(java.util.Objects.equals(side, "buy"), ("Price is increasing, but side is not `buy`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip" + TestSharedMethods.logTemplate(exchange, method, pair)));
                 } else if (Helpers.isTrue(priceDecreasing))
                 {
-                    Assert(Helpers.isEqual(side, "sell"), Helpers.add("Price is decreasing, but side is not `sell`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip", TestSharedMethods.logTemplate(exchange, method, pair)));
+                    Assert(java.util.Objects.equals(side, "sell"), ("Price is decreasing, but side is not `sell`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip" + TestSharedMethods.logTemplate(exchange, method, pair)));
                 }
             }
             lastPrice = price;

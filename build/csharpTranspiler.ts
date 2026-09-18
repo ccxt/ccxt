@@ -1293,6 +1293,11 @@ class NewTranspiler {
             [/\(object client\)/gm, '(WebSocketClient client)'],
             [/object client =/gm, 'var client ='],
             [/object future =/gm, 'var future ='],
+            // `resolve` on a receiver the arg pass already typed (`client as WebSocketClient`,
+            // or Future for the ws promise) targets a method that class declares, so it needs no
+            // reflective dispatch: the direct call binds the same method, with the same
+            // object-typed arguments and the same void result.
+            [/callDynamically\((\w+) as (WebSocketClient|Future), "resolve", new object\[\] \{(.+)\}\);/gm, '($1 as $2).resolve($3);'],
         ]
     }
 

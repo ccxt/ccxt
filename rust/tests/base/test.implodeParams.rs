@@ -24,5 +24,5 @@ pub fn testImplodeParams() {
     });
     let mut expected: Value = Value::Str("v2/watchlists/1m/BTC/USDT".to_string());
     let mut result: Value = exchange.implode_params(path.clone(), params.clone());
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&result, &expected)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(result.as_str() == expected.as_str()))));
 }

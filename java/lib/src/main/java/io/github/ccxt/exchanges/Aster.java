@@ -34,6 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 public class Aster extends AsterApi
 {
@@ -952,7 +953,7 @@ public class Aster extends AsterApi
             }} );
             put( "options", new HashMap<String, Object>() {{
                 put( "defaultType", "spot" );
-                put( "recvWindow", Helpers.multiply(10, 1000) );
+                put( "recvWindow", (10L * 1000L) );
                 put( "zeroAddress", "0x0000000000000000000000000000000000000000" );
                 put( "v3ChainId", 1666 );
                 put( "createOrder", new HashMap<String, Object>() {{
@@ -1153,25 +1154,25 @@ public class Aster extends AsterApi
 
     public Object isInverse(Object type, Object... optionalArgs)
     {
-        Object subType = Helpers.getArg(optionalArgs, 0, null);
-        if (Helpers.isTrue(Helpers.isEqual(subType, null)))
+        Object subType = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        if (java.util.Objects.equals(subType, null))
         {
-            return (Helpers.isEqual(type, "delivery"));
+            return (java.util.Objects.equals(type, "delivery"));
         } else
         {
-            return Helpers.isEqual(subType, "inverse");
+            return java.util.Objects.equals(subType, "inverse");
         }
     }
 
     public Object isLinear(Object type, Object... optionalArgs)
     {
-        Object subType = Helpers.getArg(optionalArgs, 0, null);
-        if (Helpers.isTrue(Helpers.isEqual(subType, null)))
+        Object subType = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        if (java.util.Objects.equals(subType, null))
         {
-            return Helpers.isTrue((Helpers.isEqual(type, "future"))) || Helpers.isTrue((Helpers.isEqual(type, "swap")));
+            return (java.util.Objects.equals(type, "future")) || (java.util.Objects.equals(type, "swap"));
         } else
         {
-            return Helpers.isEqual(subType, "linear");
+            return java.util.Objects.equals(subType, "linear");
         }
     }
 
@@ -1189,7 +1190,7 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> sapiResult = (this.sapiPublicGetV3ExchangeInfo(parameters)).join();
             Object sapiRows = this.safeList(sapiResult, "assets", new ArrayList<Object>(Arrays.asList()));
             //
@@ -1254,7 +1255,7 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             List<Object> promises = new ArrayList<Object>(Arrays.asList(this.sapiPublicGetV3ExchangeInfo(parameters), this.fapiPublicGetV3ExchangeInfo(parameters)));
             ((List<Object>)promises).add(this.signIn());
             Object results = (Helpers.promiseAll(promises)).join();
@@ -1357,11 +1358,11 @@ public class Aster extends AsterApi
             //
             //
             List<Object> fapiRowsFiltered = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(fapiRows)); i++)
+            for (var i = 0; i < ((List<?>)fapiRows).size(); i++)
             {
                 Object market = Helpers.GetValue(fapiRows, i);
                 // tmp skip some markets with base = undefined
-                if (Helpers.isTrue(!Helpers.isEqual(this.safeString(market, "baseAsset"), null)))
+                if (!java.util.Objects.equals(this.safeString(market, "baseAsset"), null))
                 {
                     ((List<Object>)fapiRowsFiltered).add(market);
                 }
@@ -1379,7 +1380,7 @@ public class Aster extends AsterApi
         String quoteId = this.safeString(market, "quoteAsset");
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
-        Boolean active = Helpers.isEqual(this.safeString(market, "status"), "TRADING");
+        Boolean active = java.util.Objects.equals(this.safeString(market, "status"), "TRADING");
         Object spot = null;
         Object symbol = null;
         Object settle = null;
@@ -1389,7 +1390,7 @@ public class Aster extends AsterApi
         Object inverse = null;
         Object contractSize = null;
         String contractType = this.safeString(market, "contractType");
-        Boolean isContract = !Helpers.isEqual(contractType, null);
+        Boolean isContract = !java.util.Objects.equals(contractType, null);
         if (Helpers.isTrue(isContract))
         {
             // currently, there is only perpetuals, not futures
@@ -1397,9 +1398,9 @@ public class Aster extends AsterApi
             swap = true;
             settleId = this.safeString(market, "marginAsset");
             settle = this.safeCurrencyCode(settleId);
-            symbol = Helpers.add(Helpers.add(Helpers.add(Helpers.add(base, "/"), quote), ":"), settle);
-            linear = Helpers.isEqual(settle, quote);
-            inverse = Helpers.isEqual(settle, base);
+            symbol = Helpers.add((Helpers.add(Helpers.add(base, "/"), quote) + ":"), settle);
+            linear = java.util.Objects.equals(settle, quote);
+            inverse = java.util.Objects.equals(settle, base);
             contractSize = this.safeNumber2(market, "contractSize", "unit", this.parseNumber("1"));
         } else
         {
@@ -1415,11 +1416,11 @@ public class Aster extends AsterApi
         Object filterLotSize = this.safeDict(filtersByType, "LOT_SIZE");
         Object filterMarketLotSize = this.safeDict(filtersByType, "MARKET_LOT_SIZE", new HashMap<String, Object>() {{}});
         Object pricePrecision = this.safeNumber(filterPrice, "tickSize");
-        if (Helpers.isTrue(Helpers.isEqual(pricePrecision, null)))
+        if (java.util.Objects.equals(pricePrecision, null))
         {
             pricePrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "pricePrecision")));
         }
-        Object amountPrecision = ((Helpers.isTrue((!Helpers.isEqual(filterLotSize, null))))) ? this.safeNumber(filterLotSize, "stepSize") : this.parseNumber(this.parsePrecision(this.safeString(market, "quantityPrecision")));
+        Object amountPrecision = (((!java.util.Objects.equals(filterLotSize, null)))) ? this.safeNumber(filterLotSize, "stepSize") : this.parseNumber(this.parsePrecision(this.safeString(market, "quantityPrecision")));
         final Object finalSymbol = symbol;
         final Object finalBase = base;
         final Object finalSettle = settle;
@@ -1504,13 +1505,13 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchTime", null, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((List<Object>) marketTypeparametersVariable).get(1);
             Object response = null;
-            if (Helpers.isTrue(Helpers.isEqual(marketType, "swap")))
+            if (java.util.Objects.equals(marketType, "swap"))
             {
                 response = (this.fapiPublicGetV3Time(parameters)).join();
             } else
@@ -1549,7 +1550,7 @@ public class Aster extends AsterApi
         //         "0"  // ??
         //     ]
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 5)));
     }
 
@@ -1575,45 +1576,45 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object request = new HashMap<String, Object>() {{}};
-            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            if (!java.util.Objects.equals(since, null))
             {
-                Helpers.addElementToObject(request, "startTime", since);
+                ((Map<String, Object>)request).put("startTime", since);
             }
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1500));
+                ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 1500));
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = ((List<Object>) requestparametersVariable).get(0);
             parameters = ((List<Object>) requestparametersVariable).get(1);
-            Helpers.addElementToObject(request, "interval", this.safeString(this.timeframes, timeframe, timeframe));
+            ((Map<String, Object>)request).put("interval", this.safeString(this.timeframes, timeframe, timeframe));
             String price = this.safeString(parameters, "price");
-            Boolean isMark = (Helpers.isEqual(price, "mark"));
-            Boolean isIndex = (Helpers.isEqual(price, "index"));
+            Boolean isMark = (java.util.Objects.equals(price, "mark"));
+            Boolean isIndex = (java.util.Objects.equals(price, "index"));
             parameters = this.omit(parameters, "price");
             Object response = null;
             if (Helpers.isTrue(isMark))
             {
-                Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
+                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
                 response = (this.fapiPublicGetV3MarkPriceKlines(this.extend(request, parameters))).join();
             } else if (Helpers.isTrue(isIndex))
             {
-                Helpers.addElementToObject(request, "pair", Helpers.GetValue(market, "id"));
+                ((Map<String, Object>)request).put("pair", ((Map<String, Object>)market).get("id"));
                 response = (this.fapiPublicGetV3IndexPriceKlines(this.extend(request, parameters))).join();
             } else
             {
-                Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
-                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
+                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
+                if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
                 {
                     response = (this.fapiPublicGetV3Klines(this.extend(request, parameters))).join();
                 } else
@@ -1622,7 +1623,7 @@ public class Aster extends AsterApi
                 }
             }
             return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
 
@@ -1677,10 +1678,10 @@ public class Aster extends AsterApi
         //     "positionSide": "BOTH",      // only in PERP
         // }
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String id = this.safeString2(trade, "id", "a");
         String marketId = this.safeString(trade, "symbol");
-        String marketType = ((Helpers.isTrue((Helpers.inOp(trade, "positionSide"))))) ? "swap" : "spot";
+        String marketType = (((((Map<?, ?>)trade).containsKey("positionSide")))) ? "swap" : "spot";
         market = this.safeMarket(marketId, market, null, marketType);
         String currencyId = this.safeString2(trade, "commissionAsset", "marginAsset");
         String currencyCode = this.safeCurrencyCode(currencyId);
@@ -1691,20 +1692,20 @@ public class Aster extends AsterApi
         String side = this.safeStringLower(trade, "side");
         Object isMaker = this.safeBool(trade, "maker");
         String takerOrMaker = null;
-        if (Helpers.isTrue(!Helpers.isEqual(isMaker, null)))
+        if (!java.util.Objects.equals(isMaker, null))
         {
             takerOrMaker = ((Helpers.isTrue(isMaker))) ? "maker" : "taker";
-            if (Helpers.isTrue(Helpers.isEqual(side, null)))
+            if (java.util.Objects.equals(side, null))
             {
                 Object isBuyer = this.safeBool(trade, "buyer");
-                if (Helpers.isTrue(!Helpers.isEqual(isBuyer, null)))
+                if (!java.util.Objects.equals(isBuyer, null))
                 {
                     side = ((Helpers.isTrue(isBuyer))) ? "buy" : "sell";
                 }
             }
         }
         Object isBuyerMaker = this.safeBool2(trade, "isBuyerMaker", "m");
-        if (Helpers.isTrue(!Helpers.isEqual(isBuyerMaker, null)))
+        if (!java.util.Objects.equals(isBuyerMaker, null))
         {
             side = ((Helpers.isTrue(isBuyerMaker))) ? "sell" : "buy";
         }
@@ -1716,7 +1717,7 @@ public class Aster extends AsterApi
             put( "info", trade );
             put( "timestamp", timestamp );
             put( "datetime", Aster.this.iso8601(timestamp) );
-            put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
+            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
             put( "order", Aster.this.safeString(trade, "orderId") );
             put( "type", null );
             put( "side", finalSide );
@@ -1750,36 +1751,36 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object since = Helpers.getArg(optionalArgs, 0, null);
-            Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object request = new HashMap<String, Object>() {{
-                put( "symbol", Helpers.GetValue(market, "id") );
+                put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000));
+                ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 1000));
             }
             Object response = null;
-            Boolean sinceDefined = !Helpers.isEqual(since, null);
-            Boolean untilDefined = (Helpers.inOp(parameters, "until"));
+            Boolean sinceDefined = !java.util.Objects.equals(since, null);
+            Boolean untilDefined = (((Map<?, ?>)parameters).containsKey("until"));
             if (Helpers.isTrue(sinceDefined))
             {
-                Helpers.addElementToObject(request, "startTime", since);
+                ((Map<String, Object>)request).put("startTime", since);
             }
             if (Helpers.isTrue(untilDefined))
             {
                 request = this.handleUntilOption("endTime", request, parameters);
             }
             // use historical endpoint for targeted requests
-            if (Helpers.isTrue(Helpers.inOp(request, "startTime")))
+            if (((Map<?, ?>)request).containsKey("startTime"))
             {
-                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
+                if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
                 {
                     response = (this.fapiPublicGetV3AggTrades(this.extend(request, parameters))).join();
                 } else
@@ -1788,7 +1789,7 @@ public class Aster extends AsterApi
                 }
             } else
             {
-                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
+                if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
                 {
                     response = (this.fapiPublicGetV3Trades(this.extend(request, parameters))).join();
                 } else
@@ -1797,7 +1798,7 @@ public class Aster extends AsterApi
                 }
             }
             return this.parseTrades(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
@@ -1819,35 +1820,35 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             (this.loadMarketsAndSignIn()).join();
             Object request = new HashMap<String, Object>() {{}};
             Object market = null;
-            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
+                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((List<Object>) marketTypeparametersVariable).get(1);
-            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            if (!java.util.Objects.equals(since, null))
             {
-                Helpers.addElementToObject(request, "startTime", since);
+                ((Map<String, Object>)request).put("startTime", since);
             }
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000));
+                ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 1000));
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = ((List<Object>) requestparametersVariable).get(0);
             parameters = ((List<Object>) requestparametersVariable).get(1);
             Object response = null;
-            if (Helpers.isTrue(Helpers.isEqual(marketType, "swap")))
+            if (java.util.Objects.equals(marketType, "swap"))
             {
                 response = (this.fapiPrivateGetV3UserTrades(this.extend(request, parameters))).join();
             } else
@@ -1878,7 +1879,7 @@ public class Aster extends AsterApi
             // }
             //
             return this.parseTrades(response, market, since, limit, parameters);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
@@ -1898,22 +1899,22 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", Helpers.GetValue(market, "id") );
+                put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
             Object response = null;
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(request, "limit", this.findNearestCeiling(new ArrayList<Object>(Arrays.asList(5, 10, 20, 50, 100, 500, 1000)), limit));
+                ((Map<String, Object>)request).put("limit", this.findNearestCeiling(new ArrayList<Object>(Arrays.asList(5, 10, 20, 50, 100, 500, 1000)), limit));
             }
-            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
+            if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 response = (this.fapiPublicGetV3Depth(this.extend(request, parameters))).join();
             } else
@@ -1991,7 +1992,7 @@ public class Aster extends AsterApi
         //            "lastUpdateId": "453174307613"   // only in PERP
         //        }, ...
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeInteger(ticker, "closeTime");
         String last = this.safeString(ticker, "lastPrice");
         String open = this.safeString(ticker, "openPrice");
@@ -2000,20 +2001,20 @@ public class Aster extends AsterApi
         String baseVolume = this.safeString(ticker, "volume");
         String high = this.safeString(ticker, "highPrice");
         String low = this.safeString(ticker, "lowPrice");
-        Boolean isTickerResponse = (Helpers.inOp(ticker, "priceChange"));
+        Boolean isTickerResponse = (((Map<?, ?>)ticker).containsKey("priceChange"));
         String marketType = null;
         if (Helpers.isTrue(isTickerResponse))
         {
-            marketType = ((Helpers.isTrue((Helpers.inOp(ticker, "baseAsset"))))) ? "spot" : "swap";
+            marketType = (((((Map<?, ?>)ticker).containsKey("baseAsset")))) ? "spot" : "swap";
         } else
         {
-            marketType = ((Helpers.isTrue((Helpers.inOp(ticker, "lastUpdateId"))))) ? "swap" : "spot";
+            marketType = (((((Map<?, ?>)ticker).containsKey("lastUpdateId")))) ? "swap" : "spot";
         }
         String marketId = this.safeString(ticker, "symbol");
         market = this.safeMarket(marketId, market, null, marketType);
         final Object finalMarket = market;
         return this.safeTicker(new HashMap<String, Object>() {{
-            put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
+            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
             put( "timestamp", timestamp );
             put( "datetime", Aster.this.iso8601(timestamp) );
             put( "high", high );
@@ -2053,17 +2054,17 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", Helpers.GetValue(market, "id") );
+                put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
             Object response = null;
-            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
+            if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 response = (this.fapiPublicGetV3Ticker24hr(this.extend(request, parameters))).join();
             } else
@@ -2120,9 +2121,9 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -2133,10 +2134,10 @@ public class Aster extends AsterApi
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((List<Object>) marketTypeparametersVariable).get(1);
             Object response = null;
-            if (Helpers.isTrue(Helpers.isEqual(marketType, "swap")))
+            if (java.util.Objects.equals(marketType, "swap"))
             {
                 response = (this.fapiPublicGetV3Ticker24hr(parameters)).join();
-            } else if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
+            } else if (java.util.Objects.equals(marketType, "spot"))
             {
                 response = (this.sapiPublicGetV3Ticker24hr(parameters)).join();
             }
@@ -2189,9 +2190,9 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -2202,10 +2203,10 @@ public class Aster extends AsterApi
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((List<Object>) marketTypeparametersVariable).get(1);
             Object response = null;
-            if (Helpers.isTrue(Helpers.isEqual(marketType, "swap")))
+            if (java.util.Objects.equals(marketType, "swap"))
             {
                 response = (this.fapiPublicGetV3TickerPrice(parameters)).join();
-            } else if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
+            } else if (java.util.Objects.equals(marketType, "spot"))
             {
                 response = (this.sapiPublicGetV3TickerPrice(parameters)).join();
             }
@@ -2221,13 +2222,13 @@ public class Aster extends AsterApi
             //         ...
             //     ]
             //
-            if (Helpers.isTrue(Helpers.isEqual(response, null)))
+            if (java.util.Objects.equals(response, null))
             {
-                throw new NullResponse(Helpers.add(this.id, " fetchLastPrices() returned empty response")) ;
+                throw new NullResponse((this.id + " fetchLastPrices() returned empty response")) ;
             }
             List<Object> rows = this.toArray(response);
             List<Object> results = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
+            for (var i = 0; i < ((List<?>)rows).size(); i++)
             {
                 String marketId = this.safeString(Helpers.GetValue(rows, i), "symbol");
                 Map<String, Object> safeMarket = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
@@ -2251,7 +2252,7 @@ public class Aster extends AsterApi
         //         "time": "1649666690902"
         //     }
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeInteger(entry, "time");
         return new HashMap<String, Object>() {{
             put( "symbol", Aster.this.safeString(market, "symbol") );
@@ -2279,9 +2280,9 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -2292,10 +2293,10 @@ public class Aster extends AsterApi
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((List<Object>) marketTypeparametersVariable).get(1);
             Object response = null;
-            if (Helpers.isTrue(Helpers.isEqual(marketType, "swap")))
+            if (java.util.Objects.equals(marketType, "swap"))
             {
                 response = (this.fapiPublicGetV3TickerBookTicker(parameters)).join();
-            } else if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
+            } else if (java.util.Objects.equals(marketType, "spot"))
             {
                 response = (this.sapiPublicGetV3TickerBookTicker(parameters)).join();
             }
@@ -2345,15 +2346,15 @@ public class Aster extends AsterApi
         //         "fundingFeeFloor": -0.03
         //     }
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(contract, "symbol");
         Long nextFundingTimestamp = this.safeInteger(contract, "nextFundingTime");
         Long timestamp = this.safeInteger(contract, "time");
         String interval = this.safeString(contract, "fundingIntervalHours");
         Object intervalString = null;
-        if (Helpers.isTrue(!Helpers.isEqual(interval, null)))
+        if (!java.util.Objects.equals(interval, null))
         {
-            intervalString = Helpers.add(interval, "h");
+            intervalString = (interval + "h");
         }
         final Object finalIntervalString = intervalString;
         return new HashMap<String, Object>() {{
@@ -2392,18 +2393,18 @@ public class Aster extends AsterApi
         final Object symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(symbol, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRate() requires a symbol argument")) ;
+                throw new ArgumentsRequired((this.id + " fetchFundingRate() requires a symbol argument")) ;
             }
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", Helpers.GetValue(market, "id") );
+                put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
             Object response = (this.fapiPublicGetV3PremiumIndex(this.extend(request, parameters))).join();
             //
@@ -2437,9 +2438,9 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -2478,13 +2479,13 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
+            if (!java.util.Objects.equals(symbols, null))
             {
                 symbols = this.marketSymbols(symbols);
             }
@@ -2523,28 +2524,28 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Object request = new HashMap<String, Object>() {{}};
             Object market = null;
-            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
+                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
-            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            if (!java.util.Objects.equals(since, null))
             {
-                Helpers.addElementToObject(request, "startTime", since);
+                ((Map<String, Object>)request).put("startTime", since);
             }
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000));
+                ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 1000));
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = ((List<Object>) requestparametersVariable).get(0);
@@ -2560,7 +2561,7 @@ public class Aster extends AsterApi
             //     ]
             //
             return this.parseFundingRateHistories(response, market);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
     }
 
@@ -2573,7 +2574,7 @@ public class Aster extends AsterApi
         //         "fundingTime": "1621267200000",
         //     }
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeInteger(contract, "fundingTime");
         return new HashMap<String, Object>() {{
             put( "info", contract );
@@ -2600,7 +2601,7 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             (this.loadMarketsAndSignIn()).join();
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
@@ -2608,10 +2609,10 @@ public class Aster extends AsterApi
             parameters = ((List<Object>) marketTypeparametersVariable).get(1);
             Object response = null;
             Object data = null;
-            if (Helpers.isTrue(Helpers.isEqual(marketType, "swap")))
+            if (java.util.Objects.equals(marketType, "swap"))
             {
                 data = (this.fapiPrivateGetV3Balance(parameters)).join();
-            } else if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
+            } else if (java.util.Objects.equals(marketType, "spot"))
             {
                 response = (this.sapiPrivateGetV3Account(parameters)).join();
                 data = this.safeList(response, "balances", new ArrayList<Object>(Arrays.asList()));
@@ -2635,7 +2636,7 @@ public class Aster extends AsterApi
             Helpers.addElementToObject(account, "free", this.safeString2(balance, "free", "availableBalance"));
             Helpers.addElementToObject(account, "used", this.safeString(balance, "locked"));
             Helpers.addElementToObject(account, "total", this.safeString(balance, "balance"));
-            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            if (!java.util.Objects.equals(code, null))
             {
                 Helpers.addElementToObject(result, code, account);
             }
@@ -2658,26 +2659,26 @@ public class Aster extends AsterApi
         final Object marginMode3 = marginMode2;
         return BaseExchange.supplyAsync(() -> {
             Object marginMode = marginMode3;
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(symbol, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
+                throw new ArgumentsRequired((this.id + " setMarginMode() requires a symbol argument")) ;
             }
             marginMode = ((String)marginMode).toUpperCase();
-            if (Helpers.isTrue(Helpers.isEqual(marginMode, "CROSS")))
+            if (java.util.Objects.equals(marginMode, "CROSS"))
             {
                 marginMode = "CROSSED";
             }
-            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marginMode, "ISOLATED"))) && Helpers.isTrue((!Helpers.isEqual(marginMode, "CROSSED")))))
+            if ((!java.util.Objects.equals(marginMode, "ISOLATED")) && (!java.util.Objects.equals(marginMode, "CROSSED")))
             {
-                throw new BadRequest(Helpers.add(this.id, " marginMode must be either isolated or cross")) ;
+                throw new BadRequest((this.id + " marginMode must be either isolated or cross")) ;
             }
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             final Object finalMarginMode = marginMode;
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", Helpers.GetValue(market, "id") );
+                put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "marginType", finalMarginMode );
             }};
             Map<String, Object> response = (this.fapiPrivatePostV3MarginType(this.extend(request, parameters))).join();
@@ -2703,8 +2704,8 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.fapiPrivateGetV3PositionSideDual(parameters)).join();
             //
             //     {
@@ -2734,8 +2735,8 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             String strValue = ((Helpers.isTrue(hedged))) ? "true" : "false";
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "dualSidePosition", strValue );
@@ -2753,7 +2754,7 @@ public class Aster extends AsterApi
 
     public Object parseTradingFee(Object fee, Object... optionalArgs)
     {
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(fee, "symbol");
         market = this.safeMarket(marketId, market);
         String symbol = this.safeSymbol(marketId, market);
@@ -2782,14 +2783,14 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", Helpers.GetValue(market, "id") );
+                put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
             Object response = null;
-            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
+            if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 response = (this.fapiPrivateGetV3CommissionRate(this.extend(request, parameters))).join();
             } else
@@ -2891,10 +2892,10 @@ public class Aster extends AsterApi
         //            "orderListId": "-1"
         //        }
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object info = order;
         String positionSide = this.safeString(order, "positionSide");
-        String defaultType = ((Helpers.isTrue((!Helpers.isEqual(positionSide, null))))) ? "swap" : "spot";
+        String defaultType = (((!java.util.Objects.equals(positionSide, null)))) ? "swap" : "spot";
         String marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market, null, defaultType);
         String side = this.safeStringLower(order, "side");
@@ -2948,28 +2949,28 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(symbol, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired((this.id + " fetchOrder() requires a symbol argument")) ;
             }
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", Helpers.GetValue(market, "id") );
+                put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "clientOid");
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "clientOid")));
-            if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
+            if (!java.util.Objects.equals(clientOrderId, null))
             {
-                Helpers.addElementToObject(request, "origClientOrderId", clientOrderId);
+                ((Map<String, Object>)request).put("origClientOrderId", clientOrderId);
             } else
             {
-                Helpers.addElementToObject(request, "orderId", id);
+                ((Map<String, Object>)request).put("orderId", id);
             }
             Object response = null;
-            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
+            if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 response = (this.fapiPrivateGetV3Order(this.extend(request, parameters))).join();
             } else
@@ -3026,28 +3027,28 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(symbol, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOpenOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired((this.id + " fetchOpenOrder() requires a symbol argument")) ;
             }
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", Helpers.GetValue(market, "id") );
+                put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "clientOid");
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "clientOid")));
-            if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
+            if (!java.util.Objects.equals(clientOrderId, null))
             {
-                Helpers.addElementToObject(request, "origClientOrderId", clientOrderId);
+                ((Map<String, Object>)request).put("origClientOrderId", clientOrderId);
             } else
             {
-                Helpers.addElementToObject(request, "orderId", id);
+                ((Map<String, Object>)request).put("orderId", id);
             }
             Object response = null;
-            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
+            if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 response = (this.sapiPrivateGetV3OpenOrder(this.extend(request, parameters))).join();
             } else
@@ -3106,32 +3107,32 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(symbol, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired((this.id + " fetchOrders() requires a symbol argument")) ;
             }
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object request = new HashMap<String, Object>() {{
-                put( "symbol", Helpers.GetValue(market, "id") );
+                put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000));
+                ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 1000));
             }
-            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            if (!java.util.Objects.equals(since, null))
             {
-                Helpers.addElementToObject(request, "startTime", since);
+                ((Map<String, Object>)request).put("startTime", since);
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = ((List<Object>) requestparametersVariable).get(0);
             parameters = ((List<Object>) requestparametersVariable).get(1);
             Object response = null;
-            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
+            if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 response = (this.fapiPrivateGetV3AllOrders(this.extend(request, parameters))).join();
             } else
@@ -3169,7 +3170,7 @@ public class Aster extends AsterApi
             //        }, ...
             //
             return this.parseOrders(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -3192,29 +3193,29 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object market = null;
             Object marketType = null;
-            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
+                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
-            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+            if (java.util.Objects.equals(symbol, null))
             {
-                if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(Helpers.GetValue(this.options, "fetchOpenOrders"), "warnIfNoSymbol"), true)))
+                if (java.util.Objects.equals(Helpers.GetValue(((Map<String, Object>)this.options).get("fetchOpenOrders"), "warnIfNoSymbol"), true))
                 {
-                    throw new ExchangeError(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOpenOrders(): WARNING - this method without providing \"symbol\" argument uses 40 times more rate-limit quota. If you acknowledge this warning, set "), this.id), ".options[\"fetchOpenOrders\"][\"warnIfNoSymbol\"] = false to suppress this warning message.")) ;
+                    throw new ExchangeError((((this.id + " fetchOpenOrders(): WARNING - this method without providing \"symbol\" argument uses 40 times more rate-limit quota. If you acknowledge this warning, set ") + this.id) + ".options[\"fetchOpenOrders\"][\"warnIfNoSymbol\"] = false to suppress this warning message.")) ;
                 }
             } else
             {
                 market = this.market(symbol);
-                Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
+                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
             marketType = ((List<Object>) marketTypeparametersVariable).get(0);
@@ -3227,7 +3228,7 @@ public class Aster extends AsterApi
             if (Helpers.isTrue(this.isLinear(marketType, subType)))
             {
                 response = (this.fapiPrivateGetV3OpenOrders(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
+            } else if (java.util.Objects.equals(marketType, "spot"))
             {
                 response = (this.sapiPrivateGetV3OpenOrders(this.extend(request, parameters))).join();
             }
@@ -3263,7 +3264,7 @@ public class Aster extends AsterApi
             //    ]
             //
             return this.parseOrders(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -3294,13 +3295,13 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             Object response = null;
-            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
+            if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 response = (this.fapiPrivatePostV3Order(request)).join();
             } else
@@ -3356,20 +3357,20 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             (this.loadMarketsAndSignIn()).join();
             List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
             Object orderSymbols = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(orders), 5)))
+            if (((List<?>)orders).size() > 5)
             {
-                throw new InvalidOrder(Helpers.add(this.id, " createOrders() order list max 5 orders")) ;
+                throw new InvalidOrder((this.id + " createOrders() order list max 5 orders")) ;
             }
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
+            for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
                 Object rawOrder = Helpers.GetValue(orders, i);
                 String marketId = this.safeString(rawOrder, "symbol");
                 Map<String, Object> currentMarket = (Map<String, Object>) this.market(marketId);
-                ((List<Object>)orderSymbols).add(Helpers.GetValue(currentMarket, "symbol"));
+                ((List<Object>)orderSymbols).add(((Map<String, Object>)currentMarket).get("symbol"));
                 String type = this.safeString(rawOrder, "type");
                 String side = this.safeString(rawOrder, "side");
                 Object amount = this.safeValue(rawOrder, "amount");
@@ -3380,9 +3381,9 @@ public class Aster extends AsterApi
             }
             orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
             Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(orderSymbols, 0));
-            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
+            if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
-                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrders() does not support "), Helpers.GetValue(market, "type")), " orders")) ;
+                throw new NotSupported((Helpers.add((this.id + " createOrders() does not support "), ((Map<String, Object>)market).get("type")) + " orders")) ;
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "batchOrders", ordersRequests );
@@ -3419,21 +3420,21 @@ public class Aster extends AsterApi
             //    ]
             //
             return this.parseOrders(response);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
     public Object createOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
-        Object price = Helpers.getArg(optionalArgs, 0, null);
-        Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-        if (Helpers.isTrue(Helpers.isEqual(type, null)))
+        Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+        Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+        if (java.util.Objects.equals(type, null))
         {
-            throw new ArgumentsRequired(Helpers.add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired((this.id + " requires a type argument")) ;
         }
-        if (Helpers.isTrue(Helpers.isEqual(side, null)))
+        if (java.util.Objects.equals(side, null))
         {
-            throw new ArgumentsRequired(Helpers.add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired((this.id + " requires a side argument")) ;
         }
         /**
          * @method
@@ -3450,17 +3451,17 @@ public class Aster extends AsterApi
          */
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
         Object initialUppercaseType = ((String)type).toUpperCase();
-        Boolean isMarketOrder = Helpers.isEqual(initialUppercaseType, "MARKET");
-        Boolean isLimitOrder = Helpers.isEqual(initialUppercaseType, "LIMIT");
+        Boolean isMarketOrder = java.util.Objects.equals(initialUppercaseType, "MARKET");
+        Boolean isLimitOrder = java.util.Objects.equals(initialUppercaseType, "LIMIT");
         final Object finalSide = side;
         Map<String, Object> request = new HashMap<String, Object>() {{
-            put( "symbol", Helpers.GetValue(market, "id") );
+            put( "symbol", ((Map<String, Object>)market).get("id") );
             put( "side", ((String)finalSide).toUpperCase() );
         }};
         String clientOrderId = this.safeString2(parameters, "newClientOrderId", "clientOrderId");
-        if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
+        if (!java.util.Objects.equals(clientOrderId, null))
         {
-            Helpers.addElementToObject(request, "newClientOrderId", clientOrderId);
+            ((Map<String, Object>)request).put("newClientOrderId", clientOrderId);
         }
         String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         String stopLossPrice = this.safeString(parameters, "stopLossPrice", triggerPrice);
@@ -3468,20 +3469,20 @@ public class Aster extends AsterApi
         String trailingDelta = this.safeString(parameters, "trailingDelta");
         String trailingTriggerPrice = this.safeString2(parameters, "trailingTriggerPrice", "activationPrice");
         String trailingPercent = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("trailingPercent", "callbackRate", "trailingDelta")));
-        Boolean isTrailingPercentOrder = !Helpers.isEqual(trailingPercent, null);
-        Boolean isStopLoss = Helpers.isTrue(!Helpers.isEqual(stopLossPrice, null)) || Helpers.isTrue(!Helpers.isEqual(trailingDelta, null));
-        Boolean isTakeProfit = !Helpers.isEqual(takeProfitPrice, null);
+        Boolean isTrailingPercentOrder = !java.util.Objects.equals(trailingPercent, null);
+        Boolean isStopLoss = !java.util.Objects.equals(stopLossPrice, null) || !java.util.Objects.equals(trailingDelta, null);
+        Boolean isTakeProfit = !java.util.Objects.equals(takeProfitPrice, null);
         Object uppercaseType = initialUppercaseType;
         String stopPrice = null;
         if (Helpers.isTrue(isTrailingPercentOrder))
         {
-            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
+            if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 uppercaseType = "TRAILING_STOP_MARKET";
-                Helpers.addElementToObject(request, "callbackRate", trailingPercent);
-                if (Helpers.isTrue(!Helpers.isEqual(trailingTriggerPrice, null)))
+                ((Map<String, Object>)request).put("callbackRate", trailingPercent);
+                if (!java.util.Objects.equals(trailingTriggerPrice, null))
                 {
-                    Helpers.addElementToObject(request, "activationPrice", this.priceToPrecision(symbol, trailingTriggerPrice));
+                    ((Map<String, Object>)request).put("activationPrice", this.priceToPrecision(symbol, trailingTriggerPrice));
                 }
             }
         } else if (Helpers.isTrue(isStopLoss))
@@ -3508,7 +3509,7 @@ public class Aster extends AsterApi
         Object postOnly = this.isPostOnly(isMarketOrder, null, parameters);
         if (Helpers.isTrue(postOnly))
         {
-            Helpers.addElementToObject(request, "timeInForce", "GTX");
+            ((Map<String, Object>)request).put("timeInForce", "GTX");
         }
         // additional required fields per order type
         // spot: LIMIT timeInForce, quantity, price; MARKET quantity or quoteOrderQty;
@@ -3520,25 +3521,25 @@ public class Aster extends AsterApi
         Boolean priceIsRequired = false;
         Boolean triggerPriceIsRequired = false;
         Boolean quantityIsRequired = false;
-        Helpers.addElementToObject(request, "type", uppercaseType);
-        if (Helpers.isTrue(Helpers.isEqual(uppercaseType, "MARKET")))
+        ((Map<String, Object>)request).put("type", uppercaseType);
+        if (java.util.Objects.equals(uppercaseType, "MARKET"))
         {
-            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
+            if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
                 Object quoteOrderQty = this.handleOption("createOrder", "quoteOrderQty", true);
-                if (Helpers.isTrue(Helpers.isEqual(quoteOrderQty, true)))
+                if (java.util.Objects.equals(quoteOrderQty, true))
                 {
                     String quoteOrderQtyNew = this.safeString2(parameters, "quoteOrderQty", "cost");
-                    Object precision = Helpers.GetValue(Helpers.GetValue(market, "precision"), "price");
-                    if (Helpers.isTrue(!Helpers.isEqual(quoteOrderQtyNew, null)))
+                    Object precision = ((Map<String, Object>)((Map<String, Object>)market).get("precision")).get("price");
+                    if (!java.util.Objects.equals(quoteOrderQtyNew, null))
                     {
-                        Helpers.addElementToObject(request, "quoteOrderQty", this.decimalToPrecision(quoteOrderQtyNew, TRUNCATE, precision, this.precisionMode));
-                    } else if (Helpers.isTrue(!Helpers.isEqual(price, null)))
+                        ((Map<String, Object>)request).put("quoteOrderQty", this.decimalToPrecision(quoteOrderQtyNew, TRUNCATE, precision, this.precisionMode));
+                    } else if (!java.util.Objects.equals(price, null))
                     {
                         Object amountString = this.numberToString(amount);
                         Object priceString = this.numberToString(price);
                         String quoteOrderQuantity = Precise.stringMul(amountString, priceString);
-                        Helpers.addElementToObject(request, "quoteOrderQty", this.decimalToPrecision(quoteOrderQuantity, TRUNCATE, precision, this.precisionMode));
+                        ((Map<String, Object>)request).put("quoteOrderQty", this.decimalToPrecision(quoteOrderQuantity, TRUNCATE, precision, this.precisionMode));
                     } else
                     {
                         quantityIsRequired = true;
@@ -3551,83 +3552,83 @@ public class Aster extends AsterApi
             {
                 quantityIsRequired = true;
             }
-        } else if (Helpers.isTrue(Helpers.isEqual(uppercaseType, "LIMIT")))
+        } else if (java.util.Objects.equals(uppercaseType, "LIMIT"))
         {
             timeInForceIsRequired = true;
             quantityIsRequired = true;
             priceIsRequired = true;
-        } else if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(uppercaseType, "STOP"))) || Helpers.isTrue((Helpers.isEqual(uppercaseType, "TAKE_PROFIT")))))
+        } else if ((java.util.Objects.equals(uppercaseType, "STOP")) || (java.util.Objects.equals(uppercaseType, "TAKE_PROFIT")))
         {
             quantityIsRequired = true;
             priceIsRequired = true;
             triggerPriceIsRequired = true;
-        } else if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(uppercaseType, "STOP_MARKET"))) || Helpers.isTrue((Helpers.isEqual(uppercaseType, "TAKE_PROFIT_MARKET")))))
+        } else if ((java.util.Objects.equals(uppercaseType, "STOP_MARKET")) || (java.util.Objects.equals(uppercaseType, "TAKE_PROFIT_MARKET")))
         {
-            if (Helpers.isTrue(!Helpers.isEqual(closePosition, true)))
+            if (!java.util.Objects.equals(closePosition, true))
             {
                 quantityIsRequired = true;
             }
             triggerPriceIsRequired = true;
-        } else if (Helpers.isTrue(Helpers.isEqual(uppercaseType, "TRAILING_STOP_MARKET")))
+        } else if (java.util.Objects.equals(uppercaseType, "TRAILING_STOP_MARKET"))
         {
-            Helpers.addElementToObject(request, "callbackRate", trailingPercent);
-            if (Helpers.isTrue(!Helpers.isEqual(trailingTriggerPrice, null)))
+            ((Map<String, Object>)request).put("callbackRate", trailingPercent);
+            if (!java.util.Objects.equals(trailingTriggerPrice, null))
             {
-                Helpers.addElementToObject(request, "activationPrice", this.priceToPrecision(symbol, trailingTriggerPrice));
+                ((Map<String, Object>)request).put("activationPrice", this.priceToPrecision(symbol, trailingTriggerPrice));
             }
         }
         if (Helpers.isTrue(quantityIsRequired))
         {
-            String marketAmountPrecision = this.safeString(Helpers.GetValue(market, "precision"), "amount");
-            Boolean isPrecisionAvailable = (!Helpers.isEqual(marketAmountPrecision, null));
+            String marketAmountPrecision = this.safeString(((Map<String, Object>)market).get("precision"), "amount");
+            Boolean isPrecisionAvailable = (!java.util.Objects.equals(marketAmountPrecision, null));
             if (Helpers.isTrue(isPrecisionAvailable))
             {
-                Helpers.addElementToObject(request, "quantity", this.amountToPrecision(symbol, amount));
+                ((Map<String, Object>)request).put("quantity", this.amountToPrecision(symbol, amount));
             } else
             {
-                Helpers.addElementToObject(request, "quantity", this.parseToNumeric(amount));
+                ((Map<String, Object>)request).put("quantity", this.parseToNumeric(amount));
             }
         }
         if (Helpers.isTrue(priceIsRequired))
         {
-            if (Helpers.isTrue(Helpers.isEqual(price, null)))
+            if (java.util.Objects.equals(price, null))
             {
-                throw new InvalidOrder(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a price argument for a "), type), " order")) ;
+                throw new InvalidOrder((((this.id + " createOrder() requires a price argument for a ") + type) + " order")) ;
             }
-            String pricePrecision = this.safeString(Helpers.GetValue(market, "precision"), "price");
-            Boolean isPricePrecisionAvailable = (!Helpers.isEqual(pricePrecision, null));
+            String pricePrecision = this.safeString(((Map<String, Object>)market).get("precision"), "price");
+            Boolean isPricePrecisionAvailable = (!java.util.Objects.equals(pricePrecision, null));
             if (Helpers.isTrue(isPricePrecisionAvailable))
             {
-                Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
+                ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
             } else
             {
-                Helpers.addElementToObject(request, "price", this.parseToNumeric(price));
+                ((Map<String, Object>)request).put("price", this.parseToNumeric(price));
             }
         }
         if (Helpers.isTrue(triggerPriceIsRequired))
         {
-            if (Helpers.isTrue(Helpers.isEqual(stopPrice, null)))
+            if (java.util.Objects.equals(stopPrice, null))
             {
-                throw new InvalidOrder(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a stopPrice extra param for a "), type), " order")) ;
+                throw new InvalidOrder((((this.id + " createOrder() requires a stopPrice extra param for a ") + type) + " order")) ;
             }
-            if (Helpers.isTrue(!Helpers.isEqual(stopPrice, null)))
+            if (!java.util.Objects.equals(stopPrice, null))
             {
-                Helpers.addElementToObject(request, "stopPrice", this.priceToPrecision(symbol, stopPrice));
+                ((Map<String, Object>)request).put("stopPrice", this.priceToPrecision(symbol, stopPrice));
             }
         }
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(timeInForceIsRequired) && Helpers.isTrue((Helpers.isEqual(this.safeString(parameters, "timeInForce"), null)))) && Helpers.isTrue((Helpers.isEqual(this.safeString(request, "timeInForce"), null)))))
+        if (Helpers.isTrue(timeInForceIsRequired) && (java.util.Objects.equals(this.safeString(parameters, "timeInForce"), null)) && (java.util.Objects.equals(this.safeString(request, "timeInForce"), null)))
         {
             Object tif = null;
             List<Object> tifparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "timeInForce");
             tif = ((List<Object>) tifparametersVariable).get(0);
             parameters = ((List<Object>) tifparametersVariable).get(1);
-            Helpers.addElementToObject(request, "timeInForce", tif);
+            ((Map<String, Object>)request).put("timeInForce", tif);
         }
         Object requestParams = this.omit(parameters, new ArrayList<Object>(Arrays.asList("newClientOrderId", "clientOrderId", "stopPrice", "triggerPrice", "trailingTriggerPrice", "trailingPercent", "trailingDelta", "stopPrice", "stopLossPrice", "takeProfitPrice")));
-        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(this.safeBool(this.options, "builderFee"), true))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))))
+        if ((java.util.Objects.equals(this.safeBool(this.options, "builderFee"), true)) && (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)))
         {
-            Helpers.addElementToObject(request, "builder", this.safeString(this.options, "builder"));
-            Helpers.addElementToObject(request, "feeRate", this.safeString(this.options, "builderRate"));
+            ((Map<String, Object>)request).put("builder", this.safeString(this.options, "builder"));
+            ((Map<String, Object>)request).put("feeRate", this.safeString(this.options, "builderRate"));
         }
         return this.extend(request, requestParams);
     }
@@ -3647,19 +3648,19 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(symbol, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " cancelAllOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired((this.id + " cancelAllOrders() requires a symbol argument")) ;
             }
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", Helpers.GetValue(market, "id") );
+                put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
             Object response = null;
-            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
+            if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 response = (this.fapiPrivateDeleteV3AllOpenOrders(this.extend(request, parameters))).join();
             } else
@@ -3678,7 +3679,7 @@ public class Aster extends AsterApi
             return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", finalResponse );
     }})));
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -3698,28 +3699,28 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(symbol, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
             }
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", Helpers.GetValue(market, "id") );
+                put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
             String clientOrderId = this.safeString2(parameters, "origClientOrderId", "clientOrderId");
-            if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
+            if (!java.util.Objects.equals(clientOrderId, null))
             {
-                Helpers.addElementToObject(request, "origClientOrderId", clientOrderId);
+                ((Map<String, Object>)request).put("origClientOrderId", clientOrderId);
             } else
             {
-                Helpers.addElementToObject(request, "orderId", id);
+                ((Map<String, Object>)request).put("orderId", id);
             }
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("origClientOrderId", "clientOrderId")));
             Object response = null;
-            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
+            if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 response = (this.fapiPrivateDeleteV3Order(this.extend(request, parameters))).join();
             } else
@@ -3751,27 +3752,27 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(symbol, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " cancelOrders() requires a symbol argument")) ;
+                throw new ArgumentsRequired((this.id + " cancelOrders() requires a symbol argument")) ;
             }
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", Helpers.GetValue(market, "id") );
+                put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
             Object clientOrderIdList = this.safeList(parameters, "origClientOrderIdList");
-            if (Helpers.isTrue(!Helpers.isEqual(clientOrderIdList, null)))
+            if (!java.util.Objects.equals(clientOrderIdList, null))
             {
-                Helpers.addElementToObject(request, "origClientOrderIdList", clientOrderIdList);
+                ((Map<String, Object>)request).put("origClientOrderIdList", clientOrderIdList);
             } else
             {
-                Helpers.addElementToObject(request, "orderIdList", ids);
+                ((Map<String, Object>)request).put("orderIdList", ids);
             }
             Object response = null;
-            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
+            if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
                 response = (this.fapiPrivateDeleteV3BatchOrders(this.extend(request, parameters))).join();
             } else
@@ -3779,7 +3780,7 @@ public class Aster extends AsterApi
                 response = (this.sapiPrivateDeleteV3AllOpenOrders(this.extend(request, parameters))).join();
             }
             return this.parseOrders(response, market);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -3798,21 +3799,21 @@ public class Aster extends AsterApi
         final Object leverage3 = leverage2;
         return BaseExchange.supplyAsync(() -> {
             Object leverage = leverage3;
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(symbol, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
+                throw new ArgumentsRequired((this.id + " setLeverage() requires a symbol argument")) ;
             }
-            if (Helpers.isTrue(Helpers.isTrue((Helpers.isLessThan(leverage, 1))) || Helpers.isTrue((Helpers.isGreaterThan(leverage, 125)))))
+            if ((Helpers.isLessThan(leverage, 1)) || (Helpers.isGreaterThan(leverage, 125)))
             {
-                throw new BadRequest(Helpers.add(this.id, " leverage should be between 1 and 125")) ;
+                throw new BadRequest((this.id + " leverage should be between 1 and 125")) ;
             }
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             final Object finalLeverage = leverage;
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", Helpers.GetValue(market, "id") );
+                put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "leverage", finalLeverage );
             }};
             Map<String, Object> response = (this.fapiPrivatePostV3Leverage(this.extend(request, parameters))).join();
@@ -3842,8 +3843,8 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             (this.loadMarketsAndSignIn()).join();
             List<Object> response = (this.fapiPrivateGetV3PositionRisk(parameters)).join();
             //
@@ -3893,21 +3894,21 @@ public class Aster extends AsterApi
         //         "updateTime": 0
         //     }
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(leverage, "symbol");
         String marginMode = this.safeStringLower(leverage, "marginType");
         String side = this.safeStringLower(leverage, "positionSide");
         Object longLeverage = null;
         Object shortLeverage = null;
         Long leverageValue = this.safeInteger(leverage, "leverage");
-        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(side, null))) || Helpers.isTrue((Helpers.isEqual(side, "both")))))
+        if ((java.util.Objects.equals(side, null)) || (java.util.Objects.equals(side, "both")))
         {
             longLeverage = leverageValue;
             shortLeverage = leverageValue;
-        } else if (Helpers.isTrue(Helpers.isEqual(side, "long")))
+        } else if (java.util.Objects.equals(side, "long"))
         {
             longLeverage = leverageValue;
-        } else if (Helpers.isTrue(Helpers.isEqual(side, "short")))
+        } else if (java.util.Objects.equals(side, "short"))
         {
             shortLeverage = leverageValue;
         }
@@ -3936,8 +3937,8 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             (this.loadMarketsAndSignIn()).join();
             List<Object> response = (this.fapiPrivateGetV3PositionRisk(parameters)).join();
             //
@@ -3989,7 +3990,7 @@ public class Aster extends AsterApi
         //         "updateTime": 0
         //     }
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(marginMode, "symbol");
         market = this.safeMarket(marketId, market, null, "swap");
         final Object finalMarket = market;
@@ -4018,37 +4019,37 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object type = Helpers.getArg(optionalArgs, 1, null);
-            Object since = Helpers.getArg(optionalArgs, 2, null);
-            Object limit = Helpers.getArg(optionalArgs, 3, null);
-            Object parameters = Helpers.getArg(optionalArgs, 4, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object type = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(symbol, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " fetchMarginAdjustmentHistory () requires a symbol argument")) ;
+                throw new ArgumentsRequired((this.id + " fetchMarginAdjustmentHistory () requires a symbol argument")) ;
             }
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Long until = this.safeInteger(parameters, "until");
             parameters = this.omit(parameters, "until");
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", Helpers.GetValue(market, "id") );
+                put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
-            if (Helpers.isTrue(!Helpers.isEqual(type, null)))
+            if (!java.util.Objects.equals(type, null))
             {
-                Helpers.addElementToObject(request, "type", ((Helpers.isTrue((Helpers.isEqual(type, "add"))))) ? 1 : 2);
+                ((Map<String, Object>)request).put("type", (((java.util.Objects.equals(type, "add")))) ? 1 : 2);
             }
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000));
+                ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 1000));
             }
-            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            if (!java.util.Objects.equals(since, null))
             {
-                Helpers.addElementToObject(request, "startTime", since);
+                ((Map<String, Object>)request).put("startTime", since);
             }
-            if (Helpers.isTrue(!Helpers.isEqual(until, null)))
+            if (!java.util.Objects.equals(until, null))
             {
-                Helpers.addElementToObject(request, "endTime", until);
+                ((Map<String, Object>)request).put("endTime", until);
             }
             List<Object> response = (this.fapiPrivateGetV3PositionMarginHistory(this.extend(request, parameters))).join();
             //
@@ -4065,7 +4066,7 @@ public class Aster extends AsterApi
             //
             Object modifications = this.parseMarginModifications(this.toArray(response));
             return this.filterBySymbolSinceLimit(modifications, symbol, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, MarginModification::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(MarginModification::new).collect(Collectors.toList()));
 
     }
 
@@ -4088,26 +4089,26 @@ public class Aster extends AsterApi
         //         "type": 1
         //     }
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long rawType = this.safeInteger(data, "type");
         String errorCode = this.safeString(data, "code");
         String marketId = this.safeString(data, "symbol");
         Long timestamp = this.safeInteger(data, "time");
         market = this.safeMarket(marketId, market, null, "swap");
-        Boolean noErrorCode = Helpers.isEqual(errorCode, null);
-        Boolean success = Helpers.isEqual(errorCode, "200");
+        Boolean noErrorCode = java.util.Objects.equals(errorCode, null);
+        Boolean success = java.util.Objects.equals(errorCode, "200");
         final Object finalMarket = market;
         final Object finalRawType = rawType;
         final Object finalSuccess = success;
         return new HashMap<String, Object>() {{
             put( "info", data );
-            put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
-            put( "type", ((Helpers.isTrue((Helpers.isEqual(finalRawType, 1))))) ? "add" : "reduce" );
+            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
+            put( "type", (((Helpers.isEqual(finalRawType, 1)))) ? "add" : "reduce" );
             put( "marginMode", "isolated" );
             put( "amount", Aster.this.safeNumber(data, "amount") );
             put( "code", Aster.this.safeString(data, "asset") );
             put( "total", null );
-            put( "status", ((Helpers.isTrue((Helpers.isTrue(finalSuccess) || Helpers.isTrue(noErrorCode))))) ? "ok" : "failed" );
+            put( "status", (((Helpers.isTrue(finalSuccess) || Helpers.isTrue(noErrorCode)))) ? "ok" : "failed" );
             put( "timestamp", timestamp );
             put( "datetime", Aster.this.iso8601(timestamp) );
         }};
@@ -4118,17 +4119,17 @@ public class Aster extends AsterApi
         final Object amount3 = amount2;
         return BaseExchange.supplyAsync(() -> {
             Object amount = amount3;
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             amount = this.amountToPrecision(symbol, amount);
             final Object finalAmount = amount;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", addOrReduce );
-                put( "symbol", Helpers.GetValue(market, "id") );
+                put( "symbol", ((Map<String, Object>)market).get("id") );
                 put( "amount", finalAmount );
             }};
-            Object code = Helpers.GetValue(market, "quote");
+            Object code = ((Map<String, Object>)market).get("quote");
             Map<String, Object> response = (this.fapiPrivatePostV3PositionMargin(this.extend(request, parameters))).join();
             //
             //     {
@@ -4160,7 +4161,7 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             return (this.modifyMarginHelper(symbol, amount, 2, parameters)).join();
         }).thenApply(MarginModification::new);
 
@@ -4181,7 +4182,7 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             return (this.modifyMarginHelper(symbol, amount, 1, parameters)).join();
         }).thenApply(MarginModification::new);
 
@@ -4201,7 +4202,7 @@ public class Aster extends AsterApi
         //       "tradeId": ""
         //     }
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(income, "symbol");
         String currencyId = this.safeString(income, "asset");
         Long timestamp = this.safeInteger(income, "time");
@@ -4235,34 +4236,34 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             (this.loadMarketsAndSignIn()).join();
             Object market = null;
             Object request = new HashMap<String, Object>() {{
                 put( "incomeType", "FUNDING_FEE" );
             }};
-            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
+                ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = ((List<Object>) requestparametersVariable).get(0);
             parameters = ((List<Object>) requestparametersVariable).get(1);
-            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            if (!java.util.Objects.equals(since, null))
             {
-                Helpers.addElementToObject(request, "startTime", since);
+                ((Map<String, Object>)request).put("startTime", since);
             }
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000)); // max 1000
+                ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 1000)); // max 1000
             }
             List<Object> response = (this.fapiPrivateGetV3Income(this.extend(request, parameters))).join();
             return this.parseIncomes(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 
     }
 
@@ -4280,7 +4281,7 @@ public class Aster extends AsterApi
         //         "tradeId": ""
         //     }
         //
-        Object currency = Helpers.getArg(optionalArgs, 0, null);
+        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String amount = this.safeString(item, "income");
         String direction = null;
         if (Helpers.isTrue(Precise.stringLe(amount, "0")))
@@ -4348,30 +4349,30 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object code = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             (this.loadMarketsAndSignIn()).join();
             Object currency = null;
-            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            if (!java.util.Objects.equals(code, null))
             {
                 currency = this.currency(code);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            if (!java.util.Objects.equals(since, null))
             {
-                Helpers.addElementToObject(request, "startTime", since);
+                ((Map<String, Object>)request).put("startTime", since);
             }
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000)); // max 1000
+                ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, 1000)); // max 1000
             }
             Long until = this.safeInteger(parameters, "until");
-            if (Helpers.isTrue(!Helpers.isEqual(until, null)))
+            if (!java.util.Objects.equals(until, null))
             {
                 parameters = this.omit(parameters, "until");
-                Helpers.addElementToObject(request, "endTime", until);
+                ((Map<String, Object>)request).put("endTime", until);
             }
             List<Object> response = (this.fapiPrivateGetV3Income(this.extend(request, parameters))).join();
             //
@@ -4389,7 +4390,7 @@ public class Aster extends AsterApi
             //     ]
             //
             return this.parseLedger(response, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
     }
 
@@ -4412,7 +4413,7 @@ public class Aster extends AsterApi
         //         "updateTime": 1625474304765
         //     }
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(position, "symbol");
         market = this.safeMarket(marketId, market, null, "contract");
         String symbol = this.safeString(market, "symbol");
@@ -4422,7 +4423,7 @@ public class Aster extends AsterApi
         String notionalString = this.safeString2(position, "notional", "notionalValue");
         String notionalStringAbs = Precise.stringAbs(notionalString);
         Object maintenanceMarginPercentageString = null;
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(leverageBracket)); i++)
+        for (var i = 0; i < ((List<?>)leverageBracket).size(); i++)
         {
             Object bracket = Helpers.GetValue(leverageBracket, i);
             if (Helpers.isTrue(Precise.stringLt(notionalStringAbs, Helpers.GetValue(bracket, 0))))
@@ -4440,7 +4441,7 @@ public class Aster extends AsterApi
         Object liquidationPrice = this.parseNumber(liquidationPriceString);
         Object collateralString = null;
         String marginMode = this.safeString(position, "marginType");
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(marginMode, null)) && Helpers.isTrue(!Helpers.isEqual(isolatedMarginString, null))))
+        if (java.util.Objects.equals(marginMode, null) && !java.util.Objects.equals(isolatedMarginString, null))
         {
             marginMode = ((Helpers.isTrue(Precise.stringEq(isolatedMarginString, "0")))) ? "cross" : "isolated";
         }
@@ -4458,13 +4459,13 @@ public class Aster extends AsterApi
         Object contractSizeString = this.numberToString(contractSize);
         // as oppose to notionalValue
         Boolean linear = (Helpers.inOp(position, "notional"));
-        if (Helpers.isTrue(Helpers.isEqual(marginMode, "cross")))
+        if (java.util.Objects.equals(marginMode, "cross"))
         {
             // calculate collateral
             Object precision = this.safeDict(market, "precision", new HashMap<String, Object>() {{}});
             String basePrecisionValue = this.safeString(precision, "base");
             String quotePrecisionValue = this.safeString2(precision, "quote", "price");
-            Boolean precisionIsUndefined = Helpers.isTrue((Helpers.isEqual(basePrecisionValue, null))) && Helpers.isTrue((Helpers.isEqual(quotePrecisionValue, null)));
+            Boolean precisionIsUndefined = (java.util.Objects.equals(basePrecisionValue, null)) && (java.util.Objects.equals(quotePrecisionValue, null));
             if (!Helpers.isTrue(precisionIsUndefined))
             {
                 if (Helpers.isTrue(linear))
@@ -4472,7 +4473,7 @@ public class Aster extends AsterApi
                     // walletBalance = (liquidationPrice * (±1 + mmp) ± entryPrice) * contracts
                     Object onePlusMaintenanceMarginPercentageString = null;
                     Object entryPriceSignString = entryPriceString;
-                    if (Helpers.isTrue(Helpers.isEqual(side, "short")))
+                    if (java.util.Objects.equals(side, "short"))
                     {
                         onePlusMaintenanceMarginPercentageString = Precise.stringAdd("1", maintenanceMarginPercentageString);
                         entryPriceSignString = Precise.stringMul("-1", entryPriceSignString);
@@ -4483,7 +4484,7 @@ public class Aster extends AsterApi
                     String inner = Precise.stringMul(liquidationPriceString, onePlusMaintenanceMarginPercentageString);
                     Object leftSide = Precise.stringAdd(inner, entryPriceSignString);
                     Object quotePrecision = this.precisionFromString(this.safeString2(precision, "quote", "price"));
-                    if (Helpers.isTrue(!Helpers.isEqual(quotePrecision, null)))
+                    if (!java.util.Objects.equals(quotePrecision, null))
                     {
                         collateralString = Precise.stringDiv(Precise.stringMul(leftSide, contractsAbs), "1", quotePrecision);
                     }
@@ -4492,7 +4493,7 @@ public class Aster extends AsterApi
                     // walletBalance = (contracts * contractSize) * (±1/entryPrice - (±1 - mmp) / liquidationPrice)
                     Object onePlusMaintenanceMarginPercentageString = null;
                     Object entryPriceSignString = entryPriceString;
-                    if (Helpers.isTrue(Helpers.isEqual(side, "short")))
+                    if (java.util.Objects.equals(side, "short"))
                     {
                         onePlusMaintenanceMarginPercentageString = Precise.stringSub("1", maintenanceMarginPercentageString);
                     } else
@@ -4503,7 +4504,7 @@ public class Aster extends AsterApi
                     Object leftSide = Precise.stringMul(contractsAbs, contractSizeString);
                     String rightSide = Precise.stringSub(Precise.stringDiv("1", entryPriceSignString), Precise.stringDiv(onePlusMaintenanceMarginPercentageString, liquidationPriceString));
                     Object basePrecision = this.precisionFromString(this.safeString(precision, "base"));
-                    if (Helpers.isTrue(!Helpers.isEqual(basePrecision, null)))
+                    if (!java.util.Objects.equals(basePrecision, null))
                     {
                         collateralString = Precise.stringDiv(Precise.stringMul(leftSide, rightSide), "1", basePrecision);
                     }
@@ -4513,17 +4514,17 @@ public class Aster extends AsterApi
         {
             collateralString = this.safeString(position, "isolatedMargin");
         }
-        collateralString = ((Helpers.isTrue((Helpers.isEqual(collateralString, null))))) ? "0" : collateralString;
+        collateralString = (((java.util.Objects.equals(collateralString, null)))) ? "0" : collateralString;
         Object collateral = this.parseNumber(collateralString);
         Object markPrice = this.parseNumber(this.omitZero(this.safeString(position, "markPrice")));
         Long timestamp = this.safeInteger(position, "updateTime");
-        if (Helpers.isTrue(Helpers.isEqual(timestamp, 0)))
+        if (Helpers.isEqual(timestamp, 0))
         {
             timestamp = null;
         }
         Object maintenanceMarginPercentage = this.parseNumber(maintenanceMarginPercentageString);
         String maintenanceMarginString = Precise.stringMul(maintenanceMarginPercentageString, notionalStringAbs);
-        if (Helpers.isTrue(Helpers.isEqual(maintenanceMarginString, null)))
+        if (java.util.Objects.equals(maintenanceMarginString, null))
         {
             // for a while, this new value was a backup to the existing calculations, but in future we might prioritize this
             maintenanceMarginString = this.safeString(position, "maintMargin");
@@ -4532,7 +4533,7 @@ public class Aster extends AsterApi
         String initialMarginString = null;
         String initialMarginPercentageString = null;
         String leverageString = this.safeString(position, "leverage");
-        if (Helpers.isTrue(!Helpers.isEqual(leverageString, null)))
+        if (!java.util.Objects.equals(leverageString, null))
         {
             Object leverage = Helpers.parseInt(leverageString);
             Object rational = this.isRoundNumber(Helpers.mod(1000, leverage));
@@ -4557,7 +4558,7 @@ public class Aster extends AsterApi
             percentage = this.parseNumber(Precise.stringMul(Precise.stringDiv(unrealizedPnlString, initialMarginString, 4), "100"));
         }
         String positionSide = this.safeString(position, "positionSide");
-        Boolean hedged = !Helpers.isEqual(positionSide, "BOTH");
+        Boolean hedged = !java.util.Objects.equals(positionSide, "BOTH");
         final Object finalLeverageString = leverageString;
         final Object finalTimestamp = timestamp;
         final Object finalInitialMarginString = initialMarginString;
@@ -4609,13 +4610,13 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (!java.util.Objects.equals(symbols, null))
             {
                 if (!Helpers.isTrue(Helpers.isArray(symbols)))
                 {
-                    throw new ArgumentsRequired(Helpers.add(this.id, " fetchPositionsRisk() requires an array argument for symbols")) ;
+                    throw new ArgumentsRequired((this.id + " fetchPositionsRisk() requires an array argument for symbols")) ;
                 }
             }
             (this.loadMarketsAndSignIn()).join();
@@ -4643,7 +4644,7 @@ public class Aster extends AsterApi
             //
             List<Object> rawPositions = this.toArray(response);
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawPositions)); i++)
+            for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
             {
                 Object rawPosition = Helpers.GetValue(rawPositions, i);
                 String entryPriceString = this.safeString(rawPosition, "entryPrice");
@@ -4654,7 +4655,7 @@ public class Aster extends AsterApi
             }
             symbols = this.marketSymbols(symbols);
             return this.filterByArrayPositions(result, "symbol", symbols, false);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
 
@@ -4673,16 +4674,16 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             Object defaultMethod = null;
             List<Object> defaultMethodparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchPositions", "method");
             defaultMethod = ((List<Object>) defaultMethodparametersVariable).get(0);
             parameters = ((List<Object>) defaultMethodparametersVariable).get(1);
-            if (Helpers.isTrue(Helpers.isEqual(defaultMethod, null)))
+            if (java.util.Objects.equals(defaultMethod, null))
             {
                 Object options = this.safeDict(this.options, "fetchPositions");
-                if (Helpers.isTrue(Helpers.isEqual(options, null)))
+                if (java.util.Objects.equals(options, null))
                 {
                     defaultMethod = this.safeString(this.options, "fetchPositions", "positionRisk");
                 } else
@@ -4690,34 +4691,34 @@ public class Aster extends AsterApi
                     defaultMethod = "positionRisk";
                 }
             }
-            if (Helpers.isTrue(Helpers.isEqual(defaultMethod, "positionRisk")))
+            if (java.util.Objects.equals(defaultMethod, "positionRisk"))
             {
                 return (this.fetchPositionsRisk((Object)(symbols), (Object)(parameters))).join();
-            } else if (Helpers.isTrue(Helpers.isEqual(defaultMethod, "account")))
+            } else if (java.util.Objects.equals(defaultMethod, "account"))
             {
                 return (this.fetchAccountPositions(symbols, parameters)).join();
             } else
             {
-                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, ".options[\"fetchPositions\"][\"method\"] or params[\"method\"] = \""), defaultMethod), "\" is invalid, please choose between \"account\" and \"positionRisk\"")) ;
+                throw new NotSupported((((this.id + ".options[\"fetchPositions\"][\"method\"] or params[\"method\"] = \"") + defaultMethod) + "\" is invalid, please choose between \"account\" and \"positionRisk\"")) ;
             }
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
 
     public Object parseAccountPositions(Object account, Object... optionalArgs)
     {
-        Object filterClosed = Helpers.getArg(optionalArgs, 0, false);
+        Object filterClosed = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : false;
         Object positions = this.safeList(account, "positions", new ArrayList<Object>(Arrays.asList()));
         Object assets = this.safeList(account, "assets", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> balances = new HashMap<String, Object>() {{}};
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(assets)); i++)
+        for (var i = 0; i < ((List<?>)assets).size(); i++)
         {
             Object entry = Helpers.GetValue(assets, i);
             String currencyId = this.safeString(entry, "asset");
             String code = this.safeCurrencyCode(currencyId);
             String crossWalletBalance = this.safeString(entry, "crossWalletBalance");
             String crossUnPnl = this.safeString(entry, "crossUnPnl");
-            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            if (!java.util.Objects.equals(code, null))
             {
                 Helpers.addElementToObject(balances, code, new HashMap<String, Object>() {{
     put( "crossMargin", Precise.stringAdd(crossWalletBalance, crossUnPnl) );
@@ -4726,19 +4727,19 @@ public class Aster extends AsterApi
             }
         }
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)
+        for (var i = 0; i < ((List<?>)positions).size(); i++)
         {
             Object position = Helpers.GetValue(positions, i);
             String marketId = this.safeString(position, "symbol");
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, "contract");
-            Object code = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "linear"), true))))) ? Helpers.GetValue(market, "quote") : Helpers.GetValue(market, "base");
+            Object code = (((java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true)))) ? ((Map<String, Object>)market).get("quote") : ((Map<String, Object>)market).get("base");
             String maintenanceMargin = this.safeString(position, "maintMargin");
             // check for maintenance margin so empty positions are not returned
-            Boolean isPositionOpen = Helpers.isTrue((!Helpers.isEqual(maintenanceMargin, "0"))) && Helpers.isTrue((!Helpers.isEqual(maintenanceMargin, "0.00000000")));
-            if (Helpers.isTrue(!Helpers.isTrue(filterClosed) || Helpers.isTrue(isPositionOpen)))
+            Boolean isPositionOpen = (!java.util.Objects.equals(maintenanceMargin, "0")) && (!java.util.Objects.equals(maintenanceMargin, "0.00000000"));
+            if (!Helpers.isTrue(filterClosed) || Helpers.isTrue(isPositionOpen))
             {
                 // sometimes not all the codes are correctly returned...
-                if (Helpers.isTrue(Helpers.inOp(balances, code)))
+                if (((Map<?, ?>)balances).containsKey(code))
                 {
                     final Object finalCode = code;
                     Object parsed = this.parseAccountPosition(this.extend(position, new HashMap<String, Object>() {{
@@ -4754,21 +4755,21 @@ public class Aster extends AsterApi
 
     public Object parseAccountPosition(Object position, Object... optionalArgs)
     {
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(position, "symbol");
         market = this.safeMarket(marketId, market, null, "contract");
         String symbol = this.safeString(market, "symbol");
         String leverageString = this.safeString(position, "leverage");
-        Object leverage = ((Helpers.isTrue((!Helpers.isEqual(leverageString, null))))) ? Helpers.parseInt(leverageString) : null;
+        Object leverage = (((!java.util.Objects.equals(leverageString, null)))) ? Helpers.parseInt(leverageString) : null;
         String initialMarginString = this.safeString(position, "initialMargin");
         Object initialMargin = this.parseNumber(initialMarginString);
         String initialMarginPercentageString = null;
-        if (Helpers.isTrue(!Helpers.isEqual(leverageString, null)))
+        if (!java.util.Objects.equals(leverageString, null))
         {
             initialMarginPercentageString = Precise.stringDiv("1", leverageString, 8);
-            if (Helpers.isTrue(Helpers.isEqual(leverage, null)))
+            if (java.util.Objects.equals(leverage, null))
             {
-                throw new ExchangeError(Helpers.add(this.id, " parseAccountPosition() missing leverage")) ;
+                throw new ExchangeError((this.id + " parseAccountPosition() missing leverage")) ;
             }
             Object rational = this.isRoundNumber(Helpers.mod(1000, leverage));
             if (!Helpers.isTrue(rational))
@@ -4787,7 +4788,7 @@ public class Aster extends AsterApi
         Object notional = this.parseNumber(notionalStringAbs);
         String contractsString = this.safeString(position, "positionAmt");
         String contractsStringAbs = Precise.stringAbs(contractsString);
-        if (Helpers.isTrue(Helpers.isEqual(contractsString, null)))
+        if (java.util.Objects.equals(contractsString, null))
         {
             String entryNotional = Precise.stringMul(Precise.stringMul(leverageString, initialMarginString), entryPriceString);
             String contractSizeNew = this.safeString(market, "contractSize");
@@ -4798,7 +4799,7 @@ public class Aster extends AsterApi
         Object leverageBrackets = this.safeDict(this.options, "leverageBrackets", new HashMap<String, Object>() {{}});
         Object leverageBracket = this.safeList(leverageBrackets, symbol, new ArrayList<Object>(Arrays.asList()));
         Object maintenanceMarginPercentageString = null;
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(leverageBracket)); i++)
+        for (var i = 0; i < ((List<?>)leverageBracket).size(); i++)
         {
             Object bracket = Helpers.GetValue(leverageBracket, i);
             if (Helpers.isTrue(Precise.stringLt(notionalStringAbs, Helpers.GetValue(bracket, 0))))
@@ -4811,12 +4812,12 @@ public class Aster extends AsterApi
         String unrealizedPnlString = this.safeString(position, "unrealizedProfit");
         Object unrealizedPnl = this.parseNumber(unrealizedPnlString);
         Long timestamp = this.safeInteger(position, "updateTime");
-        if (Helpers.isTrue(Helpers.isEqual(timestamp, 0)))
+        if (Helpers.isEqual(timestamp, 0))
         {
             timestamp = null;
         }
         Object isolated = this.safeBool(position, "isolated");
-        if (Helpers.isTrue(Helpers.isEqual(isolated, null)))
+        if (java.util.Objects.equals(isolated, null))
         {
             String isolatedMarginRaw = this.safeString(position, "isolatedMargin");
             isolated = !Helpers.isTrue(Precise.stringEq(isolatedMarginRaw, "0"));
@@ -4862,7 +4863,7 @@ public class Aster extends AsterApi
                 // TODO: calculate liquidation price for coinm contracts
                 Object onePlusMaintenanceMarginPercentageString = null;
                 Object entryPriceSignString = entryPriceString;
-                if (Helpers.isTrue(Helpers.isEqual(side, "short")))
+                if (java.util.Objects.equals(side, "short"))
                 {
                     onePlusMaintenanceMarginPercentageString = Precise.stringAdd("1", maintenanceMarginPercentageString);
                 } else
@@ -4881,7 +4882,7 @@ public class Aster extends AsterApi
                 //
                 Object onePlusMaintenanceMarginPercentageString = null;
                 Object entryPriceSignString = entryPriceString;
-                if (Helpers.isTrue(Helpers.isEqual(side, "short")))
+                if (java.util.Objects.equals(side, "short"))
                 {
                     onePlusMaintenanceMarginPercentageString = Precise.stringSub("1", maintenanceMarginPercentageString);
                 } else
@@ -4894,19 +4895,19 @@ public class Aster extends AsterApi
                 Object rightSide = Precise.stringSub(Precise.stringMul(Precise.stringDiv("1", entryPriceSignString), size), walletBalance);
                 liquidationPriceStringRaw = Precise.stringDiv(leftSide, rightSide);
             }
-            Object pricePrecision = this.precisionFromString(this.safeString(Helpers.GetValue(market, "precision"), "price"));
+            Object pricePrecision = this.precisionFromString(this.safeString(((Map<String, Object>)market).get("precision"), "price"));
             Object pricePrecisionPlusOne = Helpers.add(pricePrecision, 1);
             Object pricePrecisionPlusOneString = String.valueOf(pricePrecisionPlusOne);
             // round half up
-            var rounder = new Precise(Helpers.add("5e-", pricePrecisionPlusOneString));
+            var rounder = new Precise(("5e-" + pricePrecisionPlusOneString));
             Object rounderString = String.valueOf(rounder);
             String liquidationPriceRoundedString = Precise.stringAdd(rounderString, liquidationPriceStringRaw);
             String truncatedLiquidationPrice = Precise.stringDiv(liquidationPriceRoundedString, "1", pricePrecision);
-            if (Helpers.isTrue(Helpers.isEqual(truncatedLiquidationPrice, null)))
+            if (java.util.Objects.equals(truncatedLiquidationPrice, null))
             {
-                throw new ExchangeError(Helpers.add(this.id, " method() missing truncatedLiquidationPrice")) ;
+                throw new ExchangeError((this.id + " method() missing truncatedLiquidationPrice")) ;
             }
-            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(truncatedLiquidationPrice, 0), "-")))
+            if (java.util.Objects.equals(Helpers.GetValue(truncatedLiquidationPrice, 0), "-"))
             {
                 // user cannot be liquidated
                 // since he has more collateral than the size of the position
@@ -4915,7 +4916,7 @@ public class Aster extends AsterApi
             liquidationPrice = this.parseNumber(truncatedLiquidationPrice);
         }
         String positionSide = this.safeString(position, "positionSide");
-        Boolean hedged = !Helpers.isEqual(positionSide, "BOTH");
+        Boolean hedged = !java.util.Objects.equals(positionSide, "BOTH");
         final Object finalTimestamp = timestamp;
         final Object finalInitialMarginPercentageString = initialMarginPercentageString;
         final Object finalEntryPrice = entryPrice;
@@ -4967,13 +4968,13 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (!java.util.Objects.equals(symbols, null))
             {
                 if (!Helpers.isTrue(Helpers.isArray(symbols)))
                 {
-                    throw new ArgumentsRequired(Helpers.add(this.id, " fetchPositions() requires an array argument for symbols")) ;
+                    throw new ArgumentsRequired((this.id + " fetchPositions() requires an array argument for symbols")) ;
                 }
             }
             (this.loadMarketsAndSignIn()).join();
@@ -4995,13 +4996,13 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object reload = Helpers.getArg(optionalArgs, 0, false);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            Object reload = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : false;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             (this.loadMarketsAndSignIn()).join();
             // by default cache the leverage bracket
             // it contains useful stuff like the maintenance margin and initial margin for positions
             Object leverageBrackets = this.safeDict(this.options, "leverageBrackets");
-            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(leverageBrackets, null))) || Helpers.isTrue((reload))))
+            if ((java.util.Objects.equals(leverageBrackets, null)) || Helpers.isTrue((reload)))
             {
                 List<Object> response = (this.fapiPrivateGetV3LeverageBracket(parameters)).join();
                 //
@@ -5029,14 +5030,14 @@ public class Aster extends AsterApi
                 //
                 Helpers.addElementToObject(this.options, "leverageBrackets", this.createSafeDictionary());
                 List<Object> entries = this.toArray(response);
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(entries)); i++)
+                for (var i = 0; i < ((List<?>)entries).size(); i++)
                 {
                     Object entry = Helpers.GetValue(entries, i);
                     String marketId = this.safeString(entry, "symbol");
                     String symbol = this.safeSymbol(marketId, null, null, "contract");
                     Object brackets = this.safeList(entry, "brackets", new ArrayList<Object>(Arrays.asList()));
                     List<Object> result = new ArrayList<Object>(Arrays.asList());
-                    for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(brackets)); j++)
+                    for (var j = 0; j < ((List<?>)brackets).size(); j++)
                     {
                         Object bracket = Helpers.GetValue(brackets, j);
                         String floorValue = this.safeString(bracket, "notionalFloor");
@@ -5046,7 +5047,7 @@ public class Aster extends AsterApi
                     Helpers.addElementToObject(Helpers.GetValue(this.options, "leverageBrackets"), symbol, result);
                 }
             }
-            return Helpers.GetValue(this.options, "leverageBrackets");
+            return ((Map<String, Object>)this.options).get("leverageBrackets");
         });
 
     }
@@ -5131,8 +5132,8 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object tag = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            Object tag = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             tag = ((List<Object>) tagparametersVariable).get(0);
             parameters = ((List<Object>) tagparametersVariable).get(1);
@@ -5141,7 +5142,7 @@ public class Aster extends AsterApi
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Object nonce = Helpers.multiply(this.milliseconds(), 1000);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "asset", Helpers.GetValue(currency, "id") );
+                put( "asset", ((Map<String, Object>)currency).get("id") );
                 put( "receiver", address );
                 put( "userNonce", String.valueOf(nonce) );
             }};
@@ -5150,25 +5151,25 @@ public class Aster extends AsterApi
             Object networks = this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
             String network = this.safeStringUpper(parameters, "network");
             network = this.safeString(networks, network, network);
-            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(chainId, null))) && Helpers.isTrue((!Helpers.isEqual(network, null)))))
+            if ((java.util.Objects.equals(chainId, null)) && (!java.util.Objects.equals(network, null)))
             {
                 Object chainIds = this.safeDict(this.options, "networksToChainId", new HashMap<String, Object>() {{}});
                 chainId = this.safeInteger(chainIds, network);
             }
-            if (Helpers.isTrue(Helpers.isEqual(chainId, null)))
+            if (java.util.Objects.equals(chainId, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " withdraw require chainId or network parameter")) ;
+                throw new ArgumentsRequired((this.id + " withdraw require chainId or network parameter")) ;
             }
-            Helpers.addElementToObject(request, "chainId", chainId);
+            ((Map<String, Object>)request).put("chainId", chainId);
             String fee = this.safeString(parameters, "fee");
-            if (Helpers.isTrue(Helpers.isEqual(fee, null)))
+            if (java.util.Objects.equals(fee, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " withdraw require fee parameter")) ;
+                throw new ArgumentsRequired((this.id + " withdraw require fee parameter")) ;
             }
-            Helpers.addElementToObject(request, "fee", fee);
+            ((Map<String, Object>)request).put("fee", fee);
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("chainId", "network", "fee")));
-            Helpers.addElementToObject(request, "amount", this.currencyToPrecision(code, amount, network));
-            Helpers.addElementToObject(request, "userSignature", this.signWithdrawPayload(request, network));
+            ((Map<String, Object>)request).put("amount", this.currencyToPrecision(code, amount, network));
+            ((Map<String, Object>)request).put("userSignature", this.signWithdrawPayload(request, network));
             Map<String, Object> response = (this.sapiPrivatePostV3AsterUserWithdraw(this.extend(request, parameters))).join();
             //
             //   {
@@ -5183,7 +5184,7 @@ public class Aster extends AsterApi
 
     public Object parseTransaction(Object transaction, Object... optionalArgs)
     {
-        Object currency = Helpers.getArg(optionalArgs, 0, null);
+        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         return new HashMap<String, Object>() {{
             put( "info", transaction );
             put( "id", Aster.this.safeString(transaction, "withdrawId") );
@@ -5228,39 +5229,39 @@ public class Aster extends AsterApi
         return BaseExchange.supplyAsync(() -> {
             Object fromAccount = fromAccount3;
             Object toAccount = toAccount3;
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "asset", Helpers.GetValue(currency, "id") );
+                put( "asset", ((Map<String, Object>)currency).get("id") );
                 put( "amount", Aster.this.currencyToPrecision(code, amount) );
             }};
             String type = null;
             Object fromId = null;
-            if (Helpers.isTrue(!Helpers.isEqual(fromAccount, null)))
+            if (!java.util.Objects.equals(fromAccount, null))
             {
                 fromId = ((String)this.convertTypeToAccount(fromAccount)).toUpperCase();
             }
             Object toId = null;
-            if (Helpers.isTrue(!Helpers.isEqual(toAccount, null)))
+            if (!java.util.Objects.equals(toAccount, null))
             {
                 toId = ((String)this.convertTypeToAccount(toAccount)).toUpperCase();
             }
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(fromId, "SPOT")) && Helpers.isTrue(Helpers.isEqual(toId, "FUTURE"))))
+            if (java.util.Objects.equals(fromId, "SPOT") && java.util.Objects.equals(toId, "FUTURE"))
             {
                 type = "SPOT_FUTURE";
-            } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(fromId, "FUTURE")) && Helpers.isTrue(Helpers.isEqual(toId, "SPOT"))))
+            } else if (java.util.Objects.equals(fromId, "FUTURE") && java.util.Objects.equals(toId, "SPOT"))
             {
                 type = "FUTURE_SPOT";
             }
-            if (Helpers.isTrue(Helpers.isEqual(type, null)))
+            if (java.util.Objects.equals(type, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " transfer() requires fromAccount and toAccount parameters to be either SPOT or FUTURE")) ;
+                throw new ArgumentsRequired((this.id + " transfer() requires fromAccount and toAccount parameters to be either SPOT or FUTURE")) ;
             }
             Object defaultClientTranId = this.numberToString(this.milliseconds());
             String clientTranId = this.safeString(parameters, "clientTranId", defaultClientTranId);
-            Helpers.addElementToObject(request, "kindType", type);
-            Helpers.addElementToObject(request, "clientTranId", clientTranId);
+            ((Map<String, Object>)request).put("kindType", type);
+            ((Map<String, Object>)request).put("clientTranId", clientTranId);
             Map<String, Object> response = (this.sapiPrivatePostV3AssetWalletTransfer(this.extend(request, parameters))).join();
             return this.parseTransfer(response, currency);
         }).thenApply(TransferEntry::new);
@@ -5269,7 +5270,7 @@ public class Aster extends AsterApi
 
     public Object parseTransfer(Object transfer, Object... optionalArgs)
     {
-        Object currency = Helpers.getArg(optionalArgs, 0, null);
+        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String currencyId = this.safeString(transfer, "code");
         return new HashMap<String, Object>() {{
             put( "info", transfer );
@@ -5309,24 +5310,24 @@ public class Aster extends AsterApi
         Object r = Helpers.GetValue(signature, "r");
         Object s = Helpers.GetValue(signature, "s");
         String v = this.intToBase16(this.sum(27, Helpers.GetValue(signature, "v")));
-        return Helpers.add(Helpers.add(Helpers.add("0x", Helpers.padStart(((String)r), ((Number)64).intValue(), "0".charAt(0))), Helpers.padStart(((String)s), ((Number)64).intValue(), "0".charAt(0))), v);
+        return ((("0x" + Helpers.padStart(((String)r), ((Number)64).intValue(), "0".charAt(0))) + Helpers.padStart(((String)s), ((Number)64).intValue(), "0".charAt(0))) + v);
     }
 
     public Object sign(Object path, Object... optionalArgs)
     {
-        Object api = Helpers.getArg(optionalArgs, 0, "public");
-        Object method = Helpers.getArg(optionalArgs, 1, "GET");
-        Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
-        Object headers = Helpers.getArg(optionalArgs, 3, null);
-        Object body = Helpers.getArg(optionalArgs, 4, null);
-        Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api), "/"), path);
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(api, "fapiPublic")) || Helpers.isTrue(Helpers.isEqual(api, "sapiPublic"))))
+        Object api = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public";
+        Object method = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET";
+        Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+        Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
+        Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
+        Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), "/"), path);
+        if (java.util.Objects.equals(api, "fapiPublic") || java.util.Objects.equals(api, "sapiPublic"))
         {
-            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
+            if (((List<?>)Helpers.objectKeys(parameters)).size() > 0)
             {
-                url = Helpers.add(url, Helpers.add("?", this.rawencode(parameters)));
+                url = (url + ("?" + this.rawencode(parameters)));
             }
-        } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(api, "fapiPrivate")) || Helpers.isTrue(Helpers.isEqual(api, "sapiPrivate"))))
+        } else if (java.util.Objects.equals(api, "fapiPrivate") || java.util.Objects.equals(api, "sapiPrivate"))
         {
             this.checkRequiredCredentials();
             Object nonce = Helpers.multiply(this.milliseconds(), 1000);
@@ -5336,16 +5337,16 @@ public class Aster extends AsterApi
             Object walletAddress = this.safeString(this.options, "cachedWalletAddress");
             Object privateKeyHash = this.hash(this.encode(this.privateKey), keccak(), "hex");
             String cachedPrivateKeyHash = this.safeString(this.options, "privateKeyHashForCachedWalletAddress");
-            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(walletAddress, null))) || Helpers.isTrue((!Helpers.isEqual(cachedPrivateKeyHash, privateKeyHash)))))
+            if ((java.util.Objects.equals(walletAddress, null)) || (!java.util.Objects.equals(cachedPrivateKeyHash, privateKeyHash)))
             {
                 walletAddress = this.ethGetAddressFromPrivateKey(this.privateKey);
                 Helpers.addElementToObject(this.options, "cachedWalletAddress", walletAddress);
                 Helpers.addElementToObject(this.options, "privateKeyHashForCachedWalletAddress", privateKeyHash);
             }
             String signerAddress = this.safeString(this.options, "signerAddress", walletAddress); // default to user's wallet
-            if (Helpers.isTrue(Helpers.isEqual(signerAddress, null)))
+            if (java.util.Objects.equals(signerAddress, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " requires signerAddress in options when use v3 api")) ;
+                throw new ArgumentsRequired((this.id + " requires signerAddress in options when use v3 api")) ;
             }
             Map<String, Object> domain = new HashMap<String, Object>() {{
                 put( "name", "AsterSignTransaction" );
@@ -5408,14 +5409,14 @@ public class Aster extends AsterApi
             }
             Object encodedMessage = this.ethEncodeStructuredData(domain, messageTypes, paramsToEncode);
             Object signature = this.signMessage(encodedMessage, this.privateKey);
-            Object queryString = Helpers.add(Helpers.add(Helpers.add(paramString, "&"), "signature="), signature);
-            if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
+            Object queryString = (((paramString + "&") + "signature=") + signature);
+            if (java.util.Objects.equals(method, "GET"))
             {
-                url = Helpers.add(url, Helpers.add("?", queryString));
+                url = (url + ("?" + queryString));
             } else
             {
                 headers = new HashMap<String, Object>() {{}};
-                Helpers.addElementToObject(headers, "Content-Type", "application/x-www-form-urlencoded");
+                ((Map<String, Object>)headers).put("Content-Type", "application/x-www-form-urlencoded");
                 body = queryString;
             }
         }
@@ -5435,14 +5436,14 @@ public class Aster extends AsterApi
     {
         Object encodedString = "";
         Object keys = Helpers.objectKeys(values);
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
+        for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);
             Object value = Helpers.GetValue(values, key);
             Boolean isObj = Helpers.isTrue(Helpers.isArray(value)) || Helpers.isTrue(this.isDictionary(value));
             Object valueJsonified = ((Helpers.isTrue(isObj))) ? this.json(value) : String.valueOf(value);
             Object encoded = this.encodeURIComponent(valueJsonified);
-            encodedString = Helpers.add(encodedString, Helpers.add(Helpers.add(Helpers.add(key, "="), encoded), "&"));
+            encodedString = (encodedString + (((key + "=") + encoded) + "&"));
         }
         return Helpers.slice(encodedString, 0, Helpers.opNeg(1));
     }
@@ -5451,7 +5452,7 @@ public class Aster extends AsterApi
     {
         Map<String, Object> capitalized = new HashMap<String, Object>() {{}};
         Object keys = Helpers.objectKeys(dict);
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
+        for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);
             Object value = Helpers.GetValue(dict, key);
@@ -5485,18 +5486,18 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             if (Helpers.isTrue(this.isEmptyString(this.privateKey)))
             {
-                if (Helpers.isTrue(!Helpers.isTrue(this.isEmptyString(this.apiKey)) || !Helpers.isTrue(this.isEmptyString(this.secret))))
+                if (!Helpers.isTrue(this.isEmptyString(this.apiKey)) || !Helpers.isTrue(this.isEmptyString(this.secret)))
                 {
-                    throw new NotSupported(Helpers.add(this.id, "after the latest upgrade (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.")) ;
+                    throw new NotSupported((this.id + "after the latest upgrade (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.")) ;
                 }
                 return false;
             }
-            if (Helpers.isTrue(Helpers.isGreaterThan(((String)this.privateKey).length(), 66)))
+            if (((String)this.privateKey).length() > 66)
             {
-                throw new NotSupported(Helpers.add(this.id, " after the latest update (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.")) ;
+                throw new NotSupported((this.id + " after the latest update (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.")) ;
             }
             (this.initializeClient(parameters)).join();
             return true;
@@ -5509,14 +5510,14 @@ public class Aster extends AsterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object builderFee = this.safeBool(parameters, "builderFee", this.safeBool(this.options, "builderFee", true)); // we shouldn't omit here
-            if (Helpers.isTrue(!Helpers.isEqual(builderFee, true)))
+            if (!java.util.Objects.equals(builderFee, true))
             {
                 return false;  // skip if builder fee is not enabled
             }
             Object approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
-            if (Helpers.isTrue(Helpers.isEqual(approvedBuilderFee, true)))
+            if (java.util.Objects.equals(approvedBuilderFee, true))
             {
                 return true;  // skip if builder fee is already approved
             }
@@ -5532,13 +5533,13 @@ public class Aster extends AsterApi
             //    ]
             //
             List<Object> approvedBuilders = result;
-            Object length = Helpers.getArrayLength(approvedBuilders);
+            Object length = ((List<?>)approvedBuilders).size();
             Boolean found = false;
             for (var i = 0; Helpers.isLessThan(i, length); i++)
             {
                 Object builderInfo = this.safeDict(approvedBuilders, i, new HashMap<String, Object>() {{}});
                 String builderAccountId = this.safeString(builderInfo, "builderAddress");
-                if (Helpers.isTrue(Helpers.isEqual(builderAccountId, this.safeString(this.options, "builder"))))
+                if (java.util.Objects.equals(builderAccountId, this.safeString(this.options, "builder")))
                 {
                     found = true;
                     break;
@@ -5561,9 +5562,9 @@ public class Aster extends AsterApi
                     // {"code": 200,"msg": "success"}
                     //
                     Long codeRes = this.safeInteger(authResponse, "code");
-                    if (Helpers.isTrue(!Helpers.isEqual(codeRes, 200)))
+                    if (!Helpers.isEqual(codeRes, 200))
                     {
-                        throw new ExchangeError(Helpers.add("Builder authorization failed, ", this.json(authResponse))) ;
+                        throw new ExchangeError(("Builder authorization failed, " + this.json(authResponse))) ;
                     }
                 } catch(Exception e)
                 {
@@ -5578,7 +5579,7 @@ public class Aster extends AsterApi
 
     public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
     {
-        if (Helpers.isTrue(Helpers.isEqual(response, null)))
+        if (java.util.Objects.equals(response, null))
         {
             return null;  // fallback to default error handler
         }
@@ -5590,12 +5591,12 @@ public class Aster extends AsterApi
         //
         String code = this.safeString(response, "code");
         String message = this.safeString(response, "msg");
-        if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(code, null)) && Helpers.isTrue(!Helpers.isEqual(code, "200"))))
+        if (!java.util.Objects.equals(code, null) && !java.util.Objects.equals(code, "200"))
         {
-            Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
-            this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), message, feedback);
-            this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), code, feedback);
-            this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), message, feedback);
+            Object feedback = ((this.id + " ") + body);
+            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, feedback);
+            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), code, feedback);
+            this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
             throw new ExchangeError((String)feedback) ;
         }
         return null;

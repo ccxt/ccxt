@@ -275,7 +275,7 @@ impl KucoinfuturesCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut currency: Value = self.currency(code.clone());
@@ -288,16 +288,16 @@ impl KucoinfuturesCore {
         });
         let mut toAccountString: Value = self.parse_transfer_type(toAccount.clone());
         let mut response: Value = Value::Null;
-        if is_equal(&toAccountString, &Value::Str("TRADE".to_string())) || is_equal(&toAccountString, &Value::Str("MAIN".to_string())) {
+        if (toAccountString.as_str() == Some("TRADE")) || (toAccountString.as_str() == Some("MAIN")) {
             add_element_to_object(&mut request, &Value::Str("recAccountType".to_string()), toAccountString.clone());
             let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
             response = self.parent.futures_private_post_transfer_out(&[__ws_arg_0]).await;
-        }  else if is_equal(&toAccount, &Value::Str("future".to_string())) || is_equal(&toAccount, &Value::Str("swap".to_string())) || is_equal(&toAccount, &Value::Str("contract".to_string())) {
+        }  else if (toAccount.as_str() == Some("future")) || (toAccount.as_str() == Some("swap")) || (toAccount.as_str() == Some("contract")) {
             add_element_to_object(&mut request, &Value::Str("payAccountType".to_string()), self.parse_transfer_type(fromAccount.clone()));
             let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
             response = self.parent.futures_private_post_transfer_in(&[__ws_arg_1]).await;
         }  else {
-            panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" transfer() only supports transfers between future/swap, spot and funding accounts".to_string()))));
+            panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" transfer() only supports transfers between future/swap, spot and funding accounts".to_string())))));
         }
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();

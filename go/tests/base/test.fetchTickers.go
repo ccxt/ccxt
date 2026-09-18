@@ -55,7 +55,7 @@ func fetchTickersHelperTestBody(ch chan any, exchange ccxt.ICoreExchange, skippe
 		checkedSymbol = GetValue(argSymbols, 0)
 	}
 	AssertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol)
-	for i := 0; IsLessThan(i, GetArrayLength(values)); i++ {
+	for i := 0; i < len(values); i++ {
 		// todo: symbol check here
 		var ticker any = GetValue(values, i)
 
@@ -70,7 +70,7 @@ func fetchTickersHelperTestBody(ch chan any, exchange ccxt.ICoreExchange, skippe
 							// catch block:
 							var ohlcv any = nil
 							var tickerSymbol any = GetValue(ticker, "symbol")
-							if (!IsEqual(tickerSymbol, nil)) && EvalTruthy(TickerExceptionNeedsOhlcv(ex, exchange, ticker)) {
+							if (tickerSymbol != nil) && EvalTruthy(TickerExceptionNeedsOhlcv(ex, exchange, ticker)) {
 
 								ohlcv = (<-exchange.FetchOHLCVAsync(tickerSymbol, "1d", nil, 5))
 								PanicOnError(ohlcv)
@@ -99,7 +99,7 @@ func FetchTickersAmountsTest(exchange ccxt.ICoreExchange, skippedProperties any,
 		//
 		var nonInactiveMarkets any = GetActiveMarkets(exchange)
 		var notInactiveSymbolsLength int = GetArrayLength(nonInactiveMarkets)
-		var obtainedTickersLength int = GetArrayLength(tickersValues)
+		var obtainedTickersLength int = len(tickersValues)
 		var minRatio float64 = 0.99 // 1.0 - 0.01 = 0.99, hardcoded to avoid C# transpiler type casting issues
 		Assert(IsGreaterThanOrEqual(obtainedTickersLength, Multiply(notInactiveSymbolsLength, minRatio)), Add(Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), "fetchTickers"), " must return tickers for all active markets. but returned: "), ToString(obtainedTickersLength)), " tickers, "), ToString(notInactiveSymbolsLength)), " active markets"))
 		//
@@ -109,7 +109,7 @@ func FetchTickersAmountsTest(exchange ccxt.ICoreExchange, skippedProperties any,
 		if IsEqual(allMarkets, nil) {
 			return
 		}
-		var allMarketsLength int = GetArrayLength(ObjectKeys(allMarkets))
-		Assert(IsLessThanOrEqual(obtainedTickersLength, allMarketsLength), Add(Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), "fetchTickers"), " must return <= than all markets, but returned: "), ToString(obtainedTickersLength)), " tickers, "), ToString(allMarketsLength)), " markets"))
+		var allMarketsLength int = len(ObjectKeys(allMarkets))
+		Assert((obtainedTickersLength <= allMarketsLength), Add(Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), "fetchTickers"), " must return <= than all markets, but returned: "), ToString(obtainedTickersLength)), " tickers, "), ToString(allMarketsLength)), " markets"))
 	}
 }

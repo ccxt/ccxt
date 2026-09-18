@@ -292,14 +292,14 @@ pub fn testWsOrderBook() {
             m.insert("asks".to_string(), Value::List(vec![Value::List(vec![Value::Int(200), Value::Int(0), Value::Str("ghost".to_string())]), Value::List(vec![Value::Int(201), Value::Int(1), Value::Str("d".to_string())])]));
         m
     }), Value::Int(2));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_array_length(&get_value(&noopDeltas, &Value::Str("bids".to_string()))), &Value::Int(2))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_array_length(&get_value(&noopDeltas, &Value::Str("asks".to_string()))), &Value::Int(1))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_equal(&get_value(&get_value(&noopDeltas, &Value::Str("bids".to_string())), &Value::Int(0)), &Value::Null)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_equal(&get_value(&get_value(&noopDeltas, &Value::Str("bids".to_string())), &Value::Int(1)), &Value::Null)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_equal(&get_value(&get_value(&noopDeltas, &Value::Str("asks".to_string())), &Value::Int(0)), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(get_array_length(&get_value(&noopDeltas, &Value::Str("bids".to_string()))).as_f64() == Some(2.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(get_array_length(&get_value(&noopDeltas, &Value::Str("asks".to_string()))).as_f64() == Some(1.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&get_value(&noopDeltas, &Value::Str("bids".to_string())), &Value::Int(0)) != Value::Null))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&get_value(&noopDeltas, &Value::Str("bids".to_string())), &Value::Int(1)) != Value::Null))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&get_value(&noopDeltas, &Value::Str("asks".to_string())), &Value::Int(0)) != Value::Null))));
     noopDeltas.limit();
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_array_length(&get_value(&noopDeltas, &Value::Str("bids".to_string()))), &Value::Int(2))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_array_length(&get_value(&noopDeltas, &Value::Str("asks".to_string()))), &Value::Int(1))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(get_array_length(&get_value(&noopDeltas, &Value::Str("bids".to_string()))).as_f64() == Some(2.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(get_array_length(&get_value(&noopDeltas, &Value::Str("asks".to_string()))).as_f64() == Some(1.0)))));
     // --------------------------------------------------------------------------------------------------------------------
     let mut countedOrderBook = CountedOrderBook::new(countedOrderBookInput.clone(), Value::Null);
     let mut limitedCountedOrderBook = CountedOrderBook::new(countedOrderBookInput.clone(), Value::Int(5));
@@ -409,15 +409,15 @@ pub fn testWsOrderBook() {
     {
                 let mut i: Value = Value::Int(0);
         let mut __for_first_1430: bool = true;
-        while { if !__for_first_1430 { i = add(&i, &Value::Int(1)); } __for_first_1430 = false; is_less_than(&i, &get_array_length(&desyncSides)) } {
+        while { if !__for_first_1430 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1430 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(desyncSides.len() as i64).as_f64().unwrap_or(f64::NAN) } {
         let mut side: Value = get_value(&desyncSides, &i);
         {
                         let mut k: Value = Value::Int(0);
             let mut __for_first_1429: bool = true;
-            while { if !__for_first_1429 { k = add(&k, &Value::Int(1)); } __for_first_1429 = false; is_less_than(&k, &get_array_length(&side)) } {
+            while { if !__for_first_1429 { k = (match (&(k), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1429 = false; k.as_f64().unwrap_or(f64::NAN) < get_array_length(&side).as_f64().unwrap_or(f64::NAN) } {
             let mut row: Value = get_value(&side, &k);
             assert!(ccxt::runtime::is_true(&(Value::Bool(is_greater_than_or_equal(&get_array_length(&row), &Value::Int(2))))));
-            assert!(ccxt::runtime::is_true(&(Value::Bool(!is_equal(&get_value(&row, &Value::Int(0)), &Value::Null)))));
+            assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&row, &Value::Int(0)) != Value::Null))));
         }
         }
     }

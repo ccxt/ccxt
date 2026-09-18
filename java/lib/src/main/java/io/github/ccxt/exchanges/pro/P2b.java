@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 public class P2b extends io.github.ccxt.exchanges.P2b
 {
@@ -97,8 +98,8 @@ public class P2b extends io.github.ccxt.exchanges.P2b
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", name );
                 put( "params", request );
@@ -127,30 +128,30 @@ public class P2b extends io.github.ccxt.exchanges.P2b
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object timeframe = Helpers.getArg(optionalArgs, 0, "15m");
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "15m";
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Object timeframes = this.safeValue(this.options, "timeframes", new HashMap<String, Object>() {{}});
             Long channel = this.safeInteger(timeframes, timeframe);
-            if (Helpers.isTrue(Helpers.isEqual(channel, null)))
+            if (java.util.Objects.equals(channel, null))
             {
-                throw new BadRequest(Helpers.add(Helpers.add(this.id, " watchOHLCV cannot take a timeframe of "), timeframe)) ;
+                throw new BadRequest(((this.id + " watchOHLCV cannot take a timeframe of ") + timeframe)) ;
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object request = new ArrayList<Object>(Arrays.asList(Helpers.GetValue(market, "id"), channel));
-            String messageHash = Helpers.add("kline::", Helpers.GetValue(market, "symbol"));
+            Object request = new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("id"), channel));
+            String messageHash = ("kline::" + ((Map<String, Object>)market).get("symbol"));
             Object ohlcv = (this.subscribe("kline.subscribe", messageHash, request, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
                 limit = Helpers.callDynamically(ohlcv, "getLimit", new Object[]{symbol, limit});
             }
             return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
 
@@ -170,8 +171,8 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         final Object symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -181,12 +182,12 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             name = ((List<Object>) nameparametersVariable).get(0);
             parameters = ((List<Object>) nameparametersVariable).get(1);
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            symbol = Helpers.GetValue(market, "symbol");
-            Helpers.addElementToObject(Helpers.GetValue(this.options, "tickerSubs"), ((String)Helpers.GetValue(market, "id")), true); // we need to re-subscribe to all tickers upon watching a new ticker
-            Object tickerSubs = Helpers.GetValue(this.options, "tickerSubs");
+            symbol = ((Map<String, Object>)market).get("symbol");
+            Helpers.addElementToObject(Helpers.GetValue(this.options, "tickerSubs"), ((String)((Map<String, Object>)market).get("id")), true); // we need to re-subscribe to all tickers upon watching a new ticker
+            Object tickerSubs = ((Map<String, Object>)this.options).get("tickerSubs");
             Object request = Helpers.objectKeys(tickerSubs);
-            Object messageHash = Helpers.add(Helpers.add(name, "::"), Helpers.GetValue(market, "symbol"));
-            return (this.subscribe(Helpers.add(name, ".subscribe"), messageHash, request, parameters)).join();
+            Object messageHash = ((name + "::") + ((Map<String, Object>)market).get("symbol"));
+            return (this.subscribe((name + ".subscribe"), messageHash, request, parameters)).join();
         }).thenApply(Ticker::new);
 
     }
@@ -207,9 +208,9 @@ public class P2b extends io.github.ccxt.exchanges.P2b
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -221,16 +222,16 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             parameters = ((List<Object>) nameparametersVariable).get(1);
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             List<Object> args = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength((List<String>)(symbols))); i++)
+            for (var i = 0; i < ((List<?>)(List<String>)(symbols)).size(); i++)
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue((List<String>)(symbols), i));
-                ((List<Object>)messageHashes).add(Helpers.add(Helpers.add(name, "::"), Helpers.GetValue(market, "symbol")));
-                ((List<Object>)args).add(Helpers.GetValue(market, "id"));
+                ((List<Object>)messageHashes).add(((name + "::") + ((Map<String, Object>)market).get("symbol")));
+                ((List<Object>)args).add(((Map<String, Object>)market).get("id"));
             }
-            Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
+            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             final Object finalName = name;
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "method", Helpers.add(finalName, ".subscribe") );
+                put( "method", (finalName + ".subscribe") );
                 put( "params", args );
                 put( "id", P2b.this.milliseconds() );
             }};
@@ -256,11 +257,11 @@ public class P2b extends io.github.ccxt.exchanges.P2b
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object since = Helpers.getArg(optionalArgs, 0, null);
-            Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
+            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
             return (this.watchTradesForSymbols((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
@@ -280,24 +281,24 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         final Object symbols3 = symbols2;
         return BaseExchange.supplyAsync(() -> {
             Object symbols = symbols3;
-            Object since = Helpers.getArg(optionalArgs, 0, null);
-            Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, false, true, true);
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
+            if (!java.util.Objects.equals(symbols, null))
             {
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
+                for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    ((List<Object>)messageHashes).add(Helpers.add("deals::", Helpers.GetValue(symbols, i)));
+                    ((List<Object>)messageHashes).add(("deals::" + Helpers.GetValue(symbols, i)));
                 }
             }
             Object marketIds = this.marketIds(symbols);
-            Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
+            Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", "deals.subscribe" );
                 put( "params", marketIds );
@@ -312,7 +313,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
@@ -332,21 +333,21 @@ public class P2b extends io.github.ccxt.exchanges.P2b
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Object name = "depth.subscribe";
-            String messageHash = Helpers.add("orderbook::", Helpers.GetValue(market, "symbol"));
+            String messageHash = ("orderbook::" + ((Map<String, Object>)market).get("symbol"));
             String interval = this.safeString(parameters, "interval", "0.001");
-            if (Helpers.isTrue(Helpers.isEqual(limit, null)))
+            if (java.util.Objects.equals(limit, null))
             {
                 limit = 100;
             }
-            Object request = new ArrayList<Object>(Arrays.asList(Helpers.GetValue(market, "id"), limit, interval));
+            Object request = new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("id"), limit, interval));
             Object orderbook = (this.subscribe(name, messageHash, request, parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
@@ -387,9 +388,9 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         Object parsed = this.parseOHLCV(data, market);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
-        if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+        if (!java.util.Objects.equals(symbol, null))
         {
-            if (Helpers.isTrue(Helpers.isEqual(stored, null)))
+            if (java.util.Objects.equals(stored, null))
             {
                 Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
@@ -428,13 +429,13 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         String symbol = this.safeString(market, "symbol");
         Object tradesArray = this.safeValue(this.trades, symbol);
-        if (Helpers.isTrue(Helpers.isEqual(tradesArray, null)))
+        if (java.util.Objects.equals(tradesArray, null))
         {
             Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
             tradesArray = new ArrayCache(((Number)tradesLimit).intValue());
             Helpers.addElementToObject(this.trades, symbol, tradesArray);
         }
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength((List<Object>)(trades))); i++)
+        for (var i = 0; i < ((List<?>)(List<Object>)(trades)).size(); i++)
         {
             Object item = Helpers.GetValue((List<Object>)(trades), i);
             Object trade = this.parseTrade(item, market);
@@ -487,19 +488,19 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         String messageHashStart = this.safeString(splitMethod, 0);
         Object tickerData = this.safeDict(data, 1);
         Object ticker = null;
-        if (Helpers.isTrue(Helpers.isEqual(method, "price.update")))
+        if (java.util.Objects.equals(method, "price.update"))
         {
             String lastPrice = this.safeString(data, 1);
             ticker = this.safeTicker(new HashMap<String, Object>() {{
                 put( "last", lastPrice );
                 put( "close", lastPrice );
-                put( "symbol", Helpers.GetValue(market, "symbol") );
+                put( "symbol", ((Map<String, Object>)market).get("symbol") );
             }});
         } else
         {
             ticker = this.parseTicker(tickerData, market);
         }
-        Object symbol = Helpers.GetValue(ticker, "symbol");
+        Object symbol = ((Map<String, Object>)ticker).get("symbol");
         Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
         Object messageHash = Helpers.add(Helpers.add(messageHashStart, "::"), symbol);
         client.resolve(ticker, messageHash);
@@ -533,17 +534,17 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         Object bids = this.safeList(data, "bids");
         String marketId = this.safeString(parameters, 2);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-        Object symbol = Helpers.GetValue(market, "symbol");
-        String messageHash = Helpers.add("orderbook::", Helpers.GetValue(market, "symbol"));
+        Object symbol = ((Map<String, Object>)market).get("symbol");
+        String messageHash = ("orderbook::" + ((Map<String, Object>)market).get("symbol"));
         Object subscription = this.safeValue(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});
         Long limit = this.safeInteger(subscription, "limit");
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
-        if (Helpers.isTrue(Helpers.isEqual(orderbook, null)))
+        if (java.util.Objects.equals(orderbook, null))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
             orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         }
-        if (Helpers.isTrue(Helpers.isEqual(isFullUpdate, true)))
+        if (java.util.Objects.equals(isFullUpdate, true))
         {
             // the first parameter signals whether the message carries all
             // records or only the changed ones, a full set replaces the book,
@@ -551,9 +552,9 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             // and cross the book, see https://github.com/ccxt/ccxt/issues/24944
             Helpers.callDynamically(orderbook, "reset", new Object[]{new HashMap<String, Object>() {{}}});
         }
-        if (Helpers.isTrue(!Helpers.isEqual(bids, null)))
+        if (!java.util.Objects.equals(bids, null))
         {
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(bids)); i++)
+            for (var i = 0; i < ((List<?>)bids).size(); i++)
             {
                 Object bid = this.safeValue(bids, i);
                 Double price = this.safeNumber(bid, 0);
@@ -562,9 +563,9 @@ public class P2b extends io.github.ccxt.exchanges.P2b
                 Helpers.callDynamically(bookSide, "store", new Object[]{price, amount});
             }
         }
-        if (Helpers.isTrue(!Helpers.isEqual(asks, null)))
+        if (!java.util.Objects.equals(asks, null))
         {
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(asks)); i++)
+            for (var i = 0; i < ((List<?>)asks).size(); i++)
             {
                 Object ask = this.safeValue(asks, i);
                 Double price = this.safeNumber(ask, 0);
@@ -579,12 +580,12 @@ public class P2b extends io.github.ccxt.exchanges.P2b
 
     public void handleMessage(Client client, Object message)
     {
-        if (Helpers.isTrue(Helpers.isEqual(this.handleErrorMessage(client, message), true)))
+        if (java.util.Objects.equals(this.handleErrorMessage(client, message), true))
         {
             return;
         }
         String result = this.safeString(message, "result");
-        if (Helpers.isTrue(Helpers.isEqual(result, "pong")))
+        if (java.util.Objects.equals(result, "pong"))
         {
             this.handlePong(client, message);
             return;
@@ -598,7 +599,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             put( "deals.update", "handleTrade");
         }};
         Object endpoint = this.safeValue(methods, method);
-        if (Helpers.isTrue(!Helpers.isEqual(endpoint, null)))
+        if (!java.util.Objects.equals(endpoint, null))
         {
             Helpers.callDynamically(this, endpoint, new Object[] {client, message});
         }
@@ -607,9 +608,9 @@ public class P2b extends io.github.ccxt.exchanges.P2b
     public Object handleErrorMessage(Client client, Object message)
     {
         String error = this.safeString(message, "error");
-        if (Helpers.isTrue(!Helpers.isEqual(error, null)))
+        if (!java.util.Objects.equals(error, null))
         {
-            throw new ExchangeError(Helpers.add(Helpers.add(this.id, " error: "), this.json(error))) ;
+            throw new ExchangeError(((this.id + " error: ") + this.json(error))) ;
         }
         return false;
     }

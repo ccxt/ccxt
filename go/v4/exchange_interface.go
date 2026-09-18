@@ -195,7 +195,7 @@ type ICoreExchange interface {
 	DeepExtend(objs ...any) map[string]any
 	ParseToInt(value any) any
 	SafeValue(value any, key any, defaultValue ...any) any
-	SafeBool(value any, key any, defaultValue ...any) any
+	SafeBool(value any, key any, defaultValue ...any) *bool
 	SafeString(obj any, key any, defaultValue ...any) *string
 	Describe() any
 	SetSandboxMode(enable any)
@@ -294,8 +294,8 @@ type ICoreExchange interface {
 	SafeIntegerOmitZero(obj any, key any, optionalArgs ...any) any
 	SafeIntegerProduct(obj any, key any, multiplier any, defaultValue ...any) *int64
 	SafeIntegerProduct2(obj any, key1, key2 any, multiplier any, defaultValue ...any) *int64
-	SafeBoolN(dictionaryOrList any, keys any, optionalArgs ...any) any
-	SafeBool2(dictionary any, key1 any, key2 any, optionalArgs ...any) any
+	SafeBoolN(dictionaryOrList any, keys any, optionalArgs ...any) *bool
+	SafeBool2(dictionary any, key1 any, key2 any, optionalArgs ...any) *bool
 	SafeNumber(obj any, key any, optionalArgs ...any) any
 	SafeNumber2(dictionary any, key1 any, key2 any, optionalArgs ...any) any
 	SafeNumberOmitZero(obj any, key any, optionalArgs ...any) any

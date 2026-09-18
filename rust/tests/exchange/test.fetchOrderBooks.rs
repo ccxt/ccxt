@@ -12,16 +12,16 @@ use super::*;
 pub async fn testFetchOrderBooks(mut exchange: Value, mut skippedProperties: Value) -> Value {
     let mut method: Value = Value::Str("fetchOrderBooks".to_string());
     let mut symbols: Value = get_value(&exchange, &Value::Str("symbols".to_string()));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_equal(&symbols, &Value::Null)))));
-    let mut symbol: Value = get_value(&symbols, &Value::Int(0));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(symbols != Value::Null))));
+    let mut symbol: Value = symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
     let mut orderBooks: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_order_books", vec![Value::List(vec![symbol.clone()])]).await;
     crate::tests_support::shared::assert_dictionary_response(exchange.clone(), &[method.clone(), orderBooks.clone()]);
     let mut orderBookKeys: Value = object_keys(&orderBooks);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_greater_than(&get_array_length(&orderBookKeys), &Value::Int(0))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::Int(orderBookKeys.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));
     {
                 let mut i: Value = Value::Int(0);
         let mut __for_first_1468: bool = true;
-        while { if !__for_first_1468 { i = add(&i, &Value::Int(1)); } __for_first_1468 = false; is_less_than(&i, &get_array_length(&orderBookKeys)) } {
+        while { if !__for_first_1468 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1468 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(orderBookKeys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
         let mut symbolInner: Value = get_value(&orderBookKeys, &i);
         testOrderBook(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&orderBooks, &symbolInner), symbolInner.clone());
     }

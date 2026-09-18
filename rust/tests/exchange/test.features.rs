@@ -17,27 +17,27 @@ pub async fn testFeatures(mut exchange: Value, mut skippedProperties: Value) -> 
     {
                 let mut i: Value = Value::Int(0);
         let mut __for_first_1444: bool = true;
-        while { if !__for_first_1444 { i = add(&i, &Value::Int(1)); } __for_first_1444 = false; is_less_than(&i, &get_array_length(&keys)) } {
+        while { if !__for_first_1444 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1444 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(keys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
         crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), Value::Str("features".to_string()).clone(), keys.clone(), i.clone(), marketTypes.clone()]);
         let mut marketType: Value = get_value(&keys, &i);
         let mut value: Value = get_value(&features, &marketType);
         // assert!(ccxt::runtime::is_true(&(value !== undefined)));
-        if is_equal(&value, &Value::Null) {
+        if (value == Value::Null) {
             continue;
         }
-        if is_equal(&marketType, &Value::Str("spot".to_string())) {
+        if (marketType.as_str() == Some("spot")) {
             testFeaturesInner(exchange.clone(), skippedProperties.clone(), value.clone());
         }  else {
             let mut subKeys: Value = object_keys(&value);
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_1443: bool = true;
-                while { if !__for_first_1443 { j = add(&j, &Value::Int(1)); } __for_first_1443 = false; is_less_than(&j, &get_array_length(&subKeys)) } {
+                while { if !__for_first_1443 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1443 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(subKeys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 let mut subKey: Value = get_value(&subKeys, &j);
                 crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), Value::Str("features".to_string()).clone(), subKeys.clone(), j.clone(), subTypes.clone()]);
                 let mut subValue: Value = get_value(&value, &subKey);
                 // sometimes it might not be available for exchange, eg. future>inverse)
-                if !is_equal(&subValue, &Value::Null) {
+                if (subValue != Value::Null) {
                     testFeaturesInner(exchange.clone(), skippedProperties.clone(), subValue.clone());
                 }
             }
@@ -157,7 +157,7 @@ pub fn testFeaturesInner(mut exchange: Value, mut skippedProperties: Value, mut 
     {
                 let mut i: Value = Value::Int(0);
         let mut __for_first_1445: bool = true;
-        while { if !__for_first_1445 { i = add(&i, &Value::Int(1)); } __for_first_1445 = false; is_less_than(&i, &get_array_length(&featureKeys)) } {
+        while { if !__for_first_1445 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1445 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(featureKeys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
         crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), Value::Str("features".to_string()).clone(), featureKeys.clone(), i.clone(), allMethods.clone()]);
         crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), Value::Str("features".to_string()).clone(), featureObj.clone(), format.clone(), Value::Null.clone(), Value::Bool(true).clone()]); // deep structure check
     }

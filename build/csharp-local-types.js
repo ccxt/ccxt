@@ -3613,4 +3613,235 @@ export function installCsharpNumericReturns (transpiler) {
     csharp._methodReturnTypesPatched = true;
 }
 
+// ===== native arithmetic in place of the add / subtract / multiply / divide helpers =====
+//
+// `a + b` / `a - b` / `a * b` / `a / b` print add/subtract/multiply/divide(a, b) because the
+// C# static types of the operands are usually `object`. When this module can prove both
+// operands' C# static types AND the pair's helper branch IS the native C# operator (same
+// value, same box type, same null and exception behaviour), the call is replaced by that
+// operator. Every other pair keeps the helper call. `%` and `+=`-style targets stay for
+// the reasons spelled out in nativeArithmeticIsProven / nativeArithmeticAssignment.
+
+const NATIVE_ARITHMETIC_KIND_BY_TYPE = {
+    'string': 'string',
+    'string?': 'string',
+    'int': 'int',
+    'uint': 'uint',
+    'long': 'Int64',
+    'Int64': 'Int64',
+    'double': 'double',
+};
+
+const NATIVE_ARITHMETIC_SMALL_INT_KINDS = [ 'int', 'uint', 'Int64' ];
+
+const NATIVE_ARITHMETIC_SYMBOLS = {
+    [ts.SyntaxKind.PlusToken]: '+',
+    [ts.SyntaxKind.MinusToken]: '-',
+    [ts.SyntaxKind.AsteriskToken]: '*',
+    [ts.SyntaxKind.SlashToken]: '/',
+};
+
+function nativeArithmeticKindOfType (type) {
+    return (type !== undefined && Object.prototype.hasOwnProperty.call (NATIVE_ARITHMETIC_KIND_BY_TYPE, type))
+        ? NATIVE_ARITHMETIC_KIND_BY_TYPE[type]
+        : undefined;
+}
+
+// C# static kind of one operand: literals by their literal type, `this.id` / `.length`
+// member reads, identifiers and calls by the type their printed form carries, nested
+// arithmetic recursively. undefined = not provable (the helper call stays).
+function nativeArithmeticOperandKind (csharp, node) {
+    if (!node) {
+        return undefined;
+    }
+    switch (node.kind) {
+    case ts.SyntaxKind.StringLiteral:
+    case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
+        return 'string';
+    case ts.SyntaxKind.NumericLiteral:
+        // integer literals by their literal type (int / uint / long), decimals and
+        // exponents as double
+        return nativeArithmeticKindOfType (integerOperandKind (node.text, false) ?? numericLiteralType (node.text));
+    case ts.SyntaxKind.PrefixUnaryExpression:
+        // `-N` prints as a negative literal; any other prefix stays unproven
+        return (node.operator === ts.SyntaxKind.MinusToken && node.operand?.kind === ts.SyntaxKind.NumericLiteral)
+            ? nativeArithmeticKindOfType (integerOperandKind (node.operand.text, true) ?? numericLiteralType (node.operand.text))
+            : undefined;
+    case ts.SyntaxKind.ParenthesizedExpression:
+        return nativeArithmeticOperandKind (csharp, node.expression);
+    case ts.SyntaxKind.PropertyAccessExpression:
+        // only the member reads the printer/module can name: `this.id` (string) and `.length` (int)
+        if (isProvablyStringOperand (node)) {
+            return 'string';
+        }
+        return (node.name?.escapedText === 'length') ? 'int' : undefined;
+    case ts.SyntaxKind.Identifier:
+        // the `<type> x = ` prefix the declaration prints (this module's decision first,
+        // then the printer's own getCSharpLocalType); a local with no proven type has none
+        return nativeArithmeticKindOfType (identifierType (csharp, node) ?? localIdentifierType (csharp, node));
+    case ts.SyntaxKind.CallExpression:
+        if (isProvablyStringOperand (node)) {
+            return 'string'; // `<recv>.toString ()` prints `((object)recv).ToString ()`
+        }
+        return nativeArithmeticKindOfType (csharpTypeOfValue (csharp, node));
+    case ts.SyntaxKind.BinaryExpression:
+        return nativeArithmeticResultKind (csharp, node);
+    }
+    return undefined;
+}
+
+// the C# static kind of an already-printed arithmetic sub-expression: the native operator
+// this module emits, else the typed overload the remaining helper call binds to
+function nativeArithmeticResultKind (csharp, node) {
+    const op = node.operatorToken?.kind;
+    if (op === ts.SyntaxKind.PlusToken && isProvablyStringOperand (node)) {
+        return 'string'; // add(string, *) is declared string
+    }
+    if (op === ts.SyntaxKind.MinusToken || op === ts.SyntaxKind.AsteriskToken || op === ts.SyntaxKind.SlashToken) {
+        const printed = nativeArithmeticKindOfType (csharpArithmeticExpressionKind (csharp, node, undefined));
+        if (printed !== undefined) {
+            return printed;
+        }
+    }
+    const left = nativeArithmeticOperandKind (csharp, node.left);
+    const right = nativeArithmeticOperandKind (csharp, node.right);
+    return nativeArithmeticIsProven (op, left, right) ? nativeArithmeticPairResultKind (op, left, right) : undefined;
+}
+
+// the pairs whose helper result is the native operator result, value and box identical:
+//   +  string + string        add(string ,string) is `a + b` (null on either side is "")
+//   +  int/uint/Int64 pairs   the Int64 branch / the small-int promotion to long
+//   +  double + (double|int)  add's double branch (Convert.ToDouble == the implicit conversion)
+//   -  int - int              subtract(int, int) is `a - b`
+//   -  small-int pairs        (Int64, Int64) / the promotion
+//   -  double - <numeric>     the object overload's double branch
+//   *  small-int pairs        multiply(Int64, Int64) / the promotion
+//   /  small-int pairs        divide(Int64, Int64) — the same truncating Int64 division
+//   /  any double operand     divide(double, double) — both orders
+// Rejected: int+int / uint*uint (the helper normalizes to Int64, so the native Int32 /
+// UInt32 box and its Int32 overflow would differ), (small-int) op double for + / - / *
+// (add / subtract cast the RIGHT operand to Int64 and throw; multiply re-boxes a
+// whole-number double product as Int64), every mixed kind (string vs numeric) and every
+// unproven operand.
+function nativeArithmeticIsProven (op, left, right) {
+    if (left === undefined || right === undefined) {
+        return false;
+    }
+    const bothSmall = NATIVE_ARITHMETIC_SMALL_INT_KINDS.includes (left) && NATIVE_ARITHMETIC_SMALL_INT_KINDS.includes (right);
+    const bothInt32 = (left === 'int' && right === 'int') || (left === 'uint' && right === 'uint');
+    const doubleLeft = (left === 'double') && (right === 'double' || NATIVE_ARITHMETIC_SMALL_INT_KINDS.includes (right));
+    if (op === ts.SyntaxKind.PlusToken) {
+        return (left === 'string' && right === 'string') || doubleLeft || (bothSmall && !bothInt32);
+    }
+    if (op === ts.SyntaxKind.MinusToken) {
+        return doubleLeft || (bothSmall && !(left === 'uint' && right === 'uint'));
+    }
+    if (op === ts.SyntaxKind.AsteriskToken) {
+        return bothSmall && !bothInt32;
+    }
+    if (op === ts.SyntaxKind.SlashToken) {
+        return (left === 'double' || right === 'double') || (bothSmall && !bothInt32);
+    }
+    return false;
+}
+
+// the C# static type of an emitted native expression (the small-int pairs promote to long)
+function nativeArithmeticPairResultKind (op, left, right) {
+    if (left === 'string') {
+        return 'string';
+    }
+    if (left === 'double' || right === 'double') {
+        return 'double';
+    }
+    if (op === ts.SyntaxKind.MinusToken && left === 'int' && right === 'int') {
+        return 'int';
+    }
+    return 'Int64';
+}
+
+// the printed native expression, parenthesised: it is one operand of its context (the
+// throw printer prefixes casts like `(string)` with no parens of its own), and a nested
+// arithmetic child arrives already parenthesised from this same wrapper
+function nativeArithmeticExpression (csharp, node) {
+    if (node?.kind !== ts.SyntaxKind.BinaryExpression) {
+        return undefined;
+    }
+    const op = node.operatorToken?.kind;
+    const symbol = NATIVE_ARITHMETIC_SYMBOLS[op];
+    if (symbol === undefined) {
+        return undefined;
+    }
+    const left = nativeArithmeticOperandKind (csharp, node.left);
+    const right = nativeArithmeticOperandKind (csharp, node.right);
+    if (!nativeArithmeticIsProven (op, left, right)) {
+        return undefined;
+    }
+    return '(' + csharp.printNode (node.left, 0) + ' ' + symbol + ' ' + csharp.printNode (node.right, 0) + ')';
+}
+
+// `x += y` prints `x = add(x, y)` and `x -= y` prints `x = subtract(x, y)`: emitted
+// natively when the pair is proven, the target is a plain local and its proven type is a
+// numeric / string one (an `object` target could not take the result back)
+function nativeArithmeticAssignment (csharp, node) {
+    const op = node.operatorToken?.kind;
+    const baseOp = (op === ts.SyntaxKind.PlusEqualsToken) ? ts.SyntaxKind.PlusToken
+        : (op === ts.SyntaxKind.MinusEqualsToken) ? ts.SyntaxKind.MinusToken : undefined;
+    if (baseOp === undefined || node.left?.kind !== ts.SyntaxKind.Identifier) {
+        return undefined;
+    }
+    const left = nativeArithmeticOperandKind (csharp, node.left);
+    const right = nativeArithmeticOperandKind (csharp, node.right);
+    if (!nativeArithmeticIsProven (baseOp, left, right)) {
+        return undefined;
+    }
+    const target = csharp.printNode (node.left, 0);
+    return target + ' = ' + target + ' ' + NATIVE_ARITHMETIC_SYMBOLS[baseOp] + ' ' + csharp.printNode (node.right, 0);
+}
+
+// wrap printCustomBinaryExpressionIfAny: the helper call is dropped for the pairs proven
+// by nativeArithmeticIsProven, everything else falls through to the previous printer
+export function installCsharpNativeArithmetic (transpiler) {
+    const csharp = transpiler?.csharpTranspiler;
+    if (!csharp || typeof csharp.printCustomBinaryExpressionIfAny !== 'function' || csharp._nativeArithmeticPatched) {
+        return;
+    }
+    const upstream = csharp.printCustomBinaryExpressionIfAny.bind (csharp);
+    csharp.printCustomBinaryExpressionIfAny = (node, identation) => {
+        if (node?.kind === ts.SyntaxKind.BinaryExpression) {
+            const native = nativeArithmeticAssignment (csharp, node) ?? nativeArithmeticExpression (csharp, node);
+            if (native !== undefined) {
+                return native;
+            }
+        }
+        return upstream (node, identation);
+    };
+    csharp._nativeArithmeticPatched = true;
+}
+
+// ===== native numeric comparisons =====
+//
+// The printer prints `<`/`>`/`<=`/`>=` through the runtime isLessThan family unless it can name
+// the concrete C# kind of both operands; the locals THIS module retypes (`for (int i = 0; ...)`,
+// `int length = getArrayLength (xs)`) are exactly the ones it cannot name by itself. Handing the
+// read type back lets it print the operator, which compares the same two boxes the helper does
+// (csharpNativeNumericComparison keeps `<`/`<=` on the helper for double, whose NaN the two
+// disagree on).
+export function installCsharpNumericComparisons (transpiler) {
+    const csharp = transpiler?.csharpTranspiler;
+    if (!csharp || csharp._numericComparisonsPatched) {
+        return;
+    }
+    csharp.csharpExpressionTypeResolver = (node) => {
+        if (node?.kind !== ts.SyntaxKind.Identifier) {
+            return undefined; // calls / accesses / literals are the printer's own tables
+        }
+        const declaration = resolveReference (csharp, node);
+        if (declaration?.kind !== ts.SyntaxKind.VariableDeclaration) {
+            return undefined; // a parameter prints `object` and is never comparable natively
+        }
+        return referenceDeclaredType (csharp, declaration);
+    };
+    csharp._numericComparisonsPatched = true;
+}
+
 export default installCsharpLocalTypes;

@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 public class Coinbaseinternational extends CoinbaseinternationalApi
 {
@@ -48,7 +49,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             put( "pro", true );
             put( "rateLimit", 100 );
             put( "version", "v1" );
-            put( "userAgent", Helpers.GetValue(Coinbaseinternational.this.userAgents, "chrome") );
+            put( "userAgent", ((Map<String, Object>)Coinbaseinternational.this.userAgents).get("chrome") );
             put( "headers", new HashMap<String, Object>() {{
                 put( "CB-VERSION", "2018-05-30" );
             }} );
@@ -484,33 +485,33 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object portfolio = null;
             List<Object> portfolioparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "portfolio");
             portfolio = ((List<Object>) portfolioparametersVariable).get(0);
             parameters = ((List<Object>) portfolioparametersVariable).get(1);
-            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(portfolio, null))) && Helpers.isTrue((!Helpers.isEqual(portfolio, "")))))
+            if ((!java.util.Objects.equals(portfolio, null)) && (!java.util.Objects.equals(portfolio, "")))
             {
                 return new ArrayList<Object>(Arrays.asList(portfolio, parameters));
             }
             String defaultPortfolio = this.safeString(this.options, "portfolio");
-            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(defaultPortfolio, null))) && Helpers.isTrue((!Helpers.isEqual(defaultPortfolio, "")))))
+            if ((!java.util.Objects.equals(defaultPortfolio, null)) && (!java.util.Objects.equals(defaultPortfolio, "")))
             {
                 return new ArrayList<Object>(Arrays.asList(defaultPortfolio, parameters));
             }
             Object accounts = (this.fetchAccounts(new Object[0])).join();
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(accounts)); i++)
+            for (var i = 0; i < ((List<?>)accounts).size(); i++)
             {
                 Object account = Helpers.GetValue(accounts, i);
                 Object info = this.safeDict(account, "info", new HashMap<String, Object>() {{}});
-                if (Helpers.isTrue(Helpers.isEqual(this.safeBool(info, "is_default"), true)))
+                if (java.util.Objects.equals(this.safeBool(info, "is_default"), true))
                 {
                     String portfolioId = this.safeString(info, "portfolio_id");
                     Helpers.addElementToObject(this.options, "portfolio", portfolioId);
                     return new ArrayList<Object>(Arrays.asList(portfolioId, parameters));
                 }
             }
-            throw new ArgumentsRequired(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a portfolio parameter or set the default portfolio with this.options[\"portfolio\"]")) ;
+            throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires a portfolio parameter or set the default portfolio with this.options[\"portfolio\"]")) ;
         });
 
     }
@@ -520,22 +521,22 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object networkId = null;
             List<Object> networkIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, methodName, "network_arn_id");
             networkId = ((List<Object>) networkIdparametersVariable).get(0);
             parameters = ((List<Object>) networkIdparametersVariable).get(1);
-            if (Helpers.isTrue(Helpers.isEqual(networkId, null)))
+            if (java.util.Objects.equals(networkId, null))
             {
                 (this.loadCurrencyNetworks(currencyCode)).join();
-                Object networks = Helpers.GetValue(Helpers.GetValue(this.currencies, currencyCode), "networks");
+                Object networks = ((Map<String, Object>)Helpers.GetValue(this.currencies, currencyCode)).get("networks");
                 String network = this.safeString2(parameters, "networkCode", "network");
-                if (Helpers.isTrue(Helpers.isEqual(network, null)))
+                if (java.util.Objects.equals(network, null))
                 {
                     // find default network
                     if (Helpers.isTrue(this.isEmpty(networks)))
                     {
-                        throw new BadRequest(Helpers.add(Helpers.add(Helpers.add(this.id, " createDepositAddress network not found for currency "), currencyCode), " please specify networkId in params")) ;
+                        throw new BadRequest((((this.id + " createDepositAddress network not found for currency ") + currencyCode) + " please specify networkId in params")) ;
                     }
                     Object defaultNetwork = this.findDefaultNetwork(networks);
                     networkId = Helpers.GetValue(defaultNetwork, "id");
@@ -562,8 +563,8 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -586,7 +587,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //    ]
             //
             return this.parseAccounts(response, parameters);
-        }).thenApply(res -> Helpers.toTypedList(res, Account::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Account::new).collect(Collectors.toList()));
 
     }
 
@@ -634,11 +635,11 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, 100);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : 100;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -652,21 +653,21 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instrument", Helpers.GetValue(market, "id") );
+                put( "instrument", ((Map<String, Object>)market).get("id") );
                 put( "granularity", Coinbaseinternational.this.safeString(Coinbaseinternational.this.timeframes, timeframe, timeframe) );
             }};
-            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            if (!java.util.Objects.equals(since, null))
             {
-                Helpers.addElementToObject(request, "start", this.iso8601(since));
+                ((Map<String, Object>)request).put("start", this.iso8601(since));
             } else
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOHLCV() requires a since argument")) ;
+                throw new ArgumentsRequired((this.id + " fetchOHLCV() requires a since argument")) ;
             }
             Long unitl = this.safeInteger(parameters, "until");
-            if (Helpers.isTrue(!Helpers.isEqual(unitl, null)))
+            if (!java.util.Objects.equals(unitl, null))
             {
                 parameters = this.omit(parameters, "until");
-                Helpers.addElementToObject(request, "end", this.iso8601(unitl));
+                ((Map<String, Object>)request).put("end", this.iso8601(unitl));
             }
             Map<String, Object> response = (this.v1PublicGetInstrumentsInstrumentCandles(this.extend(request, parameters))).join();
             //
@@ -685,7 +686,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //
             Object candles = this.safeList(response, "aggregations", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(candles, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
 
@@ -701,7 +702,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         //     "volume": "3253.9983"
         //   }
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         return new ArrayList<Object>(Arrays.asList(this.parse8601(this.safeString2(ohlcv, "start", "time")), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, "volume")));
     }
 
@@ -722,15 +723,15 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(symbol, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+                throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
             }
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -751,12 +752,12 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             Object page = Helpers.subtract(this.safeInteger(parameters, pageKey, 1), 1);
             Long offSet = (Long) this.safeInteger2(parameters, "offset", "result_offset", Helpers.multiply(page, maxEntriesPerRequest));
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "instrument", Helpers.GetValue(market, "id") );
+                put( "instrument", ((Map<String, Object>)market).get("id") );
                 put( "result_offset", offSet );
             }};
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(request, "result_limit", limit);
+                ((Map<String, Object>)request).put("result_limit", limit);
             }
             Map<String, Object> response = (this.v1PublicGetInstrumentsInstrumentFunding(this.extend(request, parameters))).join();
             //
@@ -778,13 +779,13 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //
             Object rawRates = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRateHistories(rawRates, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingRateHistory::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
     }
 
     public Object parseFundingRateHistory(Object info, Object... optionalArgs)
     {
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         return this.parseFundingRate(info, market);
     }
 
@@ -798,7 +799,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         //       "event_time":"2024-02-10T16:00:00Z"
         //    }
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String fundingDatetime = this.safeString2(contract, "event_time", "time");
         return new HashMap<String, Object>() {{
             put( "info", contract );
@@ -837,11 +838,11 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -849,7 +850,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 put( "type", "FUNDING" );
             }};
             Object market = null;
-            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
             }
@@ -857,25 +858,25 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             List<Object> portfoliosparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchFundingHistory", "portfolios");
             portfolios = ((List<Object>) portfoliosparametersVariable).get(0);
             parameters = ((List<Object>) portfoliosparametersVariable).get(1);
-            if (Helpers.isTrue(!Helpers.isEqual(portfolios, null)))
+            if (!java.util.Objects.equals(portfolios, null))
             {
-                Helpers.addElementToObject(request, "portfolios", portfolios);
+                ((Map<String, Object>)request).put("portfolios", portfolios);
             }
-            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            if (!java.util.Objects.equals(since, null))
             {
-                Helpers.addElementToObject(request, "time_from", this.iso8601(since));
+                ((Map<String, Object>)request).put("time_from", this.iso8601(since));
             }
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(request, "result_limit", limit);
+                ((Map<String, Object>)request).put("result_limit", limit);
             } else
             {
-                Helpers.addElementToObject(request, "result_limit", 100);
+                ((Map<String, Object>)request).put("result_limit", 100);
             }
             Map<String, Object> response = (this.v1PrivateGetTransfers(this.extend(request, parameters))).join();
             Object fundings = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseIncomes(fundings, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, FundingHistory::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 
     }
 
@@ -903,7 +904,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         //     "updated_at":"2024-02-22T16:00:00Z"
         // }
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(income, "symbol");
         market = this.safeMarket(marketId, market, null, "contract");
         Long datetime = this.safeInteger(income, "created_at");
@@ -913,7 +914,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         final Object finalMarket = market;
         return new HashMap<String, Object>() {{
             put( "info", income );
-            put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
+            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
             put( "code", code );
             put( "timestamp", timestamp );
             put( "datetime", Coinbaseinternational.this.iso8601(timestamp) );
@@ -939,11 +940,11 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object code = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -951,7 +952,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 put( "type", "INTERNAL" );
             }};
             Object currency = null;
-            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            if (!java.util.Objects.equals(code, null))
             {
                 currency = this.currency(code);
             }
@@ -959,25 +960,25 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             List<Object> portfoliosparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchTransfers", "portfolios");
             portfolios = ((List<Object>) portfoliosparametersVariable).get(0);
             parameters = ((List<Object>) portfoliosparametersVariable).get(1);
-            if (Helpers.isTrue(!Helpers.isEqual(portfolios, null)))
+            if (!java.util.Objects.equals(portfolios, null))
             {
-                Helpers.addElementToObject(request, "portfolios", portfolios);
+                ((Map<String, Object>)request).put("portfolios", portfolios);
             }
-            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            if (!java.util.Objects.equals(since, null))
             {
-                Helpers.addElementToObject(request, "time_from", this.iso8601(since));
+                ((Map<String, Object>)request).put("time_from", this.iso8601(since));
             }
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(request, "result_limit", limit);
+                ((Map<String, Object>)request).put("result_limit", limit);
             } else
             {
-                Helpers.addElementToObject(request, "result_limit", 100);
+                ((Map<String, Object>)request).put("result_limit", 100);
             }
             Map<String, Object> response = (this.v1PrivateGetTransfers(this.extend(request, parameters))).join();
             Object transfers = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransfers(transfers, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, TransferEntry::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
     }
 
@@ -1005,7 +1006,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         //     "updated_at":"2024-02-22T16:00:00Z"
         // }
         //
-        Object currency = Helpers.getArg(optionalArgs, 0, null);
+        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long datetime = this.safeInteger(transfer, "created_at");
         Long timestamp = this.parse8601(datetime);
         String currencyId = this.safeString(transfer, "asset");
@@ -1055,8 +1056,8 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -1072,18 +1073,18 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "portfolio", finalPortfolio );
             }};
-            if (Helpers.isTrue(Helpers.isEqual(method, "v1PrivatePostTransfersAddress")))
+            if (java.util.Objects.equals(method, "v1PrivatePostTransfersAddress"))
             {
                 Map<String, Object> currency = (Map<String, Object>) this.currency(code);
-                Helpers.addElementToObject(request, "asset", Helpers.GetValue(currency, "id"));
+                ((Map<String, Object>)request).put("asset", ((Map<String, Object>)currency).get("id"));
                 Object networkId = null;
                 List<Object> networkIdparametersVariable = (List<Object>) (this.handleNetworkIdAndParams(code, "createDepositAddress", parameters)).join();
                 networkId = ((List<Object>) networkIdparametersVariable).get(0);
                 parameters = ((List<Object>) networkIdparametersVariable).get(1);
-                Helpers.addElementToObject(request, "network_arn_id", networkId);
+                ((Map<String, Object>)request).put("network_arn_id", networkId);
             }
             Object response = null;
-            if (Helpers.isTrue(Helpers.isEqual(method, "v1PrivatePostTransfersCreateCounterpartyId")))
+            if (java.util.Objects.equals(method, "v1PrivatePostTransfersCreateCounterpartyId"))
             {
                 response = (this.v1PrivatePostTransfersCreateCounterpartyId(this.extend(request, parameters))).join();
             } else
@@ -1120,11 +1121,11 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
     public Object findDefaultNetwork(Object networks)
     {
         List<Object> networksArray = this.toArray(networks);
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(networksArray)); i++)
+        for (var i = 0; i < ((List<?>)networksArray).size(); i++)
         {
             Object info = Helpers.GetValue(Helpers.GetValue(networksArray, i), "info");
             Object is_default = this.safeBool(info, "is_default", false);
-            if (Helpers.isTrue(Helpers.isEqual(is_default, true)))
+            if (java.util.Objects.equals(is_default, true))
             {
                 return Helpers.GetValue(networksArray, i);
             }
@@ -1137,15 +1138,15 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Object networks = this.safeDict(currency, "networks");
-            if (Helpers.isTrue(!Helpers.isEqual(networks, null)))
+            if (!java.util.Objects.equals(networks, null))
             {
                 return false;
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "asset", Helpers.GetValue(currency, "id") );
+                put( "asset", ((Map<String, Object>)currency).get("id") );
             }};
             List<Object> rawNetworks = (this.v1PublicGetAssetsAssetNetworks(request)).join();
             //
@@ -1174,7 +1175,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
     public Object parseNetworks(Object networks, Object... optionalArgs)
     {
-        Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+        Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(networks)); i++)
         {
@@ -1201,7 +1202,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         //        "display_name":"Ethereum"
         //    }
         //
-        Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+        Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
         String currencyId = this.safeString(network, "asset_name");
         String currencyCode = this.safeCurrencyCode(currencyId);
         String networkId = this.safeString(network, "network_arn_id");
@@ -1244,14 +1245,14 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         final Object symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object portfolio = null;
             List<Object> portfolioparametersVariable = (List<Object>) (this.handlePortfolioAndParams("setMargin", parameters)).join();
             portfolio = ((List<Object>) portfolioparametersVariable).get(0);
             parameters = ((List<Object>) portfolioparametersVariable).get(1);
-            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            if (!java.util.Objects.equals(symbol, null))
             {
-                throw new BadRequest(Helpers.add(this.id, " setMargin() only allows setting margin to full portfolio")) ;
+                throw new BadRequest((this.id + " setMargin() only allows setting margin to full portfolio")) ;
             }
             final Object finalPortfolio = portfolio;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1285,11 +1286,11 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object code = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -1302,7 +1303,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             maxEntriesPerRequest = ((List<Object>) maxEntriesPerRequestparametersVariable).get(0);
             parameters = ((List<Object>) maxEntriesPerRequestparametersVariable).get(1);
             String pageKey = "ccxtPageKey";
-            if (Helpers.isTrue(Helpers.isEqual(paginate, true)))
+            if (java.util.Objects.equals(paginate, true))
             {
                 return (this.fetchPaginatedCallIncremental("fetchDepositsWithdrawals", code, since, limit, parameters, pageKey, maxEntriesPerRequest)).join();
             }
@@ -1311,30 +1312,30 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "result_offset", offSet );
             }};
-            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            if (!java.util.Objects.equals(since, null))
             {
-                Helpers.addElementToObject(request, "time_from", this.iso8601(since));
+                ((Map<String, Object>)request).put("time_from", this.iso8601(since));
             }
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
                 Object newLimit = Helpers.mathMin(limit, 100);
-                Helpers.addElementToObject(request, "result_limit", newLimit);
+                ((Map<String, Object>)request).put("result_limit", newLimit);
             }
             Object portfolios = null;
             List<Object> portfoliosparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchDepositsWithdrawals", "portfolios");
             portfolios = ((List<Object>) portfoliosparametersVariable).get(0);
             parameters = ((List<Object>) portfoliosparametersVariable).get(1);
-            if (Helpers.isTrue(!Helpers.isEqual(portfolios, null)))
+            if (!java.util.Objects.equals(portfolios, null))
             {
-                Helpers.addElementToObject(request, "portfolios", portfolios);
+                ((Map<String, Object>)request).put("portfolios", portfolios);
             }
             Object until = null;
             List<Object> untilparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchDepositsWithdrawals", "until");
             until = ((List<Object>) untilparametersVariable).get(0);
             parameters = ((List<Object>) untilparametersVariable).get(1);
-            if (Helpers.isTrue(!Helpers.isEqual(until, null)))
+            if (!java.util.Objects.equals(until, null))
             {
-                Helpers.addElementToObject(request, "time_to", this.iso8601(until));
+                ((Map<String, Object>)request).put("time_to", this.iso8601(until));
             }
             Map<String, Object> response = (this.v1PrivateGetTransfers(this.extend(request, parameters))).join();
             //
@@ -1365,7 +1366,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //
             Object rawTransactions = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(rawTransactions);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
 
@@ -1383,8 +1384,8 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         final Object symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -1437,7 +1438,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         //       "entry_vwap":"52472.9"
         //    }
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(position, "symbol");
         String quantity = this.safeString(position, "net_size");
         market = this.safeMarket(marketId, market, "-");
@@ -1453,7 +1454,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         return this.safePosition(new HashMap<String, Object>() {{
             put( "info", position );
             put( "id", Coinbaseinternational.this.safeString(position, "id") );
-            put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
+            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
             put( "entryPrice", null );
             put( "markPrice", Coinbaseinternational.this.safeNumber(position, "mark_price") );
             put( "notional", null );
@@ -1491,9 +1492,9 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -1530,7 +1531,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             }
             symbols = this.marketSymbols(symbols);
             return this.filterByArrayPositions(positions, "symbol", symbols, false);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
 
@@ -1555,17 +1556,17 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object code = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            Helpers.addElementToObject(parameters, "type", "WITHDRAW");
+            ((Map<String, Object>)parameters).put("type", "WITHDRAW");
             return (this.fetchDepositsWithdrawals((Object)(code), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
 
@@ -1589,17 +1590,17 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object code = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            Helpers.addElementToObject(parameters, "type", "DEPOSIT");
+            ((Map<String, Object>)parameters).put("type", "DEPOSIT");
             return (this.fetchDepositsWithdrawals((Object)(code), (Object)(since), (Object)(limit), (Object)(parameters))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
 
@@ -1621,7 +1622,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         //        "idem":"8e471d77-4208-45a8-9e5b-f3bd8a2c1fc3"
         //    }
         // const transactionType = this.safeString (transaction, 'type');
-        Object currency = Helpers.getArg(optionalArgs, 0, null);
+        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String datetime = this.safeString(transaction, "updated_at");
         Object fromPorfolio = this.safeDict(transaction, "from_portfolio", new HashMap<String, Object>() {{}});
         String addressFrom = this.safeStringN(transaction, new ArrayList<Object>(Arrays.asList("from_address", "from_cb_account", this.safeStringN(fromPorfolio, new ArrayList<Object>(Arrays.asList("id", "uuid", "name"))), "from_counterparty_id")));
@@ -1687,7 +1688,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         //       "event_time":"2024-02-15T00:43:57.631Z"
         //    }
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(trade, "symbol");
         String datetime = this.safeString(trade, "event_time");
         return this.safeTrade(new HashMap<String, Object>() {{
@@ -1723,7 +1724,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             List<Object> response = (this.v1PublicGetInstruments(parameters)).join();
             //
             //    [
@@ -1831,7 +1832,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         String baseId = this.safeString(market, "base_asset_name");
         String quoteId = this.safeString(market, "quote_asset_name");
         String typeId = this.safeString(market, "type"); // 'SPOT', 'PERP'
-        Boolean isSpot = (Helpers.isEqual(typeId, "SPOT"));
+        Boolean isSpot = (java.util.Objects.equals(typeId, "SPOT"));
         Object fees = this.fees;
         Object symbol = Helpers.add(Helpers.add(baseId, "/"), quoteId);
         String settleId = null;
@@ -1840,11 +1841,11 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             settleId = quoteId;
             symbol = Helpers.add(symbol, Helpers.add(":", quoteId));
         }
-        Object isLinear = ((Helpers.isTrue(isSpot))) ? null : (Helpers.isEqual(settleId, quoteId));
-        Object isInverse = ((Helpers.isTrue(isSpot))) ? null : (!Helpers.isEqual(settleId, quoteId));
-        if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
+        Object isLinear = ((Helpers.isTrue(isSpot))) ? null : (java.util.Objects.equals(settleId, quoteId));
+        Object isInverse = ((Helpers.isTrue(isSpot))) ? null : (!java.util.Objects.equals(settleId, quoteId));
+        if (java.util.Objects.equals(marketId, null))
         {
-            throw new ExchangeError(Helpers.add(this.id, " parseMarket() missing marketId")) ;
+            throw new ExchangeError((this.id + " parseMarket() missing marketId")) ;
         }
         final Object finalMarketId = marketId;
         final Object finalSymbol = symbol;
@@ -1866,7 +1867,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             put( "swap", !Helpers.isTrue(isSpot) );
             put( "future", false );
             put( "option", false );
-            put( "active", Helpers.isEqual(Coinbaseinternational.this.safeString(market, "trading_state"), "TRADING") );
+            put( "active", java.util.Objects.equals(Coinbaseinternational.this.safeString(market, "trading_state"), "TRADING") );
             put( "contract", !Helpers.isTrue(isSpot) );
             put( "linear", isLinear );
             put( "inverse", isInverse );
@@ -1918,7 +1919,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             List<Object> currencies = (this.v1PublicGetAssets(parameters)).join();
             //
             //    [
@@ -1960,7 +1961,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             put( "code", code );
             put( "precision", null );
             put( "info", currency );
-            put( "active", (Helpers.isEqual(finalStatusId, "ACTIVE")) );
+            put( "active", (java.util.Objects.equals(finalStatusId, "ACTIVE")) );
             put( "deposit", null );
             put( "withdraw", null );
             put( "networks", null );
@@ -1984,9 +1985,9 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -1998,7 +1999,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             {
                 rows = instruments;
             }
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
+            for (var i = 0; i < ((List<?>)rows).size(); i++)
             {
                 Object instrument = Helpers.GetValue(rows, i);
                 String marketId = this.safeString(instrument, "symbol");
@@ -2025,8 +2026,8 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -2059,7 +2060,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         //        "timestamp":"2024-02-10T16:07:39.454Z"
         //    }
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String datetime = this.safeString(ticker, "timestamp");
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "info", ticker );
@@ -2101,8 +2102,8 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -2165,7 +2166,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             Object account = this.account();
             Helpers.addElementToObject(account, "total", this.safeString(rawBalance, "quantity"));
             Helpers.addElementToObject(account, "used", this.safeString(rawBalance, "hold"));
-            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            if (!java.util.Objects.equals(code, null))
             {
                 Helpers.addElementToObject(result, code, account);
             }
@@ -2190,14 +2191,14 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "asset", Helpers.GetValue(currency, "id") );
+                put( "asset", ((Map<String, Object>)currency).get("id") );
                 put( "amount", amount );
                 put( "from", fromAccount );
                 put( "to", toAccount );
@@ -2214,7 +2215,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 put( "amount", amount );
                 put( "fromAccount", fromAccount );
                 put( "toAccount", toAccount );
-                put( "status", ((Helpers.isTrue((Helpers.isEqual(finalSuccess, true))))) ? "ok" : "failed" );
+                put( "status", (((java.util.Objects.equals(finalSuccess, true)))) ? "ok" : "failed" );
             }};
         }).thenApply(TransferEntry::new);
 
@@ -2247,9 +2248,9 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         return BaseExchange.supplyAsync(() -> {
             Object type = type3;
             Object side = side3;
-            Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -2257,67 +2258,67 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             Object typeId = ((String)type).toUpperCase();
             Double triggerPrice = this.safeNumberN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stop_price")));
             String clientOrderIdprefix = this.safeString(this.options, "brokerId", "nfqkvdjp");
-            Object clientOrderId = Helpers.add(Helpers.add(clientOrderIdprefix, "-"), this.uuid());
+            Object clientOrderId = ((clientOrderIdprefix + "-") + this.uuid());
             clientOrderId = Helpers.slice(clientOrderId, 0, 17);
-            if (Helpers.isTrue(Helpers.isEqual(side, null)))
+            if (java.util.Objects.equals(side, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a side argument")) ;
+                throw new ArgumentsRequired((this.id + " createOrder() requires a side argument")) ;
             }
             final Object finalClientOrderId = clientOrderId;
             final Object finalSide = side;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "client_order_id", finalClientOrderId );
                 put( "side", ((String)finalSide).toUpperCase() );
-                put( "instrument", Helpers.GetValue(market, "id") );
-                put( "size", Coinbaseinternational.this.amountToPrecision(Helpers.GetValue(market, "symbol"), amount) );
+                put( "instrument", ((Map<String, Object>)market).get("id") );
+                put( "size", Coinbaseinternational.this.amountToPrecision(((Map<String, Object>)market).get("symbol"), amount) );
             }};
-            if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
+            if (!java.util.Objects.equals(triggerPrice, null))
             {
-                if (Helpers.isTrue(Helpers.isEqual(type, "limit")))
+                if (java.util.Objects.equals(type, "limit"))
                 {
                     typeId = "STOP_LIMIT";
                 } else
                 {
                     typeId = "STOP";
                 }
-                Helpers.addElementToObject(request, "stop_price", triggerPrice);
+                ((Map<String, Object>)request).put("stop_price", triggerPrice);
             }
-            Helpers.addElementToObject(request, "type", typeId);
-            if (Helpers.isTrue(Helpers.isEqual(type, "limit")))
+            ((Map<String, Object>)request).put("type", typeId);
+            if (java.util.Objects.equals(type, "limit"))
             {
-                if (Helpers.isTrue(Helpers.isEqual(price, null)))
+                if (java.util.Objects.equals(price, null))
                 {
-                    throw new InvalidOrder(Helpers.add(this.id, " createOrder() requires a price parameter for a limit order types")) ;
+                    throw new InvalidOrder((this.id + " createOrder() requires a price parameter for a limit order types")) ;
                 }
-                Helpers.addElementToObject(request, "price", price);
+                ((Map<String, Object>)request).put("price", price);
             }
             Object portfolio = null;
             List<Object> portfolioparametersVariable = (List<Object>) (this.handlePortfolioAndParams("createOrder", parameters)).join();
             portfolio = ((List<Object>) portfolioparametersVariable).get(0);
             parameters = ((List<Object>) portfolioparametersVariable).get(1);
-            if (Helpers.isTrue(!Helpers.isEqual(portfolio, null)))
+            if (!java.util.Objects.equals(portfolio, null))
             {
-                Helpers.addElementToObject(request, "portfolio", portfolio);
+                ((Map<String, Object>)request).put("portfolio", portfolio);
             }
             Object postOnly = this.safeBool2(parameters, "postOnly", "post_only");
             String tif = this.safeString2(parameters, "tif", "timeInForce");
             // market orders must be IOC
-            if (Helpers.isTrue(Helpers.isEqual(typeId, "MARKET")))
+            if (java.util.Objects.equals(typeId, "MARKET"))
             {
-                if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(tif, null)) && Helpers.isTrue(!Helpers.isEqual(tif, "IOC"))))
+                if (!java.util.Objects.equals(tif, null) && !java.util.Objects.equals(tif, "IOC"))
                 {
-                    throw new InvalidOrder(Helpers.add(this.id, " createOrder() market orders must have tif set to \"IOC\"")) ;
+                    throw new InvalidOrder((this.id + " createOrder() market orders must have tif set to \"IOC\"")) ;
                 }
                 tif = "IOC";
             } else
             {
-                tif = ((Helpers.isTrue((Helpers.isEqual(tif, null))))) ? "GTC" : tif;
+                tif = (((java.util.Objects.equals(tif, null)))) ? "GTC" : tif;
             }
-            if (Helpers.isTrue(!Helpers.isEqual(postOnly, null)))
+            if (!java.util.Objects.equals(postOnly, null))
             {
-                Helpers.addElementToObject(request, "post_only", postOnly);
+                ((Map<String, Object>)request).put("post_only", postOnly);
             }
-            Helpers.addElementToObject(request, "tif", tif);
+            ((Map<String, Object>)request).put("tif", tif);
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("client_order_id", "user", "postOnly", "timeInForce")));
             Map<String, Object> response = (this.v1PrivatePostOrders(this.extend(request, parameters))).join();
             //
@@ -2373,11 +2374,11 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         //        "fee":"0"
         //    }
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(order, "symbol");
         Double feeCost = this.safeNumber(order, "fee");
         Object fee = null;
-        if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
+        if (!java.util.Objects.equals(feeCost, null))
         {
             final Object finalFeeCost = feeCost;
             fee = new HashMap<String, Object>() {{
@@ -2431,7 +2432,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
     public String parseOrderType(Object type)
     {
-        if (Helpers.isTrue(Helpers.isEqual(type, "UNKNOWN_ORDER_TYPE")))
+        if (java.util.Objects.equals(type, "UNKNOWN_ORDER_TYPE"))
         {
             return null;
         }
@@ -2459,9 +2460,9 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -2475,7 +2476,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 put( "id", id );
             }};
             Object market = null;
-            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
             }
@@ -2521,9 +2522,9 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -2536,14 +2537,14 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 put( "portfolio", finalPortfolio );
             }};
             Object market = null;
-            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(symbol, null))) && Helpers.isTrue((!Helpers.isEqual(symbol, "")))))
+            if ((!java.util.Objects.equals(symbol, null)) && (!java.util.Objects.equals(symbol, "")))
             {
                 market = this.market(symbol);
-                Helpers.addElementToObject(request, "instrument", Helpers.GetValue(market, "id"));
+                ((Map<String, Object>)request).put("instrument", ((Map<String, Object>)market).get("id"));
             }
             List<Object> orders = (this.v1PrivateDeleteOrders(this.extend(request, parameters))).join();
             return this.parseOrders(orders, market);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -2567,10 +2568,10 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object amount = Helpers.getArg(optionalArgs, 0, null);
-            Object price = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object amount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object price = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -2582,29 +2583,29 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             List<Object> portfolioparametersVariable = (List<Object>) (this.handlePortfolioAndParams("editOrder", parameters)).join();
             portfolio = ((List<Object>) portfolioparametersVariable).get(0);
             parameters = ((List<Object>) portfolioparametersVariable).get(1);
-            if (Helpers.isTrue(!Helpers.isEqual(portfolio, null)))
+            if (!java.util.Objects.equals(portfolio, null))
             {
-                Helpers.addElementToObject(request, "portfolio", portfolio);
+                ((Map<String, Object>)request).put("portfolio", portfolio);
             }
-            if (Helpers.isTrue(!Helpers.isEqual(amount, null)))
+            if (!java.util.Objects.equals(amount, null))
             {
-                Helpers.addElementToObject(request, "size", this.amountToPrecision(symbol, amount));
+                ((Map<String, Object>)request).put("size", this.amountToPrecision(symbol, amount));
             }
-            if (Helpers.isTrue(!Helpers.isEqual(price, null)))
+            if (!java.util.Objects.equals(price, null))
             {
-                Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
+                ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
             }
             Double triggerPrice = this.safeNumberN(parameters, new ArrayList<Object>(Arrays.asList("stopPrice", "stop_price", "triggerPrice")));
-            if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
+            if (!java.util.Objects.equals(triggerPrice, null))
             {
-                Helpers.addElementToObject(request, "stop_price", triggerPrice);
+                ((Map<String, Object>)request).put("stop_price", triggerPrice);
             }
             String clientOrderId = this.safeString2(parameters, "client_order_id", "clientOrderId");
-            if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
+            if (java.util.Objects.equals(clientOrderId, null))
             {
-                throw new BadRequest(Helpers.add(this.id, " editOrder() requires a clientOrderId parameter")) ;
+                throw new BadRequest((this.id + " editOrder() requires a clientOrderId parameter")) ;
             }
-            Helpers.addElementToObject(request, "client_order_id", clientOrderId);
+            ((Map<String, Object>)request).put("client_order_id", clientOrderId);
             Map<String, Object> order = (this.v1PrivatePutOrdersId(this.extend(request, parameters))).join();
             return this.parseOrder(order, market);
         }).thenApply(Order::new);
@@ -2626,14 +2627,14 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Object market = null;
-            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
             }
@@ -2696,11 +2697,11 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -2729,22 +2730,22 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 put( "result_offset", offSet );
             }};
             Object market = null;
-            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(symbol, null))) && Helpers.isTrue((!Helpers.isEqual(symbol, "")))))
+            if ((!java.util.Objects.equals(symbol, null)) && (!java.util.Objects.equals(symbol, "")))
             {
                 market = this.market(symbol);
-                Helpers.addElementToObject(request, "instrument", symbol);
+                ((Map<String, Object>)request).put("instrument", symbol);
             }
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                if (Helpers.isTrue(Helpers.isGreaterThan(limit, 100)))
+                if (Helpers.isGreaterThan(limit, 100))
                 {
-                    throw new BadRequest(Helpers.add(this.id, " fetchOpenOrders() maximum limit is 100")) ;
+                    throw new BadRequest((this.id + " fetchOpenOrders() maximum limit is 100")) ;
                 }
-                Helpers.addElementToObject(request, "result_limit", limit);
+                ((Map<String, Object>)request).put("result_limit", limit);
             }
-            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            if (!java.util.Objects.equals(since, null))
             {
-                Helpers.addElementToObject(request, "ref_datetime", this.iso8601(since));
+                ((Map<String, Object>)request).put("ref_datetime", this.iso8601(since));
             }
             Map<String, Object> response = (this.v1PrivateGetOrders(this.extend(request, parameters))).join();
             //
@@ -2783,7 +2784,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //
             Object rawOrders = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(rawOrders, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -2805,11 +2806,11 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -2827,7 +2828,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 return (this.fetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, parameters, pageKey, maxEntriesPerRequest)).join();
             }
             Object market = null;
-            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
             }
@@ -2836,23 +2837,23 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "result_offset", offSet );
             }};
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                if (Helpers.isTrue(Helpers.isGreaterThan(limit, 100)))
+                if (Helpers.isGreaterThan(limit, 100))
                 {
-                    throw new BadRequest(Helpers.add(this.id, " fetchMyTrades() maximum limit is 100. Consider setting paginate to true to fetch more trades.")) ;
+                    throw new BadRequest((this.id + " fetchMyTrades() maximum limit is 100. Consider setting paginate to true to fetch more trades.")) ;
                 }
-                Helpers.addElementToObject(request, "result_limit", limit);
+                ((Map<String, Object>)request).put("result_limit", limit);
             }
-            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            if (!java.util.Objects.equals(since, null))
             {
-                Helpers.addElementToObject(request, "time_from", this.iso8601(since));
+                ((Map<String, Object>)request).put("time_from", this.iso8601(since));
             }
             String until = this.safeString(parameters, "until");
-            if (Helpers.isTrue(!Helpers.isEqual(until, null)))
+            if (!java.util.Objects.equals(until, null))
             {
                 parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
-                Helpers.addElementToObject(request, "ref_datetime", this.iso8601(until));
+                ((Map<String, Object>)request).put("ref_datetime", this.iso8601(until));
             }
             Map<String, Object> response = (this.v1PrivateGetPortfoliosFills(this.extend(request, parameters))).join();
             //
@@ -2897,7 +2898,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             //
             Object trades = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
@@ -2922,13 +2923,13 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object tag = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            Object tag = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             tag = ((List<Object>) tagparametersVariable).get(0);
             parameters = ((List<Object>) tagparametersVariable).get(1);
             this.checkAddress(address);
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -2950,15 +2951,15 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "portfolio", finalPortfolio );
                 put( "type", "send" );
-                put( "asset", Helpers.GetValue(currency, "id") );
+                put( "asset", ((Map<String, Object>)currency).get("id") );
                 put( "address", address );
                 put( "amount", amount );
-                put( "currency", Helpers.GetValue(currency, "id") );
+                put( "currency", ((Map<String, Object>)currency).get("id") );
                 put( "network_arn_id", finalNetworkId );
                 put( "nonce", Coinbaseinternational.this.nonce() );
             }};
             Object response = null;
-            if (Helpers.isTrue(Helpers.isEqual(method, "v1PrivatePostTransfersWithdrawCounterparty")))
+            if (java.util.Objects.equals(method, "v1PrivatePostTransfersWithdrawCounterparty"))
             {
                 response = (this.v1PrivatePostTransfersWithdrawCounterparty(this.extend(request, parameters))).join();
             } else
@@ -2977,32 +2978,32 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
     public Object sign(Object path, Object... optionalArgs)
     {
-        Object api = Helpers.getArg(optionalArgs, 0, new ArrayList<Object>(Arrays.asList()));
-        Object method = Helpers.getArg(optionalArgs, 1, "GET");
-        Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
-        Object headers = Helpers.getArg(optionalArgs, 3, null);
-        Object body = Helpers.getArg(optionalArgs, 4, null);
+        Object api = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new ArrayList<Object>(Arrays.asList());
+        Object method = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET";
+        Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+        Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
+        Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
         Object version = Helpers.GetValue(api, 0);
-        Boolean signed = Helpers.isEqual(Helpers.GetValue(api, 1), "private");
-        Object fullPath = Helpers.add(Helpers.add(Helpers.add("/", version), "/"), this.implodeParams(path, parameters));
+        Boolean signed = java.util.Objects.equals(Helpers.GetValue(api, 1), "private");
+        Object fullPath = ((Helpers.add("/", version) + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
-        String savedPath = Helpers.add("/api", fullPath);
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(method, "GET")) || Helpers.isTrue(Helpers.isEqual(method, "DELETE"))))
+        String savedPath = ("/api" + fullPath);
+        if (java.util.Objects.equals(method, "GET") || java.util.Objects.equals(method, "DELETE"))
         {
-            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
+            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
             {
-                fullPath = Helpers.add(fullPath, Helpers.add("?", this.urlencodeWithArrayRepeat(query)));
+                fullPath = (fullPath + ("?" + this.urlencodeWithArrayRepeat(query)));
             }
         }
-        Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "rest"), fullPath);
+        Object url = Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"), fullPath);
         if (Helpers.isTrue(signed))
         {
             this.checkRequiredCredentials();
             Object nonce = String.valueOf(this.nonce());
             Object payload = "";
-            if (Helpers.isTrue(!Helpers.isEqual(method, "GET")))
+            if (!java.util.Objects.equals(method, "GET"))
             {
-                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
+                if (((List<?>)Helpers.objectKeys(query)).size() > 0)
                 {
                     body = this.json(query);
                     payload = body;
@@ -3037,16 +3038,16 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         //        "status":400
         //    }
         //
-        if (Helpers.isTrue(Helpers.isEqual(response, null)))
+        if (java.util.Objects.equals(response, null))
         {
             return null;  // fallback to default error handler
         }
-        Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
+        Object feedback = ((this.id + " ") + body);
         String errMsg = this.safeString(response, "title");
-        if (Helpers.isTrue(!Helpers.isEqual(errMsg, null)))
+        if (!java.util.Objects.equals(errMsg, null))
         {
-            this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), errMsg, feedback);
-            this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), errMsg, feedback);
+            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errMsg, feedback);
+            this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), errMsg, feedback);
             throw new ExchangeError((String)feedback) ;
         }
         return null;

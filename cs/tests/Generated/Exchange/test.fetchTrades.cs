@@ -17,7 +17,7 @@ public partial class testMainClass : BaseTest
         //
         Int64 now = exchange.milliseconds();
         bool isPublicTrade = true;
-        for (int i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(trades); postFixIncrement(ref i))
         {
             testTrade(exchange, skippedProperties, method, getValue(trades, i), symbol, now, isPublicTrade);
         }
@@ -25,7 +25,7 @@ public partial class testMainClass : BaseTest
         // test if both sides are being returned
         //
         int minTradesForBothSidesCheck = 99;
-        if (isTrue(!isTrue((inOp(skippedProperties, "requireBothSides"))) && isTrue(isGreaterThan(getArrayLength(trades), minTradesForBothSidesCheck))))
+        if (!(inOp(skippedProperties, "requireBothSides")) && getArrayLength(trades) > minTradesForBothSidesCheck)
         {
             //
             //  Check whether both "buy" and "sell" are returned from trades, when there are enough trades
@@ -36,11 +36,11 @@ public partial class testMainClass : BaseTest
             assert((inOp(grouped, "buy")), msg);
             assert((inOp(grouped, "sell")), msg);
         }
-        if (!isTrue((inOp(skippedProperties, "timestampSort"))))
+        if (!(inOp(skippedProperties, "timestampSort")))
         {
             testSharedMethods.assertTimestampOrder(exchange, method, symbol, trades);
         }
-        if (isTrue(!isTrue((inOp(skippedProperties, "side"))) && !isTrue((inOp(skippedProperties, "sideSequence")))))
+        if (!(inOp(skippedProperties, "side")) && !(inOp(skippedProperties, "sideSequence")))
         {
             await helperTestFetchTradesSideSequence(exchange, skippedProperties, symbol, method, trades);
         }
@@ -65,7 +65,7 @@ public partial class testMainClass : BaseTest
         string? lastPrice = null;
         object lastSide = null;
         object lastTrade = null;
-        for (int i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(trades); postFixIncrement(ref i))
         {
             object trade = getValue(trades, i);
             object ts = getValue(trade, "timestamp");
@@ -76,7 +76,7 @@ public partial class testMainClass : BaseTest
             bool isSamePrice = Precise.stringEq(price, lastPrice);
             bool isSameSide = isEqual(side, lastSide);
             // we are only interested in trades that have: same timestamp, same side, but different(!) price
-            if (isTrue(isTrue(isTrue(isSameTs) && isTrue(isSameSide)) && !isTrue(isSamePrice)))
+            if (isSameTs && isSameSide && !isTrue(isSamePrice))
             {
                 Dictionary<string, object> pair = new Dictionary<string, object>() {
                     { "previous", lastTrade },

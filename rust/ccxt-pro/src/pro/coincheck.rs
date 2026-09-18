@@ -281,16 +281,16 @@ impl CoincheckCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut messageHash: Value = add(&Value::Str("orderbook:".to_string()), &get_value(&market, &Value::Str("symbol".to_string())));
-        let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".to_string()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)));
+        let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("subscribe".to_string()));
-                m.insert("channel".to_string(), add(&get_value(&market, &Value::Str("id".to_string())), &Value::Str("-orderbook".to_string())));
+                m.insert("channel".to_string(), add(&market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &Value::Str("-orderbook".to_string())));
             m
         });
         let mut message: Value = self.extend(request.clone(), &[params.clone()]);
@@ -329,14 +329,14 @@ impl CoincheckCore {
         let mut timestamp: Value = self.safe_timestamp(data.clone(), Value::Str("last_update_at".to_string()), &[]);
         let mut snapshot: Value = self.parse_order_book(data.clone(), symbol.clone(), &[timestamp.clone()]);
         let mut orderbook: Value = self.safe_value(self.orderbooks.clone(), symbol.clone(), &[]);
-        if is_equal(&orderbook, &Value::Null) {
+        if (orderbook == Value::Null) {
             orderbook = self.order_book(&[snapshot.clone()]);
             add_element_to_object(&mut self.orderbooks, &symbol, orderbook.clone());
         }  else {
             orderbook = get_value(&self.orderbooks, &symbol);
             orderbook.reset(snapshot.clone());
         }
-        let mut messageHash: Value = add(&Value::Str("orderbook:".to_string()), &symbol);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".to_string()), symbol));
         client.resolve(&[orderbook.clone(), messageHash.clone()]);
 }
 
@@ -358,17 +358,17 @@ impl CoincheckCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        symbol = get_value(&market, &Value::Str("symbol".to_string()));
-        let mut messageHash: Value = add(&Value::Str("trade:".to_string()), &get_value(&market, &Value::Str("symbol".to_string())));
-        let mut url: Value = get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string()));
+        symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trade:".to_string()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)));
+        let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("subscribe".to_string()));
-                m.insert("channel".to_string(), add(&get_value(&market, &Value::Str("id".to_string())), &Value::Str("-trades".to_string())));
+                m.insert("channel".to_string(), add(&market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &Value::Str("-trades".to_string())));
             m
         });
         let mut message: Value = self.extend(request.clone(), &[params.clone()]);
@@ -399,7 +399,7 @@ impl CoincheckCore {
         let mut first: Value = self.safe_value(message.clone(), Value::Int(0), &[Value::List(vec![])]);
         let mut symbol: Value = self.symbol(self.safe_string(first.clone(), Value::Int(2), &[]));
         let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
-        if is_equal(&stored, &Value::Null) {
+        if (stored == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             stored = ArrayCache::new(limit.clone());
             add_element_to_object(&mut self.trades, &symbol, stored.clone());
@@ -407,13 +407,13 @@ impl CoincheckCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_276: bool = true;
-            while { if !__for_first_276 { i = add(&i, &Value::Int(1)); } __for_first_276 = false; is_less_than(&i, &get_array_length(&message)) } {
+            while { if !__for_first_276 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_276 = false; is_less_than(&i, &get_array_length(&message)) } {
             let mut data: Value = self.safe_value(message.clone(), i.clone(), &[]);
             let mut trade: Value = self.parse_ws_trade(data.clone(), &[]);
             stored.append(trade.clone());
         }
         }
-        let mut messageHash: Value = add(&Value::Str("trade:".to_string()), &symbol);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trade:".to_string()), symbol));
         client.resolve(&[stored.clone(), messageHash.clone()]);
 }
 

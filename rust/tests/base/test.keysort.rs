@@ -15,7 +15,7 @@ pub fn testKeysort() {
         m
     }));
     // temporarily disable, as this test doesn't make sense in lib (bcz of GO) // todo: do something
-    if is_greater_than(&exchange.milliseconds(), &Value::Int(0)) {
+    if exchange.milliseconds().as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
         return;
     }
     // Test 1: Basic key sorting

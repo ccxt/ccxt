@@ -32,5 +32,5 @@ pub fn testUrlencodeNested() {
     let mut expected2b: Value = Value::Str("d[0]=1&d[1]=2&b[c]=2&b[target]=%2B%26".to_string());
     let mut expected2d: Value = Value::Str("d[0]=1&d[1]=2&b[target]=%2B%26&b[c]=2".to_string());
     let mut result2: Value = exchange.urlencode_nested(dict2.clone(), &[]);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&result2, &expected2a) || is_equal(&result2, &expected2b) || is_equal(&result2, &expected2c) || is_equal(&result2, &expected2d)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool((result2.as_str() == expected2a.as_str()) || (result2.as_str() == expected2b.as_str()) || (result2.as_str() == expected2c.as_str()) || (result2.as_str() == expected2d.as_str())))));
 }

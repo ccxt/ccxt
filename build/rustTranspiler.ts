@@ -62,6 +62,18 @@ const BASE_TESTS_FOLDER      = './rust/tests/base';
 const BASE_TESTS_WS_FOLDER   = './rust/tests/base_ws';
 const GENERATED_TESTS_FOLDER = './rust/tests/exchange';
 
+// Free fns in `rust/ccxt-base/src/runtime.rs` declared `-> bool`. A call to
+// one of them is already a Rust `bool`, so the `is_true(&…)` the ast printer
+// wraps around it is the identity (`IsTruthy for bool`). Anything not listed
+// here — `self.<method>` (generated methods return `Value`), `Precise::string*`
+// (`Option<bool>`), test helpers — keeps the helper.
+const RUST_BOOL_RUNTIME_FNS = new Set([
+    'is_equal', 'is_greater_than', 'is_greater_than_or_equal',
+    'is_less_than', 'is_less_than_or_equal', 'is_array', 'is_object',
+    'is_string', 'is_number', 'is_bool', 'is_integer', 'is_function',
+    'is_instance', 'in_op', 'starts_with', 'ends_with', 'is_true',
+]);
+
 class RustTranspilerBuilder {
 
     transpiler!: Transpiler;
@@ -1060,7 +1072,7 @@ class RustTranspilerBuilder {
         // name to the real handler. Refs passed to `spawn`/`delay` become inert
         // name strings (those are no-ops anyway).
         return content.replace(
-            /([(,\[=]\s*|\bvec!\[\s*)self\.([a-zA-Z_][a-zA-Z0-9_]*)\b(\s*)([^(\s])/g,
+            /([(,\[={]\s*|\bvec!\[\s*)self\.([a-zA-Z_][a-zA-Z0-9_]*)\b(\s*)([^(\s])/g,
             (full, pre, ident, wsGap, nextCh) => {
                 if (nextCh === '(') return full;
                 if (methods.has(toSnakeCase(ident))) {
@@ -2361,14 +2373,15 @@ class RustTranspilerBuilder {
             }
             // Pattern 2: `get_value(&self.<field>, …)` — hoist the whole
             // get_value(...) call. The `&self.<field>` reborrow is what
-            // makes the outer mut-self call fail.
-            const gvRe = /\bget_value\(\s*&self\.\w+/g;
+            // makes the outer mut-self call fail. `get_value_k` (the `&str`
+            // key lookup) reborrows the same way, so it hoists too.
+            const gvRe = /\b(?:crate::value::)?get_value(?:_k)?\(\s*&self\.\w+/g;
             let gvMatch: RegExpExecArray | null;
             while ((gvMatch = gvRe.exec(args)) !== null) {
                 const s = gvMatch.index;
                 // Skip if already inside one of the above hoists.
                 if (hoists.some(h => s >= h.start && s < h.end)) continue;
-                let d = 1, k = s + 'get_value('.length, inS = false, e = false;
+                let d = 1, k = s + gvMatch[0].indexOf('(') + 1, inS = false, e = false;
                 while (k < args.length && d > 0) {
                     const c = args[k];
                     if (e) { e = false; k++; continue; }
@@ -3790,10 +3803,12 @@ class RustTranspilerBuilder {
      *
      * `Value::Bool(<expr>)` in the declaration must span the whole RHS
      * (bracket-balanced): `Value::Bool(a) || b` is not a narrowable
-     * initializer even though it starts with the marker.
+     * initializer even though it starts with the marker. The AST keeps the
+     * source's own parens around a boxed RHS (`= (Value::Bool(…));`) — the
+     * same statement, so the paren pair is accepted and dropped here.
      */
     narrowBoolLocals(content: string): string {
-        const declRe = /^([ \t]*)let mut ([a-zA-Z_][a-zA-Z0-9_]*): Value = Value::Bool\(/gm;
+        const declRe = /^([ \t]*)let mut ([a-zA-Z_][a-zA-Z0-9_]*): Value = \(?Value::Bool\(/gm;
         // Returns the index just past the `)` that closes the paren at `open`,
         // or -1 if unbalanced. String-literal aware.
         const closeOf = (src: string, open: number): number => {
@@ -3842,10 +3857,12 @@ class RustTranspilerBuilder {
             const boolOpen = declStart + m[0].length - 1;       // index of `(` after Value::Bool
             const boolClose = closeOf(content, boolOpen);        // index just past matching `)`
             if (boolClose < 0) continue;
-            // Whole-RHS check: `Value::Bool(<expr>);` must end the statement.
-            if (content.slice(boolClose, boolClose + 1) !== ';') continue;
+            // Whole-RHS check: `Value::Bool(<expr>);` — or `(Value::Bool(<expr>));`
+            // when the source's parens wrap the box — must end the statement.
+            const tail = /^\)?;/.exec(content.slice(boolClose, boolClose + 2));
+            if (tail === null) continue;
             const inner = content.slice(boolOpen + 1, boolClose - 1);
-            const stmtEnd = boolClose + 1;
+            const stmtEnd = boolClose + tail[0].length;
             const end = scopeEnd(content, stmtEnd);
             const body = content.slice(stmtEnd, end);
 
@@ -3877,15 +3894,17 @@ class RustTranspilerBuilder {
                 const before = masked.slice(Math.max(0, s - 9), s);
                 const after = masked.slice(e);
                 if (before.endsWith('is_true(&')) continue;
-                // `x = Value::Bool(<expr>);` — same-type reassignment.
-                const asg = /^\s*=\s*Value::Bool\(/.exec(after);
+                // `x = Value::Bool(<expr>);` — same-type reassignment (the
+                // source's parens around the box, if any, are consumed too).
+                const asg = /^\s*=\s*\(?\s*Value::Bool\(/.exec(after);
                 if (asg) {
                     const open = e + asg[0].length - 1;
                     const close = closeOf(masked, open);
-                    if (close > 0 && masked[close] === ';') {
+                    const asgTail = close > 0 ? /^\)?;/.exec(masked.slice(close, close + 2)) : null;
+                    if (asgTail !== null) {
                         assigns.push({
                             start: stmtEnd + e,
-                            end: stmtEnd + close,
+                            end: stmtEnd + close + asgTail[0].length - 1,
                             expr: body.slice(open + 1, close - 1),
                         });
                         continue;
@@ -3910,6 +3929,253 @@ class RustTranspilerBuilder {
         }
         out += content.slice(last);
         return out;
+    }
+
+    /**
+     * Drops `is_true(&X)` where `X` is already a native Rust `bool`:
+     * a local narrowed to `let mut X: bool` by `narrowBoolLocals`, a
+     * `!` / `&&` / `||` over such expressions, or a call to one of the
+     * `-> bool` runtime helpers in `rust/ccxt-base/src/runtime.rs`.
+     * `is_true` is `IsTruthy::truthy` and its `bool` impl is the
+     * identity, so the wrapper is a no-op there. Every other shape — a
+     * `Value`, `Option<bool>`, `&str`, a `self.<method>` call, a
+     * qualified `crate::…::is_true` — keeps the helper.
+     *
+     * Runs after `narrowBoolLocals` so the `: bool` locals are visible.
+     * Bindings are tracked per block while walking, so a later `let`
+     * of the same name (or a sibling block's) is never treated as the
+     * narrowed one. Idempotent.
+     */
+    dropRedundantIsTrue(content: string): string {
+        return this.rewriteRedundantIsTrue(content, 0, content.length, []);
+    }
+
+    /** True when `raw` is a Rust expression the generator types as `bool`. */
+    private isRustBoolExpr(raw: string, boolLocals: string[]): boolean {
+        const s = this.stripOuterParens(raw.trim());
+        if (s === '') return false;
+        if (s.startsWith('!')) return this.isRustBoolExpr(s.slice(1), boolLocals);
+        const parts = this.splitTopLevelBoolOperators(s);
+        if (parts.length > 1) return parts.every(p => this.isRustBoolExpr(p, boolLocals));
+        if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(s)) return boolLocals.includes(s);
+        const call = /^([A-Za-z_][A-Za-z0-9_]*)\s*\(/.exec(s);
+        if (call) return RUST_BOOL_RUNTIME_FNS.has(call[1]);
+        return false;
+    }
+
+    /**
+     * Copies `text[from, to)` while tracking visible `let` bindings, so an
+     * `is_true(&X)` over a `bool` local can be unwrapped. `stack` holds the
+     * enclosing bindings as {name, isBool, depth}, innermost last.
+     */
+    private rewriteRedundantIsTrue(
+        text: string,
+        from: number,
+        to: number,
+        stack: Array<{ name: string, isBool: boolean, depth: number }>,
+    ): string {
+        const declRe = /let\s+(?:mut\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*:\s*([A-Za-z_][A-Za-z0-9_:<>]*)/y;
+        // Innermost binding wins: a later non-bool `let` of the same name shadows a bool one.
+        const boolLocals = (): string[] => {
+            const seen = new Map<string, boolean>();
+            for (let k = stack.length - 1; k >= 0; k--) {
+                if (!seen.has(stack[k].name)) seen.set(stack[k].name, stack[k].isBool);
+            }
+            return [...seen.entries()].filter(([, b]) => b).map(([n]) => n);
+        };
+        let out = '';
+        let i = from;
+        let depth = 0;
+        while (i < to) {
+            const c = text[i];
+            if (c === '"') {
+                const end = this.endOfRustStringLiteral(text, i);
+                out += text.slice(i, end);
+                i = end;
+                continue;
+            }
+            if (c === '/' && text[i + 1] === '/') {
+                const nl = text.indexOf('\n', i);
+                const end = nl < 0 || nl > to ? to : nl;
+                out += text.slice(i, end);
+                i = end;
+                continue;
+            }
+            if (c === '{') {
+                depth += 1;
+                out += c;
+                i += 1;
+                continue;
+            }
+            if (c === '}') {
+                depth -= 1;
+                while (stack.length > 0 && stack[stack.length - 1].depth > depth) stack.pop();
+                out += c;
+                i += 1;
+                continue;
+            }
+            if (c === 'l' && text[i - 1] !== undefined && !/[A-Za-z0-9_]/.test(text[i - 1])) {
+                declRe.lastIndex = i;
+                const decl = declRe.exec(text);
+                if (decl !== null && decl.index === i) {
+                    stack.push({ name: decl[1], isBool: decl[2] === 'bool', depth });
+                    out += decl[0];
+                    i += decl[0].length;
+                    continue;
+                }
+            }
+            // Other binding forms shadow a narrowed local too: a closure's
+            // params, `for <pat> in`, `if let <pat> =`. Their names are pushed
+            // as non-bool so an outer `let mut x: bool` can never be applied
+            // past a shadowing binding.
+            if (c === '|' && text[i + 1] !== '|' && text[i - 1] !== '|' && text[i - 1] !== '=') {
+                const params = this.matchClosureParams(text, i);
+                if (params !== null) {
+                    for (const name of params.names) stack.push({ name, isBool: false, depth });
+                    out += text.slice(i, params.end);
+                    i = params.end;
+                    continue;
+                }
+            }
+            if ((c === 'f' || c === 'i' || c === 'w') && text[i - 1] !== undefined && !/[A-Za-z0-9_]/.test(text[i - 1])) {
+                const pattern = this.matchBindingPattern(text, i);
+                if (pattern !== null) {
+                    for (const name of pattern.names) stack.push({ name, isBool: false, depth });
+                    out += text.slice(i, pattern.end);
+                    i = pattern.end;
+                    continue;
+                }
+            }
+            if (c === 'i' && text.startsWith('is_true(&', i) && !/[A-Za-z0-9_:]/.test(text[i - 1] ?? '')) {
+                const open = i + 'is_true('.length - 1;
+                const close = this.closeParenAt(text, open);
+                if (close < 0 || close > to) {
+                    out += c;
+                    i += 1;
+                    continue;
+                }
+                const snapshot = boolLocals();
+                const inner = this.rewriteRedundantIsTrue(text, open + 2, close, stack);
+                out += this.isRustBoolExpr(inner, snapshot) ? inner : `is_true(&${inner})`;
+                i = close + 1;
+                continue;
+            }
+            out += c;
+            i += 1;
+        }
+        return out;
+    }
+
+    /** Closure-param list at `open` (`|a: Value, b|`), or null. */
+    private matchClosureParams(text: string, open: number): { names: string[], end: number } | null {
+        const close = text.indexOf('|', open + 1);
+        if (close < 0 || close - open > 160) return null;
+        const inner = text.slice(open + 1, close);
+        if (inner.includes('\n') || inner.includes('<') || inner.includes('(')) return null;
+        const names: string[] = [];
+        for (const part of inner.split(',')) {
+            const m = /^\s*(?:mut\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*(?::\s*[A-Za-z_][A-Za-z0-9_:\[\] ]*)?$/.exec(part);
+            if (m === null) return null;
+            names.push(m[1]);
+        }
+        return { names, end: close + 1 };
+    }
+
+    /** Names bound by `for <pat> in` / `if let <pat> =` at `i`, or null. */
+    private matchBindingPattern(text: string, i: number): { names: string[], end: number } | null {
+        const kw = /^(?:for|if let|while let)\s+/.exec(text.slice(i, i + 24));
+        if (kw === null) return null;
+        const rest = text.slice(i + kw[0].length, i + kw[0].length + 120);
+        const stop = kw[0].startsWith('for') ? /\s+in\s/.exec(rest) : /\s*=\s/.exec(rest);
+        if (stop === null || stop.index === 0) return null;
+        const pattern = rest.slice(0, stop.index);
+        if (pattern.includes('\n')) return null;
+        // Over-collecting is harmless: every name is pushed as non-bool, which
+        // can only hide an outer `: bool` local, never expose one.
+        const names = (pattern.match(/[A-Za-z_][A-Za-z0-9_]*/g) ?? [])
+            .filter(name => !['for', 'if', 'let', 'while', 'in', 'mut', 'ref', 'Some', 'None'].includes(name));
+        return { names, end: i + kw[0].length + pattern.length + stop[0].length };
+    }
+
+    /** Index of the `)` matching the `(` at `open`, or -1. String-aware. */
+    private closeParenAt(text: string, open: number): number {
+        let depth = 0;
+        for (let i = open; i < text.length; i++) {
+            const c = text[i];
+            if (c === '"') {
+                i = this.endOfRustStringLiteral(text, i) - 1;
+                continue;
+            }
+            if (c === '(') depth += 1;
+            else if (c === ')') {
+                depth -= 1;
+                if (depth === 0) return i;
+            }
+        }
+        return -1;
+    }
+
+    /** Index just past the string literal that starts at `start`. */
+    private endOfRustStringLiteral(text: string, start: number): number {
+        for (let i = start + 1; i < text.length; i++) {
+            if (text[i] === '\\') {
+                i += 1;
+                continue;
+            }
+            if (text[i] === '"') return i + 1;
+        }
+        return text.length;
+    }
+
+    /** Removes balanced redundant parentheses around a printed expression. */
+    private stripOuterParens(s: string): string {
+        let out = s;
+        while (out.startsWith('(') && out.endsWith(')')) {
+            let depth = 0;
+            let balanced = true;
+            for (let i = 0; i < out.length; i++) {
+                if (out[i] === '(') depth += 1;
+                else if (out[i] === ')') {
+                    depth -= 1;
+                    if (depth === 0 && i < out.length - 1) {
+                        balanced = false;
+                        break;
+                    }
+                }
+            }
+            if (!balanced || depth !== 0) break;
+            out = out.slice(1, -1).trim();
+        }
+        return out;
+    }
+
+    /** Splits an expression on its depth-0 `||` / `&&` operators. */
+    private splitTopLevelBoolOperators(s: string): string[] {
+        const parts: string[] = [];
+        let depth = 0;
+        let start = 0;
+        let inStr = false;
+        let esc = false;
+        for (let i = 0; i < s.length; i++) {
+            const c = s[i];
+            if (inStr) {
+                if (esc) esc = false;
+                else if (c === '\\') esc = true;
+                else if (c === '"') inStr = false;
+                continue;
+            }
+            if (c === '"') { inStr = true; continue; }
+            if (c === '(' || c === '[' || c === '{') depth += 1;
+            else if (c === ')' || c === ']' || c === '}') depth -= 1;
+            else if (depth === 0 && ((c === '|' && s[i + 1] === '|') || (c === '&' && s[i + 1] === '&'))) {
+                parts.push(s.slice(start, i));
+                start = i + 2;
+                i += 1;
+            }
+        }
+        if (parts.length === 0) return [s];
+        parts.push(s.slice(start));
+        return parts;
     }
 
     /**
@@ -6629,6 +6895,8 @@ impl std::ops::DerefMut for ${coreName} {
                 // Last: narrow `Value::Bool` locals whose every sink takes
                 // a `bool`. Must see the final shape of the file.
                 rustContent = this.narrowBoolLocals(rustContent);
+                // Then drop the `is_true(&x)` those locals no longer need.
+                rustContent = this.dropRedundantIsTrue(rustContent);
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
                 throw new Error(
@@ -7320,6 +7588,7 @@ impl std::ops::DerefMut for ${coreName} {
         let finalFile = this.rewriteLiteralKeySafeCalls(file);
         finalFile = this.rewriteJavaReqAliases(finalFile);
         finalFile = this.narrowBoolLocals(finalFile);
+        finalFile = this.dropRedundantIsTrue(finalFile);
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
         //   `export class BaseExchange { ... }`  (holds the transpile marker)
@@ -8613,6 +8882,7 @@ impl std::ops::DerefMut for ${coreName} {
         content = this.rewriteExchangeMethodCalls(content);
         content = this.stripAssertSecondArg(content);
         content = this.wrapAssertInIsTrue(content);
+        content = this.dropRedundantIsTrue(content);
         return content;
     }
 
@@ -9158,6 +9428,8 @@ impl std::ops::DerefMut for ${coreName} {
             content = content.replace(
                 /&mut get_value\(&([a-zA-Z_][a-zA-Z0-9_]*)\s*,/g,
                 'get_value_mut(&mut $1,');
+
+            content = this.dropRedundantIsTrue(content);
 
             const file = [
                 ...this.createGeneratedHeader(),

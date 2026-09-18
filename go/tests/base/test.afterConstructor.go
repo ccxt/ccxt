@@ -32,11 +32,11 @@ func HelperTestSandboxState(exchange *ccxt.Exchange, optionalArgs ...any) {
 	Assert(ccxt.InOp(exchange.Urls, "test"))
 	var isSandboxModeEnabled any = ExchangeProp(exchange, "isSandboxModeEnabled")
 	if ccxt.EvalTruthy(expectEnabled) {
-		Assert(ccxt.IsEqual(isSandboxModeEnabled, true))
+		Assert((isSandboxModeEnabled == true))
 		Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(exchange.Urls, "api"), "public"), "https://testnet.org"))
 		Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(exchange.Urls, "apiBackup"), "public"), "https://example.com"))
 	} else {
-		Assert(!ccxt.IsEqual(isSandboxModeEnabled, true))
+		Assert((isSandboxModeEnabled != true))
 		Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(exchange.Urls, "api"), "public"), "https://example.com"))
 		Assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(exchange.Urls, "test"), "public"), "https://testnet.org"))
 	}
@@ -108,7 +108,7 @@ func HelperTestProperties() {
 	//
 	var keys []any = []any{"chrome", "chrome39", "chrome100"}
 	Assert(!ccxt.IsEqual(ExchangeProp(exchange, "userAgents"), nil))
-	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(keys)); i++ {
+	for i := 0; i < len(keys); i++ {
 		var key any = ccxt.GetValue(keys, i)
 		var userAgent any = ccxt.GetValue(ExchangeProp(exchange, "userAgents"), key)
 		Assert(!ccxt.IsEqual(userAgent, nil))

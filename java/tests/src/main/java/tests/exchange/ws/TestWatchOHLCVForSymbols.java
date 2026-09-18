@@ -7,6 +7,8 @@ import io.github.ccxt.errors.*;
 import tests.exchange.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -24,7 +26,7 @@ public class TestWatchOHLCVForSymbols extends BaseTest {
         Object now = exchange.milliseconds();
         Object ends = Helpers.add(now, 15000);
         Object timeframeKeys = Helpers.objectKeys(exchange.timeframes);
-        Assert(Helpers.isGreaterThan(Helpers.getArrayLength(timeframeKeys), 0), Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " - no timeframes found"));
+        Assert(((List<?>)timeframeKeys).size() > 0, (((exchange.id + " ") + method) + " - no timeframes found"));
         // prefer 1m timeframe if available, otherwise return the first one
         Object chosenTimeframeKey = "1m";
         if (!Helpers.isTrue(exchange.inArray(chosenTimeframeKey, timeframeKeys)))
@@ -36,7 +38,7 @@ public class TestWatchOHLCVForSymbols extends BaseTest {
         Object since = Helpers.subtract(Helpers.subtract(exchange.milliseconds(), Helpers.multiply(Helpers.multiply(duration, limit), 1000)), 1000);
         Integer maxIdleTime = 5000;
         Boolean idle = false;
-        while (Helpers.isTrue((Helpers.isLessThan(now, ends))) && !Helpers.isTrue(idle))
+        while ((Helpers.isLessThan(now, ends)) && !Helpers.isTrue(idle))
         {
             Object response = null;
             Boolean success = true;
@@ -44,9 +46,9 @@ public class TestWatchOHLCVForSymbols extends BaseTest {
             try
             {
                 response = (exchange.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, chosenTimeframeKey)))), since, limit)).join();
-                if (Helpers.isTrue(Helpers.isEqual(response, null)))
+                if (java.util.Objects.equals(response, null))
                 {
-                    throw new RuntimeException((String)Helpers.add(exchange.id, " watch returned undefined response")) ;
+                    throw new RuntimeException((String)(exchange.id + " watch returned undefined response")) ;
                 }
             } catch(Exception e)
             {
@@ -57,21 +59,21 @@ public class TestWatchOHLCVForSymbols extends BaseTest {
                 success = false;
             }
             now = exchange.milliseconds();
-            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(success, true))) && Helpers.isTrue((!Helpers.isEqual(response, null)))))
+            if ((java.util.Objects.equals(success, true)) && (!java.util.Objects.equals(response, null)))
             {
-                Object AssertionMessage = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), symbol), " "), chosenTimeframeKey), " | "), exchange.json(response));
-                Assert(exchange.isDictionary(response), Helpers.add("Response must be a dictionary. ", AssertionMessage));
-                Assert(Helpers.inOp(response, symbol), Helpers.add("Response should contain the symbol as key. ", AssertionMessage));
+                Object AssertionMessage = ((((((((exchange.id + " ") + method) + " ") + symbol) + " ") + chosenTimeframeKey) + " | ") + exchange.json(response));
+                Assert(exchange.isDictionary(response), ("Response must be a dictionary. " + AssertionMessage));
+                Assert(((Map<?, ?>)response).containsKey(symbol), ("Response should contain the symbol as key. " + AssertionMessage));
                 Object symbolObj = Helpers.GetValue(response, symbol);
-                Assert(exchange.isDictionary(symbolObj), Helpers.add("Response.Symbol should be a dictionary. ", AssertionMessage));
-                Assert(Helpers.inOp(symbolObj, chosenTimeframeKey), Helpers.add("Response.symbol should contain the timeframe key. ", AssertionMessage));
+                Assert(exchange.isDictionary(symbolObj), ("Response.Symbol should be a dictionary. " + AssertionMessage));
+                Assert(Helpers.inOp(symbolObj, chosenTimeframeKey), ("Response.symbol should contain the timeframe key. " + AssertionMessage));
                 Object ohlcvs = Helpers.GetValue(symbolObj, chosenTimeframeKey);
-                Assert(Helpers.isArray(ohlcvs), Helpers.add("Response.symbol.timeframe should be an array. ", AssertionMessage));
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ohlcvs)); i++)
+                Assert(Helpers.isArray(ohlcvs), ("Response.symbol.timeframe should be an array. " + AssertionMessage));
+                for (var i = 0; i < ((List<?>)ohlcvs).size(); i++)
                 {
                     TestOHLCV.testOHLCV(exchange, skippedProperties, method, Helpers.GetValue(ohlcvs, i), symbol, now);
                 }
-                if (Helpers.isTrue(Helpers.isGreaterThan((Helpers.subtract(now, startTime)), maxIdleTime)))
+                if (Helpers.isGreaterThan((Helpers.subtract(now, startTime)), maxIdleTime))
                 {
                     idle = true;
                 }

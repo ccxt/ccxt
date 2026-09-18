@@ -594,7 +594,7 @@ impl HollaexCore {
 }));
         m.insert("options".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("api-expires".to_string(), self.parse_to_int(divide(&self.timeout, &Value::Int(1000))));
+        m.insert("api-expires".to_string(), self.parse_to_int((match ((self.timeout.clone()).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
         m.insert("networks".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("BTC".to_string(), Value::Str("btc".to_string()));
@@ -693,7 +693,7 @@ impl HollaexCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_754: bool = true;
-            while { if !__for_first_754 { i = add(&i, &Value::Int(1)); } __for_first_754 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            while { if !__for_first_754 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_754 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(keys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut market: Value = get_value(&pairs, &key);
@@ -705,7 +705,7 @@ impl HollaexCore {
             append_to_array(&mut result, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), self.safe_string_k(market.clone(), "name", &[]));
-                    m.insert("symbol".to_string(), add(&add(&base, &Value::Str("/".to_string())), &quote));
+                    m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote)));
                     m.insert("base".to_string(), base.clone());
                     m.insert("quote".to_string(), quote.clone());
                     m.insert("settle".to_string(), Value::Null);
@@ -867,7 +867,7 @@ impl HollaexCore {
         let mut code: Value = self.safe_currency_code(id.clone(), &[]);
         let mut withdrawalLimits: Value = self.safe_list_k(rawCurrency.clone(), "withdrawal_limits", &[Value::List(vec![])]);
         let mut rawType: Value = self.safe_string_k(rawCurrency.clone(), "type", &[]);
-        let mut type_var: Value = ternary(is_true(&(is_equal(&rawType, &Value::Str("blockchain".to_string())))), Value::Str("crypto".to_string()), Value::Str("other".to_string()));
+        let mut type_var: Value = (if is_true(&(Value::Bool(rawType.as_str() == Some("blockchain")))) { Value::Str("crypto".to_string()) } else { Value::Str("other".to_string()) });
         let mut rawNetworks: Value = self.safe_dict_k(rawCurrency.clone(), "withdrawal_fees", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -880,12 +880,12 @@ impl HollaexCore {
         {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_755: bool = true;
-            while { if !__for_first_755 { j = add(&j, &Value::Int(1)); } __for_first_755 = false; is_less_than(&j, &get_array_length(&networkIds)) } {
+            while { if !__for_first_755 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_755 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(networkIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut networkId: Value = get_value(&networkIds, &j);
             let mut networkId: Value = get_value(&networkIds, &j);
             let mut networkEntry: Value = self.safe_dict(rawNetworks.clone(), networkId.clone(), &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
-            if !is_equal(&networkCode, &Value::Null) {
+            if (networkCode != Value::Null) {
                 add_element_to_object(&mut networks, &networkCode, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), networkId.clone());
@@ -964,7 +964,7 @@ impl HollaexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut response: Value = self.public_get_orderbooks(&[params.clone()]).await;
@@ -976,7 +976,7 @@ impl HollaexCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_756: bool = true;
-            while { if !__for_first_756 { i = add(&i, &Value::Int(1)); } __for_first_756 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            while { if !__for_first_756 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_756 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(marketIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut orderbook: Value = self.safe_dict(response.clone(), marketId.clone(), &[Value::Map({
@@ -1009,13 +1009,13 @@ impl HollaexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
+                m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
         let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
@@ -1039,9 +1039,9 @@ impl HollaexCore {
         //         // ...
         //     }
         //
-        let mut orderbook: Value = self.safe_value(response.clone(), get_value(&market, &Value::Str("id".to_string())), &[]);
+        let mut orderbook: Value = self.safe_value(response.clone(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &[]);
         let mut timestamp: Value = self.parse8601(self.safe_string_k(orderbook.clone(), "timestamp", &[]));
-        return self.parse_order_book(orderbook.clone(), get_value(&market, &Value::Str("symbol".to_string())), &[timestamp.clone()]);
+        return self.parse_order_book(orderbook.clone(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[timestamp.clone()]);
 
     Value::Null
 }
@@ -1060,13 +1060,13 @@ impl HollaexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
+                m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
         let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
@@ -1091,7 +1091,7 @@ impl HollaexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         symbols = self.market_symbols(&[symbols.clone()]);
@@ -1115,14 +1115,14 @@ impl HollaexCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_757: bool = true;
-            while { if !__for_first_757 { i = add(&i, &Value::Int(1)); } __for_first_757 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            while { if !__for_first_757 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_757 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(keys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut ticker: Value = get_value(&tickers, &key);
             let mut ticker: Value = get_value(&tickers, &key);
             let mut marketId: Value = self.safe_string_k(ticker.clone(), "symbol", &[key.clone()]);
             let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Str("-".to_string())]);
-            let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
+            let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let __ws_arg_2 = self.parse_ticker(ticker.clone(), &[market.clone()]);
             add_element_to_object(&mut result, &symbol, self.extend(__ws_arg_2, &[params.clone()]));
         }
@@ -1162,7 +1162,7 @@ impl HollaexCore {
         //
         let mut marketId: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Str("-".to_string())]);
-        let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
+        let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut timestamp: Value = self.parse8601(self.safe_string2(ticker.clone(), Value::Str("time".to_string()), Value::Str("timestamp".to_string()), &[]));
         let mut close: Value = self.safe_string_k(ticker.clone(), "close", &[]);
         return self.safe_ticker(Value::Map({
@@ -1211,13 +1211,13 @@ impl HollaexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
+                m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
         let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
@@ -1235,7 +1235,7 @@ impl HollaexCore {
         //         ]
         //     }
         //
-        let mut trades: Value = self.safe_list(response.clone(), get_value(&market, &Value::Str("id".to_string())), &[Value::List(vec![])]);
+        let mut trades: Value = self.safe_list(response.clone(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &[Value::List(vec![])]);
         return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1267,7 +1267,7 @@ impl HollaexCore {
         //
         let mut marketId: Value = self.safe_string_k(trade.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Str("-".to_string())]);
-        let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
+        let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut datetime: Value = self.safe_string_k(trade.clone(), "timestamp", &[]);
         let mut timestamp: Value = self.parse8601(datetime.clone());
         let mut side: Value = self.safe_string_k(trade.clone(), "side", &[]);
@@ -1277,7 +1277,7 @@ impl HollaexCore {
         let mut feeCostString: Value = self.safe_string_k(trade.clone(), "fee", &[]);
         let mut feeCoin: Value = self.safe_string_k(trade.clone(), "fee_coin", &[]);
         let mut fee: Value = Value::Null;
-        if !is_equal(&feeCostString, &Value::Null) {
+        if (feeCostString != Value::Null) {
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), feeCostString.clone());
@@ -1319,7 +1319,7 @@ impl HollaexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut response: Value = self.public_get_tiers(&[params.clone()]).await;
@@ -1374,11 +1374,11 @@ impl HollaexCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_758: bool = true;
-            while { if !__for_first_758 { i = add(&i, &Value::Int(1)); } __for_first_758 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
+            while { if !__for_first_758 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_758 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(self.symbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut symbol: Value = get_value(&self.symbols, &i);
             let mut market: Value = self.market(symbol.clone());
-            let mut makerString: Value = self.safe_string(makerFees.clone(), get_value(&market, &Value::Str("id".to_string())), &[]);
-            let mut takerString: Value = self.safe_string(takerFees.clone(), get_value(&market, &Value::Str("id".to_string())), &[]);
+            let mut makerString: Value = self.safe_string(makerFees.clone(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &[]);
+            let mut takerString: Value = self.safe_string(takerFees.clone(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &[]);
             add_element_to_object(&mut result, &symbol, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), fees.clone());
@@ -1417,34 +1417,34 @@ impl HollaexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
+                m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("resolution".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
             m
         });
         let mut paginate: Value = Value::Bool(false);
         let mut maxLimit: Value = Value::Int(500);
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOHLCV".to_string()), Value::Str("paginate".to_string()), &[paginate.clone()]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOHLCV".to_string()), Value::Str("paginate".to_string()), &[paginate.clone()]); paginate = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if is_true(&paginate) {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".to_string()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), params.clone(), maxLimit.clone()]).await;
         }
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
-        let mut timeDelta: Value = multiply(&multiply(&self.parse_timeframe(timeframe.clone()), &maxLimit), &Value::Int(1000));
+        let mut timeDelta: Value = (match (&((match (&(self.parse_timeframe(timeframe.clone())), &(maxLimit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
         let mut start: Value = since.clone();
         let mut now: Value = self.milliseconds();
-        if is_equal(&until, &Value::Null) {
+        if (until == Value::Null) {
             until = now.clone(); // the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
         }
-        if is_equal(&start, &Value::Null) {
-            start = subtract(&until, &timeDelta);
+        if (start == Value::Null) {
+            start = (match (&(until), &(timeDelta)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
         }
-        add_element_to_object(&mut request, &Value::Str("from".to_string()), self.parse_to_int(divide(&start, &Value::Int(1000)))); // convert to seconds
-        add_element_to_object(&mut request, &Value::Str("to".to_string()), self.parse_to_int(divide(&until, &Value::Int(1000)))); // convert to seconds
+        add_element_to_object(&mut request, &Value::Str("from".to_string()), self.parse_to_int((match ((start).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))); // convert to seconds
+        add_element_to_object(&mut request, &Value::Str("to".to_string()), self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))); // convert to seconds
         params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
         let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.public_get_chart(&[__ws_arg_4]).await;
@@ -1470,21 +1470,21 @@ impl HollaexCore {
             m
         });
         let mut currenciesById: Value = self.currencies_by_id.clone();
-        if is_equal(&currenciesById, &Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" currencies not loaded".to_string()))));
+        if (currenciesById == Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" currencies not loaded".to_string())))));
         }
         let mut currencyIds: Value = object_keys(&currenciesById);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_759: bool = true;
-            while { if !__for_first_759 { i = add(&i, &Value::Int(1)); } __for_first_759 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
+            while { if !__for_first_759 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_759 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(currencyIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut account: Value = self.account();
-            add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string(response.clone(), add(&currencyId, &Value::Str("_available".to_string())), &[]));
-            add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string(response.clone(), add(&currencyId, &Value::Str("_balance".to_string())), &[]));
-            if !is_equal(&code, &Value::Null) {
+            add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string(response.clone(), Value::Str(format!("{}{}", currencyId, Value::Str("_available".to_string()))), &[]));
+            add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string(response.clone(), Value::Str(format!("{}{}", currencyId, Value::Str("_balance".to_string()))), &[]));
+            if (code != Value::Null) {
                 add_element_to_object(&mut result, &code, account.clone());
             }
         }
@@ -1507,7 +1507,7 @@ impl HollaexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut response: Value = self.private_get_user_balance(&[params.clone()]).await;
@@ -1532,7 +1532,7 @@ impl HollaexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut request: Value = Value::Map({
@@ -1623,7 +1623,7 @@ impl HollaexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut request: Value = Value::Map({
@@ -1656,8 +1656,8 @@ impl HollaexCore {
         //                 }
         //             }
         let mut order: Value = response.clone();
-        if is_equal(&order, &Value::Null) {
-            panic!("{}", crate::exchange_errors::order_not_found(add(&add(&self.id, &Value::Str(" fetchOrder() could not find order id ".to_string())), &id)));
+        if (order == Value::Null) {
+            panic!("{}", crate::exchange_errors::order_not_found(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() could not find order id ".to_string()))), id))));
         }
         return self.parse_order(order.clone(), &[]);
 
@@ -1683,7 +1683,7 @@ impl HollaexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut market: Value = Value::Null;
@@ -1691,14 +1691,14 @@ impl HollaexCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if !is_equal(&symbol, &Value::Null) {
+        if (symbol != Value::Null) {
             market = self.market(symbol.clone());
-            add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
+            add_element_to_object(&mut request, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
-        if !is_equal(&since, &Value::Null) {
+        if (since != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("start_date".to_string()), self.iso8601(since.clone()));
         }
-        if !is_equal(&limit, &Value::Null) {
+        if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default 50, max 100
         }
         let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
@@ -1847,13 +1847,13 @@ impl HollaexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
+                m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("side".to_string(), side.clone());
                 m.insert("size".to_string(), self.amount_to_precision(symbol.clone(), amount.clone()));
                 m.insert("type".to_string(), type_var.clone());
@@ -1865,12 +1865,12 @@ impl HollaexCore {
             m
         })]);
         let mut exchangeSpecificParam: Value = self.safe_bool_k(meta.clone(), "post_only", &[Value::Bool(false)]);
-        let mut isMarketOrder: Value = Value::Bool(is_equal(&type_var, &Value::Str("market".to_string())));
+        let mut isMarketOrder: Value = Value::Bool(type_var.as_str() == Some("market"));
         let mut postOnly: Value = self.is_post_only(isMarketOrder.clone(), exchangeSpecificParam.clone(), &[params.clone()]);
         if !is_true(&isMarketOrder) {
             add_element_to_object(&mut request, &Value::Str("price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
         }
-        if !is_equal(&triggerPrice, &Value::Null) {
+        if (triggerPrice != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("stop".to_string()), self.price_to_precision(symbol.clone(), triggerPrice.clone()));
         }
         if is_true(&postOnly) {
@@ -1904,7 +1904,7 @@ impl HollaexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut request: Value = Value::Map({
@@ -1934,10 +1934,10 @@ impl HollaexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&symbol, &Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelAllOrders() requires a symbol argument".to_string()))));
+        if (symbol == Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders() requires a symbol argument".to_string())))));
         }
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut request: Value = Value::Map({
@@ -1946,7 +1946,7 @@ impl HollaexCore {
         });
         let mut market: Value = Value::Null;
         market = self.market(symbol.clone());
-        add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
+        add_element_to_object(&mut request, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_delete_order_all(&[__ws_arg_12]).await;
         return self.parse_orders(response.clone(), &[market.clone()]);
@@ -1973,7 +1973,7 @@ impl HollaexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut request: Value = Value::Map({
@@ -1981,14 +1981,14 @@ impl HollaexCore {
             m
         });
         let mut market: Value = Value::Null;
-        if !is_equal(&symbol, &Value::Null) {
+        if (symbol != Value::Null) {
             market = self.market(symbol.clone());
-            add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
+            add_element_to_object(&mut request, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
-        if !is_equal(&limit, &Value::Null) {
+        if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default 50, max 100
         }
-        if !is_equal(&since, &Value::Null) {
+        if (since != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("start_date".to_string()), self.iso8601(since.clone()));
         }
         let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
@@ -2028,7 +2028,7 @@ impl HollaexCore {
         //
         let mut address: Value = self.safe_string_k(depositAddress.clone(), "address", &[]);
         let mut tag: Value = Value::Null;
-        if !is_equal(&address, &Value::Null) {
+        if (address != Value::Null) {
             let mut parts: Value = split(&address, &Value::Str(":".to_string()));
             address = self.safe_string(parts.clone(), Value::Int(0), &[]);
             tag = self.safe_string(parts.clone(), Value::Int(1), &[]);
@@ -2040,7 +2040,7 @@ impl HollaexCore {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), depositAddress.clone());
-        m.insert("currency".to_string(), get_value(&currency, &Value::Str("code".to_string())));
+        m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null));
         m.insert("network".to_string(), network.clone());
         m.insert("address".to_string(), address.clone());
         m.insert("tag".to_string(), tag.clone());
@@ -2065,7 +2065,7 @@ impl HollaexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut network: Value = self.safe_string_k(params.clone(), "network", &[]);
@@ -2117,7 +2117,7 @@ impl HollaexCore {
         //     }
         //
         let mut wallet: Value = self.safe_value_k(response.clone(), "wallet", &[Value::List(vec![])]);
-        let mut addresses: Value = ternary(is_true(&(is_equal(&network, &Value::Null))), wallet.clone(), self.filter_by(wallet.clone(), Value::Str("network".to_string()), network.clone(), &[]));
+        let mut addresses: Value = (if is_true(&(Value::Bool(network == Value::Null))) { wallet.clone() } else { self.filter_by(wallet.clone(), Value::Str("network".to_string()), network.clone(), &[]) });
         return self.parse_deposit_addresses(addresses.clone(), &[codes.clone(), Value::Bool(false)]);
 
     Value::Null
@@ -2142,7 +2142,7 @@ impl HollaexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut request: Value = Value::Map({
@@ -2150,14 +2150,14 @@ impl HollaexCore {
             m
         });
         let mut currency: Value = Value::Null;
-        if !is_equal(&code, &Value::Null) {
+        if (code != Value::Null) {
             currency = self.currency(code.clone());
-            add_element_to_object(&mut request, &Value::Str("currency".to_string()), get_value(&currency, &Value::Str("id".to_string())));
+            add_element_to_object(&mut request, &Value::Str("currency".to_string()), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
-        if !is_equal(&limit, &Value::Null) {
+        if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default 50, max 100
         }
-        if !is_equal(&since, &Value::Null) {
+        if (since != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("start_date".to_string()), self.iso8601(since.clone()));
         }
         let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
@@ -2207,7 +2207,7 @@ impl HollaexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut request: Value = Value::Map({
@@ -2216,9 +2216,9 @@ impl HollaexCore {
             m
         });
         let mut currency: Value = Value::Null;
-        if !is_equal(&code, &Value::Null) {
+        if (code != Value::Null) {
             currency = self.currency(code.clone());
-            add_element_to_object(&mut request, &Value::Str("currency".to_string()), get_value(&currency, &Value::Str("id".to_string())));
+            add_element_to_object(&mut request, &Value::Str("currency".to_string()), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_get_user_withdrawals(&[__ws_arg_15]).await;
@@ -2274,7 +2274,7 @@ impl HollaexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut request: Value = Value::Map({
@@ -2282,14 +2282,14 @@ impl HollaexCore {
             m
         });
         let mut currency: Value = Value::Null;
-        if !is_equal(&code, &Value::Null) {
+        if (code != Value::Null) {
             currency = self.currency(code.clone());
-            add_element_to_object(&mut request, &Value::Str("currency".to_string()), get_value(&currency, &Value::Str("id".to_string())));
+            add_element_to_object(&mut request, &Value::Str("currency".to_string()), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
-        if !is_equal(&limit, &Value::Null) {
+        if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default 50, max 100
         }
-        if !is_equal(&since, &Value::Null) {
+        if (since != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("start_date".to_string()), self.iso8601(since.clone()));
         }
         let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
@@ -2368,7 +2368,7 @@ impl HollaexCore {
         let mut tag: Value = Value::Null;
         let mut tagTo: Value = Value::Null;
         let mut tagFrom: Value = Value::Null;
-        if !is_equal(&address, &Value::Null) {
+        if (address != Value::Null) {
             let mut parts: Value = split(&address, &Value::Str(":".to_string()));
             address = self.safe_string(parts.clone(), Value::Int(0), &[]);
             tag = self.safe_string(parts.clone(), Value::Int(1), &[]);
@@ -2393,7 +2393,7 @@ impl HollaexCore {
         let mut feeCurrencyCode: Value = self.safe_currency_code(feeCurrencyId.clone(), &[currency.clone()]);
         let mut feeCost: Value = self.safe_number_k(transaction.clone(), "fee", &[]);
         let mut fee: Value = Value::Null;
-        if !is_equal(&feeCost, &Value::Null) {
+        if (feeCost != Value::Null) {
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("currency".to_string(), feeCurrencyCode.clone());
@@ -2417,7 +2417,7 @@ impl HollaexCore {
         m.insert("tagTo".to_string(), tagTo.clone());
         m.insert("type".to_string(), type_var.clone());
         m.insert("amount".to_string(), amount.clone());
-        m.insert("currency".to_string(), get_value(&currency, &Value::Str("code".to_string())));
+        m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null));
         m.insert("status".to_string(), status.clone());
         m.insert("updated".to_string(), updated.clone());
         m.insert("comment".to_string(), self.safe_string_k(transaction.clone(), "message", &[]));
@@ -2449,21 +2449,21 @@ impl HollaexCore {
 }));
         { let __destr_tmp = self.handle_withdraw_tag_and_params(tag.clone(), params.clone()); tag = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         self.check_address(&[address.clone()]);
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut currency: Value = self.currency(code.clone());
-        if !is_equal(&tag, &Value::Null) {
-            address = add(&address, &add(&Value::Str(":".to_string()), &tag));
+        if (tag != Value::Null) {
+            address = Value::Str(format!("{}{}", address, Value::Str(format!("{}{}", Value::Str(":".to_string()), tag))));
         }
         let mut network: Value = self.safe_string_k(params.clone(), "network", &[]);
-        if is_equal(&network, &Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" withdraw() requires a network parameter".to_string()))));
+        if (network == Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires a network parameter".to_string())))));
         }
         params = self.omit(params.clone(), Value::Str("network".to_string()), &[]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currency".to_string(), get_value(&currency, &Value::Str("id".to_string())));
+                m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("amount".to_string(), amount.clone());
                 m.insert("address".to_string(), address.clone());
                 m.insert("network".to_string(), self.network_code_to_id(network.clone(), &[code.clone()]));
@@ -2539,13 +2539,13 @@ impl HollaexCore {
 }));
         }
         let mut withdrawalFees: Value = self.safe_value_k(fee.clone(), "withdrawal_fees", &[]);
-        if !is_equal(&withdrawalFees, &Value::Null) {
+        if (withdrawalFees != Value::Null) {
             let mut keys: Value = object_keys(&withdrawalFees);
-            let mut keysLength: Value = get_array_length(&keys);
+            let mut keysLength: Value = Value::Int(keys.len() as i64);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_760: bool = true;
-                while { if !__for_first_760 { i = add(&i, &Value::Int(1)); } __for_first_760 = false; is_less_than(&i, &keysLength) } {
+                while { if !__for_first_760 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_760 = false; i.as_f64().unwrap_or(f64::NAN) < keysLength.as_f64().unwrap_or(f64::NAN) } {
                 let mut key: Value = get_value(&keys, &i);
                 let mut key: Value = get_value(&keys, &i);
                 let mut value: Value = get_value(&withdrawalFees, &key);
@@ -2553,8 +2553,8 @@ impl HollaexCore {
                 let mut currencyId: Value = self.safe_string_k(value.clone(), "symbol", &[]);
                 let mut currencyCode: Value = self.safe_currency_code(currencyId.clone(), &[]);
                 let mut networkCode: Value = self.network_id_to_code(&[key.clone(), currencyCode.clone()]);
-                if is_equal(&networkCode, &Value::Null) {
-                    panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" requires a networkCode argument".to_string()))));
+                if (networkCode == Value::Null) {
+                    panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" requires a networkCode argument".to_string())))));
                 }
                 let mut networkCodeUpper: Value = to_upper(&networkCode); // default to the upper case network code
                 let mut withdrawalFee: Value = self.safe_number_k(value.clone(), "value", &[]);
@@ -2642,16 +2642,16 @@ impl HollaexCore {
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
-        path = add(&add(&add(&Value::Str("/".to_string()), &self.version), &Value::Str("/".to_string())), &self.implode_params(path.clone(), params.clone()));
-        if is_true(&(is_equal(&method, &Value::Str("GET".to_string())))) || is_true(&(is_equal(&method, &Value::Str("DELETE".to_string())))) {
-            if is_greater_than(&get_array_length(&object_keys(&query)), &Value::Int(0)) {
-                path = add(&path, &add(&Value::Str("?".to_string()), &self.urlencode(query.clone(), &[])));
+        path = Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("/".to_string()), &self.version), Value::Str("/".to_string()))), self.implode_params(path.clone(), params.clone())));
+        if is_true(&(Value::Bool(method.as_str() == Some("GET")))) || is_true(&(Value::Bool(method.as_str() == Some("DELETE")))) {
+            if Value::Int(object_keys(&query).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+                path = add(&path, &Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(query.clone(), &[]))));
             }
         }
-        let mut url: Value = add(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("rest".to_string())), &path);
-        if is_equal(&api, &Value::Str("private".to_string())) {
+        let mut url: Value = add(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("rest")).cloned().unwrap_or(Value::Null), &path);
+        if (api.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
-            let mut defaultExpires: Value = self.safe_integer2(self.options.clone(), Value::Str("api-expires".to_string()), Value::Str("expires".to_string()), &[self.parse_to_int(divide(&self.timeout, &Value::Int(1000)))]);
+            let mut defaultExpires: Value = self.safe_integer2(self.options.clone(), Value::Str("api-expires".to_string()), Value::Str("expires".to_string()), &[self.parse_to_int((match ((self.timeout.clone()).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))]);
             let mut expires: Value = self.sum(&[self.seconds(), defaultExpires.clone()]);
             let mut expiresString: Value = to_string_val(&expires);
             let mut auth: Value = add(&add(&method, &path), &expiresString);
@@ -2661,11 +2661,11 @@ impl HollaexCore {
                     m.insert("api-expires".to_string(), expiresString.clone());
                 m
             });
-            if is_equal(&method, &Value::Str("POST".to_string())) {
+            if (method.as_str() == Some("POST")) {
                 add_element_to_object(&mut headers, &Value::Str("Content-type".to_string()), Value::Str("application/json".to_string()));
-                if is_greater_than(&get_array_length(&object_keys(&query)), &Value::Int(0)) {
+                if Value::Int(object_keys(&query).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                     body = self.json(query.clone());
-                    auth = add(&auth, &body);
+                    auth = Value::Str(format!("{}{}", auth, body));
                 }
             }
             let mut signature: Value = self.hmac(self.encode(auth.clone()), self.encode(self.secret.clone()), Value::Str("sha256".to_string()), &[]);
@@ -2685,10 +2685,10 @@ impl HollaexCore {
 
     pub fn handle_errors(&self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
         // { "message": "Invalid token" }
-        if is_equal(&response, &Value::Null) {
+        if (response == Value::Null) {
             return Value::Null;
         }
-        if is_true(&(is_greater_than_or_equal(&code, &Value::Int(400)))) && is_true(&(is_less_than_or_equal(&code, &Value::Int(503)))) {
+        if is_true(&(code.as_f64().unwrap_or(f64::NAN) >= Value::Int(400).as_f64().unwrap_or(f64::NAN))) && is_true(&(code.as_f64().unwrap_or(f64::NAN) <= Value::Int(503).as_f64().unwrap_or(f64::NAN))) {
             //
             //  { "message": "Invalid token" }
             //
@@ -2698,11 +2698,11 @@ impl HollaexCore {
             //
             //  { "message":"Error 1001 - POST ONLY order can not be of type market" }
             //
-            let mut feedback: Value = add(&add(&self.id, &Value::Str(" ".to_string())), &body);
+            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body));
             let mut message: Value = self.safe_string_k(response.clone(), "message", &[]);
-            self.throw_broadly_matched_exception(get_value(&self.exceptions, &Value::Str("broad".to_string())), message.clone(), feedback.clone());
+            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.clone(), feedback.clone());
             let mut status: Value = to_string_val(&code);
-            self.throw_exactly_matched_exception(get_value(&self.exceptions, &Value::Str("exact".to_string())), status.clone(), feedback.clone());
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), status.clone(), feedback.clone());
         }
         return Value::Null;
 

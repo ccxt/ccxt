@@ -149,7 +149,7 @@ pub fn testSafeTicker() {
     assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result8.clone(), Value::Str("previousClose".to_string()), Value::Str("4.9".to_string())))));
     assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result8.clone(), Value::Str("indexPrice".to_string()), Value::Str("5.8".to_string())))));
     assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result8.clone(), Value::Str("markPrice".to_string()), Value::Str("5.9".to_string())))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_equal(&get_value(&result8, &Value::Str("info".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(result8.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null) != Value::Null))));
     // CASE 9 - flat day, a legitimate zero change must be preserved, see https://github.com/ccxt/ccxt/issues/25971
     let mut ticker9: Value = Value::Map({
         let mut m = indexmap::IndexMap::new();
@@ -178,6 +178,6 @@ pub fn testSafeTicker() {
     // the supplied average must survive untouched, and this path deliberately
     // leaves change and percentage underived - pin that boundary
     assert!(ccxt::runtime::is_true(&(preciseEqualStr(exchange.clone_self(), result10.clone(), Value::Str("average".to_string()), Value::Str("5.5".to_string())))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&result10, &Value::Str("change".to_string())), &Value::Null)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&result10, &Value::Str("percentage".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(result10.as_map().and_then(|__m| __m.get("change")).cloned().unwrap_or(Value::Null) == Value::Null))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(result10.as_map().and_then(|__m| __m.get("percentage")).cloned().unwrap_or(Value::Null) == Value::Null))));
 }

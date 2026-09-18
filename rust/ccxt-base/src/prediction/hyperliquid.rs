@@ -343,7 +343,7 @@ impl HyperliquidCore {
  * @returns {int} the outcome side encoding
  */
     pub fn outcome_encoding(&self, mut outcomeId: Value, mut side: Value) -> Value {
-        return self.sum(&[multiply(&Value::Int(10), &outcomeId), side.clone()]);
+        return self.sum(&[(match (&(Value::Int(10)), &(outcomeId)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), side.clone()]);
 
     Value::Null
 }
@@ -371,7 +371,7 @@ impl HyperliquidCore {
  * @returns {string} the coin name
  */
     pub fn outcome_coin(&self, mut encoding: Value) -> Value {
-        return add(&Value::Str("#".to_string()), &to_string_val(&encoding));
+        return Value::Str(format!("{}{}", Value::Str("#".to_string()), to_string_val(&encoding)));
 
     Value::Null
 }
@@ -385,7 +385,7 @@ impl HyperliquidCore {
  * @returns {string} the token name
  */
     pub fn outcome_token(&self, mut encoding: Value) -> Value {
-        return add(&Value::Str("+".to_string()), &to_string_val(&encoding));
+        return Value::Str(format!("{}{}", Value::Str("+".to_string()), to_string_val(&encoding)));
 
     Value::Null
 }
@@ -399,7 +399,7 @@ impl HyperliquidCore {
  * @returns {object} a dict of the parsed key/value pairs
  */
     pub fn parse_outcome_description(&self, mut description: Value) -> Value {
-        if is_true(&(is_equal(&description, &Value::Null))) || is_true(&(is_equal(&description, &Value::Str("".to_string())))) {
+        if is_true(&(Value::Bool(description == Value::Null))) || is_true(&(Value::Bool(description.as_str() == Some("")))) {
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -413,13 +413,13 @@ impl HyperliquidCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1187: bool = true;
-            while { if !__for_first_1187 { i = add(&i, &Value::Int(1)); } __for_first_1187 = false; is_less_than(&i, &get_array_length(&parts)) } {
+            while { if !__for_first_1187 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1187 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(parts.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut part: Value = get_value(&parts, &i);
             let mut part: Value = get_value(&parts, &i);
             let mut colonIndex: Value = get_index_of(&part, &Value::Str(":".to_string()));
-            if is_greater_than(&colonIndex, &negate(&Value::Int(1))) {
+            if colonIndex.as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
                 let mut key: Value = slice(&part, &Value::Int(0), &colonIndex);
-                let mut value: Value = slice(&part, &add(&colonIndex, &Value::Int(1)), &Value::Null);
+                let mut value: Value = slice(&part, &(match (&(colonIndex), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }), &Value::Null);
                 add_element_to_object(&mut result, &key, value.clone());
             }
         }
@@ -440,20 +440,20 @@ impl HyperliquidCore {
  * @returns {string} the outcome
  */
     pub fn build_outcome_symbol(&self, mut desc: Value, mut side: Value, mut outcomeId: Value) -> Value {
-        let mut underlying: Value = self.safe_string_k(desc.clone(), "underlying", &[add(&Value::Str("OUTCOME".to_string()), &to_string_val(&outcomeId))]);
+        let mut underlying: Value = self.safe_string_k(desc.clone(), "underlying", &[Value::Str(format!("{}{}", Value::Str("OUTCOME".to_string()), to_string_val(&outcomeId)))]);
         let mut targetPrice: Value = self.safe_string_k(desc.clone(), "targetPrice", &[]);
         let mut expiry: Value = self.safe_string_k(desc.clone(), "expiry", &[Value::Str("".to_string())]);
         // Parse expiry: "20260503-0600" → "20260503"
-        let mut expiryDate: Value = ternary(is_true(&(!is_equal(&expiry, &Value::Str("".to_string())))), get_value(&split(&expiry, &Value::Str("-".to_string())), &Value::Int(0)), Value::Str("".to_string()));
-        let mut label: Value = ternary(is_true(&(is_equal(&side, &Value::Int(0)))), Value::Str("YES".to_string()), Value::Str("NO".to_string()));
+        let mut expiryDate: Value = (if is_true(&(Value::Bool(expiry.as_str() != Some("")))) { split(&expiry, &Value::Str("-".to_string())).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null) } else { Value::Str("".to_string()) });
+        let mut label: Value = (if is_true(&(Value::Bool(side.as_f64() == Some(0.0)))) { Value::Str("YES".to_string()) } else { Value::Str("NO".to_string()) });
         let mut base: Value = to_upper(&underlying);
-        if is_true(&(!is_equal(&targetPrice, &Value::Null))) && is_true(&(!is_equal(&targetPrice, &Value::Str("".to_string())))) {
-            base = add(&add(&base, &Value::Str("_ABOVE_".to_string())), &targetPrice);
+        if is_true(&(Value::Bool(targetPrice != Value::Null))) && is_true(&(Value::Bool(targetPrice.as_str() != Some("")))) {
+            base = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("_ABOVE_".to_string()))), targetPrice));
         }
-        if is_true(&(!is_equal(&expiryDate, &Value::Null))) && is_true(&(!is_equal(&expiryDate, &Value::Str("".to_string())))) {
-            base = add(&add(&base, &Value::Str("_".to_string())), &expiryDate);
+        if is_true(&(Value::Bool(expiryDate != Value::Null))) && is_true(&(Value::Bool(expiryDate.as_str() != Some("")))) {
+            base = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("_".to_string()))), expiryDate));
         }
-        return add(&add(&base, &Value::Str(":".to_string())), &label);
+        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str(":".to_string()))), label));
 
     Value::Null
 }
@@ -476,77 +476,77 @@ impl HyperliquidCore {
     m
 }));
         let mut underlying: Value = self.safe_string_k(desc.clone(), "underlying", &[]);
-        if is_true(&(!is_equal(&underlying, &Value::Null))) && is_true(&(!is_equal(&underlying, &Value::Str("".to_string())))) {
+        if is_true(&(Value::Bool(underlying != Value::Null))) && is_true(&(Value::Bool(underlying.as_str() != Some("")))) {
             let mut targetPrice: Value = self.safe_string_k(desc.clone(), "targetPrice", &[]);
             let mut expiry: Value = self.safe_string_k(desc.clone(), "expiry", &[Value::Str("".to_string())]);
-            let mut expiryDate: Value = ternary(is_true(&(!is_equal(&expiry, &Value::Str("".to_string())))), get_value(&split(&expiry, &Value::Str("-".to_string())), &Value::Int(0)), Value::Str("".to_string()));
+            let mut expiryDate: Value = (if is_true(&(Value::Bool(expiry.as_str() != Some("")))) { split(&expiry, &Value::Str("-".to_string())).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null) } else { Value::Str("".to_string()) });
             let mut base: Value = to_upper(&underlying);
-            if is_true(&(!is_equal(&targetPrice, &Value::Null))) && is_true(&(!is_equal(&targetPrice, &Value::Str("".to_string())))) {
-                base = add(&add(&base, &Value::Str("_ABOVE_".to_string())), &targetPrice);
+            if is_true(&(Value::Bool(targetPrice != Value::Null))) && is_true(&(Value::Bool(targetPrice.as_str() != Some("")))) {
+                base = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("_ABOVE_".to_string()))), targetPrice));
             }
-            if is_true(&(!is_equal(&expiryDate, &Value::Null))) && is_true(&(!is_equal(&expiryDate, &Value::Str("".to_string())))) {
-                base = add(&add(&base, &Value::Str("_".to_string())), &expiryDate);
+            if is_true(&(Value::Bool(expiryDate != Value::Null))) && is_true(&(Value::Bool(expiryDate.as_str() != Some("")))) {
+                base = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("_".to_string()))), expiryDate));
             }
             return base;
         }
         let mut questionDescription: Value = self.safe_string_k(question.clone(), "description", &[]);
-        if is_true(&(!is_equal(&questionDescription, &Value::Null))) && is_true(&(!is_equal(&questionDescription, &Value::Str("".to_string())))) {
+        if is_true(&(Value::Bool(questionDescription != Value::Null))) && is_true(&(Value::Bool(questionDescription.as_str() != Some("")))) {
             let mut questionDesc: Value = self.parse_outcome_description(questionDescription.clone());
             let mut questionClass: Value = self.safe_string_lower(questionDesc.clone(), Value::Str("class".to_string()), &[]);
-            if is_equal(&questionClass, &Value::Str("pricebucket".to_string())) {
+            if (questionClass.as_str() == Some("pricebucket")) {
                 let mut questionUnderlying: Value = self.safe_string_k(questionDesc.clone(), "underlying", &[]);
                 let mut questionExpiry: Value = self.safe_string_k(questionDesc.clone(), "expiry", &[Value::Str("".to_string())]);
-                let mut expiryDate: Value = ternary(is_true(&(!is_equal(&questionExpiry, &Value::Str("".to_string())))), get_value(&split(&questionExpiry, &Value::Str("-".to_string())), &Value::Int(0)), Value::Str("".to_string()));
+                let mut expiryDate: Value = (if is_true(&(Value::Bool(questionExpiry.as_str() != Some("")))) { split(&questionExpiry, &Value::Str("-".to_string())).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null) } else { Value::Str("".to_string()) });
                 let mut thresholdsRaw: Value = self.safe_string_k(questionDesc.clone(), "priceThresholds", &[Value::Str("".to_string())]);
                 let mut indexStr: Value = self.safe_string_k(desc.clone(), "index", &[]);
                 let mut rawDescription: Value = self.safe_string_lower(desc.clone(), Value::Str("description".to_string()), &[Value::Str("".to_string())]);
                 let mut nameLower: Value = to_lower(&name);
-                if is_true(&(!is_equal(&questionUnderlying, &Value::Null) && !is_equal(&questionUnderlying, &Value::Str("".to_string())))) && is_true(&(!is_equal(&thresholdsRaw, &Value::Str("".to_string())))) && !is_equal(&indexStr, &Value::Null) {
+                if is_true(&(Value::Bool((questionUnderlying != Value::Null) && (questionUnderlying.as_str() != Some(""))))) && is_true(&(Value::Bool(thresholdsRaw.as_str() != Some("")))) && (indexStr != Value::Null) {
                     let mut thresholdParts: Value = split(&thresholdsRaw, &Value::Str(",".to_string()));
                     let mut thresholds: Value = Value::List(vec![]);
                     {
                                                 let mut i: Value = Value::Int(0);
                         let mut __for_first_1188: bool = true;
-                        while { if !__for_first_1188 { i = add(&i, &Value::Int(1)); } __for_first_1188 = false; is_less_than(&i, &get_array_length(&thresholdParts)) } {
+                        while { if !__for_first_1188 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1188 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(thresholdParts.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                         let mut trimmed: Value = trim(&get_value(&thresholdParts, &i));
-                        if is_greater_than(&get_array_length(&trimmed), &Value::Int(0)) {
+                        if Value::Int(trimmed.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                             append_to_array(&mut thresholds, trimmed.clone());
                         }
                     }
                     }
-                    let mut thresholdsLength: Value = get_array_length(&thresholds);
+                    let mut thresholdsLength: Value = Value::Int(thresholds.len() as i64);
                     let mut index: Value = self.parse_to_int(indexStr.clone());
-                    if is_greater_than(&thresholdsLength, &Value::Int(0)) && !is_equal(&index, &Value::Null) {
+                    if thresholdsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) && (index != Value::Null) {
                         let mut bucketLabel: Value = Value::Null;
-                        if is_less_than_or_equal(&index, &Value::Int(0)) {
-                            bucketLabel = add(&Value::Str("BELOW_".to_string()), &get_value(&thresholds, &Value::Int(0)));
-                        }  else if is_greater_than_or_equal(&index, &thresholdsLength) {
-                            let mut lastIdx: Value = subtract(&thresholdsLength, &Value::Int(1));
-                            bucketLabel = add(&Value::Str("ABOVE_".to_string()), &get_value(&thresholds, &lastIdx));
+                        if index.as_f64().unwrap_or(f64::NAN) <= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+                            bucketLabel = Value::Str(format!("{}{}", Value::Str("BELOW_".to_string()), thresholds.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)));
+                        }  else if index.as_f64().unwrap_or(f64::NAN) >= thresholdsLength.as_f64().unwrap_or(f64::NAN) {
+                            let mut lastIdx: Value = (match (&(thresholdsLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+                            bucketLabel = Value::Str(format!("{}{}", Value::Str("ABOVE_".to_string()), get_value(&thresholds, &lastIdx)));
                         }  else {
-                            bucketLabel = add(&add(&add(&Value::Str("BETWEEN_".to_string()), &get_value(&thresholds, &subtract(&index, &Value::Int(1)))), &Value::Str("_".to_string())), &get_value(&thresholds, &index));
+                            bucketLabel = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("BETWEEN_".to_string()), get_value(&thresholds, &(match (&(index), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })))), Value::Str("_".to_string()))), get_value(&thresholds, &index)));
                         }
-                        let mut base: Value = add(&add(&to_upper(&questionUnderlying), &Value::Str("_".to_string())), &bucketLabel);
-                        if is_true(&(!is_equal(&expiryDate, &Value::Null))) && is_true(&(!is_equal(&expiryDate, &Value::Str("".to_string())))) {
-                            base = add(&add(&base, &Value::Str("_".to_string())), &expiryDate);
+                        let mut base: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", to_upper(&questionUnderlying), Value::Str("_".to_string()))), bucketLabel));
+                        if is_true(&(Value::Bool(expiryDate != Value::Null))) && is_true(&(Value::Bool(expiryDate.as_str() != Some("")))) {
+                            base = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("_".to_string()))), expiryDate));
                         }
                         return base;
                     }
                 }
-                let mut isFallbackLike: bool = is_true(&(is_equal(&rawDescription, &Value::Str("other".to_string())))) || is_true(&(is_greater_than_or_equal(&get_index_of(&nameLower, &Value::Str("fallback".to_string())), &Value::Int(0)))) || is_true(&(is_greater_than_or_equal(&get_index_of(&nameLower, &Value::Str("other".to_string())), &Value::Int(0))));
-                if is_true(&(!is_equal(&questionUnderlying, &Value::Null) && !is_equal(&questionUnderlying, &Value::Str("".to_string())))) && is_true(&isFallbackLike) {
-                    let mut base: Value = add(&to_upper(&questionUnderlying), &Value::Str("_OTHER".to_string()));
-                    if is_true(&(!is_equal(&expiryDate, &Value::Null))) && is_true(&(!is_equal(&expiryDate, &Value::Str("".to_string())))) {
-                        base = add(&add(&base, &Value::Str("_".to_string())), &expiryDate);
+                let mut isFallbackLike: bool = is_true(&(Value::Bool(rawDescription.as_str() == Some("other")))) || is_true(&(get_index_of(&nameLower, &Value::Str("fallback".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN))) || is_true(&(get_index_of(&nameLower, &Value::Str("other".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN)));
+                if is_true(&(Value::Bool((questionUnderlying != Value::Null) && (questionUnderlying.as_str() != Some(""))))) && isFallbackLike {
+                    let mut base: Value = Value::Str(format!("{}{}", to_upper(&questionUnderlying), Value::Str("_OTHER".to_string())));
+                    if is_true(&(Value::Bool(expiryDate != Value::Null))) && is_true(&(Value::Bool(expiryDate.as_str() != Some("")))) {
+                        base = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("_".to_string()))), expiryDate));
                     }
                     return base;
                 }
             }
         }
         let mut questionName: Value = self.safe_string_k(question.clone(), "name", &[]);
-        if is_true(&(!is_equal(&questionName, &Value::Null))) && is_true(&(!is_equal(&questionName, &Value::Str("".to_string())))) {
+        if is_true(&(Value::Bool(questionName != Value::Null))) && is_true(&(Value::Bool(questionName.as_str() != Some("")))) {
             let mut questionSlug: Value = self.shorten_slug(questionName.clone());
-            if is_true(&(!is_equal(&questionSlug, &Value::Null))) && is_true(&(!is_equal(&questionSlug, &Value::Str("".to_string())))) {
+            if is_true(&(Value::Bool(questionSlug != Value::Null))) && is_true(&(Value::Bool(questionSlug.as_str() != Some("")))) {
                 let mut outcomeSlug: Value = self.shorten_slug(name.clone());
                 let mut genericOutcomeNames: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -556,23 +556,23 @@ impl HyperliquidCore {
                     m
                 });
                 if is_true(&Value::Bool(in_op(&genericOutcomeNames, &outcomeSlug))) {
-                    if is_greater_than_or_equal(&get_index_of(&outcomeSlug, &Value::Str("FALLBACK".to_string())), &Value::Int(0)) {
+                    if get_index_of(&outcomeSlug, &Value::Str("FALLBACK".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                         outcomeSlug = Value::Str("OTHER".to_string());
                     }  else {
                         outcomeSlug = Value::Str("".to_string());
                     }
                 }
-                if is_true(&(!is_equal(&outcomeSlug, &Value::Null))) && is_true(&(!is_equal(&outcomeSlug, &Value::Str("".to_string())))) {
-                    return add(&add(&add(&add(&questionSlug, &Value::Str("_".to_string())), &outcomeSlug), &Value::Str("_".to_string())), &to_string_val(&outcomeId));
+                if is_true(&(Value::Bool(outcomeSlug != Value::Null))) && is_true(&(Value::Bool(outcomeSlug.as_str() != Some("")))) {
+                    return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", questionSlug, Value::Str("_".to_string()))), outcomeSlug)), Value::Str("_".to_string()))), to_string_val(&outcomeId)));
                 }
-                return add(&add(&questionSlug, &Value::Str("_".to_string())), &to_string_val(&outcomeId));
+                return Value::Str(format!("{}{}", Value::Str(format!("{}{}", questionSlug, Value::Str("_".to_string()))), to_string_val(&outcomeId)));
             }
         }
         // Fallback: use name slugified, or OUTCOME-<id>
-        if is_true(&(!is_equal(&name, &Value::Null))) && is_true(&(!is_equal(&name, &Value::Str("".to_string())))) {
-            return add(&add(&self.shorten_slug(name.clone()), &Value::Str("_".to_string())), &to_string_val(&outcomeId));
+        if is_true(&(Value::Bool(name != Value::Null))) && is_true(&(Value::Bool(name.as_str() != Some("")))) {
+            return Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.shorten_slug(name.clone()), Value::Str("_".to_string()))), to_string_val(&outcomeId)));
         }
-        return add(&Value::Str("OUTCOME_".to_string()), &to_string_val(&outcomeId));
+        return Value::Str(format!("{}{}", Value::Str("OUTCOME_".to_string()), to_string_val(&outcomeId)));
 
     Value::Null
 }
@@ -635,13 +635,13 @@ impl HyperliquidCore {
         {
                         let mut qi: Value = Value::Int(0);
             let mut __for_first_1190: bool = true;
-            while { if !__for_first_1190 { qi = add(&qi, &Value::Int(1)); } __for_first_1190 = false; is_less_than(&qi, &get_array_length(&questionsList)) } {
+            while { if !__for_first_1190 { qi = (match (&(qi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1190 = false; qi.as_f64().unwrap_or(f64::NAN) < Value::Int(questionsList.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut question: Value = self.safe_dict(questionsList.clone(), qi.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
             let mut fallbackOutcome: Value = self.safe_integer_k(question.clone(), "fallbackOutcome", &[]);
-            if !is_equal(&fallbackOutcome, &Value::Null) {
+            if (fallbackOutcome != Value::Null) {
                 let mut fallbackKey: Value = to_string_val(&fallbackOutcome);
                 add_element_to_object(&mut outcomesToQuestions, &fallbackKey, question.clone());
             }
@@ -649,9 +649,9 @@ impl HyperliquidCore {
             {
                                 let mut ni: Value = Value::Int(0);
                 let mut __for_first_1189: bool = true;
-                while { if !__for_first_1189 { ni = add(&ni, &Value::Int(1)); } __for_first_1189 = false; is_less_than(&ni, &get_array_length(&namedOutcomes)) } {
+                while { if !__for_first_1189 { ni = (match (&(ni), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1189 = false; ni.as_f64().unwrap_or(f64::NAN) < Value::Int(namedOutcomes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 let mut namedOutcomeId: Value = self.safe_integer(namedOutcomes.clone(), ni.clone(), &[]);
-                if !is_equal(&namedOutcomeId, &Value::Null) {
+                if (namedOutcomeId != Value::Null) {
                     let mut namedKey: Value = to_string_val(&namedOutcomeId);
                     add_element_to_object(&mut outcomesToQuestions, &namedKey, question.clone());
                 }
@@ -660,13 +660,13 @@ impl HyperliquidCore {
         }
         }
         let mut markets: Value = Value::List(vec![]);
-        if is_equal(&self.exchange.outcomes, &Value::Null) {
+        if (self.exchange.outcomes.clone() == Value::Null) {
             self.exchange.outcomes = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
         }
-        if is_equal(&self.exchange.outcomes_by_id, &Value::Null) {
+        if (self.exchange.outcomes_by_id.clone() == Value::Null) {
             self.exchange.outcomes_by_id = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -675,7 +675,7 @@ impl HyperliquidCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1192: bool = true;
-            while { if !__for_first_1192 { i = add(&i, &Value::Int(1)); } __for_first_1192 = false; is_less_than(&i, &get_array_length(&outcomesList)) } {
+            while { if !__for_first_1192 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1192 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(outcomesList.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut outcomeInfo: Value = self.safe_dict(outcomesList.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -692,17 +692,17 @@ impl HyperliquidCore {
             {
                                 let mut oi: Value = Value::Int(0);
                 let mut __for_first_1191: bool = true;
-                while { if !__for_first_1191 { oi = add(&oi, &Value::Int(1)); } __for_first_1191 = false; is_less_than(&oi, &get_array_length(&marketOutcomes)) } {
+                while { if !__for_first_1191 { oi = (match (&(oi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1191 = false; oi.as_f64().unwrap_or(f64::NAN) < Value::Int(marketOutcomes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 let mut outcome: Value = self.safe_dict(marketOutcomes.clone(), oi.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
                 let mut outcomeSymbol: Value = self.safe_string2(outcome.clone(), Value::Str("outcome".to_string()), Value::Str("symbol".to_string()), &[]);
                 let mut outcomeId_: Value = self.safe_string2(outcome.clone(), Value::Str("outcomeId".to_string()), Value::Str("id".to_string()), &[]);
-                if !is_equal(&outcomeSymbol, &Value::Null) {
+                if (outcomeSymbol != Value::Null) {
                     add_element_to_object(&mut self.exchange.outcomes, &outcomeSymbol, outcome.clone());
                 }
-                if !is_equal(&outcomeId_, &Value::Null) {
+                if (outcomeId_ != Value::Null) {
                     add_element_to_object(&mut self.exchange.outcomes_by_id, &outcomeId_, outcome.clone());
                 }
             }
@@ -736,20 +736,20 @@ impl HyperliquidCore {
         let mut parentSymbol: Value = self.build_outcome_parent_symbol(desc.clone(), outcomeId.clone(), &[name.clone(), question.clone()]);
         let mut yesEncoding: Value = self.outcome_encoding(outcomeId.clone(), Value::Int(0));
         let mut noEncoding: Value = self.outcome_encoding(outcomeId.clone(), Value::Int(1));
-        let mut yesOutcomeSymbol: Value = add(&parentSymbol, &Value::Str(":YES".to_string()));
-        let mut noOutcomeSymbol: Value = add(&parentSymbol, &Value::Str(":NO".to_string()));
+        let mut yesOutcomeSymbol: Value = Value::Str(format!("{}{}", parentSymbol, Value::Str(":YES".to_string())));
+        let mut noOutcomeSymbol: Value = Value::Str(format!("{}{}", parentSymbol, Value::Str(":NO".to_string())));
         // Parse expiry from description
         let mut expiry: Value = self.safe_string_k(desc.clone(), "expiry", &[]);
         let mut expiryMs: Value = Value::Null;
         let mut expiryDatetime: Value = Value::Null;
-        if is_true(&(!is_equal(&expiry, &Value::Null))) && is_true(&(!is_equal(&expiry, &Value::Str("".to_string())))) {
+        if is_true(&(Value::Bool(expiry != Value::Null))) && is_true(&(Value::Bool(expiry.as_str() != Some("")))) {
             // e.g. "20260503-0600" → "2026-05-03T06:00:00Z"
             let mut expParts: Value = split(&expiry, &Value::Str("-".to_string()));
-            let mut expPartsLength: Value = get_array_length(&expParts);
-            if is_greater_than_or_equal(&expPartsLength, &Value::Int(1)) && is_equal(&get_array_length(&get_value(&expParts, &Value::Int(0))), &Value::Int(8)) {
-                let mut ymd: Value = get_value(&expParts, &Value::Int(0));
-                let mut hm: Value = ternary(is_true(&(is_greater_than_or_equal(&expPartsLength, &Value::Int(2)))), get_value(&expParts, &Value::Int(1)), Value::Str("0000".to_string()));
-                let mut isoStr: Value = add(&add(&add(&add(&add(&add(&add(&add(&add(&slice(&ymd, &Value::Int(0), &Value::Int(4)), &Value::Str("-".to_string())), &slice(&ymd, &Value::Int(4), &Value::Int(6))), &Value::Str("-".to_string())), &slice(&ymd, &Value::Int(6), &Value::Int(8))), &Value::Str("T".to_string())), &slice(&hm, &Value::Int(0), &Value::Int(2))), &Value::Str(":".to_string())), &slice(&hm, &Value::Int(2), &Value::Int(4))), &Value::Str(":00Z".to_string()));
+            let mut expPartsLength: Value = Value::Int(expParts.len() as i64);
+            if expPartsLength.as_f64().unwrap_or(f64::NAN) >= Value::Int(1).as_f64().unwrap_or(f64::NAN) && (Value::Int(get_value(&expParts, &Value::Int(0)).len() as i64).as_f64() == Some(8.0)) {
+                let mut ymd: Value = expParts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+                let mut hm: Value = (if is_true(&(expPartsLength.as_f64().unwrap_or(f64::NAN) >= Value::Int(2).as_f64().unwrap_or(f64::NAN))) { expParts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null) } else { Value::Str("0000".to_string()) });
+                let mut isoStr: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", slice(&ymd, &Value::Int(0), &Value::Int(4)), Value::Str("-".to_string()))), slice(&ymd, &Value::Int(4), &Value::Int(6)))), Value::Str("-".to_string()))), slice(&ymd, &Value::Int(6), &Value::Int(8)))), Value::Str("T".to_string()))), slice(&hm, &Value::Int(0), &Value::Int(2)))), Value::Str(":".to_string()))), slice(&hm, &Value::Int(2), &Value::Int(4)))), Value::Str(":00Z".to_string())));
                 expiryMs = self.parse8601(isoStr.clone());
                 expiryDatetime = isoStr.clone();
             }
@@ -823,7 +823,7 @@ impl HyperliquidCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), to_string_val(&outcomeId));
         m.insert("market".to_string(), parentSymbol.clone());
-        m.insert("base".to_string(), get_value(&split(&parentSymbol, &Value::Str("/".to_string())), &Value::Int(0)));
+        m.insert("base".to_string(), split(&parentSymbol, &Value::Str("/".to_string())).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
         m.insert("quote".to_string(), quoteCurrency.clone());
         m.insert("settle".to_string(), Value::Null);
         m.insert("baseId".to_string(), to_string_val(&outcomeId));
@@ -908,25 +908,25 @@ impl HyperliquidCore {
  * @returns {float} the price tick size
  */
     pub fn calculate_price_precision(&self, mut midPx: Value, mut szDecimals: Value) -> Value {
-        if is_less_than_or_equal(&midPx, &Value::Int(0)) {
+        if midPx.as_f64().unwrap_or(f64::NAN) <= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             return Value::Float(0.0001);
         }
         let mut midStr: Value = self.number_to_string(midPx.clone());
         let mut parts: Value = split(&midStr, &Value::Str(".".to_string()));
-        let mut intPart: Value = get_value(&parts, &Value::Int(0));
-        let mut significantDigits: Value = crate::runtime::Math::max(&Value::Int(5), &get_array_length(&intPart));
-        let mut maxDecimals: Value = subtract(&Value::Int(8), &szDecimals);
-        let mut pricePrecisionDecimals: Value = crate::runtime::Math::max(&Value::Int(1), &crate::runtime::Math::min(&maxDecimals, &subtract(&significantDigits, &get_array_length(&intPart))));
+        let mut intPart: Value = parts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut significantDigits: Value = crate::runtime::Math::max(&Value::Int(5), &Value::Int(intPart.len() as i64));
+        let mut maxDecimals: Value = (match (&(Value::Int(8)), &(szDecimals)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        let mut pricePrecisionDecimals: Value = crate::runtime::Math::max(&Value::Int(1), &crate::runtime::Math::min(&maxDecimals, &(match (&(significantDigits), &(Value::Int(intPart.len() as i64))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })));
         let mut zeros: Value = Value::Str("".to_string());
-        let mut zeroCount: Value = subtract(&pricePrecisionDecimals, &Value::Int(1));
+        let mut zeroCount: Value = (match (&(pricePrecisionDecimals), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
         {
                         let mut zi: Value = Value::Int(0);
             let mut __for_first_1193: bool = true;
-            while { if !__for_first_1193 { zi = add(&zi, &Value::Int(1)); } __for_first_1193 = false; is_less_than(&zi, &zeroCount) } {
-            zeros = add(&zeros, &Value::Str("0".to_string()));
+            while { if !__for_first_1193 { zi = (match (&(zi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1193 = false; zi.as_f64().unwrap_or(f64::NAN) < zeroCount.as_f64().unwrap_or(f64::NAN) } {
+            zeros = Value::Str(format!("{}{}", zeros, Value::Str("0".to_string())));
         }
         }
-        return self.parse_to_numeric(add(&add(&Value::Str("0.".to_string()), &zeros), &Value::Str("1".to_string())));
+        return self.parse_to_numeric(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("0.".to_string()), zeros)), Value::Str("1".to_string()))));
 
     Value::Null
 }
@@ -1003,14 +1003,14 @@ impl HyperliquidCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if !is_equal(&outcomes, &Value::Null) {
+        if (outcomes != Value::Null) {
             // one warm-up for the whole list (a cold cache bulk-loads once via loadAllOutcomes),
             // then identities resolve synchronously
             self.load_outcomes(&[outcomes.clone()]).await;
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1194: bool = true;
-                while { if !__for_first_1194 { i = add(&i, &Value::Int(1)); } __for_first_1194 = false; is_less_than(&i, &get_array_length(&outcomes)) } {
+                while { if !__for_first_1194 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1194 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(outcomes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 let mut requested: Value = get_value(&outcomes, &i);
                 let mut requested: Value = get_value(&outcomes, &i);
                 let mut requestedOutcomeObj: Value = self.safe_outcome(requested.clone(), &[]);
@@ -1035,7 +1035,7 @@ impl HyperliquidCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if is_true(&(!is_string(&response))) && !is_true(&Value::Bool(is_array(&response))) {
+        if (!is_string(&response)) && !is_true(&Value::Bool(is_array(&response))) {
             allMids = response.clone();
         }
         let mut mids: Value = self.safe_dict_k(allMids.clone(), "mids", &[allMids.clone()]);
@@ -1043,18 +1043,18 @@ impl HyperliquidCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut outcomesMap: Value = ternary(is_true(&(!is_equal(&self.exchange.outcomes, &Value::Null))), self.exchange.outcomes.clone(), Value::Map({
+        let mut outcomesMap: Value = (if is_true(&(Value::Bool(self.exchange.outcomes.clone() != Value::Null))) { self.exchange.outcomes.clone() } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}));
+}) });
         let mut outcomeHandles: Value = object_keys(&outcomesMap);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1195: bool = true;
-            while { if !__for_first_1195 { i = add(&i, &Value::Int(1)); } __for_first_1195 = false; is_less_than(&i, &get_array_length(&outcomeHandles)) } {
+            while { if !__for_first_1195 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1195 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(outcomeHandles.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut outcomeHandle: Value = get_value(&outcomeHandles, &i);
             let mut outcomeHandle: Value = get_value(&outcomeHandles, &i);
-            if !is_equal(&outcomes, &Value::Null) && !is_true(&(Value::Bool(in_op(&requestedOutcomeSymbols, &outcomeHandle)))) {
+            if (outcomes != Value::Null) && !is_true(&(Value::Bool(in_op(&requestedOutcomeSymbols, &outcomeHandle)))) {
                 continue;
             }
             let mut outcomeObj: Value = self.safe_dict(outcomesMap.clone(), outcomeHandle.clone(), &[Value::Map({
@@ -1067,7 +1067,7 @@ impl HyperliquidCore {
 })]);
             let mut coin: Value = self.safe_string_k(info.clone(), "coinName", &[]);
             let mut mid: Value = self.safe_number(mids.clone(), coin.clone(), &[]);
-            if is_equal(&mid, &Value::Null) {
+            if (mid == Value::Null) {
                 continue;
             }
             // Build minimal ticker from mid price
@@ -1117,28 +1117,28 @@ impl HyperliquidCore {
         let mut rawAsks: Value = self.safe_list(levels.clone(), Value::Int(1), &[Value::List(vec![])]);
         let mut topBid: Value = self.safe_dict(rawBids.clone(), Value::Int(0), &[]);
         let mut topAsk: Value = self.safe_dict(rawAsks.clone(), Value::Int(0), &[]);
-        let mut bid: Value = ternary(is_true(&(!is_equal(&topBid, &Value::Null))), self.safe_number_k(topBid.clone(), "px", &[]), Value::Null);
-        let mut ask: Value = ternary(is_true(&(!is_equal(&topAsk, &Value::Null))), self.safe_number_k(topAsk.clone(), "px", &[]), Value::Null);
-        let mut bidVolume: Value = ternary(is_true(&(!is_equal(&topBid, &Value::Null))), self.safe_number_k(topBid.clone(), "sz", &[]), Value::Null);
-        let mut askVolume: Value = ternary(is_true(&(!is_equal(&topAsk, &Value::Null))), self.safe_number_k(topAsk.clone(), "sz", &[]), Value::Null);
+        let mut bid: Value = (if is_true(&(Value::Bool(topBid != Value::Null))) { self.safe_number_k(topBid.clone(), "px", &[]) } else { Value::Null });
+        let mut ask: Value = (if is_true(&(Value::Bool(topAsk != Value::Null))) { self.safe_number_k(topAsk.clone(), "px", &[]) } else { Value::Null });
+        let mut bidVolume: Value = (if is_true(&(Value::Bool(topBid != Value::Null))) { self.safe_number_k(topBid.clone(), "sz", &[]) } else { Value::Null });
+        let mut askVolume: Value = (if is_true(&(Value::Bool(topAsk != Value::Null))) { self.safe_number_k(topAsk.clone(), "sz", &[]) } else { Value::Null });
         // Use synthetic mid if no l2Book
         let mut mid: Value = self.safe_number_k(raw.clone(), "mid", &[]);
-        if is_equal(&mid, &Value::Null) && !is_equal(&bid, &Value::Null) && !is_equal(&ask, &Value::Null) {
+        if (mid == Value::Null) && (bid != Value::Null) && (ask != Value::Null) {
             mid = divide(&self.sum(&[bid.clone(), ask.clone()]), &Value::Int(2));
         }
         // day volume lives on the parent market's ctx; resolve it from the outcome's parent market
         let mut parentSymbol: Value = self.safe_string_k(mkt.clone(), "market", &[]);
-        let mut parentMarket: Value = ternary(is_true(&(!is_equal(&parentSymbol, &Value::Null))), self.safe_market(&[parentSymbol.clone()]), Value::Null);
-        let mut ctx: Value = ternary(is_true(&(!is_equal(&parentMarket, &Value::Null))), self.safe_dict(self.safe_dict_k(parentMarket.clone(), "info", &[Value::Map({
+        let mut parentMarket: Value = (if is_true(&(Value::Bool(parentSymbol != Value::Null))) { self.safe_market(&[parentSymbol.clone()]) } else { Value::Null });
+        let mut ctx: Value = (if is_true(&(Value::Bool(parentMarket != Value::Null))) { self.safe_dict(self.safe_dict_k(parentMarket.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Str("ctx".to_string()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]), Value::Map({
+})]) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}));
+}) });
         let mut dayVolume: Value = self.safe_number_k(ctx.clone(), "dayNtlVlm", &[]);
         return self.safe_prediction_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1220,7 +1220,7 @@ impl HyperliquidCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1196: bool = true;
-            while { if !__for_first_1196 { i = add(&i, &Value::Int(1)); } __for_first_1196 = false; is_less_than(&i, &get_array_length(&rawBids)) } {
+            while { if !__for_first_1196 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1196 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rawBids.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut entry: Value = get_value(&rawBids, &i);
             let mut entry: Value = get_value(&rawBids, &i);
             append_to_array(&mut bids, Value::List(vec![self.safe_number_k(entry.clone(), "px", &[]), self.safe_number_k(entry.clone(), "sz", &[])]));
@@ -1229,7 +1229,7 @@ impl HyperliquidCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1197: bool = true;
-            while { if !__for_first_1197 { i = add(&i, &Value::Int(1)); } __for_first_1197 = false; is_less_than(&i, &get_array_length(&rawAsks)) } {
+            while { if !__for_first_1197 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1197 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rawAsks.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut entry: Value = get_value(&rawAsks, &i);
             let mut entry: Value = get_value(&rawAsks, &i);
             append_to_array(&mut asks, Value::List(vec![self.safe_number_k(entry.clone(), "px", &[]), self.safe_number_k(entry.clone(), "sz", &[])]));
@@ -1277,15 +1277,15 @@ impl HyperliquidCore {
 })]);
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[self.milliseconds()]);
         let mut startTime: Value = since.clone();
-        if is_equal(&since, &Value::Null) {
+        if (since == Value::Null) {
             let mut tf: Value = self.parse_timeframe(timeframe.clone());
-            let mut candleCount: Value = ternary(is_true(&(!is_equal(&limit, &Value::Null))), limit.clone(), Value::Int(100));
-            let mut startOffset: Value = multiply(&multiply(&tf, &candleCount), &negate(&Value::Int(1000)));
+            let mut candleCount: Value = (if is_true(&(Value::Bool(limit != Value::Null))) { limit.clone() } else { Value::Int(100) });
+            let mut startOffset: Value = (match (&((match (&(tf), &(candleCount)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(-1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
             startTime = self.sum(&[until.clone(), startOffset.clone()]);
-            if is_equal(&startTime, &Value::Null) {
-                panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" fetchOHLCV() missing startTime".to_string()))));
+            if (startTime == Value::Null) {
+                panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() missing startTime".to_string())))));
             }
-            if is_less_than(&startTime, &Value::Int(0)) {
+            if startTime.as_f64().unwrap_or(f64::NAN) < Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                 startTime = Value::Int(0);
             }
         }
@@ -1388,7 +1388,7 @@ impl HyperliquidCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1198: bool = true;
-            while { if !__for_first_1198 { i = add(&i, &Value::Int(1)); } __for_first_1198 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            while { if !__for_first_1198 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1198 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(balances.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut coin: Value = self.safe_string_k(balance.clone(), "coin", &[]);
@@ -1397,7 +1397,7 @@ impl HyperliquidCore {
             let mut account: Value = self.account();
             add_element_to_object(&mut account, &Value::Str("total".to_string()), total.clone());
             add_element_to_object(&mut account, &Value::Str("used".to_string()), used.clone());
-            if !is_equal(&coin, &Value::Null) {
+            if (coin != Value::Null) {
                 add_element_to_object(&mut result, &coin, account.clone());
             }
         }
@@ -1427,14 +1427,14 @@ impl HyperliquidCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if !is_equal(&outcomes, &Value::Null) {
+        if (outcomes != Value::Null) {
             // one warm-up for the whole list (a cold cache bulk-loads once via loadAllOutcomes),
             // then identities resolve synchronously
             self.load_outcomes(&[outcomes.clone()]).await;
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1199: bool = true;
-                while { if !__for_first_1199 { i = add(&i, &Value::Int(1)); } __for_first_1199 = false; is_less_than(&i, &get_array_length(&outcomes)) } {
+                while { if !__for_first_1199 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1199 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(outcomes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 let mut requested: Value = get_value(&outcomes, &i);
                 let mut requested: Value = get_value(&outcomes, &i);
                 let mut requestedOutcomeObj: Value = self.safe_outcome(requested.clone(), &[]);
@@ -1464,14 +1464,14 @@ impl HyperliquidCore {
     m
 })]).await]);
         let mut results: Value = promise_all(&promises).await;
-        let mut response: Value = get_value(&results, &Value::Int(0));
-        let mut midsResponse: Value = get_value(&results, &Value::Int(1));
+        let mut response: Value = results.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+        let mut midsResponse: Value = results.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut balances: Value = self.safe_list_k(response.clone(), "balances", &[Value::List(vec![])]);
         let mut allMids: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if is_true(&(!is_string(&midsResponse))) && !is_true(&Value::Bool(is_array(&midsResponse))) {
+        if (!is_string(&midsResponse)) && !is_true(&Value::Bool(is_array(&midsResponse))) {
             allMids = midsResponse.clone();
         }
         let mut mids: Value = self.safe_dict_k(allMids.clone(), "mids", &[allMids.clone()]);
@@ -1479,26 +1479,26 @@ impl HyperliquidCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1200: bool = true;
-            while { if !__for_first_1200 { i = add(&i, &Value::Int(1)); } __for_first_1200 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            while { if !__for_first_1200 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1200 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(balances.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut balance: Value = self.safe_dict(balances.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
             let mut coin: Value = self.safe_string_k(balance.clone(), "coin", &[Value::Str("".to_string())]);
             // outcome tokens use the "+<encoding>" balance form; skip regular spot tokens (USDC, ...)
-            if !is_equal(&get_index_of(&coin, &Value::Str("+".to_string())), &Value::Int(0)) {
+            if (get_index_of(&coin, &Value::Str("+".to_string())).as_f64() != Some(0.0)) {
                 continue;
             }
             let mut totalStr: Value = self.safe_string_k(balance.clone(), "total", &[]);
-            if is_true(&(is_equal(&totalStr, &Value::Null))) || is_true(&crate::precise::Precise::stringEq(&totalStr, &Value::Str("0".to_string()))) {
+            if is_true(&(Value::Bool(totalStr == Value::Null))) || is_true(&crate::precise::Precise::stringEq(&totalStr, &Value::Str("0".to_string()))) {
                 continue;
             }
             // the trade/orderbook form ("#<encoding>") resolves the outcome and the mid price
-            let mut tradeCoin: Value = add(&Value::Str("#".to_string()), &slice(&coin, &Value::Int(1), &Value::Null));
+            let mut tradeCoin: Value = Value::Str(format!("{}{}", Value::Str("#".to_string()), slice(&coin, &Value::Int(1), &Value::Null)));
             let mut outcomeObj: Value = self.safe_outcome(tradeCoin.clone(), &[]);
-            if !is_equal(&outcomes, &Value::Null) {
+            if (outcomes != Value::Null) {
                 let mut outcomeHandle: Value = self.safe_string_k(outcomeObj.clone(), "outcome", &[]);
-                if is_equal(&outcomeHandle, &Value::Null) || !is_true(&(Value::Bool(in_op(&requestedOutcomeSymbols, &outcomeHandle)))) {
+                if (outcomeHandle == Value::Null) || !is_true(&(Value::Bool(in_op(&requestedOutcomeSymbols, &outcomeHandle)))) {
                     continue;
                 }
             }
@@ -1535,16 +1535,16 @@ impl HyperliquidCore {
         let mut total: Value = self.parse_number(totalStr.clone(), &[]);
         let mut entryNtlStr: Value = self.safe_string_k(position.clone(), "entryNtl", &[]);
         let mut entryPrice: Value = Value::Null;
-        if is_true(&(!is_equal(&entryNtlStr, &Value::Null))) && is_true(&(!is_equal(&totalStr, &Value::Null))) && !is_true(&crate::precise::Precise::stringEq(&totalStr, &Value::Str("0".to_string()))) {
+        if is_true(&(Value::Bool(entryNtlStr != Value::Null))) && is_true(&(Value::Bool(totalStr != Value::Null))) && !is_true(&crate::precise::Precise::stringEq(&totalStr, &Value::Str("0".to_string()))) {
             entryPrice = self.parse_number(crate::precise::Precise::stringDiv(&entryNtlStr, &totalStr), &[]);
         }
         let mut markPxStr: Value = self.safe_string_k(position.clone(), "markPx", &[]);
         let mut notional: Value = Value::Null; // current position value = size * mark price
         let mut unrealizedPnl: Value = Value::Null; // value - entry notional
-        if is_true(&(!is_equal(&markPxStr, &Value::Null))) && is_true(&(!is_equal(&totalStr, &Value::Null))) {
+        if is_true(&(Value::Bool(markPxStr != Value::Null))) && is_true(&(Value::Bool(totalStr != Value::Null))) {
             let mut notionalStr: Value = crate::precise::Precise::stringMul(&totalStr, &markPxStr);
             notional = self.parse_number(notionalStr.clone(), &[]);
-            if !is_equal(&entryNtlStr, &Value::Null) {
+            if (entryNtlStr != Value::Null) {
                 unrealizedPnl = self.parse_number(crate::precise::Precise::stringSub(&notionalStr, &entryNtlStr), &[]);
             }
         }
@@ -1586,19 +1586,19 @@ impl HyperliquidCore {
     pub fn find_outcome_in_market(&self, mut market: Value, optional_args: &[Value]) -> Value {
         let mut sideHint = get_arg(optional_args, 0, Value::Null);
         let mut outcomesList: Value = self.safe_list_k(market.clone(), "outcomes", &[Value::List(vec![])]);
-        let mut normalizedHint: Value = ternary(is_true(&(!is_equal(&sideHint, &Value::Null) && !is_equal(&sideHint, &Value::Str("".to_string())))), to_upper(&sideHint), Value::Null);
-        if !is_equal(&normalizedHint, &Value::Null) {
+        let mut normalizedHint: Value = (if is_true(&(Value::Bool((sideHint != Value::Null) && (sideHint.as_str() != Some(""))))) { to_upper(&sideHint) } else { Value::Null });
+        if (normalizedHint != Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1201: bool = true;
-                while { if !__for_first_1201 { i = add(&i, &Value::Int(1)); } __for_first_1201 = false; is_less_than(&i, &get_array_length(&outcomesList)) } {
+                while { if !__for_first_1201 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1201 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(outcomesList.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 let mut oc: Value = self.safe_dict(outcomesList.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
                 let mut ocSymbol: Value = self.safe_string2(oc.clone(), Value::Str("outcome".to_string()), Value::Str("symbol".to_string()), &[Value::Str("".to_string())]);
                 let mut ocLabel: Value = self.safe_string_upper(oc.clone(), Value::Str("label".to_string()), &[]);
-                if is_equal(&ocLabel, &normalizedHint) || is_true(&Value::Bool(ends_with(&ocSymbol, &add(&Value::Str(":".to_string()), &normalizedHint)))) {
+                if (ocLabel.as_str() == normalizedHint.as_str()) || is_true(&Value::Bool(ends_with(&ocSymbol, &Value::Str(format!("{}{}", Value::Str(":".to_string()), normalizedHint))))) {
                     return oc;
                 }
             }
@@ -1607,7 +1607,7 @@ impl HyperliquidCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1202: bool = true;
-            while { if !__for_first_1202 { i = add(&i, &Value::Int(1)); } __for_first_1202 = false; is_less_than(&i, &get_array_length(&outcomesList)) } {
+            while { if !__for_first_1202 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1202 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(outcomesList.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut oc: Value = self.safe_dict(outcomesList.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1616,7 +1616,7 @@ impl HyperliquidCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            if is_equal(&self.safe_integer_k(info.clone(), "side", &[]), &Value::Int(0)) {
+            if (self.safe_integer_k(info.clone(), "side", &[]).as_f64() == Some(0.0)) {
                 return oc;
             }
         }
@@ -1630,13 +1630,13 @@ impl HyperliquidCore {
 }
 
     pub fn parse_outcome_input_side_hint(&self, mut outcomeInput: Value) -> Value {
-        if is_true(&(is_equal(&outcomeInput, &Value::Null))) || is_true(&(is_equal(&outcomeInput, &Value::Str("".to_string())))) {
+        if is_true(&(Value::Bool(outcomeInput == Value::Null))) || is_true(&(Value::Bool(outcomeInput.as_str() == Some("")))) {
             return Value::Null;
         }
         let mut colonIndex: Value = get_index_of(&outcomeInput, &Value::Str(":".to_string()));
-        if is_greater_than(&colonIndex, &negate(&Value::Int(1))) && is_less_than(&colonIndex, &subtract(&get_array_length(&outcomeInput), &Value::Int(1))) {
-            let mut side: Value = to_upper(&slice(&outcomeInput, &add(&colonIndex, &Value::Int(1)), &Value::Null));
-            if is_equal(&side, &Value::Str("YES".to_string())) || is_equal(&side, &Value::Str("NO".to_string())) {
+        if colonIndex.as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) && colonIndex.as_f64().unwrap_or(f64::NAN) < (match (&(Value::Int(outcomeInput.len() as i64)), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64().unwrap_or(f64::NAN) {
+            let mut side: Value = to_upper(&slice(&outcomeInput, &(match (&(colonIndex), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }), &Value::Null));
+            if (side.as_str() == Some("YES")) || (side.as_str() == Some("NO")) {
                 return side;
             }
         }
@@ -1653,35 +1653,35 @@ impl HyperliquidCore {
 }
 
     pub fn resolve_outcome_input(&self, mut outcomeInput: Value) -> Value {
-        if is_equal(&outcomeInput, &Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" resolveOutcomeInput() requires an outcome symbol or id".to_string()))));
+        if (outcomeInput == Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" resolveOutcomeInput() requires an outcome symbol or id".to_string())))));
         }
-        if is_equal(&self.exchange.outcomes, &Value::Null) || is_equal(&self.exchange.outcomes_by_id, &Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" outcomes not loaded".to_string()))));
+        if (self.exchange.outcomes.clone() == Value::Null) || (self.exchange.outcomes_by_id.clone() == Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" outcomes not loaded".to_string())))));
         }
         let mut sideHint: Value = self.parse_outcome_input_side_hint(outcomeInput.clone());
         let mut candidates: Value = Value::List(vec![outcomeInput.clone()]);
         if is_true(&Value::Bool(starts_with(&outcomeInput, &Value::Str("+".to_string())))) {
-            append_to_array(&mut candidates, add(&Value::Str("#".to_string()), &slice(&outcomeInput, &Value::Int(1), &Value::Null)));
+            append_to_array(&mut candidates, Value::Str(format!("{}{}", Value::Str("#".to_string()), slice(&outcomeInput, &Value::Int(1), &Value::Null))));
         }
         let mut digitChars: Value = Value::Str("0123456789".to_string());
         let mut inputChars: Value = self.string_to_chars_array(outcomeInput.clone());
-        let mut inputCharsLength: Value = get_array_length(&inputChars);
-        let mut isNumericInput: bool = is_greater_than(&inputCharsLength, &Value::Int(0));
+        let mut inputCharsLength: Value = Value::Int(inputChars.len() as i64);
+        let mut isNumericInput: bool = inputCharsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN);
         {
                         let mut di: Value = Value::Int(0);
             let mut __for_first_1203: bool = true;
-            while { if !__for_first_1203 { di = add(&di, &Value::Int(1)); } __for_first_1203 = false; is_less_than(&di, &get_array_length(&inputChars)) } {
-            if is_less_than(&get_index_of(&digitChars, &get_value(&inputChars, &di)), &Value::Int(0)) {
+            while { if !__for_first_1203 { di = (match (&(di), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1203 = false; di.as_f64().unwrap_or(f64::NAN) < Value::Int(inputChars.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            if get_index_of(&digitChars, &get_value(&inputChars, &di)).as_f64().unwrap_or(f64::NAN) < Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                 isNumericInput = false;
                 break;
             }
         }
         }
-        if is_true(&isNumericInput) {
-            append_to_array(&mut candidates, add(&Value::Str("#".to_string()), &outcomeInput)); // encoding id without #
+        if isNumericInput {
+            append_to_array(&mut candidates, Value::Str(format!("{}{}", Value::Str("#".to_string()), outcomeInput))); // encoding id without #
             let mut numeric: Value = self.parse_to_int(outcomeInput.clone());
-            if !is_equal(&numeric, &Value::Null) {
+            if (numeric != Value::Null) {
                 append_to_array(&mut candidates, self.outcome_coin(self.outcome_encoding(numeric.clone(), Value::Int(0)))); // raw outcome id -> YES encoding
                 append_to_array(&mut candidates, self.outcome_coin(self.outcome_encoding(numeric.clone(), Value::Int(1)))); // raw outcome id -> NO encoding
             }
@@ -1689,7 +1689,7 @@ impl HyperliquidCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1204: bool = true;
-            while { if !__for_first_1204 { i = add(&i, &Value::Int(1)); } __for_first_1204 = false; is_less_than(&i, &get_array_length(&candidates)) } {
+            while { if !__for_first_1204 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1204 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(candidates.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut key: Value = get_value(&candidates, &i);
             let mut key: Value = get_value(&candidates, &i);
             if is_true(&Value::Bool(in_op(&self.exchange.outcomes, &key))) {
@@ -1706,15 +1706,15 @@ impl HyperliquidCore {
             }
         }
         }
-        if is_true(&(is_true(&(!is_equal(&self.markets, &Value::Null))) && is_true(&(Value::Bool(in_op(&self.markets, &outcomeInput)))))) || is_true(&(is_true(&(!is_equal(&self.markets_by_id, &Value::Null))) && is_true(&(Value::Bool(in_op(&self.markets_by_id, &outcomeInput)))))) {
+        if is_true(&(Value::Bool(is_true(&(Value::Bool(self.markets.clone() != Value::Null))) && is_true(&(Value::Bool(in_op(&self.markets, &outcomeInput))))))) || is_true(&(Value::Bool(is_true(&(Value::Bool(self.markets_by_id.clone() != Value::Null))) && is_true(&(Value::Bool(in_op(&self.markets_by_id, &outcomeInput))))))) {
             let mut market: Value = self.safe_market(&[outcomeInput.clone()]);
-            let mut sideHintOrDefault: Value = ternary(is_true(&(!is_equal(&sideHint, &Value::Null))), sideHint.clone(), Value::Str("YES".to_string()));
+            let mut sideHintOrDefault: Value = (if is_true(&(Value::Bool(sideHint != Value::Null))) { sideHint.clone() } else { Value::Str("YES".to_string()) });
             let mut found: Value = self.find_outcome_in_market(market.clone(), &[sideHintOrDefault.clone()]);
-            if is_greater_than(&get_array_length(&object_keys(&found)), &Value::Int(0)) {
+            if Value::Int(object_keys(&found).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                 return found;
             }
         }
-        panic!("{}", crate::exchange_errors::arguments_required(add(&add(&add(&self.id, &Value::Str(" cannot resolve outcome from input: ".to_string())), &outcomeInput), &Value::Str(". Provide an outcome symbol (e.g. MARKET:YES), outcome id (#<encoding>), or market id with side.".to_string()))));
+        panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cannot resolve outcome from input: ".to_string()))), outcomeInput)), Value::Str(". Provide an outcome symbol (e.g. MARKET:YES), outcome id (#<encoding>), or market id with side.".to_string())))));
 
     Value::Null
 }
@@ -1756,35 +1756,35 @@ impl HyperliquidCore {
     m
 })]);
         let mut nonce: Value = self.milliseconds();
-        let mut isBuy: Value = Value::Bool(is_equal(&to_upper(&side), &Value::Str("BUY".to_string())));
-        let mut isMarket: bool = is_equal(&to_upper(&type_var), &Value::Str("MARKET".to_string()));
+        let mut isBuy: Value = (Value::Bool(to_upper(&side).as_str() == Some("BUY")));
+        let mut isMarket: bool = to_upper(&type_var).as_str() == Some("MARKET");
         let mut assetId: Value = self.safe_integer_k(outcomeInfo.clone(), "assetId", &[]);
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOrderId".to_string()), Value::Str("client_id".to_string()), &[]);
         let mut reduceOnly: Value = self.safe_bool_k(params.clone(), "reduceOnly", &[Value::Bool(false)]);
         let mut postOnly: Value = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]);
         let mut defaultSlippage: Value = self.safe_string_k(self.options.clone(), "defaultSlippage", &[Value::Str("0.05".to_string())]);
         let mut slippage: Value = self.safe_string_k(params.clone(), "slippage", &[defaultSlippage.clone()]);
-        let mut defaultTif: Value = ternary(is_true(&isMarket), Value::Str("Ioc".to_string()), Value::Str("Gtc".to_string()));
-        if is_equal(&postOnly, &Value::Bool(true)) {
+        let mut defaultTif: Value = (if isMarket { Value::Str("Ioc".to_string()) } else { Value::Str("Gtc".to_string()) });
+        if (postOnly.as_bool() == Some(true)) {
             defaultTif = Value::Str("Alo".to_string());
         }
         let mut tif: Value = self.capitalize(self.safe_string_lower(params.clone(), Value::Str("timeInForce".to_string()), &[defaultTif.clone()])); // eslint-disable-line
-        if is_equal(&price, &Value::Null) {
-            if is_true(&isMarket) {
-                panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createOrder() requires a reference price for market orders on outcome markets in between 0 and 1. The exchange uses this reference price together with the configured slippage to derive the execution price.".to_string()))));
+        if (price == Value::Null) {
+            if isMarket {
+                panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a reference price for market orders on outcome markets in between 0 and 1. The exchange uses this reference price together with the configured slippage to derive the execution price.".to_string())))));
             }
-            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createOrder() requires a limit price for outcome markets in between 0 and 1.".to_string()))));
+            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a limit price for outcome markets in between 0 and 1.".to_string())))));
         }
         let mut px: Value = Value::Null;
-        if is_true(&isMarket) {
+        if isMarket {
             let mut priceStr: Value = self.number_to_string(price.clone());
-            px = ternary(is_true(&isBuy), crate::precise::Precise::stringMul(&priceStr, &crate::precise::Precise::stringAdd(&Value::Str("1".to_string()), &slippage)), crate::precise::Precise::stringMul(&priceStr, &crate::precise::Precise::stringSub(&Value::Str("1".to_string()), &slippage)));
+            px = (if is_true(&isBuy) { crate::precise::Precise::stringMul(&priceStr, &crate::precise::Precise::stringAdd(&Value::Str("1".to_string()), &slippage)) } else { crate::precise::Precise::stringMul(&priceStr, &crate::precise::Precise::stringSub(&Value::Str("1".to_string()), &slippage)) });
             px = self.price_to_precision(marketSymbol.clone(), px.clone());
         }  else {
             px = self.price_to_precision(marketSymbol.clone(), price.clone());
         }
-        if is_equal(&px, &Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createOrder() could not determine price".to_string()))));
+        if (px == Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() could not determine price".to_string())))));
         }
         let mut sz: Value = self.amount_to_precision(marketSymbol.clone(), amount.clone());
         let mut orderType: Value = Value::Map({
@@ -1806,11 +1806,11 @@ impl HyperliquidCore {
                 m.insert("t".to_string(), orderType.clone());
             m
         });
-        if !is_equal(&clientOrderId, &Value::Null) {
+        if (clientOrderId != Value::Null) {
             add_element_to_object(&mut orderObj, &Value::Str("c".to_string()), clientOrderId.clone());
         }
         let mut vaultAddress: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".to_string()), Value::Str("vaultAddress".to_string()), &[]); vaultAddress = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".to_string()), Value::Str("vaultAddress".to_string()), &[]); vaultAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         vaultAddress = self.format_vault_address(&[vaultAddress.clone()]);
         let mut orderAction: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1842,7 +1842,7 @@ impl HyperliquidCore {
                 m.insert("signature".to_string(), signature.clone());
             m
         });
-        if !is_equal(&vaultAddress, &Value::Null) {
+        if (vaultAddress != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("vaultAddress".to_string()), vaultAddress.clone());
         }
         let mut response: Value = self.private_post_exchange(&[request.clone()]).await;
@@ -1879,7 +1879,7 @@ impl HyperliquidCore {
         let mut oid: Value = self.safe_string_k(resting.clone(), "oid", &[self.safe_string(filled.clone(), Value::Str("oid".to_string()), &[])]);
         let mut restingOid: Value = self.safe_string_k(resting.clone(), "oid", &[]);
         let mut orderStatus: Value = Value::Str("closed".to_string());
-        if !is_equal(&restingOid, &Value::Null) {
+        if (restingOid != Value::Null) {
             orderStatus = Value::Str("open".to_string());
         }
         return self.safe_prediction_order(Value::Map({
@@ -1950,8 +1950,8 @@ impl HyperliquidCore {
     m
 }));
         self.check_required_credentials(&[]);
-        if is_equal(&outcome, &Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrders() requires an outcome argument".to_string()))));
+        if (outcome == Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() requires an outcome argument".to_string())))));
         }
         self.initialize_client().await;
         self.load_outcome(outcome.clone(), &[]).await;
@@ -1971,13 +1971,13 @@ impl HyperliquidCore {
                 m.insert("cancels".to_string(), Value::List(vec![]));
             m
         });
-        if !is_equal(&clientOrderId, &Value::Null) {
-            let mut cloids: Value = ternary(is_true(&Value::Bool(is_array(&clientOrderId))), clientOrderId.clone(), Value::List(vec![clientOrderId.clone()]));
+        if (clientOrderId != Value::Null) {
+            let mut cloids: Value = (if is_true(&Value::Bool(is_array(&clientOrderId))) { clientOrderId.clone() } else { Value::List(vec![clientOrderId.clone()]) });
             add_element_to_object(&mut cancelAction, &Value::Str("type".to_string()), Value::Str("cancelByCloid".to_string()));
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1205: bool = true;
-                while { if !__for_first_1205 { i = add(&i, &Value::Int(1)); } __for_first_1205 = false; is_less_than(&i, &get_array_length(&cloids)) } {
+                while { if !__for_first_1205 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1205 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(cloids.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 append_to_array(&mut cancelReq, Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("asset".to_string(), assetId.clone());
@@ -1991,7 +1991,7 @@ impl HyperliquidCore {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1206: bool = true;
-                while { if !__for_first_1206 { i = add(&i, &Value::Int(1)); } __for_first_1206 = false; is_less_than(&i, &get_array_length(&ids)) } {
+                while { if !__for_first_1206 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1206 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(ids.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 append_to_array(&mut cancelReq, Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("a".to_string(), assetId.clone());
@@ -2003,7 +2003,7 @@ impl HyperliquidCore {
         }
         add_element_to_object(&mut cancelAction, &Value::Str("cancels".to_string()), cancelReq.clone());
         let mut vaultAddress: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("cancelOrders".to_string()), Value::Str("vaultAddress".to_string()), &[]); vaultAddress = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("cancelOrders".to_string()), Value::Str("vaultAddress".to_string()), &[]); vaultAddress = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         vaultAddress = self.format_vault_address(&[vaultAddress.clone()]);
         let mut signature: Value = self.sign_l1_action(cancelAction.clone(), nonce.clone(), &[vaultAddress.clone()]);
         let mut request: Value = Value::Map({
@@ -2013,7 +2013,7 @@ impl HyperliquidCore {
                 m.insert("signature".to_string(), signature.clone());
             m
         });
-        if !is_equal(&vaultAddress, &Value::Null) {
+        if (vaultAddress != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("vaultAddress".to_string()), vaultAddress.clone());
         }
         let mut response: Value = self.private_post_exchange(&[request.clone()]).await;
@@ -2022,7 +2022,7 @@ impl HyperliquidCore {
         let mut statuses: Value = self.safe_list_k(data.clone(), "statuses", &[Value::List(vec![])]);
         let mut outcomeSymbol: Value = self.safe_string_k(outcomeObj.clone(), "outcome", &[outcome.clone()]);
         let mut requestIds: Value = ids.clone();
-        if !is_equal(&clientOrderId, &Value::Null) {
+        if (clientOrderId != Value::Null) {
             if is_true(&Value::Bool(is_array(&clientOrderId))) {
                 requestIds = clientOrderId.clone();
             }  else {
@@ -2033,22 +2033,22 @@ impl HyperliquidCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1207: bool = true;
-            while { if !__for_first_1207 { i = add(&i, &Value::Int(1)); } __for_first_1207 = false; is_less_than(&i, &get_array_length(&statuses)) } {
+            while { if !__for_first_1207 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1207 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(statuses.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut status: Value = get_value(&statuses, &i);
             let mut status: Value = get_value(&statuses, &i);
             let mut error: Value = self.safe_string_k(status.clone(), "error", &[]);
-            if !is_equal(&error, &Value::Null) {
-                panic!("{}", crate::exchange_errors::order_not_found(add(&add(&add(&add(&self.id, &Value::Str(" cancelOrders() failed for ".to_string())), &self.safe_string(requestIds.clone(), i.clone(), &[self.safe_string(requestIds.clone(), Value::Int(0), &[])])), &Value::Str(": ".to_string())), &error)));
+            if (error != Value::Null) {
+                panic!("{}", crate::exchange_errors::order_not_found(Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() failed for ".to_string()))), &self.safe_string(requestIds.clone(), i.clone(), &[self.safe_string(requestIds.clone(), Value::Int(0), &[])])), Value::Str(": ".to_string()))), error))));
             }
-            let mut success: bool = is_true(&(is_equal(&status, &Value::Str("success".to_string())))) || is_true(&(is_equal(&self.safe_string_k(status.clone(), "status", &[]), &Value::Str("success".to_string()))));
-            if !is_true(&success) {
-                panic!("{}", crate::exchange_errors::exchange_error(add(&add(&self.id, &Value::Str(" cancelOrders() received an unexpected status: ".to_string())), &self.json(status.clone()))));
+            let mut success: bool = is_true(&(Value::Bool(status.as_str() == Some("success")))) || is_true(&(Value::Bool(self.safe_string_k(status.clone(), "status", &[]).as_str() == Some("success"))));
+            if !success {
+                panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() received an unexpected status: ".to_string()))), self.json(status.clone())))));
             }
             let mut requestId: Value = self.safe_string(requestIds.clone(), i.clone(), &[self.safe_string(requestIds.clone(), Value::Int(0), &[])]);
             let mut order: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), requestId.clone());
-                    m.insert("clientOrderId".to_string(), ternary(is_true(&(!is_equal(&clientOrderId, &Value::Null))), requestId.clone(), Value::Null));
+                    m.insert("clientOrderId".to_string(), (if is_true(&(Value::Bool(clientOrderId != Value::Null))) { requestId.clone() } else { Value::Null }));
                     m.insert("info".to_string(), status.clone());
                     m.insert("status".to_string(), Value::Str("canceled".to_string()));
                     m.insert("outcome".to_string(), outcomeSymbol.clone());
@@ -2091,7 +2091,7 @@ impl HyperliquidCore {
         let mut userAddress: Value = Value::Null;
         { let __destr_tmp = self.handle_public_address(Value::Str("fetchOpenOrders".to_string()), params.clone()); userAddress = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut method: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOpenOrders".to_string()), Value::Str("method".to_string()), &[Value::Str("frontendOpenOrders".to_string())]); method = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchOpenOrders".to_string()), Value::Str("method".to_string()), &[Value::Str("frontendOpenOrders".to_string())]); method = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), method.clone());
@@ -2108,7 +2108,7 @@ impl HyperliquidCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1208: bool = true;
-            while { if !__for_first_1208 { i = add(&i, &Value::Int(1)); } __for_first_1208 = false; is_less_than(&i, &get_array_length(&rawOrders)) } {
+            while { if !__for_first_1208 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1208 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rawOrders.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut order: Value = get_value(&rawOrders, &i);
             let mut order: Value = get_value(&rawOrders, &i);
             append_to_array(&mut ordersWithStatus, self.extend(order.clone(), &[Value::Map({
@@ -2120,7 +2120,7 @@ impl HyperliquidCore {
         }
         let mut parsed: Value = self.parse_prediction_orders(ordersWithStatus.clone(), &[Value::Null, since.clone()]);
         let mut outcomeHandle: Value = Value::Null;
-        if !is_equal(&outcome, &Value::Null) {
+        if (outcome != Value::Null) {
             self.load_outcome(outcome.clone(), &[]).await;
             let mut outcomeObj: Value = self.outcome(outcome.clone());
             outcomeHandle = self.safe_string_k(outcomeObj.clone(), "outcome", &[]);
@@ -2172,21 +2172,21 @@ impl HyperliquidCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1209: bool = true;
-            while { if !__for_first_1209 { i = add(&i, &Value::Int(1)); } __for_first_1209 = false; is_less_than(&i, &get_array_length(&historicalOrders)) } {
+            while { if !__for_first_1209 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1209 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(historicalOrders.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut raw: Value = get_value(&historicalOrders, &i);
             let mut raw: Value = get_value(&historicalOrders, &i);
             let mut entry: Value = self.safe_dict_k(raw.clone(), "order", &[]);
-            if is_equal(&entry, &Value::Null) {
+            if (entry == Value::Null) {
                 entry = raw.clone();
             }
             let mut oid: Value = self.safe_string_k(entry.clone(), "oid", &[]);
-            if !is_equal(&oid, &Value::Null) {
+            if (oid != Value::Null) {
                 if !is_true(&(Value::Bool(in_op(&deduped, &oid)))) {
                     add_element_to_object(&mut deduped, &oid, raw.clone());
                 }  else {
                     let mut existingTs: Value = self.safe_integer_k(get_value(&deduped, &oid), "statusTimestamp", &[]);
                     let mut currentTs: Value = self.safe_integer_k(raw.clone(), "statusTimestamp", &[]);
-                    if !is_equal(&currentTs, &Value::Null) && is_true(&(is_equal(&existingTs, &Value::Null) || is_greater_than(&currentTs, &existingTs))) {
+                    if (currentTs != Value::Null) && is_true(&(Value::Bool((existingTs == Value::Null) || currentTs.as_f64().unwrap_or(f64::NAN) > existingTs.as_f64().unwrap_or(f64::NAN)))) {
                         add_element_to_object(&mut deduped, &oid, raw.clone());
                     }
                 }
@@ -2196,7 +2196,7 @@ impl HyperliquidCore {
         let mut dedupedValues: Value = object_values(&deduped);
         let mut parsed: Value = self.parse_prediction_orders(dedupedValues.clone(), &[Value::Null, since.clone()]);
         let mut outcomeHandle: Value = Value::Null;
-        if !is_equal(&outcome, &Value::Null) {
+        if (outcome != Value::Null) {
             self.load_outcome(outcome.clone(), &[]).await;
             let mut outcomeObj: Value = self.outcome(outcome.clone());
             outcomeHandle = self.safe_string_k(outcomeObj.clone(), "outcome", &[]);
@@ -2233,12 +2233,12 @@ impl HyperliquidCore {
                 m.insert("user".to_string(), userAddress.clone());
             m
         });
-        if !is_equal(&clientOrderId, &Value::Null) {
+        if (clientOrderId != Value::Null) {
             params = self.omit(params.clone(), Value::Str("clientOrderId".to_string()), &[]);
             add_element_to_object(&mut request, &Value::Str("oid".to_string()), clientOrderId.clone());
         }  else {
-            let mut isCloid: bool = is_greater_than_or_equal(&get_array_length(&id), &Value::Int(34));
-            add_element_to_object(&mut request, &Value::Str("oid".to_string()), ternary(is_true(&isCloid), id.clone(), self.parse_to_numeric(id.clone())));
+            let mut isCloid: bool = Value::Int(id.len() as i64).as_f64().unwrap_or(f64::NAN) >= Value::Int(34).as_f64().unwrap_or(f64::NAN);
+            add_element_to_object(&mut request, &Value::Str("oid".to_string()), (if isCloid { id.clone() } else { self.parse_to_numeric(id.clone()) }));
         }
         let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.public_post_info(&[__ws_arg_10]).await;
@@ -2246,17 +2246,17 @@ impl HyperliquidCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if is_true(&(!is_string(&response))) && !is_true(&Value::Bool(is_array(&response))) {
+        if (!is_string(&response)) && !is_true(&Value::Bool(is_array(&response))) {
             orderStatus = response.clone();
         }
         let mut orderWrapper: Value = self.safe_dict_k(orderStatus.clone(), "order", &[orderStatus.clone()]);
         let mut parsed: Value = self.parse_prediction_order(orderWrapper.clone(), &[Value::Null]);
-        if !is_equal(&outcome, &Value::Null) {
+        if (outcome != Value::Null) {
             self.load_outcome(outcome.clone(), &[]).await;
             let mut outcomeObj: Value = self.outcome(outcome.clone());
             let mut expected: Value = self.safe_string_k(outcomeObj.clone(), "outcome", &[]);
-            if !is_equal(&self.safe_string_k(parsed.clone(), "outcome", &[]), &expected) {
-                panic!("{}", crate::exchange_errors::order_not_found(add(&add(&add(&add(&self.id, &Value::Str(" fetchOrder() order ".to_string())), &id), &Value::Str(" is not in outcome ".to_string())), &expected)));
+            if (self.safe_string_k(parsed.clone(), "outcome", &[]).as_str() != expected.as_str()) {
+                panic!("{}", crate::exchange_errors::order_not_found(add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() order ".to_string()))), id)), Value::Str(" is not in outcome ".to_string()))), &expected)));
             }
         }
         return parsed;
@@ -2299,21 +2299,21 @@ impl HyperliquidCore {
         let mut coin: Value = self.safe_string_k(entry.clone(), "coin", &[]);
         let mut outcomeObj: Value = self.safe_outcome(coin.clone(), &[market.clone()]);
         let mut marketSymbol: Value = self.safe_string_k(outcomeObj.clone(), "outcome", &[]);
-        let mut resolvedMarket: Value = ternary(is_true(&(!is_equal(&marketSymbol, &Value::Null) && !is_equal(&marketSymbol, &Value::Str("".to_string())))), self.safe_market(&[marketSymbol.clone(), market.clone()]), market.clone());
+        let mut resolvedMarket: Value = (if is_true(&(Value::Bool((marketSymbol != Value::Null) && (marketSymbol.as_str() != Some(""))))) { self.safe_market(&[marketSymbol.clone(), market.clone()]) } else { market.clone() });
         let mut sideRaw: Value = self.safe_string_k(entry.clone(), "side", &[]);
-        let mut side: Value = ternary(is_true(&(is_equal(&sideRaw, &Value::Str("B".to_string())))), Value::Str("buy".to_string()), Value::Str("sell".to_string()));
+        let mut side: Value = (if is_true(&(Value::Bool(sideRaw.as_str() == Some("B")))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
         let mut totalAmount: Value = self.safe_string_k(entry.clone(), "origSz", &[]);
         let mut remaining: Value = self.safe_string_k(entry.clone(), "sz", &[]);
         let mut filled: Value = Value::Null;
-        if is_true(&(!is_equal(&remaining, &Value::Null))) && is_true(&(!is_equal(&totalAmount, &Value::Null))) {
+        if is_true(&(Value::Bool(remaining != Value::Null))) && is_true(&(Value::Bool(totalAmount != Value::Null))) {
             filled = crate::precise::Precise::stringSub(&totalAmount, &remaining);
         }
         let mut timestamp: Value = self.safe_integer_k(entry.clone(), "timestamp", &[]);
         let mut tifRaw: Value = self.safe_string_k(entry.clone(), "tif", &[]);
         let mut tif: Value = self.parse_time_in_force(tifRaw.clone());
-        let mut postOnly: Value = Value::Bool(is_equal(&tif, &Value::Str("PO".to_string())));
-        let mut isTrigger: bool = is_equal(&self.safe_bool_k(entry.clone(), "isTrigger", &[]), &Value::Bool(true));
-        let mut triggerPrice: Value = ternary(is_true(&isTrigger), self.safe_number_k(entry.clone(), "triggerPx", &[]), Value::Null);
+        let mut postOnly: Value = (Value::Bool(tif.as_str() == Some("PO")));
+        let mut isTrigger: bool = self.safe_bool_k(entry.clone(), "isTrigger", &[]).as_bool() == Some(true);
+        let mut triggerPrice: Value = (if isTrigger { self.safe_number_k(entry.clone(), "triggerPx", &[]) } else { Value::Null });
         return self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(entry.clone(), "oid", &[]));
@@ -2358,7 +2358,7 @@ impl HyperliquidCore {
                 m.insert("marginCanceled".to_string(), Value::Str("canceled".to_string()));
             m
         });
-        if is_equal(&status, &Value::Null) {
+        if (status == Value::Null) {
             return Value::Null;
         }
         if is_true(&Value::Bool(ends_with(&status, &Value::Str("Rejected".to_string())))) {
@@ -2379,7 +2379,7 @@ impl HyperliquidCore {
                 m.insert("stop market".to_string(), Value::Str("market".to_string()));
             m
         });
-        let mut statusLower: Value = ternary(is_true(&(!is_equal(&status, &Value::Null) && !is_equal(&status, &Value::Str("".to_string())))), to_lower(&status), Value::Null);
+        let mut statusLower: Value = (if is_true(&(Value::Bool((status != Value::Null) && (status.as_str() != Some(""))))) { to_lower(&status) } else { Value::Null });
         return self.safe_string(statuses.clone(), statusLower.clone(), &[statusLower.clone()]);
 
     Value::Null
@@ -2394,7 +2394,7 @@ impl HyperliquidCore {
                 m.insert("alo".to_string(), Value::Str("PO".to_string()));
             m
         });
-        let mut tifLower: Value = ternary(is_true(&(!is_equal(&timeInForce, &Value::Null) && !is_equal(&timeInForce, &Value::Str("".to_string())))), to_lower(&timeInForce), Value::Null);
+        let mut tifLower: Value = (if is_true(&(Value::Bool((timeInForce != Value::Null) && (timeInForce.as_str() != Some(""))))) { to_lower(&timeInForce) } else { Value::Null });
         return self.safe_string(statuses.clone(), tifLower.clone(), &[timeInForce.clone()]);
 
     Value::Null
@@ -2466,7 +2466,7 @@ impl HyperliquidCore {
     m
 }));
         let mut outcomeHandle: Value = Value::Null;
-        if !is_equal(&outcome, &Value::Null) {
+        if (outcome != Value::Null) {
             let mut outcomeObj: Value = self.load_outcome(outcome.clone(), &[]).await;
             outcomeHandle = self.safe_string_k(outcomeObj.clone(), "outcome", &[]);
         }  else {
@@ -2481,7 +2481,7 @@ impl HyperliquidCore {
                 m.insert("user".to_string(), userAddress.clone());
             m
         });
-        if !is_equal(&since, &Value::Null) {
+        if (since != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("type".to_string()), Value::Str("userFillsByTime".to_string()));
             add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
         }  else {
@@ -2489,7 +2489,7 @@ impl HyperliquidCore {
         }
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
-        if !is_equal(&until, &Value::Null) {
+        if (until != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), until.clone());
         }
         let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
@@ -2544,14 +2544,14 @@ impl HyperliquidCore {
         let mut coin: Value = self.safe_string_k(trade.clone(), "coin", &[]);
         let mut outcomeObj: Value = self.safe_outcome(coin.clone(), &[market.clone()]);
         let mut marketSymbol: Value = self.safe_string_k(outcomeObj.clone(), "outcome", &[]);
-        let mut resolvedMarket: Value = ternary(is_true(&(!is_equal(&marketSymbol, &Value::Null) && !is_equal(&marketSymbol, &Value::Str("".to_string())))), self.safe_market(&[marketSymbol.clone(), market.clone()]), market.clone());
+        let mut resolvedMarket: Value = (if is_true(&(Value::Bool((marketSymbol != Value::Null) && (marketSymbol.as_str() != Some(""))))) { self.safe_market(&[marketSymbol.clone(), market.clone()]) } else { market.clone() });
         let mut rawSide: Value = self.safe_string_k(trade.clone(), "side", &[]);
-        let mut side: Value = ternary(is_true(&(is_equal(&rawSide, &Value::Str("B".to_string())))), Value::Str("buy".to_string()), Value::Str("sell".to_string()));
+        let mut side: Value = (if is_true(&(Value::Bool(rawSide.as_str() == Some("B")))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
         let mut fee: Value = self.safe_number_k(trade.clone(), "fee", &[]);
         let mut feeCurrency: Value = self.safe_string_k(trade.clone(), "feeToken", &[Value::Str("USDC".to_string())]);
         let mut outcomeSymbol: Value = self.safe_string_k(outcomeObj.clone(), "outcome", &[]);
         let mut feeObject: Value = Value::Null;
-        if !is_equal(&fee, &Value::Null) {
+        if (fee != Value::Null) {
             feeObject = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), fee.clone());
@@ -2560,11 +2560,11 @@ impl HyperliquidCore {
             });
         }
         let mut cost: Value = Value::Null;
-        if is_true(&(!is_equal(&price, &Value::Null))) && is_true(&(!is_equal(&amount, &Value::Null))) {
+        if is_true(&(Value::Bool(price != Value::Null))) && is_true(&(Value::Bool(amount != Value::Null))) {
             cost = self.parse_number(crate::precise::Precise::stringMul(&price, &amount), &[]);
         }
-        let mut crossed: bool = is_equal(&self.safe_bool_k(trade.clone(), "crossed", &[]), &Value::Bool(true));
-        let mut takerOrMaker: Value = ternary(is_true(&crossed), Value::Str("taker".to_string()), Value::Str("maker".to_string()));
+        let mut crossed: bool = self.safe_bool_k(trade.clone(), "crossed", &[]).as_bool() == Some(true);
+        let mut takerOrMaker: Value = (if crossed { Value::Str("taker".to_string()) } else { Value::Str("maker".to_string()) });
         return self.safe_prediction_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(trade.clone(), "tid", &[]));
@@ -2616,24 +2616,24 @@ impl HyperliquidCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if is_equal(&queries, &Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" fetchEvents() missing queries".to_string()))));
+        if (queries == Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchEvents() missing queries".to_string())))));
         }
         let mut lowerQueries: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1210: bool = true;
-            while { if !__for_first_1210 { i = add(&i, &Value::Int(1)); } __for_first_1210 = false; is_less_than(&i, &get_array_length(&queries)) } {
+            while { if !__for_first_1210 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1210 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(queries.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut queryString: Value = get_value(&queries, &i);
             let mut queryString: Value = get_value(&queries, &i);
             append_to_array(&mut lowerQueries, to_lower(&queryString));
         }
         }
-        let mut lowerQueriesLength: Value = get_array_length(&lowerQueries);
+        let mut lowerQueriesLength: Value = Value::Int(lowerQueries.len() as i64);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1213: bool = true;
-            while { if !__for_first_1213 { i = add(&i, &Value::Int(1)); } __for_first_1213 = false; is_less_than(&i, &get_array_length(&marketValues)) } {
+            while { if !__for_first_1213 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1213 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(marketValues.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut mkt: Value = get_value(&marketValues, &i);
             let mut mkt: Value = get_value(&marketValues, &i);
             if !is_true(&self.safe_bool_k(mkt.clone(), "prediction", &[Value::Bool(false)])) {
@@ -2645,49 +2645,49 @@ impl HyperliquidCore {
 })]);
             let mut parentSymbol: Value = self.safe_string_k(info.clone(), "parentSymbol", &[self.safe_string2(mkt.clone(), Value::Str("market".to_string()), Value::Str("symbol".to_string()), &[])]);
             // Apply query filter
-            if is_greater_than(&lowerQueriesLength, &Value::Int(0)) {
+            if lowerQueriesLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                 let mut description: Value = to_lower(&self.safe_string_k(info.clone(), "description", &[Value::Str("".to_string())]));
-                let mut parentSymbolOrEmpty: Value = ternary(is_true(&(!is_equal(&parentSymbol, &Value::Null))), parentSymbol.clone(), Value::Str("".to_string()));
+                let mut parentSymbolOrEmpty: Value = (if is_true(&(Value::Bool(parentSymbol != Value::Null))) { parentSymbol.clone() } else { Value::Str("".to_string()) });
                 let mut symLower: Value = to_lower(&parentSymbolOrEmpty);
                 // the parentSymbol joins words with underscores (BTC_ABOVE_...), so match the haystack word-by-word
                 // and require every word of a query to appear, letting "BTC above" match BTC_ABOVE
-                let mut haystack: Value = add(&add(&description, &Value::Str(" ".to_string())), &symLower);
+                let mut haystack: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", description, Value::Str(" ".to_string()))), symLower));
                 let mut matches: bool = false;
                 {
                                         let mut qi: Value = Value::Int(0);
                     let mut __for_first_1212: bool = true;
-                    while { if !__for_first_1212 { qi = add(&qi, &Value::Int(1)); } __for_first_1212 = false; is_less_than(&qi, &get_array_length(&lowerQueries)) } {
+                    while { if !__for_first_1212 { qi = (match (&(qi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1212 = false; qi.as_f64().unwrap_or(f64::NAN) < Value::Int(lowerQueries.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                     let mut words: Value = split(&get_value(&lowerQueries, &qi), &Value::Str(" ".to_string()));
-                    let mut wordsLength: Value = get_array_length(&words);
+                    let mut wordsLength: Value = Value::Int(words.len() as i64);
                     let mut allWords: bool = true;
                     {
                                                 let mut wi: Value = Value::Int(0);
                         let mut __for_first_1211: bool = true;
-                        while { if !__for_first_1211 { wi = add(&wi, &Value::Int(1)); } __for_first_1211 = false; is_less_than(&wi, &wordsLength) } {
+                        while { if !__for_first_1211 { wi = (match (&(wi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1211 = false; wi.as_f64().unwrap_or(f64::NAN) < wordsLength.as_f64().unwrap_or(f64::NAN) } {
                         let mut word: Value = get_value(&words, &wi);
                         let mut word: Value = get_value(&words, &wi);
                         // `< 0` (not `=== -1`) — the php transpiler maps `< 0` to `=== false`
-                        if is_true(&(!is_equal(&word, &Value::Str("".to_string())))) && is_true(&(is_less_than(&get_index_of(&haystack, &word), &Value::Int(0)))) {
+                        if is_true(&(Value::Bool(word.as_str() != Some("")))) && is_true(&(get_index_of(&haystack, &word).as_f64().unwrap_or(f64::NAN) < Value::Int(0).as_f64().unwrap_or(f64::NAN))) {
                             allWords = false;
                             break;
                         }
                     }
                     }
-                    if is_true(&allWords) {
+                    if allWords {
                         matches = true;
                         break;
                     }
                 }
                 }
-                if !is_true(&matches) {
+                if !matches {
                     continue;
                 }
             }
-            if is_equal(&parentSymbol, &Value::Null) {
-                panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" fetchEvents() missing parentSymbol".to_string()))));
+            if (parentSymbol == Value::Null) {
+                panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchEvents() missing parentSymbol".to_string())))));
             }
             if !is_true(&(Value::Bool(in_op(&groupMap, &parentSymbol)))) {
-                if !is_equal(&parentSymbol, &Value::Null) {
+                if (parentSymbol != Value::Null) {
                     add_element_to_object(&mut groupMap, &parentSymbol, Value::List(vec![]));
                 }
             }
@@ -2696,7 +2696,7 @@ impl HyperliquidCore {
             // direct push on groupMap[parentSymbol] loses the element in go
             let mut parentMarkets: Value = self.safe_value(groupMap.clone(), parentSymbol.clone(), &[]);
             append_to_array(&mut parentMarkets, mkt.clone());
-            if !is_equal(&parentSymbol, &Value::Null) {
+            if (parentSymbol != Value::Null) {
                 add_element_to_object(&mut groupMap, &parentSymbol, parentMarkets.clone());
             }
         }
@@ -2706,7 +2706,7 @@ impl HyperliquidCore {
         {
                         let mut gi: Value = Value::Int(0);
             let mut __for_first_1214: bool = true;
-            while { if !__for_first_1214 { gi = add(&gi, &Value::Int(1)); } __for_first_1214 = false; is_less_than(&gi, &get_array_length(&groupKeys)) } {
+            while { if !__for_first_1214 { gi = (match (&(gi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1214 = false; gi.as_f64().unwrap_or(f64::NAN) < Value::Int(groupKeys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut key: Value = get_value(&groupKeys, &gi);
             let mut key: Value = get_value(&groupKeys, &gi);
             let mut groupMarkets: Value = get_value(&groupMap, &key);
@@ -2737,11 +2737,11 @@ impl HyperliquidCore {
         let mut parentSymbol: Value = self.safe_string_k(raw.clone(), "parentSymbol", &[]);
         let mut markets: Value = self.safe_list_k(raw.clone(), "markets", &[Value::List(vec![])]);
         // Extract info from first market
-        let mut marketsLength: Value = get_array_length(&markets);
-        let mut firstMarket: Value = ternary(is_true(&(is_greater_than(&marketsLength, &Value::Int(0)))), get_value(&markets, &Value::Int(0)), Value::Map({
+        let mut marketsLength: Value = Value::Int(markets.len() as i64);
+        let mut firstMarket: Value = (if is_true(&(marketsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN))) { markets.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null) } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}));
+}) });
         let mut firstInfo: Value = self.safe_dict_k(firstMarket.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2755,30 +2755,30 @@ impl HyperliquidCore {
         let mut expiryRaw: Value = self.safe_string_k(desc.clone(), "expiry", &[]);
         let mut expiryMs: Value = Value::Null;
         let mut expiryDatetime: Value = Value::Null;
-        if is_true(&(!is_equal(&expiryRaw, &Value::Null))) && is_true(&(!is_equal(&expiryRaw, &Value::Str("".to_string())))) {
+        if is_true(&(Value::Bool(expiryRaw != Value::Null))) && is_true(&(Value::Bool(expiryRaw.as_str() != Some("")))) {
             let mut parts: Value = split(&expiryRaw, &Value::Str("-".to_string()));
-            let mut partsLength: Value = get_array_length(&parts);
-            if is_greater_than_or_equal(&partsLength, &Value::Int(1)) && is_equal(&get_array_length(&get_value(&parts, &Value::Int(0))), &Value::Int(8)) {
-                let mut ymd: Value = get_value(&parts, &Value::Int(0));
-                let mut hm: Value = ternary(is_true(&(is_greater_than_or_equal(&partsLength, &Value::Int(2)))), get_value(&parts, &Value::Int(1)), Value::Str("0000".to_string()));
-                let mut isoStr: Value = add(&add(&add(&add(&add(&add(&add(&add(&add(&slice(&ymd, &Value::Int(0), &Value::Int(4)), &Value::Str("-".to_string())), &slice(&ymd, &Value::Int(4), &Value::Int(6))), &Value::Str("-".to_string())), &slice(&ymd, &Value::Int(6), &Value::Int(8))), &Value::Str("T".to_string())), &slice(&hm, &Value::Int(0), &Value::Int(2))), &Value::Str(":".to_string())), &slice(&hm, &Value::Int(2), &Value::Int(4))), &Value::Str(":00Z".to_string()));
+            let mut partsLength: Value = Value::Int(parts.len() as i64);
+            if partsLength.as_f64().unwrap_or(f64::NAN) >= Value::Int(1).as_f64().unwrap_or(f64::NAN) && (Value::Int(get_value(&parts, &Value::Int(0)).len() as i64).as_f64() == Some(8.0)) {
+                let mut ymd: Value = parts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+                let mut hm: Value = (if is_true(&(partsLength.as_f64().unwrap_or(f64::NAN) >= Value::Int(2).as_f64().unwrap_or(f64::NAN))) { parts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null) } else { Value::Str("0000".to_string()) });
+                let mut isoStr: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", slice(&ymd, &Value::Int(0), &Value::Int(4)), Value::Str("-".to_string()))), slice(&ymd, &Value::Int(4), &Value::Int(6)))), Value::Str("-".to_string()))), slice(&ymd, &Value::Int(6), &Value::Int(8)))), Value::Str("T".to_string()))), slice(&hm, &Value::Int(0), &Value::Int(2)))), Value::Str(":".to_string()))), slice(&hm, &Value::Int(2), &Value::Int(4)))), Value::Str(":00Z".to_string())));
                 expiryMs = self.parse8601(isoStr.clone());
                 expiryDatetime = isoStr.clone();
             }
         }
         let mut firstExpiry: Value = self.safe_integer_k(firstMarket.clone(), "expiry", &[]);
         let mut title: Value = parentSymbol.clone();
-        if !is_equal(&underlying, &Value::Null) {
+        if (underlying != Value::Null) {
             let mut titleSuffix: Value = Value::Str("".to_string());
-            if is_true(&(!is_equal(&targetPrice, &Value::Null))) && is_true(&(!is_equal(&targetPrice, &Value::Str("".to_string())))) {
-                titleSuffix = add(&add(&titleSuffix, &Value::Str(" ABOVE ".to_string())), &targetPrice);
+            if is_true(&(Value::Bool(targetPrice != Value::Null))) && is_true(&(Value::Bool(targetPrice.as_str() != Some("")))) {
+                titleSuffix = Value::Str(format!("{}{}", Value::Str(format!("{}{}", titleSuffix, Value::Str(" ABOVE ".to_string()))), targetPrice));
             }
-            if is_true(&(!is_equal(&expiryRaw, &Value::Null))) && is_true(&(!is_equal(&expiryRaw, &Value::Str("".to_string())))) {
-                titleSuffix = add(&add(&titleSuffix, &Value::Str(" @ ".to_string())), &expiryRaw);
+            if is_true(&(Value::Bool(expiryRaw != Value::Null))) && is_true(&(Value::Bool(expiryRaw.as_str() != Some("")))) {
+                titleSuffix = Value::Str(format!("{}{}", Value::Str(format!("{}{}", titleSuffix, Value::Str(" @ ".to_string()))), expiryRaw));
             }
-            title = add(&underlying, &titleSuffix);
+            title = Value::Str(format!("{}{}", underlying, titleSuffix));
         }
-        let mut endValue: Value = ternary(is_true(&(!is_equal(&expiryMs, &Value::Null))), expiryMs.clone(), firstExpiry.clone());
+        let mut endValue: Value = (if is_true(&(Value::Bool(expiryMs != Value::Null))) { expiryMs.clone() } else { firstExpiry.clone() });
         let __ws_arg_13 = self.safe_string_k(desc.clone(), "class", &[]);
         let __ws_arg_14 = self.safe_string_k(desc.clone(), "period", &[]);
         return self.extend(Value::Map({
@@ -2817,10 +2817,10 @@ impl HyperliquidCore {
 })]), Value::Str("amount".to_string()), &[Value::Float(0.0001)]);
         // Convert precision to decimal places
         let mut decimals: Value = Value::Int(4);
-        if is_equal(&prec, &Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" amountToPrecision() missing prec".to_string()))));
+        if (prec == Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" amountToPrecision() missing prec".to_string())))));
         }
-        if is_greater_than(&prec, &Value::Int(0)) {
+        if prec.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             decimals = self.precision_from_string(self.number_to_string(prec.clone()));
         }
         return self.decimal_to_precision(amount.clone(), Value::Int(1), decimals.clone(), &[Value::Int(2), self.paddingMode.clone()]);
@@ -2835,10 +2835,10 @@ impl HyperliquidCore {
     m
 })]), Value::Str("price".to_string()), &[Value::Float(0.0001)]);
         let mut decimals: Value = Value::Int(4);
-        if is_equal(&prec, &Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" priceToPrecision() missing prec".to_string()))));
+        if (prec == Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" priceToPrecision() missing prec".to_string())))));
         }
-        if is_greater_than(&prec, &Value::Int(0)) {
+        if prec.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             decimals = self.precision_from_string(self.number_to_string(prec.clone()));
         }
         return self.decimal_to_precision(price.clone(), Value::Int(1), decimals.clone(), &[Value::Int(2), self.paddingMode.clone()]);
@@ -2853,18 +2853,18 @@ impl HyperliquidCore {
 }
 
     pub fn sign_hash(&self, mut hash: Value, mut privateKey: Value) -> Value {
-        let mut signature: Value = ecdsa(slice(&hash, &negate(&Value::Int(64)), &Value::Null), slice(&privateKey, &negate(&Value::Int(64)), &Value::Null), Value::Str("secp256k1".to_string()), Value::Null);
+        let mut signature: Value = ecdsa(slice(&hash, &Value::Int(-64), &Value::Null), slice(&privateKey, &Value::Int(-64), &Value::Null), Value::Str("secp256k1".to_string()), Value::Null);
         // assign to a bare local before padStart — `expr['key'].padStart()` leaks an undefined
         // padStart() call in the PHP transpiler (it only rewrites padStart on a bare identifier)
-        let mut rRaw: Value = get_value(&signature, &Value::Str("r".to_string()));
-        let mut sRaw: Value = get_value(&signature, &Value::Str("s".to_string()));
+        let mut rRaw: Value = signature.as_map().and_then(|__m| __m.get("r")).cloned().unwrap_or(Value::Null);
+        let mut sRaw: Value = signature.as_map().and_then(|__m| __m.get("s")).cloned().unwrap_or(Value::Null);
         let mut r: Value = pad_start(&rRaw, &Value::Int(64), &Value::Str("0".to_string()));
         let mut s: Value = pad_start(&sRaw, &Value::Int(64), &Value::Str("0".to_string()));
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("r".to_string(), add(&Value::Str("0x".to_string()), &r));
-        m.insert("s".to_string(), add(&Value::Str("0x".to_string()), &s));
-        m.insert("v".to_string(), self.sum(&[Value::Int(27), get_value(&signature, &Value::Str("v".to_string()))]));
+        m.insert("r".to_string(), Value::Str(format!("{}{}", Value::Str("0x".to_string()), r)));
+        m.insert("s".to_string(), Value::Str(format!("{}{}", Value::Str("0x".to_string()), s)));
+        m.insert("v".to_string(), self.sum(&[Value::Int(27), signature.as_map().and_then(|__m| __m.get("v")).cloned().unwrap_or(Value::Null)]));
     m
 });
 
@@ -2872,14 +2872,14 @@ impl HyperliquidCore {
 }
 
     pub fn sign_message(&self, mut message: Value, mut privateKey: Value) -> Value {
-        return self.sign_hash(self.hash_message(message.clone()), slice(&privateKey, &negate(&Value::Int(64)), &Value::Null));
+        return self.sign_hash(self.hash_message(message.clone()), slice(&privateKey, &Value::Int(-64), &Value::Null));
 
     Value::Null
 }
 
     pub fn construct_phantom_agent(&self, mut hash: Value, optional_args: &[Value]) -> Value {
         let mut isTestnet = get_arg(optional_args, 0, Value::Bool(true));
-        let mut source: Value = ternary(is_true(&isTestnet), Value::Str("b".to_string()), Value::Str("a".to_string()));
+        let mut source: Value = (if is_true(&isTestnet) { Value::Str("b".to_string()) } else { Value::Str("a".to_string()) });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("source".to_string(), source.clone());
@@ -2894,12 +2894,12 @@ impl HyperliquidCore {
         let mut dataBinary: Value = self.packb(action.clone(), &[]);
         let mut dataHex: Value = self.binary_to_base16(dataBinary.clone(), &[]);
         let mut data: Value = dataHex.clone();
-        data = add(&data, &add(&Value::Str("00000".to_string()), &self.int_to_base16(nonce.clone(), &[])));
-        if is_equal(&vaultAddress, &Value::Null) {
-            data = add(&data, &Value::Str("00".to_string()));
+        data = Value::Str(format!("{}{}", data, Value::Str(format!("{}{}", Value::Str("00000".to_string()), self.int_to_base16(nonce.clone(), &[])))));
+        if (vaultAddress == Value::Null) {
+            data = Value::Str(format!("{}{}", data, Value::Str("00".to_string())));
         }  else {
-            data = add(&data, &Value::Str("01".to_string()));
-            data = add(&data, &vaultAddress);
+            data = Value::Str(format!("{}{}", data, Value::Str("01".to_string())));
+            data = Value::Str(format!("{}{}", data, vaultAddress));
         }
         return self.hash(self.base16_to_binary(data.clone(), &[]), Value::Str("keccak".to_string()), &[Value::Str("binary".to_string())]);
 
@@ -3005,7 +3005,7 @@ impl HyperliquidCore {
         let mut isSandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
         let mut payload: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("hyperliquidChain".to_string(), ternary(is_true(&(is_equal(&isSandboxMode, &Value::Bool(true)))), Value::Str("Testnet".to_string()), Value::Str("Mainnet".to_string())));
+                m.insert("hyperliquidChain".to_string(), (if is_true(&(Value::Bool(isSandboxMode.as_bool() == Some(true)))) { Value::Str("Testnet".to_string()) } else { Value::Str("Mainnet".to_string()) }));
                 m.insert("maxFeeRate".to_string(), maxFeeRate.clone());
                 m.insert("builder".to_string(), builder.clone());
                 m.insert("nonce".to_string(), nonce.clone());
@@ -3014,10 +3014,10 @@ impl HyperliquidCore {
         let mut sig: Value = self.build_approve_builder_fee_sig(payload.clone());
         let mut action: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("hyperliquidChain".to_string(), get_value(&payload, &Value::Str("hyperliquidChain".to_string())));
+                m.insert("hyperliquidChain".to_string(), payload.as_map().and_then(|__m| __m.get("hyperliquidChain")).cloned().unwrap_or(Value::Null));
                 m.insert("signatureChainId".to_string(), Value::Str("0x66eee".to_string()));
-                m.insert("maxFeeRate".to_string(), get_value(&payload, &Value::Str("maxFeeRate".to_string())));
-                m.insert("builder".to_string(), get_value(&payload, &Value::Str("builder".to_string())));
+                m.insert("maxFeeRate".to_string(), payload.as_map().and_then(|__m| __m.get("maxFeeRate")).cloned().unwrap_or(Value::Null));
+                m.insert("builder".to_string(), payload.as_map().and_then(|__m| __m.get("builder")).cloned().unwrap_or(Value::Null));
                 m.insert("nonce".to_string(), nonce.clone());
                 m.insert("type".to_string(), Value::Str("approveBuilderFee".to_string()));
             m
@@ -3041,7 +3041,7 @@ impl HyperliquidCore {
         // async for the PHP and typed transpilers, which mishandle an async body that never suspends
         self.load_markets(&[]).await;
         let mut buildFee: Value = self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(false)]);
-        if !is_equal(&buildFee, &Value::Bool(true)) {
+        if (buildFee.as_bool() != Some(true)) {
             return Value::Null;
         }
         if is_true(&self.safe_bool_k(self.options.clone(), "approvedBuilderFee", &[Value::Bool(false)])) {
@@ -3065,23 +3065,23 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub fn handle_public_address(&self, mut methodName: Value, mut params: Value) -> Value {
         let mut userAux: Value = Value::Null;
-        { let __destr_tmp = self.handle_option_and_params2(params.clone(), methodName.clone(), Value::Str("user".to_string()), Value::Str("subAccountAddress".to_string()), &[]); userAux = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_option_and_params2(params.clone(), methodName.clone(), Value::Str("user".to_string()), Value::Str("subAccountAddress".to_string()), &[]); userAux = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut user: Value = userAux.clone();
-        { let __destr_tmp = self.handle_option_and_params(params.clone(), methodName.clone(), Value::Str("address".to_string()), &[userAux.clone()]); user = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        if !is_equal(&user, &Value::Null) && !is_equal(&user, &Value::Str("".to_string())) {
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), methodName.clone(), Value::Str("address".to_string()), &[userAux.clone()]); user = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        if (user != Value::Null) && (user.as_str() != Some("")) {
             return Value::List(vec![user.clone(), params.clone()]);
         }
-        if !is_equal(&self.walletAddress, &Value::Null) && !is_equal(&self.walletAddress, &Value::Str("".to_string())) {
+        if (self.walletAddress.clone() != Value::Null) && (self.walletAddress.as_str() != Some("")) {
             return Value::List(vec![self.walletAddress.clone(), params.clone()]);
         }
-        panic!("{}", crate::exchange_errors::arguments_required(add(&add(&add(&self.id, &Value::Str(" ".to_string())), &methodName), &Value::Str("() requires a user parameter or walletAddress to be set".to_string()))));
+        panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), methodName)), Value::Str("() requires a user parameter or walletAddress to be set".to_string())))));
 
     Value::Null
 }
 
     pub fn format_vault_address(&self, optional_args: &[Value]) -> Value {
         let mut address = get_arg(optional_args, 0, Value::Null);
-        if is_equal(&address, &Value::Null) {
+        if (address == Value::Null) {
             return Value::Null;
         }
         let mut normalized: Value = address.clone();
@@ -3102,10 +3102,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut apiGroup: Value = ternary(is_true(&Value::Bool(is_array(&api))), get_value(&api, &Value::Int(0)), api.clone());
+        let mut apiGroup: Value = (if is_true(&Value::Bool(is_array(&api))) { api.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null) } else { api.clone() });
         let mut sandboxMode: Value = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]);
         let mut baseUrl: Value = Value::Null;
-        if is_equal(&sandboxMode, &Value::Bool(true)) {
+        if (sandboxMode.as_bool() == Some(true)) {
             let mut testUrls: Value = self.safe_dict_k(self.urls.clone(), "test", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3118,8 +3118,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 })]);
             baseUrl = self.safe_string(apiUrls.clone(), apiGroup.clone(), &[self.safe_string_k(apiUrls.clone(), "public", &[Value::Str("".to_string())])]);
         }
-        let mut url: Value = add(&add(&baseUrl, &Value::Str("/".to_string())), &path);
-        if is_equal(&method, &Value::Str("POST".to_string())) {
+        let mut url: Value = add(&Value::Str(format!("{}{}", baseUrl, Value::Str("/".to_string()))), &path);
+        if (method.as_str() == Some("POST")) {
             headers = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/json".to_string()));
@@ -3140,15 +3140,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn handle_errors(&self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
-        if is_equal(&response, &Value::Null) {
+        if (response == Value::Null) {
             return Value::Null;
         }
         let mut status: Value = self.safe_string_k(response.clone(), "status", &[Value::Str("".to_string())]);
-        if is_equal(&status, &Value::Str("err".to_string())) {
+        if (status.as_str() == Some("err")) {
             let mut message: Value = self.safe_string_k(response.clone(), "response", &[body.clone()]);
-            let mut feedback: Value = add(&add(&self.id, &Value::Str(" ".to_string())), &body);
-            self.throw_exactly_matched_exception(get_value(&self.exceptions, &Value::Str("exact".to_string())), message.clone(), feedback.clone());
-            self.throw_broadly_matched_exception(get_value(&self.exceptions, &Value::Str("broad".to_string())), message.clone(), feedback.clone());
+            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body));
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone(), feedback.clone());
+            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.clone(), feedback.clone());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         // Check for error statuses in order responses
@@ -3164,12 +3164,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1215: bool = true;
-            while { if !__for_first_1215 { i = add(&i, &Value::Int(1)); } __for_first_1215 = false; is_less_than(&i, &get_array_length(&statuses)) } {
+            while { if !__for_first_1215 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1215 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(statuses.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut message: Value = self.safe_string_k(get_value(&statuses, &i), "error", &[]);
-            if !is_equal(&message, &Value::Null) {
-                let mut feedback: Value = add(&add(&self.id, &Value::Str(" ".to_string())), &body);
-                self.throw_exactly_matched_exception(get_value(&self.exceptions, &Value::Str("exact".to_string())), message.clone(), feedback.clone());
-                self.throw_broadly_matched_exception(get_value(&self.exceptions, &Value::Str("broad".to_string())), message.clone(), feedback.clone());
+            if (message != Value::Null) {
+                let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body));
+                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone(), feedback.clone());
+                self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.clone(), feedback.clone());
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
         }
@@ -3184,9 +3184,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_true(&(Value::Bool(in_op(&config, &Value::Str("byType".to_string()))))) && is_true(&(Value::Bool(in_op(&params, &Value::Str("type".to_string()))))) {
-            let mut type_var: Value = get_value(&params, &Value::Str("type".to_string()));
-            let mut byType: Value = get_value(&config, &Value::Str("byType".to_string()));
+        if is_true(&(Value::Bool(matches!(&config, Value::Dict(__d) if __d.contains_key("byType"))))) && is_true(&(Value::Bool(in_op(&params, &Value::Str("type".to_string()))))) {
+            let mut type_var: Value = crate::value::get_value_k(&params, "type");
+            let mut byType: Value = crate::value::get_value_k(&config, "byType");
             if is_true(&Value::Bool(in_op(&byType, &type_var))) {
                 return get_value(&byType, &type_var);
             }

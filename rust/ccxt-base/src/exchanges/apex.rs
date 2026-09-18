@@ -723,7 +723,7 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut response: Value = self.private_get_v3_account_balance(&[params.clone()]).await;
@@ -763,7 +763,7 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut response: Value = self.private_get_v3_account(&[params.clone()]).await;
@@ -909,32 +909,32 @@ impl ApexCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut chains: Value = get_value(&self.options, &Value::Str("_temp_currencies_chains".to_string()));
+        let mut chains: Value = self.options.as_map().and_then(|__m| __m.get("_temp_currencies_chains")).cloned().unwrap_or(Value::Null);
         {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_217: bool = true;
-            while { if !__for_first_217 { j = add(&j, &Value::Int(1)); } __for_first_217 = false; is_less_than(&j, &get_array_length(&chains)) } {
+            while { if !__for_first_217 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_217 = false; is_less_than(&j, &get_array_length(&chains)) } {
             let mut chain: Value = get_value(&chains, &j);
             let mut chain: Value = get_value(&chains, &j);
             let mut tokens: Value = self.safe_list_k(chain.clone(), "tokens", &[Value::List(vec![])]);
             {
                                 let mut f: Value = Value::Int(0);
                 let mut __for_first_216: bool = true;
-                while { if !__for_first_216 { f = add(&f, &Value::Int(1)); } __for_first_216 = false; is_less_than(&f, &get_array_length(&tokens)) } {
+                while { if !__for_first_216 { f = (match (&(f), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_216 = false; f.as_f64().unwrap_or(f64::NAN) < Value::Int(tokens.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 let mut token: Value = get_value(&tokens, &f);
                 let mut token: Value = get_value(&tokens, &f);
                 let mut tokenName: Value = self.safe_string_k(token.clone(), "token", &[]);
-                if is_equal(&tokenName, &currencyId) {
+                if (tokenName.as_str() == currencyId.as_str()) {
                     let mut networkId: Value = self.safe_string_k(chain.clone(), "chainId", &[]);
                     let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
-                    if !is_equal(&networkCode, &Value::Null) {
+                    if (networkCode != Value::Null) {
                         add_element_to_object(&mut networks, &networkCode, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), chain.clone());
         m.insert("id".to_string(), networkId.clone());
         m.insert("network".to_string(), networkCode.clone());
         m.insert("active".to_string(), Value::Null);
-        m.insert("deposit".to_string(), Value::Bool((!is_equal(&self.safe_bool_k(chain.clone(), "depositDisable", &[]), &Value::Bool(true)))));
+        m.insert("deposit".to_string(), (Value::Bool(self.safe_bool_k(chain.clone(), "depositDisable", &[]).as_bool() != Some(true))));
         m.insert("withdraw".to_string(), self.safe_bool_k(token.clone(), "withdrawEnable", &[]));
         m.insert("fee".to_string(), self.safe_number_k(token.clone(), "minFee", &[]));
         m.insert("precision".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(token.clone(), "decimals", &[])]), &[]));
@@ -963,9 +963,9 @@ impl ApexCore {
         }
         }
         let mut networkKeys: Value = object_keys(&networks);
-        let mut networksLength: Value = get_array_length(&networkKeys);
-        let mut emptyChains: bool = is_equal(&networksLength, &Value::Int(0)); // non-functional coins
-        let mut valueForEmpty: Value = ternary(is_true(&emptyChains), Value::Bool(false), Value::Null);
+        let mut networksLength: Value = Value::Int(networkKeys.len() as i64);
+        let mut emptyChains: bool = networksLength.as_f64() == Some(0.0); // non-functional coins
+        let mut valueForEmpty: Value = (if emptyChains { Value::Bool(false) } else { Value::Null });
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), currency.clone());
@@ -1044,7 +1044,7 @@ impl ApexCore {
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut settleId: Value = self.safe_string_k(market.clone(), "settleAssetId", &[]);
         let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
-        let mut symbol: Value = add(&add(&add(&add(&baseId, &Value::Str("/".to_string())), &quote), &Value::Str(":".to_string())), &settle);
+        let mut symbol: Value = add(&Value::Str(format!("{}{}", add(&add(&baseId, &Value::Str("/".to_string())), &quote), Value::Str(":".to_string()))), &settle);
         let mut expiry: Value = Value::Int(0);
         let mut takerFee: Value = self.parse_number(Value::Str("0.0002".to_string()), &[]);
         let mut makerFee: Value = self.parse_number(Value::Str("0.0005".to_string()), &[]);
@@ -1072,8 +1072,8 @@ impl ApexCore {
         m.insert("taker".to_string(), takerFee.clone());
         m.insert("maker".to_string(), makerFee.clone());
         m.insert("contractSize".to_string(), self.safe_number_k(market.clone(), "minOrderSize", &[]));
-        m.insert("expiry".to_string(), ternary(is_true(&(is_equal(&expiry, &Value::Int(0)))), Value::Null, expiry.clone()));
-        m.insert("expiryDatetime".to_string(), ternary(is_true(&(is_equal(&expiry, &Value::Int(0)))), Value::Null, self.iso8601(expiry.clone())));
+        m.insert("expiry".to_string(), (if is_true(&(Value::Bool(expiry.as_f64() == Some(0.0)))) { Value::Null } else { expiry.clone() }));
+        m.insert("expiryDatetime".to_string(), (if is_true(&(Value::Bool(expiry.as_f64() == Some(0.0)))) { Value::Null } else { self.iso8601(expiry.clone()) }));
         m.insert("strike".to_string(), Value::Null);
         m.insert("optionType".to_string(), Value::Null);
         m.insert("precision".to_string(), Value::Map({
@@ -1192,7 +1192,7 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
@@ -1228,7 +1228,7 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut response: Value = self.public_get_v3_data_all_ticker_info(&[params.clone()]).await;
@@ -1259,7 +1259,7 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
@@ -1269,13 +1269,13 @@ impl ApexCore {
                 m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "id2", &[]));
             m
         });
-        if is_equal(&limit, &Value::Null) {
+        if (limit == Value::Null) {
             limit = Value::Int(200); // default is 200 when requested with `since`
         }
         add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // max 200, default 200
-        { let __destr_tmp = self.handle_until_option(Value::Str("end".to_string()), request.clone(), params.clone(), &[Value::Float(0.001)]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        if !is_equal(&since, &Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("start".to_string()), math_floor(&divide(&since, &Value::Int(1000))));
+        { let __destr_tmp = self.handle_until_option(Value::Str("end".to_string()), request.clone(), params.clone(), &[Value::Float(0.001)]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
+        if (since != Value::Null) {
+            add_element_to_object(&mut request, &Value::Str("start".to_string()), math_floor(&(match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
         }
         let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.public_get_v3_klines(&[__ws_arg_1]).await;
@@ -1312,7 +1312,7 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
@@ -1321,7 +1321,7 @@ impl ApexCore {
                 m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "id2", &[]));
             m
         });
-        if is_equal(&limit, &Value::Null) {
+        if (limit == Value::Null) {
             limit = Value::Int(100); // default is 200 when requested with `since`
         }
         add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // max 100, default 100
@@ -1358,7 +1358,7 @@ impl ApexCore {
     m
 })]);
         let mut timestamp: Value = self.milliseconds();
-        let mut orderbook: Value = self.parse_order_book(data.clone(), get_value(&market, &Value::Str("symbol".to_string())), &[timestamp.clone(), Value::Str("b".to_string()), Value::Str("a".to_string())]);
+        let mut orderbook: Value = self.parse_order_book(data.clone(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[timestamp.clone(), Value::Str("b".to_string()), Value::Str("a".to_string())]);
         add_element_to_object(&mut orderbook, &Value::Str("nonce".to_string()), self.safe_integer_k(data.clone(), "u", &[]));
         return orderbook;
 
@@ -1385,7 +1385,7 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
@@ -1394,7 +1394,7 @@ impl ApexCore {
                 m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "id2", &[]));
             m
         });
-        if is_equal(&limit, &Value::Null) {
+        if (limit == Value::Null) {
             limit = Value::Int(500); // default is 50
         }
         add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
@@ -1456,7 +1456,7 @@ impl ApexCore {
         m.insert("order".to_string(), Value::Null);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
-        m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
+        m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.clone());
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("side".to_string(), side.clone());
@@ -1484,7 +1484,7 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
@@ -1564,10 +1564,10 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&symbol, &Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchFundingRateHistory() requires a symbol argument".to_string()))));
+        if (symbol == Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRateHistory() requires a symbol argument".to_string())))));
         }
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut request: Value = Value::Map({
@@ -1575,19 +1575,19 @@ impl ApexCore {
             m
         });
         let mut market: Value = self.market(symbol.clone());
-        add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
-        if !is_equal(&since, &Value::Null) {
+        add_element_to_object(&mut request, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+        if (since != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("beginTimeInclusive".to_string()), since.clone());
         }
-        if !is_equal(&limit, &Value::Null) {
+        if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
         let mut page: Value = self.safe_integer_k(params.clone(), "page", &[]);
-        if !is_equal(&page, &Value::Null) {
+        if (page != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("page".to_string()), page.clone());
         }
         let mut endTimeExclusive: Value = self.safe_integer_n(params.clone(), Value::List(vec![Value::Str("endTime".to_string()), Value::Str("endTimeExclusive".to_string()), Value::Str("until".to_string())]), &[]);
-        if !is_equal(&endTimeExclusive, &Value::Null) {
+        if (endTimeExclusive != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("endTimeExclusive".to_string()), endTimeExclusive.clone());
         }
         let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
@@ -1615,7 +1615,7 @@ impl ApexCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_218: bool = true;
-            while { if !__for_first_218 { i = add(&i, &Value::Int(1)); } __for_first_218 = false; is_less_than(&i, &get_array_length(&resultList)) } {
+            while { if !__for_first_218 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_218 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(resultList.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut entry: Value = get_value(&resultList, &i);
             let mut entry: Value = get_value(&resultList, &i);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "fundingTimestamp", &[]);
@@ -1698,7 +1698,7 @@ impl ApexCore {
         let mut clientOrderId: Value = self.safe_string_k(order.clone(), "clientId", &[]);
         let mut marketId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
-        let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
+        let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut price: Value = self.safe_string_k(order.clone(), "price", &[]);
         let mut amount: Value = self.safe_string_k(order.clone(), "size", &[]);
         let mut orderType: Value = self.safe_string_k(order.clone(), "type", &[]);
@@ -1735,7 +1735,7 @@ impl ApexCore {
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), self.safe_string_k(order.clone(), "fee", &[]));
-        m.insert("currency".to_string(), get_value(&market, &Value::Str("settleId".to_string())));
+        m.insert("currency".to_string(), market.as_map().and_then(|__m| __m.get("settleId")).cloned().unwrap_or(Value::Null));
     m
 }));
         m.insert("info".to_string(), order.clone());
@@ -1760,7 +1760,7 @@ impl ApexCore {
 }
 
     pub fn parse_order_status(&self, mut status: Value) -> Value {
-        if !is_equal(&status, &Value::Null) {
+        if (status != Value::Null) {
             let mut statuses: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("PENDING".to_string(), Value::Str("open".to_string()));
@@ -1799,21 +1799,21 @@ impl ApexCore {
         let mut market = get_arg(optional_args, 1, Value::Null);
         let mut delimiter = get_arg(optional_args, 2, Value::Null);
         let mut marketType = get_arg(optional_args, 3, Value::Null);
-        if is_equal(&market, &Value::Null) && !is_equal(&marketId, &Value::Null) {
+        if (market == Value::Null) && (marketId != Value::Null) {
             let mut marketsMap: Value = self.markets.clone();
             let mut marketsById: Value = self.markets_by_id.clone();
-            if is_true(&(!is_equal(&marketsMap, &Value::Null))) && is_true(&(Value::Bool(in_op(&marketsMap, &marketId)))) {
+            if is_true(&(Value::Bool(marketsMap != Value::Null))) && is_true(&(Value::Bool(in_op(&marketsMap, &marketId)))) {
                 market = get_value(&marketsMap, &marketId);
-            }  else if is_true(&(!is_equal(&marketsById, &Value::Null))) && is_true(&(Value::Bool(in_op(&marketsById, &marketId)))) {
+            }  else if is_true(&(Value::Bool(marketsById != Value::Null))) && is_true(&(Value::Bool(in_op(&marketsById, &marketId)))) {
                 market = get_value(&marketsById, &marketId);
             }  else {
                 let mut newMarketId: Value = self.add_hyphen_before_usdt(marketId.clone());
-                if is_true(&(!is_equal(&marketsById, &Value::Null))) && is_true(&(Value::Bool(in_op(&marketsById, &newMarketId)))) {
+                if is_true(&(Value::Bool(marketsById != Value::Null))) && is_true(&(Value::Bool(in_op(&marketsById, &newMarketId)))) {
                     let mut markets: Value = get_value(&marketsById, &newMarketId);
                     let mut markets: Value = get_value(&marketsById, &newMarketId);
                     let mut numMarkets: Value = get_array_length(&markets);
                     if is_greater_than(&numMarkets, &Value::Int(0)) {
-                        if is_equal(&get_value(&get_value(&get_value(&marketsById, &newMarketId), &Value::Int(0)), &Value::Str("id2".to_string())), &marketId) {
+                        if is_equal(&crate::value::get_value_k(&get_value(&get_value(&marketsById, &newMarketId), &Value::Int(0)), "id2"), &marketId) {
                             market = get_value(&get_value(&marketsById, &newMarketId), &Value::Int(0));
                         }
                     }
@@ -1826,9 +1826,9 @@ impl ApexCore {
 }
 
     pub fn generate_random_client_id_omni(&self, mut _accountId: Value) -> Value {
-        let mut hasAccountId: bool = is_true(&(!is_equal(&_accountId, &Value::Null))) && is_true(&(!is_equal(&_accountId, &Value::Str("".to_string()))));
-        let mut accountId: Value = ternary(is_true(&hasAccountId), _accountId.clone(), to_string_val(&self.rand_number(Value::Int(12))));
-        return add(&add(&add(&add(&add(&Value::Str("apexomni-".to_string()), &accountId), &Value::Str("-".to_string())), &to_string_val(&self.milliseconds())), &Value::Str("-".to_string())), &to_string_val(&self.rand_number(Value::Int(6))));
+        let mut hasAccountId: bool = is_true(&(Value::Bool(_accountId != Value::Null))) && is_true(&(Value::Bool(_accountId.as_str() != Some(""))));
+        let mut accountId: Value = (if hasAccountId { _accountId.clone() } else { to_string_val(&self.rand_number(Value::Int(12))) });
+        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("apexomni-".to_string()), accountId)), Value::Str("-".to_string()))), to_string_val(&self.milliseconds()))), Value::Str("-".to_string()))), to_string_val(&self.rand_number(Value::Int(6)))));
 
     Value::Null
 }
@@ -1836,9 +1836,9 @@ impl ApexCore {
     pub fn add_hyphen_before_usdt(&self, mut symbol: Value) -> Value {
         let mut uppercaseSymbol: Value = to_upper(&symbol);
         let mut index: Value = get_index_of(&uppercaseSymbol, &Value::Str("USDT".to_string()));
-        let mut symbolChar: Value = self.safe_string(symbol.clone(), subtract(&index, &Value::Int(1)), &[]);
-        if is_greater_than(&index, &Value::Int(0)) && !is_equal(&symbolChar, &Value::Str("-".to_string())) {
-            return add(&add(&slice(&symbol, &Value::Int(0), &index), &Value::Str("-".to_string())), &slice(&symbol, &index, &Value::Null));
+        let mut symbolChar: Value = self.safe_string(symbol.clone(), (match (&(index), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
+        if index.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) && (symbolChar.as_str() != Some("-")) {
+            return Value::Str(format!("{}{}", Value::Str(format!("{}{}", slice(&symbol, &Value::Int(0), &index), Value::Str("-".to_string()))), slice(&symbol, &index, &Value::Null)));
         }
         return symbol;
 
@@ -1847,8 +1847,8 @@ impl ApexCore {
 
     pub fn get_seeds(&self) -> Value {
         let mut seeds: Value = self.safe_string_k(self.options.clone(), "seeds", &[]);
-        if is_equal(&seeds, &Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" the \"seeds\" key is required in the options to access private endpoints. You can find it in API Management > Omni Key, and then set it as exchange.options[\"seeds\"] = XXXX".to_string()))));
+        if (seeds == Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" the \"seeds\" key is required in the options to access private endpoints. You can find it in API Management > Omni Key, and then set it as exchange.options[\"seeds\"] = XXXX".to_string())))));
         }
         return seeds;
 
@@ -1857,11 +1857,11 @@ impl ApexCore {
 
     pub async fn get_account_id(&mut self) -> Value {
         let mut accountId: Value = self.safe_string_k(self.options.clone(), "accountId", &[Value::Str("0".to_string())]);
-        if is_equal(&accountId, &Value::Str("0".to_string())) {
+        if (accountId.as_str() == Some("0")) {
             let mut accountData: Value = self.fetch_account(&[]).await;
             { let __be_tmp = self.safe_string_k(accountData.clone(), "id", &[Value::Str("0".to_string())]); add_element_to_object(&mut self.options, &Value::Str("accountId".to_string()), __be_tmp); };
         }
-        return get_value(&self.options, &Value::Str("accountId".to_string()));
+        return self.options.as_map().and_then(|__m| __m.get("accountId")).cloned().unwrap_or(Value::Null);
 
     Value::Null
 }
@@ -1892,18 +1892,18 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
         let mut orderType: Value = to_upper(&type_var);
-        if is_equal(&side, &Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createOrder() requires a side argument".to_string()))));
+        if (side == Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a side argument".to_string())))));
         }
         let mut orderSide: Value = to_upper(&side);
         let mut orderSize: Value = self.amount_to_precision(symbol.clone(), amount.clone());
         let mut orderPrice: Value = Value::Str("0".to_string());
-        if !is_equal(&price, &Value::Null) {
+        if (price != Value::Null) {
             orderPrice = self.price_to_precision(symbol.clone(), price.clone());
         }
         let mut fees: Value = self.safe_dict_k(self.fees.clone(), "swap", &[Value::Map({
@@ -1912,31 +1912,31 @@ impl ApexCore {
 })]);
         let mut taker: Value = self.safe_string_k(fees.clone(), "taker", &[Value::Str("0.0005".to_string())]);
         let mut maker: Value = self.safe_string_k(fees.clone(), "maker", &[Value::Str("0.0002".to_string())]);
-        let mut limitFee: Value = self.decimal_to_precision(crate::precise::Precise::stringAdd(&crate::precise::Precise::stringMul(&crate::precise::Precise::stringMul(&orderPrice, &orderSize), &taker), &self.number_to_string(get_value(&get_value(&market, &Value::Str("precision".to_string())), &Value::Str("price".to_string())))), Value::Int(crate::runtime::TRUNCATE), get_value(&get_value(&market, &Value::Str("precision".to_string())), &Value::Str("price".to_string())), &[self.precisionMode.clone(), self.paddingMode.clone()]);
+        let mut limitFee: Value = self.decimal_to_precision(crate::precise::Precise::stringAdd(&crate::precise::Precise::stringMul(&crate::precise::Precise::stringMul(&orderPrice, &orderSize), &taker), &self.number_to_string(market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("price")).cloned().unwrap_or(Value::Null))), Value::Int(crate::runtime::TRUNCATE), market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("price")).cloned().unwrap_or(Value::Null), &[self.precisionMode.clone(), self.paddingMode.clone()]);
         let mut timeNow: Value = self.milliseconds();
         let mut triggerPrice: Value = self.safe_string_k(params.clone(), "triggerPrice", &[]);
         let mut stopLossPrice: Value = self.safe_string_k(params.clone(), "stopLossPrice", &[]);
         let mut takeProfitPrice: Value = self.safe_string_k(params.clone(), "takeProfitPrice", &[]);
-        if !is_equal(&stopLossPrice, &Value::Null) {
-            orderType = ternary(is_true(&(is_equal(&orderType, &Value::Str("MARKET".to_string())))), Value::Str("STOP_MARKET".to_string()), Value::Str("STOP_LIMIT".to_string()));
+        if (stopLossPrice != Value::Null) {
+            orderType = (if is_true(&(Value::Bool(orderType.as_str() == Some("MARKET")))) { Value::Str("STOP_MARKET".to_string()) } else { Value::Str("STOP_LIMIT".to_string()) });
             triggerPrice = stopLossPrice.clone();
-        }  else if !is_equal(&takeProfitPrice, &Value::Null) {
-            orderType = ternary(is_true(&(is_equal(&orderType, &Value::Str("MARKET".to_string())))), Value::Str("TAKE_PROFIT_MARKET".to_string()), Value::Str("TAKE_PROFIT_LIMIT".to_string()));
+        }  else if (takeProfitPrice != Value::Null) {
+            orderType = (if is_true(&(Value::Bool(orderType.as_str() == Some("MARKET")))) { Value::Str("TAKE_PROFIT_MARKET".to_string()) } else { Value::Str("TAKE_PROFIT_LIMIT".to_string()) });
             triggerPrice = takeProfitPrice.clone();
         }
-        let mut isMarket: Value = Value::Bool(is_equal(&orderType, &Value::Str("MARKET".to_string())));
-        if is_true(&isMarket) && is_true(&(is_equal(&price, &Value::Null))) {
-            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createOrder() requires a price argument for market orders".to_string()))));
+        let mut isMarket: Value = Value::Bool(orderType.as_str() == Some("MARKET"));
+        if is_true(&isMarket) && is_true(&(Value::Bool(price == Value::Null))) {
+            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument for market orders".to_string())))));
         }
         let mut timeInForce: Value = self.safe_string_upper(params.clone(), Value::Str("timeInForce".to_string()), &[]);
         let mut postOnly: Value = self.is_post_only(isMarket.clone(), Value::Null, &[params.clone()]);
-        if is_equal(&timeInForce, &Value::Null) {
+        if (timeInForce == Value::Null) {
             timeInForce = Value::Str("GOOD_TIL_CANCEL".to_string());
         }
         if !is_true(&isMarket) {
             if is_true(&postOnly) {
                 timeInForce = Value::Str("POST_ONLY".to_string());
-            }  else if is_equal(&timeInForce, &Value::Str("ioc".to_string())) {
+            }  else if (timeInForce.as_str() == Some("ioc")) {
                 timeInForce = Value::Str("IMMEDIATE_OR_CANCEL".to_string());
             }
         }
@@ -1944,7 +1944,7 @@ impl ApexCore {
         params = self.omit(params.clone(), Value::Str("postOnly".to_string()), &[]);
         let mut clientOrderId: Value = self.safe_string_n(params.clone(), Value::List(vec![Value::Str("clientId".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string())]), &[]);
         let mut accountId: Value = self.get_account_id().await;
-        if is_equal(&clientOrderId, &Value::Null) {
+        if (clientOrderId == Value::Null) {
             clientOrderId = self.generate_random_client_id_omni(accountId.clone());
         }
         let mut finalClientOrderId: Value = clientOrderId.clone(); // java req
@@ -1955,7 +1955,7 @@ impl ApexCore {
                 m.insert("accountId".to_string(), accountId.clone());
                 m.insert("slotId".to_string(), finalClientOrderId.clone());
                 m.insert("nonce".to_string(), finalClientOrderId.clone());
-                m.insert("pairId".to_string(), get_value(&market, &Value::Str("quoteId".to_string())));
+                m.insert("pairId".to_string(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null));
                 m.insert("size".to_string(), orderSize.clone());
                 m.insert("price".to_string(), finalOrderPrice.clone());
                 m.insert("direction".to_string(), orderSide.clone());
@@ -1963,25 +1963,25 @@ impl ApexCore {
                 m.insert("takerFeeRate".to_string(), taker.clone());
             m
         });
-        if !is_equal(&triggerPrice, &Value::Null) {
+        if (triggerPrice != Value::Null) {
             add_element_to_object(&mut orderToSign, &Value::Str("triggerPrice".to_string()), self.price_to_precision(symbol.clone(), triggerPrice.clone()));
         }
         let mut signature: Value = self.get_zk_contract_signature_obj(self.remove0x_prefix(self.get_seeds()), &[orderToSign.clone()]).await;
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
+                m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("side".to_string(), orderSide.clone());
                 m.insert("type".to_string(), orderType.clone());
                 m.insert("size".to_string(), orderSize.clone());
                 m.insert("price".to_string(), finalOrderPrice.clone());
                 m.insert("limitFee".to_string(), limitFee.clone());
-                m.insert("expiration".to_string(), math_floor(&add(&divide(&timeNow, &Value::Int(1000)), &multiply(&multiply(&multiply(&Value::Int(30), &Value::Int(24)), &Value::Int(60)), &Value::Int(60)))));
+                m.insert("expiration".to_string(), math_floor(&(match (&((match ((timeNow).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })), &((match (&((match (&((match (&(Value::Int(30)), &(Value::Int(24))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })));
                 m.insert("timeInForce".to_string(), timeInForce.clone());
                 m.insert("clientId".to_string(), finalClientOrderId.clone());
                 m.insert("brokerId".to_string(), self.safe_string_k(self.options.clone(), "brokerId", &[Value::Str("6956".to_string())]));
             m
         });
-        if !is_equal(&triggerPrice, &Value::Null) {
+        if (triggerPrice != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("triggerPrice".to_string()), self.price_to_precision(symbol.clone(), triggerPrice.clone()));
         }
         add_element_to_object(&mut request, &Value::Str("signature".to_string()), signature.clone());
@@ -2013,7 +2013,7 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut configResponse: Value = self.public_get_v3_symbols(&[params.clone()]).await;
@@ -2052,8 +2052,8 @@ impl ApexCore {
         let mut subAccountId: Value = self.safe_string_k(spotAccount.clone(), "defaultSubAccountId", &[Value::Str("0".to_string())]);
         let mut subAccounts: Value = self.safe_list_k(spotAccount.clone(), "subAccounts", &[Value::List(vec![])]);
         let mut nonce: Value = Value::Str("0".to_string());
-        if is_greater_than(&get_array_length(&subAccounts), &Value::Int(0)) {
-            nonce = self.safe_string(get_value(&subAccounts, &Value::Int(0)), Value::Str("nonce".to_string()), &[Value::Str("0".to_string())]);
+        if Value::Int(subAccounts.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            nonce = self.safe_string(subAccounts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Str("nonce".to_string()), &[Value::Str("0".to_string())]);
         }
         let mut finalNonce: Value = nonce.clone(); // java req
         let mut ethAddress: Value = self.safe_string_k(accountData.clone(), "ethereumAddress", &[Value::Str("".to_string())]);
@@ -2063,7 +2063,7 @@ impl ApexCore {
             m
         });
         let mut assets: Value = Value::List(vec![]);
-        if !is_equal(&fromAccount, &Value::Null) && is_equal(&to_lower(&fromAccount), &Value::Str("contract".to_string())) {
+        if (fromAccount != Value::Null) && (to_lower(&fromAccount).as_str() == Some("contract")) {
             assets = contractAssets.clone();
         }  else {
             assets = spotAssets.clone();
@@ -2071,28 +2071,28 @@ impl ApexCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_219: bool = true;
-            while { if !__for_first_219 { i = add(&i, &Value::Int(1)); } __for_first_219 = false; is_less_than(&i, &get_array_length(&assets)) } {
-            if is_equal(&self.safe_string_k(get_value(&assets, &i), "token", &[Value::Str("".to_string())]), &code) {
+            while { if !__for_first_219 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_219 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(assets.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            if (self.safe_string_k(get_value(&assets, &i), "token", &[Value::Str("".to_string())]).as_str() == code.as_str()) {
                 currency = get_value(&assets, &i);
             }
         }
         }
         let mut tokenId: Value = self.safe_string_k(currency.clone(), "tokenId", &[Value::Str("".to_string())]);
         let mut decimalsNum: Value = self.safe_number_k(currency.clone(), "decimals", &[Value::Int(0)]);
-        let mut decimalsNumber: Value = ternary(is_true(&(is_equal(&decimalsNum, &Value::Null))), Value::Int(0), decimalsNum.clone());
+        let mut decimalsNumber: Value = (if is_true(&(Value::Bool(decimalsNum == Value::Null))) { Value::Int(0) } else { decimalsNum.clone() });
         let mut mathPowResult: Value = (crate::runtime::Math::pow(&Value::Int(10), &decimalsNumber));
-        let mut amountNumber: Value = self.parse_to_int(multiply(&amount, &mathPowResult));
-        let mut timestampSeconds: Value = self.parse_to_int(divide(&self.milliseconds(), &Value::Int(1000)));
+        let mut amountNumber: Value = self.parse_to_int((match (&(amount), &(mathPowResult)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
+        let mut timestampSeconds: Value = self.parse_to_int((match ((self.milliseconds()).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
         let mut clientOrderId: Value = self.safe_string_n(params.clone(), Value::List(vec![Value::Str("clientId".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string())]), &[]);
-        if is_equal(&clientOrderId, &Value::Null) {
+        if (clientOrderId == Value::Null) {
             clientOrderId = self.generate_random_client_id_omni(self.safe_string_k(self.options.clone(), "accountId", &[]));
         }
         let mut finalClientOrderId: Value = clientOrderId.clone(); // java req
         params = self.omit(params.clone(), Value::List(vec![Value::Str("clientId".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string())]), &[]);
-        if !is_equal(&fromAccount, &Value::Null) && is_equal(&to_lower(&fromAccount), &Value::Str("contract".to_string())) {
+        if (fromAccount != Value::Null) && (to_lower(&fromAccount).as_str() == Some("contract")) {
             let mut formattedUint32: Value = Value::Str("4294967295".to_string());
             let mut zkSignAccountId: Value = crate::precise::Precise::stringMod(&accountId, &formattedUint32);
-            let mut expireTime: Value = add(&timestampSeconds, &multiply(&multiply(&Value::Int(3600), &Value::Int(24)), &Value::Int(28)));
+            let mut expireTime: Value = (match (&(timestampSeconds), &((match (&((match (&(Value::Int(3600)), &(Value::Int(24))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(28))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
             let mut orderToSign: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("zkAccountId".to_string(), zkSignAccountId.clone());
@@ -2234,7 +2234,7 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut market: Value = Value::Null;
@@ -2242,9 +2242,9 @@ impl ApexCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if !is_equal(&symbol, &Value::Null) {
+        if (symbol != Value::Null) {
             market = self.market(symbol.clone());
-            add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
+            add_element_to_object(&mut request, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_post_v3_delete_open_orders(&[__ws_arg_14]).await;
@@ -2279,7 +2279,7 @@ impl ApexCore {
         });
         let mut clientOrderId: Value = self.safe_string_n(params.clone(), Value::List(vec![Value::Str("clientId".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string())]), &[]);
         let mut response: Value = Value::Null;
-        if !is_equal(&clientOrderId, &Value::Null) {
+        if (clientOrderId != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("id".to_string()), clientOrderId.clone());
             params = self.omit(params.clone(), Value::List(vec![Value::Str("clientId".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string())]), &[]);
             let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
@@ -2316,7 +2316,7 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut request: Value = Value::Map({
@@ -2325,7 +2325,7 @@ impl ApexCore {
         });
         let mut clientOrderId: Value = self.safe_string_n(params.clone(), Value::List(vec![Value::Str("clientId".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string())]), &[]);
         let mut response: Value = Value::Null;
-        if !is_equal(&clientOrderId, &Value::Null) {
+        if (clientOrderId != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("id".to_string()), clientOrderId.clone());
             params = self.omit(params.clone(), Value::List(vec![Value::Str("clientId".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string())]), &[]);
             let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
@@ -2363,7 +2363,7 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut response: Value = self.private_get_v3_open_orders(&[params.clone()]).await;
@@ -2398,7 +2398,7 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut request: Value = Value::Map({
@@ -2406,18 +2406,18 @@ impl ApexCore {
             m
         });
         let mut market: Value = Value::Null;
-        if !is_equal(&symbol, &Value::Null) {
+        if (symbol != Value::Null) {
             market = self.market(symbol.clone());
-            add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
+            add_element_to_object(&mut request, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
-        if !is_equal(&since, &Value::Null) {
+        if (since != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("beginTimeInclusive".to_string()), since.clone());
         }
-        if !is_equal(&limit, &Value::Null) {
+        if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
         let mut endTimeExclusive: Value = self.safe_integer_n(params.clone(), Value::List(vec![Value::Str("endTime".to_string()), Value::Str("endTimeExclusive".to_string()), Value::Str("until".to_string())]), &[]);
-        if !is_equal(&endTimeExclusive, &Value::Null) {
+        if (endTimeExclusive != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("endTimeExclusive".to_string()), endTimeExclusive.clone());
             params = self.omit(params.clone(), Value::List(vec![Value::Str("endTime".to_string()), Value::Str("endTimeExclusive".to_string()), Value::Str("until".to_string())]), &[]);
         }
@@ -2453,7 +2453,7 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut request: Value = Value::Map({
@@ -2461,7 +2461,7 @@ impl ApexCore {
             m
         });
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOrderId".to_string()), Value::Str("clientId".to_string()), &[]);
-        if !is_equal(&clientOrderId, &Value::Null) {
+        if (clientOrderId != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("clientOrderId".to_string()), clientOrderId.clone());
         }  else {
             add_element_to_object(&mut request, &Value::Str("orderId".to_string()), id.clone());
@@ -2502,7 +2502,7 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut request: Value = Value::Map({
@@ -2510,18 +2510,18 @@ impl ApexCore {
             m
         });
         let mut market: Value = Value::Null;
-        if !is_equal(&symbol, &Value::Null) {
+        if (symbol != Value::Null) {
             market = self.market(symbol.clone());
-            add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
+            add_element_to_object(&mut request, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
-        if !is_equal(&since, &Value::Null) {
+        if (since != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("beginTimeInclusive".to_string()), since.clone());
         }
-        if !is_equal(&limit, &Value::Null) {
+        if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
         let mut endTimeExclusive: Value = self.safe_integer_n(params.clone(), Value::List(vec![Value::Str("endTime".to_string()), Value::Str("endTimeExclusive".to_string()), Value::Str("until".to_string())]), &[]);
-        if !is_equal(&endTimeExclusive, &Value::Null) {
+        if (endTimeExclusive != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("endTimeExclusive".to_string()), endTimeExclusive.clone());
             params = self.omit(params.clone(), Value::List(vec![Value::Str("endTime".to_string()), Value::Str("endTimeExclusive".to_string()), Value::Str("until".to_string())]), &[]);
         }
@@ -2559,7 +2559,7 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut request: Value = Value::Map({
@@ -2567,18 +2567,18 @@ impl ApexCore {
             m
         });
         let mut market: Value = Value::Null;
-        if !is_equal(&symbol, &Value::Null) {
+        if (symbol != Value::Null) {
             market = self.market(symbol.clone());
-            add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
+            add_element_to_object(&mut request, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
-        if !is_equal(&since, &Value::Null) {
+        if (since != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("beginTimeInclusive".to_string()), since.clone());
         }
-        if !is_equal(&limit, &Value::Null) {
+        if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
         let mut endTimeExclusive: Value = self.safe_integer_n(params.clone(), Value::List(vec![Value::Str("endTime".to_string()), Value::Str("endTimeExclusive".to_string()), Value::Str("until".to_string())]), &[]);
-        if !is_equal(&endTimeExclusive, &Value::Null) {
+        if (endTimeExclusive != Value::Null) {
             params = self.omit(params.clone(), Value::List(vec![Value::Str("endTime".to_string()), Value::Str("endTimeExclusive".to_string()), Value::Str("until".to_string())]), &[]);
             add_element_to_object(&mut request, &Value::Str("endTimeExclusive".to_string()), endTimeExclusive.clone());
         }
@@ -2646,10 +2646,10 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&symbol, &Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" setLeverage() requires a symbol argument".to_string()))));
+        if (symbol == Value::Null) {
+            panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() requires a symbol argument".to_string())))));
         }
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
@@ -2657,7 +2657,7 @@ impl ApexCore {
         let mut initialMarginRate: Value = crate::precise::Precise::stringDivPrec(&Value::Str("1".to_string()), &leverageString, &Value::Int(4));
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
+                m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("initialMarginRate".to_string(), initialMarginRate.clone());
             m
         });
@@ -2687,7 +2687,7 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut response: Value = self.private_get_v3_account(&[params.clone()]).await;
@@ -2720,13 +2720,13 @@ impl ApexCore {
         // }
         let mut marketId: Value = self.safe_string_k(position.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
-        let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
+        let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut side: Value = self.safe_string_lower(position.clone(), Value::Str("side".to_string()), &[]);
         let mut quantity: Value = self.safe_string_k(position.clone(), "size", &[]);
         let mut timestamp: Value = self.safe_integer_k(position.clone(), "updatedTime", &[]);
         let mut leverage: Value = Value::Int(20);
         let mut customInitialMarginRate: Value = self.safe_string2(position.clone(), Value::Str("customInitialMarginRate".to_string()), Value::Str("customImr".to_string()), &[Value::Str("0".to_string())]);
-        if !is_equal(&self.precision_from_string(customInitialMarginRate.clone()), &Value::Int(0)) {
+        if (self.precision_from_string(customInitialMarginRate.clone()).as_f64() != Some(0.0)) {
             leverage = self.parse_to_int(crate::precise::Precise::stringDivPrec(&Value::Str("1".to_string()), &customInitialMarginRate, &Value::Int(4)));
         }
         return self.safe_position(Value::Map({
@@ -2769,7 +2769,7 @@ impl ApexCore {
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut url: Value = add(&add(&self.implode_hostname(get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &api)), &Value::Str("/".to_string())), &path);
+        let mut url: Value = add(&Value::Str(format!("{}{}", self.implode_hostname(get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api)), Value::Str("/".to_string()))), &path);
         headers = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("User-Agent".to_string(), Value::Str("apex-CCXT".to_string()));
@@ -2779,21 +2779,21 @@ impl ApexCore {
         });
         let mut signPath: Value = add(&Value::Str("/api/".to_string()), &path);
         let mut signBody: Value = body.clone();
-        if !is_equal(&to_upper(&method), &Value::Str("POST".to_string())) {
-            if is_greater_than(&get_array_length(&object_keys(&params)), &Value::Int(0)) {
-                signPath = add(&signPath, &add(&Value::Str("?".to_string()), &self.rawencode(params.clone(), &[])));
-                url = add(&url, &add(&Value::Str("?".to_string()), &self.rawencode(params.clone(), &[])));
+        if (to_upper(&method).as_str() != Some("POST")) {
+            if Value::Int(object_keys(&params).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+                signPath = Value::Str(format!("{}{}", signPath, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.rawencode(params.clone(), &[])))));
+                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.rawencode(params.clone(), &[])))));
             }
         }  else {
             let mut sortedQuery: Value = self.keysort(params.clone(), &[]);
             signBody = self.rawencode(sortedQuery.clone(), &[]);
         }
-        if is_equal(&api, &Value::Str("private".to_string())) {
+        if (api.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut timestamp: Value = to_string_val(&self.milliseconds());
-            let mut messageString: Value = add(&add(&timestamp, &to_upper(&method)), &signPath);
-            if !is_equal(&signBody, &Value::Null) {
-                messageString = add(&messageString, &signBody);
+            let mut messageString: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, to_upper(&method))), signPath));
+            if (signBody != Value::Null) {
+                messageString = Value::Str(format!("{}{}", messageString, signBody));
             }
             let mut signature: Value = self.hmac(self.encode(messageString.clone()), self.encode(self.string_to_base64(self.secret.clone(), &[])), Value::Str("sha256".to_string()), &[Value::Str("base64".to_string())]);
             add_element_to_object(&mut headers, &Value::Str("APEX-SIGNATURE".to_string()), signature.clone());
@@ -2818,16 +2818,16 @@ impl ApexCore {
         // {"code":3,"msg":"Order price must be greater than 0. Order price is 0.","key":"ORDER_PRICE_MUST_GREETER_ZERO","detail":{"price":"0"}}
         // {"code":400,"msg":"strconv.ParseInt: parsing \"dsfdfsd\": invalid syntax","timeCost":5320995}
         //
-        if is_equal(&response, &Value::Null) {
+        if (response == Value::Null) {
             return Value::Null;
         }
         let mut errorCode: Value = self.safe_integer_k(response.clone(), "code", &[]);
-        if !is_equal(&errorCode, &Value::Null) && !is_equal(&errorCode, &Value::Int(0)) {
-            let mut feedback: Value = add(&add(&self.id, &Value::Str(" ".to_string())), &body);
+        if (errorCode != Value::Null) && (errorCode.as_f64() != Some(0.0)) {
+            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body));
             let mut message: Value = self.safe_string2(response.clone(), Value::Str("key".to_string()), Value::Str("msg".to_string()), &[]);
-            self.throw_broadly_matched_exception(get_value(&self.exceptions, &Value::Str("broad".to_string())), message.clone(), feedback.clone());
+            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.clone(), feedback.clone());
             let mut status: Value = to_string_val(&code);
-            self.throw_exactly_matched_exception(get_value(&self.exceptions, &Value::Str("exact".to_string())), status.clone(), feedback.clone());
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), status.clone(), feedback.clone());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;

@@ -15,32 +15,32 @@ pub fn testUrlencodeBase64() {
         m
     }));
     // Test 1: Simple string
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.urlencode_base64(Value::Str("hello".to_string()), &[]), &Value::Str("aGVsbG8".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.urlencode_base64(Value::Str("hello".to_string()), &[]).as_str() == Some("aGVsbG8")))));
     // Test 2: String with space
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.urlencode_base64(Value::Str("hello world".to_string()), &[]), &Value::Str("aGVsbG8gd29ybGQ".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.urlencode_base64(Value::Str("hello world".to_string()), &[]).as_str() == Some("aGVsbG8gd29ybGQ")))));
     // Test 3: Short string
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.urlencode_base64(Value::Str("test".to_string()), &[]), &Value::Str("dGVzdA".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.urlencode_base64(Value::Str("test".to_string()), &[]).as_str() == Some("dGVzdA")))));
     // Test 4: Empty string
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.urlencode_base64(Value::Str("".to_string()), &[]), &Value::Str("".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.urlencode_base64(Value::Str("".to_string()), &[]).as_str() == Some("")))));
     // Test 5: Single character
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.urlencode_base64(Value::Str("a".to_string()), &[]), &Value::Str("YQ".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.urlencode_base64(Value::Str("a".to_string()), &[]).as_str() == Some("YQ")))));
     // Test 6: Two characters
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.urlencode_base64(Value::Str("ab".to_string()), &[]), &Value::Str("YWI".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.urlencode_base64(Value::Str("ab".to_string()), &[]).as_str() == Some("YWI")))));
     // Test 7: Three characters (no padding needed)
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.urlencode_base64(Value::Str("abc".to_string()), &[]), &Value::Str("YWJj".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.urlencode_base64(Value::Str("abc".to_string()), &[]).as_str() == Some("YWJj")))));
     // Test 8: Four characters
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.urlencode_base64(Value::Str("abcd".to_string()), &[]), &Value::Str("YWJjZA".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.urlencode_base64(Value::Str("abcd".to_string()), &[]).as_str() == Some("YWJjZA")))));
     // Test 9: JSON-like string
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.urlencode_base64(Value::Str("{\"user\":\"test\"}".to_string()), &[]), &Value::Str("eyJ1c2VyIjoidGVzdCJ9".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.urlencode_base64(Value::Str("{\"user\":\"test\"}".to_string()), &[]).as_str() == Some("eyJ1c2VyIjoidGVzdCJ9")))));
     // Test 10: String with special characters (urlsafe base64)
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.urlencode_base64(Value::Str("subjects?_d".to_string()), &[]), &Value::Str("c3ViamVjdHM_X2Q".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.urlencode_base64(Value::Str("subjects?_d".to_string()), &[]).as_str() == Some("c3ViamVjdHM_X2Q")))));
     // Test 11: Longer string
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.urlencode_base64(Value::Str("The quick brown fox".to_string()), &[]), &Value::Str("VGhlIHF1aWNrIGJyb3duIGZveA".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.urlencode_base64(Value::Str("The quick brown fox".to_string()), &[]).as_str() == Some("VGhlIHF1aWNrIGJyb3duIGZveA")))));
     // Test 12: Numbers as string
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.urlencode_base64(Value::Str("123456789".to_string()), &[]), &Value::Str("MTIzNDU2Nzg5".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.urlencode_base64(Value::Str("123456789".to_string()), &[]).as_str() == Some("MTIzNDU2Nzg5")))));
     //
     // add binary tests
     //
     let mut binaryData: Value = exchange.base16_to_binary(Value::Str("191919191919".to_string()), &[]);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.urlencode_base64(binaryData.clone(), &[]), &Value::Str("GRkZGRkZ".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.urlencode_base64(binaryData.clone(), &[]).as_str() == Some("GRkZGRkZ")))));
 }

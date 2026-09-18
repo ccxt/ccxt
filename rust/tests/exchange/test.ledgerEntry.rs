@@ -38,7 +38,7 @@ pub fn testLedgerEntry(mut exchange: Value, mut skippedProperties: Value, mut me
     let mut emptyAllowedFor: Value = Value::List(vec![Value::Str("referenceId".to_string()), Value::Str("referenceAccount".to_string()), Value::Str("id".to_string())]);
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format.clone(), emptyAllowedFor.clone()]);
     crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), now.clone()]);
-    crate::tests_support::shared::assert_currency_code(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), get_value(&entry, &Value::Str("currency".to_string())).clone(), requestedCode.clone()]);
+    crate::tests_support::shared::assert_currency_code(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), entry.as_map().and_then(|__m| __m.get("currency")).cloned().unwrap_or(Value::Null).clone(), requestedCode.clone()]);
     //
     crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("direction".to_string()).clone(), Value::List(vec![Value::Str("in".to_string()), Value::Str("out".to_string())]).clone()]);
     crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("type".to_string()).clone(), Value::List(vec![Value::Str("trade".to_string()), Value::Str("transaction".to_string()), Value::Str("margin".to_string()), Value::Str("cashback".to_string()), Value::Str("referral".to_string()), Value::Str("transfer".to_string()), Value::Str("fee".to_string())]).clone()]);

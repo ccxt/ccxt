@@ -14,12 +14,12 @@ pub fn testStrip() {
             m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
         m
     }));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.strip(Value::Str(" asd".to_string()), &[]), &Value::Str("asd".to_string()))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.strip(Value::Str("    asd".to_string()), &[]), &Value::Str("asd".to_string()))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.strip(Value::Str("asd ".to_string()), &[]), &Value::Str("asd".to_string()))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.strip(Value::Str("asd    ".to_string()), &[]), &Value::Str("asd".to_string()))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.strip(Value::Str(" asd ".to_string()), &[]), &Value::Str("asd".to_string()))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.strip(Value::Str("    asd    ".to_string()), &[]), &Value::Str("asd".to_string()))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.strip(Value::Str("asd".to_string()), &[]), &Value::Str("asd".to_string()))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.strip(Value::Str("".to_string()), &[]), &Value::Str("".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.strip(Value::Str(" asd".to_string()), &[]).as_str() == Some("asd")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.strip(Value::Str("    asd".to_string()), &[]).as_str() == Some("asd")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.strip(Value::Str("asd ".to_string()), &[]).as_str() == Some("asd")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.strip(Value::Str("asd    ".to_string()), &[]).as_str() == Some("asd")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.strip(Value::Str(" asd ".to_string()), &[]).as_str() == Some("asd")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.strip(Value::Str("    asd    ".to_string()), &[]).as_str() == Some("asd")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.strip(Value::Str("asd".to_string()), &[]).as_str() == Some("asd")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.strip(Value::Str("".to_string()), &[]).as_str() == Some("")))));
 }

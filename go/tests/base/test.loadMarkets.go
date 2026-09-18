@@ -22,25 +22,25 @@ func testLoadMarketsBody(ch chan any, exchange ccxt.ICoreExchange, skippedProper
 	var symbolsLength int = GetArrayLength(exchange.GetSymbols())
 	Assert(!IsEqual(exchange.GetMarkets(), nil), ".markets is undefined")
 	var marketKeys []string = ObjectKeys(exchange.GetMarkets())
-	var marketKeysLength int = GetArrayLength(marketKeys)
-	Assert(IsGreaterThan(symbolsLength, 0), ".symbols count <= 0 (less than or equal to zero)")
-	Assert(IsGreaterThan(marketKeysLength, 0), ".markets objects keys length <= 0 (less than or equal to zero)")
+	var marketKeysLength int = len(marketKeys)
+	Assert((symbolsLength > 0), ".symbols count <= 0 (less than or equal to zero)")
+	Assert((marketKeysLength > 0), ".markets objects keys length <= 0 (less than or equal to zero)")
 	Assert((symbolsLength == marketKeysLength), "number of .symbols is not equal to the number of .markets")
 	var marketValues []any = ObjectValues(markets)
-	for i := 0; IsLessThan(i, GetArrayLength(marketValues)); i++ {
+	for i := 0; i < len(marketValues); i++ {
 		TestMarket(exchange, skippedProperties, method, GetValue(marketValues, i))
 	}
 	// market-type coverage (inlined: a nested helper breaks Java emit into a missing TestLoadedMarketTypes class)
 	var marketTypes []any = []any{"spot", "swap", "future", "option", "index"}
 	var collectedTypes any = []any{}
 	var allMarkets []any = ObjectValues(exchange.GetMarkets())
-	for i := 0; IsLessThan(i, GetArrayLength(allMarkets)); i++ {
+	for i := 0; i < len(allMarkets); i++ {
 		var market any = GetValue(allMarkets, i)
 		if !EvalTruthy(exchange.InArray(GetValue(market, "type"), collectedTypes)) {
 			AppendToArray(&collectedTypes, GetValue(market, "type"))
 		}
 	}
-	for i := 0; IsLessThan(i, GetArrayLength(marketTypes)); i++ {
+	for i := 0; i < len(marketTypes); i++ {
 		var mType any = GetValue(marketTypes, i)
 		if !IsEqual(GetValue(exchange.GetHas(), mType), nil) && !IsEqual(GetValue(exchange.GetHas(), mType), false) {
 			var skipMarketTypes bool = (InOp(skippedProperties, "optionsNotLoadedByDefault")) && (mType == "option")

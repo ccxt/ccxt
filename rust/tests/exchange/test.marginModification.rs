@@ -26,7 +26,7 @@ pub fn testMarginModification(mut exchange: Value, mut skippedProperties: Value,
     });
     let mut emptyAllowedFor: Value = Value::List(vec![Value::Str("status".to_string()), Value::Str("symbol".to_string()), Value::Str("code".to_string()), Value::Str("total".to_string()), Value::Str("amount".to_string())]);
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format.clone(), emptyAllowedFor.clone()]);
-    crate::tests_support::shared::assert_currency_code(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), get_value(&entry, &Value::Str("code".to_string())).clone()]);
+    crate::tests_support::shared::assert_currency_code(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), entry.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null).clone()]);
     //
     crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("amount".to_string()).clone(), Value::Str("0".to_string()).clone()]);
     crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("total".to_string()).clone(), Value::Str("0".to_string()).clone()]);

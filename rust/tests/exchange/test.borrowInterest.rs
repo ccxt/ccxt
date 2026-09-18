@@ -28,8 +28,8 @@ pub fn testBorrowInterest(mut exchange: Value, mut skippedProperties: Value, mut
     let mut emptyAllowedFor: Value = Value::List(vec![Value::Str("account".to_string())]);
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format.clone(), emptyAllowedFor.clone()]);
     crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone()]);
-    crate::tests_support::shared::assert_currency_code(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), get_value(&entry, &Value::Str("currency".to_string())).clone(), requestedCode.clone()]);
-    crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), get_value(&entry, &Value::Str("account".to_string())).clone(), requestedSymbol.clone()]);
+    crate::tests_support::shared::assert_currency_code(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), entry.as_map().and_then(|__m| __m.get("currency")).cloned().unwrap_or(Value::Null).clone(), requestedCode.clone()]);
+    crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), entry.as_map().and_then(|__m| __m.get("account")).cloned().unwrap_or(Value::Null).clone(), requestedSymbol.clone()]);
     crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("interest".to_string()).clone(), Value::Str("0".to_string()).clone()]);
     crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("interestRate".to_string()).clone(), Value::Str("0".to_string()).clone()]);
     crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("amountBorrowed".to_string()).clone(), Value::Str("0".to_string()).clone()]);

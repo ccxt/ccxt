@@ -522,7 +522,7 @@ public partial class latoken : Exchange
         Dictionary<string, object> currenciesById = this.indexBy(currencies, "id");
         List<object> result = new List<object>() {};
         IList<object> rawMarkets = this.toArray(response);
-        for (int i = 0; isLessThan(i, getArrayLength(rawMarkets)); postFixIncrement(ref i))
+        for (int i = 0; i < getArrayLength(rawMarkets); postFixIncrement(ref i))
         {
             object market = getValue(rawMarkets, i);
             string? id = this.safeString(market, "id");
@@ -533,11 +533,11 @@ public partial class latoken : Exchange
             IDictionary<string, object> quoteCurrency = this.safeDict(currenciesById, quoteId);
             IDictionary<string, object> baseCurrencyInfo = this.safeDict(baseCurrency, "info");
             IDictionary<string, object> quoteCurrencyInfo = this.safeDict(quoteCurrency, "info");
-            if (isTrue(isTrue(!isEqual(baseCurrencyInfo, null)) && isTrue(!isEqual(quoteCurrencyInfo, null))))
+            if ((baseCurrencyInfo != null) && (quoteCurrencyInfo != null))
             {
                 object bs = this.safeCurrencyCode(this.safeString(baseCurrencyInfo, "tag"));
                 string? quote = this.safeCurrencyCode(this.safeString(quoteCurrencyInfo, "tag"));
-                if (isTrue(isTrue((isEqual(bs, null))) || isTrue((isEqual(quote, null)))))
+                if (((bs == null)) || ((quote == null)))
                 {
                     continue;
                 }
@@ -559,7 +559,7 @@ public partial class latoken : Exchange
                     { "swap", false },
                     { "future", false },
                     { "option", false },
-                    { "active", (isEqual(status, "PAIR_STATUS_ACTIVE")) },
+                    { "active", ((status == "PAIR_STATUS_ACTIVE")) },
                     { "contract", false },
                     { "linear", null },
                     { "inverse", null },
@@ -586,8 +586,8 @@ public partial class latoken : Exchange
                             { "max", null },
                         } },
                         { "cost", new Dictionary<string, object>() {
-                            { "min", this.safeNumber(market, add("minOrderCost", capitalizedQuote)) },
-                            { "max", this.safeNumber(market, add("maxOrderCost", capitalizedQuote)) },
+                            { "min", this.safeNumber(market, ("minOrderCost" + capitalizedQuote)) },
+                            { "max", this.safeNumber(market, ("maxOrderCost" + capitalizedQuote)) },
                         } },
                     } },
                     { "created", this.safeInteger(market, "created") },
@@ -650,14 +650,14 @@ public partial class latoken : Exchange
         string? tag = this.safeString(currency, "tag");
         string? code = this.safeCurrencyCode(tag);
         string? currencyType = this.safeString(currency, "type");
-        bool isCrypto = (isTrue(isEqual(currencyType, "CURRENCY_TYPE_CRYPTO")) || isTrue(isEqual(currencyType, "CURRENCY_TYPE_IEO")));
+        bool isCrypto = ((currencyType == "CURRENCY_TYPE_CRYPTO") || (currencyType == "CURRENCY_TYPE_IEO"));
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", id },
             { "code", code },
             { "info", currency },
             { "name", this.safeString(currency, "name") },
-            { "type", ((bool) isTrue(isCrypto)) ? "crypto" : "other" },
-            { "active", isEqual(this.safeString(currency, "status"), "CURRENCY_STATUS_ACTIVE") },
+            { "type", ((bool) isCrypto) ? "crypto" : "other" },
+            { "active", (this.safeString(currency, "status") == "CURRENCY_STATUS_ACTIVE") },
             { "deposit", null },
             { "withdraw", null },
             { "fee", this.safeNumber(currency, "fee") },
@@ -687,7 +687,7 @@ public partial class latoken : Exchange
     public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -726,14 +726,14 @@ public partial class latoken : Exchange
         string? accountType = this.safeString(types, type, type);
         Dictionary<string, object> balancesByType = this.groupBy(response, "type");
         List<object> balances = this.safeList(balancesByType, accountType, new List<object>() {});
-        for (int i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
+        for (int i = 0; i < balances.Count; postFixIncrement(ref i))
         {
             object balance = getValue(balances, i);
             string? currencyId = this.safeString(balance, "currency");
             Int64? timestamp = this.safeInteger(balance, "timestamp");
-            if (isTrue(!isEqual(timestamp, null)))
+            if (!isEqual(timestamp, null))
             {
-                if (isTrue(isEqual(maxTimestamp, null)))
+                if (isEqual(maxTimestamp, null))
                 {
                     maxTimestamp = timestamp;
                 } else
@@ -745,7 +745,7 @@ public partial class latoken : Exchange
             Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available");
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "blocked");
-            if (isTrue(!isEqual(code, null)))
+            if ((code != null))
             {
                 ((IDictionary<string,object>)result)[(string)code] = account;
             }
@@ -768,7 +768,7 @@ public partial class latoken : Exchange
     public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -777,7 +777,7 @@ public partial class latoken : Exchange
             { "currency", getValue(market, "baseId") },
             { "quote", getValue(market, "quoteId") },
         };
-        if (isTrue(!isEqual(limit, null)))
+        if (!isEqual(limit, null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // max 1000
         }
@@ -810,7 +810,7 @@ public partial class latoken : Exchange
         List<object> rawBids = this.safeList(response, "bid", new List<object>() {});
         List<object> asks = new List<object>() {};
         List<object> bids = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(rawAsks)); postFixIncrement(ref i))
+        for (int i = 0; i < rawAsks.Count; postFixIncrement(ref i))
         {
             object askEntry = getValue(rawAsks, i);
             string? askQuantity = this.safeString(askEntry, "quantity");
@@ -819,7 +819,7 @@ public partial class latoken : Exchange
                 ((IList<object>)asks).Add(askEntry);
             }
         }
-        for (int i = 0; isLessThan(i, getArrayLength(rawBids)); postFixIncrement(ref i))
+        for (int i = 0; i < rawBids.Count; postFixIncrement(ref i))
         {
             object bidEntry = getValue(rawBids, i);
             string? bidQuantity = this.safeString(bidEntry, "quantity");
@@ -896,7 +896,7 @@ public partial class latoken : Exchange
     public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -941,7 +941,7 @@ public partial class latoken : Exchange
     public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -1012,28 +1012,28 @@ public partial class latoken : Exchange
         string? costString = this.safeString(trade, "cost");
         object makerBuyer = this.safeValue(trade, "makerBuyer");
         string? side = this.safeString(trade, "direction");
-        if (isTrue(isEqual(side, null)))
+        if ((side == null))
         {
-            side = ((bool) isTrue((isEqual(makerBuyer, true)))) ? "sell" : "buy";
+            side = ((bool) (isEqual(makerBuyer, true))) ? "sell" : "buy";
         } else
         {
-            if (isTrue(isEqual(side, "TRADE_DIRECTION_BUY")))
+            if (isEqual(side, "TRADE_DIRECTION_BUY"))
             {
                 side = "buy";
-            } else if (isTrue(isEqual(side, "TRADE_DIRECTION_SELL")))
+            } else if (isEqual(side, "TRADE_DIRECTION_SELL"))
             {
                 side = "sell";
             }
         }
         bool isBuy = (isEqual(side, "buy"));
-        bool isMaker = isTrue((isEqual(makerBuyer, true))) && isTrue(isBuy);
-        string takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
+        bool isMaker = (isEqual(makerBuyer, true)) && isBuy;
+        string takerOrMaker = ((bool) isMaker) ? "maker" : "taker";
         string? baseId = this.safeString(trade, "baseCurrency");
         string? quoteId = this.safeString(trade, "quoteCurrency");
         object bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
         object symbol = add(add(bs, "/"), quote);
-        if (isTrue(isTrue((!isEqual(this.markets, null))) && isTrue((inOp(this.markets, symbol)))))
+        if ((!isEqual(this.markets, null)) && (inOp(this.markets, symbol)))
         {
             market = this.market(symbol);
         }
@@ -1041,7 +1041,7 @@ public partial class latoken : Exchange
         string? orderId = this.safeString(trade, "order");
         string? feeCost = this.safeString(trade, "fee");
         Dictionary<string, object> fee = null;
-        if (isTrue(!isEqual(feeCost, null)))
+        if ((feeCost != null))
         {
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
@@ -1079,7 +1079,7 @@ public partial class latoken : Exchange
     public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -1088,7 +1088,7 @@ public partial class latoken : Exchange
             { "currency", getValue(market, "baseId") },
             { "quote", getValue(market, "quoteId") },
         };
-        if (isTrue(!isEqual(limit, null)))
+        if (!isEqual(limit, null))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 100); // default 100, limit 100
         }
@@ -1120,22 +1120,22 @@ public partial class latoken : Exchange
         string? defaultMethod = this.safeString(options, "method", "fetchPrivateTradingFee");
         string? method = this.safeString(parameters, "method", defaultMethod);
         parameters = this.omit(parameters, "method");
-        if (isTrue(isEqual(method, "fetchPrivateTradingFee")))
+        if ((method == "fetchPrivateTradingFee"))
         {
             return ccxt.BaseExchange.ToTradingFeeInterface(await this.FetchPrivateTradingFee(symbol, parameters));
-        } else if (isTrue(isEqual(method, "fetchPublicTradingFee")))
+        } else if ((method == "fetchPublicTradingFee"))
         {
             return ccxt.BaseExchange.ToTradingFeeInterface(await this.FetchPublicTradingFee(symbol, parameters));
         } else
         {
-            throw new NotSupported ((string)add(this.id, " not support this method")) ;
+            throw new NotSupported ((string)(this.id + " not support this method")) ;
         }
     }
 
     public async virtual Task<Dictionary<string, object>> FetchPublicTradingFee(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -1159,7 +1159,7 @@ public partial class latoken : Exchange
     public async virtual Task<Dictionary<string, object>> FetchPrivateTradingFee(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -1195,18 +1195,18 @@ public partial class latoken : Exchange
     public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
-        if (isTrue(!isEqual(limit, null)))
+        if (!isEqual(limit, null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 100
         }
         List<object> response = new List<object>() {};
-        if (isTrue(!isEqual(symbol, null)))
+        if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["currency"] = getValue(market, "baseId");
@@ -1318,21 +1318,21 @@ public partial class latoken : Exchange
         object bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
         object symbol = null;
-        if (isTrue(isTrue((!isEqual(bs, null))) && isTrue((!isEqual(quote, null)))))
+        if (((bs != null)) && ((quote != null)))
         {
             symbol = add(add(bs, "/"), quote);
-            if (isTrue(isTrue((!isEqual(this.markets, null))) && isTrue((inOp(this.markets, symbol)))))
+            if ((!isEqual(this.markets, null)) && (inOp(this.markets, symbol)))
             {
                 market = this.market(symbol);
             }
         }
         string? orderSide = this.safeString(order, "side");
         string? side = null;
-        if (isTrue(!isEqual(orderSide, null)))
+        if ((orderSide != null))
         {
             List<object> parts = ((string)orderSide).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
-            int partsLength = getArrayLength(parts);
-            side = this.safeStringLower(parts, subtract(partsLength, 1));
+            int partsLength = parts.Count;
+            side = this.safeStringLower(parts, (partsLength - 1));
         }
         string? type = this.parseOrderType(this.safeString(order, "type"));
         string? price = this.safeString(order, "price");
@@ -1341,12 +1341,12 @@ public partial class latoken : Exchange
         string? cost = this.safeString(order, "cost");
         string? status = this.parseOrderStatus(this.safeString(order, "status"));
         string? message = this.safeString(order, "message");
-        if (isTrue(!isEqual(message, null)))
+        if ((message != null))
         {
-            if (isTrue(isGreaterThanOrEqual(getIndexOf(message, "cancel"), 0)))
+            if (getIndexOf(message, "cancel") >= 0)
             {
                 status = "canceled";
-            } else if (isTrue(isGreaterThanOrEqual(getIndexOf(message, "accept"), 0)))
+            } else if (getIndexOf(message, "accept") >= 0)
             {
                 status = "open";
             }
@@ -1394,11 +1394,11 @@ public partial class latoken : Exchange
     public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(symbol, null)))
+        if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((string)(this.id + " fetchOpenOrders() requires a symbol argument")) ;
         }
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -1411,7 +1411,7 @@ public partial class latoken : Exchange
             { "currency", getValue(market, "baseId") },
             { "quote", getValue(market, "quoteId") },
         };
-        if (isTrue(isEqual(isTrigger, true)))
+        if (isEqual(isTrigger, true))
         {
             response = await this.privateGetAuthStopOrderPairCurrencyQuoteActive(this.extend(request, parameters));
         } else
@@ -1461,7 +1461,7 @@ public partial class latoken : Exchange
     public async override Task<List<ccxt.Order>> FetchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -1469,17 +1469,17 @@ public partial class latoken : Exchange
         IDictionary<string, object> market = null;
         object isTrigger = this.safeValue2(parameters, "trigger", "stop");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
-        if (isTrue(!isEqual(limit, null)))
+        if (!isEqual(limit, null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 100
         }
         object response = null;
-        if (isTrue(!isEqual(symbol, null)))
+        if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["currency"] = getValue(market, "baseId");
             ((IDictionary<string,object>)request)["quote"] = getValue(market, "quoteId");
-            if (isTrue(isEqual(isTrigger, true)))
+            if (isEqual(isTrigger, true))
             {
                 response = await this.privateGetAuthStopOrderPairCurrencyQuote(this.extend(request, parameters));
             } else
@@ -1488,7 +1488,7 @@ public partial class latoken : Exchange
             }
         } else
         {
-            if (isTrue(isEqual(isTrigger, true)))
+            if (isEqual(isTrigger, true))
             {
                 response = await this.privateGetAuthStopOrder(this.extend(request, parameters));
             } else
@@ -1536,7 +1536,7 @@ public partial class latoken : Exchange
     public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -1546,7 +1546,7 @@ public partial class latoken : Exchange
         object isTrigger = this.safeValue2(parameters, "trigger", "stop");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object response = null;
-        if (isTrue(isEqual(isTrigger, true)))
+        if (isEqual(isTrigger, true))
         {
             response = await this.privateGetAuthStopOrderGetOrderId(this.extend(request, parameters));
         } else
@@ -1598,15 +1598,15 @@ public partial class latoken : Exchange
     public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
         string uppercaseType = ((string)type).ToUpper();
-        if (isTrue(isEqual(side, null)))
+        if (isEqual(side, null))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a side argument")) ;
+            throw new ArgumentsRequired ((string)(this.id + " createOrder() requires a side argument")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "baseCurrency", getValue(market, "baseId") },
@@ -1618,14 +1618,14 @@ public partial class latoken : Exchange
             { "quantity", this.amountToPrecision(symbol, amount) },
             { "timestamp", this.seconds() },
         };
-        if (isTrue(isEqual(uppercaseType, "LIMIT")))
+        if ((uppercaseType == "LIMIT"))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
         string? triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice"});
         object response = null;
-        if (isTrue(!isEqual(triggerPrice, null)))
+        if ((triggerPrice != null))
         {
             ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, triggerPrice);
             response = await this.privatePostAuthStopOrderPlace(this.extend(request, parameters));
@@ -1663,7 +1663,7 @@ public partial class latoken : Exchange
     public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -1673,7 +1673,7 @@ public partial class latoken : Exchange
         object isTrigger = this.safeValue2(parameters, "trigger", "stop");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object response = null;
-        if (isTrue(isEqual(isTrigger, true)))
+        if (isEqual(isTrigger, true))
         {
             response = await this.privatePostAuthStopOrderCancel(this.extend(request, parameters));
         } else
@@ -1706,7 +1706,7 @@ public partial class latoken : Exchange
     public async override Task<List<ccxt.Order>> CancelAllOrders(string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -1715,12 +1715,12 @@ public partial class latoken : Exchange
         object isTrigger = this.safeValue2(parameters, "trigger", "stop");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object response = null;
-        if (isTrue(!isEqual(symbol, null)))
+        if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["currency"] = getValue(market, "baseId");
             ((IDictionary<string,object>)request)["quote"] = getValue(market, "quoteId");
-            if (isTrue(isEqual(isTrigger, true)))
+            if (isEqual(isTrigger, true))
             {
                 response = await this.privatePostAuthStopOrderCancelAllCurrencyQuote(this.extend(request, parameters));
             } else
@@ -1729,7 +1729,7 @@ public partial class latoken : Exchange
             }
         } else
         {
-            if (isTrue(isEqual(isTrigger, true)))
+            if (isEqual(isTrigger, true))
             {
                 response = await this.privatePostAuthStopOrderCancelAll(this.extend(request, parameters));
             } else
@@ -1761,7 +1761,7 @@ public partial class latoken : Exchange
     public async override Task<List<ccxt.Transaction>> FetchTransactions(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -1794,7 +1794,7 @@ public partial class latoken : Exchange
         //     }
         //
         IDictionary<string, object> currency = null;
-        if (isTrue(!isEqual(code, null)))
+        if (!isEqual(code, null))
         {
             currency = this.currency(((string)code));
         }
@@ -1838,7 +1838,7 @@ public partial class latoken : Exchange
             { "rate", null },
         };
         double? feeCost = this.safeNumber(transaction, "transactionFee");
-        if (isTrue(!isEqual(feeCost, null)))
+        if (!isEqual(feeCost, null))
         {
             ((IDictionary<string,object>)fee)["cost"] = feeCost;
             ((IDictionary<string,object>)fee)["currency"] = code;
@@ -1904,7 +1904,7 @@ public partial class latoken : Exchange
     public async override Task<List<ccxt.TransferEntry>> FetchTransfers(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -1962,7 +1962,7 @@ public partial class latoken : Exchange
     public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -1973,10 +1973,10 @@ public partial class latoken : Exchange
             { "value", this.currencyToPrecision(((string)code), amount) },
         };
         object response = null;
-        if (isTrue(isGreaterThanOrEqual(getIndexOf(toAccount, "@"), 0)))
+        if (getIndexOf(toAccount, "@") >= 0)
         {
             response = await this.privatePostAuthTransferEmail(this.extend(request, parameters));
-        } else if (isTrue(isEqual(((string)toAccount).Length, 36)))
+        } else if ((((string)toAccount).Length == 36))
         {
             response = await this.privatePostAuthTransferId(this.extend(request, parameters));
         } else
@@ -2065,18 +2065,18 @@ public partial class latoken : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string request = add(add(add("/", this.version), "/"), this.implodeParams(path, parameters));
+        string request = ((add("/", this.version) + "/") + this.implodeParams(path, parameters));
         string requestString = request;
         object query = this.omit(parameters, this.extractParams(path));
         string urlencodedQuery = this.urlencode(query);
-        if (isTrue(isEqual(method, "GET")))
+        if (isEqual(method, "GET"))
         {
-            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
+            if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                requestString = add(requestString, add("?", urlencodedQuery));
+                requestString = requestString + ("?" + urlencodedQuery);
             }
         }
-        if (isTrue(isEqual(api, "private")))
+        if (isEqual(api, "private"))
         {
             this.checkRequiredCredentials();
             object auth = add(add(method, request), urlencodedQuery);
@@ -2086,7 +2086,7 @@ public partial class latoken : Exchange
                 { "X-LA-SIGNATURE", signature },
                 { "X-LA-DIGEST", "HMAC-SHA512" },
             };
-            if (isTrue(isEqual(method, "POST")))
+            if (isEqual(method, "POST"))
             {
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
                 body = this.json(query);
@@ -2103,7 +2103,7 @@ public partial class latoken : Exchange
 
     public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
     {
-        if (isTrue(isEqual(response, null)))
+        if (isEqual(response, null))
         {
             return null;
         }
@@ -2114,15 +2114,15 @@ public partial class latoken : Exchange
         // {"result":false,"message":"Internal error","error":"For input string: \"NaN\"","status":"FAILURE"}
         //
         string? message = this.safeString(response, "message");
-        string feedback = add(add(this.id, " "), body);
-        if (isTrue(!isEqual(message, null)))
+        string feedback = add((this.id + " "), body);
+        if ((message != null))
         {
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
         }
         object error = this.safeValue(response, "error");
         string? errorMessage = this.safeString(error, "message");
-        if (isTrue(isTrue((!isEqual(error, null))) || isTrue((!isEqual(errorMessage, null)))))
+        if (((error != null)) || ((errorMessage != null)))
         {
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), error, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);

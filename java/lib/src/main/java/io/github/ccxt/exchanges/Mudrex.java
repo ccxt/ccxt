@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 public class Mudrex extends MudrexApi
 {
@@ -256,47 +257,47 @@ public class Mudrex extends MudrexApi
 
     public Object sign(Object path, Object... optionalArgs)
     {
-        Object api = Helpers.getArg(optionalArgs, 0, "public");
-        Object method = Helpers.getArg(optionalArgs, 1, "GET");
-        Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
-        Object headers = Helpers.getArg(optionalArgs, 3, null);
-        Object body = Helpers.getArg(optionalArgs, 4, null);
+        Object api = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public";
+        Object method = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET";
+        Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+        Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
+        Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
         Object apiUrls = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
         String base = this.safeString(apiUrls, api);
-        if (Helpers.isTrue(Helpers.isEqual(base, null)))
+        if (java.util.Objects.equals(base, null))
         {
-            throw new ExchangeError(Helpers.add(Helpers.add(this.id, " unknown API namespace: "), api)) ;
+            throw new ExchangeError(((this.id + " unknown API namespace: ") + api)) ;
         }
-        Object url = Helpers.add(Helpers.add(base, "/"), this.implodeParams(path, parameters));
+        Object url = ((base + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         Object requestHeaders = new HashMap<String, Object>() {{}};
-        if (Helpers.isTrue(!Helpers.isEqual(headers, null)))
+        if (!java.util.Objects.equals(headers, null))
         {
             requestHeaders = this.extend(new HashMap<String, Object>() {{}}, headers);
         }
         String brokerId = this.safeString(this.options, "broker");
-        if (Helpers.isTrue(!Helpers.isEqual(brokerId, null)))
+        if (!java.util.Objects.equals(brokerId, null))
         {
-            Helpers.addElementToObject(requestHeaders, "Partner-Id", brokerId);
+            ((Map<String, Object>)requestHeaders).put("Partner-Id", brokerId);
         }
         Object methodUpper = ((String)method).toUpperCase();
-        if (Helpers.isTrue(Helpers.isEqual(api, "private")))
+        if (java.util.Objects.equals(api, "private"))
         {
             this.checkRequiredCredentials();
-            Helpers.addElementToObject(requestHeaders, "X-Authentication", this.secret);
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(methodUpper, "POST")) || Helpers.isTrue(Helpers.isEqual(methodUpper, "PATCH"))) || Helpers.isTrue(Helpers.isEqual(methodUpper, "DELETE"))))
+            ((Map<String, Object>)requestHeaders).put("X-Authentication", this.secret);
+            if (java.util.Objects.equals(methodUpper, "POST") || java.util.Objects.equals(methodUpper, "PATCH") || java.util.Objects.equals(methodUpper, "DELETE"))
             {
-                Helpers.addElementToObject(requestHeaders, "Content-Type", "application/json");
+                ((Map<String, Object>)requestHeaders).put("Content-Type", "application/json");
                 // is_symbol is a query-string flag even on write requests
                 String isSymbol = this.safeString(query, "is_symbol");
-                if (Helpers.isTrue(!Helpers.isEqual(isSymbol, null)))
+                if (!java.util.Objects.equals(isSymbol, null))
                 {
                     query = this.omit(query, "is_symbol");
-                    url = Helpers.add(url, Helpers.add("?", this.urlencode(new HashMap<String, Object>() {{
+                    url = (url + ("?" + this.urlencode(new HashMap<String, Object>() {{
     put( "is_symbol", isSymbol );
 }})));
                 }
-                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(methodUpper, "DELETE"))) && Helpers.isTrue(this.isEmpty(query))))
+                if ((java.util.Objects.equals(methodUpper, "DELETE")) && Helpers.isTrue(this.isEmpty(query)))
                 {
                     final Object finalUrl = url;
                     final Object finalMethodUpper = methodUpper;
@@ -320,9 +321,9 @@ public class Mudrex extends MudrexApi
                 }};
             }
         }
-        if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
+        if (((List<?>)Helpers.objectKeys(query)).size() > 0)
         {
-            url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
+            url = (url + ("?" + this.urlencode(query)));
         }
         final Object finalUrl_3 = url;
         final Object finalMethodUpper_3 = methodUpper;
@@ -337,35 +338,35 @@ public class Mudrex extends MudrexApi
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
     {
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(response, null)) || Helpers.isTrue(!(response instanceof Map))))
+        if (java.util.Objects.equals(response, null) || !(response instanceof Map))
         {
             return null;
         }
         Object success = this.safeBool(response, "success", true);
-        if (Helpers.isTrue(!Helpers.isEqual(success, true)))
+        if (!java.util.Objects.equals(success, true))
         {
             Object errors = this.safeList(response, "errors", new ArrayList<Object>(Arrays.asList()));
             Object first = this.safeDict(errors, 0, new HashMap<String, Object>() {{}});
             String text = this.safeString(first, "text", this.json(response));
             String errCode = this.safeString(first, "code");
-            this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), text, Helpers.add(Helpers.add(this.id, " "), text));
-            this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), errCode, Helpers.add(Helpers.add(this.id, " "), text));
-            this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), text, Helpers.add(Helpers.add(this.id, " "), text));
-            Object msg = Helpers.add(Helpers.add(this.id, " "), text);
+            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), text, ((this.id + " ") + text));
+            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errCode, ((this.id + " ") + text));
+            this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), text, ((this.id + " ") + text));
+            Object msg = ((this.id + " ") + text);
             Object low = text.toLowerCase();
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(code, 401)) || Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(low, "auth"), 0))))
+            if (Helpers.isEqual(code, 401) || Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(low, "auth"), 0))
             {
                 throw new AuthenticationError((String)msg) ;
             }
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(code, 429)) || Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(low, "rate"), 0))))
+            if (Helpers.isEqual(code, 429) || Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(low, "rate"), 0))
             {
                 throw new RateLimitExceeded((String)msg) ;
             }
-            if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(low, "insufficient"), 0)))
+            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(low, "insufficient"), 0))
             {
                 throw new InsufficientFunds((String)msg) ;
             }
-            if (Helpers.isTrue(Helpers.isEqual(code, 400)))
+            if (Helpers.isEqual(code, 400))
             {
                 throw new BadRequest((String)msg) ;
             }
@@ -380,7 +381,7 @@ public class Mudrex extends MudrexApi
         //     [ 1782984660, 60681, 60797.6, 60671.8, 60693.3, 275.741 ]
         //     [ timestampInSeconds, open, high, low, close, volume ]
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         return new ArrayList<Object>(Arrays.asList(this.safeTimestamp(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 5)));
     }
 
@@ -403,11 +404,11 @@ public class Mudrex extends MudrexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -415,7 +416,7 @@ public class Mudrex extends MudrexApi
             String priceType = this.safeString(parameters, "price");
             parameters = this.omit(parameters, "price");
             // the endpoint expects the pair in "BASE/QUOTE" format (comma-separated for multiple)
-            Object assetPair = Helpers.add(Helpers.add(Helpers.GetValue(market, "baseId"), "/"), Helpers.GetValue(market, "quoteId"));
+            Object assetPair = Helpers.add(Helpers.add(((Map<String, Object>)market).get("baseId"), "/"), ((Map<String, Object>)market).get("quoteId"));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "assets", assetPair );
                 put( "aggregation", Mudrex.this.safeString(Mudrex.this.timeframes, timeframe, timeframe) );
@@ -423,37 +424,37 @@ public class Mudrex extends MudrexApi
             // the endpoint requires an explicit time window (in seconds)
             int duration = this.parseTimeframe(timeframe);
             Object requestLimit = limit;
-            if (Helpers.isTrue(Helpers.isEqual(requestLimit, null)))
+            if (java.util.Objects.equals(requestLimit, null))
             {
                 requestLimit = 500;
             }
             Long now = this.seconds();
             Object startTime = null;
-            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            if (!java.util.Objects.equals(since, null))
             {
                 startTime = this.parseToInt(Helpers.divide(since, 1000));
             } else
             {
                 startTime = Helpers.subtract(now, Helpers.multiply(duration, requestLimit));
             }
-            if (Helpers.isTrue(Helpers.isEqual(startTime, null)))
+            if (java.util.Objects.equals(startTime, null))
             {
-                throw new ExchangeError(Helpers.add(this.id, " fetchOHLCV() missing startTime")) ;
+                throw new ExchangeError((this.id + " fetchOHLCV() missing startTime")) ;
             }
             Object endTime = Helpers.add(startTime, Helpers.multiply(duration, requestLimit));
             Long until = this.safeInteger(parameters, "until");
-            if (Helpers.isTrue(!Helpers.isEqual(until, null)))
+            if (!java.util.Objects.equals(until, null))
             {
                 parameters = this.omit(parameters, "until");
                 endTime = this.parseToInt(Helpers.divide(until, 1000));
-            } else if (Helpers.isTrue(Helpers.isGreaterThan(endTime, now)))
+            } else if (Helpers.isGreaterThan(endTime, now))
             {
                 endTime = now;
             }
-            Helpers.addElementToObject(request, "start_time", startTime);
-            Helpers.addElementToObject(request, "end_time", endTime);
+            ((Map<String, Object>)request).put("start_time", startTime);
+            ((Map<String, Object>)request).put("end_time", endTime);
             Object response = null;
-            if (Helpers.isTrue(Helpers.isEqual(priceType, "mark")))
+            if (java.util.Objects.equals(priceType, "mark"))
             {
                 response = (this.marketGetPriceMarkKline(this.extend(request, parameters))).join();
             } else
@@ -474,7 +475,7 @@ public class Mudrex extends MudrexApi
             Object assetTicks = this.safeDict(data, "asset_ticks", new HashMap<String, Object>() {{}});
             Object ohlcvs = this.safeList(assetTicks, ((String)assetPair).toLowerCase(), new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
 
@@ -495,14 +496,14 @@ public class Mudrex extends MudrexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             return (this.fetchOHLCV((Object)(symbol), (Object)(timeframe), (Object)(since), (Object)(limit), (Object)(this.extend(parameters, new HashMap<String, Object>() {{
                 put( "price", "mark" );
             }})))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
 
@@ -520,14 +521,14 @@ public class Mudrex extends MudrexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "asset_id", Helpers.GetValue(market, "id") );
+                put( "asset_id", ((Map<String, Object>)market).get("id") );
                 put( "is_symbol", 1 );
             }};
             Map<String, Object> response = (this.privateGetFuturesAssetId(this.extend(request, parameters))).join();
@@ -551,9 +552,9 @@ public class Mudrex extends MudrexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -562,17 +563,17 @@ public class Mudrex extends MudrexApi
             Object data = this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object rows = ((Helpers.isTrue(Helpers.isArray(data)))) ? data : this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> resultTickers = new HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
+            for (var i = 0; i < ((List<?>)rows).size(); i++)
             {
                 Object t = Helpers.GetValue(rows, i);
                 String sym = this.safeString(t, "symbol");
-                if (Helpers.isTrue(Helpers.isEqual(sym, null)))
+                if (java.util.Objects.equals(sym, null))
                 {
                     continue;
                 }
                 Map<String, Object> m = (Map<String, Object>) this.safeMarket(sym);
-                Object symbol = Helpers.GetValue(m, "symbol");
-                if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(symbols, null)) && !Helpers.isTrue(this.inArray(symbol, symbols))))
+                Object symbol = ((Map<String, Object>)m).get("symbol");
+                if (!java.util.Objects.equals(symbols, null) && !Helpers.isTrue(this.inArray(symbol, symbols)))
                 {
                     continue;
                 }
@@ -585,10 +586,10 @@ public class Mudrex extends MudrexApi
 
     public Object parseTicker(Object ticker, Object... optionalArgs)
     {
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String ms = this.safeString(ticker, "symbol");
         market = this.safeMarket(ms, market);
-        Object symbol = Helpers.GetValue(market, "symbol");
+        Object symbol = ((Map<String, Object>)market).get("symbol");
         Double pct = this.safeNumber(ticker, "change_perc");
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -627,12 +628,12 @@ public class Mudrex extends MudrexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             List<Object> aggregated = new ArrayList<Object>(Arrays.asList());
             Object offset = 0;
             Integer pageLimit = 100;
             Boolean paging = true;
-            while (Helpers.isEqual(paging, true))
+            while (java.util.Objects.equals(paging, true))
             {
                 final Object finalOffset = offset;
                 Map<String, Object> q = this.extend(new HashMap<String, Object>() {{
@@ -642,17 +643,17 @@ public class Mudrex extends MudrexApi
                 Map<String, Object> response = (this.privateGetFutures(q)).join();
                 Object data = this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList()));
                 Object items = new ArrayList<Object>(Arrays.asList());
-                if (Helpers.isTrue(Helpers.isTrue((data instanceof Map)) && !Helpers.isTrue(Helpers.isArray(data))))
+                if ((data instanceof Map) && !Helpers.isTrue(Helpers.isArray(data)))
                 {
                     items = this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
                     // hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
-                    Object itemsLength = Helpers.getArrayLength(items);
-                    if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(itemsLength, null))) || Helpers.isTrue((Helpers.isEqual(itemsLength, 0)))))
+                    Object itemsLength = ((List<?>)items).size();
+                    if ((java.util.Objects.equals(itemsLength, null)) || (Helpers.isEqual(itemsLength, 0)))
                     {
                         items = this.safeList(data, "results", new ArrayList<Object>(Arrays.asList()));
-                        itemsLength = Helpers.getArrayLength(items);
+                        itemsLength = ((List<?>)items).size();
                     }
-                    if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(itemsLength, 0))) && Helpers.isTrue((Helpers.inOp(data, "symbol")))))
+                    if ((Helpers.isEqual(itemsLength, 0)) && (Helpers.inOp(data, "symbol")))
                     {
                         items = new ArrayList<Object>(Arrays.asList(data));
                     }
@@ -660,8 +661,8 @@ public class Mudrex extends MudrexApi
                 {
                     items = this.toArray(data);
                 }
-                Object numItems = Helpers.getArrayLength(items);
-                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(numItems, null))) || Helpers.isTrue((Helpers.isEqual(numItems, 0)))))
+                Object numItems = ((List<?>)items).size();
+                if ((java.util.Objects.equals(numItems, null)) || (Helpers.isEqual(numItems, 0)))
                 {
                     paging = false;
                     break;
@@ -670,7 +671,7 @@ public class Mudrex extends MudrexApi
                 {
                     ((List<Object>)aggregated).add(Helpers.GetValue(items, i));
                 }
-                if (Helpers.isTrue(Helpers.isLessThan(numItems, pageLimit)))
+                if (Helpers.isLessThan(numItems, pageLimit))
                 {
                     paging = false;
                 } else
@@ -680,7 +681,7 @@ public class Mudrex extends MudrexApi
                 }
             }
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(aggregated)); i++)
+            for (var i = 0; i < ((List<?>)aggregated).size(); i++)
             {
                 ((List<Object>)result).add(this.parseMarket(Helpers.GetValue(aggregated, i)));
             }
@@ -693,16 +694,16 @@ public class Mudrex extends MudrexApi
     {
         String ms = this.safeString(asset, "symbol");
         Object base = ms;
-        if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(ms, null)) && Helpers.isTrue(ms.endsWith(((String)"USDT")))))
+        if (!java.util.Objects.equals(ms, null) && Helpers.isTrue(ms.endsWith(((String)"USDT"))))
         {
             base = Helpers.slice(ms, 0, Helpers.opNeg(4));
         }
         String quote = "USDT";
         String settle = "USDT";
         Object symbol = null;
-        if (Helpers.isTrue(!Helpers.isEqual(base, null)))
+        if (!java.util.Objects.equals(base, null))
         {
-            symbol = Helpers.add(Helpers.add(Helpers.add(Helpers.add(base, "/"), quote), ":"), settle);
+            symbol = ((((base + "/") + quote) + ":") + settle);
         }
         String priceStep = this.safeString(asset, "price_step", "0.01");
         String qtyStep = this.safeString(asset, "quantity_step", "0.001");
@@ -774,8 +775,8 @@ public class Mudrex extends MudrexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -787,31 +788,31 @@ public class Mudrex extends MudrexApi
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("trade_currency", "tradeCurrency", "currency")));
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object response = null;
-            if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
+            if (java.util.Objects.equals(type, "spot"))
             {
-                if (Helpers.isTrue(!Helpers.isEqual(requested, null)))
+                if (!java.util.Objects.equals(requested, null))
                 {
-                    Helpers.addElementToObject(request, "currency", requested);
+                    ((Map<String, Object>)request).put("currency", requested);
                 }
                 response = (this.privateGetWalletFunds(this.extend(request, parameters))).join();
             } else
             {
-                if (Helpers.isTrue(!Helpers.isEqual(requested, null)))
+                if (!java.util.Objects.equals(requested, null))
                 {
-                    Helpers.addElementToObject(request, "trade_currency", requested);
+                    ((Map<String, Object>)request).put("trade_currency", requested);
                 }
                 response = (this.privateGetFuturesFunds(this.extend(request, parameters))).join();
             }
             String currency = requested;
-            if (Helpers.isTrue(Helpers.isEqual(currency, null)))
+            if (java.util.Objects.equals(currency, null))
             {
                 currency = "USDT";
             }
-            if (Helpers.isTrue(Helpers.isEqual(response, null)))
+            if (java.util.Objects.equals(response, null))
             {
-                throw new NullResponse(Helpers.add(this.id, " fetchBalance() returned empty response")) ;
+                throw new NullResponse((this.id + " fetchBalance() returned empty response")) ;
             }
-            Helpers.addElementToObject(response, "currency", currency);
+            ((Map<String, Object>)response).put("currency", currency);
             return this.parseBalance(response);
         }).thenApply(Balances::new);
 
@@ -826,7 +827,7 @@ public class Mudrex extends MudrexApi
         }};
         Object account = this.account();
         String futuresBalance = this.safeString(data, "balance");
-        if (Helpers.isTrue(!Helpers.isEqual(futuresBalance, null)))
+        if (!java.util.Objects.equals(futuresBalance, null))
         {
             // futures wallet: balance is the free/available margin, locked_amount is used, safeBalance derives total
             Helpers.addElementToObject(account, "free", futuresBalance);
@@ -855,14 +856,14 @@ public class Mudrex extends MudrexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "asset_id", Helpers.GetValue(market, "id") );
+                put( "asset_id", ((Map<String, Object>)market).get("id") );
                 put( "is_symbol", 1 );
             }};
             Map<String, Object> response = (this.privateGetFuturesAssetIdLeverage(this.extend(request, parameters))).join();
@@ -894,20 +895,20 @@ public class Mudrex extends MudrexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(symbol, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " setLeverage() requires a symbol")) ;
+                throw new ArgumentsRequired((this.id + " setLeverage() requires a symbol")) ;
             }
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String marginType = this.safeString(parameters, "marginType", "ISOLATED");
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "asset_id", Helpers.GetValue(market, "id") );
+                put( "asset_id", ((Map<String, Object>)market).get("id") );
                 put( "is_symbol", 1 );
                 put( "margin_type", marginType );
                 put( "leverage", leverage );
@@ -947,9 +948,9 @@ public class Mudrex extends MudrexApi
         final Object type3 = type2;
         return BaseExchange.supplyAsync(() -> {
             Object type = type3;
-            Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -958,71 +959,71 @@ public class Mudrex extends MudrexApi
             // an existing position through the riskorder endpoint, so a positionId is required
             String stopLossPrice = this.safeString(parameters, "stopLossPrice");
             String takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
-            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(stopLossPrice, null))) || Helpers.isTrue((!Helpers.isEqual(takeProfitPrice, null)))))
+            if ((!java.util.Objects.equals(stopLossPrice, null)) || (!java.util.Objects.equals(takeProfitPrice, null)))
             {
                 String positionId = this.safeString2(parameters, "positionId", "position_id");
-                if (Helpers.isTrue(Helpers.isEqual(positionId, null)))
+                if (java.util.Objects.equals(positionId, null))
                 {
-                    throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a positionId parameter to place a stopLossPrice or takeProfitPrice order")) ;
+                    throw new ArgumentsRequired((this.id + " createOrder() requires a positionId parameter to place a stopLossPrice or takeProfitPrice order")) ;
                 }
                 parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLossPrice", "takeProfitPrice", "positionId", "position_id")));
                 final Object finalPositionId = positionId;
                 Map<String, Object> riskRequest = new HashMap<String, Object>() {{
                     put( "position_id", finalPositionId );
                 }};
-                if (Helpers.isTrue(!Helpers.isEqual(takeProfitPrice, null)))
+                if (!java.util.Objects.equals(takeProfitPrice, null))
                 {
-                    Helpers.addElementToObject(riskRequest, "is_takeprofit", true);
-                    Helpers.addElementToObject(riskRequest, "takeprofit_price", this.priceToPrecision(symbol, takeProfitPrice));
+                    ((Map<String, Object>)riskRequest).put("is_takeprofit", true);
+                    ((Map<String, Object>)riskRequest).put("takeprofit_price", this.priceToPrecision(symbol, takeProfitPrice));
                 }
-                if (Helpers.isTrue(!Helpers.isEqual(stopLossPrice, null)))
+                if (!java.util.Objects.equals(stopLossPrice, null))
                 {
-                    Helpers.addElementToObject(riskRequest, "is_stoploss", true);
-                    Helpers.addElementToObject(riskRequest, "stoploss_price", this.priceToPrecision(symbol, stopLossPrice));
+                    ((Map<String, Object>)riskRequest).put("is_stoploss", true);
+                    ((Map<String, Object>)riskRequest).put("stoploss_price", this.priceToPrecision(symbol, stopLossPrice));
                 }
                 Map<String, Object> riskResponse = (this.privatePostFuturesPositionsPositionIdRiskorder(this.extend(riskRequest, parameters))).join();
                 Object riskData = this.safeDict(riskResponse, "data", riskResponse);
                 return this.parseOrder(riskData, market);
             }
             Long lev = this.safeInteger(parameters, "leverage", 1);
-            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "market"))) && Helpers.isTrue((Helpers.isEqual(price, null)))))
+            if ((java.util.Objects.equals(type, "market")) && (java.util.Objects.equals(price, null)))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a price argument for market orders")) ;
+                throw new ArgumentsRequired((this.id + " createOrder() requires a price argument for market orders")) ;
             }
             final Object finalPrice = price;
             final Object finalSide = side;
             final Object finalType = type;
             final Object finalParameters = parameters;
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "asset_id", Helpers.GetValue(market, "id") );
+                put( "asset_id", ((Map<String, Object>)market).get("id") );
                 put( "is_symbol", 1 );
                 put( "leverage", Mudrex.this.numberToString(lev) );
                 put( "quantity", Mudrex.this.amountToPrecision(symbol, amount) );
                 put( "order_price", Mudrex.this.priceToPrecision(symbol, finalPrice) );
-                put( "order_type", ((Helpers.isTrue((Helpers.isEqual(finalSide, "buy"))))) ? "LONG" : "SHORT" );
-                put( "trigger_type", ((Helpers.isTrue((Helpers.isEqual(finalType, "market"))))) ? "MARKET" : "LIMIT" );
+                put( "order_type", (((java.util.Objects.equals(finalSide, "buy")))) ? "LONG" : "SHORT" );
+                put( "trigger_type", (((java.util.Objects.equals(finalType, "market")))) ? "MARKET" : "LIMIT" );
                 put( "reduce_only", Mudrex.this.safeBool(finalParameters, "reduceOnly", false) );
             }};
             // mudrex only supports take-profit / stop-loss orders attached to the position-opening order
             Object takeProfit = this.safeDict(parameters, "takeProfit");
             Object stopLoss = this.safeDict(parameters, "stopLoss");
-            if (Helpers.isTrue(!Helpers.isEqual(takeProfit, null)))
+            if (!java.util.Objects.equals(takeProfit, null))
             {
-                Helpers.addElementToObject(request, "is_takeprofit", true);
-                Helpers.addElementToObject(request, "takeprofit_price", this.priceToPrecision(symbol, this.safeStringN(takeProfit, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "price")))));
+                ((Map<String, Object>)request).put("is_takeprofit", true);
+                ((Map<String, Object>)request).put("takeprofit_price", this.priceToPrecision(symbol, this.safeStringN(takeProfit, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "price")))));
             }
-            if (Helpers.isTrue(!Helpers.isEqual(stopLoss, null)))
+            if (!java.util.Objects.equals(stopLoss, null))
             {
-                Helpers.addElementToObject(request, "is_stoploss", true);
-                Helpers.addElementToObject(request, "stoploss_price", this.priceToPrecision(symbol, this.safeStringN(stopLoss, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "price")))));
+                ((Map<String, Object>)request).put("is_stoploss", true);
+                ((Map<String, Object>)request).put("stoploss_price", this.priceToPrecision(symbol, this.safeStringN(stopLoss, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "price")))));
             }
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("leverage", "reduceOnly", "takeProfit", "stopLoss")));
             Map<String, Object> response = (this.privatePostFuturesAssetIdOrder(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", response);
             // the create response omits the order/trigger type, so parse a merged copy - the base derivations, like timeInForce, need to see them - then keep the untouched raw payload under info
             Map<String, Object> merged = this.extend(data, new HashMap<String, Object>() {{
-                put( "order_type", Helpers.GetValue(request, "order_type") );
-                put( "trigger_type", Helpers.GetValue(request, "trigger_type") );
+                put( "order_type", ((Map<String, Object>)request).get("order_type") );
+                put( "trigger_type", ((Map<String, Object>)request).get("trigger_type") );
             }});
             Object order = this.parseOrder(merged, market);
             Helpers.addElementToObject(order, "info", data);
@@ -1050,28 +1051,28 @@ public class Mudrex extends MudrexApi
         final Object symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
-            Object amount = Helpers.getArg(optionalArgs, 0, null);
-            Object price = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object amount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object price = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Object market = null;
-            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "order_id", id );
             }};
-            if (Helpers.isTrue(!Helpers.isEqual(amount, null)))
+            if (!java.util.Objects.equals(amount, null))
             {
-                Helpers.addElementToObject(request, "quantity", this.amountToPrecision(symbol, amount));
+                ((Map<String, Object>)request).put("quantity", this.amountToPrecision(symbol, amount));
             }
-            if (Helpers.isTrue(!Helpers.isEqual(price, null)))
+            if (!java.util.Objects.equals(price, null))
             {
-                Helpers.addElementToObject(request, "order_price", this.priceToPrecision(symbol, price));
+                ((Map<String, Object>)request).put("order_price", this.priceToPrecision(symbol, price));
             }
             Map<String, Object> response = (this.privatePatchFuturesOrdersOrderId(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", response);
@@ -1100,21 +1101,21 @@ public class Mudrex extends MudrexApi
 
     public Object parseOrder(Object order, Object... optionalArgs)
     {
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String oms = this.safeString(order, "symbol");
         market = this.safeMarket(oms, market);
         String oid = this.safeString2(order, "order_id", "id");
         String rawSide = this.safeStringUpper(order, "order_type");
         String side = null;
-        if (Helpers.isTrue(Helpers.isEqual(rawSide, "LONG")))
+        if (java.util.Objects.equals(rawSide, "LONG"))
         {
             side = "buy";
-        } else if (Helpers.isTrue(Helpers.isEqual(rawSide, "SHORT")))
+        } else if (java.util.Objects.equals(rawSide, "SHORT"))
         {
             side = "sell";
         }
         // stop-loss / take-profit rows attached to a position carry the trigger value under the "price" key
-        Boolean isRiskOrder = Helpers.isTrue((Helpers.isEqual(rawSide, "STOPLOSS"))) || Helpers.isTrue((Helpers.isEqual(rawSide, "TAKEPROFIT")));
+        Boolean isRiskOrder = (java.util.Objects.equals(rawSide, "STOPLOSS")) || (java.util.Objects.equals(rawSide, "TAKEPROFIT"));
         String priceString = this.safeString2(order, "price", "order_price");
         String orderPrice = priceString;
         String triggerPrice = null;
@@ -1124,7 +1125,7 @@ public class Mudrex extends MudrexApi
         {
             triggerPrice = priceString;
             orderPrice = null;
-            if (Helpers.isTrue(Helpers.isEqual(rawSide, "STOPLOSS")))
+            if (java.util.Objects.equals(rawSide, "STOPLOSS"))
             {
                 stopLossPrice = priceString;
             } else
@@ -1134,16 +1135,16 @@ public class Mudrex extends MudrexApi
         }
         String trig = this.safeStringUpper(order, "trigger_type");
         String typ = null;
-        if (Helpers.isTrue(Helpers.isEqual(trig, "MARKET")))
+        if (java.util.Objects.equals(trig, "MARKET"))
         {
             typ = "market";
-        } else if (Helpers.isTrue(Helpers.isEqual(trig, "LIMIT")))
+        } else if (java.util.Objects.equals(trig, "LIMIT"))
         {
             typ = "limit";
         }
         Long ts = this.parse8601(this.safeString(order, "created_at"));
         String status = this.parseOrderStatus(this.safeStringLower(order, "status"));
-        Object sym = Helpers.GetValue(market, "symbol");
+        Object sym = ((Map<String, Object>)market).get("symbol");
         final Object finalTyp = typ;
         final Object finalSide = side;
         final Object finalOrderPrice = orderPrice;
@@ -1195,14 +1196,14 @@ public class Mudrex extends MudrexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Object market = null;
-            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
             }
@@ -1231,14 +1232,14 @@ public class Mudrex extends MudrexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Object market = null;
-            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
             }
@@ -1269,22 +1270,22 @@ public class Mudrex extends MudrexApi
         final Object state3 = state2;
         return BaseExchange.supplyAsync(() -> {
             Object state = state3;
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> q = new HashMap<String, Object>() {{}};
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(q, "limit", limit);
+                ((Map<String, Object>)q).put("limit", limit);
             }
             Map<String, Object> request = this.extend(q, parameters);
             Object response = null;
-            if (Helpers.isTrue(Helpers.isEqual(state, "closed")))
+            if (java.util.Objects.equals(state, "closed"))
             {
                 response = (this.privateGetFuturesOrdersHistory(request)).join();
             } else
@@ -1294,12 +1295,12 @@ public class Mudrex extends MudrexApi
             Object data = this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> rows = this.toArray(data);
             Object market = null;
-            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
             }
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
+            for (var i = 0; i < ((List<?>)rows).size(); i++)
             {
                 ((List<Object>)orders).add(this.parseOrder(Helpers.GetValue(rows, i), market));
             }
@@ -1324,12 +1325,12 @@ public class Mudrex extends MudrexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             return (this.fetchOrdersByState("closed", symbol, since, limit, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -1349,12 +1350,12 @@ public class Mudrex extends MudrexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             return (this.fetchOrdersByState("open", symbol, since, limit, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -1374,12 +1375,12 @@ public class Mudrex extends MudrexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             return (this.fetchOrdersByState("closed", symbol, since, limit, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -1398,22 +1399,22 @@ public class Mudrex extends MudrexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> q = new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.privateGetFuturesPositions(this.extend(q, parameters))).join();
             Object data = this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList()));
-            if (Helpers.isTrue(Helpers.isEqual(data, null)))
+            if (java.util.Objects.equals(data, null))
             {
                 return new ArrayList<Object>(Arrays.asList());
             }
             List<Object> rows = this.toArray(data);
             List<Object> outPos = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
+            for (var i = 0; i < ((List<?>)rows).size(); i++)
             {
                 Object p = Helpers.GetValue(rows, i);
                 String symRaw = this.safeString(p, "symbol");
@@ -1422,7 +1423,7 @@ public class Mudrex extends MudrexApi
                 ((List<Object>)outPos).add(pos);
             }
             return this.filterByArrayPositions(outPos, "symbol", symbols, false);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
 
@@ -1443,19 +1444,19 @@ public class Mudrex extends MudrexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(request, "limit", limit);
+                ((Map<String, Object>)request).put("limit", limit);
             }
             Map<String, Object> response = (this.privateGetFuturesPositionsHistory(this.extend(request, parameters))).join();
             //
@@ -1482,28 +1483,28 @@ public class Mudrex extends MudrexApi
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object positions = this.parsePositions(data, symbols);
             return this.filterBySinceLimit(positions, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Position::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
 
     public Object parsePosition(Object position, Object... optionalArgs)
     {
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         market = this.safeMarket(null, market);
         String ms = this.safeString(position, "symbol");
         String symbol = this.safeSymbol(ms, market);
         // open positions use "order_type", closed positions (history) use "position_type"
         String rawSide = this.safeStringUpper2(position, "order_type", "position_type");
         String side = null;
-        if (Helpers.isTrue(Helpers.isEqual(rawSide, "LONG")))
+        if (java.util.Objects.equals(rawSide, "LONG"))
         {
             side = "long";
-        } else if (Helpers.isTrue(Helpers.isEqual(rawSide, "SHORT")))
+        } else if (java.util.Objects.equals(rawSide, "SHORT"))
         {
             side = "short";
         }
         Long ts = this.parse8601(this.safeString(position, "updated_at"));
-        if (Helpers.isTrue(Helpers.isEqual(ts, null)))
+        if (java.util.Objects.equals(ts, null))
         {
             ts = this.parse8601(this.safeString(position, "created_at"));
         }
@@ -1511,7 +1512,7 @@ public class Mudrex extends MudrexApi
         String entryPriceString = this.safeString(position, "entry_price");
         String contractSizeString = this.safeString(market, "contractSize", "1");
         Object notional = null;
-        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(quantityString, null))) && Helpers.isTrue((!Helpers.isEqual(entryPriceString, null)))))
+        if ((!java.util.Objects.equals(quantityString, null)) && (!java.util.Objects.equals(entryPriceString, null)))
         {
             notional = this.parseNumber(Precise.stringMul(Precise.stringMul(quantityString, entryPriceString), contractSizeString));
         }
@@ -1566,49 +1567,49 @@ public class Mudrex extends MudrexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object side = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object side = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             String positionId = this.safeString(parameters, "position_id");
             Object amount = this.safeValue(parameters, "amount");
-            if (Helpers.isTrue(Helpers.isEqual(positionId, null)))
+            if (java.util.Objects.equals(positionId, null))
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 Object positions = (this.fetchPositions((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)
+                for (var i = 0; i < ((List<?>)positions).size(); i++)
                 {
                     Object p = Helpers.GetValue(positions, i);
-                    if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(side, null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(p, "side"), side))))
+                    if (!java.util.Objects.equals(side, null) && !java.util.Objects.equals(((Map<String, Object>)p).get("side"), side))
                     {
                         continue;
                     }
-                    if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(p, "symbol"), Helpers.GetValue(market, "symbol"))))
+                    if (java.util.Objects.equals(((Map<String, Object>)p).get("symbol"), ((Map<String, Object>)market).get("symbol")))
                     {
                         positionId = this.safeString(p, "id");
                         break;
                     }
                 }
             }
-            if (Helpers.isTrue(Helpers.isEqual(positionId, null)))
+            if (java.util.Objects.equals(positionId, null))
             {
-                throw new OrderNotFound(Helpers.add(this.id, " closePosition() could not resolve position_id")) ;
+                throw new OrderNotFound((this.id + " closePosition() could not resolve position_id")) ;
             }
             final Object finalPositionId = positionId;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "position_id", finalPositionId );
             }};
-            if (Helpers.isTrue(!Helpers.isEqual(amount, null)))
+            if (!java.util.Objects.equals(amount, null))
             {
                 String orderType = this.safeStringUpper(parameters, "order_type", "LIMIT");
-                Helpers.addElementToObject(request, "order_type", orderType);
-                Helpers.addElementToObject(request, "quantity", this.amountToPrecision(symbol, amount));
+                ((Map<String, Object>)request).put("order_type", orderType);
+                ((Map<String, Object>)request).put("quantity", this.amountToPrecision(symbol, amount));
                 String lp = this.safeString(parameters, "limit_price");
-                if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(orderType, "LIMIT")) && Helpers.isTrue(!Helpers.isEqual(lp, null))))
+                if (java.util.Objects.equals(orderType, "LIMIT") && !java.util.Objects.equals(lp, null))
                 {
-                    Helpers.addElementToObject(request, "limit_price", lp);
+                    ((Map<String, Object>)request).put("limit_price", lp);
                 }
                 parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("order_type", "limit_price", "amount", "position_id")));
                 Object partialResponse = (this.privatePostFuturesPositionsPositionIdClosePartial(this.extend(request, parameters))).join();
@@ -1637,28 +1638,28 @@ public class Mudrex extends MudrexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             String positionId = this.safeString(parameters, "position_id");
-            if (Helpers.isTrue(Helpers.isEqual(positionId, null)))
+            if (java.util.Objects.equals(positionId, null))
             {
                 Object positions = (this.fetchPositions((Object)(new ArrayList<Object>(Arrays.asList(symbol))), (Object)(parameters))).join();
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)
+                for (var i = 0; i < ((List<?>)positions).size(); i++)
                 {
                     Object p = Helpers.GetValue(positions, i);
-                    if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(p, "symbol"), symbol)))
+                    if (java.util.Objects.equals(((Map<String, Object>)p).get("symbol"), symbol))
                     {
                         positionId = this.safeString(p, "id");
                         break;
                     }
                 }
             }
-            if (Helpers.isTrue(Helpers.isEqual(positionId, null)))
+            if (java.util.Objects.equals(positionId, null))
             {
-                throw new OrderNotFound(Helpers.add(this.id, " addMargin() could not resolve position_id")) ;
+                throw new OrderNotFound((this.id + " addMargin() could not resolve position_id")) ;
             }
             final Object finalPositionId = positionId;
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1687,7 +1688,7 @@ public class Mudrex extends MudrexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             return (this.addMargin(symbol, (Object)(Helpers.opNeg(amount)), (Object)(parameters))).join();
         }).thenApply(MarginModification::new);
 
@@ -1711,16 +1712,16 @@ public class Mudrex extends MudrexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Object market = null;
-            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
             }
@@ -1729,7 +1730,7 @@ public class Mudrex extends MudrexApi
             maxCalls = ((List<Object>) maxCallsparametersVariable).get(0);
             parameters = ((List<Object>) maxCallsparametersVariable).get(1);
             Object pageSize = 0;
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
                 // every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
                 pageSize = Helpers.multiply(limit, 2);
@@ -1739,25 +1740,25 @@ public class Mudrex extends MudrexApi
             Object calls = 0;
             Object offset = 0;
             Boolean paging = true;
-            while (Helpers.isEqual(paging, true))
+            while (java.util.Objects.equals(paging, true))
             {
                 Map<String, Object> request = new HashMap<String, Object>() {{}};
-                if (Helpers.isTrue(Helpers.isGreaterThan(pageSize, 0)))
+                if (Helpers.isGreaterThan(pageSize, 0))
                 {
-                    Helpers.addElementToObject(request, "limit", pageSize);
-                    Helpers.addElementToObject(request, "offset", offset);
+                    ((Map<String, Object>)request).put("limit", pageSize);
+                    ((Map<String, Object>)request).put("offset", offset);
                 }
                 Map<String, Object> response = (this.privateGetFuturesFeeHistory(this.extend(request, parameters))).join();
                 Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-                Object dataLength = Helpers.getArrayLength(data);
+                Object dataLength = ((List<?>)data).size();
                 for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
                 {
                     Object entry = Helpers.GetValue(data, i);
                     ((List<Object>)allRows).add(entry);
-                    if (Helpers.isTrue(Helpers.isEqual(this.safeString(entry, "fee_type"), "TRANSACTION")))
+                    if (java.util.Objects.equals(this.safeString(entry, "fee_type"), "TRANSACTION"))
                     {
                         // count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
-                        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(market, null))) || Helpers.isTrue((Helpers.isEqual(this.safeString(entry, "symbol"), Helpers.GetValue(market, "id"))))))
+                        if ((java.util.Objects.equals(market, null)) || (java.util.Objects.equals(this.safeString(entry, "symbol"), ((Map<String, Object>)market).get("id"))))
                         {
                             transactionsCount = this.sum(transactionsCount, 1);
                         }
@@ -1766,7 +1767,7 @@ public class Mudrex extends MudrexApi
                 calls = this.sum(calls, 1);
                 paging = false;
                 // the page cap bounds the walk when the requested symbol has few or no rows anywhere near the top of the history
-                if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(limit, null))) && Helpers.isTrue((Helpers.isEqual(dataLength, pageSize)))) && Helpers.isTrue((Helpers.isLessThan(transactionsCount, limit)))) && Helpers.isTrue((Helpers.isLessThan(calls, maxCalls)))))
+                if ((!java.util.Objects.equals(limit, null)) && (Helpers.isEqual(dataLength, pageSize)) && (Helpers.isLessThan(transactionsCount, limit)) && (Helpers.isLessThan(calls, maxCalls)))
                 {
                     // this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
                     offset = this.sum(offset, pageSize);
@@ -1778,28 +1779,28 @@ public class Mudrex extends MudrexApi
             List<Object> rebateAmounts = new ArrayList<Object>(Arrays.asList());
             List<Object> transactions = new ArrayList<Object>(Arrays.asList());
             List<Object> transactionKeys = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(allRows)); i++)
+            for (var i = 0; i < ((List<?>)allRows).size(); i++)
             {
                 Object entry = Helpers.GetValue(allRows, i);
                 String feeType = this.safeString(entry, "fee_type");
-                Object pairKey = Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.safeString(entry, "symbol", ""), ":"), this.safeString(entry, "created_at", "")), ":"), this.safeString(entry, "transaction_amount", ""));
-                if (Helpers.isTrue(Helpers.isEqual(feeType, "TRANSACTION")))
+                Object pairKey = ((((this.safeString(entry, "symbol", "") + ":") + this.safeString(entry, "created_at", "")) + ":") + this.safeString(entry, "transaction_amount", ""));
+                if (java.util.Objects.equals(feeType, "TRANSACTION"))
                 {
                     ((List<Object>)transactions).add(entry);
                     ((List<Object>)transactionKeys).add(pairKey);
-                } else if (Helpers.isTrue(Helpers.isEqual(feeType, "REBATE")))
+                } else if (java.util.Objects.equals(feeType, "REBATE"))
                 {
                     ((List<Object>)rebateKeys).add(pairKey);
                     ((List<Object>)rebateAmounts).add(this.safeString(entry, "fee_amount", "0"));
                 }
             }
             List<Object> rows = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(transactions)); i++)
+            for (var i = 0; i < ((List<?>)transactions).size(); i++)
             {
                 Object rebate = null;
-                for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(rebateKeys)); j++)
+                for (var j = 0; j < ((List<?>)rebateKeys).size(); j++)
                 {
-                    if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(rebateKeys, j), Helpers.GetValue(transactionKeys, i))))
+                    if (java.util.Objects.equals(Helpers.GetValue(rebateKeys, j), Helpers.GetValue(transactionKeys, i)))
                     {
                         rebate = Helpers.GetValue(rebateAmounts, j);
                         // blank the consumed key so the next equal fill matches the next rebate, never the same one twice
@@ -1807,7 +1808,7 @@ public class Mudrex extends MudrexApi
                         break;
                     }
                 }
-                if (Helpers.isTrue(Helpers.isEqual(rebate, null)))
+                if (java.util.Objects.equals(rebate, null))
                 {
                     ((List<Object>)rows).add(Helpers.GetValue(transactions, i));
                 } else
@@ -1819,7 +1820,7 @@ public class Mudrex extends MudrexApi
                 }
             }
             return this.parseTrades(rows, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
@@ -1840,24 +1841,24 @@ public class Mudrex extends MudrexApi
         //         "gst_amount": "0.00376492"
         //     }
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String ms = this.safeString(trade, "symbol");
         market = this.safeMarket(ms, market);
-        Object symbol = Helpers.GetValue(market, "symbol");
+        Object symbol = ((Map<String, Object>)market).get("symbol");
         Long ts = this.parse8601(this.safeString(trade, "created_at"));
         // exit fills carry STOPLOSS / TAKEPROFIT markers without the closing direction, so their unified direction stays undefined
         String side = this.safeStringLower(trade, "order_type");
         String tradeSide = null;
-        if (Helpers.isTrue(Helpers.isEqual(side, "long")))
+        if (java.util.Objects.equals(side, "long"))
         {
             tradeSide = "buy";
-        } else if (Helpers.isTrue(Helpers.isEqual(side, "short")))
+        } else if (java.util.Objects.equals(side, "short"))
         {
             tradeSide = "sell";
         }
         String trig = this.safeStringUpper(trade, "trigger_type");
         String takerOrMaker = null;
-        if (Helpers.isTrue(Helpers.isEqual(trig, "MARKET")))
+        if (java.util.Objects.equals(trig, "MARKET"))
         {
             // a market execution always takes liquidity, a limit execution can be either
             takerOrMaker = "taker";
@@ -1866,11 +1867,11 @@ public class Mudrex extends MudrexApi
         String feeCostString = this.safeString(trade, "fee_amount");
         // rebate_amount is attached by fetchMyTrades from the fill's REBATE row - the reported fee is the net charge
         String rebateString = this.safeString(trade, "rebate_amount");
-        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(feeCostString, null))) && Helpers.isTrue((!Helpers.isEqual(rebateString, null)))))
+        if ((!java.util.Objects.equals(feeCostString, null)) && (!java.util.Objects.equals(rebateString, null)))
         {
             feeCostString = Precise.stringSub(feeCostString, rebateString);
         }
-        if (Helpers.isTrue(!Helpers.isEqual(feeCostString, null)))
+        if (!java.util.Objects.equals(feeCostString, null))
         {
             final Object finalFeeCostString = feeCostString;
             fee = new HashMap<String, Object>() {{
@@ -1915,7 +1916,7 @@ public class Mudrex extends MudrexApi
         final Object code3 = code2;
         return BaseExchange.supplyAsync(() -> {
             Object code = code3;
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> mp = new HashMap<String, Object>() {{
                 put( "spot", "SPOT" );
                 put( "SPOT", "SPOT" );
@@ -1931,14 +1932,14 @@ public class Mudrex extends MudrexApi
                 put( "amount", Mudrex.this.numberToString(amount) );
             }};
             Boolean useInr = false;
-            if (Helpers.isTrue(Helpers.isEqual(code, "INR")))
+            if (java.util.Objects.equals(code, "INR"))
             {
                 useInr = true;
             } else
             {
                 // default USDT does not use the inr path
                 String tradeCurrency = this.safeString2(parameters, "trade_currency", "tradeCurrency");
-                if (Helpers.isTrue(Helpers.isEqual(tradeCurrency, "INR")))
+                if (java.util.Objects.equals(tradeCurrency, "INR"))
                 {
                     useInr = true;
                 }

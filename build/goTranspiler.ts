@@ -16,7 +16,7 @@ import Piscina from 'piscina';
 import os from 'os';
 import { isMainEntry } from "./transpile.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
-import { installCcxtGoLocalTypes } from './go-local-types.js';
+import { installCcxtGoLocalTypes, installCcxtGoIndexableTypes } from './go-local-types.js';
 
 type dict = { [key: string]: string };
 
@@ -1174,8 +1174,9 @@ class NewTranspiler {
         this.transpiler.setVerboseMode(false);
         this.transpiler.goTranspiler.transformLeadingComment = this.transformLeadingComment.bind(this);
         // typed locals for the hand-written CCXT Go helpers (see build/go-local-types.js);
-        // build/go-worker.js installs the same hook for the Piscina path
+        // build/go-worker.ts installs the same hooks for the Piscina path
         installCcxtGoLocalTypes (this.transpiler.goTranspiler);
+        installCcxtGoIndexableTypes (this.transpiler.goTranspiler);
     }
 
     createGeneratedHeader() {
@@ -2308,6 +2309,10 @@ ${constStatements.join('\n')}
             // EXPORTED method — stopping at the lowercase body would leave that body behind,
             // orphaned and still untranspilable.
             [new RegExp(`func\\s+\\(this \\*Exchange\\)\\s+LoadOrderBook${GO_ASYNC_SUFFIX}\\([\\s\\S]*?(?=\\nfunc\\s+\\(this \\*Exchange\\)\\s+[A-Z])`, 'g'), ''],
+            // SafeBool/SafeBool2/SafeBoolN are hand-written in exchange_safe.go returning *bool
+            // (nil = absent), like the SafeString/SafeInteger/SafeFloat families; drop the
+            // transpiled `any` copies so the typed accessor is the one that compiles.
+            [/func\s+\(this \*BaseExchange\)\s+SafeBool(?:2|N)?\(dictionaryOrList any[^\n]*\n[\s\S]*?\n\}\n/g, ''],
             // the 62 dispatch a few other 62-methods through this.DerivedExchange for virtual override
             // (e.g. editLimitOrder→editOrder, fetchTicker→fetchTickers, fetchOrderStatus→fetchOrder).
             // Those callees are NOT on PredictionExchange, so they are trimmed from IDerivedExchange

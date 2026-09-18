@@ -12,10 +12,10 @@ public partial class testMainClass : BaseTest
     {
         string method = "watchTicker";
         Int64 now = exchange.milliseconds();
-        object ends = add(now, 15000);
+        object ends = (now + 15000);
         int maxIdleTime = 5000;
         bool idle = false;
-        while (isTrue((isLessThan(now, ends))) && !isTrue(idle))
+        while ((isLessThan(now, ends)) && !idle)
         {
             object response = null;
             bool success = true;
@@ -32,11 +32,11 @@ public partial class testMainClass : BaseTest
                 success = false;
             }
             now = exchange.milliseconds();
-            if (isTrue(isTrue((isEqual(success, true))) && isTrue((!isEqual(response, null)))))
+            if (((success == true)) && ((response != null)))
             {
                 assert(exchange.isDictionary(response), add(add(add(add(add(add(exchange.id, " "), method), " "), symbol), " must return a dictionary. "), exchange.json(response)));
                 testTicker(exchange, skippedProperties, method, response, symbol);
-                if (isTrue(isGreaterThan((subtract(now, startTime)), maxIdleTime)))
+                if (isGreaterThan(((now - startTime)), maxIdleTime))
                 {
                     idle = true;
                 }

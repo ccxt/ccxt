@@ -268,7 +268,7 @@ public partial class btcbox : Exchange
         IDictionary<string, object> result2Data = this.safeDict(response2, "data", new Dictionary<string, object>() {});
         List<object> marketIds = new List<object>(((IDictionary<string,object>)response1).Keys);
         List<object> markets = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+        for (int i = 0; i < marketIds.Count; postFixIncrement(ref i))
         {
             string? marketId = ((string)getValue(marketIds, i));
             List<object> symbolParts = ((string)marketId).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
@@ -278,7 +278,7 @@ public partial class btcbox : Exchange
             string id = ((string)baseCurr).ToLower();
             IDictionary<string, object> res = this.safeDict(response1, marketId, new Dictionary<string, object>() {});
             object symbol = add(add(baseCurr, "/"), quote);
-            double? fee = ((bool) isTrue((isEqual(id, "BTC")))) ? this.parseNumber("0.0005") : this.parseNumber("0.0010");
+            double? fee = ((bool) ((id == "BTC"))) ? this.parseNumber("0.0005") : this.parseNumber("0.0010");
             IDictionary<string, object> details = this.safeDict(result2Data, id, new Dictionary<string, object>() {});
             IDictionary<string, object> tradeDetails = this.safeDict(details, "trade", new Dictionary<string, object>() {});
             ((IList<object>)markets).Add(this.safeMarketStructure(new Dictionary<string, object>() {
@@ -329,7 +329,7 @@ public partial class btcbox : Exchange
                     { "price", this.parseNumber(this.parsePrecision(this.safeString(tradeDetails, "pricedecimal"))) },
                     { "amount", null },
                 } },
-                { "active", isEqual(this.safeString(tradeDetails, "enable"), "1") },
+                { "active", (this.safeString(tradeDetails, "enable") == "1") },
                 { "created", null },
                 { "info", res },
             }));
@@ -402,13 +402,13 @@ public partial class btcbox : Exchange
             { "info", response },
         };
         List<object> codes = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
-        for (int i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
+        for (int i = 0; i < codes.Count; postFixIncrement(ref i))
         {
             string? code = ((string)getValue(codes, i));
             Dictionary<string, object> currency = this.currency(((string)code));
             object currencyId = getValue(currency, "id");
             object free = add(currencyId, "_balance");
-            if (isTrue(inOp(response, free)))
+            if (inOp(response, free))
             {
                 Dictionary<string, object> account = this.account();
                 object used = add(currencyId, "_lock");
@@ -431,7 +431,7 @@ public partial class btcbox : Exchange
     public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -452,14 +452,14 @@ public partial class btcbox : Exchange
     public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        int numSymbols = getArrayLength(this.symbols);
-        if (isTrue(isGreaterThan(numSymbols, 1)))
+        int numSymbols = this.symbols.Count;
+        if (numSymbols > 1)
         {
             ((IDictionary<string,object>)request)["coin"] = getValue(market, "baseId");
         }
@@ -507,14 +507,14 @@ public partial class btcbox : Exchange
     public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        int numSymbols = getArrayLength(this.symbols);
-        if (isTrue(isGreaterThan(numSymbols, 1)))
+        int numSymbols = this.symbols.Count;
+        if (numSymbols > 1)
         {
             ((IDictionary<string,object>)request)["coin"] = getValue(market, "baseId");
         }
@@ -533,7 +533,7 @@ public partial class btcbox : Exchange
     public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -592,14 +592,14 @@ public partial class btcbox : Exchange
     public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        int numSymbols = getArrayLength(this.symbols);
-        if (isTrue(isGreaterThan(numSymbols, 1)))
+        int numSymbols = this.symbols.Count;
+        if (numSymbols > 1)
         {
             ((IDictionary<string,object>)request)["coin"] = getValue(market, "baseId");
         }
@@ -634,7 +634,7 @@ public partial class btcbox : Exchange
     public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -669,12 +669,12 @@ public partial class btcbox : Exchange
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         // a special case for btcbox – default symbolVar is BTC/JPY
-        if (isTrue(isEqual(symbolVar, null)))
+        if (isEqual(symbolVar, null))
         {
             symbolVar = "BTC/JPY";
         }
@@ -699,7 +699,7 @@ public partial class btcbox : Exchange
             { "closed", "closed" },
             { "no", "closed" },
         };
-        if (isTrue(isEqual(status, null)))
+        if (isEqual(status, null))
         {
             return null;
         }
@@ -723,7 +723,7 @@ public partial class btcbox : Exchange
         string? id = this.safeString(order, "id");
         string? datetimeString = this.safeString(order, "datetime");
         Int64? timestamp = null;
-        if (isTrue(!isEqual(datetimeString, null)))
+        if ((datetimeString != null))
         {
             timestamp = this.parse8601(add(getValue(order, "datetime"), "+09:00")); // Tokyo time
         }
@@ -733,7 +733,7 @@ public partial class btcbox : Exchange
         // status is set by fetchOrder method only
         string? status = this.parseOrderStatus(this.safeString(order, "status"));
         // fetchOrders do not return status, use heuristic
-        if (isTrue(isEqual(status, null)))
+        if ((status == null))
         {
             if (isTrue(Precise.stringEquals(remaining, "0")))
             {
@@ -782,12 +782,12 @@ public partial class btcbox : Exchange
     {
         object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         // a special case for btcbox – default symbolVar is BTC/JPY
-        if (isTrue(isEqual(symbolVar, null)))
+        if (isEqual(symbolVar, null))
         {
             symbolVar = "BTC/JPY";
         }
@@ -815,12 +815,12 @@ public partial class btcbox : Exchange
     public async virtual Task<List<ccxt.Order>> FetchOrdersByType(object type, object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         // a special case for btcbox – default symbol is BTC/JPY
-        if (isTrue(isEqual(symbol, null)))
+        if (isEqual(symbol, null))
         {
             symbol = "BTC/JPY";
         }
@@ -845,9 +845,9 @@ public partial class btcbox : Exchange
         IList<object> orders = this.parseOrders(response, market, since, limit);
         // status (open/closed/canceled) is undefined
         // btcbox does not return status, but we know it's 'open' as we queried for open orders
-        if (isTrue(isEqual(type, "open")))
+        if (isEqual(type, "open"))
         {
-            for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(orders); postFixIncrement(ref i))
             {
                 ((IDictionary<string,object>)getValue(orders, i))["status"] = "open";
             }
@@ -900,13 +900,13 @@ public partial class btcbox : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object url = add(add(add(add(getValue(getValue(this.urls, "api"), "rest"), "/"), this.version), "/"), path);
-        if (isTrue(isEqual(api, "public")))
+        if (isEqual(api, "public"))
         {
-            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))
+            if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
-                url = add(url, add("?", this.urlencode(parameters)));
+                url = add(url, ("?" + this.urlencode(parameters)));
             }
-        } else if (isTrue(isEqual(api, "webApi")))
+        } else if (isEqual(api, "webApi"))
         {
             url = add(add(getValue(this.urls, "www"), "/"), path);
         } else
@@ -935,22 +935,22 @@ public partial class btcbox : Exchange
 
     public override object handleErrors(object httpCode, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
     {
-        if (isTrue(isEqual(response, null)))
+        if (isEqual(response, null))
         {
             return null;  // resort to defaultErrorHandler
         }
         // typical error response: {"result":false,"code":"401"}
-        if (isTrue(isGreaterThanOrEqual(httpCode, 400)))
+        if (isGreaterThanOrEqual(httpCode, 400))
         {
             return null;  // resort to defaultErrorHandler
         }
         object result = this.safeValue(response, "result");
-        if (isTrue(isTrue(isEqual(result, null)) || isTrue(isEqual(result, true))))
+        if ((result == null) || isEqual(result, true))
         {
             return null;  // either public API (no error codes expected) or success
         }
         object code = this.safeValue(response, "code");
-        string feedback = add(add(this.id, " "), body);
+        string feedback = add((this.id + " "), body);
         this.throwExactlyMatchedException(this.exceptions, code, feedback);
         throw new ExchangeError ((string)feedback) ;
     }
@@ -962,13 +962,13 @@ public partial class btcbox : Exchange
         parameters ??= new Dictionary<string, object>();
         config ??= new Dictionary<string, object>();
         object response = await this.fetch2(path, api, method, parameters, headers, body, config);
-        if (isTrue((response is string)))
+        if ((response is string))
         {
             // sometimes the exchange returns whitespace prepended to json
             response = this.strip(response);
             if (!isTrue(this.isJsonEncodedObject(response)))
             {
-                throw new ExchangeError ((string)add(add(this.id, " "), response)) ;
+                throw new ExchangeError ((string)add((this.id + " "), response)) ;
             }
             response = parseJson(response);
         }

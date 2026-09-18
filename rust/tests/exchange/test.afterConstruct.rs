@@ -25,27 +25,27 @@ pub fn testOptionsNetworks(mut exchange: Value, mut skippedProperties: Value) {
         // KeyError in Python (e.g. an exchange whose options has no 'networks', like the
         // hyperliquid prediction market)
         let mut networks: Value = exchange.safe_dict(get_value(&exchange, &Value::Str("options".to_string())), Value::Str("networks".to_string()), &[]);
-        if is_equal(&networks, &Value::Null) {
+        if (networks == Value::Null) {
             return;
         }
         // 1) ensure 'networks' dictionary exists in options
         assert!(ccxt::runtime::is_true(&(exchange.is_dictionary(networks.clone()))));
-        if is_equal(&get_array_length(&object_keys(&networks)), &Value::Int(0)) {
+        if (Value::Int(object_keys(&networks).len() as i64).as_f64() == Some(0.0)) {
             return;
         }
         // 2) ensure 'networksById' dictionary exists in options
         assert!(ccxt::runtime::is_true(&(Value::Bool(in_op(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("networksById".to_string()))))));
         assert!(ccxt::runtime::is_true(&(exchange.is_dictionary(get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("networksById".to_string()))))));
         //
-        let mut networkCodes: Value = object_keys(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("networks".to_string())));
+        let mut networkCodes: Value = object_keys(&get_value(&exchange, &Value::Str("options".to_string())).as_map().and_then(|__m| __m.get("networks")).cloned().unwrap_or(Value::Null));
         // 3) ensure that the same network-id is not assigned to multiple networkCodes
         let mut collectedNetworkIds: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1440: bool = true;
-            while { if !__for_first_1440 { i = add(&i, &Value::Int(1)); } __for_first_1440 = false; is_less_than(&i, &get_array_length(&networkCodes)) } {
+            while { if !__for_first_1440 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1440 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(networkCodes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut networkCode: Value = get_value(&networkCodes, &i);
-            let mut networkId: Value = get_value(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("networks".to_string())), &networkCode);
+            let mut networkId: Value = get_value(&get_value(&exchange, &Value::Str("options".to_string())).as_map().and_then(|__m| __m.get("networks")).cloned().unwrap_or(Value::Null), &networkCode);
             if !is_true(&exchange.in_array(networkCode.clone(), allowedUnifiedAliases.clone())) {
                 assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&exchange.in_array(networkId.clone(), collectedNetworkIds.clone()))))));
             }
@@ -57,7 +57,7 @@ pub fn testOptionsNetworks(mut exchange: Value, mut skippedProperties: Value) {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1441: bool = true;
-            while { if !__for_first_1441 { i = add(&i, &Value::Int(1)); } __for_first_1441 = false; is_less_than(&i, &get_array_length(&networkCodes)) } {
+            while { if !__for_first_1441 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1441 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(networkCodes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut networkCodeLower: Value = to_lower(&(get_value(&networkCodes, &i)));
             assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&exchange.in_array(networkCodeLower.clone(), collectedNetworkCodes.clone()))))));
             append_to_array(&mut collectedNetworkCodes, networkCodeLower.clone());
@@ -66,20 +66,20 @@ pub fn testOptionsNetworks(mut exchange: Value, mut skippedProperties: Value) {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1442: bool = true;
-            while { if !__for_first_1442 { i = add(&i, &Value::Int(1)); } __for_first_1442 = false; is_less_than(&i, &get_array_length(&networkCodes)) } {
+            while { if !__for_first_1442 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1442 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(networkCodes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut networkCode: Value = get_value(&networkCodes, &i);
-            let mut networkId: Value = get_value(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("networks".to_string())), &networkCode);
+            let mut networkId: Value = get_value(&get_value(&exchange, &Value::Str("options".to_string())).as_map().and_then(|__m| __m.get("networks")).cloned().unwrap_or(Value::Null), &networkCode);
             // check networkCodeToId
             let mut networkIdConverted: Value = exchange.network_code_to_id(networkCode.clone(), &[]);
             assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&networkId, &networkIdConverted)))));
             // ensure it exists in networksById
-            assert!(ccxt::runtime::is_true(&(Value::Bool(in_op(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("networksById".to_string())), &networkId)))));
+            assert!(ccxt::runtime::is_true(&(Value::Bool(in_op(&get_value(&exchange, &Value::Str("options".to_string())).as_map().and_then(|__m| __m.get("networksById")).cloned().unwrap_or(Value::Null), &networkId)))));
             // ensure networkCode matches for networksById (however, it only works if one mapping is set)
             if !is_true(&exchange.in_array(networkCode.clone(), allowedUnifiedAliases.clone())) {
-                assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("networksById".to_string())), &networkId), &networkCode)))));
+                assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&exchange, &Value::Str("options".to_string())).as_map().and_then(|__m| __m.get("networksById")).cloned().unwrap_or(Value::Null), &networkId), &networkCode)))));
                 // check networkIdToCode conversion back
                 let mut networkCodeConverted: Value = exchange.network_id_to_code(&[networkId.clone()]);
-                assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&networkCode, &networkCodeConverted)))));
+                assert!(ccxt::runtime::is_true(&(Value::Bool(networkCode.as_str() == networkCodeConverted.as_str()))));
             }
         }
         }

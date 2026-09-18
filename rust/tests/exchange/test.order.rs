@@ -75,12 +75,12 @@ pub fn testOrder(mut exchange: Value, mut skippedProperties: Value, mut method: 
                 m.insert("side".to_string(), Value::Bool(true));
             m
         })]);
-        if !is_equal(&get_value(&entry, &Value::Str("trades".to_string())), &Value::Null) {
+        if (entry.as_map().and_then(|__m| __m.get("trades")).cloned().unwrap_or(Value::Null) != Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1436: bool = true;
-                while { if !__for_first_1436 { i = add(&i, &Value::Int(1)); } __for_first_1436 = false; is_less_than(&i, &get_array_length(&get_value(&entry, &Value::Str("trades".to_string())))) } {
-                testTrade(exchange.clone(), skippedNew.clone(), method.clone(), get_value(&get_value(&entry, &Value::Str("trades".to_string())), &i), symbol.clone(), now.clone(), Value::Bool(false));
+                while { if !__for_first_1436 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1436 = false; is_less_than(&i, &get_array_length(&get_value(&entry, &Value::Str("trades".to_string())))) } {
+                testTrade(exchange.clone(), skippedNew.clone(), method.clone(), get_value(&entry.as_map().and_then(|__m| __m.get("trades")).cloned().unwrap_or(Value::Null), &i), symbol.clone(), now.clone(), Value::Bool(false));
             }
             }
         }

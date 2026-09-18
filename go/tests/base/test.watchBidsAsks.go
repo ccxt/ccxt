@@ -87,7 +87,7 @@ func testWatchBidsAsksHelperBody(ch chan any, exchange ccxt.ICoreExchange, skipp
 				checkedSymbol = GetValue(argSymbols, 0)
 			}
 			AssertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol)
-			for i := 0; IsLessThan(i, GetArrayLength(values)); i++ {
+			for i := 0; i < len(values); i++ {
 				var ticker any = GetValue(values, i)
 				TestTicker(exchange, skippedProperties, method, ticker, checkedSymbol)
 			}

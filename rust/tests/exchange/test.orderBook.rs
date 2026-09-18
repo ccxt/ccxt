@@ -34,16 +34,16 @@ pub fn testOrderBook(mut exchange: Value, mut skippedProperties: Value, mut meth
     crate::tests_support::shared::assert_symbol(exchange.clone(), &[skippedProperties.clone(), method.clone(), orderbook.clone(), Value::Str("symbol".to_string()).clone(), symbol.clone()]);
     let mut logText: Value = crate::tests_support::shared::log_template(exchange.clone(), method.clone(), orderbook.clone());
     // todo: check non-emtpy arrays for bids/asks for toptier exchanges
-    let mut bids: Value = get_value(&orderbook, &Value::Str("bids".to_string()));
-    let mut bidsLength: Value = get_array_length(&bids);
+    let mut bids: Value = orderbook.as_map().and_then(|__m| __m.get("bids")).cloned().unwrap_or(Value::Null);
+    let mut bidsLength: Value = Value::Int(bids.len() as i64);
     {
                 let mut i: Value = Value::Int(0);
         let mut __for_first_1437: bool = true;
-        while { if !__for_first_1437 { i = add(&i, &Value::Int(1)); } __for_first_1437 = false; is_less_than(&i, &bidsLength) } {
+        while { if !__for_first_1437 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1437 = false; i.as_f64().unwrap_or(f64::NAN) < bidsLength.as_f64().unwrap_or(f64::NAN) } {
         let mut currentBidString: Value = exchange.safe_string(get_value(&bids, &i), Value::Int(0), &[]);
         if !is_true(&(Value::Bool(in_op(&skippedProperties, &Value::Str("compareToNextItem".to_string()))))) {
-            let mut nextI: Value = add(&i, &Value::Int(1));
-            if is_greater_than(&bidsLength, &nextI) {
+            let mut nextI: Value = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+            if bidsLength.as_f64().unwrap_or(f64::NAN) > nextI.as_f64().unwrap_or(f64::NAN) {
                 let mut nextBidString: Value = exchange.safe_string(get_value(&bids, &nextI), Value::Int(0), &[]);
                 assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringGt(&currentBidString, &nextBidString))));
             }
@@ -55,16 +55,16 @@ pub fn testOrderBook(mut exchange: Value, mut skippedProperties: Value, mut meth
         }
     }
     }
-    let mut asks: Value = get_value(&orderbook, &Value::Str("asks".to_string()));
-    let mut asksLength: Value = get_array_length(&asks);
+    let mut asks: Value = orderbook.as_map().and_then(|__m| __m.get("asks")).cloned().unwrap_or(Value::Null);
+    let mut asksLength: Value = Value::Int(asks.len() as i64);
     {
                 let mut i: Value = Value::Int(0);
         let mut __for_first_1438: bool = true;
-        while { if !__for_first_1438 { i = add(&i, &Value::Int(1)); } __for_first_1438 = false; is_less_than(&i, &asksLength) } {
+        while { if !__for_first_1438 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1438 = false; i.as_f64().unwrap_or(f64::NAN) < asksLength.as_f64().unwrap_or(f64::NAN) } {
         let mut currentAskString: Value = exchange.safe_string(get_value(&asks, &i), Value::Int(0), &[]);
         if !is_true(&(Value::Bool(in_op(&skippedProperties, &Value::Str("compareToNextItem".to_string()))))) {
-            let mut nextI: Value = add(&i, &Value::Int(1));
-            if is_greater_than(&asksLength, &nextI) {
+            let mut nextI: Value = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+            if asksLength.as_f64().unwrap_or(f64::NAN) > nextI.as_f64().unwrap_or(f64::NAN) {
                 let mut nextAskString: Value = exchange.safe_string(get_value(&asks, &nextI), Value::Int(0), &[]);
                 assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringLt(&currentAskString, &nextAskString))));
             }
@@ -77,9 +77,9 @@ pub fn testOrderBook(mut exchange: Value, mut skippedProperties: Value, mut meth
     }
     }
     if !is_true(&(Value::Bool(in_op(&skippedProperties, &Value::Str("spread".to_string()))))) {
-        if is_true(&(is_greater_than(&bidsLength, &Value::Int(0)))) && is_true(&(is_greater_than(&asksLength, &Value::Int(0)))) {
-            let mut firstBid: Value = exchange.safe_string(get_value(&bids, &Value::Int(0)), Value::Int(0), &[]);
-            let mut firstAsk: Value = exchange.safe_string(get_value(&asks, &Value::Int(0)), Value::Int(0), &[]);
+        if is_true(&(bidsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN))) && is_true(&(asksLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN))) {
+            let mut firstBid: Value = exchange.safe_string(bids.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Int(0), &[]);
+            let mut firstAsk: Value = exchange.safe_string(asks.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Int(0), &[]);
             // check bid-ask spread
             assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringLt(&firstBid, &firstAsk))));
         }

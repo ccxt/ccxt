@@ -11,13 +11,13 @@ public partial class testMainClass : BaseTest
     {
         string method = "fetchOrderBooks";
         object symbols = exchange.symbols;
-        assert(!isEqual(symbols, null), add(add(add(exchange.id, " "), method), " requires exchange.symbols to be loaded"));
+        assert((symbols != null), add(add(add(exchange.id, " "), method), " requires exchange.symbols to be loaded"));
         object symbol = getValue(symbols, 0);
         object orderBooks = await invokeExchangeDynamically(exchange, "fetchOrderBooks", new List<object>() {symbol});
         testSharedMethods.assertDictionaryResponse(exchange, method, orderBooks);
         List<object> orderBookKeys = new List<object>(((IDictionary<string,object>)orderBooks).Keys);
-        assert(isGreaterThan(getArrayLength(orderBookKeys), 0), add(add(add(exchange.id, " "), method), " returned 0 length data"));
-        for (int i = 0; isLessThan(i, getArrayLength(orderBookKeys)); postFixIncrement(ref i))
+        assert(orderBookKeys.Count > 0, add(add(add(exchange.id, " "), method), " returned 0 length data"));
+        for (int i = 0; i < orderBookKeys.Count; postFixIncrement(ref i))
         {
             string? symbolInner = ((string)getValue(orderBookKeys, i));
             testOrderBook(exchange, skippedProperties, method, getValue(orderBooks, symbolInner), symbolInner);

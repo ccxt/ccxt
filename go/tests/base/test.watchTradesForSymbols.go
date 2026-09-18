@@ -54,10 +54,10 @@ func testWatchTradesForSymbolsBody(ch chan any, exchange ccxt.ICoreExchange, ski
 		var elapsedMs any = Subtract(now, startTime)
 		if (success == true) && (!IsEqual(response, nil)) {
 			Assert(IsArray(response), Add(Add(logText, "must return an array. "), exchange.Json(response)))
-			for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
+			for i := 0; i < GetArrayLength(response); i++ {
 				var trade any = GetValue(response, i)
 				var symbol any = GetValue(trade, "symbol")
-				Assert(!IsEqual(symbol, nil), Add(Add(logText, "returned a trade without a symbol "), exchange.Json(trade)))
+				Assert((symbol != nil), Add(Add(logText, "returned a trade without a symbol "), exchange.Json(trade)))
 				TestTrade(exchange, skippedProperties, method, trade, symbol, now, true)
 				AssertInArray(exchange, skippedProperties, method, trade, "symbol", symbols)
 				if !EvalTruthy(exchange.InArray(symbol, returnedSymbols)) {

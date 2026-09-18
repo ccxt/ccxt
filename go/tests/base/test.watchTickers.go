@@ -89,7 +89,7 @@ func testWatchTickersHelperBody(ch chan any, exchange ccxt.ICoreExchange, skippe
 				checkedSymbol = GetValue(argSymbols, 0)
 			}
 			AssertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol)
-			for i := 0; IsLessThan(i, GetArrayLength(values)); i++ {
+			for i := 0; i < len(values); i++ {
 				var ticker any = GetValue(values, i)
 
 				{
@@ -103,7 +103,7 @@ func testWatchTickersHelperBody(ch chan any, exchange ccxt.ICoreExchange, skippe
 									// catch block:
 									var ohlcv any = nil
 									var tickerSymbol any = GetValue(ticker, "symbol")
-									if (!IsEqual(tickerSymbol, nil)) && EvalTruthy(TickerExceptionNeedsOhlcv(ex, exchange, ticker)) {
+									if (tickerSymbol != nil) && EvalTruthy(TickerExceptionNeedsOhlcv(ex, exchange, ticker)) {
 
 										ohlcv = (<-exchange.FetchOHLCVAsync(tickerSymbol, "1d", nil, 5))
 										PanicOnError(ohlcv)

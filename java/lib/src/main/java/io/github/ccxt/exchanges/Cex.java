@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 public class Cex extends CexApi
 {
@@ -398,7 +399,7 @@ public class Cex extends CexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             List<Object> promises = new ArrayList<Object>(Arrays.asList());
             ((List<Object>)promises).add(this.publicPostGetCurrenciesInfo(parameters));
             //
@@ -451,20 +452,20 @@ public class Cex extends CexApi
     {
         String id = this.safeString(rawCurrency, "currency");
         String code = this.safeCurrencyCode(id);
-        Boolean isFiat = (Helpers.isEqual(this.safeBool(rawCurrency, "fiat"), true));
+        Boolean isFiat = (java.util.Objects.equals(this.safeBool(rawCurrency, "fiat"), true));
         String type = ((Helpers.isTrue(isFiat))) ? "fiat" : "crypto";
         Object currencyPrecision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "precision")));
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         Object rawNetworks = this.safeDict(rawCurrency, "blockchains", new HashMap<String, Object>() {{}});
         Object keys = Helpers.objectKeys(rawNetworks);
-        for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(keys)); j++)
+        for (var j = 0; j < ((List<?>)keys).size(); j++)
         {
             Object networkId = Helpers.GetValue(keys, j);
             Object rawNetwork = Helpers.GetValue(rawNetworks, networkId);
             Object networkCode = this.networkIdToCode(networkId, code);
-            Boolean deposit = Helpers.isEqual(this.safeString(rawNetwork, "deposit"), "enabled");
-            Boolean withdraw = Helpers.isEqual(this.safeString(rawNetwork, "withdrawal"), "enabled");
-            if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
+            Boolean deposit = java.util.Objects.equals(this.safeString(rawNetwork, "deposit"), "enabled");
+            Boolean withdraw = java.util.Objects.equals(this.safeString(rawNetwork, "withdrawal"), "enabled");
+            if (!java.util.Objects.equals(networkCode, null))
             {
                 final Object finalNetworkCode = networkCode;
                 Helpers.addElementToObject(networks, networkCode, new HashMap<String, Object>() {{
@@ -528,7 +529,7 @@ public class Cex extends CexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.publicPostGetPairsInfo(parameters)).join();
             //
             //    {
@@ -632,7 +633,7 @@ public class Cex extends CexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.publicPostGetServerTime(parameters)).join();
             //
             //    {
@@ -664,8 +665,8 @@ public class Cex extends CexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -689,16 +690,16 @@ public class Cex extends CexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
+            if (!java.util.Objects.equals(symbols, null))
             {
-                Helpers.addElementToObject(request, "pairs", this.marketIds(symbols));
+                ((Map<String, Object>)request).put("pairs", this.marketIds(symbols));
             }
             Map<String, Object> response = (this.publicPostGetTicker(this.extend(request, parameters))).join();
             //
@@ -735,7 +736,7 @@ public class Cex extends CexApi
 
     public Object parseTicker(Object ticker, Object... optionalArgs)
     {
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(ticker, "id");
         String symbol = this.safeSymbol(marketId, market);
         return this.safeTicker(new HashMap<String, Object>() {{
@@ -778,32 +779,32 @@ public class Cex extends CexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object since = Helpers.getArg(optionalArgs, 0, null);
-            Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "pair", Helpers.GetValue(market, "id") );
+                put( "pair", ((Map<String, Object>)market).get("id") );
             }};
-            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            if (!java.util.Objects.equals(since, null))
             {
-                Helpers.addElementToObject(request, "fromDateISO", this.iso8601(since));
+                ((Map<String, Object>)request).put("fromDateISO", this.iso8601(since));
             }
             Long until = null;
             List<Object> untilparametersVariable = (List<Object>) this.handleParamInteger2(parameters, "until", "till");
             until = (Long) ((List<Object>) untilparametersVariable).get(0);
             parameters = ((List<Object>) untilparametersVariable).get(1);
-            if (Helpers.isTrue(!Helpers.isEqual(until, null)))
+            if (!java.util.Objects.equals(until, null))
             {
-                Helpers.addElementToObject(request, "toDateISO", this.iso8601(until));
+                ((Map<String, Object>)request).put("toDateISO", this.iso8601(until));
             }
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(request, "pageSize", Helpers.mathMin(limit, 10000)); // has a bug, still returns more trades
+                ((Map<String, Object>)request).put("pageSize", Helpers.mathMin(limit, 10000)); // has a bug, still returns more trades
             }
             Map<String, Object> response = (this.publicPostGetTradeHistory(this.extend(request, parameters))).join();
             //
@@ -824,7 +825,7 @@ public class Cex extends CexApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object trades = this.safeList(data, "trades", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
@@ -841,7 +842,7 @@ public class Cex extends CexApi
         //                    "amount": "0.00165962"
         //                },
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String dateStr = this.safeString(trade, "dateISO");
         Long timestamp = this.parse8601(dateStr);
         market = this.safeMarket(null, market);
@@ -850,7 +851,7 @@ public class Cex extends CexApi
             put( "info", trade );
             put( "timestamp", timestamp );
             put( "datetime", Cex.this.iso8601(timestamp) );
-            put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
+            put( "symbol", ((Map<String, Object>)finalMarket).get("symbol") );
             put( "id", Cex.this.safeString(trade, "tradeId") );
             put( "order", null );
             put( "type", null );
@@ -878,15 +879,15 @@ public class Cex extends CexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "pair", Helpers.GetValue(market, "id") );
+                put( "pair", ((Map<String, Object>)market).get("id") );
             }};
             Map<String, Object> response = (this.publicPostGetOrderBook(this.extend(request, parameters))).join();
             //
@@ -909,7 +910,7 @@ public class Cex extends CexApi
             //
             Object orderBook = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(orderBook, "timestamp");
-            return this.parseOrderBook(orderBook, Helpers.GetValue(market, "symbol"), timestamp);
+            return this.parseOrderBook(orderBook, ((Map<String, Object>)market).get("symbol"), timestamp);
         }).thenApply(OrderBook::new);
 
     }
@@ -932,55 +933,55 @@ public class Cex extends CexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             Object dataType = null;
             List<Object> dataTypeparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "dataType");
             dataType = ((List<Object>) dataTypeparametersVariable).get(0);
             parameters = ((List<Object>) dataTypeparametersVariable).get(1);
-            if (Helpers.isTrue(Helpers.isEqual(dataType, null)))
+            if (java.util.Objects.equals(dataType, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOHLCV requires a parameter \"dataType\" to be either \"bestBid\" or \"bestAsk\"")) ;
+                throw new ArgumentsRequired((this.id + " fetchOHLCV requires a parameter \"dataType\" to be either \"bestBid\" or \"bestAsk\"")) ;
             }
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             final Object finalDataType = dataType;
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "pair", Helpers.GetValue(market, "id") );
+                put( "pair", ((Map<String, Object>)market).get("id") );
                 put( "resolution", Helpers.GetValue(Cex.this.timeframes, timeframe) );
                 put( "dataType", finalDataType );
             }};
-            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            if (!java.util.Objects.equals(since, null))
             {
-                Helpers.addElementToObject(request, "fromISO", this.iso8601(since));
+                ((Map<String, Object>)request).put("fromISO", this.iso8601(since));
             }
             Long until = null;
             List<Object> untilparametersVariable = (List<Object>) this.handleParamInteger2(parameters, "until", "till");
             until = (Long) ((List<Object>) untilparametersVariable).get(0);
             parameters = ((List<Object>) untilparametersVariable).get(1);
-            if (Helpers.isTrue(!Helpers.isEqual(until, null)))
+            if (!java.util.Objects.equals(until, null))
             {
-                Helpers.addElementToObject(request, "toISO", this.iso8601(until));
-            } else if (Helpers.isTrue(Helpers.isEqual(since, null)))
+                ((Map<String, Object>)request).put("toISO", this.iso8601(until));
+            } else if (java.util.Objects.equals(since, null))
             {
                 // exchange still requires that we provide one of them
-                Helpers.addElementToObject(request, "toISO", this.iso8601(this.milliseconds()));
+                ((Map<String, Object>)request).put("toISO", this.iso8601(this.milliseconds()));
             }
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(since, null)) && Helpers.isTrue(!Helpers.isEqual(until, null))) && Helpers.isTrue(!Helpers.isEqual(limit, null))))
+            if (!java.util.Objects.equals(since, null) && !java.util.Objects.equals(until, null) && !java.util.Objects.equals(limit, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOHLCV does not support fetching candles with both a limit and since/until")) ;
-            } else if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(since, null)) || Helpers.isTrue(!Helpers.isEqual(until, null)))) && Helpers.isTrue(Helpers.isEqual(limit, null))))
+                throw new ArgumentsRequired((this.id + " fetchOHLCV does not support fetching candles with both a limit and since/until")) ;
+            } else if ((!java.util.Objects.equals(since, null) || !java.util.Objects.equals(until, null)) && java.util.Objects.equals(limit, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " fetchOHLCV requires a limit parameter when fetching candles with since or until")) ;
+                throw new ArgumentsRequired((this.id + " fetchOHLCV requires a limit parameter when fetching candles with since or until")) ;
             }
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(request, "limit", limit);
+                ((Map<String, Object>)request).put("limit", limit);
             }
             Map<String, Object> response = (this.publicPostGetCandles(this.extend(request, parameters))).join();
             //
@@ -1002,13 +1003,13 @@ public class Cex extends CexApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(data, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
 
     public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
     {
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, "timestamp"), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, "volume")));
     }
 
@@ -1025,8 +1026,8 @@ public class Cex extends CexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -1050,10 +1051,10 @@ public class Cex extends CexApi
 
     public Object parseTradingFees(Object response, Object... optionalArgs)
     {
-        Object useKeyAsId = Helpers.getArg(optionalArgs, 0, false);
+        Object useKeyAsId = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : false;
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         Object keys = Helpers.objectKeys(response);
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
+        for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);
             Object market = null;
@@ -1062,16 +1063,16 @@ public class Cex extends CexApi
                 market = this.safeMarket(key);
             }
             Object parsed = this.parseTradingFee(Helpers.GetValue(response, key), market);
-            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(parsed, "symbol"), null)))
+            if (!java.util.Objects.equals(((Map<String, Object>)parsed).get("symbol"), null))
             {
-                Helpers.addElementToObject(result, Helpers.GetValue(parsed, "symbol"), parsed);
+                Helpers.addElementToObject(result, ((Map<String, Object>)parsed).get("symbol"), parsed);
             }
         }
         List<Object> symbols = this.symbols;
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
+        for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
             Object symbol = Helpers.GetValue(symbols, i);
-            if (!Helpers.isTrue((Helpers.inOp(result, symbol))))
+            if (!(((Map<?, ?>)result).containsKey(symbol)))
             {
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 Helpers.addElementToObject(result, symbol, this.parseTradingFee(response, market));
@@ -1082,7 +1083,7 @@ public class Cex extends CexApi
 
     public Object parseTradingFee(Object fee, Object... optionalArgs)
     {
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         return new HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", Cex.this.safeString(market, "symbol") );
@@ -1098,8 +1099,8 @@ public class Cex extends CexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -1128,7 +1129,7 @@ public class Cex extends CexApi
             Object balances = this.safeDict(data, "balancesPerAccounts", new HashMap<String, Object>() {{}});
             List<Object> arrays = this.toArray(balances);
             return this.parseAccounts(arrays, parameters);
-        }).thenApply(res -> Helpers.toTypedList(res, Account::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Account::new).collect(Collectors.toList()));
 
     }
 
@@ -1157,7 +1158,7 @@ public class Cex extends CexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             String accountName = null;
             List<Object> accountNameparametersVariable = (List<Object>) this.handleParamString(parameters, "account", "");
             accountName = (String) ((List<Object>) accountNameparametersVariable).get(0);
@@ -1167,7 +1168,7 @@ public class Cex extends CexApi
             method = (String) ((List<Object>) methodparametersVariable).get(0);
             parameters = ((List<Object>) methodparametersVariable).get(1);
             Object accountBalance = null;
-            if (Helpers.isTrue(Helpers.isEqual(method, "privatePostGetMyAccountStatusV3")))
+            if (java.util.Objects.equals(method, "privatePostGetMyAccountStatusV3"))
             {
                 Map<String, Object> response = (this.privatePostGetMyAccountStatusV3(parameters)).join();
                 //
@@ -1214,7 +1215,7 @@ public class Cex extends CexApi
             put( "info", response );
         }};
         Object keys = Helpers.objectKeys(response);
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
+        for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);
             Object balance = this.safeDict(response, key, new HashMap<String, Object>() {{}});
@@ -1223,7 +1224,7 @@ public class Cex extends CexApi
                 put( "used", Cex.this.safeString(balance, "balanceOnHold") );
                 put( "total", Cex.this.safeString(balance, "balance") );
             }};
-            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            if (!java.util.Objects.equals(code, null))
             {
                 Helpers.addElementToObject(result, code, account);
             }
@@ -1249,45 +1250,45 @@ public class Cex extends CexApi
         final Object status3 = status2;
         return BaseExchange.supplyAsync(() -> {
             Object status = status3;
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Boolean isClosedOrders = (Helpers.isEqual(status, "closed"));
+            Boolean isClosedOrders = (java.util.Objects.equals(status, "closed"));
             if (Helpers.isTrue(isClosedOrders))
             {
-                Helpers.addElementToObject(request, "archived", true);
+                ((Map<String, Object>)request).put("archived", true);
             }
             Object market = null;
-            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                Helpers.addElementToObject(request, "pair", Helpers.GetValue(market, "id"));
+                ((Map<String, Object>)request).put("pair", ((Map<String, Object>)market).get("id"));
             }
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(request, "pageSize", limit);
+                ((Map<String, Object>)request).put("pageSize", limit);
             }
-            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            if (!java.util.Objects.equals(since, null))
             {
-                Helpers.addElementToObject(request, "serverCreateTimestampFrom", since);
+                ((Map<String, Object>)request).put("serverCreateTimestampFrom", since);
             } else if (Helpers.isTrue(isClosedOrders))
             {
                 // exchange requires a `since` parameter for closed orders, so set default to allowed 365
-                Helpers.addElementToObject(request, "serverCreateTimestampFrom", Helpers.subtract(this.milliseconds(), Helpers.multiply(Helpers.multiply(Helpers.multiply(Helpers.multiply(364, 24), 60), 60), 1000)));
+                ((Map<String, Object>)request).put("serverCreateTimestampFrom", Helpers.subtract(this.milliseconds(), ((((364L * 24L) * 60L) * 60L) * 1000L)));
             }
             Long until = null;
             List<Object> untilparametersVariable = (List<Object>) this.handleParamInteger2(parameters, "until", "till");
             until = (Long) ((List<Object>) untilparametersVariable).get(0);
             parameters = ((List<Object>) untilparametersVariable).get(1);
-            if (Helpers.isTrue(!Helpers.isEqual(until, null)))
+            if (!java.util.Objects.equals(until, null))
             {
-                Helpers.addElementToObject(request, "serverCreateTimestampTo", until);
+                ((Map<String, Object>)request).put("serverCreateTimestampTo", until);
             }
             Map<String, Object> response = (this.privatePostGetMyOrders(this.extend(request, parameters))).join();
             //
@@ -1352,12 +1353,12 @@ public class Cex extends CexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             return (this.fetchOrdersByStatus("closed", symbol, since, limit, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -1377,12 +1378,12 @@ public class Cex extends CexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             return (this.fetchOrdersByStatus("open", symbol, since, limit, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -1401,9 +1402,9 @@ public class Cex extends CexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -1431,9 +1432,9 @@ public class Cex extends CexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -1495,25 +1496,25 @@ public class Cex extends CexApi
         //                "expireTime": null,
         //                "effectiveTime": null
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String currency1 = this.safeString(order, "currency1");
         String currency2 = this.safeString(order, "currency2");
         Object marketId = null;
-        if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(currency1, null)) && Helpers.isTrue(!Helpers.isEqual(currency2, null))))
+        if (!java.util.Objects.equals(currency1, null) && !java.util.Objects.equals(currency2, null))
         {
-            marketId = Helpers.add(Helpers.add(currency1, "-"), currency2);
+            marketId = ((currency1 + "-") + currency2);
         }
         market = this.safeMarket(marketId, market);
-        Object symbol = Helpers.GetValue(market, "symbol");
+        Object symbol = ((Map<String, Object>)market).get("symbol");
         String status = this.parseOrderStatus(this.safeString(order, "status"));
         Map<String, Object> fee = new HashMap<String, Object>() {{}};
         Double feeAmount = this.safeNumber(order, "feeAmount");
-        if (Helpers.isTrue(!Helpers.isEqual(feeAmount, null)))
+        if (!java.util.Objects.equals(feeAmount, null))
         {
             String currencyId = this.safeString(order, "feeCurrency");
             String feeCode = this.safeCurrencyCode(currencyId);
-            Helpers.addElementToObject(fee, "currency", feeCode);
-            Helpers.addElementToObject(fee, "cost", feeAmount);
+            ((Map<String, Object>)fee).put("currency", feeCode);
+            ((Map<String, Object>)fee).put("cost", feeAmount);
         }
         Long timestamp = this.safeInteger(order, "serverCreateTimestamp");
         Double requestedBase = this.safeNumber(order, "requestedAmountCcy1");
@@ -1568,32 +1569,32 @@ public class Cex extends CexApi
         return BaseExchange.supplyAsync(() -> {
             Object type = type3;
             Object side = side3;
-            Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             Object accountId = null;
             List<Object> accountIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "accountId");
             accountId = ((List<Object>) accountIdparametersVariable).get(0);
             parameters = ((List<Object>) accountIdparametersVariable).get(1);
-            if (Helpers.isTrue(Helpers.isEqual(accountId, null)))
+            if (java.util.Objects.equals(accountId, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() : API trading is now allowed from main account, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account")) ;
+                throw new ArgumentsRequired((this.id + " createOrder() : API trading is now allowed from main account, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account")) ;
             }
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            if (Helpers.isTrue(Helpers.isEqual(side, null)))
+            if (java.util.Objects.equals(side, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " createOrder() requires a side argument")) ;
+                throw new ArgumentsRequired((this.id + " createOrder() requires a side argument")) ;
             }
             final Object finalAccountId = accountId;
             final Object finalType = type;
             final Object finalSide = side;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "clientOrderId", Cex.this.uuid() );
-                put( "currency1", Helpers.GetValue(market, "baseId") );
-                put( "currency2", Helpers.GetValue(market, "quoteId") );
+                put( "currency1", ((Map<String, Object>)market).get("baseId") );
+                put( "currency2", ((Map<String, Object>)market).get("quoteId") );
                 put( "accountId", finalAccountId );
                 put( "orderType", Cex.this.capitalize(((String)finalType).toLowerCase()) );
                 put( "side", ((String)finalSide).toUpperCase() );
@@ -1604,19 +1605,19 @@ public class Cex extends CexApi
             List<Object> timeInForceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "timeInForce", "GTC");
             timeInForce = ((List<Object>) timeInForceparametersVariable).get(0);
             parameters = ((List<Object>) timeInForceparametersVariable).get(1);
-            if (Helpers.isTrue(Helpers.isEqual(type, "limit")))
+            if (java.util.Objects.equals(type, "limit"))
             {
-                Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
-                Helpers.addElementToObject(request, "timeInForce", timeInForce);
+                ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
+                ((Map<String, Object>)request).put("timeInForce", timeInForce);
             }
             String triggerPrice = null;
             List<Object> triggerPriceparametersVariable = (List<Object>) this.handleParamString(parameters, "triggerPrice");
             triggerPrice = (String) ((List<Object>) triggerPriceparametersVariable).get(0);
             parameters = ((List<Object>) triggerPriceparametersVariable).get(1);
-            if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
+            if (!java.util.Objects.equals(triggerPrice, null))
             {
-                Helpers.addElementToObject(request, "type", "Stop Limit");
-                Helpers.addElementToObject(request, "stopPrice", triggerPrice);
+                ((Map<String, Object>)request).put("type", "Stop Limit");
+                ((Map<String, Object>)request).put("stopPrice", triggerPrice);
             }
             Map<String, Object> response = (this.privatePostDoMyNewOrder(this.extend(request, parameters))).join();
             //
@@ -1688,15 +1689,15 @@ public class Cex extends CexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "orderId", Helpers.parseInt(id) );
-                put( "cancelRequestId", Helpers.add("c_", String.valueOf((Cex.this.milliseconds()))) );
+                put( "cancelRequestId", ("c_" + String.valueOf((Cex.this.milliseconds()))) );
                 put( "timestamp", Cex.this.milliseconds() );
             }};
             Map<String, Object> response = (this.privatePostDoCancelMyOrder(this.extend(request, parameters))).join();
@@ -1723,9 +1724,9 @@ public class Cex extends CexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -1743,7 +1744,7 @@ public class Cex extends CexApi
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object ids = this.safeList(data, "clientOrderIds", new ArrayList<Object>(Arrays.asList()));
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
+            for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
                 Object id = Helpers.GetValue(ids, i);
                 ((List<Object>)orders).add(new HashMap<String, Object>() {{
@@ -1751,7 +1752,7 @@ public class Cex extends CexApi
                 }});
             }
             return this.parseOrders(orders);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -1772,36 +1773,36 @@ public class Cex extends CexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object code = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Object currency = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            if (!java.util.Objects.equals(code, null))
             {
                 currency = this.currency(code);
-                Helpers.addElementToObject(request, "currency", Helpers.GetValue(currency, "id"));
+                ((Map<String, Object>)request).put("currency", ((Map<String, Object>)currency).get("id"));
             }
-            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            if (!java.util.Objects.equals(since, null))
             {
-                Helpers.addElementToObject(request, "dateFrom", since);
+                ((Map<String, Object>)request).put("dateFrom", since);
             }
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(request, "pageSize", limit);
+                ((Map<String, Object>)request).put("pageSize", limit);
             }
             Long until = null;
             List<Object> untilparametersVariable = (List<Object>) this.handleParamInteger2(parameters, "until", "till");
             until = (Long) ((List<Object>) untilparametersVariable).get(0);
             parameters = ((List<Object>) untilparametersVariable).get(1);
-            if (Helpers.isTrue(!Helpers.isEqual(until, null)))
+            if (!java.util.Objects.equals(until, null))
             {
-                Helpers.addElementToObject(request, "dateTo", until);
+                ((Map<String, Object>)request).put("dateTo", until);
             }
             Map<String, Object> response = (this.privatePostGetMyTransactionHistory(this.extend(request, parameters))).join();
             //
@@ -1821,13 +1822,13 @@ public class Cex extends CexApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseLedger(data, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, LedgerEntry::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
     }
 
     public Object parseLedgerEntry(Object item, Object... optionalArgs)
     {
-        Object currency = Helpers.getArg(optionalArgs, 0, null);
+        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String amount = this.safeString(item, "amount");
         String direction = null;
         if (Helpers.isTrue(Precise.stringLe(amount, "0")))
@@ -1891,35 +1892,35 @@ public class Cex extends CexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object code = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Object currency = null;
-            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            if (!java.util.Objects.equals(code, null))
             {
                 currency = this.currency(code);
             }
-            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            if (!java.util.Objects.equals(since, null))
             {
-                Helpers.addElementToObject(request, "dateFrom", since);
+                ((Map<String, Object>)request).put("dateFrom", since);
             }
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(request, "pageSize", limit);
+                ((Map<String, Object>)request).put("pageSize", limit);
             }
             Long until = null;
             List<Object> untilparametersVariable = (List<Object>) this.handleParamInteger2(parameters, "until", "till");
             until = (Long) ((List<Object>) untilparametersVariable).get(0);
             parameters = ((List<Object>) untilparametersVariable).get(1);
-            if (Helpers.isTrue(!Helpers.isEqual(until, null)))
+            if (!java.util.Objects.equals(until, null))
             {
-                Helpers.addElementToObject(request, "dateTo", until);
+                ((Map<String, Object>)request).put("dateTo", until);
             }
             Map<String, Object> response = (this.privatePostGetMyFundingHistory(this.extend(request, parameters))).join();
             //
@@ -1942,16 +1943,16 @@ public class Cex extends CexApi
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
 
     public Object parseTransaction(Object transaction, Object... optionalArgs)
     {
-        Object currency = Helpers.getArg(optionalArgs, 0, null);
+        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String currencyId = this.safeString(transaction, "currency");
         String direction = this.safeString(transaction, "direction");
-        String type = ((Helpers.isTrue((Helpers.isEqual(direction, "withdraw"))))) ? "withdrawal" : "deposit";
+        String type = (((java.util.Objects.equals(direction, "withdraw")))) ? "withdrawal" : "deposit";
         String code = this.safeCurrencyCode(currencyId, currency);
         String updatedAt = this.safeString(transaction, "updatedAt");
         Long timestamp = this.parse8601(updatedAt);
@@ -2011,9 +2012,9 @@ public class Cex extends CexApi
         return BaseExchange.supplyAsync(() -> {
             Object fromAccount = fromAccount3;
             Object toAccount = toAccount3;
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object transfer = null;
-            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(toAccount, "")) && Helpers.isTrue(!Helpers.isEqual(fromAccount, ""))))
+            if (!java.util.Objects.equals(toAccount, "") && !java.util.Objects.equals(fromAccount, ""))
             {
                 transfer = (this.transferBetweenSubAccounts(code, amount, fromAccount, toAccount, parameters)).join();
             } else
@@ -2021,10 +2022,10 @@ public class Cex extends CexApi
                 transfer = (this.transferBetweenMainAndSubAccount(code, amount, fromAccount, toAccount, parameters)).join();
             }
             Object fillResponseFromRequest = this.handleOption("transfer", "fillResponseFromRequest", true);
-            if (Helpers.isTrue(Helpers.isEqual(fillResponseFromRequest, true)))
+            if (java.util.Objects.equals(fillResponseFromRequest, true))
             {
-                Helpers.addElementToObject(transfer, "fromAccount", fromAccount);
-                Helpers.addElementToObject(transfer, "toAccount", toAccount);
+                ((Map<String, Object>)transfer).put("fromAccount", fromAccount);
+                ((Map<String, Object>)transfer).put("toAccount", toAccount);
             }
             return transfer;
         }).thenApply(TransferEntry::new);
@@ -2036,17 +2037,17 @@ public class Cex extends CexApi
         final Object fromAccount3 = fromAccount2;
         return BaseExchange.supplyAsync(() -> {
             Object fromAccount = fromAccount3;
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
-            Boolean fromMain = (Helpers.isEqual(fromAccount, ""));
+            Boolean fromMain = (java.util.Objects.equals(fromAccount, ""));
             Object targetAccount = ((Helpers.isTrue(fromMain))) ? toAccount : fromAccount;
             String guid = this.safeString(parameters, "guid", this.uuid());
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currency", Helpers.GetValue(currency, "id") );
+                put( "currency", ((Map<String, Object>)currency).get("id") );
                 put( "amount", Cex.this.currencyToPrecision(code, amount) );
                 put( "accountId", targetAccount );
                 put( "clientTxId", guid );
@@ -2083,14 +2084,14 @@ public class Cex extends CexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "currency", Helpers.GetValue(currency, "id") );
+                put( "currency", ((Map<String, Object>)currency).get("id") );
                 put( "amount", Cex.this.currencyToPrecision(code, amount) );
                 put( "fromAccountId", fromAccount );
                 put( "toAccountId", toAccount );
@@ -2134,7 +2135,7 @@ public class Cex extends CexApi
         //         }
         //     }
         //
-        Object currency = Helpers.getArg(optionalArgs, 0, null);
+        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String currencyId = this.safeString(transfer, "currency");
         String currencyCode = this.safeCurrencyCode(currencyId, currency);
         return new HashMap<String, Object>() {{
@@ -2165,16 +2166,16 @@ public class Cex extends CexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object accountId = null;
             List<Object> accountIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "accountId");
             accountId = ((List<Object>) accountIdparametersVariable).get(0);
             parameters = ((List<Object>) accountIdparametersVariable).get(1);
-            if (Helpers.isTrue(Helpers.isEqual(accountId, null)))
+            if (java.util.Objects.equals(accountId, null))
             {
-                throw new ArgumentsRequired(Helpers.add(this.id, " fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account")) ;
+                throw new ArgumentsRequired((this.id + " fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account")) ;
             }
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -2187,8 +2188,8 @@ public class Cex extends CexApi
             final Object finalNetworkCode = networkCode;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "accountId", finalAccountId );
-                put( "currency", Helpers.GetValue(currency, "id") );
-                put( "blockchain", Cex.this.networkCodeToId(finalNetworkCode, Helpers.GetValue(currency, "code")) );
+                put( "currency", ((Map<String, Object>)currency).get("id") );
+                put( "blockchain", Cex.this.networkCodeToId(finalNetworkCode, ((Map<String, Object>)currency).get("code")) );
             }};
             Map<String, Object> response = (this.privatePostGetDepositAddress(this.extend(request, parameters))).join();
             //
@@ -2210,7 +2211,7 @@ public class Cex extends CexApi
 
     public Object parseDepositAddress(Object depositAddress, Object... optionalArgs)
     {
-        Object currency = Helpers.getArg(optionalArgs, 0, null);
+        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String address = this.safeString(depositAddress, "address");
         String currencyId = this.safeString(depositAddress, "currency");
         currency = this.safeCurrency(currencyId, currency);
@@ -2218,8 +2219,8 @@ public class Cex extends CexApi
         final Object finalCurrency = currency;
         return new HashMap<String, Object>() {{
             put( "info", depositAddress );
-            put( "currency", Helpers.GetValue(finalCurrency, "code") );
-            put( "network", Cex.this.networkIdToCode(Cex.this.safeString(depositAddress, "blockchain"), Helpers.GetValue(finalCurrency, "code")) );
+            put( "currency", ((Map<String, Object>)finalCurrency).get("code") );
+            put( "network", Cex.this.networkIdToCode(Cex.this.safeString(depositAddress, "blockchain"), ((Map<String, Object>)finalCurrency).get("code")) );
             put( "address", address );
             put( "tag", null );
         }};
@@ -2227,20 +2228,20 @@ public class Cex extends CexApi
 
     public Object sign(Object path, Object... optionalArgs)
     {
-        Object api = Helpers.getArg(optionalArgs, 0, "public");
-        Object method = Helpers.getArg(optionalArgs, 1, "GET");
-        Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
-        Object headers = Helpers.getArg(optionalArgs, 3, null);
-        Object body = Helpers.getArg(optionalArgs, 4, null);
-        Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api), "/"), this.implodeParams(path, parameters));
+        Object api = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public";
+        Object method = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET";
+        Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+        Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
+        Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
+        Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), "/"), this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
-        if (Helpers.isTrue(Helpers.isEqual(api, "public")))
+        if (java.util.Objects.equals(api, "public"))
         {
-            if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
+            if (java.util.Objects.equals(method, "GET"))
             {
-                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
+                if (((List<?>)Helpers.objectKeys(query)).size() > 0)
                 {
-                    url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
+                    url = (url + ("?" + this.urlencode(query)));
                 }
             } else
             {
@@ -2280,37 +2281,37 @@ public class Cex extends CexApi
         // in some cases, like from createOrder, exchange returns nested escaped JSON string:
         //      {"ok":"ok","data":{"messageType":"executionReport", "orderRejectReason":"{\"code\":405}"} }
         // and because of `.parseJson` bug, we need extra fix
-        if (Helpers.isTrue(Helpers.isEqual(response, null)))
+        if (java.util.Objects.equals(response, null))
         {
-            if (Helpers.isTrue(Helpers.isEqual(body, null)))
+            if (java.util.Objects.equals(body, null))
             {
-                throw new NullResponse(Helpers.add(this.id, " returned empty response")) ;
-            } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(body, 0), "{")))
+                throw new NullResponse((this.id + " returned empty response")) ;
+            } else if (java.util.Objects.equals(Helpers.GetValue(body, 0), "{"))
             {
                 Object fixedVar = this.fixStringifiedJsonMembers(body);
                 response = this.parseJson(fixedVar);
             } else
             {
-                throw new NullResponse(Helpers.add(Helpers.add(this.id, " returned unparsed response: "), body)) ;
+                throw new NullResponse(((this.id + " returned unparsed response: ") + body)) ;
             }
         }
         String error = this.safeString(response, "error");
-        if (Helpers.isTrue(!Helpers.isEqual(error, null)))
+        if (!java.util.Objects.equals(error, null))
         {
-            Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
-            this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), error, feedback);
-            this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), error, feedback);
+            Object feedback = ((this.id + " ") + body);
+            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), error, feedback);
+            this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), error, feedback);
             throw new ExchangeError((String)feedback) ;
         }
         // check errors in order-engine (the responses are not standard, so we parse here)
-        if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "do_my_new_order"), 0)))
+        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "do_my_new_order"), 0))
         {
             Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String rejectReason = this.safeString(data, "rejectReason");
-            if (Helpers.isTrue(!Helpers.isEqual(rejectReason, null)))
+            if (!java.util.Objects.equals(rejectReason, null))
             {
-                this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), rejectReason, rejectReason);
-                throw new ExchangeError(Helpers.add(Helpers.add(this.id, " createOrder() "), rejectReason)) ;
+                this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), rejectReason, rejectReason);
+                throw new ExchangeError(((this.id + " createOrder() ") + rejectReason)) ;
             }
         }
         return null;

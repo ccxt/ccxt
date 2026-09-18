@@ -15,55 +15,55 @@ pub fn testPrecisionFromString() {
         m
     }));
     // Test 1: Scientific notation negative exponent
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.precision_from_string(Value::Str("1e-4".to_string())), &Value::Int(4))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.precision_from_string(Value::Str("1e-4".to_string())).as_f64() == Some(4.0)))));
     // Test 2: Scientific notation uppercase E
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.precision_from_string(Value::Str("1E-4".to_string())), &Value::Int(4))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.precision_from_string(Value::Str("1E-4".to_string())).as_f64() == Some(4.0)))));
     // Test 3: Scientific notation larger negative exponent
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.precision_from_string(Value::Str("1e-8".to_string())), &Value::Int(8))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.precision_from_string(Value::Str("1e-8".to_string())).as_f64() == Some(8.0)))));
     // Test 4: Scientific notation with decimal
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.precision_from_string(Value::Str("2.5e-6".to_string())), &Value::Int(6))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.precision_from_string(Value::Str("2.5e-6".to_string())).as_f64() == Some(6.0)))));
     // Test 5: Scientific notation positive exponent
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.precision_from_string(Value::Str("1e4".to_string())), &negate(&Value::Int(4)))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.precision_from_string(Value::Str("1e4".to_string())).as_f64() == Value::Int(-4).as_f64()))));
     // Test 6: Scientific notation explicit positive
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.precision_from_string(Value::Str("1e+4".to_string())), &negate(&Value::Int(4)))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.precision_from_string(Value::Str("1e+4".to_string())).as_f64() == Value::Int(-4).as_f64()))));
     // Test 7: Decimal string 4 places
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.precision_from_string(Value::Str("0.0001".to_string())), &Value::Int(4))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.precision_from_string(Value::Str("0.0001".to_string())).as_f64() == Some(4.0)))));
     // Test 8: Decimal string 5 places
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.precision_from_string(Value::Str("0.00001".to_string())), &Value::Int(5))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.precision_from_string(Value::Str("0.00001".to_string())).as_f64() == Some(5.0)))));
     // Test 9: Decimal string 1 place
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.precision_from_string(Value::Str("0.1".to_string())), &Value::Int(1))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.precision_from_string(Value::Str("0.1".to_string())).as_f64() == Some(1.0)))));
     // Test 10: Decimal string 2 places
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.precision_from_string(Value::Str("0.01".to_string())), &Value::Int(2))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.precision_from_string(Value::Str("0.01".to_string())).as_f64() == Some(2.0)))));
     // Test 11: Decimal string 8 places
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.precision_from_string(Value::Str("0.00000001".to_string())), &Value::Int(8))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.precision_from_string(Value::Str("0.00000001".to_string())).as_f64() == Some(8.0)))));
     // Test 12: Trailing zeros should be stripped
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.precision_from_string(Value::Str("0.0100".to_string())), &Value::Int(2))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.precision_from_string(Value::Str("0.0100".to_string())).as_f64() == Some(2.0)))));
     // Test 13: Trailing zeros stripped
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.precision_from_string(Value::Str("0.00100".to_string())), &Value::Int(3))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.precision_from_string(Value::Str("0.00100".to_string())).as_f64() == Some(3.0)))));
     // Test 14: All trailing zeros after decimal
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.precision_from_string(Value::Str("1.0000".to_string())), &Value::Int(0))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.precision_from_string(Value::Str("1.0000".to_string())).as_f64() == Some(0.0)))));
     // Test 15: Integer string (no decimal)
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.precision_from_string(Value::Str("1".to_string())), &Value::Int(0))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.precision_from_string(Value::Str("1".to_string())).as_f64() == Some(0.0)))));
     // Test 16: Integer string larger
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.precision_from_string(Value::Str("10".to_string())), &Value::Int(0))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.precision_from_string(Value::Str("10".to_string())).as_f64() == Some(0.0)))));
     // Test 17: Integer string even larger
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.precision_from_string(Value::Str("100".to_string())), &Value::Int(0))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.precision_from_string(Value::Str("100".to_string())).as_f64() == Some(0.0)))));
     // Test 18: Zero with decimal
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.precision_from_string(Value::Str("0.0".to_string())), &Value::Int(0))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.precision_from_string(Value::Str("0.0".to_string())).as_f64() == Some(0.0)))));
     // Test 19: One with decimal
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.precision_from_string(Value::Str("1.0".to_string())), &Value::Int(0))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.precision_from_string(Value::Str("1.0".to_string())).as_f64() == Some(0.0)))));
     // Test 20: Mixed precision
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.precision_from_string(Value::Str("0.12345".to_string())), &Value::Int(5))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.precision_from_string(Value::Str("0.12345".to_string())).as_f64() == Some(5.0)))));
     // Test 21: Negative mantissa with negative exponent
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.precision_from_string(Value::Str("-8e-8".to_string())), &Value::Int(8))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.precision_from_string(Value::Str("-8e-8".to_string())).as_f64() == Some(8.0)))));
     // Test 22: Negative mantissa uppercase E with zero-padded exponent
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.precision_from_string(Value::Str("-8E-08".to_string())), &Value::Int(8))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.precision_from_string(Value::Str("-8E-08".to_string())).as_f64() == Some(8.0)))));
     // Test 23: Negative decimal mantissa
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.precision_from_string(Value::Str("-2.5e-6".to_string())), &Value::Int(6))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.precision_from_string(Value::Str("-2.5e-6".to_string())).as_f64() == Some(6.0)))));
     // Test 24: Negative mantissa with positive exponent
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.precision_from_string(Value::Str("-1e4".to_string())), &negate(&Value::Int(4)))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.precision_from_string(Value::Str("-1e4".to_string())).as_f64() == Value::Int(-4).as_f64()))));
     // Test 25: Explicitly positive mantissa
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.precision_from_string(Value::Str("+1e-4".to_string())), &Value::Int(4))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.precision_from_string(Value::Str("+1e-4".to_string())).as_f64() == Some(4.0)))));
     // Test 26: Negative mantissa with explicitly signed exponent
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.precision_from_string(Value::Str("-1e+4".to_string())), &negate(&Value::Int(4)))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.precision_from_string(Value::Str("-1e+4".to_string())).as_f64() == Value::Int(-4).as_f64()))));
 }

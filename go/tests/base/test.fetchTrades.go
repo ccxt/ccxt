@@ -23,14 +23,14 @@ func testFetchTradesBody(ch chan any, exchange ccxt.ICoreExchange, skippedProper
 	//
 	var now any = exchange.Milliseconds()
 	var isPublicTrade bool = true
-	for i := 0; IsLessThan(i, GetArrayLength(trades)); i++ {
+	for i := 0; i < GetArrayLength(trades); i++ {
 		TestTrade(exchange, skippedProperties, method, GetValue(trades, i), symbol, now, isPublicTrade)
 	}
 	//
 	// test if both sides are being returned
 	//
 	var minTradesForBothSidesCheck int = 99
-	if !(InOp(skippedProperties, "requireBothSides")) && IsGreaterThan(GetArrayLength(trades), minTradesForBothSidesCheck) {
+	if !(InOp(skippedProperties, "requireBothSides")) && (GetArrayLength(trades) > minTradesForBothSidesCheck) {
 		//
 		//  Check whether both "buy" and "sell" are returned from trades, when there are enough trades
 		//  for a one-sided result to be an implausible coincidence (see minTradesForBothSidesCheck)
@@ -76,7 +76,8 @@ func helperTestFetchTradesSideSequenceBody(ch chan any, exchange ccxt.ICoreExcha
 	var lastTs any = nil
 	var lastPrice any = nil
 	var lastSide any = nil
-	for i := 0; IsLessThan(i, GetArrayLength(trades)); i++ {
+	var lastTrade any = nil
+	for i := 0; i < GetArrayLength(trades); i++ {
 		var trade any = GetValue(trades, i)
 		var ts any = GetValue(trade, "timestamp")
 		var price any = exchange.SafeString(trade, "price")
@@ -87,17 +88,22 @@ func helperTestFetchTradesSideSequenceBody(ch chan any, exchange ccxt.ICoreExcha
 		var isSameSide bool = IsEqual(side, lastSide)
 		// we are only interested in trades that have: same timestamp, same side, but different(!) price
 		if isSameTs && isSameSide && !isSamePrice {
+			var pair map[string]any = map[string]any{
+				"previous": lastTrade,
+				"current":  trade,
+			}
 			var priceIncreasing bool = ccxt.Precise.StringGt(price, lastPrice)
 			var priceDecreasing bool = ccxt.Precise.StringLt(price, lastPrice)
 			if priceIncreasing {
-				Assert(IsEqual(side, "buy"), Add("Price is increasing, but side is not `buy`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip", LogTemplate(exchange, method, trade)))
+				Assert((side == "buy"), Add("Price is increasing, but side is not `buy`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip", LogTemplate(exchange, method, pair)))
 			} else if priceDecreasing {
-				Assert(IsEqual(side, "sell"), Add("Price is decreasing, but side is not `sell`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip", LogTemplate(exchange, method, trade)))
+				Assert((side == "sell"), Add("Price is decreasing, but side is not `sell`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip", LogTemplate(exchange, method, pair)))
 			}
 		}
 		lastPrice = price
 		lastTs = ts
 		lastSide = side
+		lastTrade = trade
 	}
 
 	ch <- true

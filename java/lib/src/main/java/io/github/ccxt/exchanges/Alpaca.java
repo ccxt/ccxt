@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 public class Alpaca extends AlpacaApi
 {
@@ -659,7 +660,7 @@ public class Alpaca extends AlpacaApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> response = (this.traderPrivateGetV2Clock(parameters)).join();
             //
             //     {
@@ -670,24 +671,24 @@ public class Alpaca extends AlpacaApi
             //     }
             //
             String timestamp = this.safeString(response, "timestamp");
-            if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
+            if (java.util.Objects.equals(timestamp, null))
             {
-                throw new ExchangeError(Helpers.add(this.id, " fetchTime() missing timestamp")) ;
+                throw new ExchangeError((this.id + " fetchTime() missing timestamp")) ;
             }
             Object localTime = Helpers.slice(timestamp, 0, 23);
-            if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
+            if (java.util.Objects.equals(timestamp, null))
             {
-                throw new ExchangeError(Helpers.add(this.id, " fetchTime() missing timestamp")) ;
+                throw new ExchangeError((this.id + " fetchTime() missing timestamp")) ;
             }
             Object jetlagStrStart = Helpers.subtract(timestamp.length(), 6);
-            if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
+            if (java.util.Objects.equals(timestamp, null))
             {
-                throw new ExchangeError(Helpers.add(this.id, " fetchTime() missing timestamp")) ;
+                throw new ExchangeError((this.id + " fetchTime() missing timestamp")) ;
             }
             Object jetlagStrEnd = Helpers.subtract(timestamp.length(), 3);
-            if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
+            if (java.util.Objects.equals(timestamp, null))
             {
-                throw new ExchangeError(Helpers.add(this.id, " fetchTime() missing timestamp")) ;
+                throw new ExchangeError((this.id + " fetchTime() missing timestamp")) ;
             }
             Object jetlag = Helpers.slice(timestamp, jetlagStrStart, jetlagStrEnd);
             Object iso = Helpers.subtract(this.parseToInt(this.parse8601(localTime)), Helpers.multiply(Helpers.multiply(this.parseToNumeric(jetlag), 3600), 1000));
@@ -709,7 +710,7 @@ public class Alpaca extends AlpacaApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "asset_class", "crypto" );
                 put( "status", "active" );
@@ -765,9 +766,9 @@ public class Alpaca extends AlpacaApi
         //     }
         //
         String marketId = this.safeString(asset, "symbol");
-        if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
+        if (java.util.Objects.equals(marketId, null))
         {
-            throw new ExchangeError(Helpers.add(this.id, " parseMarket() missing marketId")) ;
+            throw new ExchangeError((this.id + " parseMarket() missing marketId")) ;
         }
         Object parts = Helpers.split(marketId, "/");
         String assetClass = this.safeString(asset, "class");
@@ -777,18 +778,18 @@ public class Alpaca extends AlpacaApi
         String quote = this.safeCurrencyCode(quoteId);
         // Us equity markets do not include quote in symbol.
         // We can safely coerce us_equity quote to USD
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(quote, null)) && Helpers.isTrue(Helpers.isEqual(assetClass, "us_equity"))))
+        if (java.util.Objects.equals(quote, null) && java.util.Objects.equals(assetClass, "us_equity"))
         {
             quote = "USD";
         }
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         String status = this.safeString(asset, "status");
-        Boolean active = (Helpers.isEqual(status, "active"));
+        Boolean active = (java.util.Objects.equals(status, "active"));
         Double minAmount = this.safeNumber(asset, "min_order_size");
         Double amount = this.safeNumber(asset, "min_trade_increment");
         Double price = this.safeNumber(asset, "price_increment");
         Object minCost = null;
-        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(assetClass, "crypto"))) && Helpers.isTrue((Helpers.isEqual(quote, "USD")))))
+        if ((java.util.Objects.equals(assetClass, "crypto")) && (java.util.Objects.equals(quote, "USD")))
         {
             // alpaca rejects USD-quoted crypto buy orders below 10 USD notional: {"code":40310000,"message":"cost basis must be >= minimal amount of order 10"}
             // USDT-, USDC- and BTC-quoted pairs accept smaller orders, and sell orders are not floored — verified live 2026-08-25
@@ -868,15 +869,15 @@ public class Alpaca extends AlpacaApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object since = Helpers.getArg(optionalArgs, 0, null);
-            Object limit = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object marketId = Helpers.GetValue(market, "id");
+            Object marketId = ((Map<String, Object>)market).get("id");
             String loc = this.safeString(parameters, "loc", "us");
             String method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocTrades");
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -885,15 +886,15 @@ public class Alpaca extends AlpacaApi
             }};
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("loc", "method")));
             Object symbolTrades = null;
-            if (Helpers.isTrue(Helpers.isEqual(method, "marketPublicGetV1beta3CryptoLocTrades")))
+            if (java.util.Objects.equals(method, "marketPublicGetV1beta3CryptoLocTrades"))
             {
-                if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+                if (!java.util.Objects.equals(since, null))
                 {
-                    Helpers.addElementToObject(request, "start", this.iso8601(since));
+                    ((Map<String, Object>)request).put("start", this.iso8601(since));
                 }
-                if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+                if (!java.util.Objects.equals(limit, null))
                 {
-                    Helpers.addElementToObject(request, "limit", limit);
+                    ((Map<String, Object>)request).put("limit", limit);
                 }
                 Map<String, Object> response = (this.marketPublicGetV1beta3CryptoLocTrades(this.extend(request, parameters))).join();
                 //
@@ -914,7 +915,7 @@ public class Alpaca extends AlpacaApi
                 //
                 Object trades = this.safeDict(response, "trades", new HashMap<String, Object>() {{}});
                 symbolTrades = this.safeList(trades, marketId, new ArrayList<Object>(Arrays.asList()));
-            } else if (Helpers.isTrue(Helpers.isEqual(method, "marketPublicGetV1beta3CryptoLocLatestTrades")))
+            } else if (java.util.Objects.equals(method, "marketPublicGetV1beta3CryptoLocLatestTrades"))
             {
                 Map<String, Object> response = (this.marketPublicGetV1beta3CryptoLocLatestTrades(this.extend(request, parameters))).join();
                 //
@@ -935,15 +936,15 @@ public class Alpaca extends AlpacaApi
                 symbolTrades = new ArrayList<Object>(Arrays.asList(symbolTrade));
             } else
             {
-                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchTrades() does not support "), method), ", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported")) ;
+                throw new NotSupported((((this.id + " fetchTrades() does not support ") + method) + ", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported")) ;
             }
             Object symbolTradesList = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(!Helpers.isEqual(symbolTrades, null)))
+            if (!java.util.Objects.equals(symbolTrades, null))
             {
                 symbolTradesList = symbolTrades;
             }
             return this.parseTrades(symbolTradesList, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
@@ -963,14 +964,14 @@ public class Alpaca extends AlpacaApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object limit = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object limit = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object id = Helpers.GetValue(market, "id");
+            Object id = ((Map<String, Object>)market).get("id");
             String loc = this.safeString(parameters, "loc", "us");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbols", id );
@@ -1017,7 +1018,7 @@ public class Alpaca extends AlpacaApi
             Object orderbooks = this.safeDict(response, "orderbooks", new HashMap<String, Object>() {{}});
             Object rawOrderbook = this.safeDict(orderbooks, id, new HashMap<String, Object>() {{}});
             Long timestamp = this.parse8601(this.safeString(rawOrderbook, "t"));
-            return this.parseOrderBook(rawOrderbook, Helpers.GetValue(market, "symbol"), timestamp, "b", "a", "p", "s");
+            return this.parseOrderBook(rawOrderbook, ((Map<String, Object>)market).get("symbol"), timestamp, "b", "a", "p", "s");
         }).thenApply(OrderBook::new);
 
     }
@@ -1045,16 +1046,16 @@ public class Alpaca extends AlpacaApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object timeframe = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "1m";
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object marketId = Helpers.GetValue(market, "id");
+            Object marketId = ((Map<String, Object>)market).get("id");
             String loc = this.safeString(parameters, "loc", "us");
             String method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocBars");
             Object paginate = false;
@@ -1071,23 +1072,23 @@ public class Alpaca extends AlpacaApi
             }};
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("loc", "method")));
             Object ohlcvs = null;
-            if (Helpers.isTrue(Helpers.isEqual(method, "marketPublicGetV1beta3CryptoLocBars")))
+            if (java.util.Objects.equals(method, "marketPublicGetV1beta3CryptoLocBars"))
             {
-                if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+                if (!java.util.Objects.equals(limit, null))
                 {
-                    Helpers.addElementToObject(request, "limit", limit);
+                    ((Map<String, Object>)request).put("limit", limit);
                 }
-                if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+                if (!java.util.Objects.equals(since, null))
                 {
-                    Helpers.addElementToObject(request, "start", this.iso8601(since));
+                    ((Map<String, Object>)request).put("start", this.iso8601(since));
                 }
                 Long until = this.safeInteger(parameters, "until");
-                if (Helpers.isTrue(!Helpers.isEqual(until, null)))
+                if (!java.util.Objects.equals(until, null))
                 {
                     parameters = this.omit(parameters, "until");
-                    Helpers.addElementToObject(request, "end", this.iso8601(until));
+                    ((Map<String, Object>)request).put("end", this.iso8601(until));
                 }
-                Helpers.addElementToObject(request, "timeframe", this.safeString(this.timeframes, timeframe, timeframe));
+                ((Map<String, Object>)request).put("timeframe", this.safeString(this.timeframes, timeframe, timeframe));
                 Map<String, Object> response = (this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, parameters))).join();
                 //
                 //    {
@@ -1126,17 +1127,17 @@ public class Alpaca extends AlpacaApi
                     String pageToken = this.safeString(response, "next_page_token");
                     for (var i = 1; Helpers.isLessThan(i, paginationCalls); i++)
                     {
-                        Object ohlcvsLength = Helpers.getArrayLength(ohlcvs);
-                        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(pageToken, null))) || Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(limit, null))) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(ohlcvsLength, limit)))))))
+                        Object ohlcvsLength = ((List<?>)ohlcvs).size();
+                        if ((java.util.Objects.equals(pageToken, null)) || ((!java.util.Objects.equals(limit, null)) && (Helpers.isGreaterThanOrEqual(ohlcvsLength, limit))))
                         {
                             break;
                         }
-                        Helpers.addElementToObject(request, "page_token", pageToken);
+                        ((Map<String, Object>)request).put("page_token", pageToken);
                         response = (this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, parameters))).join();
                         bars = this.safeDict(response, "bars", new HashMap<String, Object>() {{}});
                         Object page = this.safeList(bars, marketId, new ArrayList<Object>(Arrays.asList()));
-                        Object pageLength = Helpers.getArrayLength(page);
-                        if (Helpers.isTrue(Helpers.isEqual(pageLength, 0)))
+                        Object pageLength = ((List<?>)page).size();
+                        if (Helpers.isEqual(pageLength, 0))
                         {
                             break;
                         }
@@ -1144,7 +1145,7 @@ public class Alpaca extends AlpacaApi
                         pageToken = this.safeString(response, "next_page_token");
                     }
                 }
-            } else if (Helpers.isTrue(Helpers.isEqual(method, "marketPublicGetV1beta3CryptoLocLatestBars")))
+            } else if (java.util.Objects.equals(method, "marketPublicGetV1beta3CryptoLocLatestBars"))
             {
                 Map<String, Object> response = (this.marketPublicGetV1beta3CryptoLocLatestBars(this.extend(request, parameters))).join();
                 //
@@ -1168,10 +1169,10 @@ public class Alpaca extends AlpacaApi
                 ohlcvs = new ArrayList<Object>(Arrays.asList(bar));
             } else
             {
-                throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOHLCV() does not support "), method), ", marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported")) ;
+                throw new NotSupported((((this.id + " fetchOHLCV() does not support ") + method) + ", marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported")) ;
             }
             return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, OHLCV::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
 
@@ -1189,7 +1190,7 @@ public class Alpaca extends AlpacaApi
         //        "vw":22889.5
         //     }
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String datetime = this.safeString(ohlcv, "t");
         Long timestamp = this.parse8601(datetime);
         return new ArrayList<Object>(Arrays.asList(timestamp, this.safeNumber(ohlcv, "o"), this.safeNumber(ohlcv, "h"), this.safeNumber(ohlcv, "l"), this.safeNumber(ohlcv, "c"), this.safeNumber(ohlcv, "v")));
@@ -1210,8 +1211,8 @@ public class Alpaca extends AlpacaApi
         final Object symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -1237,13 +1238,13 @@ public class Alpaca extends AlpacaApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbols = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object symbols = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
-            if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
+            if (java.util.Objects.equals(symbols, null))
             {
                 // every listed market is a crypto market because fetchMarkets requests asset_class=crypto, so default to all of them
                 Object allSymbols = this.sort(this.symbols); // symbol iteration order differs per language
@@ -1313,7 +1314,7 @@ public class Alpaca extends AlpacaApi
             List<Object> results = new ArrayList<Object>(Arrays.asList());
             Object snapshots = this.safeDict(response, "snapshots", new HashMap<String, Object>() {{}});
             Object marketIds = Helpers.objectKeys(snapshots);
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
+            for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
@@ -1325,7 +1326,7 @@ public class Alpaca extends AlpacaApi
                 String datetime = this.safeString(latestQuote, "t");
                 Object ticker = this.safeTicker(new HashMap<String, Object>() {{
                     put( "info", entry );
-                    put( "symbol", Helpers.GetValue(market, "symbol") );
+                    put( "symbol", ((Map<String, Object>)market).get("symbol") );
                     put( "timestamp", Alpaca.this.parse8601(datetime) );
                     put( "datetime", datetime );
                     put( "high", Alpaca.this.safeString(dailyBar, "h") );
@@ -1381,8 +1382,8 @@ public class Alpaca extends AlpacaApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -1409,8 +1410,8 @@ public class Alpaca extends AlpacaApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -1437,8 +1438,8 @@ public class Alpaca extends AlpacaApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -1471,58 +1472,58 @@ public class Alpaca extends AlpacaApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object price = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object id = Helpers.GetValue(market, "id");
+            Object id = ((Map<String, Object>)market).get("id");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", id );
                 put( "side", side );
                 put( "type", type );
             }};
             String triggerPrice = this.safeString2(parameters, "triggerPrice", "stop_price");
-            if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
+            if (!java.util.Objects.equals(triggerPrice, null))
             {
                 Object newType = null;
-                if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "limit"), 0)))
+                if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "limit"), 0))
                 {
                     newType = "stop_limit";
                 } else
                 {
-                    throw new NotSupported(Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() does not support stop orders for "), type), " orders, only stop_limit orders are supported")) ;
+                    throw new NotSupported((((this.id + " createOrder() does not support stop orders for ") + type) + " orders, only stop_limit orders are supported")) ;
                 }
-                Helpers.addElementToObject(request, "stop_price", this.priceToPrecision(symbol, triggerPrice));
-                Helpers.addElementToObject(request, "type", newType);
+                ((Map<String, Object>)request).put("stop_price", this.priceToPrecision(symbol, triggerPrice));
+                ((Map<String, Object>)request).put("type", newType);
             }
-            if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "limit"), 0)))
+            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "limit"), 0))
             {
-                Helpers.addElementToObject(request, "limit_price", this.priceToPrecision(symbol, price));
+                ((Map<String, Object>)request).put("limit_price", this.priceToPrecision(symbol, price));
             }
             String cost = this.safeString(parameters, "cost");
-            if (Helpers.isTrue(!Helpers.isEqual(cost, null)))
+            if (!java.util.Objects.equals(cost, null))
             {
                 parameters = this.omit(parameters, "cost");
-                Helpers.addElementToObject(request, "notional", this.costToPrecision(symbol, cost));
+                ((Map<String, Object>)request).put("notional", this.costToPrecision(symbol, cost));
             } else
             {
-                Helpers.addElementToObject(request, "qty", this.amountToPrecision(symbol, amount));
+                ((Map<String, Object>)request).put("qty", this.amountToPrecision(symbol, amount));
             }
             Object defaultTIF = null;
             List<Object> defaultTIFparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "timeInForce");
             defaultTIF = ((List<Object>) defaultTIFparametersVariable).get(0);
             parameters = ((List<Object>) defaultTIFparametersVariable).get(1);
-            if (Helpers.isTrue(!Helpers.isEqual(defaultTIF, null)))
+            if (!java.util.Objects.equals(defaultTIF, null))
             {
                 // the venue only accepts lowercase values, normalize the unified uppercase spellings
                 defaultTIF = ((String)defaultTIF).toLowerCase();
             }
-            Helpers.addElementToObject(request, "time_in_force", defaultTIF);
+            ((Map<String, Object>)request).put("time_in_force", defaultTIF);
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "triggerPrice")));
-            Helpers.addElementToObject(request, "client_order_id", this.generateClientOrderId(parameters));
+            ((Map<String, Object>)request).put("client_order_id", this.generateClientOrderId(parameters));
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId")));
             Map<String, Object> order = (this.traderPrivatePostV2Orders(this.extend(request, parameters))).join();
             //
@@ -1581,8 +1582,8 @@ public class Alpaca extends AlpacaApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "order_id", id );
             }};
@@ -1612,9 +1613,9 @@ public class Alpaca extends AlpacaApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -1628,7 +1629,7 @@ public class Alpaca extends AlpacaApi
         put( "info", response );
     }})));
             }
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -1647,9 +1648,9 @@ public class Alpaca extends AlpacaApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -1682,11 +1683,11 @@ public class Alpaca extends AlpacaApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -1694,30 +1695,30 @@ public class Alpaca extends AlpacaApi
                 put( "status", "all" );
             }};
             Object market = null;
-            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                Helpers.addElementToObject(request, "symbols", Helpers.GetValue(market, "id"));
+                ((Map<String, Object>)request).put("symbols", ((Map<String, Object>)market).get("id"));
             }
             Long until = this.safeInteger(parameters, "until");
-            if (Helpers.isTrue(!Helpers.isEqual(until, null)))
+            if (!java.util.Objects.equals(until, null))
             {
                 parameters = this.omit(parameters, "until");
-                Helpers.addElementToObject(request, "until", this.iso8601(until));
+                ((Map<String, Object>)request).put("until", this.iso8601(until));
             }
-            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            if (!java.util.Objects.equals(since, null))
             {
-                Helpers.addElementToObject(request, "after", this.iso8601(since));
+                ((Map<String, Object>)request).put("after", this.iso8601(since));
                 String direction = this.safeString(parameters, "direction");
-                if (Helpers.isTrue(Helpers.isEqual(direction, null)))
+                if (java.util.Objects.equals(direction, null))
                 {
                     // the server default is desc, so a limit would truncate the newest window instead of the range starting at since — request oldest-first like krakenfutures does
-                    Helpers.addElementToObject(request, "direction", "asc");
+                    ((Map<String, Object>)request).put("direction", "asc");
                 }
             }
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(request, "limit", limit);
+                ((Map<String, Object>)request).put("limit", limit);
             }
             List<Object> response = (this.traderPrivateGetV2Orders(this.extend(request, parameters))).join();
             //
@@ -1761,7 +1762,7 @@ public class Alpaca extends AlpacaApi
             //     ]
             //
             return this.parseOrders(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -1783,15 +1784,15 @@ public class Alpaca extends AlpacaApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "status", "open" );
             }};
             return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -1813,15 +1814,15 @@ public class Alpaca extends AlpacaApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "status", "closed" );
             }};
             return (this.fetchOrders((Object)(symbol), (Object)(since), (Object)(limit), (Object)(this.extend(request, parameters)))).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Order::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
@@ -1847,10 +1848,10 @@ public class Alpaca extends AlpacaApi
         final Object symbol3 = symbol2;
         return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
-            Object amount = Helpers.getArg(optionalArgs, 0, null);
-            Object price = Helpers.getArg(optionalArgs, 1, null);
-            Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object amount = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object price = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -1858,34 +1859,34 @@ public class Alpaca extends AlpacaApi
                 put( "order_id", id );
             }};
             Object market = null;
-            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
             }
-            if (Helpers.isTrue(!Helpers.isEqual(amount, null)))
+            if (!java.util.Objects.equals(amount, null))
             {
-                Helpers.addElementToObject(request, "qty", this.amountToPrecision(symbol, amount));
+                ((Map<String, Object>)request).put("qty", this.amountToPrecision(symbol, amount));
             }
             String triggerPrice = this.safeString2(parameters, "triggerPrice", "stop_price");
-            if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
+            if (!java.util.Objects.equals(triggerPrice, null))
             {
-                Helpers.addElementToObject(request, "stop_price", this.priceToPrecision(symbol, triggerPrice));
+                ((Map<String, Object>)request).put("stop_price", this.priceToPrecision(symbol, triggerPrice));
                 parameters = this.omit(parameters, "triggerPrice");
             }
-            if (Helpers.isTrue(!Helpers.isEqual(price, null)))
+            if (!java.util.Objects.equals(price, null))
             {
-                Helpers.addElementToObject(request, "limit_price", this.priceToPrecision(symbol, price));
+                ((Map<String, Object>)request).put("limit_price", this.priceToPrecision(symbol, price));
             }
             Object timeInForce = null;
             List<Object> timeInForceparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "editOrder", "timeInForce", "gtc");
             timeInForce = ((List<Object>) timeInForceparametersVariable).get(0);
             parameters = ((List<Object>) timeInForceparametersVariable).get(1);
-            if (Helpers.isTrue(!Helpers.isEqual(timeInForce, null)))
+            if (!java.util.Objects.equals(timeInForce, null))
             {
                 // the venue only accepts lowercase values, normalize the unified uppercase spellings
-                Helpers.addElementToObject(request, "time_in_force", ((String)timeInForce).toLowerCase());
+                ((Map<String, Object>)request).put("time_in_force", ((String)timeInForce).toLowerCase());
             }
-            Helpers.addElementToObject(request, "client_order_id", this.generateClientOrderId(parameters));
+            ((Map<String, Object>)request).put("client_order_id", this.generateClientOrderId(parameters));
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId")));
             Map<String, Object> response = (this.traderPrivatePatchV2OrdersOrderId(this.extend(request, parameters))).join();
             return this.parseOrder(response, market);
@@ -1933,15 +1934,15 @@ public class Alpaca extends AlpacaApi
         //        "source":null
         //    }
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
-        Object symbol = Helpers.GetValue(market, "symbol");
+        Object symbol = ((Map<String, Object>)market).get("symbol");
         String alpacaStatus = this.safeString(order, "status");
         String status = this.parseOrderStatus(alpacaStatus);
         String feeValue = this.safeString(order, "commission");
         Object fee = null;
-        if (Helpers.isTrue(!Helpers.isEqual(feeValue, null)))
+        if (!java.util.Objects.equals(feeValue, null))
         {
             final Object finalFeeValue = feeValue;
             fee = new HashMap<String, Object>() {{
@@ -1950,9 +1951,9 @@ public class Alpaca extends AlpacaApi
             }};
         }
         String orderType = this.safeString(order, "order_type");
-        if (Helpers.isTrue(!Helpers.isEqual(orderType, null)))
+        if (!java.util.Objects.equals(orderType, null))
         {
-            if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(orderType, "limit"), 0)))
+            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(orderType, "limit"), 0))
             {
                 // might be limit or stop-limit
                 orderType = "limit";
@@ -2041,11 +2042,11 @@ public class Alpaca extends AlpacaApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object symbol = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -2053,23 +2054,23 @@ public class Alpaca extends AlpacaApi
             Object request = new HashMap<String, Object>() {{
                 put( "activity_type", "FILL" );
             }};
-            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
             }
             Long until = this.safeInteger(parameters, "until");
-            if (Helpers.isTrue(!Helpers.isEqual(until, null)))
+            if (!java.util.Objects.equals(until, null))
             {
                 parameters = this.omit(parameters, "until");
-                Helpers.addElementToObject(request, "until", this.iso8601(until));
+                ((Map<String, Object>)request).put("until", this.iso8601(until));
             }
-            if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            if (!java.util.Objects.equals(since, null))
             {
-                Helpers.addElementToObject(request, "after", this.iso8601(since));
+                ((Map<String, Object>)request).put("after", this.iso8601(since));
             }
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            if (!java.util.Objects.equals(limit, null))
             {
-                Helpers.addElementToObject(request, "page_size", limit);
+                ((Map<String, Object>)request).put("page_size", limit);
             }
             List<Object> requestparametersVariable = (List<Object>) this.handleUntilOption("until", request, parameters);
             request = ((List<Object>) requestparametersVariable).get(0);
@@ -2095,7 +2096,7 @@ public class Alpaca extends AlpacaApi
             //     ]
             //
             return this.parseTrades(response, market, since, limit);
-        }).thenApply(res -> Helpers.toTypedList(res, Trade::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
 
@@ -2131,17 +2132,17 @@ public class Alpaca extends AlpacaApi
         //         "swap_rate": "1"
         //     },
         //
-        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString2(trade, "S", "symbol");
         String symbol = this.safeSymbol(marketId, market);
         String datetime = this.safeString2(trade, "t", "transaction_time");
         Long timestamp = this.parse8601(datetime);
         String alpacaSide = this.safeString(trade, "tks");
         String side = this.safeString(trade, "side");
-        if (Helpers.isTrue(Helpers.isEqual(alpacaSide, "B")))
+        if (java.util.Objects.equals(alpacaSide, "B"))
         {
             side = "buy";
-        } else if (Helpers.isTrue(Helpers.isEqual(alpacaSide, "S")))
+        } else if (java.util.Objects.equals(alpacaSide, "S"))
         {
             side = "sell";
         }
@@ -2179,14 +2180,14 @@ public class Alpaca extends AlpacaApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "asset", Helpers.GetValue(currency, "id") );
+                put( "asset", ((Map<String, Object>)currency).get("id") );
             }};
             Map<String, Object> response = (this.traderPrivateGetV2Wallets(this.extend(request, parameters))).join();
             //
@@ -2210,11 +2211,11 @@ public class Alpaca extends AlpacaApi
         //         "created_at": "2024-11-03T07:30:05.609976344Z"
         //     }
         //
-        Object currency = Helpers.getArg(optionalArgs, 0, null);
+        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parsedCurrency = null;
-        if (Helpers.isTrue(!Helpers.isEqual(currency, null)))
+        if (!java.util.Objects.equals(currency, null))
         {
-            parsedCurrency = Helpers.GetValue(currency, "id");
+            parsedCurrency = ((Map<String, Object>)currency).get("id");
         }
         final Object finalParsedCurrency = parsedCurrency;
         return new HashMap<String, Object>() {{
@@ -2243,24 +2244,24 @@ public class Alpaca extends AlpacaApi
         final Object address3 = address2;
         return BaseExchange.supplyAsync(() -> {
             Object address = address3;
-            Object tag = Helpers.getArg(optionalArgs, 0, null);
-            Object parameters = Helpers.getArg(optionalArgs, 1, new HashMap<String, Object>() {{}});
+            Object tag = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             List<Object> tagparametersVariable = (List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             tag = ((List<Object>) tagparametersVariable).get(0);
             parameters = ((List<Object>) tagparametersVariable).get(1);
             this.checkAddress(address);
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
-            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(tag, null))) && Helpers.isTrue((!Helpers.isEqual(tag, "")))))
+            if ((!java.util.Objects.equals(tag, null)) && (!java.util.Objects.equals(tag, "")))
             {
-                address = Helpers.add(Helpers.add(address, ":"), tag);
+                address = ((address + ":") + tag);
             }
             final Object finalAddress = address;
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "asset", Helpers.GetValue(currency, "id") );
+                put( "asset", ((Map<String, Object>)currency).get("id") );
                 put( "address", finalAddress );
                 put( "amount", Alpaca.this.numberToString(amount) );
             }};
@@ -2300,17 +2301,17 @@ public class Alpaca extends AlpacaApi
         return BaseExchange.supplyAsync(() -> {
             Object type = type3;
             Object code = code3;
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
             Object currency = null;
-            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            if (!java.util.Objects.equals(code, null))
             {
                 currency = this.currency(code);
             }
             Boolean sandboxMode = Helpers.isTrue(this.isSandboxModeEnabled) || Helpers.isTrue(this.safeBool(this.options, "sandboxMode", false));
-            if (Helpers.isTrue(Helpers.isEqual(sandboxMode, true)))
+            if (java.util.Objects.equals(sandboxMode, true))
             {
                 // paper-trading hosts do not serve the crypto wallets api at all, so route
                 // through the account activities ledger instead, filtered to transfer-like
@@ -2336,14 +2337,14 @@ public class Alpaca extends AlpacaApi
                 {
                     ledger = activities;
                 }
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ledger)); i++)
+                for (var i = 0; i < ((List<?>)ledger).size(); i++)
                 {
                     Object entry = Helpers.GetValue(ledger, i);
                     String activityType = this.safeString(entry, "activity_type");
                     String amount = this.safeString(entry, "net_amount");
-                    Boolean isIncoming = Helpers.isTrue((Helpers.isEqual(activityType, "CSD"))) || Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(activityType, "TRANS"))) && !Helpers.isTrue(Precise.stringLt(amount, "0"))));
+                    Boolean isIncoming = (java.util.Objects.equals(activityType, "CSD")) || ((java.util.Objects.equals(activityType, "TRANS")) && !Helpers.isTrue(Precise.stringLt(amount, "0")));
                     String entryDirection = ((Helpers.isTrue(isIncoming))) ? "INCOMING" : "OUTGOING";
-                    if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "BOTH"))) || Helpers.isTrue((Helpers.isEqual(entryDirection, type)))))
+                    if ((java.util.Objects.equals(type, "BOTH")) || (java.util.Objects.equals(entryDirection, type)))
                     {
                         ((List<Object>)filtered).add(entry);
                     }
@@ -2374,14 +2375,14 @@ public class Alpaca extends AlpacaApi
             {
                 transfers = response;
             }
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(transfers)); i++)
+            for (var i = 0; i < ((List<?>)transfers).size(); i++)
             {
                 Object entry = Helpers.GetValue(transfers, i);
                 String direction = this.safeString(entry, "direction");
-                if (Helpers.isTrue(Helpers.isEqual(direction, type)))
+                if (java.util.Objects.equals(direction, type))
                 {
                     ((List<Object>)results).add(entry);
-                } else if (Helpers.isTrue(Helpers.isEqual(type, "BOTH")))
+                } else if (java.util.Objects.equals(type, "BOTH"))
                 {
                     ((List<Object>)results).add(entry);
                 }
@@ -2407,12 +2408,12 @@ public class Alpaca extends AlpacaApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object code = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             return (this.fetchTransactionsHelper("BOTH", code, since, limit, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
 
@@ -2432,12 +2433,12 @@ public class Alpaca extends AlpacaApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object code = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             return (this.fetchTransactionsHelper("INCOMING", code, since, limit, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
 
@@ -2457,12 +2458,12 @@ public class Alpaca extends AlpacaApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object code = Helpers.getArg(optionalArgs, 0, null);
-            Object since = Helpers.getArg(optionalArgs, 1, null);
-            Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object parameters = Helpers.getArg(optionalArgs, 3, new HashMap<String, Object>() {{}});
+            Object code = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
+            Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
+            Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
+            Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             return (this.fetchTransactionsHelper("OUTGOING", code, since, limit, parameters)).join();
-        }).thenApply(res -> Helpers.toTypedList(res, Transaction::new));
+        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
 
@@ -2497,7 +2498,7 @@ public class Alpaca extends AlpacaApi
         //         "fees": "0.1"
         //     }
         //
-        Object currency = Helpers.getArg(optionalArgs, 0, null);
+        Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String activityType = this.safeString(transaction, "activity_type");
         String txid = null;
         Object timestamp = null;
@@ -2513,10 +2514,10 @@ public class Alpaca extends AlpacaApi
         String comment = null;
         Object intern = null;
         Object fee = null;
-        if (Helpers.isTrue(!Helpers.isEqual(activityType, null)))
+        if (!java.util.Objects.equals(activityType, null))
         {
             String netAmount = this.safeString(transaction, "net_amount");
-            Boolean isIncoming = Helpers.isTrue((Helpers.isEqual(activityType, "CSD"))) || Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(activityType, "TRANS"))) && !Helpers.isTrue(Precise.stringLt(netAmount, "0"))));
+            Boolean isIncoming = (java.util.Objects.equals(activityType, "CSD")) || ((java.util.Objects.equals(activityType, "TRANS")) && !Helpers.isTrue(Precise.stringLt(netAmount, "0")));
             timestamp = this.parse8601(Helpers.add(this.safeString(transaction, "date"), "T00:00:00Z"));
             datetime = this.iso8601(timestamp);
             type = ((Helpers.isTrue(isIncoming))) ? "deposit" : "withdrawal";
@@ -2525,10 +2526,10 @@ public class Alpaca extends AlpacaApi
             // TRANS entries may carry symbol/asset - never blindly adopt the caller's
             // currency filter, see the review on https://github.com/ccxt/ccxt/pull/29580
             String activityCurrencyId = this.safeString2(transaction, "symbol", "asset");
-            if (Helpers.isTrue(!Helpers.isEqual(activityCurrencyId, null)))
+            if (!java.util.Objects.equals(activityCurrencyId, null))
             {
                 code = this.safeCurrencyCode(activityCurrencyId);
-            } else if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(activityType, "CSD"))) || Helpers.isTrue((Helpers.isEqual(activityType, "CSW")))))
+            } else if ((java.util.Objects.equals(activityType, "CSD")) || (java.util.Objects.equals(activityType, "CSW")))
             {
                 code = "USD";
             } else
@@ -2537,7 +2538,7 @@ public class Alpaca extends AlpacaApi
             }
             status = this.parseTransactionStatus(this.safeString(transaction, "status"));
             comment = activityType;
-            intern = (!Helpers.isEqual(activityType, "TRANS"));
+            intern = (!java.util.Objects.equals(activityType, "TRANS"));
         } else
         {
             txid = this.safeString(transaction, "tx_hash");
@@ -2634,8 +2635,8 @@ public class Alpaca extends AlpacaApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
+            if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets()).join();
             }
@@ -2703,7 +2704,7 @@ public class Alpaca extends AlpacaApi
         String code = this.safeCurrencyCode(currencyId);
         Helpers.addElementToObject(account, "free", this.safeString(response, "cash"));
         Helpers.addElementToObject(account, "total", this.safeString(response, "equity"));
-        if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+        if (!java.util.Objects.equals(code, null))
         {
             Helpers.addElementToObject(result, code, account);
         }
@@ -2712,30 +2713,30 @@ public class Alpaca extends AlpacaApi
 
     public Object sign(Object path, Object... optionalArgs)
     {
-        Object api = Helpers.getArg(optionalArgs, 0, "public");
-        Object method = Helpers.getArg(optionalArgs, 1, "GET");
-        Object parameters = Helpers.getArg(optionalArgs, 2, new HashMap<String, Object>() {{}});
-        Object headers = Helpers.getArg(optionalArgs, 3, null);
-        Object body = Helpers.getArg(optionalArgs, 4, null);
-        Object endpoint = Helpers.add("/", this.implodeParams(path, parameters));
-        String url = (String) this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), Helpers.GetValue(api, 0)));
-        headers = ((Helpers.isTrue((!Helpers.isEqual(headers, null))))) ? headers : new HashMap<String, Object>() {{}};
-        if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(api, 1), "private")))
+        Object api = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : "public";
+        Object method = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : "GET";
+        Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
+        Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
+        Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
+        Object endpoint = ("/" + this.implodeParams(path, parameters));
+        String url = (String) this.implodeHostname(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), Helpers.GetValue(api, 0)));
+        headers = (((!java.util.Objects.equals(headers, null)))) ? headers : new HashMap<String, Object>() {{}};
+        if (java.util.Objects.equals(Helpers.GetValue(api, 1), "private"))
         {
             this.checkRequiredCredentials();
-            Helpers.addElementToObject(headers, "APCA-API-KEY-ID", this.apiKey);
-            Helpers.addElementToObject(headers, "APCA-API-SECRET-KEY", this.secret);
+            ((Map<String, Object>)headers).put("APCA-API-KEY-ID", this.apiKey);
+            ((Map<String, Object>)headers).put("APCA-API-SECRET-KEY", this.secret);
         }
         Object query = this.omit(parameters, this.extractParams(path));
-        if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
+        if (((List<?>)Helpers.objectKeys(query)).size() > 0)
         {
-            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(method, "GET"))) || Helpers.isTrue((Helpers.isEqual(method, "DELETE")))))
+            if ((java.util.Objects.equals(method, "GET")) || (java.util.Objects.equals(method, "DELETE")))
             {
-                endpoint = Helpers.add(endpoint, Helpers.add("?", this.urlencode(query)));
+                endpoint = (endpoint + ("?" + this.urlencode(query)));
             } else
             {
                 body = this.json(query);
-                Helpers.addElementToObject(headers, "Content-Type", "application/json");
+                ((Map<String, Object>)headers).put("Content-Type", "application/json");
             }
         }
         url = Helpers.add(url, endpoint);
@@ -2753,7 +2754,7 @@ public class Alpaca extends AlpacaApi
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
     {
-        if (Helpers.isTrue(Helpers.isEqual(response, null)))
+        if (java.util.Objects.equals(response, null))
         {
             return null;  // default error handler
         }
@@ -2761,19 +2762,19 @@ public class Alpaca extends AlpacaApi
         //     "code": 40110000,
         //     "message": "request is not authorized"
         // }
-        Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
+        Object feedback = ((this.id + " ") + body);
         String errorCode = this.safeString(response, "code");
-        if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+        if (!java.util.Objects.equals(code, null))
         {
-            this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), errorCode, feedback);
+            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
         }
         String message = this.safeString(response, "message");
-        if (Helpers.isTrue(!Helpers.isEqual(message, null)))
+        if (!java.util.Objects.equals(message, null))
         {
-            this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), message, feedback);
-            this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), message, feedback);
+            this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, feedback);
+            this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
             Object codeAsString = String.valueOf(code);
-            if (Helpers.isTrue(Helpers.isTrue((Helpers.isLessThan(code, 400))) || !Helpers.isTrue((Helpers.inOp(this.httpExceptions, codeAsString)))))
+            if ((Helpers.isLessThan(code, 400)) || !(((Map<?, ?>)this.httpExceptions).containsKey(codeAsString)))
             {
                 throw new ExchangeError((String)feedback) ;
             }

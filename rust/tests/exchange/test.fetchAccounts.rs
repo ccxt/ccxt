@@ -16,7 +16,7 @@ pub async fn testFetchAccounts(mut exchange: Value, mut skippedProperties: Value
     {
                 let mut i: Value = Value::Int(0);
         let mut __for_first_1446: bool = true;
-        while { if !__for_first_1446 { i = add(&i, &Value::Int(1)); } __for_first_1446 = false; is_less_than(&i, &get_array_length(&accounts)) } {
+        while { if !__for_first_1446 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1446 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(accounts.len() as i64).as_f64().unwrap_or(f64::NAN) } {
         testAccount(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&accounts, &i));
     }
     }

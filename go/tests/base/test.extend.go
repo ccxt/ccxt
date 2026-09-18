@@ -56,23 +56,23 @@ func TestExtend() {
 		"other2": "y",
 	}
 	// snapshot originals for mutation checks
-	var obj1SnapshotA any = ccxt.GetValue(obj1, "a")
-	var obj1SnapshotB0 any = ccxt.GetValue(ccxt.GetValue(obj1, "b"), 0)
-	var obj1SnapshotOther1 any = ccxt.GetValue(obj1, "other1")
-	var obj2SnapshotA any = ccxt.GetValue(obj2, "a")
-	var obj2SnapshotB0 any = ccxt.GetValue(ccxt.GetValue(obj2, "b"), 0)
-	var obj2SnapshotOther2 any = ccxt.GetValue(obj2, "other2")
+	var obj1SnapshotA any = obj1["a"]
+	var obj1SnapshotB0 any = ccxt.GetValue(obj1["b"], 0)
+	var obj1SnapshotOther1 any = obj1["other1"]
+	var obj2SnapshotA any = obj2["a"]
+	var obj2SnapshotB0 any = ccxt.GetValue(obj2["b"], 0)
+	var obj2SnapshotOther2 any = obj2["other2"]
 	// --- test 1: basic extend ---
 	var extended any = exchange.Extend(obj1, obj2)
 	TbfeCheckExtended(extended, true)
 	// --- mutation check: obj1 must NOT be mutated ---
-	assert((ccxt.GetValue(obj1, "a") == obj1SnapshotA), "obj1.a was mutated after extend")
-	assert((ccxt.GetValue(ccxt.GetValue(obj1, "b"), 0) == obj1SnapshotB0), "obj1.b[0] was mutated after extend")
-	assert((ccxt.GetValue(obj1, "other1") == obj1SnapshotOther1), "obj1['other1'] was mutated after extend")
+	assert((obj1["a"] == obj1SnapshotA), "obj1.a was mutated after extend")
+	assert((ccxt.GetValue(obj1["b"], 0) == obj1SnapshotB0), "obj1.b[0] was mutated after extend")
+	assert((obj1["other1"] == obj1SnapshotOther1), "obj1['other1'] was mutated after extend")
 	// --- mutation check: obj2 must NOT be mutated ---
-	assert((ccxt.GetValue(obj2, "a") == obj2SnapshotA), "obj2.a was mutated after extend")
-	assert((ccxt.GetValue(ccxt.GetValue(obj2, "b"), 0) == obj2SnapshotB0), "obj2.b[0] was mutated after extend")
-	assert((ccxt.GetValue(obj2, "other2") == obj2SnapshotOther2), "obj2['other2'] was mutated after extend")
+	assert((obj2["a"] == obj2SnapshotA), "obj2.a was mutated after extend")
+	assert((ccxt.GetValue(obj2["b"], 0) == obj2SnapshotB0), "obj2.b[0] was mutated after extend")
+	assert((obj2["other2"] == obj2SnapshotOther2), "obj2['other2'] was mutated after extend")
 	// --- test 2: multi-step extend – apply a third patch on top of the first result ---
 	var obj3 map[string]any = map[string]any{
 		"a": 3,
@@ -128,11 +128,11 @@ func TestExtend() {
 	assert(ccxt.IsEqual(ccxt.GetValue(r3, "p2"), true), "chain: r3['p2'] should be present")
 	assert(ccxt.IsEqual(ccxt.GetValue(r3, "p3"), true), "chain: r3['p3'] should be present")
 	// --- mutation check: each intermediate must be unaffected ---
-	assert((ccxt.IsEqual(ccxt.GetValue(base, "x"), 0)), "base['x'] was mutated during chain")
+	assert((base["x"] == 0), "base['x'] was mutated during chain")
 	assert(ccxt.IsEqual(ccxt.GetValue(r1, "x"), 1), "r1['x'] was mutated during chain")
 	assert(ccxt.IsEqual(ccxt.GetValue(r2, "x"), 2), "r2['x'] was mutated during chain")
 	assert(!(ccxt.InOp(r1, "p3")), "r1['p3'] leaked into r1")
-	assert(!(ccxt.InOp(base, "p2")), "base['p2'] leaked into base")
+	assert(!(func() bool { _, ok := base["p2"]; return ok }()), "base['p2'] leaked into base")
 	// --- test 4: extend with undefined values does NOT overwrite existing keys ---
 	var withValues map[string]any = map[string]any{
 		"keep1": "A",
@@ -149,8 +149,8 @@ func TestExtend() {
 	assert(ccxt.IsEqual(ccxt.GetValue(extUndef, "keep2"), nil), "extend: extUndef['keep2'] should be undefined")
 	assert(ccxt.IsEqual(ccxt.GetValue(extUndef, "newKey"), "C"), "extend: extUndef['newKey'] should be added")
 	// original must not be touched
-	assert((ccxt.IsEqual(ccxt.GetValue(withValues, "keep1"), "A")), "withValues['keep1'] was mutated")
-	assert((ccxt.IsEqual(ccxt.GetValue(withValues, "keep2"), "B")), "withValues['keep2'] was mutated")
+	assert((withValues["keep1"] == "A"), "withValues['keep1'] was mutated")
+	assert((withValues["keep2"] == "B"), "withValues['keep2'] was mutated")
 }
 func TbfeCheckExtended(extended any, hasSub any) {
 	Assert(ccxt.IsEqual(ccxt.GetValue(extended, "a"), 2))

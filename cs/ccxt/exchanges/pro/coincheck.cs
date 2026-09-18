@@ -57,7 +57,7 @@ public partial class coincheck : ccxt.coincheck
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -100,7 +100,7 @@ public partial class coincheck : ccxt.coincheck
         object timestamp = this.safeTimestamp(data, "last_update_at");
         object snapshot = this.parseOrderBook(data, symbol, timestamp);
         object orderbook = this.safeOrderBook(this.orderbooks, symbol);
-        if (isTrue(isEqual(orderbook, null)))
+        if ((orderbook == null))
         {
             orderbook = this.orderBook(snapshot);
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
@@ -109,8 +109,8 @@ public partial class coincheck : ccxt.coincheck
             orderbook = this.getOrderBook(this.orderbooks, symbol);
             (orderbook as IOrderBook).reset(snapshot);
         }
-        string messageHash = add("orderbook:", symbol);
-        callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
+        string messageHash = ("orderbook:" + symbol);
+        (client as WebSocketClient).resolve(orderbook, messageHash);
     }
 
     /**
@@ -129,7 +129,7 @@ public partial class coincheck : ccxt.coincheck
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -169,7 +169,7 @@ public partial class coincheck : ccxt.coincheck
         object first = this.safeValue(message, 0, new List<object>() {});
         string? symbol = this.symbol(this.safeString(first, 2));
         object stored = this.safeValue(this.trades, symbol);
-        if (isTrue(isEqual(stored, null)))
+        if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(limit);
@@ -181,8 +181,8 @@ public partial class coincheck : ccxt.coincheck
             object trade = this.parseWsTrade(data);
             callDynamically(stored, "append", new object[] {trade});
         }
-        string messageHash = add("trade:", symbol);
-        callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
+        string messageHash = ("trade:" + symbol);
+        (client as WebSocketClient).resolve(stored, messageHash);
     }
 
     public override object parseWsTrade(object trade, object market = null)
@@ -224,7 +224,7 @@ public partial class coincheck : ccxt.coincheck
     public override void handleMessage(WebSocketClient client, object message)
     {
         object data = this.safeValue(message, 0);
-        if (!isTrue(((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if (!((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             this.handleOrderBook(client as WebSocketClient, message);
         } else

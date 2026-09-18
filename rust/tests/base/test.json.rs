@@ -21,9 +21,9 @@ pub fn testJson() {
         m
     });
     let mut objJson: Value = exchange.json(obj.clone());
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&objJson, &Value::Str("{\"k\":\"v\"}".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(objJson.as_str() == Some("{\"k\":\"v\"}")))));
     // Test: list
     let mut list: Value = Value::List(vec![Value::Int(1), Value::Int(2)]);
     let mut listJson: Value = exchange.json(list.clone());
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&listJson, &Value::Str("[1,2]".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(listJson.as_str() == Some("[1,2]")))));
 }

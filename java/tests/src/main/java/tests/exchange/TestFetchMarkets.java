@@ -5,6 +5,7 @@ import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -24,7 +25,7 @@ public class TestFetchMarkets extends BaseTest {
         TestSharedMethods.AssertDictionaryResponse(exchange, method, markets);
         Object marketValues = Helpers.objectValues(markets);
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, marketValues);
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketValues)); i++)
+        for (var i = 0; i < ((List<?>)marketValues).size(); i++)
         {
             TestMarket.testMarket(exchange, skippedProperties, method, Helpers.GetValue(marketValues, i));
         }
@@ -37,17 +38,17 @@ public class TestFetchMarkets extends BaseTest {
     {
         // detect if there are markets with different ids for the same symbol
         Map<String, Object> ids = new HashMap<String, Object>() {{}};
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketValues)); i++)
+        for (var i = 0; i < ((List<?>)marketValues).size(); i++)
         {
             Object market = Helpers.GetValue(marketValues, i);
             Object symbol = Helpers.GetValue(market, "symbol");
-            if (!Helpers.isTrue((Helpers.inOp(ids, symbol))))
+            if (!(Helpers.inOp(ids, symbol)))
             {
                 Helpers.addElementToObject(ids, symbol, Helpers.GetValue(market, "id"));
             } else
             {
                 Boolean isDifferent = !Helpers.isEqual(Helpers.GetValue(ids, symbol), Helpers.GetValue(market, "id"));
-                Assert(!Helpers.isTrue(isDifferent), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " fetchMarkets() has different ids for the same symbol: "), symbol), " "), Helpers.GetValue(ids, symbol)), " "), Helpers.GetValue(market, "id")));
+                Assert(!Helpers.isTrue(isDifferent), Helpers.add((Helpers.add((Helpers.add((exchange.id + " fetchMarkets() has different ids for the same symbol: "), symbol) + " "), Helpers.GetValue(ids, symbol)) + " "), Helpers.GetValue(market, "id")));
             }
         }
         return true;

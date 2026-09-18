@@ -35,7 +35,7 @@ public partial class BaseTest
             var exchange2 = new ccxt.Exchange(new Dictionary<string, object>() {
                 { "id", "primaryEx" },
             });
-            Assert(isTrue((!isEqual(exchange1.markets, null))) && isTrue((isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)exchange1.markets).Keys)), 0))), "Markets should be loaded in exchange1");
+            Assert((!isEqual(exchange1.markets, null)) && ((new List<object>(((IDictionary<string,object>)exchange1.markets).Keys)).Count > 0), "Markets should be loaded in exchange1");
             // Test error case: exchanges are different
             var differentExchange = new ccxt.Exchange(new Dictionary<string, object>() {
                 { "id", "secondaryEx" },
@@ -43,7 +43,7 @@ public partial class BaseTest
             try
             {
                 differentExchange.setMarketsFromExchange(exchange1);
-                Assert(!isTrue(trueClause), "Should have thrown an error when using different exchange");
+                Assert(!trueClause, "Should have thrown an error when using different exchange");
             } catch(Exception error)
             {
                 Assert(trueClause);
@@ -55,7 +55,7 @@ public partial class BaseTest
             try
             {
                 exchange2.setMarketsFromExchange(nonloadedExchange); // exchange2 has no markets yet
-                Assert(!isTrue(trueClause), "Should have thrown error when sharing from exchange without markets");
+                Assert(!trueClause, "Should have thrown error when sharing from exchange without markets");
             } catch(Exception error)
             {
                 Assert(trueClause);
@@ -64,7 +64,7 @@ public partial class BaseTest
             exchange2.setMarketsFromExchange(exchange1);
             // Verify shared markets work
             List<object> neededProps = new List<object>() {"symbols", "currencies", "codes", "markets", "ids", "markets_by_id", "currencies_by_id", "baseCurrencies", "quoteCurrencies"};
-            for (int i = 0; isLessThan(i, getArrayLength(neededProps)); postFixIncrement(ref i))
+            for (int i = 0; i < getArrayLength(neededProps); postFixIncrement(ref i))
             {
                 AssertDeepEqual(emptyExchange, new Dictionary<string, object>() {}, methodName, emptyExchange.getProperty(exchange1, getValue(neededProps, i)), emptyExchange.getProperty(exchange2, getValue(neededProps, i)));
             }
@@ -76,7 +76,7 @@ public partial class BaseTest
             await exchange2.loadMarkets();
             Int64 endTime = emptyExchange.milliseconds();
             // Should be very fast since no API call is made
-            Int64 timeTaken = subtract(endTime, startTime);
+            Int64 timeTaken = (endTime - startTime);
             Assert(isLessThan(timeTaken, 10), "loadMarkets on shared markets should be fast");
             // @SKIP_END_GO
             emptyExchange.describe(); // avoid unused var

@@ -23,7 +23,7 @@ public class TestWatchTicker extends BaseTest {
         Object ends = Helpers.add(now, 15000);
         Integer maxIdleTime = 5000;
         Boolean idle = false;
-        while (Helpers.isTrue((Helpers.isLessThan(now, ends))) && !Helpers.isTrue(idle))
+        while ((Helpers.isLessThan(now, ends)) && !Helpers.isTrue(idle))
         {
             Object response = null;
             Boolean success = true;
@@ -40,11 +40,11 @@ public class TestWatchTicker extends BaseTest {
                 success = false;
             }
             now = exchange.milliseconds();
-            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(success, true))) && Helpers.isTrue((!Helpers.isEqual(response, null)))))
+            if ((java.util.Objects.equals(success, true)) && (!java.util.Objects.equals(response, null)))
             {
-                Assert(exchange.isDictionary(response), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), symbol), " must return a dictionary. "), exchange.json(response)));
+                Assert(exchange.isDictionary(response), ((((((exchange.id + " ") + method) + " ") + symbol) + " must return a dictionary. ") + exchange.json(response)));
                 TestTicker.testTicker(exchange, skippedProperties, method, response, symbol);
-                if (Helpers.isTrue(Helpers.isGreaterThan((Helpers.subtract(now, startTime)), maxIdleTime)))
+                if (Helpers.isGreaterThan((Helpers.subtract(now, startTime)), maxIdleTime))
                 {
                     idle = true;
                 }

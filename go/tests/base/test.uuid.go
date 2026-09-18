@@ -14,8 +14,8 @@ func TestUuid() {
 	// uuid() - standard UUID v4: xxxxxxxx-xxxx-4xxx-[89ab]xxx-xxxxxxxxxxxx
 	var id1 any = exchange.Uuid() // need type for .length understanding
 	var id2 any = exchange.Uuid()
-	assert(!ccxt.IsEqual(id1, nil), "uuid 1 must return a value")
-	assert(!ccxt.IsEqual(id2, nil), "uuid 2 must return a value")
+	assert((id1 != nil), "uuid 1 must return a value")
+	assert((id2 != nil), "uuid 2 must return a value")
 	assert((id1 != id2), "uuid() must return unique values on each call")
 	assert((ccxt.ToString(id1) == id1), "uuid() must return a string")
 	assert((ccxt.ToString(id2) == id2), "uuid() must return a string")
@@ -25,8 +25,8 @@ func TestUuid() {
 	// uuid16() - 16-char hex string
 	var id16a any = exchange.Uuid16()
 	var id16b any = exchange.Uuid16()
-	assert(!ccxt.IsEqual(id16a, nil), "uuid16 1 must return a value")
-	assert(!ccxt.IsEqual(id16b, nil), "uuid16 2 must return a value")
+	assert((id16a != nil), "uuid16 1 must return a value")
+	assert((id16b != nil), "uuid16 2 must return a value")
 	assert((id16a != id16b), ccxt.Add(ccxt.Add(ccxt.Add("uuid16() must return unique values on each call, returned id16a: ", id16a), ", id16b: "), id16b))
 	assert((ccxt.ToString(id16a) == id16a), ccxt.Add("uuid16() must return a string, returned id16a: ", id16a))
 	assert((ccxt.ToString(id16b) == id16b), ccxt.Add("uuid16() must return a string, returned id16b: ", id16b))
@@ -35,8 +35,8 @@ func TestUuid() {
 	// uuid22() - 22-char hex string
 	var id22a any = exchange.Uuid22()
 	var id22b any = exchange.Uuid22()
-	assert(!ccxt.IsEqual(id22a, nil), "uuid22 1 must return a value")
-	assert(!ccxt.IsEqual(id22b, nil), "uuid22 2 must return a value")
+	assert((id22a != nil), "uuid22 1 must return a value")
+	assert((id22b != nil), "uuid22 2 must return a value")
 	assert((id22a != id22b), "uuid22() must return unique values on each call")
 	assert((ccxt.ToString(id22a) == id22a), ccxt.Add("uuid22() must return a string, returned id22a: ", id22a))
 	assert((ccxt.ToString(id22b) == id22b), ccxt.Add("uuid22() must return a string, returned id22b: ", id22b))

@@ -18,7 +18,7 @@ pub async fn testFetchMarkets(mut exchange: Value, mut skippedProperties: Value)
     {
                 let mut i: Value = Value::Int(0);
         let mut __for_first_1461: bool = true;
-        while { if !__for_first_1461 { i = add(&i, &Value::Int(1)); } __for_first_1461 = false; is_less_than(&i, &get_array_length(&marketValues)) } {
+        while { if !__for_first_1461 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1461 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(marketValues.len() as i64).as_f64().unwrap_or(f64::NAN) } {
         testMarket(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&marketValues, &i));
     }
     }
@@ -36,7 +36,7 @@ fn detectMarketConflicts(mut exchange: Value, mut marketValues: Value) -> Value 
     {
                 let mut i: Value = Value::Int(0);
         let mut __for_first_1462: bool = true;
-        while { if !__for_first_1462 { i = add(&i, &Value::Int(1)); } __for_first_1462 = false; is_less_than(&i, &get_array_length(&marketValues)) } {
+        while { if !__for_first_1462 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1462 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(marketValues.len() as i64).as_f64().unwrap_or(f64::NAN) } {
         let mut market: Value = get_value(&marketValues, &i);
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
         if !is_true(&(Value::Bool(in_op(&ids, &symbol)))) {

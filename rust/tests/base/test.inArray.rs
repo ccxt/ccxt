@@ -15,8 +15,8 @@ pub fn testInArray() {
         m
     }));
     let mut array: Value = Value::List(vec![Value::Int(1), Value::Int(2), Value::Int(3)]);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.in_array(Value::Int(1), array.clone()), &Value::Bool(true))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.in_array(Value::Int(2), array.clone()), &Value::Bool(true))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.in_array(Value::Int(3), array.clone()), &Value::Bool(true))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.in_array(Value::Int(4), array.clone()), &Value::Bool(false))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.in_array(Value::Int(1), array.clone()).as_bool() == Some(true)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.in_array(Value::Int(2), array.clone()).as_bool() == Some(true)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.in_array(Value::Int(3), array.clone()).as_bool() == Some(true)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.in_array(Value::Int(4), array.clone()).as_bool() == Some(false)))));
 }

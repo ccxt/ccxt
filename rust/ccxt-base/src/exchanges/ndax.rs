@@ -1053,7 +1053,7 @@ impl NdaxCore {
         let mut message: Value = self.safe_string_k(response.clone(), "msg", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("status".to_string(), ternary(is_true(&(is_equal(&message, &Value::Str("PONG".to_string())))), Value::Str("ok".to_string()), Value::Str("error".to_string())));
+        m.insert("status".to_string(), (if is_true(&(Value::Bool(message.as_str() == Some("PONG")))) { Value::Str("ok".to_string()) } else { Value::Str("error".to_string()) }));
         m.insert("updated".to_string(), Value::Null);
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
@@ -1078,8 +1078,8 @@ impl NdaxCore {
     m
 }));
         self.check_required_credentials(&[]);
-        if is_equal(&self.login, &Value::Null) || is_equal(&self.password, &Value::Null) {
-            panic!("{}", crate::exchange_errors::authentication_error(add(&self.id, &Value::Str(" signIn() requires exchange.login, exchange.password".to_string()))));
+        if (self.login.clone() == Value::Null) || (self.password.clone() == Value::Null) {
+            panic!("{}", crate::exchange_errors::authentication_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" signIn() requires exchange.login, exchange.password".to_string())))));
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1098,14 +1098,14 @@ impl NdaxCore {
         //     }
         //
         let mut sessionToken: Value = self.safe_string_k(response.clone(), "SessionToken", &[]);
-        if !is_equal(&sessionToken, &Value::Null) {
+        if (sessionToken != Value::Null) {
             add_element_to_object(&mut self.options, &Value::Str("sessionToken".to_string()), sessionToken.clone());
             return response;
         }
         let mut pending2faToken: Value = self.safe_string_k(response.clone(), "Pending2FaToken", &[]);
-        if !is_equal(&pending2faToken, &Value::Null) {
-            if is_equal(&self.twofa, &Value::Null) {
-                panic!("{}", crate::exchange_errors::authentication_error(add(&self.id, &Value::Str(" signIn() requires exchange.twofa credentials".to_string()))));
+        if (pending2faToken != Value::Null) {
+            if (self.twofa.clone() == Value::Null) {
+                panic!("{}", crate::exchange_errors::authentication_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" signIn() requires exchange.twofa credentials".to_string())))));
             }
             add_element_to_object(&mut self.options, &Value::Str("pending2faToken".to_string()), pending2faToken.clone());
             request = Value::Map({
@@ -1161,8 +1161,8 @@ impl NdaxCore {
         let mut id: Value = self.safe_string_k(rawCurrency.clone(), "ProductId", &[]);
         let mut code: Value = self.safe_currency_code(self.safe_string_k(rawCurrency.clone(), "Product", &[]), &[]);
         let mut ProductType: Value = self.safe_string_k(rawCurrency.clone(), "ProductType", &[]);
-        let mut type_var: Value = ternary(is_true(&(is_equal(&ProductType, &Value::Str("NationalCurrency".to_string())))), Value::Str("fiat".to_string()), Value::Str("crypto".to_string()));
-        if is_equal(&ProductType, &Value::Str("Unknown".to_string())) {
+        let mut type_var: Value = (if is_true(&(Value::Bool(ProductType.as_str() == Some("NationalCurrency")))) { Value::Str("fiat".to_string()) } else { Value::Str("crypto".to_string()) });
+        if (ProductType.as_str() == Some("Unknown")) {
             // such currency is just a blanket entry
             type_var = Value::Str("other".to_string());
         }
@@ -1174,7 +1174,7 @@ impl NdaxCore {
         m.insert("type".to_string(), type_var.clone());
         m.insert("precision".to_string(), self.safe_number_k(rawCurrency.clone(), "TickSize", &[]));
         m.insert("info".to_string(), rawCurrency.clone());
-        m.insert("active".to_string(), Value::Bool((!is_equal(&self.safe_bool_k(rawCurrency.clone(), "IsDisabled", &[]), &Value::Bool(true)))));
+        m.insert("active".to_string(), (Value::Bool(self.safe_bool_k(rawCurrency.clone(), "IsDisabled", &[]).as_bool() != Some(true))));
         m.insert("deposit".to_string(), self.safe_bool_k(rawCurrency.clone(), "DepositEnabled", &[]));
         m.insert("withdraw".to_string(), self.safe_bool_k(rawCurrency.clone(), "WithdrawEnabled", &[]));
         m.insert("fee".to_string(), Value::Null);
@@ -1240,7 +1240,7 @@ impl NdaxCore {
         let mut quote: Value = self.safe_currency_code(self.safe_string_k(market.clone(), "Product2Symbol", &[]), &[]);
         let mut sessionStatus: Value = self.safe_string_k(market.clone(), "SessionStatus", &[]);
         let mut isDisable: Value = self.safe_value_k(market.clone(), "IsDisable", &[]);
-        let mut sessionRunning: bool = is_equal(&sessionStatus, &Value::Str("Running".to_string()));
+        let mut sessionRunning: bool = sessionStatus.as_str() == Some("Running");
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
@@ -1257,7 +1257,7 @@ impl NdaxCore {
         m.insert("swap".to_string(), Value::Bool(false));
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
-        m.insert("active".to_string(), Value::Bool((is_true(&sessionRunning) && is_true(&(!is_equal(&isDisable, &Value::Bool(true)))))));
+        m.insert("active".to_string(), Value::Bool((sessionRunning && (!is_equal(&isDisable, &Value::Bool(true))))));
         m.insert("contract".to_string(), Value::Bool(false));
         m.insert("linear".to_string(), Value::Null);
         m.insert("inverse".to_string(), Value::Null);
@@ -1329,33 +1329,33 @@ impl NdaxCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_986: bool = true;
-            while { if !__for_first_986 { i = add(&i, &Value::Int(1)); } __for_first_986 = false; is_less_than(&i, &get_array_length(&orderbook)) } {
+            while { if !__for_first_986 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_986 = false; is_less_than(&i, &get_array_length(&orderbook)) } {
             let mut level: Value = get_value(&orderbook, &i);
             let mut level: Value = get_value(&orderbook, &i);
-            if is_equal(&timestamp, &Value::Null) {
+            if (timestamp == Value::Null) {
                 timestamp = self.safe_integer(level.clone(), Value::Int(2), &[]);
             }  else {
                 let mut newTimestamp: Value = self.safe_integer(level.clone(), Value::Int(2), &[]);
-                if !is_equal(&newTimestamp, &Value::Null) {
+                if (newTimestamp != Value::Null) {
                     timestamp = crate::runtime::Math::max(&timestamp, &newTimestamp);
                 }
             }
-            if is_equal(&nonce, &Value::Null) {
+            if (nonce == Value::Null) {
                 nonce = self.safe_integer(level.clone(), Value::Int(0), &[]);
             }  else {
                 let mut newNonce: Value = self.safe_integer(level.clone(), Value::Int(0), &[]);
-                if !is_equal(&newNonce, &Value::Null) {
+                if (newNonce != Value::Null) {
                     nonce = crate::runtime::Math::max(&nonce, &newNonce);
                 }
             }
             let mut bidask: Value = self.parse_order_book_bid_ask(level.clone(), &[priceKey.clone(), amountKey.clone()]);
             let mut levelSide: Value = self.safe_integer(level.clone(), Value::Int(9), &[]);
-            let mut side: Value = ternary(is_true(&(!is_equal(&levelSide, &Value::Null) && !is_equal(&levelSide, &Value::Int(0)))), asksKey.clone(), bidsKey.clone());
+            let mut side: Value = (if is_true(&(Value::Bool((levelSide != Value::Null) && (levelSide.as_f64() != Some(0.0))))) { asksKey.clone() } else { bidsKey.clone() });
             crate::runtime::append_to_object_array(&mut result, &side, bidask.clone());
         }
         }
-        { let __be_tmp = self.sort_by(get_value(&result, &Value::Str("bids".to_string())), Value::Int(0), &[Value::Bool(true)]); add_element_to_object(&mut result, &Value::Str("bids".to_string()), __be_tmp); };
-        { let __be_tmp = self.sort_by(get_value(&result, &Value::Str("asks".to_string())), Value::Int(0), &[]); add_element_to_object(&mut result, &Value::Str("asks".to_string()), __be_tmp); };
+        { let __be_tmp = self.sort_by(crate::value::get_value_k(&result, "bids"), Value::Int(0), &[Value::Bool(true)]); add_element_to_object(&mut result, &Value::Str("bids".to_string()), __be_tmp); };
+        { let __be_tmp = self.sort_by(crate::value::get_value_k(&result, "asks"), Value::Int(0), &[]); add_element_to_object(&mut result, &Value::Str("asks".to_string()), __be_tmp); };
         add_element_to_object(&mut result, &Value::Str("timestamp".to_string()), timestamp.clone());
         add_element_to_object(&mut result, &Value::Str("datetime".to_string()), self.iso8601(timestamp.clone()));
         add_element_to_object(&mut result, &Value::Str("nonce".to_string()), nonce.clone());
@@ -1381,15 +1381,15 @@ impl NdaxCore {
     m
 }));
         let mut omsId: Value = self.safe_integer_k(self.options.clone(), "omsId", &[Value::Int(1)]);
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        limit = ternary(is_true(&(is_equal(&limit, &Value::Null))), Value::Int(100), limit.clone()); // default 100
+        limit = (if is_true(&(Value::Bool(limit == Value::Null))) { Value::Int(100) } else { limit.clone() }); // default 100
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("omsId".to_string(), omsId.clone());
-                m.insert("InstrumentId".to_string(), get_value(&market, &Value::Str("id".to_string())));
+                m.insert("InstrumentId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("Depth".to_string(), limit.clone());
             m
         });
@@ -1450,7 +1450,7 @@ impl NdaxCore {
         //
         let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "TimeStamp", &[]);
         let mut marketId: Value = self.safe_string_k(ticker.clone(), "InstrumentId", &[]);
-        if is_equal(&marketId, &Value::Null) {
+        if (marketId == Value::Null) {
             marketId = self.safe_string_k(ticker.clone(), "trading_pairs", &[]);
         }
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Str("_".to_string())]);
@@ -1504,7 +1504,7 @@ impl NdaxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         symbols = self.market_symbols(&[symbols.clone()]);
@@ -1545,14 +1545,14 @@ impl NdaxCore {
     m
 }));
         let mut omsId: Value = self.safe_integer_k(self.options.clone(), "omsId", &[Value::Int(1)]);
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("omsId".to_string(), omsId.clone());
-                m.insert("InstrumentId".to_string(), get_value(&market, &Value::Str("id".to_string())));
+                m.insert("InstrumentId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
         let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
@@ -1590,30 +1590,30 @@ impl NdaxCore {
     m
 }));
         let mut omsId: Value = self.safe_integer_k(self.options.clone(), "omsId", &[Value::Int(1)]);
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("omsId".to_string(), omsId.clone());
-                m.insert("InstrumentId".to_string(), get_value(&market, &Value::Str("id".to_string())));
+                m.insert("InstrumentId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("Interval".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
             m
         });
         let mut duration: Value = self.parse_timeframe(timeframe.clone());
         let mut now: Value = self.milliseconds();
-        if is_equal(&since, &Value::Null) {
-            if !is_equal(&limit, &Value::Null) {
-                add_element_to_object(&mut request, &Value::Str("FromDate".to_string()), self.ymdhms(subtract(&now, &multiply(&multiply(&duration, &limit), &Value::Int(1000))), &[]));
+        if (since == Value::Null) {
+            if (limit != Value::Null) {
+                add_element_to_object(&mut request, &Value::Str("FromDate".to_string()), self.ymdhms((match (&(now), &((match (&((match (&(duration), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]));
                 add_element_to_object(&mut request, &Value::Str("ToDate".to_string()), self.ymdhms(now.clone(), &[]));
             }
         }  else {
             add_element_to_object(&mut request, &Value::Str("FromDate".to_string()), self.ymdhms(since.clone(), &[]));
-            if is_equal(&limit, &Value::Null) {
+            if (limit == Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("ToDate".to_string()), self.ymdhms(now.clone(), &[]));
             }  else {
-                add_element_to_object(&mut request, &Value::Str("ToDate".to_string()), self.ymdhms(self.sum(&[since.clone(), multiply(&multiply(&duration, &limit), &Value::Int(1000))]), &[]));
+                add_element_to_object(&mut request, &Value::Str("ToDate".to_string()), self.ymdhms(self.sum(&[since.clone(), (match (&((match (&(duration), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]), &[]));
             }
         }
         let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
@@ -1765,9 +1765,9 @@ impl NdaxCore {
             id = self.safe_string(trade.clone(), Value::Int(0), &[]);
             marketId = self.safe_string(trade.clone(), Value::Int(1), &[]);
             let mut takerSide: Value = self.safe_integer(trade.clone(), Value::Int(8), &[]);
-            if is_equal(&takerSide, &Value::Int(0)) {
+            if (takerSide.as_f64() == Some(0.0)) {
                 side = Value::Str("buy".to_string());
-            }  else if is_equal(&takerSide, &Value::Int(1)) {
+            }  else if (takerSide.as_f64() == Some(1.0)) {
                 side = Value::Str("sell".to_string());
             }
             orderId = self.safe_string(trade.clone(), Value::Int(4), &[]);
@@ -1783,7 +1783,7 @@ impl NdaxCore {
             side = self.safe_string_lower(trade.clone(), Value::Str("Side".to_string()), &[]);
             type_var = self.safe_string_lower(trade.clone(), Value::Str("OrderType".to_string()), &[]);
             let mut feeCostString: Value = self.safe_string_k(trade.clone(), "Fee", &[]);
-            if !is_equal(&feeCostString, &Value::Null) {
+            if (feeCostString != Value::Null) {
                 let mut feeCurrencyId: Value = self.safe_string_k(trade.clone(), "FeeProductId", &[]);
                 let mut feeCurrencyCode: Value = self.safe_currency_code(feeCurrencyId.clone(), &[]);
                 fee = Value::Map({
@@ -1834,17 +1834,17 @@ impl NdaxCore {
     m
 }));
         let mut omsId: Value = self.safe_integer_k(self.options.clone(), "omsId", &[Value::Int(1)]);
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("omsId".to_string(), omsId.clone());
-                m.insert("InstrumentId".to_string(), get_value(&market, &Value::Str("id".to_string())));
+                m.insert("InstrumentId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        if !is_equal(&limit, &Value::Null) {
+        if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("Count".to_string()), limit.clone());
         }
         let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
@@ -1867,8 +1867,8 @@ impl NdaxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_true(&(is_equal(&self.login, &Value::Null))) || is_true(&(is_equal(&self.login, &Value::Str("".to_string())))) {
-            panic!("{}", crate::exchange_errors::authentication_error(add(&self.id, &Value::Str(" fetchAccounts() requires exchange.login email credential".to_string()))));
+        if is_true(&(Value::Bool(self.login.clone() == Value::Null))) || is_true(&(Value::Bool(self.login.as_str() == Some("")))) {
+            panic!("{}", crate::exchange_errors::authentication_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchAccounts() requires exchange.login email credential".to_string())))));
         }
         let mut omsId: Value = self.safe_integer_k(self.options.clone(), "omsId", &[Value::Int(1)]);
         self.check_required_credentials(&[]);
@@ -1888,7 +1888,7 @@ impl NdaxCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_987: bool = true;
-            while { if !__for_first_987 { i = add(&i, &Value::Int(1)); } __for_first_987 = false; is_less_than(&i, &get_array_length(&response)) } {
+            while { if !__for_first_987 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_987 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(response.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut accountId: Value = self.safe_string(response.clone(), i.clone(), &[]);
             append_to_array(&mut result, Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1916,16 +1916,16 @@ impl NdaxCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_988: bool = true;
-            while { if !__for_first_988 { i = add(&i, &Value::Int(1)); } __for_first_988 = false; is_less_than(&i, &get_array_length(&response)) } {
+            while { if !__for_first_988 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_988 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut balance: Value = get_value(&response, &i);
             let mut balance: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "ProductId", &[]);
-            if is_true(&(!is_equal(&currencyId, &Value::Null))) && is_true(&(!is_equal(&self.currencies_by_id, &Value::Null))) && is_true(&(Value::Bool(in_op(&self.currencies_by_id, &currencyId)))) {
+            if is_true(&(Value::Bool(currencyId != Value::Null))) && is_true(&(Value::Bool(self.currencies_by_id.clone() != Value::Null))) && is_true(&(Value::Bool(in_op(&self.currencies_by_id, &currencyId)))) {
                 let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
                 let mut account: Value = self.account();
                 add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(balance.clone(), "Amount", &[]));
                 add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(balance.clone(), "Hold", &[]));
-                if !is_equal(&code, &Value::Null) {
+                if (code != Value::Null) {
                     add_element_to_object(&mut result, &code, account.clone());
                 }
             }
@@ -1950,14 +1950,14 @@ impl NdaxCore {
     m
 }));
         let mut omsId: Value = self.safe_integer_k(self.options.clone(), "omsId", &[Value::Int(1)]);
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         self.load_accounts(&[]).await;
         let mut defaultAccountId: Value = self.safe_integer2(self.options.clone(), Value::Str("accountId".to_string()), Value::Str("AccountId".to_string()), &[]);
         let mut accountId: Value = self.safe_integer2(params.clone(), Value::Str("accountId".to_string()), Value::Str("AccountId".to_string()), &[defaultAccountId.clone()]);
-        if is_equal(&accountId, &Value::Null) {
-            accountId = self.parse_to_int(get_value(&get_value(&self.accounts, &Value::Int(0)), &Value::Str("id".to_string())));
+        if (accountId == Value::Null) {
+            accountId = self.parse_to_int(self.accounts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         params = self.omit(params.clone(), Value::List(vec![Value::Str("accountId".to_string()), Value::Str("AccountId".to_string())]), &[]);
         let mut request: Value = Value::Map({
@@ -2029,9 +2029,9 @@ impl NdaxCore {
         }
         let mut before: Value = Value::Null;
         let mut after: Value = self.safe_string_k(item.clone(), "Balance", &[]);
-        if is_equal(&direction, &Value::Str("out".to_string())) {
+        if (direction.as_str() == Some("out")) {
             before = crate::precise::Precise::stringAdd(&after, &amount);
-        }  else if is_equal(&direction, &Value::Str("in".to_string())) {
+        }  else if (direction.as_str() == Some("in")) {
             before = crate::precise::Precise::stringMax(&Value::Str("0".to_string()), &crate::precise::Precise::stringSub(&after, &amount));
         }
         let mut timestamp: Value = self.safe_integer_k(item.clone(), "TimeStamp", &[]);
@@ -2078,11 +2078,11 @@ impl NdaxCore {
     m
 }));
         let mut omsId: Value = self.safe_integer_k(self.options.clone(), "omsId", &[Value::Int(1)]);
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         self.load_accounts(&[]).await;
-        let mut defaultAccountId: Value = self.safe_integer2(self.options.clone(), Value::Str("accountId".to_string()), Value::Str("AccountId".to_string()), &[self.parse_to_int(get_value(&get_value(&self.accounts, &Value::Int(0)), &Value::Str("id".to_string())))]);
+        let mut defaultAccountId: Value = self.safe_integer2(self.options.clone(), Value::Str("accountId".to_string()), Value::Str("AccountId".to_string()), &[self.parse_to_int(self.accounts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))]);
         let mut accountId: Value = self.safe_integer2(params.clone(), Value::Str("accountId".to_string()), Value::Str("AccountId".to_string()), &[defaultAccountId.clone()]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("accountId".to_string()), Value::Str("AccountId".to_string())]), &[]);
         let mut request: Value = Value::Map({
@@ -2091,7 +2091,7 @@ impl NdaxCore {
                 m.insert("AccountId".to_string(), accountId.clone());
             m
         });
-        if !is_equal(&limit, &Value::Null) {
+        if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("Depth".to_string()), limit.clone());
         }
         let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
@@ -2115,7 +2115,7 @@ impl NdaxCore {
         //     ]
         //
         let mut currency: Value = Value::Null;
-        if !is_equal(&code, &Value::Null) {
+        if (code != Value::Null) {
             currency = self.currency(code.clone());
         }
         return self.parse_ledger(response.clone(), &[currency.clone(), since.clone(), limit.clone()]);
@@ -2134,7 +2134,7 @@ impl NdaxCore {
                 m.insert("FullyExecuted".to_string(), Value::Str("closed".to_string()));
             m
         });
-        if is_equal(&status, &Value::Null) {
+        if (status == Value::Null) {
             return Value::Null;
         }
         return self.safe_string(statuses.clone(), status.clone(), &[status.clone()]);
@@ -2264,49 +2264,49 @@ impl NdaxCore {
     m
 }));
         let mut omsId: Value = self.safe_integer_k(self.options.clone(), "omsId", &[Value::Int(1)]);
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         self.load_accounts(&[]).await;
-        let mut defaultAccountId: Value = self.safe_integer2(self.options.clone(), Value::Str("accountId".to_string()), Value::Str("AccountId".to_string()), &[self.parse_to_int(get_value(&get_value(&self.accounts, &Value::Int(0)), &Value::Str("id".to_string())))]);
+        let mut defaultAccountId: Value = self.safe_integer2(self.options.clone(), Value::Str("accountId".to_string()), Value::Str("AccountId".to_string()), &[self.parse_to_int(self.accounts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))]);
         let mut accountId: Value = self.safe_integer2(params.clone(), Value::Str("accountId".to_string()), Value::Str("AccountId".to_string()), &[defaultAccountId.clone()]);
         let mut clientOrderId: Value = self.safe_integer2(params.clone(), Value::Str("ClientOrderId".to_string()), Value::Str("clientOrderId".to_string()), &[]);
-        let mut orderType: Value = self.safe_integer(get_value(&self.options, &Value::Str("orderTypes".to_string())), self.capitalize(type_var.clone()), &[]);
+        let mut orderType: Value = self.safe_integer(self.options.as_map().and_then(|__m| __m.get("orderTypes")).cloned().unwrap_or(Value::Null), self.capitalize(type_var.clone()), &[]);
         let mut triggerPrice: Value = self.safe_string_k(params.clone(), "triggerPrice", &[]);
-        if !is_equal(&triggerPrice, &Value::Null) {
-            if is_equal(&type_var, &Value::Str("market".to_string())) {
+        if (triggerPrice != Value::Null) {
+            if (type_var.as_str() == Some("market")) {
                 orderType = Value::Int(3);
-            }  else if is_equal(&type_var, &Value::Str("limit".to_string())) {
+            }  else if (type_var.as_str() == Some("limit")) {
                 orderType = Value::Int(4);
             }
         }
         params = self.omit(params.clone(), Value::List(vec![Value::Str("accountId".to_string()), Value::Str("AccountId".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("ClientOrderId".to_string()), Value::Str("triggerPrice".to_string())]), &[]);
         let mut market: Value = self.market(symbol.clone());
-        let mut orderSide: Value = ternary(is_true(&(is_equal(&side, &Value::Str("buy".to_string())))), Value::Int(0), Value::Int(1));
+        let mut orderSide: Value = (if is_true(&(Value::Bool(side.as_str() == Some("buy")))) { Value::Int(0) } else { Value::Int(1) });
         let mut amountString: Value = self.amount_to_precision(symbol.clone(), amount.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("InstrumentId".to_string(), self.parse_to_int(get_value(&market, &Value::Str("id".to_string()))));
+                m.insert("InstrumentId".to_string(), self.parse_to_int(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
                 m.insert("omsId".to_string(), omsId.clone());
                 m.insert("AccountId".to_string(), accountId.clone());
                 m.insert("TimeInForce".to_string(), Value::Int(1));
                 m.insert("Side".to_string(), orderSide.clone());
-                m.insert("Quantity".to_string(), ternary(is_true(&(is_equal(&amountString, &Value::Null))), Value::Null, crate::runtime::parse_float(&amountString)));
+                m.insert("Quantity".to_string(), (if is_true(&(Value::Bool(amountString == Value::Null))) { Value::Null } else { crate::runtime::parse_float(&amountString) }));
                 m.insert("OrderType".to_string(), orderType.clone());
             m
         });
         // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
-        if !is_equal(&price, &Value::Null) {
+        if (price != Value::Null) {
             let mut limitPriceString: Value = self.price_to_precision(symbol.clone(), price.clone());
-            if is_equal(&limitPriceString, &Value::Null) {
+            if (limitPriceString == Value::Null) {
                 limitPriceString = Value::Str("0".to_string());
             }
             add_element_to_object(&mut request, &Value::Str("LimitPrice".to_string()), crate::runtime::parse_float(&limitPriceString));
         }
-        if !is_equal(&clientOrderId, &Value::Null) {
+        if (clientOrderId != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("ClientOrderId".to_string()), clientOrderId.clone());
         }
-        if !is_equal(&triggerPrice, &Value::Null) {
+        if (triggerPrice != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("StopPrice".to_string()), triggerPrice.clone());
         }
         let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
@@ -2338,38 +2338,38 @@ impl NdaxCore {
     m
 }));
         let mut omsId: Value = self.safe_integer_k(self.options.clone(), "omsId", &[Value::Int(1)]);
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         self.load_accounts(&[]).await;
-        let mut defaultAccountId: Value = self.safe_integer2(self.options.clone(), Value::Str("accountId".to_string()), Value::Str("AccountId".to_string()), &[self.parse_to_int(get_value(&get_value(&self.accounts, &Value::Int(0)), &Value::Str("id".to_string())))]);
+        let mut defaultAccountId: Value = self.safe_integer2(self.options.clone(), Value::Str("accountId".to_string()), Value::Str("AccountId".to_string()), &[self.parse_to_int(self.accounts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))]);
         let mut accountId: Value = self.safe_integer2(params.clone(), Value::Str("accountId".to_string()), Value::Str("AccountId".to_string()), &[defaultAccountId.clone()]);
         let mut clientOrderId: Value = self.safe_integer2(params.clone(), Value::Str("ClientOrderId".to_string()), Value::Str("clientOrderId".to_string()), &[]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("accountId".to_string()), Value::Str("AccountId".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("ClientOrderId".to_string())]), &[]);
         let mut market: Value = self.market(symbol.clone());
-        let mut orderSide: Value = ternary(is_true(&(is_equal(&side, &Value::Str("buy".to_string())))), Value::Int(0), Value::Int(1));
+        let mut orderSide: Value = (if is_true(&(Value::Bool(side.as_str() == Some("buy")))) { Value::Int(0) } else { Value::Int(1) });
         let mut amountString: Value = self.amount_to_precision(symbol.clone(), amount.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("OrderIdToReplace".to_string(), crate::runtime::parse_int(&id));
-                m.insert("InstrumentId".to_string(), self.parse_to_int(get_value(&market, &Value::Str("id".to_string()))));
+                m.insert("InstrumentId".to_string(), self.parse_to_int(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
                 m.insert("omsId".to_string(), omsId.clone());
                 m.insert("AccountId".to_string(), accountId.clone());
                 m.insert("TimeInForce".to_string(), Value::Int(1));
                 m.insert("Side".to_string(), orderSide.clone());
-                m.insert("Quantity".to_string(), ternary(is_true(&(is_equal(&amountString, &Value::Null))), Value::Null, crate::runtime::parse_float(&amountString)));
-                m.insert("OrderType".to_string(), self.safe_integer(get_value(&self.options, &Value::Str("orderTypes".to_string())), self.capitalize(type_var.clone()), &[]));
+                m.insert("Quantity".to_string(), (if is_true(&(Value::Bool(amountString == Value::Null))) { Value::Null } else { crate::runtime::parse_float(&amountString) }));
+                m.insert("OrderType".to_string(), self.safe_integer(self.options.as_map().and_then(|__m| __m.get("orderTypes")).cloned().unwrap_or(Value::Null), self.capitalize(type_var.clone()), &[]));
             m
         });
         // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
-        if !is_equal(&price, &Value::Null) {
+        if (price != Value::Null) {
             let mut limitPriceString: Value = self.price_to_precision(symbol.clone(), price.clone());
-            if is_equal(&limitPriceString, &Value::Null) {
+            if (limitPriceString == Value::Null) {
                 limitPriceString = Value::Str("0".to_string());
             }
             add_element_to_object(&mut request, &Value::Str("LimitPrice".to_string()), crate::runtime::parse_float(&limitPriceString));
         }
-        if !is_equal(&clientOrderId, &Value::Null) {
+        if (clientOrderId != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("ClientOrderId".to_string()), clientOrderId.clone());
         }
         let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
@@ -2399,11 +2399,11 @@ impl NdaxCore {
     m
 }));
         let mut omsId: Value = self.safe_integer_k(self.options.clone(), "omsId", &[Value::Int(1)]);
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         self.load_accounts(&[]).await;
-        let mut defaultAccountId: Value = self.safe_integer2(self.options.clone(), Value::Str("accountId".to_string()), Value::Str("AccountId".to_string()), &[self.parse_to_int(get_value(&get_value(&self.accounts, &Value::Int(0)), &Value::Str("id".to_string())))]);
+        let mut defaultAccountId: Value = self.safe_integer2(self.options.clone(), Value::Str("accountId".to_string()), Value::Str("AccountId".to_string()), &[self.parse_to_int(self.accounts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))]);
         let mut accountId: Value = self.safe_integer2(params.clone(), Value::Str("accountId".to_string()), Value::Str("AccountId".to_string()), &[defaultAccountId.clone()]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("accountId".to_string()), Value::Str("AccountId".to_string())]), &[]);
         let mut request: Value = Value::Map({
@@ -2413,14 +2413,14 @@ impl NdaxCore {
             m
         });
         let mut market: Value = Value::Null;
-        if !is_equal(&symbol, &Value::Null) {
+        if (symbol != Value::Null) {
             market = self.market(symbol.clone());
-            add_element_to_object(&mut request, &Value::Str("InstrumentId".to_string()), get_value(&market, &Value::Str("id".to_string())));
+            add_element_to_object(&mut request, &Value::Str("InstrumentId".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
-        if !is_equal(&since, &Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("StartTimeStamp".to_string()), self.parse_to_int(divide(&since, &Value::Int(1000))));
+        if (since != Value::Null) {
+            add_element_to_object(&mut request, &Value::Str("StartTimeStamp".to_string()), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
         }
-        if !is_equal(&limit, &Value::Null) {
+        if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("Depth".to_string()), limit.clone());
         }
         let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
@@ -2446,11 +2446,11 @@ impl NdaxCore {
     m
 }));
         let mut omsId: Value = self.safe_integer_k(self.options.clone(), "omsId", &[Value::Int(1)]);
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         self.load_accounts(&[]).await;
-        let mut defaultAccountId: Value = self.safe_integer2(self.options.clone(), Value::Str("accountId".to_string()), Value::Str("AccountId".to_string()), &[self.parse_to_int(get_value(&get_value(&self.accounts, &Value::Int(0)), &Value::Str("id".to_string())))]);
+        let mut defaultAccountId: Value = self.safe_integer2(self.options.clone(), Value::Str("accountId".to_string()), Value::Str("AccountId".to_string()), &[self.parse_to_int(self.accounts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))]);
         let mut accountId: Value = self.safe_integer2(params.clone(), Value::Str("accountId".to_string()), Value::Str("AccountId".to_string()), &[defaultAccountId.clone()]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("accountId".to_string()), Value::Str("AccountId".to_string())]), &[]);
         let mut request: Value = Value::Map({
@@ -2459,9 +2459,9 @@ impl NdaxCore {
                 m.insert("AccountId".to_string(), accountId.clone());
             m
         });
-        if !is_equal(&symbol, &Value::Null) {
+        if (symbol != Value::Null) {
             let mut market: Value = self.market(symbol.clone());
-            add_element_to_object(&mut request, &Value::Str("IntrumentId".to_string()), get_value(&market, &Value::Str("id".to_string())));
+            add_element_to_object(&mut request, &Value::Str("IntrumentId".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_post_cancel_all_orders(&[__ws_arg_14]).await;
@@ -2492,7 +2492,7 @@ impl NdaxCore {
     m
 }));
         let mut omsId: Value = self.safe_integer_k(self.options.clone(), "omsId", &[Value::Int(1)]);
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         self.load_accounts(&[]).await;
@@ -2500,7 +2500,7 @@ impl NdaxCore {
         // const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         // params = this.omit (params, [ 'accountId', 'AccountId' ]);
         let mut market: Value = Value::Null;
-        if !is_equal(&symbol, &Value::Null) {
+        if (symbol != Value::Null) {
             market = self.market(symbol.clone());
         }
         let mut request: Value = Value::Map({
@@ -2509,7 +2509,7 @@ impl NdaxCore {
             m
         });
         let mut clientOrderId: Value = self.safe_integer2(params.clone(), Value::Str("clientOrderId".to_string()), Value::Str("ClOrderId".to_string()), &[]);
-        if !is_equal(&clientOrderId, &Value::Null) {
+        if (clientOrderId != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("ClOrderId".to_string()), clientOrderId.clone());
         }  else {
             add_element_to_object(&mut request, &Value::Str("OrderId".to_string()), crate::runtime::parse_int(&id));
@@ -2548,15 +2548,15 @@ impl NdaxCore {
     m
 }));
         let mut omsId: Value = self.safe_integer_k(self.options.clone(), "omsId", &[Value::Int(1)]);
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         self.load_accounts(&[]).await;
-        let mut defaultAccountId: Value = self.safe_integer2(self.options.clone(), Value::Str("accountId".to_string()), Value::Str("AccountId".to_string()), &[self.parse_to_int(get_value(&get_value(&self.accounts, &Value::Int(0)), &Value::Str("id".to_string())))]);
+        let mut defaultAccountId: Value = self.safe_integer2(self.options.clone(), Value::Str("accountId".to_string()), Value::Str("AccountId".to_string()), &[self.parse_to_int(self.accounts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))]);
         let mut accountId: Value = self.safe_integer2(params.clone(), Value::Str("accountId".to_string()), Value::Str("AccountId".to_string()), &[defaultAccountId.clone()]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("accountId".to_string()), Value::Str("AccountId".to_string())]), &[]);
         let mut market: Value = Value::Null;
-        if !is_equal(&symbol, &Value::Null) {
+        if (symbol != Value::Null) {
             market = self.market(symbol.clone());
         }
         let mut request: Value = Value::Map({
@@ -2592,11 +2592,11 @@ impl NdaxCore {
     m
 }));
         let mut omsId: Value = self.safe_integer_k(self.options.clone(), "omsId", &[Value::Int(1)]);
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         self.load_accounts(&[]).await;
-        let mut defaultAccountId: Value = self.safe_integer2(self.options.clone(), Value::Str("accountId".to_string()), Value::Str("AccountId".to_string()), &[self.parse_to_int(get_value(&get_value(&self.accounts, &Value::Int(0)), &Value::Str("id".to_string())))]);
+        let mut defaultAccountId: Value = self.safe_integer2(self.options.clone(), Value::Str("accountId".to_string()), Value::Str("AccountId".to_string()), &[self.parse_to_int(self.accounts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))]);
         let mut accountId: Value = self.safe_integer2(params.clone(), Value::Str("accountId".to_string()), Value::Str("AccountId".to_string()), &[defaultAccountId.clone()]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("accountId".to_string()), Value::Str("AccountId".to_string())]), &[]);
         let mut request: Value = Value::Map({
@@ -2606,14 +2606,14 @@ impl NdaxCore {
             m
         });
         let mut market: Value = Value::Null;
-        if !is_equal(&symbol, &Value::Null) {
+        if (symbol != Value::Null) {
             market = self.market(symbol.clone());
-            add_element_to_object(&mut request, &Value::Str("InstrumentId".to_string()), get_value(&market, &Value::Str("id".to_string())));
+            add_element_to_object(&mut request, &Value::Str("InstrumentId".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
-        if !is_equal(&since, &Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("StartTimeStamp".to_string()), self.parse_to_int(divide(&since, &Value::Int(1000))));
+        if (since != Value::Null) {
+            add_element_to_object(&mut request, &Value::Str("StartTimeStamp".to_string()), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
         }
-        if !is_equal(&limit, &Value::Null) {
+        if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("Depth".to_string()), limit.clone());
         }
         let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
@@ -2640,15 +2640,15 @@ impl NdaxCore {
     m
 }));
         let mut omsId: Value = self.safe_integer_k(self.options.clone(), "omsId", &[Value::Int(1)]);
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         self.load_accounts(&[]).await;
-        let mut defaultAccountId: Value = self.safe_integer2(self.options.clone(), Value::Str("accountId".to_string()), Value::Str("AccountId".to_string()), &[self.parse_to_int(get_value(&get_value(&self.accounts, &Value::Int(0)), &Value::Str("id".to_string())))]);
+        let mut defaultAccountId: Value = self.safe_integer2(self.options.clone(), Value::Str("accountId".to_string()), Value::Str("AccountId".to_string()), &[self.parse_to_int(self.accounts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))]);
         let mut accountId: Value = self.safe_integer2(params.clone(), Value::Str("accountId".to_string()), Value::Str("AccountId".to_string()), &[defaultAccountId.clone()]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("accountId".to_string()), Value::Str("AccountId".to_string())]), &[]);
         let mut market: Value = Value::Null;
-        if !is_equal(&symbol, &Value::Null) {
+        if (symbol != Value::Null) {
             market = self.market(symbol.clone());
         }
         let mut request: Value = Value::Map({
@@ -2686,7 +2686,7 @@ impl NdaxCore {
     m
 }));
         let mut omsId: Value = self.safe_integer_k(self.options.clone(), "omsId", &[Value::Int(1)]);
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         self.load_accounts(&[]).await;
@@ -2694,7 +2694,7 @@ impl NdaxCore {
         // const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         // params = this.omit (params, [ 'accountId', 'AccountId' ]);
         let mut market: Value = Value::Null;
-        if !is_equal(&symbol, &Value::Null) {
+        if (symbol != Value::Null) {
             market = self.market(symbol.clone());
         }
         let mut request: Value = Value::Map({
@@ -2776,11 +2776,11 @@ impl NdaxCore {
     m
 }));
         let mut omsId: Value = self.safe_integer_k(self.options.clone(), "omsId", &[Value::Int(1)]);
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         self.load_accounts(&[]).await;
-        let mut defaultAccountId: Value = self.safe_integer2(self.options.clone(), Value::Str("accountId".to_string()), Value::Str("AccountId".to_string()), &[self.parse_to_int(get_value(&get_value(&self.accounts, &Value::Int(0)), &Value::Str("id".to_string())))]);
+        let mut defaultAccountId: Value = self.safe_integer2(self.options.clone(), Value::Str("accountId".to_string()), Value::Str("AccountId".to_string()), &[self.parse_to_int(self.accounts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))]);
         let mut accountId: Value = self.safe_integer2(params.clone(), Value::Str("accountId".to_string()), Value::Str("AccountId".to_string()), &[defaultAccountId.clone()]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("accountId".to_string()), Value::Str("AccountId".to_string())]), &[]);
         let mut currency: Value = self.currency(code.clone());
@@ -2788,7 +2788,7 @@ impl NdaxCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("omsId".to_string(), omsId.clone());
                 m.insert("AccountId".to_string(), accountId.clone());
-                m.insert("ProductId".to_string(), get_value(&currency, &Value::Str("id".to_string())));
+                m.insert("ProductId".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("GenerateNewKey".to_string(), Value::Bool(false));
             m
         });
@@ -2823,8 +2823,8 @@ impl NdaxCore {
         let mut address: Value = self.safe_string(parts.clone(), Value::Int(0), &[]);
         let mut tag: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
         let mut code: Value = Value::Null;
-        if !is_equal(&currency, &Value::Null) {
-            code = get_value(&currency, &Value::Str("code".to_string()));
+        if (currency != Value::Null) {
+            code = currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null);
         }
         self.check_address(&[address.clone()]);
         return Value::Map({
@@ -2884,15 +2884,15 @@ impl NdaxCore {
     m
 }));
         let mut omsId: Value = self.safe_integer_k(self.options.clone(), "omsId", &[Value::Int(1)]);
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         self.load_accounts(&[]).await;
-        let mut defaultAccountId: Value = self.safe_integer2(self.options.clone(), Value::Str("accountId".to_string()), Value::Str("AccountId".to_string()), &[self.parse_to_int(get_value(&get_value(&self.accounts, &Value::Int(0)), &Value::Str("id".to_string())))]);
+        let mut defaultAccountId: Value = self.safe_integer2(self.options.clone(), Value::Str("accountId".to_string()), Value::Str("AccountId".to_string()), &[self.parse_to_int(self.accounts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))]);
         let mut accountId: Value = self.safe_integer2(params.clone(), Value::Str("accountId".to_string()), Value::Str("AccountId".to_string()), &[defaultAccountId.clone()]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("accountId".to_string()), Value::Str("AccountId".to_string())]), &[]);
         let mut currency: Value = Value::Null;
-        if !is_equal(&code, &Value::Null) {
+        if (code != Value::Null) {
             currency = self.currency(code.clone());
         }
         let mut request: Value = Value::Map({
@@ -2959,15 +2959,15 @@ impl NdaxCore {
     m
 }));
         let mut omsId: Value = self.safe_integer_k(self.options.clone(), "omsId", &[Value::Int(1)]);
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         self.load_accounts(&[]).await;
-        let mut defaultAccountId: Value = self.safe_integer2(self.options.clone(), Value::Str("accountId".to_string()), Value::Str("AccountId".to_string()), &[self.parse_to_int(get_value(&get_value(&self.accounts, &Value::Int(0)), &Value::Str("id".to_string())))]);
+        let mut defaultAccountId: Value = self.safe_integer2(self.options.clone(), Value::Str("accountId".to_string()), Value::Str("AccountId".to_string()), &[self.parse_to_int(self.accounts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))]);
         let mut accountId: Value = self.safe_integer2(params.clone(), Value::Str("accountId".to_string()), Value::Str("AccountId".to_string()), &[defaultAccountId.clone()]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("accountId".to_string()), Value::Str("AccountId".to_string())]), &[]);
         let mut currency: Value = Value::Null;
-        if !is_equal(&code, &Value::Null) {
+        if (code != Value::Null) {
             currency = self.currency(code.clone());
         }
         let mut request: Value = Value::Map({
@@ -3036,14 +3036,14 @@ impl NdaxCore {
 }));
             m
         });
-        let mut statuses: Value = ternary(is_true(&(is_equal(&type_var, &Value::Null))), Value::Map({
+        let mut statuses: Value = (if is_true(&(Value::Bool(type_var == Value::Null))) { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), self.safe_value(statusesByType.clone(), type_var.clone(), &[Value::Map({
+}) } else { self.safe_value(statusesByType.clone(), type_var.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]));
-        if is_equal(&status, &Value::Null) {
+})]) });
+        if (status == Value::Null) {
             return Value::Null;
         }
         return self.safe_string(statuses.clone(), status.clone(), &[status.clone()]);
@@ -3116,7 +3116,7 @@ impl NdaxCore {
         }
         let mut templateForm: Value = self.parse_json_value(self.safe_value2(transaction.clone(), Value::Str("TemplateForm".to_string()), Value::Str("DepositInfo".to_string()), &[]));
         let mut updated: Value = self.safe_integer_k(transaction.clone(), "LastUpdateTimeStamp", &[]);
-        if !is_equal(&templateForm, &Value::Null) {
+        if (templateForm != Value::Null) {
             updated = self.safe_integer_k(templateForm.clone(), "LastUpdated", &[updated.clone()]);
         }
         let mut address: Value = self.safe_string2(templateForm.clone(), Value::Str("ExternalAddress".to_string()), Value::Str("ToAddress".to_string()), &[]);
@@ -3127,7 +3127,7 @@ impl NdaxCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if !is_equal(&feeCost, &Value::Null) {
+        if (feeCost != Value::Null) {
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("currency".to_string(), code.clone());
@@ -3183,19 +3183,19 @@ impl NdaxCore {
         { let __destr_tmp = self.handle_withdraw_tag_and_params(tag.clone(), params.clone()); tag = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         // this method required login, password and twofa key
         let mut sessionToken: Value = self.safe_string_k(self.options.clone(), "sessionToken", &[]);
-        if is_equal(&sessionToken, &Value::Null) {
-            panic!("{}", crate::exchange_errors::authentication_error(add(&self.id, &Value::Str(" call signIn() method to obtain a session token".to_string()))));
+        if (sessionToken == Value::Null) {
+            panic!("{}", crate::exchange_errors::authentication_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" call signIn() method to obtain a session token".to_string())))));
         }
-        if is_equal(&self.twofa, &Value::Null) {
-            panic!("{}", crate::exchange_errors::authentication_error(add(&self.id, &Value::Str(" withdraw() requires exchange.twofa credentials".to_string()))));
+        if (self.twofa.clone() == Value::Null) {
+            panic!("{}", crate::exchange_errors::authentication_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires exchange.twofa credentials".to_string())))));
         }
         self.check_address(&[address.clone()]);
         let mut omsId: Value = self.safe_integer_k(self.options.clone(), "omsId", &[Value::Int(1)]);
-        if is_equal(&self.markets, &Value::Null) {
+        if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
         self.load_accounts(&[]).await;
-        let mut defaultAccountId: Value = self.safe_integer2(self.options.clone(), Value::Str("accountId".to_string()), Value::Str("AccountId".to_string()), &[self.parse_to_int(get_value(&get_value(&self.accounts, &Value::Int(0)), &Value::Str("id".to_string())))]);
+        let mut defaultAccountId: Value = self.safe_integer2(self.options.clone(), Value::Str("accountId".to_string()), Value::Str("AccountId".to_string()), &[self.parse_to_int(self.accounts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))]);
         let mut accountId: Value = self.safe_integer2(params.clone(), Value::Str("accountId".to_string()), Value::Str("AccountId".to_string()), &[defaultAccountId.clone()]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("accountId".to_string()), Value::Str("AccountId".to_string())]), &[]);
         let mut currency: Value = self.currency(code.clone());
@@ -3203,7 +3203,7 @@ impl NdaxCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("omsId".to_string(), omsId.clone());
                 m.insert("AccountId".to_string(), accountId.clone());
-                m.insert("ProductId".to_string(), get_value(&currency, &Value::Str("id".to_string())));
+                m.insert("ProductId".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
         let mut withdrawTemplateTypesResponse: Value = self.private_get_get_withdraw_template_types(&[withdrawTemplateTypesRequest.clone()]).await;
@@ -3221,17 +3221,17 @@ impl NdaxCore {
         //
         let mut templateTypes: Value = self.safe_value_k(withdrawTemplateTypesResponse.clone(), "TemplateTypes", &[Value::List(vec![])]);
         let mut firstTemplateType: Value = self.safe_value(templateTypes.clone(), Value::Int(0), &[]);
-        if is_equal(&firstTemplateType, &Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(add(&add(&self.id, &Value::Str(" withdraw() could not find a withdraw template type for ".to_string())), &get_value(&currency, &Value::Str("code".to_string())))));
+        if (firstTemplateType == Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() could not find a withdraw template type for ".to_string()))), currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)))));
         }
         let mut templateName: Value = self.safe_string_k(firstTemplateType.clone(), "TemplateName", &[]);
         let mut withdrawTemplateRequest: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("omsId".to_string(), omsId.clone());
                 m.insert("AccountId".to_string(), accountId.clone());
-                m.insert("ProductId".to_string(), get_value(&currency, &Value::Str("id".to_string())));
+                m.insert("ProductId".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("TemplateType".to_string(), templateName.clone());
-                m.insert("AccountProviderId".to_string(), get_value(&firstTemplateType, &Value::Str("AccountProviderId".to_string())));
+                m.insert("AccountProviderId".to_string(), crate::value::get_value_k(&firstTemplateType, "AccountProviderId"));
             m
         });
         let mut withdrawTemplateResponse: Value = self.private_get_get_withdraw_template(&[withdrawTemplateRequest.clone()]).await;
@@ -3244,12 +3244,12 @@ impl NdaxCore {
         //     }
         //
         let mut template: Value = self.safe_string_k(withdrawTemplateResponse.clone(), "Template", &[]);
-        if is_equal(&template, &Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(add(&add(&self.id, &Value::Str(" withdraw() could not find a withdraw template for ".to_string())), &get_value(&currency, &Value::Str("code".to_string())))));
+        if (template == Value::Null) {
+            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() could not find a withdraw template for ".to_string()))), currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)))));
         }
         let mut withdrawTemplate: Value = json_parse(&template);
         add_element_to_object(&mut withdrawTemplate, &Value::Str("ExternalAddress".to_string()), address.clone());
-        if !is_equal(&tag, &Value::Null) {
+        if (tag != Value::Null) {
             if is_true(&Value::Bool(in_op(&withdrawTemplate, &Value::Str("Memo".to_string())))) {
                 add_element_to_object(&mut withdrawTemplate, &Value::Str("Memo".to_string()), tag.clone());
             }
@@ -3258,7 +3258,7 @@ impl NdaxCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("omsId".to_string(), omsId.clone());
                 m.insert("AccountId".to_string(), accountId.clone());
-                m.insert("ProductId".to_string(), get_value(&currency, &Value::Str("id".to_string())));
+                m.insert("ProductId".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("TemplateForm".to_string(), self.json(withdrawTemplate.clone()));
                 m.insert("TemplateType".to_string(), templateName.clone());
             m
@@ -3291,20 +3291,20 @@ impl NdaxCore {
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut url: Value = add(&add(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &api), &Value::Str("/".to_string())), &self.implode_params(path.clone(), params.clone()));
+        let mut url: Value = Value::Str(format!("{}{}", add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api), &Value::Str("/".to_string())), self.implode_params(path.clone(), params.clone())));
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
-        if is_equal(&api, &Value::Str("public".to_string())) {
-            if is_equal(&path, &Value::Str("Authenticate".to_string())) {
-                let mut auth: Value = add(&add(&self.login, &Value::Str(":".to_string())), &self.password);
+        if (api.as_str() == Some("public")) {
+            if (path.as_str() == Some("Authenticate")) {
+                let mut auth: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.login.clone(), Value::Str(":".to_string()))), self.password.clone()));
                 let mut auth64: Value = self.string_to_base64(auth.clone(), &[]);
                 headers = Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("Authorization".to_string(), add(&Value::Str("Basic ".to_string()), &auth64));
+                        m.insert("Authorization".to_string(), Value::Str(format!("{}{}", Value::Str("Basic ".to_string()), auth64)));
                     m
                 });
-            }  else if is_equal(&path, &Value::Str("Authenticate2FA".to_string())) {
+            }  else if (path.as_str() == Some("Authenticate2FA")) {
                 let mut pending2faToken: Value = self.safe_string_k(self.options.clone(), "pending2faToken", &[]);
-                if !is_equal(&pending2faToken, &Value::Null) {
+                if (pending2faToken != Value::Null) {
                     headers = Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("Pending2FaToken".to_string(), pending2faToken.clone());
@@ -3313,15 +3313,15 @@ impl NdaxCore {
                     query = self.omit(query.clone(), Value::Str("pending2faToken".to_string()), &[]);
                 }
             }
-            if is_greater_than(&get_array_length(&object_keys(&query)), &Value::Int(0)) {
-                url = add(&url, &add(&Value::Str("?".to_string()), &self.urlencode(query.clone(), &[])));
+            if Value::Int(object_keys(&query).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+                url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(query.clone(), &[])))));
             }
-        }  else if is_equal(&api, &Value::Str("private".to_string())) {
+        }  else if (api.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut sessionToken: Value = self.safe_string_k(self.options.clone(), "sessionToken", &[]);
-            if is_equal(&sessionToken, &Value::Null) {
+            if (sessionToken == Value::Null) {
                 let mut nonce: Value = to_string_val(&self.nonce());
-                let mut auth: Value = add(&add(&nonce, &self.uid), &self.apiKey);
+                let mut auth: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", nonce, self.uid.clone())), self.apiKey.clone()));
                 let mut signature: Value = self.hmac(self.encode(auth.clone()), self.encode(self.secret.clone()), Value::Str("sha256".to_string()), &[]);
                 headers = Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -3338,12 +3338,12 @@ impl NdaxCore {
                     m
                 });
             }
-            if is_equal(&method, &Value::Str("POST".to_string())) {
+            if (method.as_str() == Some("POST")) {
                 add_element_to_object(&mut headers, &Value::Str("Content-Type".to_string()), Value::Str("application/json".to_string()));
                 body = self.json(query.clone());
             }  else {
-                if is_greater_than(&get_array_length(&object_keys(&query)), &Value::Int(0)) {
-                    url = add(&url, &add(&Value::Str("?".to_string()), &self.urlencode(query.clone(), &[])));
+                if Value::Int(object_keys(&query).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+                    url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(query.clone(), &[])))));
                 }
             }
         }
@@ -3360,10 +3360,10 @@ impl NdaxCore {
 }
 
     pub fn handle_errors(&self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
-        if is_equal(&code, &Value::Int(404)) {
-            panic!("{}", crate::exchange_errors::authentication_error(add(&add(&self.id, &Value::Str(" ".to_string())), &body)));
+        if (code.as_f64() == Some(404.0)) {
+            panic!("{}", crate::exchange_errors::authentication_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body))));
         }
-        if is_equal(&response, &Value::Null) {
+        if (response == Value::Null) {
             return Value::Null;
         }
         //
@@ -3371,10 +3371,10 @@ impl NdaxCore {
         //     {"result":false,"errormsg":"Server Error","errorcode":102,"detail":null}
         //
         let mut message: Value = self.safe_string_k(response.clone(), "errormsg", &[]);
-        if is_true(&(!is_equal(&message, &Value::Null))) && is_true(&(!is_equal(&message, &Value::Str("".to_string())))) {
-            let mut feedback: Value = add(&add(&self.id, &Value::Str(" ".to_string())), &body);
-            self.throw_exactly_matched_exception(get_value(&self.exceptions, &Value::Str("exact".to_string())), message.clone(), feedback.clone());
-            self.throw_broadly_matched_exception(get_value(&self.exceptions, &Value::Str("broad".to_string())), body.clone(), feedback.clone());
+        if is_true(&(Value::Bool(message != Value::Null))) && is_true(&(Value::Bool(message.as_str() != Some("")))) {
+            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body));
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone(), feedback.clone());
+            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body.clone(), feedback.clone());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;

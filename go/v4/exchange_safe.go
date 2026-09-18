@@ -931,14 +931,32 @@ func (this *BaseExchange) SafeIntegerProductN(obj any, keys []any, multiplier an
 	return nil
 }
 
-// func (this *BaseExchange) safeBool(obj any, key any, defaultValue ...bool) bool {
-// 	defVal := false
-// 	if len(defaultValue) > 0 {
-// 		defVal = defaultValue[0]
-// 	}
-// 	return SafeBool(obj, key, defVal)
-// }
+// SafeBool / SafeBool2 / SafeBoolN return *bool: nil is an absent flag (JS undefined), a
+// non-nil pointer is a present value even when false. Mirrors the TS body exactly: the found
+// value only when it is a boolean, otherwise the default (which may itself be absent).
+func boolPointerOrDefault(found any, defaultValue []any) *bool {
+	if v, ok := derefScalar(found).(bool); ok {
+		return &v
+	}
+	if len(defaultValue) > 0 {
+		if d, ok := derefScalar(defaultValue[0]).(bool); ok {
+			return &d
+		}
+	}
+	return nil
+}
 
-// func (this *BaseExchange) safeBool(obj any, key any, defaultValue bool) bool {
-// 	return SafeBool(obj, key, defaultValue)
-// }
+func (this *BaseExchange) SafeBool(dictionaryOrList any, key any, defaultValue ...any) *bool {
+	return boolPointerOrDefault(this.SafeValue(dictionaryOrList, key), defaultValue)
+}
+
+func (this *BaseExchange) SafeBool2(dictionaryOrList any, key1 any, key2 any, defaultValue ...any) *bool {
+	if v, ok := derefScalar(this.SafeValue(dictionaryOrList, key1)).(bool); ok {
+		return &v
+	}
+	return boolPointerOrDefault(this.SafeValue(dictionaryOrList, key2), defaultValue)
+}
+
+func (this *BaseExchange) SafeBoolN(dictionaryOrList any, keys any, defaultValue ...any) *bool {
+	return boolPointerOrDefault(this.SafeValueN(dictionaryOrList, keys), defaultValue)
+}

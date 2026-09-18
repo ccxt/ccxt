@@ -61,7 +61,7 @@ public partial class coinone : ccxt.coinone
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -115,7 +115,7 @@ public partial class coinone : ccxt.coinone
         string? symbol = this.symbol(add(add(bs, "/"), quote));
         Int64? timestamp = this.safeInteger(data, "timestamp");
         object orderbook = this.safeOrderBook(this.orderbooks, symbol);
-        if (isTrue(isEqual(orderbook, null)))
+        if ((orderbook == null))
         {
             orderbook = this.orderBook();
         } else
@@ -129,9 +129,9 @@ public partial class coinone : ccxt.coinone
         this.handleDeltas(getValue(orderbook, "bids"), bids);
         ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
         ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
-        string messageHash = add("orderbook:", symbol);
+        string messageHash = ("orderbook:" + symbol);
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
-        callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
+        (client as WebSocketClient).resolve(orderbook, messageHash);
     }
 
     public override void handleDelta(object bookside, object delta)
@@ -152,7 +152,7 @@ public partial class coinone : ccxt.coinone
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -207,7 +207,7 @@ public partial class coinone : ccxt.coinone
         object symbol = getValue(ticker, "symbol");
         ((IDictionary<string,object>)this.tickers)[(string)((string)symbol)] = ticker;
         string messageHash = add("ticker:", symbol);
-        callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.tickers, ((string)symbol)), messageHash});
+        (client as WebSocketClient).resolve(getValue(this.tickers, ((string)symbol)), messageHash);
     }
 
     public virtual object parseWsTicker(object ticker, object market = null)
@@ -283,7 +283,7 @@ public partial class coinone : ccxt.coinone
     {
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
@@ -328,7 +328,7 @@ public partial class coinone : ccxt.coinone
         object trade = this.parseWsTrade(data);
         object symbol = getValue(trade, "symbol");
         object stored = this.safeValue(this.trades, symbol);
-        if (isTrue(isEqual(stored, null)))
+        if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(limit);
@@ -336,7 +336,7 @@ public partial class coinone : ccxt.coinone
         }
         callDynamically(stored, "append", new object[] {trade});
         string messageHash = add("trade:", symbol);
-        callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
+        (client as WebSocketClient).resolve(stored, messageHash);
     }
 
     public override object parseWsTrade(object trade, object market = null)
@@ -361,9 +361,9 @@ public partial class coinone : ccxt.coinone
         market = this.safeMarket(symbol, market);
         object isSellerMaker = this.safeValue(trade, "is_seller_maker");
         string? side = null;
-        if (isTrue(!isEqual(isSellerMaker, null)))
+        if ((isSellerMaker != null))
         {
-            side = ((bool) isTrue((isEqual(isSellerMaker, true)))) ? "sell" : "buy";
+            side = ((bool) (isEqual(isSellerMaker, true))) ? "sell" : "buy";
         }
         string? priceString = this.safeString(trade, "price");
         string? amountString = this.safeString(trade, "qty");
@@ -394,7 +394,7 @@ public partial class coinone : ccxt.coinone
         //     }
         //
         string? type = this.safeString(message, "response_type", "");
-        if (isTrue(isEqual(type, "ERROR")))
+        if ((type == "ERROR"))
         {
             return ((bool?)((object)(true)));
         }
@@ -403,17 +403,17 @@ public partial class coinone : ccxt.coinone
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        if (isTrue(isEqual(this.handleErrorMessage(client as WebSocketClient, message), true)))
+        if (isEqual(this.handleErrorMessage(client as WebSocketClient, message), true))
         {
             return;
         }
         string? type = this.safeString(message, "response_type");
-        if (isTrue(isEqual(type, "PONG")))
+        if ((type == "PONG"))
         {
             this.handlePong(client as WebSocketClient, message);
             return;
         }
-        if (isTrue(isEqual(type, "DATA")))
+        if ((type == "DATA"))
         {
             string topic = ((string)this.safeString(message, "channel", ""));
             Dictionary<string, object> methods = new Dictionary<string, object>() {
@@ -422,16 +422,16 @@ public partial class coinone : ccxt.coinone
                 { "TRADE", this.handleTrades },
             };
             object exacMethod = this.safeValue(methods, topic);
-            if (isTrue(!isEqual(exacMethod, null)))
+            if ((exacMethod != null))
             {
                 DynamicInvoker.InvokeMethod(exacMethod, new object[] { client, message});
                 return;
             }
             List<object> keys = new List<object>(((IDictionary<string,object>)methods).Keys);
-            for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+            for (int i = 0; i < keys.Count; postFixIncrement(ref i))
             {
                 string? key = ((string)getValue(keys, i));
-                if (isTrue(isGreaterThanOrEqual(getIndexOf(topic, getValue(keys, i)), 0)))
+                if (getIndexOf(topic, getValue(keys, i)) >= 0)
                 {
                     object method = getValue(methods, key);
                     DynamicInvoker.InvokeMethod(method, new object[] { client, message});

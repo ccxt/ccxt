@@ -60,7 +60,7 @@ func TestOrder(exchange ccxt.ICoreExchange, skippedProperties any, method any, e
 			"side":      true,
 		})
 		if !IsEqual(GetValue(entry, "trades"), nil) {
-			for i := 0; IsLessThan(i, GetArrayLength(GetValue(entry, "trades"))); i++ {
+			for i := 0; i < GetArrayLength(GetValue(entry, "trades")); i++ {
 				TestTrade(exchange, skippedNew, method, GetValue(GetValue(entry, "trades"), i), symbol, now, false)
 			}
 		}

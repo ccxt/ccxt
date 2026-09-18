@@ -33,7 +33,7 @@ func TestOptionsNetworks(exchange ccxt.ICoreExchange, skippedProperties any) {
 		}
 		// 1) ensure 'networks' dictionary exists in options
 		Assert(exchange.IsDictionary(networks), "exchange.options[\"networks\"] is not a dict")
-		if GetArrayLength(ObjectKeys(networks)) == 0 {
+		if len(ObjectKeys(networks)) == 0 {
 			return
 		}
 		// 2) ensure 'networksById' dictionary exists in options
@@ -43,7 +43,7 @@ func TestOptionsNetworks(exchange ccxt.ICoreExchange, skippedProperties any) {
 		var networkCodes []string = ObjectKeys(GetValue(exchange.GetOptions(), "networks"))
 		// 3) ensure that the same network-id is not assigned to multiple networkCodes
 		var collectedNetworkIds any = []any{}
-		for i := 0; IsLessThan(i, GetArrayLength(networkCodes)); i++ {
+		for i := 0; i < len(networkCodes); i++ {
 			var networkCode any = GetValue(networkCodes, i)
 			var networkId any = GetValue(GetValue(exchange.GetOptions(), "networks"), networkCode)
 			if !EvalTruthy(exchange.InArray(networkCode, allowedUnifiedAliases)) {
@@ -53,13 +53,13 @@ func TestOptionsNetworks(exchange ccxt.ICoreExchange, skippedProperties any) {
 		}
 		// 4) ensure that there are no same networkCode with different case (uppercase/lowercase)
 		var collectedNetworkCodes any = []any{}
-		for i := 0; IsLessThan(i, GetArrayLength(networkCodes)); i++ {
+		for i := 0; i < len(networkCodes); i++ {
 			var networkCodeLower string = ToLower((GetValue(networkCodes, i)))
 			Assert(!EvalTruthy(exchange.InArray(networkCodeLower, collectedNetworkCodes)), Add(Add("exchange.options[\"networks\"] contains multiple networkCodes with the same networkCode \"", GetValue(networkCodes, i)), "\" in different uppercase/lowercase format"))
 			AppendToArray(&collectedNetworkCodes, networkCodeLower)
 		}
 		// 5) test networkCodeToId & networkIdToCode
-		for i := 0; IsLessThan(i, GetArrayLength(networkCodes)); i++ {
+		for i := 0; i < len(networkCodes); i++ {
 			var networkCode any = GetValue(networkCodes, i)
 			var networkId any = GetValue(GetValue(exchange.GetOptions(), "networks"), networkCode)
 			// check networkCodeToId
@@ -72,7 +72,7 @@ func TestOptionsNetworks(exchange ccxt.ICoreExchange, skippedProperties any) {
 				Assert(IsEqual(GetValue(GetValue(exchange.GetOptions(), "networksById"), networkId), networkCode), Add(Add(Add(Add(Add(Add("exchange.options[\"networksById\"][\"", networkId), "\"] value is not expected \""), networkCode), "\", but: \""), GetValue(GetValue(exchange.GetOptions(), "networksById"), networkId)), "\""))
 				// check networkIdToCode conversion back
 				var networkCodeConverted any = exchange.NetworkIdToCode(networkId)
-				Assert(IsEqual(networkCode, networkCodeConverted), Add(Add(Add(Add(Add(Add("exchange.GetnetworkIdToCode() (\"", networkId), "\")=\""), networkCodeConverted), "\" does not match key \""), networkCode), "\" of exchange.options[\"networks\"]"))
+				Assert((networkCode == networkCodeConverted), Add(Add(Add(Add(Add(Add("exchange.GetnetworkIdToCode() (\"", networkId), "\")=\""), networkCodeConverted), "\" does not match key \""), networkCode), "\" of exchange.options[\"networks\"]"))
 			}
 		}
 	}

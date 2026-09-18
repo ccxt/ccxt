@@ -23,5 +23,5 @@ pub fn testAccount(mut exchange: Value, mut skippedProperties: Value, mut method
     });
     let mut emptyAllowedFor: Value = Value::List(vec![Value::Str("code".to_string()), Value::Str("id".to_string())]);
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format.clone(), emptyAllowedFor.clone()]);
-    crate::tests_support::shared::assert_currency_code(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), get_value(&entry, &Value::Str("code".to_string())).clone()]);
+    crate::tests_support::shared::assert_currency_code(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), entry.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null).clone()]);
 }

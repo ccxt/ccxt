@@ -22,8 +22,8 @@ func testFetchOrderBooksBody(ch chan any, exchange ccxt.ICoreExchange, skippedPr
 	PanicOnError(orderBooks)
 	AssertDictionaryResponse(exchange, method, orderBooks)
 	var orderBookKeys []string = ObjectKeys(orderBooks)
-	Assert(IsGreaterThan(GetArrayLength(orderBookKeys), 0), Add(Add(Add(exchange.GetId(), " "), method), " returned 0 length data"))
-	for i := 0; IsLessThan(i, GetArrayLength(orderBookKeys)); i++ {
+	Assert((len(orderBookKeys) > 0), Add(Add(Add(exchange.GetId(), " "), method), " returned 0 length data"))
+	for i := 0; i < len(orderBookKeys); i++ {
 		var symbolInner any = GetValue(orderBookKeys, i)
 		TestOrderBook(exchange, skippedProperties, method, GetValue(orderBooks, symbolInner), symbolInner)
 	}

@@ -168,7 +168,7 @@ pub fn testWsCache() {
     {
                 let mut i: Value = Value::Int(1);
         let mut __for_first_1418: bool = true;
-        while { if !__for_first_1418 { i = add(&i, &Value::Int(1)); } __for_first_1418 = false; is_less_than(&i, &Value::Int(11)) } {
+        while { if !__for_first_1418 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1418 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(11).as_f64().unwrap_or(f64::NAN) } {
         cacheSymbolId5.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
@@ -212,12 +212,12 @@ pub fn testWsCache() {
     {
                 let mut i: Value = Value::Int(1);
         let mut __for_first_1419: bool = true;
-        while { if !__for_first_1419 { i = add(&i, &Value::Int(1)); } __for_first_1419 = false; is_less_than(&i, &Value::Int(11)) } {
+        while { if !__for_first_1419 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1419 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(11).as_f64().unwrap_or(f64::NAN) } {
         cacheSymbolId5.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
                 m.insert("id".to_string(), to_string_val(&i));
-                m.insert("i".to_string(), add(&i, &Value::Int(10)));
+                m.insert("i".to_string(), (match (&(i), &(Value::Int(10))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
             m
         }));
     }
@@ -334,12 +334,12 @@ pub fn testWsCache() {
     {
                 let mut i: Value = Value::Int(30);
         let mut __for_first_1420: bool = true;
-        while { if !__for_first_1420 { i = add(&i, &Value::Int(1)); } __for_first_1420 = false; is_less_than(&i, &Value::Int(33)) } {
+        while { if !__for_first_1420 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1420 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(33).as_f64().unwrap_or(f64::NAN) } {
         cacheSymbolId5.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
                 m.insert("id".to_string(), to_string_val(&i));
-                m.insert("i".to_string(), add(&i, &Value::Int(10)));
+                m.insert("i".to_string(), (match (&(i), &(Value::Int(10))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
             m
         }));
     }
@@ -461,7 +461,7 @@ pub fn testWsCache() {
     {
                 let mut i: Value = Value::Int(0);
         let mut __for_first_1421: bool = true;
-        while { if !__for_first_1421 { i = add(&i, &Value::Int(1)); } __for_first_1421 = false; is_less_than(&i, &initialLength) } {
+        while { if !__for_first_1421 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1421 = false; i.as_f64().unwrap_or(f64::NAN) < initialLength.as_f64().unwrap_or(f64::NAN) } {
         cacheSymbolId2.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
@@ -479,7 +479,7 @@ pub fn testWsCache() {
     {
                 let mut i: Value = Value::Int(0);
         let mut __for_first_1422: bool = true;
-        while { if !__for_first_1422 { i = add(&i, &Value::Int(1)); } __for_first_1422 = false; is_less_than(&i, &appendItemsLength) } {
+        while { if !__for_first_1422 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1422 = false; i.as_f64().unwrap_or(f64::NAN) < appendItemsLength.as_f64().unwrap_or(f64::NAN) } {
         cacheSymbolId3.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
@@ -503,7 +503,7 @@ pub fn testWsCache() {
     {
                 let mut i: Value = Value::Int(0);
         let mut __for_first_1423: bool = true;
-        while { if !__for_first_1423 { i = add(&i, &Value::Int(1)); } __for_first_1423 = false; is_less_than(&i, &initialLength) } {
+        while { if !__for_first_1423 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1423 = false; i.as_f64().unwrap_or(f64::NAN) < initialLength.as_f64().unwrap_or(f64::NAN) } {
         cacheSymbolId4.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
@@ -521,7 +521,7 @@ pub fn testWsCache() {
     {
                 let mut i: Value = Value::Int(0);
         let mut __for_first_1424: bool = true;
-        while { if !__for_first_1424 { i = add(&i, &Value::Int(1)); } __for_first_1424 = false; is_less_than(&i, &appendItemsLength) } {
+        while { if !__for_first_1424 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1424 = false; i.as_f64().unwrap_or(f64::NAN) < appendItemsLength.as_f64().unwrap_or(f64::NAN) } {
         cacheSymbolId6.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
@@ -575,8 +575,8 @@ pub fn testWsCache() {
     {
                 let mut i: Value = Value::Int(0);
         let mut __for_first_1425: bool = true;
-        while { if !__for_first_1425 { i = add(&i, &Value::Int(1)); } __for_first_1425 = false; is_less_than(&i, &initialLength) } {
-        timestampCache2.append(Value::List(vec![multiply(&i, &Value::Int(10)), multiply(&i, &Value::Int(10)), multiply(&i, &Value::Int(10)), multiply(&i, &Value::Int(10))]));
+        while { if !__for_first_1425 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1425 = false; i.as_f64().unwrap_or(f64::NAN) < initialLength.as_f64().unwrap_or(f64::NAN) } {
+        timestampCache2.append(Value::List(vec![(match (&(i), &(Value::Int(10))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), (match (&(i), &(Value::Int(10))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), (match (&(i), &(Value::Int(10))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), (match (&(i), &(Value::Int(10))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
     }
     }
     limited = timestampCache2.get_limit(Value::Null, Value::Null);
@@ -585,8 +585,8 @@ pub fn testWsCache() {
     {
                 let mut i: Value = Value::Int(0);
         let mut __for_first_1426: bool = true;
-        while { if !__for_first_1426 { i = add(&i, &Value::Int(1)); } __for_first_1426 = false; is_less_than(&i, &appendItemsLength) } {
-        timestampCache2.append(Value::List(vec![multiply(&i, &Value::Int(4)), multiply(&i, &Value::Int(4)), multiply(&i, &Value::Int(4)), multiply(&i, &Value::Int(4))]));
+        while { if !__for_first_1426 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1426 = false; i.as_f64().unwrap_or(f64::NAN) < appendItemsLength.as_f64().unwrap_or(f64::NAN) } {
+        timestampCache2.append(Value::List(vec![(match (&(i), &(Value::Int(4))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), (match (&(i), &(Value::Int(4))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), (match (&(i), &(Value::Int(4))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), (match (&(i), &(Value::Int(4))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
     }
     }
     outsideLimit = Value::Int(5);
@@ -843,7 +843,7 @@ pub fn testWsCache() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cacheSymbolSide4, &Value::Int(1)), &Value::Str("contracts".to_string())), &Value::Int(3)) && is_equal(&get_value(&get_value(&cacheSymbolSide4, &Value::Int(1)), &Value::Str("symbol".to_string())), &symbol3)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cacheSymbolSide4, &Value::Int(2)), &Value::Str("contracts".to_string())), &Value::Int(4)) && is_equal(&get_value(&get_value(&cacheSymbolSide4, &Value::Int(2)), &Value::Str("symbol".to_string())), &symbol2)))));
     let mut arrayLength: Value = get_array_length(&cacheSymbolSide4);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&arrayLength, &Value::Int(3))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(arrayLength.as_f64() == Some(3.0)))));
     // ----------------------------------------------------------------------------
     // test clear () really resets ArrayCacheBySymbolById - the hashmap used to keep
     // claiming the cleared ids, so re-appending them merged into orphaned references
@@ -864,7 +864,7 @@ pub fn testWsCache() {
         m
     }));
     cacheClearById.clear();
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_array_length(&cacheClearById), &Value::Int(0))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(get_array_length(&cacheClearById).as_f64() == Some(0.0)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&cacheClearById.get_limit(Value::Null, Value::Int(10)), &Value::Int(0)))))); // no phantom updates
     cacheClearById.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
@@ -901,7 +901,7 @@ pub fn testWsCache() {
     cacheClearTimestamp.append(Value::List(vec![Value::Int(100), Value::Int(1), Value::Int(2), Value::Int(3)]));
     cacheClearTimestamp.append(Value::List(vec![Value::Int(200), Value::Int(4), Value::Int(5), Value::Int(6)]));
     cacheClearTimestamp.clear();
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_array_length(&cacheClearTimestamp), &Value::Int(0))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(get_array_length(&cacheClearTimestamp).as_f64() == Some(0.0)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&cacheClearTimestamp.get_limit(Value::Null, Value::Int(10)), &Value::Int(0)))))); // no phantom updates
     cacheClearTimestamp.append(Value::List(vec![Value::Int(100), Value::Int(7), Value::Int(8), Value::Int(9)]));
     assert!(ccxt::runtime::is_true(&(equals(cacheClearTimestamp.clone(), Value::List(vec![Value::List(vec![Value::Int(100), Value::Int(7), Value::Int(8), Value::Int(9)])])))));
@@ -924,7 +924,7 @@ pub fn testWsCache() {
     }));
     cacheClearBySide.clear();
     let mut clearedBySideLength: Value = get_array_length(&cacheClearBySide);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&clearedBySideLength, &Value::Int(0))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(clearedBySideLength.as_f64() == Some(0.0)))));
     cacheClearBySide.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
             m.insert("symbol".to_string(), Value::Str("BTC/USDT".to_string()));
@@ -940,7 +940,7 @@ pub fn testWsCache() {
         m
     }));
     let mut reappendedBySideLength: Value = get_array_length(&cacheClearBySide);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&reappendedBySideLength, &Value::Int(2))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(reappendedBySideLength.as_f64() == Some(2.0)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cacheClearBySide, &Value::Int(0)), &Value::Str("contracts".to_string())), &Value::Int(3))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cacheClearBySide, &Value::Int(1)), &Value::Str("contracts".to_string())), &Value::Int(4))))));
     // ----------------------------------------------------------------------------
@@ -964,7 +964,7 @@ pub fn testWsCache() {
             m.insert("data".to_string(), Value::Int(3));
         m
     }));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_array_length(&cacheUnbounded), &Value::Int(3))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(get_array_length(&cacheUnbounded).as_f64() == Some(3.0)))));
     // ----------------------------------------------------------------------------
     // test a keyed update MERGES fields instead of replacing the row - a partial
     // order delta must not drop the fields it does not mention
@@ -985,8 +985,8 @@ pub fn testWsCache() {
             m.insert("status".to_string(), Value::Str("closed".to_string()));
         m
     }));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_array_length(&cachePartial), &Value::Int(1))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cachePartial, &Value::Int(0)), &Value::Str("status".to_string())), &Value::Str("closed".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(get_array_length(&cachePartial).as_f64() == Some(1.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&get_value(&cachePartial, &Value::Int(0)), &Value::Str("status".to_string())).as_str() == Some("closed")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cachePartial, &Value::Int(0)), &Value::Str("amount".to_string())), &Value::Int(5))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cachePartial, &Value::Int(0)), &Value::Str("fee".to_string())), &Value::Int(7))))));
     // ----------------------------------------------------------------------------
@@ -1007,7 +1007,7 @@ pub fn testWsCache() {
             m.insert("i".to_string(), Value::Int(2));
         m
     }));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_array_length(&cacheColliding), &Value::Int(2))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(get_array_length(&cacheColliding).as_f64() == Some(2.0)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cacheColliding, &Value::Int(0)), &Value::Str("i".to_string())), &Value::Int(1))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cacheColliding, &Value::Int(1)), &Value::Str("i".to_string())), &Value::Int(2))))));
     // ----------------------------------------------------------------------------
@@ -1056,8 +1056,8 @@ pub fn testWsCache() {
     {
                 let mut i: Value = Value::Int(1);
         let mut __for_first_1427: bool = true;
-        while { if !__for_first_1427 { i = add(&i, &Value::Int(1)); } __for_first_1427 = false; is_less_than(&i, &Value::Int(7)) } {
-        cacheTimestampLimited.append(Value::List(vec![multiply(&i, &Value::Int(100)), i.clone(), i.clone(), i.clone()]));
+        while { if !__for_first_1427 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1427 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(7).as_f64().unwrap_or(f64::NAN) } {
+        cacheTimestampLimited.append(Value::List(vec![(match (&(i), &(Value::Int(100))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), i.clone(), i.clone(), i.clone()]));
     }
     }
     assert!(ccxt::runtime::is_true(&(equals(cacheTimestampLimited.clone(), Value::List(vec![Value::List(vec![Value::Int(400), Value::Int(4), Value::Int(4), Value::Int(4)]), Value::List(vec![Value::Int(500), Value::Int(5), Value::Int(5), Value::Int(5)]), Value::List(vec![Value::Int(600), Value::Int(6), Value::Int(6), Value::Int(6)])])))));
@@ -1069,7 +1069,7 @@ pub fn testWsCache() {
     let mut cacheShortOhlcv = ArrayCacheByTimestamp::new(Value::Null);
     cacheShortOhlcv.append(Value::List(vec![Value::Int(100), Value::Int(1), Value::Int(2), Value::Int(3), Value::Int(4), Value::Int(5)]));
     cacheShortOhlcv.append(Value::List(vec![Value::Int(100), Value::Int(9), Value::Int(9)]));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_array_length(&cacheShortOhlcv), &Value::Int(1))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(get_array_length(&cacheShortOhlcv).as_f64() == Some(1.0)))));
     assert!(ccxt::runtime::is_true(&(equals(cacheShortOhlcv.clone(), Value::List(vec![Value::List(vec![Value::Int(100), Value::Int(9), Value::Int(9)])])))));
     // ----------------------------------------------------------------------------
     // test ArrayCacheByOutcomeById keys the first nesting level on the outcome and
@@ -1136,8 +1136,8 @@ pub fn testWsCache() {
             m.insert("status".to_string(), Value::Str("closed".to_string()));
         m
     }));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_array_length(&cacheNumericId), &Value::Int(1))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cacheNumericId, &Value::Int(0)), &Value::Str("status".to_string())), &Value::Str("closed".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(get_array_length(&cacheNumericId).as_f64() == Some(1.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&get_value(&cacheNumericId, &Value::Int(0)), &Value::Str("status".to_string())).as_str() == Some("closed")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&get_value(&cacheNumericId, &Value::Int(0)), &Value::Str("amount".to_string())), &Value::Int(5))))));
     // ----------------------------------------------------------------------------
     // test eviction removes the emptied outer bucket too - a stream of short-lived
@@ -1147,10 +1147,10 @@ pub fn testWsCache() {
     {
                 let mut i: Value = Value::Int(0);
         let mut __for_first_1428: bool = true;
-        while { if !__for_first_1428 { i = add(&i, &Value::Int(1)); } __for_first_1428 = false; is_less_than(&i, &Value::Int(10)) } {
+        while { if !__for_first_1428 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1428 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(10).as_f64().unwrap_or(f64::NAN) } {
         cacheEvictBuckets.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), add(&add(&Value::Str("S".to_string()), &to_string_val(&i)), &Value::Str("/USDT".to_string())));
+                m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("S".to_string()), to_string_val(&i))), Value::Str("/USDT".to_string()))));
                 m.insert("id".to_string(), Value::Str("x".to_string()));
                 m.insert("i".to_string(), i.clone());
             m
@@ -1158,10 +1158,10 @@ pub fn testWsCache() {
     }
     }
     let mut evictedLength: Value = get_array_length(&cacheEvictBuckets);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&evictedLength, &Value::Int(3))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(evictedLength.as_f64() == Some(3.0)))));
     let mut bucketKeys: Value = object_keys(&get_value(&cacheEvictBuckets, &Value::Str("hashmap".to_string())));
-    let mut bucketCount: Value = get_array_length(&bucketKeys);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&bucketCount, &Value::Int(3)))))); // no empty leftover buckets
+    let mut bucketCount: Value = Value::Int(bucketKeys.len() as i64);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(bucketCount.as_f64() == Some(3.0))))); // no empty leftover buckets
     // ----------------------------------------------------------------------------
     // test the symbol-scoped and the global getLimit scopes count independently -
     // deriving the global count from the symbol-scoped seen set double-counts an

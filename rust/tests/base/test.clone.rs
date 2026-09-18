@@ -124,12 +124,12 @@ pub fn testClone() {
     });
     let mut simpleClone: Value = exchange.clone(simpleOrig.clone());
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&simpleClone, &Value::Str("x".to_string())), &Value::Int(1))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&simpleClone, &Value::Str("y".to_string())), &Value::Str("hello".to_string()))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&simpleClone, &Value::Str("z".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&simpleClone, &Value::Str("y".to_string())).as_str() == Some("hello")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&simpleClone, &Value::Str("z".to_string())) == Value::Null))));
     add_element_to_object(&mut simpleClone, &Value::Str("x".to_string()), Value::Int(999));
     add_element_to_object(&mut simpleClone, &Value::Str("y".to_string()), Value::Str("mutated".to_string()));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&simpleOrig, &Value::Str("x".to_string())), &Value::Int(1))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&simpleOrig, &Value::Str("y".to_string())), &Value::Str("hello".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(simpleOrig.as_map().and_then(|__m| __m.get("x")).cloned().unwrap_or(Value::Null).as_f64() == Some(1.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(simpleOrig.as_map().and_then(|__m| __m.get("y")).cloned().unwrap_or(Value::Null).as_str() == Some("hello")))));
     // mutating the original must not affect an already-taken clone
     add_element_to_object(&mut simpleOrig, &Value::Str("x".to_string()), Value::Int(42));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&simpleClone, &Value::Str("x".to_string())), &Value::Int(999))))));
@@ -149,20 +149,20 @@ pub fn testClone() {
     let mut nestedClone: Value = exchange.clone(nestedOrig.clone());
     // top-level scalar: independent
     add_element_to_object(&mut nestedClone, &Value::Str("top".to_string()), Value::Str("cloned".to_string()));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&nestedOrig, &Value::Str("top".to_string())), &Value::Str("original".to_string()))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&nestedClone, &Value::Str("top".to_string())), &Value::Str("cloned".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(nestedOrig.as_map().and_then(|__m| __m.get("top")).cloned().unwrap_or(Value::Null).as_str() == Some("original")))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&nestedClone, &Value::Str("top".to_string())).as_str() == Some("cloned")))));
     add_element_to_object(&mut nestedOrig, &Value::Str("top".to_string()), Value::Str("changed_orig".to_string()));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&nestedClone, &Value::Str("top".to_string())), &Value::Str("cloned".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&nestedClone, &Value::Str("top".to_string())).as_str() == Some("cloned")))));
     // -------------------------------------------------------------------------
     // --- test C: cloning an empty object ---
     let mut emptyClone: Value = exchange.clone(Value::Map({
         let mut m = indexmap::IndexMap::new();
         m
     }));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_array_length(&object_keys(&emptyClone)), &Value::Int(0))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::Int(object_keys(&emptyClone).len() as i64).as_f64() == Some(0.0)))));
     add_element_to_object(&mut emptyClone, &Value::Str("newKey".to_string()), Value::Str("injected".to_string()));
     // confirm the operation didn't throw and the value was set
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&emptyClone, &Value::Str("newKey".to_string())), &Value::Str("injected".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&emptyClone, &Value::Str("newKey".to_string())).as_str() == Some("injected")))));
     // -------------------------------------------------------------------------
     // --- test D: cloning an object with undefined values preserves those keys ---
     let mut withUndef: Value = Value::Map({
@@ -173,12 +173,12 @@ pub fn testClone() {
     });
     let mut undefClone: Value = exchange.clone(withUndef.clone());
     assert!(ccxt::runtime::is_true(&(Value::Bool(in_op(&undefClone, &Value::Str("present".to_string()))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&undefClone, &Value::Str("present".to_string())), &Value::Str("yes".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&undefClone, &Value::Str("present".to_string())).as_str() == Some("yes")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(in_op(&undefClone, &Value::Str("absent".to_string()))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&undefClone, &Value::Str("absent".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&undefClone, &Value::Str("absent".to_string())) == Value::Null))));
     // mutate clone – original untouched
     add_element_to_object(&mut undefClone, &Value::Str("present".to_string()), Value::Str("no".to_string()));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&withUndef, &Value::Str("present".to_string())), &Value::Str("yes".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(withUndef.as_map().and_then(|__m| __m.get("present")).cloned().unwrap_or(Value::Null).as_str() == Some("yes")))));
     // -------------------------------------------------------------------------
     // --- test E: multi-step: clone → mutate clone → re-clone original → compare ---
     let mut masterOrig: Value = Value::Map({
@@ -192,8 +192,8 @@ pub fn testClone() {
     add_element_to_object(&mut clone1, &Value::Str("a".to_string()), Value::Int(100));
     add_element_to_object(&mut clone1, &Value::Str("d".to_string()), Value::Int(999)); // add extra key
     // original still pristine
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&masterOrig, &Value::Str("a".to_string())), &Value::Int(1))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(Value::Bool(in_op(&masterOrig, &Value::Str("d".to_string())))))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(masterOrig.as_map().and_then(|__m| __m.get("a")).cloned().unwrap_or(Value::Null).as_f64() == Some(1.0)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&(Value::Bool(matches!(&masterOrig, Value::Dict(__d) if __d.contains_key("d")))))))));
     // second independent clone from the still-pristine original
     let mut clone2: Value = exchange.clone(masterOrig.clone());
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&clone2, &Value::Str("a".to_string())), &Value::Int(1))))));
@@ -201,5 +201,5 @@ pub fn testClone() {
     // mutate clone2 differently
     add_element_to_object(&mut clone2, &Value::Str("b".to_string()), Value::Int(200));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&clone1, &Value::Str("b".to_string())), &Value::Int(2))))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_value(&masterOrig, &Value::Str("b".to_string())), &Value::Int(2))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(masterOrig.as_map().and_then(|__m| __m.get("b")).cloned().unwrap_or(Value::Null).as_f64() == Some(2.0)))));
 }

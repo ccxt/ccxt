@@ -25,7 +25,7 @@ pub fn testBorrowRate(mut exchange: Value, mut skippedProperties: Value, mut met
     });
     crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format.clone()]);
     crate::tests_support::shared::assert_timestamp_and_datetime(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone()]);
-    crate::tests_support::shared::assert_currency_code(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), get_value(&entry, &Value::Str("currency".to_string())).clone(), requestedCode.clone()]);
+    crate::tests_support::shared::assert_currency_code(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), entry.as_map().and_then(|__m| __m.get("currency")).cloned().unwrap_or(Value::Null).clone(), requestedCode.clone()]);
     //
     // assert!(ccxt::runtime::is_true(&(borrowRate['period'] === 86400000 || borrowRate['period'] === 3600000))) // Milliseconds in an hour or a day
     crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("period".to_string()).clone(), Value::Str("0".to_string()).clone()]);
