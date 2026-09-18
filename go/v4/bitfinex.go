@@ -924,8 +924,20 @@ func (this *Bitfinex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			baseId = GetValue(parts, 0)
 			quoteId = GetValue(parts, 1)
 		} else {
-			baseId = Slice(id, 0, 3)
-			quoteId = Slice(id, 3, 6)
+			baseId = func() string {
+				if id == nil {
+					return ""
+				}
+				str := *id
+				return str[0:min(3, len(str))]
+			}()
+			quoteId = func() string {
+				if id == nil {
+					return ""
+				}
+				str := *id
+				return str[3:min(6, len(str))]
+			}()
 		}
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
