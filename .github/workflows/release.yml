@@ -117,7 +117,8 @@ jobs:
       - name: Transpile Rust
         run: npm run transpileRust
       - name: Build Rust
-        run: npm run buildRust
+        # the runners share CARGO_HOME; cargo-heal.sh re-extracts a crate whose unpacked sources got corrupted
+        run: build/utils/cargo-heal.sh npm run buildRust
       - name: Check Python syntax
         run: npm run check-python-syntax
       - name: Check PHP syntax
