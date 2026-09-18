@@ -452,7 +452,7 @@ public partial class cex : ccxt.cex
         }
         object bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
-        object symbol = add(add(bs, "/"), quote);
+        string? symbol = ((string)add(add(bs, "/"), quote));
         object timestamp = this.safeInteger(ticker, "timestamp");
         if (!isEqual(timestamp, null))
         {
@@ -811,7 +811,7 @@ public partial class cex : ccxt.cex
         }
         object bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
-        object symbol = add(add(bs, "/"), quote);
+        string? symbol = ((string)add(add(bs, "/"), quote));
         Dictionary<string, object> market = this.safeMarket(symbol);
         remains = this.currencyFromPrecision(bs, remains);
         if (isEqual(this.orders, null))
@@ -1124,8 +1124,8 @@ public partial class cex : ccxt.cex
         string? quoteId = this.safeString(parts, 1);
         object bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
-        object symbol = add(add(bs, "/"), quote);
-        return ((string?)((object)(symbol)));
+        string? symbol = ((string)add(add(bs, "/"), quote));
+        return symbol;
     }
 
     public virtual void handleOrderBookUpdate(WebSocketClient client, Dictionary<string, object> message)
@@ -1250,7 +1250,7 @@ public partial class cex : ccxt.cex
         string? quoteId = this.safeString(parts, 1);
         object bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
-        object symbol = add(add(bs, "/"), quote);
+        string? symbol = ((string)add(add(bs, "/"), quote));
         Dictionary<string, object> market = this.safeMarket(symbol);
         string messageHash = add("ohlcv:", symbol);
         object data = this.safeValue(message, "data", new List<object>() {});

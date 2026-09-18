@@ -857,7 +857,7 @@ public partial class bitvavo : ccxt.bitvavo
         string? marketId = this.safeString(message, "market");
         Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
         string? symbol = ((string)GetValue(market, "symbol"));
-        object messageHash = add(add(eventVar, "@"), GetValue(market, "id"));
+        string? messageHash = ((string)add(add(eventVar, "@"), GetValue(market, "id")));
         ccxt.pro.IOrderBook orderbook = this.safeOrderBook(this.orderbooks, symbol);
         if ((orderbook == null))
         {

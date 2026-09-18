@@ -343,7 +343,7 @@ public partial class btcbox : Exchange
         object bs = this.safeCurrencyCode(baseId);
         string? quoteId = this.safeString(market, "quote");
         string? quote = this.safeCurrencyCode(quoteId);
-        object symbol = add(add(bs, "/"), quote);
+        string? symbol = ((string)add(add(bs, "/"), quote));
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", this.safeString(market, "symbol") },
             { "uppercaseId", null },

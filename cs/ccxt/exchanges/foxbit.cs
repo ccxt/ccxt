@@ -1863,7 +1863,7 @@ public partial class foxbit : Exchange
         string? quoteId = this.safeString(quoteAssets, "symbol");
         object bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
-        object symbol = add(add(bs, "/"), quote);
+        string? symbol = ((string)add(add(bs, "/"), quote));
         IDictionary<string, object> fees = this.safeDict(market, "default_fees");
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },

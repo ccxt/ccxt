@@ -834,7 +834,7 @@ public partial class modetrade : Exchange
         string? quote = this.safeCurrencyCode(quoteId);
         string? settleId = this.safeString(parts, 2);
         string? settle = this.safeCurrencyCode(settleId);
-        object symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
+        string? symbol = ((string)add(add(add(add(bs, "/"), quote), ":"), settle));
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", marketId },
             { "symbol", symbol },

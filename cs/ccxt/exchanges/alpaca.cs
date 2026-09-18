@@ -743,7 +743,7 @@ public partial class alpaca : Exchange
         {
             quote = "USD";
         }
-        object symbol = add(add(bs, "/"), quote);
+        string? symbol = ((string)add(add(bs, "/"), quote));
         string? status = this.safeString(asset, "status");
         bool active = (status == "active");
         double? minAmount = this.safeNumber(asset, "min_order_size");

@@ -676,7 +676,7 @@ public partial class lbank : Exchange
             string? quoteId = ((string)getValue(parts, 1));
             object bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
-            object symbol = add(add(bs, "/"), quote);
+            string? symbol = ((string)add(add(bs, "/"), quote));
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", marketId },
                 { "symbol", symbol },
@@ -777,7 +777,7 @@ public partial class lbank : Exchange
             object bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
             string? settle = this.safeCurrencyCode(settleId);
-            object symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
+            string? symbol = ((string)add(add(add(add(bs, "/"), quote), ":"), settle));
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", marketId },
                 { "symbol", symbol },

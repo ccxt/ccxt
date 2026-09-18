@@ -1032,7 +1032,7 @@ public partial class latoken : Exchange
         string? quoteId = this.safeString(trade, "quoteCurrency");
         object bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
-        object symbol = add(add(bs, "/"), quote);
+        string? symbol = ((string)add(add(bs, "/"), quote));
         if ((!isEqual(this.markets, null)) && (inOp(this.markets, symbol)))
         {
             market = this.market(symbol);

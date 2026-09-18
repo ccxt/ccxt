@@ -969,7 +969,7 @@ public partial class grvt : Exchange
         object bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
         string? settle = this.safeCurrencyCode(settleId);
-        object symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
+        string? symbol = ((string)add(add(add(add(bs, "/"), quote), ":"), settle));
         string? type = null;
         string? typeRaw = this.safeString(market, "kind");
         if (typeRaw == "PERPETUAL")
