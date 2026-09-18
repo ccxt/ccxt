@@ -74,7 +74,15 @@ const RUST_BOOL_RUNTIME_FNS = new Set([
     'is_instance', 'in_op', 'starts_with', 'ends_with', 'is_true',
 ]);
 
-class RustTranspilerBuilder {
+// rust-05: `self.safe_{number,value,bool,list,dict}_k(obj, key, optional_args)`
+// take `obj: Value` BY VALUE (rust/ccxt-base/src/exchange_stubs.rs), so the
+// defensive `.clone()` `wrapVariadicCalls` adds to a bare-identifier object
+// argument is only ever needed to keep that local alive for a LATER read. When
+// the local is provably dead after the call, moving it in is equivalent and the
+// clone (a String copy / Arc bump on a COW `Value`) is dropped.
+const RUST_BY_VALUE_OBJ_CALL = /\bself\.safe_(?:number|value|bool|list|dict)_k\(/;
+
+export class RustTranspilerBuilder {
 
     transpiler!: Transpiler;
 
@@ -3408,6 +3416,77 @@ class RustTranspilerBuilder {
         return out.join('');
     }
 
+    /**
+     * rust-05: `self.safe_{number,value,bool,list,dict}_k(obj, key, args)` take
+     * `obj: Value` BY VALUE. `wrapVariadicCalls` clones a bare-identifier `obj`
+     * defensively so the local survives later reads; when the local is provably
+     * dead after the call the move is equivalent, so the `.clone()` (a String
+     * copy / Arc bump on a COW `Value`) is dropped. Must run after
+     * `rewriteLiteralKeySafeCalls` so the `_k` shape exists.
+     */
+    dropDeadFirstArgClones(content: string): string {
+        const pattern = RUST_BY_VALUE_OBJ_CALL;
+        const blocks = this.rustBlocksOf(content);
+        let i = 0;
+        let out = '';
+        while (i < content.length) {
+            const rest = content.slice(i);
+            const m = rest.match(pattern);
+            if (!m || m.index === undefined) {
+                out += rest;
+                break;
+            }
+            const absStart = i + m.index;
+            out += rest.slice(0, m.index);
+            const callStart = absStart + m[0].length;
+            let depth = 1;
+            let j = callStart;
+            let inStr = false;
+            let escape = false;
+            while (j < content.length && depth > 0) {
+                const c = content[j];
+                if (escape) { escape = false; j++; continue; }
+                if (c === '\\') { escape = true; j++; continue; }
+                if (c === '"') { inStr = !inStr; j++; continue; }
+                if (!inStr) {
+                    if (c === '(' || c === '[' || c === '{') depth++;
+                    else if (c === ')' || c === ']' || c === '}') depth--;
+                }
+                if (depth === 0) break;
+                j++;
+            }
+            if (depth !== 0) {
+                out += content.slice(absStart);
+                break;
+            }
+            // First argument = up to the first top-level comma (or the closing paren).
+            let argDepth = 0;
+            let k = callStart;
+            let argEnd = j;
+            while (k < j) {
+                const c = content[k];
+                if (c === '"') { k = RustTranspilerBuilder.skipRustStringLiteral(content, k); continue; }
+                if (c === '(' || c === '[' || c === '{') argDepth++;
+                else if (c === ')' || c === ']' || c === '}') argDepth--;
+                else if (c === ',' && argDepth === 0) { argEnd = k; break; }
+                k++;
+            }
+            const rawFirst = content.slice(callStart, argEnd);
+            const firstMatch = rawFirst.match(/^\s*([a-zA-Z_][a-zA-Z0-9_]*)\.clone\(\)\s*$/);
+            const movable = firstMatch !== null && firstMatch[1] !== 'self' &&
+                this.rustArgIsDeadAfter(content, blocks, absStart, j + 1, firstMatch[1]);
+            if (movable) {
+                out += content.slice(absStart, callStart) +
+                    rawFirst.replace(/\.clone\(\)(\s*)$/, '$1') +
+                    content.slice(argEnd, j + 1);
+            } else {
+                out += content.slice(absStart, j + 1);
+            }
+            i = j + 1;
+        }
+        return out;
+    }
+
     rewriteLiteralKeySafeCalls(content: string): string {
         const variants = ['value', 'string', 'integer', 'float', 'number', 'bool', 'dict', 'list'];
         const variantRe = variants.join('|');
@@ -4770,6 +4849,171 @@ class RustTranspilerBuilder {
             if (content[i] === ')') i++; // outer `)` of Value::List/Array(...)
         }
         return out;
+    }
+
+    /**
+     * rust-05: brace-balanced block index of `content` — one record per `{`,
+     * `parent` linking to the enclosing block. String/char/comment aware, so a
+     * `{` inside a doc comment or a panic message doesn't skew the nesting.
+     */
+    rustBlocksOf(content: string): Array<{ open: number, end: number, kind: string, parent: number, headerStart: number }> {
+        const blocks: Array<any> = [];
+        const stack: number[] = [];
+        let headerStart = 0;
+        let i = 0;
+        const n = content.length;
+        while (i < n) {
+            const c = content[i];
+            if (c === '"') {
+                i = RustTranspilerBuilder.skipRustStringLiteral(content, i);
+                continue;
+            }
+            if (c === '\'' && (content[i + 1] === '\\' || content[i + 2] === '\'')) {
+                i += 3;
+                continue;
+            }
+            if (c === '/' && content[i + 1] === '/') {
+                const nl = content.indexOf('\n', i + 2);
+                i = nl === -1 ? n : nl + 1;
+                headerStart = i;
+                continue;
+            }
+            if (c === '/' && content[i + 1] === '*') {
+                const close = content.indexOf('*/', i + 2);
+                i = close === -1 ? n : close + 2;
+                headerStart = i;
+                continue;
+            }
+            if (c === '\n') {
+                headerStart = i + 1;
+                i += 1;
+                continue;
+            }
+            if (c === '{') {
+                // The header is the text since the previous statement start
+                // (`;`, comment, or newline) — generated `while { ..cond.. } {`
+                // headers keep their `while` on the same line.
+                const header = content.slice(headerStart, i);
+                const kind = /\b(?:while|for|loop)\b/.test(header) ? 'loop'
+                    : header.includes('|') ? 'closure'
+                        : /\bfn\b/.test(header) ? 'fn' : 'plain';
+                blocks.push({ open: i, end: -1, kind, parent: stack.length ? stack[stack.length - 1] : -1, headerStart });
+                stack.push(blocks.length - 1);
+                i += 1;
+                continue;
+            }
+            if (c === '}') {
+                const top = stack.pop();
+                if (top !== undefined) {
+                    blocks[top].end = i + 1;
+                }
+                i += 1;
+                continue;
+            }
+            if (c === ';') {
+                headerStart = i + 1;
+            }
+            i += 1;
+        }
+        return blocks;
+    }
+
+    static skipRustStringLiteral(content: string, start: number): number {
+        let i = start + 1;
+        const n = content.length;
+        while (i < n) {
+            if (content[i] === '\\') {
+                i += 2;
+                continue;
+            }
+            if (content[i] === '"') {
+                return i + 1;
+            }
+            i += 1;
+        }
+        return n;
+    }
+
+    /**
+     * rust-05: index of the binding the call at `callIdx` would move, or -1.
+     * Either a `let` visible before the call or a parameter of the enclosing fn.
+     */
+    rustArgDeclIndex(content: string, blocks: any[], fnBlock: number, callIdx: number, ident: string): number {
+        const fn = blocks[fnBlock];
+        const word = new RegExp(`\\b${ident}\\b`);
+        if (word.test(content.slice(fn.headerStart, fn.open))) {
+            return fn.headerStart;
+        }
+        const re = new RegExp(`\\blet\\s+(?:mut\\s+)?${ident}\\b`, 'g');
+        const before = content.slice(fn.open, callIdx);
+        let m;
+        let last = -1;
+        while ((m = re.exec(before)) !== null) {
+            last = fn.open + m.index;
+        }
+        return last;
+    }
+
+    /**
+     * rust-05: true when the local `ident` can be MOVED into the call spanning
+     * `[callStart, callEnd)` instead of cloned — it is never read again and it
+     * is re-created before every execution of the call:
+     *   (1) no `ident` occurrence after the call in the enclosing fn body;
+     *   (2) its declaration sits inside every enclosing loop/closure body
+     *       (a binding declared outside a loop would be moved on the first
+     *       iteration and read again on the second);
+     *   (3) no closure body starting before the call mentions it (a stored
+     *       closure could still borrow the binding).
+     */
+    rustArgIsDeadAfter(content: string, blocks: any[], callStart: number, callEnd: number, ident: string): boolean {
+        const word = new RegExp(`\\b${ident}\\b`);
+        let inner = -1;
+        for (let k = blocks.length - 1; k >= 0; k--) {
+            if (blocks[k].open < callStart) {
+                inner = k;
+                break;
+            }
+        }
+        while (inner !== -1 && !(blocks[inner].open < callStart && blocks[inner].end > callStart)) {
+            inner = blocks[inner].parent;
+        }
+        if (inner === -1) {
+            return false;
+        }
+        let fnBlock = -1;
+        for (let b = inner; b !== -1; b = blocks[b].parent) {
+            if (blocks[b].kind === 'fn') {
+                fnBlock = b;
+                break;
+            }
+        }
+        if (fnBlock === -1) {
+            return false;
+        }
+        if (word.test(content.slice(callEnd, blocks[fnBlock].end))) {
+            return false;
+        }
+        const declIdx = this.rustArgDeclIndex(content, blocks, fnBlock, callStart, ident);
+        if (declIdx < 0) {
+            return false;
+        }
+        for (let b = inner; b !== fnBlock; b = blocks[b].parent) {
+            const kind = blocks[b].kind;
+            if ((kind === 'loop' || kind === 'closure') && declIdx < blocks[b].open) {
+                return false;
+            }
+        }
+        for (let k = 0; k < blocks.length; k++) {
+            const blk = blocks[k];
+            if (blk.kind !== 'closure' || blk.open > callStart) {
+                continue;
+            }
+            const stop = blk.end === -1 ? content.length : Math.min(blk.end, callStart);
+            if (word.test(content.slice(blk.open, stop))) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -6891,6 +7135,7 @@ impl std::ops::DerefMut for ${coreName} {
                 result = this.transpiler.transpileRustByPath(tsPath);
                 rustContent = this.createRustExchange(exchangeName, result, ws, isPrediction);
                 rustContent = this.rewriteLiteralKeySafeCalls(rustContent);
+                rustContent = this.dropDeadFirstArgClones(rustContent);
                 rustContent = this.rewriteJavaReqAliases(rustContent);
                 // Last: narrow `Value::Bool` locals whose every sink takes
                 // a `bool`. Must see the final shape of the file.
@@ -7586,6 +7831,7 @@ impl std::ops::DerefMut for ${coreName} {
             .replace(/\bstd::collections::HashMap\b/g, 'indexmap::IndexMap');
 
         let finalFile = this.rewriteLiteralKeySafeCalls(file);
+        finalFile = this.dropDeadFirstArgClones(finalFile);
         finalFile = this.rewriteJavaReqAliases(finalFile);
         finalFile = this.narrowBoolLocals(finalFile);
         finalFile = this.dropRedundantIsTrue(finalFile);
