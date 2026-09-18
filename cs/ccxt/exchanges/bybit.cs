@@ -3763,7 +3763,7 @@ public partial class bybit : Exchange
             // start up to the interval boundary so that the exchange returns
             // candles from the first bucket at or after `since`
             Int64 duration = multiply(this.parseTimeframe(timeframeVar), 1000);
-            object rounded = multiply(this.parseToInt(divide(since, duration)), duration);
+            object rounded = (this.parseToInt(divide(since, duration)) * duration);
             ((IDictionary<string,object>)request)["start"] = ((bool) (isEqual(rounded, since))) ? since : this.sum(rounded, duration);
         }
         if (!isEqual(limitVar, null))
@@ -3893,7 +3893,7 @@ public partial class bybit : Exchange
         string? intervalString = null;
         if (!isEqual(fundingInterval, null))
         {
-            Int64? interval = this.parseToInt(divide(fundingInterval, 60));
+            Int64? interval = this.parseToInt((fundingInterval / 60));
             intervalString = (((object)interval).ToString() + "h");
         }
         return new Dictionary<string, object>() {
@@ -4080,7 +4080,7 @@ public partial class bybit : Exchange
                 object fundingInterval = ((multiply(60, 60) * 8) * 1000);
                 if (!isEqual(fundingTimeFrameMins, null))
                 {
-                    fundingInterval = multiply(multiply(fundingTimeFrameMins, 60), 1000);
+                    fundingInterval = ((fundingTimeFrameMins * 60) * 1000);
                 }
                 ((IDictionary<string,object>)request)["endTime"] = this.sum(since, multiply(limitVar, fundingInterval));
             }

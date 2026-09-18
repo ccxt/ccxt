@@ -1125,7 +1125,7 @@ public partial class onetrading : Exchange
         {
             throw new ExchangeError ((string)(this.id + " parseOHLCV() missing timestamp")) ;
         }
-        object alignedTimestamp = multiply(duration, this.parseToInt(divide(timestamp, duration)));
+        object alignedTimestamp = (duration * this.parseToInt((timestamp / duration)));
         object options = this.safeValue(this.options, "fetchOHLCV", new Dictionary<string, object>() {});
         string? volumeField = this.safeString(options, "volume", "total_amount");
         return new List<object>() {alignedTimestamp, this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, volumeField)};

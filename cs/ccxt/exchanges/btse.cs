@@ -1693,7 +1693,7 @@ public partial class btse : Exchange
         // hour rounds to the same string, and the vocabulary has no minutes
         if ((!isEqual(fundingIntervalMinutes, null)) && (isGreaterThanOrEqual(fundingIntervalMinutes, 60)))
         {
-            Int64? hours = this.parseToInt(divide(fundingIntervalMinutes, 60));
+            Int64? hours = this.parseToInt((fundingIntervalMinutes / 60));
             interval = (((object)hours).ToString() + "h");
         }
         return new Dictionary<string, object>() {

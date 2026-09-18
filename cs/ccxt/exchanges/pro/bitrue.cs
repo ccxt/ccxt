@@ -747,7 +747,7 @@ public partial class bitrue : ccxt.bitrue
     {
         object symbol = getValue(market, "symbol");
         Int64? idSeconds = this.safeInteger(tick, "id");
-        object timestamp = ((bool) (isEqual(idSeconds, null))) ? null : multiply(idSeconds, 1000);
+        object timestamp = ((bool) (isEqual(idSeconds, null))) ? null : (idSeconds * 1000);
         double? open = this.safeNumber(tick, "open");
         double? high = this.safeNumber(tick, "high");
         double? low = this.safeNumber(tick, "low");

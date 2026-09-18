@@ -158,5 +158,56 @@ check ('number literal + string literal stays add()',
     'function f () { const x = 5 + "a"; return x; }',
     'add(5, "a")');
 
+// ---- nullable numeric declarations (`Int64?` / `double?` locals) ----
+// this.safeInteger narrows `const since = ...` to `Int64?`; the helper's null branch IS the
+// lifted operator's for / and * (null in -> null out), so the pair prints natively
+check ('Int64? local / int literal',
+    'function f () { const since = this.safeInteger (this.options, "a"); const y = since / 1000; return y; }',
+    '(since / 1000)');
+
+check ('Int64? local * int literal',
+    'function f () { const d = this.safeInteger (this.options, "a"); const y = d * 1000; return y; }',
+    '(d * 1000)');
+
+check ('double? local / int literal',
+    'function f () { const d = this.safeNumber (this.options, "a"); const y = d / 2; return y; }',
+    '(d / 2)');
+
+check ('Int64? local / Int64? local',
+    'function f () { const a = this.safeInteger (this.options, "a"); const b = this.safeInteger (this.options, "b"); const y = a / b; return y; }',
+    '(a / b)');
+
+check ('Int64? local * Int64? local',
+    'function f () { const a = this.safeInteger (this.options, "a"); const b = this.safeInteger (this.options, "b"); const y = a * b; return y; }',
+    '(a * b)');
+
+// assert(x as number) prints the bare operand, so the operand kind is the inner expression's
+check ('as number over an int literal (bare print)',
+    'function f () { const y = (5 as number) - 1; return y; }',
+    '(5 - 1)');
+
+// ---- nullable pairs that must keep the helper call ----
+// subtract() has no null branch: a.GetType() throws on a null left operand and the (Int64)b
+// unboxing throws on a null right, where the lifted `T? - T` answers null
+check ('Int64? local - int literal keeps subtract()',
+    'function f () { const d = this.safeInteger (this.options, "a"); const y = d - 1; return y; }',
+    'subtract(d, 1)');
+
+// add(object, object) returns the other operand for a null one, not null (the add family)
+check ('Int64? local + int literal keeps add()',
+    'function f () { const d = this.safeInteger (this.options, "a"); const y = d + 1; return y; }',
+    'add(d, 1)');
+
+// multiply() re-boxes an integral double product as Int64, so a double operand keeps it
+check ('double? local * int literal keeps multiply()',
+    'function f () { const d = this.safeNumber (this.options, "a"); const y = d * 2; return y; }',
+    'multiply(d, 2)');
+
+// int / int stays: the helper normalizes to Int64 and divides truncated, while the native
+// Int32 operator would box an Int32 (and JS `/` is float division — unchanged either way)
+check ('int literal / int literal keeps divide()',
+    'function f () { const y = 1 / 2; return y; }',
+    'divide(1, 2)');
+
 console.log (failures === 0 ? 'all checks passed' : failures + ' check(s) failed');
 process.exit (failures === 0 ? 0 : 1);

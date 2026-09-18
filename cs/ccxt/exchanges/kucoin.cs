@@ -4536,7 +4536,7 @@ public partial class kucoin : Exchange
             Int64? nanoseconds = this.safeInteger(data, "ts");
             if (!isEqual(nanoseconds, null))
             {
-                timestamp = this.parseToInt(divide(nanoseconds, 1000000));
+                timestamp = this.parseToInt((nanoseconds / 1000000));
             }
         }
         Dictionary<string, object> orderbook = ((Dictionary<string, object>)this.parseOrderBook(data, getValue(market, "symbol"), timestamp, "bids", "asks", subtract(level, 2), subtract(level, 1)));

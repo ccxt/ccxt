@@ -329,7 +329,7 @@ public partial class bitstamp : ccxt.bitstamp
         //
         Int64? microtimestamp = this.safeInteger(trade, "microtimestamp", 0);
         string? id = this.safeString(trade, "id");
-        Int64? timestamp = this.parseToInt(divide(microtimestamp, 1000));
+        Int64? timestamp = this.parseToInt((microtimestamp / 1000));
         string? price = this.safeString(trade, "price");
         string? amount = this.safeString(trade, "amount");
         if ((market == null))
@@ -662,7 +662,7 @@ public partial class bitstamp : ccxt.bitstamp
         // omits for plain spot orderbook fills
         //
         Int64? microtimestamp = this.safeInteger(trade, "microtimestamp", 0);
-        Int64? timestamp = this.parseToInt(divide(microtimestamp, 1000));
+        Int64? timestamp = this.parseToInt((microtimestamp / 1000));
         market = this.safeMarket(null, market);
         object symbol = getValue(market, "symbol");
         string? feeCost = this.safeString(trade, "fee");

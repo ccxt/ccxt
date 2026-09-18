@@ -2339,7 +2339,7 @@ public partial class nado : Exchange
         }
         if (!isEqual(until, null))
         {
-            ((IDictionary<string,object>)((IDictionary<string,object>)request)["candlesticks"])["max_time"] = this.parseToInt(divide(until, 1000));
+            ((IDictionary<string,object>)((IDictionary<string,object>)request)["candlesticks"])["max_time"] = this.parseToInt((until / 1000));
         }
         Dictionary<string, object> response = await this.archivePost(this.deepExtend(request, parameters));
         //

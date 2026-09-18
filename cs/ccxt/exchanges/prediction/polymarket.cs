@@ -677,12 +677,12 @@ public partial class polymarket : PredictionExchange
             int firstEventsLength = getArrayLength(firstEvents);
             IDictionary<string, object> pagination = this.safeDict(first, "pagination", new Dictionary<string, object>() {});
             Int64? totalResults = this.safeInteger(pagination, "totalResults", firstEventsLength);
-            object totalPages = Math.Ceiling(Convert.ToDouble(divide(totalResults, pageSize)));
+            object totalPages = Math.Ceiling(Convert.ToDouble((totalResults / pageSize)));
             // only page as far as `limit` needs (applyEventFetchParams slices to it afterwards);
             // with no limit, cap the fan-out at options.maxSearchPages so a broad query stays bounded
             if (!isEqual(resultLimit, null))
             {
-                double limitPages = Math.Ceiling(Convert.ToDouble(divide(resultLimit, pageSize)));
+                double limitPages = Math.Ceiling(Convert.ToDouble((resultLimit / pageSize)));
                 if (isLessThan(limitPages, totalPages))
                 {
                     totalPages = limitPages;
@@ -797,7 +797,7 @@ public partial class polymarket : PredictionExchange
         // scope the listing: without a search query loadMarkets would otherwise dump every
         // active event (tens of thousands of markets). Cap to `limit` events (most-traded first).
         Int64? limit = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "fetchMarketsLimit", 200));
-        double maxPages = Math.Ceiling(Convert.ToDouble(divide(limit, pageSize)));
+        double maxPages = Math.Ceiling(Convert.ToDouble((limit / pageSize)));
         string? status = this.safeString(parameters, "status", this.safeString(this.options, "defaultEventStatus", "active"));
         // sort maps to the gamma `order` field; 'volume' is the default ranking
         string? sort = this.safeString(parameters, "sort");
@@ -878,7 +878,7 @@ public partial class polymarket : PredictionExchange
             List<object> offsets = new List<object>() {};
             for (int p = 1; isLessThan(p, maxPages); p++)
             {
-                ((IList<object>)offsets).Add(multiply(p, pageSize));
+                ((IList<object>)offsets).Add((p * pageSize));
             }
             List<object> restPromises = new List<object>() {};
             for (int oi = 0; oi < getArrayLength(offsets); oi++)
@@ -1702,7 +1702,7 @@ public partial class polymarket : PredictionExchange
         IList<object> history = (IList<object>)(this.safeList(response, "history", new List<object>() {}));
         // Client-side bucket aggregation: snap each tick to its candle boundary and
         // build open/high/low/close/volume. Assumes history is sorted ascending by time.
-        object resolutionMs = multiply(multiply(fidelityMin, 60), 1000);
+        object resolutionMs = ((fidelityMin * 60) * 1000);
         Dictionary<string, object> buckets = new Dictionary<string, object>() {};
         for (int i = 0; i < getArrayLength(history); i++)
         {
@@ -1713,7 +1713,7 @@ public partial class polymarket : PredictionExchange
             {
                 continue;
             }
-            object rawMs = multiply(t, 1000);
+            object rawMs = (t * 1000);
             object snappedMs = multiply((Math.Floor(Double.Parse((divide(rawMs, resolutionMs)).ToString()))), resolutionMs);
             // the venue supplies no candle volume ({t, p} ticks only) — leave it undefined
             // rather than fabricating a 0, probing s/v in case the field ever appears
@@ -1783,7 +1783,7 @@ public partial class polymarket : PredictionExchange
         //
         //     1781273248
         //
-        return ccxt.BaseExchange.ToInt64Value(multiply(this.parseToInt(response), 1000));
+        return ccxt.BaseExchange.ToInt64Value((this.parseToInt(response) * 1000));
     }
 
     /**

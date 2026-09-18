@@ -1111,7 +1111,7 @@ public partial class backpack : Exchange
         {
             throw new ExchangeError ((string)(this.id + " fetchOrderBook() missing microseconds")) ;
         }
-        Int64? timestamp = this.parseToInt(divide(microseconds, 1000));
+        Int64? timestamp = this.parseToInt((microseconds / 1000));
         Dictionary<string, object> orderbook = ((Dictionary<string, object>)this.parseOrderBook(response, symbol, timestamp));
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(response, "lastUpdateId");
         return ccxt.BaseExchange.ToOrderBook(orderbook);

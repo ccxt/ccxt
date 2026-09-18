@@ -1054,7 +1054,7 @@ public partial class hollaex : Exchange
             start = subtract(until, timeDelta);
         }
         ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(start, 1000)); // convert to seconds
-        ((IDictionary<string,object>)request)["to"] = this.parseToInt(divide(until, 1000)); // convert to seconds
+        ((IDictionary<string,object>)request)["to"] = this.parseToInt((until / 1000)); // convert to seconds
         parameters = this.omit(parameters, "until");
         List<object> response = await this.publicGetChart(this.extend(request, parameters));
         //

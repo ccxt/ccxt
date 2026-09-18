@@ -2251,7 +2251,7 @@ public partial class mexc : Exchange
             }
             if (!isEqual(until, null))
             {
-                ((IDictionary<string,object>)request)["end"] = this.parseToInt(divide(until, 1000));
+                ((IDictionary<string,object>)request)["end"] = this.parseToInt((until / 1000));
                 if (isEqual(since, null))
                 {
                     ((IDictionary<string,object>)request)["start"] = this.parseToInt(divide(start, 1000));

@@ -2332,7 +2332,7 @@ public partial class lighter : Exchange
             Int64? imf = this.parseToInt(imfStr);
             if (isGreaterThan(imf, 0))
             {
-                leverage = divide(100, imf);
+                leverage = (100 / imf);
             }
         }
         return this.safePosition(new Dictionary<string, object>() {
