@@ -1485,7 +1485,7 @@ impl CexCore {
         let mut snapshot: Value = self.parse_order_book(data.clone(), symbol.clone(), &[timestamp.clone(), Value::Str("bids".to_string()), Value::Str("asks".to_string())]);
         add_element_to_object(&mut snapshot, &Value::Str("nonce".to_string()), incrementalId.clone());
         orderbook.reset(snapshot.clone());
-        add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("orderbook".to_string())), &symbol, Value::Map({
+        add_element_to_object(get_value_mut(&mut self.options, &Value::Str("orderbook".to_string())), &symbol, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("incrementalId".to_string(), incrementalId.clone());
     m
@@ -1652,7 +1652,7 @@ impl CexCore {
     m
 }));
         }
-        add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.ohlcvs) }, &symbol), &Value::Str("unknown".to_string()), stored.clone());
+        add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &Value::Str("unknown".to_string()), stored.clone());
         client.resolve(&[stored.clone(), messageHash.clone()]);
 }
 

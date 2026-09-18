@@ -648,7 +648,7 @@ impl GeminiCore {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
             stored = ArrayCacheByTimestamp::new(limit.clone());
             if (symbol != Value::Null) && (timeframe != Value::Null) {
-                add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.ohlcvs) }, &symbol), &timeframe, stored.clone());
+                add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &timeframe, stored.clone());
             }
         }
         let mut changesLength: Value = Value::Int(changes.len() as i64);
@@ -828,7 +828,7 @@ impl GeminiCore {
     let mut m = indexmap::IndexMap::new();
     m
 }), &[]); add_element_to_object(&mut self.bidsasks, &symbol, __be_tmp); };
-            add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.bidsasks) }, &symbol), &Value::Str("symbol".to_string()), symbol.clone());
+            add_element_to_object(get_value_mut(&mut self.bidsasks, &symbol), &Value::Str("symbol".to_string()), symbol.clone());
         }
         let mut currentBidAsk: Value = get_value(&self.bidsasks, &symbol);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("bidsasks:".to_string()), symbol));

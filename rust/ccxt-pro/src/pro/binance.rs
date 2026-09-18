@@ -682,7 +682,7 @@ impl BinanceCore {
             add_element_to_object(&mut self.options, &Value::Str("streamIndex".to_string()), streamIndex.clone());
             stream = self.number_to_string(normalizedIndex.clone());
             if (subscriptionHash != Value::Null) {
-                add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("streamBySubscriptionsHash".to_string())), &subscriptionHash, stream.clone());
+                add_element_to_object(get_value_mut(&mut self.options, &Value::Str("streamBySubscriptionsHash".to_string())), &subscriptionHash, stream.clone());
             }
             let mut subscriptionsByStreams: Value = self.safe_value_k(self.options.clone(), "numSubscriptionsByStream", &[]);
             if (subscriptionsByStreams == Value::Null) {
@@ -694,7 +694,7 @@ impl BinanceCore {
             if newNumSubscriptions.as_f64().unwrap_or(f64::NAN) > subscriptionLimitByStream.as_f64().unwrap_or(f64::NAN) {
                 panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" reached the limit of subscriptions by stream. Increase the number of streams, or increase the stream limit or subscription limit by stream if the exchange allows.".to_string())))));
             }
-            add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("numSubscriptionsByStream".to_string())), &stream, (match (&(subscriptionsByStream), &(numSubscriptions)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
+            add_element_to_object(get_value_mut(&mut self.options, &Value::Str("numSubscriptionsByStream".to_string())), &stream, (match (&(subscriptionsByStream), &(numSubscriptions)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
         }
         return stream;
 
@@ -2653,7 +2653,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
             stored = ArrayCacheByTimestamp::new(limit.clone());
             if (symbol != Value::Null) && (unifiedTimeframe != Value::Null) {
-                add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.ohlcvs) }, &symbol), &unifiedTimeframe, stored.clone());
+                add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &unifiedTimeframe, stored.clone());
             }
         }
         stored.append(parsed.clone());
@@ -4677,7 +4677,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
     m
 }));
         }
-        add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &accountType), &Value::Str("info".to_string()), message.clone());
+        add_element_to_object(get_value_mut(&mut self.balance, &accountType), &Value::Str("info".to_string()), message.clone());
         let mut event: Value = self.safe_string_k(message.clone(), "e", &[]);
         if (event.as_str() == Some("balanceUpdate")) {
             let mut currencyId: Value = self.safe_string_k(message.clone(), "a", &[]);
@@ -4694,7 +4694,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 add_element_to_object(&mut account, &Value::Str("free".to_string()), delta.clone());
             }
             if is_true(&(Value::Bool(accountType != Value::Null))) && is_true(&(Value::Bool(code != Value::Null))) {
-                add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &accountType), &code, account.clone());
+                add_element_to_object(get_value_mut(&mut self.balance, &accountType), &code, account.clone());
             }
         }  else {
             message = self.safe_dict_k(message.clone(), "a", &[message.clone()]);
@@ -4715,14 +4715,14 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(entry.clone(), "l", &[]));
                 add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string(entry.clone(), wallet.clone(), &[]));
                 if is_true(&(Value::Bool(accountType != Value::Null))) && is_true(&(Value::Bool(code != Value::Null))) {
-                    add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &accountType), &code, account.clone());
+                    add_element_to_object(get_value_mut(&mut self.balance, &accountType), &code, account.clone());
                 }
             }
             }
         }
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "E", &[]);
-        add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &accountType), &Value::Str("timestamp".to_string()), timestamp.clone());
-        { let __be_tmp = self.iso8601(timestamp.clone()); add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &accountType), &Value::Str("datetime".to_string()), __be_tmp); };
+        add_element_to_object(get_value_mut(&mut self.balance, &accountType), &Value::Str("timestamp".to_string()), timestamp.clone());
+        { let __be_tmp = self.iso8601(timestamp.clone()); add_element_to_object(get_value_mut(&mut self.balance, &accountType), &Value::Str("datetime".to_string()), __be_tmp); };
         { let __be_tmp = self.safe_balance(get_value(&self.balance, &accountType)); add_element_to_object(&mut self.balance, &accountType, __be_tmp); };
         client.resolve(&[get_value(&self.balance, &accountType), messageHash.clone()]);
 }
@@ -7005,7 +7005,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
     m
 }));
         }
-        add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &accountType), &Value::Str("info".to_string()), message.clone());
+        add_element_to_object(get_value_mut(&mut self.balance, &accountType), &Value::Str("info".to_string()), message.clone());
         if (accountType == Value::Null) {
             return;
         }
@@ -7021,13 +7021,13 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             if (code != Value::Null) {
                 let mut account: Value = self.account();
                 add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(entry.clone(), "b", &[]));
-                add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &accountType), &code, account.clone());
+                add_element_to_object(get_value_mut(&mut self.balance, &accountType), &code, account.clone());
             }
         }
         }
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "E", &[]);
-        add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &accountType), &Value::Str("timestamp".to_string()), timestamp.clone());
-        { let __be_tmp = self.iso8601(timestamp.clone()); add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &accountType), &Value::Str("datetime".to_string()), __be_tmp); };
+        add_element_to_object(get_value_mut(&mut self.balance, &accountType), &Value::Str("timestamp".to_string()), timestamp.clone());
+        { let __be_tmp = self.iso8601(timestamp.clone()); add_element_to_object(get_value_mut(&mut self.balance, &accountType), &Value::Str("datetime".to_string()), __be_tmp); };
         { let __be_tmp = self.safe_balance(get_value(&self.balance, &accountType)); add_element_to_object(&mut self.balance, &accountType, __be_tmp); };
         client.resolve(&[get_value(&self.balance, &accountType), Value::Str(format!("{}{}", accountType, Value::Str(":balance".to_string())))]);
         // --- positions ---

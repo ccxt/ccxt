@@ -859,7 +859,7 @@ impl CoinbaseinternationalCore {
 })]); add_element_to_object(&mut self.ohlcvs, &symbol, __be_tmp); };
         if (self.safe_value(get_value(&self.ohlcvs, &symbol), timeframe.clone(), &[]) == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
-            add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.ohlcvs) }, &symbol), &timeframe, ArrayCacheByTimestamp::new(limit.clone()));
+            add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &timeframe, ArrayCacheByTimestamp::new(limit.clone()));
         }
         let mut stored: Value = get_value(&get_value(&self.ohlcvs, &symbol), &timeframe);
         let mut data: Value = self.safe_list_k(message.clone(), "candles", &[Value::List(vec![])]);

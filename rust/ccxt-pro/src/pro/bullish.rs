@@ -1087,9 +1087,9 @@ impl BullishCore {
             add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(data.clone(), "lockedQuantity", &[]));
             let mut code: Value = self.safe_currency_code(assetId.clone(), &[]);
             if is_true(&(Value::Bool(tradingAccountId != Value::Null))) && is_true(&(Value::Bool(code != Value::Null))) {
-                add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &tradingAccountId), &code, account.clone());
+                add_element_to_object(get_value_mut(&mut self.balance, &tradingAccountId), &code, account.clone());
             }
-            add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &tradingAccountId), &Value::Str("info".to_string()), message.clone());
+            add_element_to_object(get_value_mut(&mut self.balance, &tradingAccountId), &Value::Str("info".to_string()), message.clone());
             { let __be_tmp = self.safe_balance(get_value(&self.balance, &tradingAccountId)); add_element_to_object(&mut self.balance, &tradingAccountId, __be_tmp); };
         }
         let mut messageHash: Value = Value::Str("balance".to_string());

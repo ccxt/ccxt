@@ -1539,7 +1539,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (stored == Value::Null) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
                 stored = ArrayCacheByTimestamp::new(limit.clone());
-                add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.ohlcvs) }, &symbol), &timeframe, stored.clone());
+                add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &timeframe, stored.clone());
             }
             stored.append(parsed.clone());
             let mut event: Value = self.safe_string_k(message.clone(), "event", &[]);

@@ -1612,7 +1612,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (stored == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
             stored = ArrayCacheByTimestamp::new(limit.clone());
-            add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.ohlcvs) }, &symbol), &timeframe, stored.clone());
+            add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &timeframe, stored.clone());
         }
         let mut isContractMarket: bool = get_index_of(&topic, &Value::Str("contractMarket".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN);
         let mut baseVolumeIndex: Value = (if isContractMarket { Value::Int(6) } else { Value::Int(5) }); // Note value 5 is incorrect and will be fixed in subsequent versions of kucoin
@@ -1659,7 +1659,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (stored == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
             stored = ArrayCacheByTimestamp::new(limit.clone());
-            add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.ohlcvs) }, &symbol), &timeframe, stored.clone());
+            add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &timeframe, stored.clone());
         }
         let mut parsed: Value = Value::List(vec![self.safe_integer_product(data.clone(), Value::Str("O".to_string()), Value::Int(1000), &[]), self.safe_number_k(data.clone(), "o", &[]), self.safe_number_k(data.clone(), "h", &[]), self.safe_number_k(data.clone(), "l", &[]), self.safe_number_k(data.clone(), "c", &[]), self.safe_number_k(data.clone(), "v", &[])]);
         stored.append(parsed.clone());
@@ -2339,7 +2339,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
                 orderbook.reset0();
             }
-            add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.orderbooks) }, &symbol), &Value::Str("symbol".to_string()), symbol.clone());
+            add_element_to_object(get_value_mut(&mut self.orderbooks, &symbol), &Value::Str("symbol".to_string()), symbol.clone());
         }  else {
             if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) {
                 { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
@@ -3575,10 +3575,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         }
-        add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &uniformType), &Value::Str("info".to_string()), data.clone());
+        add_element_to_object(get_value_mut(&mut self.balance, &uniformType), &Value::Str("info".to_string()), data.clone());
         let mut timestamp: Value = self.safe_integer2(data.clone(), Value::Str("time".to_string()), Value::Str("timestamp".to_string()), &[]);
-        add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &uniformType), &Value::Str("timestamp".to_string()), timestamp.clone());
-        { let __be_tmp = self.iso8601(timestamp.clone()); add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &uniformType), &Value::Str("datetime".to_string()), __be_tmp); };
+        add_element_to_object(get_value_mut(&mut self.balance, &uniformType), &Value::Str("timestamp".to_string()), timestamp.clone());
+        { let __be_tmp = self.iso8601(timestamp.clone()); add_element_to_object(get_value_mut(&mut self.balance, &uniformType), &Value::Str("datetime".to_string()), __be_tmp); };
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
         let mut account: Value = self.account();
         let mut used: Value = self.safe_string2(data.clone(), Value::Str("hold".to_string()), Value::Str("holdBalance".to_string()), &[]);
@@ -3590,7 +3590,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         add_element_to_object(&mut account, &Value::Str("used".to_string()), used.clone());
         add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(data.clone(), "total", &[]));
         if is_true(&(Value::Bool(uniformType != Value::Null))) && is_true(&(Value::Bool(code != Value::Null))) {
-            add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &uniformType), &code, account.clone());
+            add_element_to_object(get_value_mut(&mut self.balance, &uniformType), &code, account.clone());
         }
         { let __be_tmp = self.safe_balance(get_value(&self.balance, &uniformType)); add_element_to_object(&mut self.balance, &uniformType, __be_tmp); };
         let mut messageHash: Value = Value::Str(format!("{}{}", uniformType, Value::Str(":balance".to_string())));
@@ -3626,16 +3626,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         }
-        add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &type_var), &Value::Str("info".to_string()), data.clone());
+        add_element_to_object(get_value_mut(&mut self.balance, &type_var), &Value::Str("info".to_string()), data.clone());
         let mut timestamp: Value = self.safe_integer_product(data.clone(), Value::Str("U".to_string()), Value::Float(0.000001), &[]);
-        add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &type_var), &Value::Str("timestamp".to_string()), timestamp.clone());
-        { let __be_tmp = self.iso8601(timestamp.clone()); add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &type_var), &Value::Str("datetime".to_string()), __be_tmp); };
+        add_element_to_object(get_value_mut(&mut self.balance, &type_var), &Value::Str("timestamp".to_string()), timestamp.clone());
+        { let __be_tmp = self.iso8601(timestamp.clone()); add_element_to_object(get_value_mut(&mut self.balance, &type_var), &Value::Str("datetime".to_string()), __be_tmp); };
         let mut account: Value = self.account();
         add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(data.clone(), "a", &[]));
         add_element_to_object(&mut account, &Value::Str("used".to_string()), self.safe_string_k(data.clone(), "h", &[]));
         add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(data.clone(), "b", &[]));
         if is_true(&(Value::Bool(type_var != Value::Null))) && is_true(&(Value::Bool(code != Value::Null))) {
-            add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &type_var), &code, account.clone());
+            add_element_to_object(get_value_mut(&mut self.balance, &type_var), &code, account.clone());
         }
         { let __be_tmp = self.safe_balance(get_value(&self.balance, &type_var)); add_element_to_object(&mut self.balance, &type_var, __be_tmp); };
         let mut messageHash: Value = Value::Str(format!("{}{}", type_var, Value::Str(":balance".to_string())));

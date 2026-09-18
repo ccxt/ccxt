@@ -840,7 +840,7 @@ impl HtxCore {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
             stored = ArrayCacheByTimestamp::new(limit.clone());
             if (symbol != Value::Null) && (timeframe != Value::Null) {
-                add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.ohlcvs) }, &symbol), &timeframe, stored.clone());
+                add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &timeframe, stored.clone());
             }
         }
         let mut tick: Value = self.safe_value_k(message.clone(), "tick", &[]);
@@ -2313,7 +2313,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut cache: Value = self.safe_value(get_value(&self.positions, &url), marginMode.clone(), &[]);
             if (cache == Value::Null) {
                 cache = ArrayCacheBySymbolBySide::new(Value::Null);
-                add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.positions) }, &url), &marginMode, cache.clone());
+                add_element_to_object(get_value_mut(&mut self.positions, &url), &marginMode, cache.clone());
             }
             append_to_array(&mut newPositions, position.clone());
             { let __be_tmp = self.safe_value(positionsByMarginMode.clone(), marginMode.clone(), &[Value::List(vec![])]); add_element_to_object(&mut positionsByMarginMode, &marginMode, __be_tmp); };
