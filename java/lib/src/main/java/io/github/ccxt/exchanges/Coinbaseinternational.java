@@ -503,7 +503,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             for (var i = 0; i < ((List<?>)accounts).size(); i++)
             {
                 Object account = Helpers.GetValue(accounts, i);
-                Object info = this.safeDict(account, "info", new HashMap<String, Object>() {{}});
+                Map<String, Object> info = (Map<String, Object>) this.safeDict(account, "info", new HashMap<String, Object>() {{}});
                 if (java.util.Objects.equals(this.safeBool(info, "is_default"), true))
                 {
                     String portfolioId = this.safeString(info, "portfolio_id");
@@ -1011,9 +1011,9 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         Long timestamp = this.parse8601(datetime);
         String currencyId = this.safeString(transfer, "asset");
         String code = this.safeCurrencyCode(currencyId);
-        Object fromPorfolio = this.safeDict(transfer, "from_portfolio", new HashMap<String, Object>() {{}});
+        Map<String, Object> fromPorfolio = (Map<String, Object>) this.safeDict(transfer, "from_portfolio", new HashMap<String, Object>() {{}});
         String fromId = this.safeString(fromPorfolio, "id");
-        Object toPorfolio = this.safeDict(transfer, "to_portfolio", new HashMap<String, Object>() {{}});
+        Map<String, Object> toPorfolio = (Map<String, Object>) this.safeDict(transfer, "to_portfolio", new HashMap<String, Object>() {{}});
         String toId = this.safeString(toPorfolio, "id");
         return new HashMap<String, Object>() {{
             put( "info", transfer );
@@ -1140,7 +1140,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
-            Object networks = this.safeDict(currency, "networks");
+            Map<String, Object> networks = (Map<String, Object>) this.safeDict(currency, "networks");
             if (!java.util.Objects.equals(networks, null))
             {
                 return false;
@@ -1624,9 +1624,9 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         // const transactionType = this.safeString (transaction, 'type');
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String datetime = this.safeString(transaction, "updated_at");
-        Object fromPorfolio = this.safeDict(transaction, "from_portfolio", new HashMap<String, Object>() {{}});
+        Map<String, Object> fromPorfolio = (Map<String, Object>) this.safeDict(transaction, "from_portfolio", new HashMap<String, Object>() {{}});
         String addressFrom = this.safeStringN(transaction, new ArrayList<Object>(Arrays.asList("from_address", "from_cb_account", this.safeStringN(fromPorfolio, new ArrayList<Object>(Arrays.asList("id", "uuid", "name"))), "from_counterparty_id")));
-        Object toPorfolio = this.safeDict(transaction, "from_portfolio", new HashMap<String, Object>() {{}});
+        Map<String, Object> toPorfolio = (Map<String, Object>) this.safeDict(transaction, "from_portfolio", new HashMap<String, Object>() {{}});
         String addressTo = this.safeStringN(transaction, new ArrayList<Object>(Arrays.asList("to_address", "to_cb_account", this.safeStringN(toPorfolio, new ArrayList<Object>(Arrays.asList("id", "uuid", "name"))), "to_counterparty_id")));
         String code = this.safeString(currency, "code");
         return new HashMap<String, Object>() {{
@@ -2004,7 +2004,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 Object instrument = Helpers.GetValue(rows, i);
                 String marketId = this.safeString(instrument, "symbol");
                 String symbol = this.safeSymbol(marketId);
-                Object quote = this.safeDict(instrument, "quote", new HashMap<String, Object>() {{}});
+                Map<String, Object> quote = (Map<String, Object>) this.safeDict(instrument, "quote", new HashMap<String, Object>() {{}});
                 Helpers.addElementToObject(tickers, symbol, this.parseTicker(quote, this.safeMarket(marketId)));
             }
             return this.filterByArray(tickers, "symbol", symbols, true);

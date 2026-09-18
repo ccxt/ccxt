@@ -327,7 +327,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         //        }
         //    }
         //
-        Object snapshot = this.safeDict(message, "snapshot");
+        Map<String, Object> snapshot = (Map<String, Object>) this.safeDict(message, "snapshot");
         Object data = this.safeDict2(message, "snapshot", "update", new HashMap<String, Object>() {{}});
         String type = (((!java.util.Objects.equals(snapshot, null) && !java.util.Objects.equals(snapshot, null)))) ? "snapshot" : "update";
         Object marketIds = Helpers.objectKeys(data);
@@ -340,7 +340,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             String messageHash = ("orderbooks::" + symbol);
             if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
             {
-                Object subscription = this.safeDict(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});
+                Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});
                 Long limit = this.safeInteger(subscription, "limit");
                 Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
             }
@@ -513,7 +513,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         //        }
         //    }
         //
-        Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Object marketIds = Helpers.objectKeys(data);
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         String topic = "tickers";
@@ -657,7 +657,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         //         }
         //     }
         //
-        Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Object marketIds = Helpers.objectKeys(data);
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         String topic = "bidask";
@@ -1657,7 +1657,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             if (Helpers.isTrue(Helpers.isArray(result)))
             {
                 // to do improve this, not very reliable right now
-                Object first = this.safeDict(result, 0, new HashMap<String, Object>() {{}});
+                Map<String, Object> first = (Map<String, Object>) this.safeDict(result, 0, new HashMap<String, Object>() {{}});
                 Object arrayLength = ((List<?>)result).size();
                 if ((Helpers.isEqual(arrayLength, 0)) || (((Map<?, ?>)first).containsKey("client_order_id")))
                 {

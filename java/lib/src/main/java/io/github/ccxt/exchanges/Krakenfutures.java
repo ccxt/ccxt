@@ -766,7 +766,7 @@ public class Krakenfutures extends KrakenfuturesApi
             //    }
             //
             Long timestamp = this.parse8601(this.safeString(response, "serverTime"));
-            Object orderBook = this.safeDict(response, "orderBook", new HashMap<String, Object>() {{}});
+            Map<String, Object> orderBook = (Map<String, Object>) this.safeDict(response, "orderBook", new HashMap<String, Object>() {{}});
             return this.parseOrderBook(orderBook, symbol, timestamp);
         }).thenApply(OrderBook::new);
 
@@ -817,7 +817,7 @@ public class Krakenfutures extends KrakenfuturesApi
             //        "serverTime": "2026-09-02T17:52:21.671Z"
             //    }
             //
-            Object ticker = this.safeDict(response, "ticker", new HashMap<String, Object>() {{}});
+            Map<String, Object> ticker = (Map<String, Object>) this.safeDict(response, "ticker", new HashMap<String, Object>() {{}});
             return this.parseTicker(ticker, market);
         }).thenApply(Ticker::new);
 
@@ -1028,7 +1028,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 Object symbol = Helpers.GetValue(symbols, i);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 String uid = this.safeString(((Map<String, Object>)market).get("info"), "feeScheduleUid");
-                Object schedule = this.safeDict(schedulesByUid, uid);
+                Map<String, Object> schedule = (Map<String, Object>) this.safeDict(schedulesByUid, uid);
                 if (java.util.Objects.equals(schedule, null))
                 {
                     continue;
@@ -1310,9 +1310,9 @@ public class Krakenfutures extends KrakenfuturesApi
                 {
                     Object index = Helpers.subtract(Helpers.subtract(length, 1), i);
                     Object element = Helpers.GetValue(elements, index);
-                    Object eventVar = this.safeDict(element, "event", new HashMap<String, Object>() {{}});
-                    Object executionContainer = this.safeDict(eventVar, "Execution", new HashMap<String, Object>() {{}});
-                    Object rawTrade = this.safeDict(executionContainer, "execution", new HashMap<String, Object>() {{}});
+                    Map<String, Object> eventVar = (Map<String, Object>) this.safeDict(element, "event", new HashMap<String, Object>() {{}});
+                    Map<String, Object> executionContainer = (Map<String, Object>) this.safeDict(eventVar, "Execution", new HashMap<String, Object>() {{}});
+                    Map<String, Object> rawTrade = (Map<String, Object>) this.safeDict(executionContainer, "execution", new HashMap<String, Object>() {{}});
                     ((List<Object>)rawTrades).add(rawTrade);
                 }
             } else
@@ -1476,7 +1476,7 @@ public class Krakenfutures extends KrakenfuturesApi
         if (Helpers.isTrue(isHistoricalExecution))
         {
             timestamp = (Long) this.safeInteger(trade, "timestamp");
-            Object taker = this.safeDict(trade, "takerOrder", new HashMap<String, Object>() {{}});
+            Map<String, Object> taker = (Map<String, Object>) this.safeDict(trade, "takerOrder", new HashMap<String, Object>() {{}});
             if (!java.util.Objects.equals(taker, null))
             {
                 side = this.safeStringLower(taker, "direction");
@@ -1837,7 +1837,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 ((Map<String, Object>)request).put("limitPrice", price);
             }
             Map<String, Object> response = (this.privatePostEditorder(this.extend(request, parameters))).join();
-            Object editStatus = this.safeDict(response, "editStatus", new HashMap<String, Object>() {{}});
+            Map<String, Object> editStatus = (Map<String, Object>) this.safeDict(response, "editStatus", new HashMap<String, Object>() {{}});
             String status = this.safeString(editStatus, "status");
             this.verifyOrderActionSuccess(status, "editOrder", new ArrayList<Object>(Arrays.asList("filled")));
             Object order = this.parseOrder(editStatus);
@@ -2025,13 +2025,13 @@ public class Krakenfutures extends KrakenfuturesApi
             //        serverTime: '2024-06-06T01:12:44.814Z'
             //    }
             //
-            Object cancelStatus = this.safeDict(response, "cancelStatus");
+            Map<String, Object> cancelStatus = (Map<String, Object>) this.safeDict(response, "cancelStatus");
             Object orderEvents = this.safeList(cancelStatus, "orderEvents", new ArrayList<Object>(Arrays.asList()));
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orderEvents).size(); i++)
             {
-                Object orderEvent = this.safeDict(orderEvents, 0);
-                Object order = this.safeDict(orderEvent, "order", new HashMap<String, Object>() {{}});
+                Map<String, Object> orderEvent = (Map<String, Object>) this.safeDict(orderEvents, 0);
+                Map<String, Object> order = (Map<String, Object>) this.safeDict(orderEvent, "order", new HashMap<String, Object>() {{}});
                 ((List<Object>)orders).add(order);
             }
             return this.parseOrders(orders);
@@ -2239,12 +2239,12 @@ public class Krakenfutures extends KrakenfuturesApi
             for (var i = 0; i < ((List<?>)allOrders).size(); i++)
             {
                 Object order = Helpers.GetValue(allOrders, i);
-                Object eventVar = this.safeDict(order, "event", new HashMap<String, Object>() {{}});
+                Map<String, Object> eventVar = (Map<String, Object>) this.safeDict(order, "event", new HashMap<String, Object>() {{}});
                 Object orderPlaced = this.safeDict2(eventVar, "OrderPlaced", "OrderTriggerActivated");
-                Object orderUpdated = this.safeDict(eventVar, "OrderUpdated");
+                Map<String, Object> orderUpdated = (Map<String, Object>) this.safeDict(eventVar, "OrderUpdated");
                 if (!java.util.Objects.equals(orderPlaced, null))
                 {
-                    Object innerOrder = this.safeDict(orderPlaced, "order", new HashMap<String, Object>() {{}});
+                    Map<String, Object> innerOrder = (Map<String, Object>) this.safeDict(orderPlaced, "order", new HashMap<String, Object>() {{}});
                     String filled = this.safeString(innerOrder, "filled");
                     if (!java.util.Objects.equals(filled, "0"))
                     {
@@ -2256,7 +2256,7 @@ public class Krakenfutures extends KrakenfuturesApi
                     String reason = this.safeString(orderUpdated, "reason");
                     if (java.util.Objects.equals(reason, "full_fill"))
                     {
-                        Object newOrder = this.safeDict(orderUpdated, "newOrder", new HashMap<String, Object>() {{}});
+                        Map<String, Object> newOrder = (Map<String, Object>) this.safeDict(orderUpdated, "newOrder", new HashMap<String, Object>() {{}});
                         ((Map<String, Object>)newOrder).put("status", "closed");
                         ((List<Object>)closedOrders).add(newOrder);
                     }
@@ -2321,12 +2321,12 @@ public class Krakenfutures extends KrakenfuturesApi
             for (var i = 0; i < ((List<?>)allOrders).size(); i++)
             {
                 Object order = Helpers.GetValue(allOrders, i);
-                Object eventVar = this.safeDict(order, "event", new HashMap<String, Object>() {{}});
+                Map<String, Object> eventVar = (Map<String, Object>) this.safeDict(order, "event", new HashMap<String, Object>() {{}});
                 Boolean isCancelledTriggerOrder = (((Map<?, ?>)eventVar).containsKey("OrderTriggerCancelled"));
                 Object orderPlaced = this.safeDict2(eventVar, "OrderPlaced", "OrderTriggerCancelled");
                 if (!java.util.Objects.equals(orderPlaced, null))
                 {
-                    Object innerOrder = this.safeDict(orderPlaced, "order", new HashMap<String, Object>() {{}});
+                    Map<String, Object> innerOrder = (Map<String, Object>) this.safeDict(orderPlaced, "order", new HashMap<String, Object>() {{}});
                     String filled = this.safeString(innerOrder, "filled");
                     if (java.util.Objects.equals(filled, "0") || Helpers.isTrue(isCancelledTriggerOrder))
                     {
@@ -2334,17 +2334,17 @@ public class Krakenfutures extends KrakenfuturesApi
                         ((List<Object>)canceledAndRejected).add(innerOrder);
                     }
                 }
-                Object orderCanceled = this.safeDict(eventVar, "OrderCancelled");
+                Map<String, Object> orderCanceled = (Map<String, Object>) this.safeDict(eventVar, "OrderCancelled");
                 if (!java.util.Objects.equals(orderCanceled, null))
                 {
-                    Object innerOrder = this.safeDict(orderCanceled, "order", new HashMap<String, Object>() {{}});
+                    Map<String, Object> innerOrder = (Map<String, Object>) this.safeDict(orderCanceled, "order", new HashMap<String, Object>() {{}});
                     ((Map<String, Object>)innerOrder).put("status", "canceled"); // status not available in the response
                     ((List<Object>)canceledAndRejected).add(innerOrder);
                 }
-                Object orderRejected = this.safeDict(eventVar, "OrderRejected");
+                Map<String, Object> orderRejected = (Map<String, Object>) this.safeDict(eventVar, "OrderRejected");
                 if (!java.util.Objects.equals(orderRejected, null))
                 {
-                    Object innerOrder = this.safeDict(orderRejected, "order", new HashMap<String, Object>() {{}});
+                    Map<String, Object> innerOrder = (Map<String, Object>) this.safeDict(orderRejected, "order", new HashMap<String, Object>() {{}});
                     ((Map<String, Object>)innerOrder).put("status", "rejected"); // status not available in the response
                     ((List<Object>)canceledAndRejected).add(innerOrder);
                 }
@@ -2720,7 +2720,7 @@ public class Krakenfutures extends KrakenfuturesApi
         // }
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object orderDictFromFetchOrder = this.safeDict(order, "order");
+        Map<String, Object> orderDictFromFetchOrder = (Map<String, Object>) this.safeDict(order, "order");
         if (!java.util.Objects.equals(orderDictFromFetchOrder, null))
         {
             // order: {
@@ -2742,7 +2742,7 @@ public class Krakenfutures extends KrakenfuturesApi
             //
             String datetime = this.safeString(orderDictFromFetchOrder, "timestamp");
             String innerStatus = this.safeString(order, "status");
-            Object fetchOrderPriceTriggerOptions = this.safeDict(orderDictFromFetchOrder, "priceTriggerOptions", new HashMap<String, Object>() {{}});
+            Map<String, Object> fetchOrderPriceTriggerOptions = (Map<String, Object>) this.safeDict(orderDictFromFetchOrder, "priceTriggerOptions", new HashMap<String, Object>() {{}});
             String fetchOrderTriggerPrice = this.safeString(fetchOrderPriceTriggerOptions, "triggerPrice");
             String unifiedSymbol = this.safeSymbol(this.safeString(orderDictFromFetchOrder, "symbol"), market);
             final Object finalOrderDictFromFetchOrder = orderDictFromFetchOrder;
@@ -2926,7 +2926,7 @@ public class Krakenfutures extends KrakenfuturesApi
             timeInForce = "ioc";
         }
         Long ts = this.safeInteger(details, "timestamp", timestamp);
-        Object priceTriggerOptions = this.safeDict(details, "priceTriggerOptions", new HashMap<String, Object>() {{}});
+        Map<String, Object> priceTriggerOptions = (Map<String, Object>) this.safeDict(details, "priceTriggerOptions", new HashMap<String, Object>() {{}});
         String triggerPrice = this.safeString2(details, "triggerPrice", "stopPrice");
         if (java.util.Objects.equals(triggerPrice, null))
         {
@@ -4337,7 +4337,7 @@ final Object finalI = i;
             //     }
             //
             Object leveragePreferences = this.safeList(response, "leveragePreferences", new ArrayList<Object>(Arrays.asList()));
-            Object data = this.safeDict(leveragePreferences, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(leveragePreferences, 0, new HashMap<String, Object>() {{}});
             return this.parseLeverage(data, market);
         }).thenApply(Leverage::new);
 

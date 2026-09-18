@@ -112,7 +112,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //         "result": { "node_id": "73cf456f7cb78d59" }
         //     }
         //
-        Object result = this.safeDict(message, "result");
+        Map<String, Object> result = (Map<String, Object>) this.safeDict(message, "result");
         if (!java.util.Objects.equals(result, null))
         {
             // client.resolve (true, messageHash);
@@ -195,8 +195,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //         }
         //     }
         //
-        Object parameters = this.safeDict(message, "params", new HashMap<String, Object>() {{}});
-        Object data = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         Object parsedTrade = this.parseTrade(data);
         Object symbol = ((Map<String, Object>)parsedTrade).get("symbol");
         String messageHash = this.safeString(parameters, "channel");
@@ -279,8 +279,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //         }
         //     }
         //
-        Object parameters = this.safeDict(message, "params", new HashMap<String, Object>() {{}});
-        Object data = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "market");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Long timestamp = this.safeInteger(data, "last_updated_at");
@@ -296,7 +296,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         Object inserts = this.safeList(data, "inserts");
         for (var i = 0; i < ((List<?>)(List<Object>)(inserts)).size(); i++)
         {
-            Object insert = this.safeDict(inserts, i);
+            Map<String, Object> insert = (Map<String, Object>) this.safeDict(inserts, i);
             String side = this.safeString(insert, "side");
             String price = this.safeString(insert, "price");
             String size = this.safeString(insert, "size");
@@ -492,8 +492,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //         }
         //     }
         //
-        Object parameters = this.safeDict(message, "params", new HashMap<String, Object>() {{}});
-        Object data = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         Object parsed = this.parseOrder(data);
         String symbol = this.safeString(parsed, "symbol");
         if (java.util.Objects.equals(this.orders, null))
@@ -537,8 +537,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //         }
         //     }
         //
-        Object parameters = this.safeDict(message, "params", new HashMap<String, Object>() {{}});
-        Object data = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "symbol");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -669,8 +669,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //         }
         //     }
         //
-        Object parameters = this.safeDict(message, "params", new HashMap<String, Object>() {{}});
-        Object data = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         Object fundingRate = this.parseFundingRateWs(data);
         Object symbol = ((Map<String, Object>)fundingRate).get("symbol");
         Helpers.addElementToObject(this.fundingRates, ((String)symbol), fundingRate);
@@ -736,7 +736,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //         "usOut": 1718179125962495
         //     }
         //
-        Object error = this.safeDict(message, "error");
+        Map<String, Object> error = (Map<String, Object>) this.safeDict(message, "error");
         if (java.util.Objects.equals(error, null))
         {
             return true;
@@ -797,7 +797,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             this.handleAuthenticationMessage(client, message);
             return;
         }
-        Object data = this.safeDict(message, "params");
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "params");
         if (!java.util.Objects.equals(data, null))
         {
             String channel = this.safeString(data, "channel");

@@ -578,7 +578,7 @@ public class Btcmarkets extends BtcmarketsApi
         {
             type = "withdrawal";
         }
-        Object cryptoPaymentDetail = this.safeDict(transaction, "paymentDetail", new HashMap<String, Object>() {{}});
+        Map<String, Object> cryptoPaymentDetail = (Map<String, Object>) this.safeDict(transaction, "paymentDetail", new HashMap<String, Object>() {{}});
         String txid = this.safeString(cryptoPaymentDetail, "txId");
         String address = this.safeString(cryptoPaymentDetail, "address");
         Object tag = null;

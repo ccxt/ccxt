@@ -424,7 +424,7 @@ public class Cryptomus extends CryptomusApi
         String quoteId = (String) Helpers.GetValue(parts, 1);
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
-        Object fees = this.safeDict(this.fees, "trading");
+        Map<String, Object> fees = (Map<String, Object>) this.safeDict(this.fees, "trading");
         final Object finalMarketId = marketId;
         final Object finalBase = base;
         return this.safeMarketStructure(new HashMap<String, Object>() {{
@@ -707,7 +707,7 @@ public class Cryptomus extends CryptomusApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object timestamp = this.safeTimestamp(data, "timestamp");
             return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity");
         }).thenApply(OrderBook::new);
@@ -1223,14 +1223,14 @@ public class Cryptomus extends CryptomusApi
         market = this.safeMarket(marketId, market);
         String dateTime = this.safeString(order, "createdAt");
         Long timestamp = this.parse8601(dateTime);
-        Object deal = this.safeDict(order, "deal", new HashMap<String, Object>() {{}});
+        Map<String, Object> deal = (Map<String, Object>) this.safeDict(order, "deal", new HashMap<String, Object>() {{}});
         Double averageFilledPrice = this.safeNumber(deal, "averageFilledPrice");
         String type = this.safeString(order, "type");
         String side = this.safeString(order, "direction");
         Double price = this.safeNumber(order, "price");
         Object transaction = this.safeList(deal, "transactions", new ArrayList<Object>(Arrays.asList()));
         Object fee = null;
-        Object firstTx = this.safeDict(transaction, 0);
+        Map<String, Object> firstTx = (Map<String, Object>) this.safeDict(transaction, 0);
         String feeCurrency = this.safeString(firstTx, "feeCurrency");
         if (!java.util.Objects.equals(feeCurrency, null))
         {
@@ -1354,8 +1354,8 @@ public class Cryptomus extends CryptomusApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Object currentFeeTier = this.safeDict(data, "current_tariff_step", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
+            Map<String, Object> currentFeeTier = (Map<String, Object>) this.safeDict(data, "current_tariff_step", new HashMap<String, Object>() {{}});
             String makerFee = this.safeString(currentFeeTier, "maker_percent");
             String takerFee = this.safeString(currentFeeTier, "taker_percent");
             makerFee = Precise.stringDiv(makerFee, "100");

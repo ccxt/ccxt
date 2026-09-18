@@ -589,8 +589,8 @@ public class Hibachi extends HibachiApi
     public Object parseTicker(Object ticker, Object... optionalArgs)
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object prices = this.safeDict(ticker, "prices");
-        Object stats = this.safeDict(ticker, "stats");
+        Map<String, Object> prices = (Map<String, Object>) this.safeDict(ticker, "prices");
+        Map<String, Object> stats = (Map<String, Object>) this.safeDict(ticker, "stats");
         Double bid = this.safeNumber(prices, "bidPrice");
         Double ask = this.safeNumber(prices, "askPrice");
         Double last = this.safeNumber(prices, "tradePrice");
@@ -1023,7 +1023,7 @@ public class Hibachi extends HibachiApi
         // - FeeRate: Internal = External * (10^8)
         Object amountStr = this.amountToPrecision(this.safeString(market, "symbol"), amount);
         Object feeRateStr = this.numberToString(feeRate);
-        Object info = this.safeDict(market, "info");
+        Map<String, Object> info = (Map<String, Object>) this.safeDict(market, "info");
         String underlying = Helpers.add("1e", this.safeString(info, "underlyingDecimals"));
         String settlement = Helpers.add("1e", this.safeString(info, "settlementDecimals"));
         String one = "1";
@@ -1199,7 +1199,7 @@ public class Hibachi extends HibachiApi
                 String side = this.safeString(rawOrder, "side");
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
-                Object orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
+                Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Object orderRequest = this.createOrderRequest(Helpers.add(nonce, i), symbol, type, side, amount, price, orderParams);
                 Helpers.addElementToObject(orderRequest, "action", "place");
                 ((List<Object>)requestOrders).add(orderRequest);
@@ -1332,7 +1332,7 @@ public class Hibachi extends HibachiApi
                 String side = this.safeString(rawOrder, "side");
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
-                Object orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
+                Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Object orderRequest = this.editOrderRequest(Helpers.add(nonce, i), id, symbol, type, side, amount, price, orderParams);
                 Helpers.addElementToObject(orderRequest, "action", "modify");
                 ((List<Object>)requestOrders).add(orderRequest);
@@ -1561,7 +1561,7 @@ public class Hibachi extends HibachiApi
             //          "withdrawalFees": "0.012050"
             //    },
             // }
-            Object feeConfig = this.safeDict(exchangeInfo, "feeConfig");
+            Map<String, Object> feeConfig = (Map<String, Object>) this.safeDict(exchangeInfo, "feeConfig");
             Double maxFees = this.safeNumber(feeConfig, "withdrawalFees");
             // Generate the signature
             Object message = this.encodeWithdrawMessage(amount, maxFees, withdrawAddress);
@@ -2867,7 +2867,7 @@ public class Hibachi extends HibachiApi
             //     "tradePrice": "2372.746570"
             // }
             //
-            Object funding = this.safeDict(response, "fundingRateEstimation", new HashMap<String, Object>() {{}});
+            Map<String, Object> funding = (Map<String, Object>) this.safeDict(response, "fundingRateEstimation", new HashMap<String, Object>() {{}});
             Long timestamp = this.milliseconds();
             Long nextFundingTimestamp = this.safeIntegerProduct(funding, "nextFundingTimestamp", 1000);
             return new HashMap<String, Object>() {{

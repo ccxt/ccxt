@@ -449,7 +449,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             this.checkRequiredCredentials();
-            Object wsOptions = this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
+            Map<String, Object> wsOptions = (Map<String, Object>) this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
             String authenticated = this.safeString(wsOptions, "token");
             if (java.util.Objects.equals(authenticated, null))
             {

@@ -1096,7 +1096,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             String code = this.safeCurrencyCode(currencyId);
             Object balance = this.parseWsBalance(rawBalance);
             String balanceType = this.safeString(rawBalance, 0);
-            Object oldBalance = this.safeDict(this.balance, balanceType, new HashMap<String, Object>() {{}});
+            Map<String, Object> oldBalance = (Map<String, Object>) this.safeDict(this.balance, balanceType, new HashMap<String, Object>() {{}});
             if (!java.util.Objects.equals(code, null))
             {
                 Helpers.addElementToObject(oldBalance, code, balance);
@@ -1163,7 +1163,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         String channelId = this.safeString(message, "chanId");
         Object unSubChannel = Helpers.add("unsubscribe:", channelId);
         String subMessageHash = this.safeString(client.subscriptions, unSubChannel);
-        Object subscription = this.safeDict(client.subscriptions, Helpers.add("unsubscribe:", subMessageHash));
+        Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, Helpers.add("unsubscribe:", subMessageHash));
         ((Map<String,Object>)client.subscriptions).remove((String)unSubChannel);
         Object messageHashes = this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
         Object subMessageHashes = this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));

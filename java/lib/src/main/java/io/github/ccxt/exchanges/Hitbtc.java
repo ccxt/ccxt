@@ -1292,7 +1292,7 @@ public class Hitbtc extends HitbtcApi
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             String type = this.safeStringLower(parameters, "type", "spot");
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("type")));
-            Object accountsByType = this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
+            Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String account = (((java.util.Objects.equals(type, null)))) ? null : this.safeString(accountsByType, type, type);
             Object response = null;
             if (java.util.Objects.equals(account, "wallet"))
@@ -1418,7 +1418,7 @@ public class Hitbtc extends HitbtcApi
                 Object marketId = Helpers.GetValue(keys, i);
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
                 Object symbol = ((Map<String, Object>)market).get("symbol");
-                Object entry = this.safeDict(response, marketId, new HashMap<String, Object>() {{}});
+                Map<String, Object> entry = (Map<String, Object>) this.safeDict(response, marketId, new HashMap<String, Object>() {{}});
                 Helpers.addElementToObject(result, symbol, this.parseTicker(entry, market));
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
@@ -2004,7 +2004,7 @@ public class Hitbtc extends HitbtcApi
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
-                Object orderbook = this.safeDict(response, marketId, new HashMap<String, Object>() {{}});
+                Map<String, Object> orderbook = (Map<String, Object>) this.safeDict(response, marketId, new HashMap<String, Object>() {{}});
                 String symbol = this.safeSymbol(marketId);
                 Long timestamp = this.parse8601(this.safeString(orderbook, "timestamp"));
                 Helpers.addElementToObject(result, symbol, this.parseOrderBook(orderbook, symbol, timestamp, "bid", "ask"));
@@ -2468,7 +2468,7 @@ public class Hitbtc extends HitbtcApi
             //       }
             //     ]
             //
-            Object order = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> order = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
@@ -3368,7 +3368,7 @@ public class Hitbtc extends HitbtcApi
             {
                 throw new ExchangeError((this.id + " convertCurrencyNetwork() only supports USDT currently")) ;
             }
-            Object networks = this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
+            Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
             fromNetwork = ((String)fromNetwork).toUpperCase();
             toNetwork = ((String)toNetwork).toUpperCase();
             fromNetwork = this.safeString(networks, fromNetwork); // handle ETH>ERC20 alias
@@ -3998,7 +3998,7 @@ public class Hitbtc extends HitbtcApi
             {
                 Object marketId = Helpers.GetValue(markets, i);
                 Map<String, Object> marketInner = (Map<String, Object>) this.safeMarket(marketId);
-                Object openInterest = this.safeDict(response, marketId, new HashMap<String, Object>() {{}});
+                Map<String, Object> openInterest = (Map<String, Object>) this.safeDict(response, marketId, new HashMap<String, Object>() {{}});
                 ((List<Object>)results).add(this.parseOpenInterest(openInterest, marketInner));
             }
             return this.filterByArray(results, "symbol", symbols);

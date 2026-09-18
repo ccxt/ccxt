@@ -715,7 +715,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             {
                 throw new NotSupported((this.id + " watchOHLCV is only supported for swap markets")) ;
             }
-            Object futuresTimeframes = this.safeDict(this.options, "futuresTimeframes", new HashMap<String, Object>() {{}});
+            Map<String, Object> futuresTimeframes = (Map<String, Object>) this.safeDict(this.options, "futuresTimeframes", new HashMap<String, Object>() {{}});
             String interval = this.safeString(futuresTimeframes, timeframe);
             if (java.util.Objects.equals(interval, null))
             {
@@ -775,7 +775,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         }
         Object symbol = Helpers.GetValue(market, "symbol");
         String wsInterval = this.safeString(parts, 4);
-        Object futuresTimeframes = this.safeDict(this.options, "futuresTimeframes", new HashMap<String, Object>() {{}});
+        Map<String, Object> futuresTimeframes = (Map<String, Object>) this.safeDict(this.options, "futuresTimeframes", new HashMap<String, Object>() {{}});
         Object timeframe = this.findTimeframe(wsInterval, futuresTimeframes);
         Object tick = this.safeValue(message, "tick");
         if (java.util.Objects.equals(tick, null))

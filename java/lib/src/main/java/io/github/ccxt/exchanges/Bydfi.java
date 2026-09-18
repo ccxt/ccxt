@@ -779,7 +779,7 @@ public class Bydfi extends BydfiApi
             //         "success": true
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Long timestamp = this.milliseconds();
             Object orderBook = this.parseOrderBook(data, ((Map<String, Object>)market).get("symbol"), timestamp, "bids", "asks", "price", "amount");
             Helpers.addElementToObject(orderBook, "nonce", this.safeInteger(data, "lastUpdateId"));
@@ -1228,7 +1228,7 @@ public class Bydfi extends BydfiApi
             }};
             Map<String, Object> response = (this.publicGetV1FapiMarketTicker24hr(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object ticker = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> ticker = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseTicker(ticker, market);
         }).thenApply(Ticker::new);
 
@@ -1317,7 +1317,7 @@ public class Bydfi extends BydfiApi
             //         "success": true
             //     }
             //
-            Object data = this.safeDict(response, "data");
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data");
             return this.parseFundingRate(data, market);
         }).thenApply(FundingRate::new);
 
@@ -1530,7 +1530,7 @@ public class Bydfi extends BydfiApi
             //         "success": true
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
@@ -1713,7 +1713,7 @@ public class Bydfi extends BydfiApi
                 String side = this.safeString(rawOrder, "side");
                 Double amount = this.safeNumber(rawOrder, "amount");
                 Double price = this.safeNumber(rawOrder, "price");
-                Object orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
+                Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
@@ -1768,7 +1768,7 @@ public class Bydfi extends BydfiApi
             parameters = ((List<Object>) walletparametersVariable).get(1);
             Helpers.addElementToObject(request, "wallet", wallet);
             Map<String, Object> response = (this.privatePostV1FapiTradeEditOrder(request)).join();
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data);
         }).thenApply(Order::new);
 
@@ -1808,7 +1808,7 @@ public class Bydfi extends BydfiApi
                 String side = this.safeString(rawOrder, "side");
                 Double amount = this.safeNumber(rawOrder, "amount");
                 Double price = this.safeNumber(rawOrder, "price");
-                Object orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
+                Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Object orderRequest = this.createEditOrderRequest(id, symbol, "limit", side, amount, price, orderParams);
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
@@ -2083,7 +2083,7 @@ public class Bydfi extends BydfiApi
                 response = (this.privateGetV1FapiTradePlanOrder(this.extend(request, parameters))).join();
             }
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object order = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> order = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseOrder(order, market);
         });
 
@@ -2444,7 +2444,7 @@ public class Bydfi extends BydfiApi
                 put( "wallet", finalWallet );
             }};
             Map<String, Object> response = (this.privatePostV1FapiTradeLeverage(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return data;
         });
 
@@ -2497,7 +2497,7 @@ public class Bydfi extends BydfiApi
             //         "success": true
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseLeverage(data, market);
         }).thenApply(Leverage::new);
 
@@ -2928,7 +2928,7 @@ public class Bydfi extends BydfiApi
             //         "success": true
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseMarginMode(data, market);
         }).thenApply(MarginMode::new);
 
@@ -3130,7 +3130,7 @@ public class Bydfi extends BydfiApi
             //         "success": true
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Boolean hedged = java.util.Objects.equals(this.safeString(data, "positionType"), "HEDGE");
             return new HashMap<String, Object>() {{
                 put( "info", response );
@@ -3174,7 +3174,7 @@ public class Bydfi extends BydfiApi
             Object response = null;
             if (java.util.Objects.equals(wallet, null))
             {
-                Object options = this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
+                Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
                 String parsedAccountType = this.safeStringUpper(options, type, type);
                 ((Map<String, Object>)request).put("walletType", parsedAccountType);
                 //
@@ -3280,7 +3280,7 @@ public class Bydfi extends BydfiApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
-            Object accountsByType = this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
+            Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
             String toId = this.safeString(accountsByType, toAccount, toAccount);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3298,7 +3298,7 @@ public class Bydfi extends BydfiApi
             //     }
             //
             Object transfer = this.parseTransfer(response, currency);
-            Object transferOptions = this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
+            Map<String, Object> transferOptions = (Map<String, Object>) this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
             Object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
             if (java.util.Objects.equals(fillResponseFromRequest, true))
             {
@@ -3427,7 +3427,7 @@ public class Bydfi extends BydfiApi
         //
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String status = this.safeStringUpper2(transfer, "message", "status");
-        Object accountsById = this.safeDict(this.options, "accountsById", new HashMap<String, Object>() {{}});
+        Map<String, Object> accountsById = (Map<String, Object>) this.safeDict(this.options, "accountsById", new HashMap<String, Object>() {{}});
         String fromId = this.safeStringUpper(transfer, "sourceWallet");
         String toId = this.safeStringUpper(transfer, "targetWallet");
         String fromAccount = this.safeString(accountsById, fromId, fromId);

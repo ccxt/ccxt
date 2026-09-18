@@ -1058,7 +1058,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
                 // the cached position for this symbol, otherwise appending would break
                 // the ArrayCacheBySymbolBySide index (see issue #29001).
                 String symbol = this.safeString(position, "symbol");
-                Object cachedBySide = this.safeDict(((io.github.ccxt.ws.ArrayCache)cache).hashmap, symbol, new HashMap<String, Object>() {{}});
+                Map<String, Object> cachedBySide = (Map<String, Object>) this.safeDict(((io.github.ccxt.ws.ArrayCache)cache).hashmap, symbol, new HashMap<String, Object>() {{}});
                 Object cachedSides = Helpers.objectKeys(cachedBySide);
                 Object sidesLength = ((List<?>)cachedSides).size();
                 if (Helpers.isEqual(sidesLength, 1))
@@ -1820,7 +1820,7 @@ public class Bitmex extends io.github.ccxt.exchanges.Bitmex
         // if it's an initial snapshot
         if (java.util.Objects.equals(action, "partial"))
         {
-            Object filter = this.safeDict(message, "filter", new HashMap<String, Object>() {{}});
+            Map<String, Object> filter = (Map<String, Object>) this.safeDict(message, "filter", new HashMap<String, Object>() {{}});
             Object marketId = this.safeValue(filter, "symbol");
             if (java.util.Objects.equals(marketId, null))
             {

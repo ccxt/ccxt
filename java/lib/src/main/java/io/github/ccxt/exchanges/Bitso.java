@@ -626,7 +626,7 @@ public class Bitso extends BitsoApi
             //         ]
             //     }
             Object markets = this.safeList(response, "payload", new ArrayList<Object>(Arrays.asList()));
-            Object currencies = this.safeDict(this.options, "cachedCurrencies");
+            Map<String, Object> currencies = (Map<String, Object>) this.safeDict(this.options, "cachedCurrencies");
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)markets).size(); i++)
             {
@@ -673,7 +673,7 @@ public class Bitso extends BitsoApi
                     put( "maker", makerFees );
                 }};
                 ((Map<String, Object>)fee).put("tiers", tiers);
-                Object baseCurrency = this.safeDict(currencies, base);
+                Map<String, Object> baseCurrency = (Map<String, Object>) this.safeDict(currencies, base);
     final Object finalBase = base;
                 final Object finalQuote = quote;
                             ((List<Object>)result).add(this.safeMarketStructure(this.extend(new HashMap<String, Object>() {{
@@ -770,8 +770,8 @@ public class Bitso extends BitsoApi
             //                         "type": "crypto"
             //                     }, ...
             //
-            Object payload = this.safeDict(catalogues, "payload");
-            Object currencies = this.safeDict(payload, "currencies");
+            Map<String, Object> payload = (Map<String, Object>) this.safeDict(catalogues, "payload");
+            Map<String, Object> currencies = (Map<String, Object>) this.safeDict(payload, "currencies");
             Object metadata = this.safeList(currencies, "metadata", new ArrayList<Object>(Arrays.asList()));
             return this.parseCurrencies(metadata);
         });
@@ -1435,7 +1435,7 @@ public class Bitso extends BitsoApi
                 ((Map<String, Object>)request).put("price", this.priceToPrecision(((Map<String, Object>)market).get("symbol"), price));
             }
             Map<String, Object> response = (this.privatePostOrders(this.extend(request, parameters))).join();
-            Object payload = this.safeDict(response, "payload", new HashMap<String, Object>() {{}});
+            Map<String, Object> payload = (Map<String, Object>) this.safeDict(response, "payload", new HashMap<String, Object>() {{}});
             String id = this.safeString(payload, "oid");
             return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", response );
@@ -1815,7 +1815,7 @@ public class Bitso extends BitsoApi
             //     }
             //
             Object transactions = this.safeValue(response, "payload", new ArrayList<Object>(Arrays.asList()));
-            Object first = this.safeDict(transactions, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> first = (Map<String, Object>) this.safeDict(transactions, 0, new HashMap<String, Object>() {{}});
             return this.parseTransaction(first);
         });
 
@@ -1903,7 +1903,7 @@ public class Bitso extends BitsoApi
                 put( "fund_currency", ((Map<String, Object>)currency).get("id") );
             }};
             Map<String, Object> response = (this.privateGetFundingDestination(this.extend(request, parameters))).join();
-            Object payload = this.safeDict(response, "payload", new HashMap<String, Object>() {{}});
+            Map<String, Object> payload = (Map<String, Object>) this.safeDict(response, "payload", new HashMap<String, Object>() {{}});
             String address = this.safeString(payload, "account_identifier");
             String tag = null;
             if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(address, "?dt="), 0))

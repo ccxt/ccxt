@@ -412,8 +412,8 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         //         }
         //     }
         //
-        Object parameters = this.safeDict(message, "params", new HashMap<String, Object>() {{}});
-        Object data = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         Object ticker = this.parseWsBidAsk(data);
         Object symbol = ((Map<String, Object>)ticker).get("symbol");
         Helpers.addElementToObject(this.bidsasks, ((String)symbol), ticker);
@@ -496,7 +496,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             Object trades = (this.watchMultipleWrapper("trades", interval, symbols, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
-                Object first = this.safeDict(trades, 0);
+                Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
@@ -528,7 +528,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         //         }
         //     }
         //
-        Object parameters = this.safeDict(message, "params", new HashMap<String, Object>() {{}});
+        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         String channel = this.safeString(parameters, "channel", "");
         Object parts = Helpers.split(channel, ".");
         String marketId = this.safeString(parts, 1);
@@ -1060,15 +1060,15 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         //         }
         //     }
         //
-        Object parameters = this.safeDict(message, "params", new HashMap<String, Object>() {{}});
+        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         String channel = this.safeString(parameters, "channel", "");
         Object parts = Helpers.split(channel, ".");
         String marketId = this.safeString(parts, 2);
         String rawTimeframe = this.safeString(parts, 3);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
-        Object wsOptions = this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
-        Object timeframes = this.safeDict(wsOptions, "timeframes", new HashMap<String, Object>() {{}});
+        Map<String, Object> wsOptions = (Map<String, Object>) this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
+        Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(wsOptions, "timeframes", new HashMap<String, Object>() {{}});
         Object unifiedTimeframe = this.findTimeframe(rawTimeframe, timeframes);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         if (java.util.Objects.equals(this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), unifiedTimeframe), null))
@@ -1077,7 +1077,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)unifiedTimeframe), new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
         }
         Object stored = Helpers.GetValue(Helpers.GetValue(this.ohlcvs, symbol), ((String)unifiedTimeframe));
-        Object ohlcv = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> ohlcv = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         // data contains a single OHLCV candle
         Object parsed = this.parseWsOHLCV(ohlcv, market);
         Helpers.callDynamically(stored, "append", new Object[]{parsed});

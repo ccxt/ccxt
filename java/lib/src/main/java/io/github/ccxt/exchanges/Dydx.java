@@ -777,7 +777,7 @@ public class Dydx extends DydxApi
             //     }
             // }
             //
-            Object data = this.safeDict(response, "markets", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "markets", new HashMap<String, Object>() {{}});
             Object markets = Helpers.objectValues(data);
             return this.parseMarkets(markets);
         });
@@ -1569,7 +1569,7 @@ public class Dydx extends DydxApi
 
             // required in js
             (this.loadDydxProtos()).join();
-            Object dydxAccount = this.safeDict(this.options, "dydxAccount");
+            Map<String, Object> dydxAccount = (Map<String, Object>) this.safeDict(this.options, "dydxAccount");
             if (!java.util.Objects.equals(dydxAccount, null))
             {
                 return dydxAccount;
@@ -1599,7 +1599,7 @@ public class Dydx extends DydxApi
             // }
             //
             Map<String, Object> response = (this.nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress(request)).join();
-            Object account = this.safeDict(response, "info", new HashMap<String, Object>() {{}});
+            Map<String, Object> account = (Map<String, Object>) this.safeDict(response, "info", new HashMap<String, Object>() {{}});
             ((Map<String, Object>)account).put("pub_key", new HashMap<String, Object>() {{
         put( "key", Helpers.GetValue(((Map<String, Object>)account).get("pub_key"), "key") );
     }});
@@ -1654,7 +1654,7 @@ public class Dydx extends DydxApi
         Object postOnly = this.isPostOnly(isMarket, null, parameters);
         Object amountStr = this.amountToPrecision(symbol, amount);
         Object priceStr = this.priceToPrecision(symbol, price);
-        Object marketInfo = this.safeDict(market, "info", new HashMap<String, Object>() {{}});
+        Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
         Object atomicResolution = ((Map<String, Object>)marketInfo).get("atomicResolution");
         String quantumScale = this.pow("10", Precise.stringNeg(atomicResolution));
         String quantums = Precise.stringMul(amountStr, quantumScale);
@@ -1827,8 +1827,8 @@ public class Dydx extends DydxApi
             //     }
             // }
             //
-            Object result = this.safeDict(response, "result");
-            Object info = this.safeDict(result, "response");
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result");
+            Map<String, Object> info = (Map<String, Object>) this.safeDict(result, "response");
             Long height = this.safeInteger(info, "last_block_height");
             if (java.util.Objects.equals(height, null))
             {
@@ -1902,7 +1902,7 @@ public class Dydx extends DydxApi
             //     }
             // }
             //
-            Object result = this.safeDict(response, "result");
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result");
             return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", result );
                 put( "id", orderId );
@@ -2036,7 +2036,7 @@ public class Dydx extends DydxApi
             //     }
             // }
             //
-            Object result = this.safeDict(response, "result");
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result");
             return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", result );
             }});
@@ -2124,7 +2124,7 @@ public class Dydx extends DydxApi
             //     }
             // }
             //
-            Object result = this.safeDict(response, "result");
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result");
             return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
         put( "info", result );
     }})));
@@ -2218,8 +2218,8 @@ public class Dydx extends DydxApi
         }
         String amount = this.safeString(item, "size");
         Long timestamp = this.parse8601(this.safeString(item, "createdAt"));
-        Object sender = this.safeDict(item, "sender");
-        Object recipient = this.safeDict(item, "recipient");
+        Map<String, Object> sender = (Map<String, Object>) this.safeDict(item, "sender");
+        Map<String, Object> recipient = (Map<String, Object>) this.safeDict(item, "recipient");
         final Object finalDirection = direction;
         final Object finalType = type;
         return this.safeLedgerEntry(new HashMap<String, Object>() {{
@@ -2309,7 +2309,7 @@ public class Dydx extends DydxApi
             //     }
             // }
             //
-            Object gasInfo = this.safeDict(response, "gas_info");
+            Map<String, Object> gasInfo = (Map<String, Object>) this.safeDict(response, "gas_info");
             if (java.util.Objects.equals(gasInfo, null))
             {
                 throw new ExchangeError((this.id + " failed to simulate transaction.")) ;
@@ -2321,7 +2321,7 @@ public class Dydx extends DydxApi
             }
             String defaultFeeDenom = this.safeString(this.options, "defaultFeeDenom");
             String defaultFeeMultiplier = this.safeString(this.options, "defaultFeeMultiplier");
-            Object feeDenom = this.safeDict(this.options, "feeDenom", new HashMap<String, Object>() {{}});
+            Map<String, Object> feeDenom = (Map<String, Object>) this.safeDict(this.options, "feeDenom", new HashMap<String, Object>() {{}});
             Object gasPrice = null;
             Object denom = null;
             if (java.util.Objects.equals(defaultFeeDenom, "uusdc"))
@@ -2504,8 +2504,8 @@ public class Dydx extends DydxApi
         String currencyId = this.safeString(transfer, "symbol");
         String code = this.safeCurrencyCode(currencyId, currency);
         Double amount = this.safeNumber(transfer, "size");
-        Object sender = this.safeDict(transfer, "sender");
-        Object recipient = this.safeDict(transfer, "recipient");
+        Map<String, Object> sender = (Map<String, Object>) this.safeDict(transfer, "sender");
+        Map<String, Object> recipient = (Map<String, Object>) this.safeDict(transfer, "recipient");
         String fromAccount = this.safeString(sender, "address");
         String toAccount = this.safeString(recipient, "address");
         Long timestamp = this.parse8601(this.safeString(transfer, "createdAt"));
@@ -2587,8 +2587,8 @@ public class Dydx extends DydxApi
         //
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String id = this.safeString(transaction, "id");
-        Object sender = this.safeDict(transaction, "sender");
-        Object recipient = this.safeDict(transaction, "recipient");
+        Map<String, Object> sender = (Map<String, Object>) this.safeDict(transaction, "sender");
+        Map<String, Object> recipient = (Map<String, Object>) this.safeDict(transaction, "recipient");
         String addressTo = this.safeString(recipient, "address");
         String addressFrom = this.safeString(sender, "address");
         String txid = this.safeString(transaction, "transactionHash");
@@ -3054,7 +3054,7 @@ public class Dydx extends DydxApi
             //     }
             // }
             //
-            Object data = this.safeDict(response, "subaccount");
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "subaccount");
             return this.parseBalance(data);
         }).thenApply(Balances::new);
 
@@ -3082,7 +3082,7 @@ public class Dydx extends DydxApi
         {
             return this.walletAddress;
         }
-        Object dydxAccount = this.safeDict(this.options, "dydxAccount");
+        Map<String, Object> dydxAccount = (Map<String, Object>) this.safeDict(this.options, "dydxAccount");
         if (!java.util.Objects.equals(dydxAccount, null))
         {
             // return dydxAccount;
@@ -3145,7 +3145,7 @@ public class Dydx extends DydxApi
         // rest response
         // { "code": 123 }
         //
-        Object result = this.safeDict(response, "result");
+        Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result");
         String errorCode = this.safeString(result, "code");
         if ((java.util.Objects.equals(errorCode, null)) || (java.util.Objects.equals(errorCode, "")))
         {

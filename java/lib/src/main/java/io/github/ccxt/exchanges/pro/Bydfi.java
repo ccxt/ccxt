@@ -471,7 +471,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 String marketId = this.safeString(symbolAndTimeframe, 0);
                 Map<String, Object> market = (Map<String, Object>) this.market(marketId);
                 String tf = this.safeString(symbolAndTimeframe, 1);
-                Object timeframes = this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
+                Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
                 String interval = this.safeString(timeframes, tf, tf);
                 ((List<Object>)channels).add(Helpers.add(Helpers.add(((Map<String, Object>)market).get("id"), "@kline_"), interval));
                 ((List<Object>)messageHashes).add(Helpers.add((("ohlcv::" + ((Map<String, Object>)market).get("symbol")) + "::"), interval));
@@ -555,7 +555,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String interval = this.safeString(message, "i");
-        Object timeframes = this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
+        Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
         Object timeframe = this.findTimeframe(interval, timeframes);
         if (!(((Map<?, ?>)this.ohlcvs).containsKey(symbol)))
         {
@@ -856,7 +856,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         //         }
         //     }
         //
-        Object rawOrder = this.safeDict(message, "o", new HashMap<String, Object>() {{}});
+        Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(message, "o", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(rawOrder, "s");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -1038,9 +1038,9 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         //         "e": "ACCOUNT_UPDATE"
         //     }
         //
-        Object data = this.safeDict(message, "a", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "a", new HashMap<String, Object>() {{}});
         Object positionsData = this.safeList(data, "p", new ArrayList<Object>(Arrays.asList()));
-        Object rawPosition = this.safeDict(positionsData, 0, new HashMap<String, Object>() {{}});
+        Map<String, Object> rawPosition = (Map<String, Object>) this.safeDict(positionsData, 0, new HashMap<String, Object>() {{}});
         String marketId = this.safeString(rawPosition, "s");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -1149,7 +1149,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Client client = this.client(url);
             this.fetchBalanceSnapshot(client);
-            Object options = this.safeDict(this.options, "watchBalance");
+            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchBalance");
             Object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
             Object awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
             if ((java.util.Objects.equals(fetchBalanceSnapshot, true)) && (java.util.Objects.equals(awaitBalanceSnapshot, true)))
@@ -1241,7 +1241,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         String messageHash = "balance";
         if (((Map<?, ?>)client.futures).containsKey(messageHash))
         {
-            Object data = this.safeDict(message, "a", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "a", new HashMap<String, Object>() {{}});
             Object balances = this.safeList(data, "B", new ArrayList<Object>(Arrays.asList()));
             Long timestamp = this.safeInteger(message, "T");
             Map<String, Object> result = new HashMap<String, Object>() {{
@@ -1278,7 +1278,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
         //
         String id = this.safeString(message, "id");
         Map<String, Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
-        Object subscription = this.safeDict(subscriptionsById, id, new HashMap<String, Object>() {{}});
+        Map<String, Object> subscription = (Map<String, Object>) this.safeDict(subscriptionsById, id, new HashMap<String, Object>() {{}});
         Object isUnSubMessage = this.safeBool(subscription, "unsubscribe", false);
         if (java.util.Objects.equals(isUnSubMessage, true))
         {
@@ -1360,7 +1360,7 @@ public class Bydfi extends io.github.ccxt.exchanges.Bydfi
                 this.handleOrder(client, message);
             } else if (java.util.Objects.equals(eventVar, "ACCOUNT_UPDATE"))
             {
-                Object account = this.safeDict(message, "a", new HashMap<String, Object>() {{}});
+                Map<String, Object> account = (Map<String, Object>) this.safeDict(message, "a", new HashMap<String, Object>() {{}});
                 Object balances = this.safeList(account, "B", new ArrayList<Object>(Arrays.asList()));
                 Object balancesLength = ((List<?>)balances).size();
                 if (Helpers.isGreaterThan(balancesLength, 0))

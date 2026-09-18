@@ -1094,7 +1094,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             String orderId = this.safeString(update, "order_id");
             String datetime = this.safeString2(update, "time", "timestamp");
             Object previousOrderArray = this.filterByArray(this.orders, "id", orderId, false);
-            Object previousOrder = this.safeDict(previousOrderArray, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> previousOrder = (Map<String, Object>) this.safeDict(previousOrderArray, 0, new HashMap<String, Object>() {{}});
             symbol = ((Map<String, Object>)previousOrder).get("symbol");
             String filled = this.safeString(update, "filled_amount");
             String status = this.parseWsOrderStatus(updateType);

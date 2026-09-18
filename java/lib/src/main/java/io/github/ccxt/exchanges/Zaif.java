@@ -431,7 +431,7 @@ public class Zaif extends ZaifApi
             put( "timestamp", null );
             put( "datetime", null );
         }};
-        Object funds = this.safeDict(balances, "funds", new HashMap<String, Object>() {{}});
+        Map<String, Object> funds = (Map<String, Object>) this.safeDict(balances, "funds", new HashMap<String, Object>() {{}});
         Object currencyIds = Helpers.objectKeys(funds);
         for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
         {
@@ -679,7 +679,7 @@ public class Zaif extends ZaifApi
             Object numTrades = ((List<?>)trades).size();
             if (Helpers.isEqual(numTrades, 1))
             {
-                Object firstTrade = this.safeDict(trades, 0, new HashMap<String, Object>() {{}});
+                Map<String, Object> firstTrade = (Map<String, Object>) this.safeDict(trades, 0, new HashMap<String, Object>() {{}});
                 if (Helpers.isEqual(((List<?>)Helpers.objectKeys(firstTrade)).size(), 0))
                 {
                     trades = new ArrayList<Object>(Arrays.asList());
@@ -727,7 +727,7 @@ public class Zaif extends ZaifApi
                 put( "price", price );
             }};
             Map<String, Object> response = (this.privatePostTrade(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, "return", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "return", new HashMap<String, Object>() {{}});
             return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", response );
                 put( "id", String.valueOf(((Map<String, Object>)data).get("order_id")) );
@@ -771,7 +771,7 @@ public class Zaif extends ZaifApi
             //        }
             //    }
             //
-            Object data = this.safeDict(response, "return", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "return", new HashMap<String, Object>() {{}});
             return this.parseOrder(data);
         }).thenApply(Order::new);
 
@@ -868,7 +868,7 @@ public class Zaif extends ZaifApi
                 ((Map<String, Object>)request).put("currency_pair", ((Map<String, Object>)market).get("id"));
             }
             Map<String, Object> response = (this.privatePostActiveOrders(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, "return", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "return", new HashMap<String, Object>() {{}});
             return this.parseOrders(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -906,7 +906,7 @@ public class Zaif extends ZaifApi
                 ((Map<String, Object>)request).put("currency_pair", ((Map<String, Object>)market).get("id"));
             }
             Map<String, Object> response = (this.privatePostTradeHistory(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, "return", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "return", new HashMap<String, Object>() {{}});
             return this.parseOrders(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -970,7 +970,7 @@ public class Zaif extends ZaifApi
             //         }
             //     }
             //
-            Object returnData = this.safeDict(result, "return", new HashMap<String, Object>() {{}});
+            Map<String, Object> returnData = (Map<String, Object>) this.safeDict(result, "return", new HashMap<String, Object>() {{}});
             return this.parseTransaction(returnData, currency);
         }).thenApply(Transaction::new);
 

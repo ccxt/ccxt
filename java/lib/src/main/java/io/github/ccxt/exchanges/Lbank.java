@@ -1014,7 +1014,7 @@ public class Lbank extends LbankApi
             //     }
             //
             Object data = this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseTicker(first, market);
         }).thenApply(Ticker::new);
 
@@ -1601,7 +1601,7 @@ public class Lbank extends LbankApi
         if (!java.util.Objects.equals(toBtc, null))
         {
             Object used = this.safeValue(data, "freeze", new HashMap<String, Object>() {{}});
-            Object free = this.safeDict(data, "free", new HashMap<String, Object>() {{}});
+            Map<String, Object> free = (Map<String, Object>) this.safeDict(data, "free", new HashMap<String, Object>() {{}});
             Object currencies = Helpers.objectKeys(free);
             for (var i = 0; i < ((List<?>)currencies).size(); i++)
             {
@@ -2358,7 +2358,7 @@ public class Lbank extends LbankApi
             //          "ts":1648164471827
             //      }
             //
-            Object result = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(result);
         });
 
@@ -2689,7 +2689,7 @@ public class Lbank extends LbankApi
             //      "error_code":0,
             //      "ts":1648501286196
             //  }
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data);
         }).thenApply(Order::new);
 

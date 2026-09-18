@@ -912,7 +912,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
     public void handleBidAsk(Client client, Object message)
     {
         Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        Object ticker = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+        Map<String, Object> ticker = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
         Object parsedTicker = this.parseWsBidAsk(ticker);
         Object symbol = ((Map<String, Object>)parsedTicker).get("symbol");
         if (!java.util.Objects.equals(symbol, null))

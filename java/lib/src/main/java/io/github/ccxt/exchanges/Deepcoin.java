@@ -564,7 +564,7 @@ public class Deepcoin extends DeepcoinApi
 
     public String convertToInstrumentType(Object type)
     {
-        Object exchangeTypes = this.safeDict(this.options, "exchangeType", new HashMap<String, Object>() {{}});
+        Map<String, Object> exchangeTypes = (Map<String, Object>) this.safeDict(this.options, "exchangeType", new HashMap<String, Object>() {{}});
         return this.safeString(exchangeTypes, ((String)type), type);
     }
 
@@ -583,7 +583,7 @@ public class Deepcoin extends DeepcoinApi
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object types = new ArrayList<Object>(Arrays.asList("spot", "swap"));
-            Object fetchMarketsOption = this.safeDict(this.options, "fetchMarkets");
+            Map<String, Object> fetchMarketsOption = (Map<String, Object>) this.safeDict(this.options, "fetchMarkets");
             if (!java.util.Objects.equals(fetchMarketsOption, null))
             {
                 types = this.safeList(fetchMarketsOption, "types", types);
@@ -1349,7 +1349,7 @@ public class Deepcoin extends DeepcoinApi
                 parameters = this.omit(parameters, "until");
             }
             Map<String, Object> response = (this.privateGetDeepcoinAssetDepositList(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object items = this.safeList(data, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> transactionParams = new HashMap<String, Object>() {{
                 put( "type", "deposit" );
@@ -1415,7 +1415,7 @@ public class Deepcoin extends DeepcoinApi
                 parameters = this.omit(parameters, "until");
             }
             Map<String, Object> response = (this.privateGetDeepcoinAssetWithdrawList(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object items = this.safeList(data, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> transactionParams = new HashMap<String, Object>() {{
                 put( "type", "withdrawal" );
@@ -1545,7 +1545,7 @@ public class Deepcoin extends DeepcoinApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object list = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> additionalParams = new HashMap<String, Object>() {{
                 put( "currency", code );
@@ -1576,7 +1576,7 @@ public class Deepcoin extends DeepcoinApi
                 (this.loadMarkets()).join();
             }
             Object network = this.safeString(parameters, "network");
-            Object defaultNetworks = this.safeDict(this.options, "defaultNetworks", new HashMap<String, Object>() {{}});
+            Map<String, Object> defaultNetworks = (Map<String, Object>) this.safeDict(this.options, "defaultNetworks", new HashMap<String, Object>() {{}});
             String defaultNetwork = this.safeString(defaultNetworks, code);
             network = (((!java.util.Objects.equals(network, null) && !java.util.Objects.equals(network, "")))) ? network : defaultNetwork;
             if (!java.util.Objects.equals(network, null))
@@ -1809,7 +1809,7 @@ public class Deepcoin extends DeepcoinApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
-            Object accountsByType = this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
+            Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
             String toId = this.safeString(accountsByType, toAccount, toAccount);
             final Object finalUserId = userId;
@@ -1832,9 +1832,9 @@ public class Deepcoin extends DeepcoinApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object transfer = this.parseTransfer(data, currency);
-            Object transferOptions = this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
+            Map<String, Object> transferOptions = (Map<String, Object>) this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
             Object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
             if (java.util.Objects.equals(fillResponseFromRequest, true))
             {
@@ -2038,14 +2038,14 @@ public class Deepcoin extends DeepcoinApi
             ((Map<String, Object>)request).put("clOrdId", clientOrderId);
             parameters = this.omit(parameters, "clientOrderId");
         }
-        Object stopLoss = this.safeDict(parameters, "stopLoss", new HashMap<String, Object>() {{}});
+        Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(parameters, "stopLoss", new HashMap<String, Object>() {{}});
         String stopLossPrice = this.safeString(stopLoss, "triggerPrice");
         if (!java.util.Objects.equals(stopLossPrice, null))
         {
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stopLoss")));
             ((Map<String, Object>)request).put("slTriggerPx", this.priceToPrecision(symbol, stopLossPrice));
         }
-        Object takeProfit = this.safeDict(parameters, "takeProfit", new HashMap<String, Object>() {{}});
+        Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(parameters, "takeProfit", new HashMap<String, Object>() {{}});
         String takeProfitPrice = this.safeString(takeProfit, "triggerPrice");
         if (!java.util.Objects.equals(takeProfitPrice, null))
         {
@@ -3497,7 +3497,7 @@ public class Deepcoin extends DeepcoinApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object rates = this.safeList(data, "current_fund_rates", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRates(rates, symbols);
         }).thenApply(FundingRates::new);
@@ -3547,9 +3547,9 @@ public class Deepcoin extends DeepcoinApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object rates = this.safeList(data, "current_fund_rates", new ArrayList<Object>(Arrays.asList()));
-            Object entry = this.safeDict(rates, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> entry = (Map<String, Object>) this.safeDict(rates, 0, new HashMap<String, Object>() {{}});
             return this.parseFundingRate(entry, market);
         }).thenApply(FundingRate::new);
 
@@ -3648,7 +3648,7 @@ public class Deepcoin extends DeepcoinApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRateHistories(rows, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
@@ -3919,7 +3919,7 @@ public class Deepcoin extends DeepcoinApi
 
     public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
     {
-        Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         String msg = this.safeString(response, "msg");
         String messageCode = this.safeString(response, "code");
         String sCode = this.safeString(data, "sCode");
@@ -3934,7 +3934,7 @@ public class Deepcoin extends DeepcoinApi
         {
             for (var i = 0; i < ((List<?>)errorList).size(); i++)
             {
-                Object entry = this.safeDict(errorList, i, new HashMap<String, Object>() {{}});
+                Map<String, Object> entry = (Map<String, Object>) this.safeDict(errorList, i, new HashMap<String, Object>() {{}});
                 errorCode = this.safeString(entry, "errorCode");
             }
         }

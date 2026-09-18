@@ -2153,7 +2153,7 @@ public class Bitstamp extends BitstampApi
             //     ]
             //
             Map<String, Object> tradingFeesByMarketId = this.indexBy(response, "currency_pair");
-            Object tradingFee = this.safeDict(tradingFeesByMarketId, ((Map<String, Object>)market).get("id"));
+            Map<String, Object> tradingFee = (Map<String, Object>) this.safeDict(tradingFeesByMarketId, ((Map<String, Object>)market).get("id"));
             if (java.util.Objects.equals(tradingFee, null))
             {
                 tradingFee = new HashMap<String, Object>() {{}};
@@ -2167,7 +2167,7 @@ public class Bitstamp extends BitstampApi
     {
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(fee, "market");
-        Object fees = this.safeDict(fee, "fees", new HashMap<String, Object>() {{}});
+        Map<String, Object> fees = (Map<String, Object>) this.safeDict(fee, "fees", new HashMap<String, Object>() {{}});
         return new HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", Bitstamp.this.safeSymbol(marketId, market) );

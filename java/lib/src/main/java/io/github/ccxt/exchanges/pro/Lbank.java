@@ -883,7 +883,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         //         "TS": "2021-07-26T19:48:03.548"
         //     }
         //
-        Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Long timestamp = this.parse8601(this.safeString(message, "TS"));
         String datetime = this.iso8601(timestamp);
         Helpers.addElementToObject(this.balance, "info", data);

@@ -747,7 +747,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             Object trades = (this.subscribeMultiple(name, false, symbols, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
-                Object first = this.safeDict(trades, 0);
+                Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0);
                 String tradeSymbol = this.safeString(first, "symbol");
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
@@ -958,7 +958,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         }
         Object eventVar = this.safeValue(events, 0);
         Object trades = this.safeList(eventVar, "trades");
-        Object trade = this.safeDict(trades, 0);
+        Map<String, Object> trade = (Map<String, Object>) this.safeDict(trades, 0);
         String marketId = this.safeString(trade, "product_id");
         String symbol = this.safeSymbol(marketId);
         String messageHash = ("market_trades::" + symbol);
@@ -1231,13 +1231,13 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         //      }
         //
         Object events = this.safeList(message, "events", new ArrayList<Object>(Arrays.asList()));
-        Object firstEvent = this.safeDict(events, 0, new HashMap<String, Object>() {{}});
+        Map<String, Object> firstEvent = (Map<String, Object>) this.safeDict(events, 0, new HashMap<String, Object>() {{}});
         Boolean isUnsub = (((Map<?, ?>)firstEvent).containsKey("subscriptions"));
         Object subKeys = Helpers.objectKeys(((Map<String, Object>)firstEvent).get("subscriptions"));
         Object subKeysLength = ((List<?>)subKeys).size();
         if (Helpers.isTrue(isUnsub) && Helpers.isEqual(subKeysLength, 0))
         {
-            Object unSubObject = this.safeDict(this.options, "unSubscription", new HashMap<String, Object>() {{}});
+            Map<String, Object> unSubObject = (Map<String, Object>) this.safeDict(this.options, "unSubscription", new HashMap<String, Object>() {{}});
             Object messageHashes = this.safeList(unSubObject, "messageHashes", new ArrayList<Object>(Arrays.asList()));
             Object subMessageHashes = this.safeList(unSubObject, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)messageHashes).size(); i++)

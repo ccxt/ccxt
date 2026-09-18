@@ -410,11 +410,11 @@ public class Bitbns extends BitbnsApi
                 String quoteId = this.safeString(market, "quote");
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);
-                Object marketPrecision = this.safeDict(market, "precision", new HashMap<String, Object>() {{}});
-                Object marketLimits = this.safeDict(market, "limits", new HashMap<String, Object>() {{}});
-                Object amountLimits = this.safeDict(marketLimits, "amount", new HashMap<String, Object>() {{}});
-                Object priceLimits = this.safeDict(marketLimits, "price", new HashMap<String, Object>() {{}});
-                Object costLimits = this.safeDict(marketLimits, "cost", new HashMap<String, Object>() {{}});
+                Map<String, Object> marketPrecision = (Map<String, Object>) this.safeDict(market, "precision", new HashMap<String, Object>() {{}});
+                Map<String, Object> marketLimits = (Map<String, Object>) this.safeDict(market, "limits", new HashMap<String, Object>() {{}});
+                Map<String, Object> amountLimits = (Map<String, Object>) this.safeDict(marketLimits, "amount", new HashMap<String, Object>() {{}});
+                Map<String, Object> priceLimits = (Map<String, Object>) this.safeDict(marketLimits, "price", new HashMap<String, Object>() {{}});
+                Map<String, Object> costLimits = (Map<String, Object>) this.safeDict(marketLimits, "cost", new HashMap<String, Object>() {{}});
                 Boolean usdt = (java.util.Objects.equals(quoteId, "USDT"));
                 // INR markets don't need a _INR prefix
                 Object uppercaseId = ((Helpers.isTrue(usdt))) ? (Helpers.add(Helpers.add(baseId, "_"), quoteId)) : baseId;
@@ -655,7 +655,7 @@ public class Bitbns extends BitbnsApi
             put( "timestamp", timestamp );
             put( "datetime", Bitbns.this.iso8601(timestamp) );
         }};
-        Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         Object keys = Helpers.objectKeys(data);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
@@ -1017,7 +1017,7 @@ public class Bitbns extends BitbnsApi
             //     }
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseOrder(first, market);
         }).thenApply(Order::new);
 
@@ -1436,7 +1436,7 @@ public class Bitbns extends BitbnsApi
                 put( "6", "ok" );
             }} );
         }};
-        Object statuses = this.safeDict(statusesByType, type, new HashMap<String, Object>() {{}});
+        Map<String, Object> statuses = (Map<String, Object>) this.safeDict(statusesByType, type, new HashMap<String, Object>() {{}});
         return this.safeString(statuses, status, status);
     }
 
@@ -1554,7 +1554,7 @@ public class Bitbns extends BitbnsApi
             //         "error":null
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String address = this.safeString(data, "token");
             String tag = this.safeString(data, "tag");
             this.checkAddress(address);

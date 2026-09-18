@@ -1059,7 +1059,7 @@ public class Toobit extends ToobitApi
         return BaseExchange.supplyAsync(() -> {
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            Object response = this.safeDict(this.options, "exchangeInfo");
+            Map<String, Object> response = (Map<String, Object>) this.safeDict(this.options, "exchangeInfo");
             if (!java.util.Objects.equals(response, null))
             {
                 Helpers.addElementToObject(this.options, "exchangeInfo", null); // reset it to avoid using old cached data
@@ -1228,9 +1228,9 @@ public class Toobit extends ToobitApi
         Boolean active = (java.util.Objects.equals(status, "TRADING"));
         Object filters = this.safeList(market, "filters", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> filtersByType = this.indexBy(filters, "filterType");
-        Object priceFilter = this.safeDict(filtersByType, "PRICE_FILTER", new HashMap<String, Object>() {{}});
-        Object lotSizeFilter = this.safeDict(filtersByType, "LOT_SIZE", new HashMap<String, Object>() {{}});
-        Object minNotionalFilter = this.safeDict(filtersByType, "MIN_NOTIONAL", new HashMap<String, Object>() {{}});
+        Map<String, Object> priceFilter = (Map<String, Object>) this.safeDict(filtersByType, "PRICE_FILTER", new HashMap<String, Object>() {{}});
+        Map<String, Object> lotSizeFilter = (Map<String, Object>) this.safeDict(filtersByType, "LOT_SIZE", new HashMap<String, Object>() {{}});
+        Map<String, Object> minNotionalFilter = (Map<String, Object>) this.safeDict(filtersByType, "MIN_NOTIONAL", new HashMap<String, Object>() {{}});
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         Boolean isContract = (((Map<?, ?>)market).containsKey("contractMultiplier"));
         Object inverse = this.safeBool2(market, "isInverse", "inverse");
@@ -2240,8 +2240,8 @@ public class Toobit extends ToobitApi
         {
             ((Map<String, Object>)request).put("stopPrice", triggerPrice);
         }
-        Object stopLoss = this.safeDict(parameters, "stopLoss");
-        Object takeProfit = this.safeDict(parameters, "takeProfit");
+        Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(parameters, "stopLoss");
+        Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(parameters, "takeProfit");
         Boolean hasStopLoss = (!java.util.Objects.equals(stopLoss, null));
         Boolean hasTakeProfit = (!java.util.Objects.equals(takeProfit, null));
         Map<String, Object> triggerPriceTypes = new HashMap<String, Object>() {{
@@ -2937,7 +2937,7 @@ public class Toobit extends ToobitApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
-            Object accountsByType = this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
+            Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
             String toId = this.safeString(accountsByType, toAccount, toAccount);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3620,7 +3620,7 @@ public class Toobit extends ToobitApi
             //     }
             // ]
             //
-            Object data = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             return this.parseLeverage(data, market);
         }).thenApply(Leverage::new);
 

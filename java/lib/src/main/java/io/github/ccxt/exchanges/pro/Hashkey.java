@@ -186,7 +186,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         {
             Helpers.addElementToObject(this.ohlcvs, symbol, new HashMap<String, Object>() {{}});
         }
-        Object parameters = this.safeDict(message, "params");
+        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params");
         String klineType = this.safeString(parameters, "klineType");
         Object timeframe = this.findTimeframe(klineType);
         if (!(((Map<?, ?>)Helpers.GetValue(this.ohlcvs, symbol)).containsKey(((String)timeframe))))
@@ -198,7 +198,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         Object stored = Helpers.GetValue(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object candle = this.safeDict(data, i, new HashMap<String, Object>() {{}});
+            Map<String, Object> candle = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
             Object parsed = this.parseWsOHLCV(candle, market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
@@ -370,7 +370,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             data = this.sortBy(data, "t");
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object trade = this.safeDict(data, i);
+                Map<String, Object> trade = (Map<String, Object>) this.safeDict(data, i);
                 Object parsed = this.parseWsTrade(trade, market);
                 Helpers.callDynamically(stored, "append", new Object[]{parsed});
             }
@@ -450,7 +450,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        Object dataEntry = this.safeDict(data, 0);
+        Map<String, Object> dataEntry = (Map<String, Object>) this.safeDict(data, 0);
         Long timestamp = this.safeInteger(dataEntry, "t");
         Object snapshot = this.parseOrderBook(dataEntry, symbol, timestamp, "b", "a");
         Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
@@ -931,7 +931,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         {
             return;
         }
-        Object options = this.safeDict(this.options, "watchBalance");
+        Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchBalance");
         Object snapshot = this.safeBool(options, "fetchBalanceSnapshot", true);
         if (java.util.Objects.equals(snapshot, true))
         {
@@ -988,7 +988,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         //
         String eventVar = this.safeString(message, "e");
         Object data = this.safeList(message, "B", new ArrayList<Object>(Arrays.asList()));
-        Object balanceUpdate = this.safeDict(data, 0);
+        Map<String, Object> balanceUpdate = (Map<String, Object>) this.safeDict(data, 0);
         Boolean isSpot = java.util.Objects.equals(eventVar, "outboundAccountInfo");
         String type = ((Helpers.isTrue(isSpot))) ? "spot" : "swap";
         if (!(Helpers.inOp(this.balance, type)))

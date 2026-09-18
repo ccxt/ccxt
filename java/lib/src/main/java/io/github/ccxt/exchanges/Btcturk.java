@@ -375,7 +375,7 @@ public class Btcturk extends BtcturkApi
             //        ],
             //    }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object markets = this.safeList(data, "symbols", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(markets);
         });
@@ -569,7 +569,7 @@ public class Btcturk extends BtcturkApi
             //         ]
             //       }
             //     }
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(data, "timestamp");
             return this.parseOrderBook(data, ((Map<String, Object>)market).get("symbol"), timestamp, "bids", "asks", 0, 1);
         }).thenApply(OrderBook::new);
@@ -1000,7 +1000,7 @@ public class Btcturk extends BtcturkApi
                 ((Map<String, Object>)request).put("newClientOrderId", this.uuid());
             }
             Map<String, Object> response = (this.privatePostOrder(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
@@ -1073,7 +1073,7 @@ public class Btcturk extends BtcturkApi
                 ((Map<String, Object>)request).put("pairSymbol", ((Map<String, Object>)market).get("id"));
             }
             Map<String, Object> response = (this.privateGetOpenOrders(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object bids = this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
             Object asks = this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(this.arrayConcat(bids, asks), market, since, limit);

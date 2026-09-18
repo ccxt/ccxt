@@ -766,7 +766,7 @@ public class Btse extends BtseApi
                 (this.loadTimeDifference()).join();
             }
             Map<String, Object> response = (this.publicGetPublicApiMarketV1Markets(parameters)).join();
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object markets = this.safeList(data, "symbols", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(markets);
         });
@@ -1099,7 +1099,7 @@ public class Btse extends BtseApi
             //         "time": 1786605670833
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(data, "timestamp");
             return this.parseOrderBook(data, ((Map<String, Object>)market).get("symbol"), timestamp, "bids", "asks");
         }).thenApply(OrderBook::new);
@@ -1400,7 +1400,7 @@ public class Btse extends BtseApi
             Object data = this.safeList(response, "data");
             if (java.util.Objects.equals(data, null))
             {
-                Object single = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+                Map<String, Object> single = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 data = new ArrayList<Object>(Arrays.asList(single));
             }
             Map<String, Object> result = new HashMap<String, Object>() {{}};
@@ -2514,7 +2514,7 @@ public class Btse extends BtseApi
                 }
                 response = (this.privatePostSpotApiV4TradeOrdersAlgo(this.extend(request, parameters))).join();
             }
-            Object order = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> order = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             return this.parseOrder(order, market);
         });
 
@@ -2633,8 +2633,8 @@ public class Btse extends BtseApi
                 }
             }
             // here we handling with attached take profit and stop loss orders
-            Object takeProfit = this.safeDict(parameters, "takeProfit");
-            Object stopLoss = this.safeDict(parameters, "stopLoss");
+            Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(parameters, "takeProfit");
+            Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(parameters, "stopLoss");
             if ((!java.util.Objects.equals(takeProfit, null)) || (!java.util.Objects.equals(stopLoss, null)))
             {
                 String takeProfitTriggerPrice = this.safeString(takeProfit, "triggerPrice");
@@ -2945,7 +2945,7 @@ public class Btse extends BtseApi
                 }
                 response = (this.privatePutFuturesApiV3TradeOrders(this.extend(request, parameters))).join();
             }
-            Object order = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> order = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
@@ -3015,7 +3015,7 @@ public class Btse extends BtseApi
                 ((Map<String, Object>)request).put("symbol", this.futuresRequestId(market));
                 response = (this.privateDeleteFuturesApiV3TradeOrders(this.extend(request, parameters))).join();
             }
-            Object order = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> order = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
@@ -3883,7 +3883,7 @@ public class Btse extends BtseApi
                 response = (this.privateGetFuturesApiV23UserFees(this.extend(request, parameters))).join();
             }
             Object rows = this.safeList(response, "data", ((Object)response));
-            Object feeInfo = this.safeDict(rows, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> feeInfo = (Map<String, Object>) this.safeDict(rows, 0, new HashMap<String, Object>() {{}});
             Double makerFee = this.safeNumber(feeInfo, "makerFee");
             Double takerFee = this.safeNumber(feeInfo, "takerFee");
             return new HashMap<String, Object>() {{
@@ -4014,9 +4014,9 @@ public class Btse extends BtseApi
         String side = this.safeStringLower2(position, "positionDirection", "side");
         String positionMode = this.safeString(position, "positionMode");
         Boolean hedged = (java.util.Objects.equals(positionMode, "HEDGE")) || (java.util.Objects.equals(positionMode, "ISOLATED"));
-        Object takeProfitOrder = this.safeDict(position, "takeProfitOrder", new HashMap<String, Object>() {{}});
+        Map<String, Object> takeProfitOrder = (Map<String, Object>) this.safeDict(position, "takeProfitOrder", new HashMap<String, Object>() {{}});
         String takeProfitPrice = this.safeString(takeProfitOrder, "triggerPrice");
-        Object stopLossOrder = this.safeDict(position, "stopLossOrder", new HashMap<String, Object>() {{}});
+        Map<String, Object> stopLossOrder = (Map<String, Object>) this.safeDict(position, "stopLossOrder", new HashMap<String, Object>() {{}});
         String stopLossPrice = this.safeString(stopLossOrder, "triggerPrice");
         final Object finalMarket = market;
         return this.safePosition(new HashMap<String, Object>() {{
@@ -4105,7 +4105,7 @@ public class Btse extends BtseApi
             //         }
             //     ]
             //
-            Object data = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             String positionMode = this.safeString(data, "positionMode");
             Boolean hedged = (java.util.Objects.equals(positionMode, "HEDGE")) || (java.util.Objects.equals(positionMode, "ISOLATED"));
             return new HashMap<String, Object>() {{
@@ -4175,7 +4175,7 @@ public class Btse extends BtseApi
                 put( "symbol", Btse.this.futuresRequestId(market) );
             }};
             List<Object> response = (this.privateGetFuturesApiV3TradeLeverage(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             return this.parseMarginMode(data, market);
         }).thenApply(MarginMode::new);
 

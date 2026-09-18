@@ -176,7 +176,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             {
                 (this.loadMarkets()).join();
             }
-            Object watchTickerOptions = this.safeDict(this.options, "watchTicker");
+            Map<String, Object> watchTickerOptions = (Map<String, Object>) this.safeDict(this.options, "watchTicker");
             Object name = this.safeString(watchTickerOptions, "name", "state"); // or price
             List<Object> nameparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTicker", "name", name);
             name = ((List<Object>) nameparametersVariable).get(0);
@@ -215,7 +215,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, false);
-            Object watchTickerOptions = this.safeDict(this.options, "watchTicker");
+            Map<String, Object> watchTickerOptions = (Map<String, Object>) this.safeDict(this.options, "watchTicker");
             Object name = this.safeString(watchTickerOptions, "name", "state"); // or price
             List<Object> nameparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "watchTickers", "name", name);
             name = ((List<Object>) nameparametersVariable).get(0);
@@ -381,7 +381,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         String channel = this.safeString(splitMethod, 0);
         String marketId = this.safeString(data, 7);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-        Object timeframes = this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
+        Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
         Object timeframe = this.findTimeframe(channel, timeframes);
         String symbol = this.safeString(market, "symbol");
         Object messageHash = Helpers.add(Helpers.add(channel, "::"), symbol);
@@ -486,7 +486,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         String method = this.safeString(message, "method");
         Object splitMethod = Helpers.split(method, ".");
         String messageHashStart = this.safeString(splitMethod, 0);
-        Object tickerData = this.safeDict(data, 1);
+        Map<String, Object> tickerData = (Map<String, Object>) this.safeDict(data, 1);
         Object ticker = null;
         if (java.util.Objects.equals(method, "price.update"))
         {
@@ -529,7 +529,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         //
         Object parameters = this.safeList(message, "params", new ArrayList<Object>(Arrays.asList()));
         Object isFullUpdate = this.safeBool(parameters, 0, false);
-        Object data = this.safeDict(parameters, 1);
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, 1);
         Object asks = this.safeList(data, "asks");
         Object bids = this.safeList(data, "bids");
         String marketId = this.safeString(parameters, 2);

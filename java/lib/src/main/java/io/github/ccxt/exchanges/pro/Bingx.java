@@ -700,7 +700,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             {
                 url = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), marketType);
             }
-            Object options = this.safeDict(this.options, "watchOrderBook", new HashMap<String, Object>() {{}});
+            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchOrderBook", new HashMap<String, Object>() {{}});
             Long depth = this.safeInteger(options, "depth", 100);
             Object subscriptionHash = ((Helpers.add(((Map<String, Object>)market).get("id"), "@") + "depth") + this.numberToString(depth));
             Object messageHash = this.getMessageHash("orderbook", ((Map<String, Object>)market).get("symbol"));
@@ -761,7 +761,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object options = this.safeDict(this.options, "watchOrderBook", new HashMap<String, Object>() {{}});
+            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchOrderBook", new HashMap<String, Object>() {{}});
             Long depth = this.safeInteger(options, "depth", 100);
             Object subMessageHash = ((Helpers.add(((Map<String, Object>)market).get("id"), "@") + "depth") + this.numberToString(depth));
             String messageHash = ("unsubscribe::" + subMessageHash);
@@ -848,7 +848,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         //         }
         //     }
         //
-        Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String dataType = this.safeString(message, "dataType", "");
         Object parts = Helpers.split(dataType, "@");
         String firstPart = (String) Helpers.GetValue(parts, 0);
@@ -1005,14 +1005,14 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             }
         } else
         {
-            Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
             candles = new ArrayList<Object>(Arrays.asList(this.safeDict(data, "K", new HashMap<String, Object>() {{}})));
         }
         Object symbol = ((Map<String, Object>)market).get("symbol");
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         Object rawTimeframe = Helpers.GetValue(Helpers.split(dataType, "_"), 1);
-        Object marketOptions = this.safeDict(this.options, marketType);
-        Object timeframes = this.safeDict(marketOptions, "timeframes", new HashMap<String, Object>() {{}});
+        Map<String, Object> marketOptions = (Map<String, Object>) this.safeDict(this.options, marketType);
+        Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(marketOptions, "timeframes", new HashMap<String, Object>() {{}});
         Object unifiedTimeframe = this.findTimeframe(rawTimeframe, timeframes);
         if (java.util.Objects.equals(this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), rawTimeframe), null))
         {
@@ -1691,7 +1691,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
         Object cache = this.positions;
-        Object data = this.safeDict(message, "a", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "a", new HashMap<String, Object>() {{}});
         if (!(((Map<?, ?>)data).containsKey("P")))
         {
             return;
@@ -2113,7 +2113,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         //         }
         //     }
         //
-        Object a = this.safeDict(message, "a", new HashMap<String, Object>() {{}});
+        Map<String, Object> a = (Map<String, Object>) this.safeDict(message, "a", new HashMap<String, Object>() {{}});
         Object data = this.safeList(a, "B", new ArrayList<Object>(Arrays.asList()));
         Long timestamp = (Long) this.safeInteger2(message, "T", "E");
         String spotUrl = this.safeString(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "spot");
@@ -2229,7 +2229,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         //
         String id = this.safeString(message, "id");
         Map<String, Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
-        Object subscription = this.safeDict(subscriptionsById, id, new HashMap<String, Object>() {{}});
+        Map<String, Object> subscription = (Map<String, Object>) this.safeDict(subscriptionsById, id, new HashMap<String, Object>() {{}});
         Object isUnSubMessage = this.safeBool(subscription, "unsubscribe", false);
         if (java.util.Objects.equals(isUnSubMessage, true))
         {

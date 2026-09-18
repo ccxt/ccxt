@@ -745,7 +745,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         String id = this.safeString(rawCurrency, "id");
         String name = this.safeString(rawCurrency, "name");
         String code = this.safeCurrencyCode(id);
-        Object details = this.safeDict(rawCurrency, "details", new HashMap<String, Object>() {{}});
+        Map<String, Object> details = (Map<String, Object>) this.safeDict(rawCurrency, "details", new HashMap<String, Object>() {{}});
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         Object supportedNetworks = this.safeList(rawCurrency, "supported_networks", new ArrayList<Object>(Arrays.asList()));
         for (var j = 0; j < ((List<?>)supportedNetworks).size(); j++)

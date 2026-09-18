@@ -1037,10 +1037,10 @@ public class Paradex extends ParadexApi
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         String marketId = this.safeString(fee, "symbol");
         market = this.safeMarket(marketId, market);
-        Object feeConfig = this.safeDict(fee, "fee_config", new HashMap<String, Object>() {{}});
-        Object apiFee = this.safeDict(feeConfig, "api_fee", new HashMap<String, Object>() {{}});
-        Object makerFee = this.safeDict(apiFee, "maker_fee", new HashMap<String, Object>() {{}});
-        Object takerFee = this.safeDict(apiFee, "taker_fee", new HashMap<String, Object>() {{}});
+        Map<String, Object> feeConfig = (Map<String, Object>) this.safeDict(fee, "fee_config", new HashMap<String, Object>() {{}});
+        Map<String, Object> apiFee = (Map<String, Object>) this.safeDict(feeConfig, "api_fee", new HashMap<String, Object>() {{}});
+        Map<String, Object> makerFee = (Map<String, Object>) this.safeDict(apiFee, "maker_fee", new HashMap<String, Object>() {{}});
+        Map<String, Object> takerFee = (Map<String, Object>) this.safeDict(apiFee, "taker_fee", new HashMap<String, Object>() {{}});
         final Object finalMarket = market;
         return new HashMap<String, Object>() {{
             put( "info", fee );
@@ -1100,7 +1100,7 @@ public class Paradex extends ParadexApi
             //     }
             //
             Object data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            Object first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseTradingFee(first, market);
         }).thenApply(TradingFeeInterface::new);
 
@@ -1354,7 +1354,7 @@ public class Paradex extends ParadexApi
             //     }
             //
             Object data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            Object ticker = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> ticker = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseTicker(ticker, market);
         }).thenApply(Ticker::new);
 
@@ -1804,7 +1804,7 @@ public class Paradex extends ParadexApi
             //     }
             //
             Object data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            Object interest = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> interest = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseOpenInterest(interest, market);
         }).thenApply(OpenInterest::new);
 
@@ -1868,7 +1868,7 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object cachedConfig = this.safeDict(this.options, "systemConfig");
+            Map<String, Object> cachedConfig = (Map<String, Object>) this.safeDict(this.options, "systemConfig");
             if (!java.util.Objects.equals(cachedConfig, null))
             {
                 return cachedConfig;
@@ -1939,7 +1939,7 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object cachedAccount = this.safeDict(this.options, "paradexAccount");
+            Map<String, Object> cachedAccount = (Map<String, Object>) this.safeDict(this.options, "paradexAccount");
             if (!java.util.Objects.equals(cachedAccount, null))
             {
                 return cachedAccount;
@@ -2563,7 +2563,7 @@ public class Paradex extends ParadexApi
                 String side = this.safeString(rawOrder, "side");
                 Double amount = this.safeNumber(rawOrder, "amount");
                 Double price = this.safeNumber(rawOrder, "price");
-                Object orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
+                Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Map<String, Object> extendedParams = this.extend(parameters, orderParams);
                 Object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, extendedParams);
                 orderRequest = (this.signOrderRequest(orderRequest)).join();
@@ -3075,7 +3075,7 @@ public class Paradex extends ParadexApi
         }};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
         {
-            Object balance = this.safeDict(response, i, new HashMap<String, Object>() {{}});
+            Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, new HashMap<String, Object>() {{}});
             String currencyId = this.safeString(balance, "token");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
@@ -4030,7 +4030,7 @@ public class Paradex extends ParadexApi
             //     }
             //
             Object data = this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            Object greeks = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> greeks = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseGreeks(greeks, market);
         }).thenApply(Greeks::new);
 
@@ -4138,7 +4138,7 @@ public class Paradex extends ParadexApi
         market = this.safeMarket(marketId, market, null, "option");
         Object symbol = ((Map<String, Object>)market).get("symbol");
         Long timestamp = this.safeInteger(greeks, "created_at");
-        Object greeksData = this.safeDict(greeks, "greeks", new HashMap<String, Object>() {{}});
+        Map<String, Object> greeksData = (Map<String, Object>) this.safeDict(greeks, "greeks", new HashMap<String, Object>() {{}});
         return new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );

@@ -522,6 +522,58 @@ const STRUCTURE_THIS_RETURN_TYPES = {
     'currency': JAVA_STRUCTURE_TYPE,
 };
 
+// ===== safeDict locals (JAVA-01) =====
+//
+// `const x = this.safeDict (container, key [, {}])` — the TS annotation is `Dict | undefined`,
+// the printer declares `Object x = this.safeDict (…)`, and the hand-written
+// `public Object safeDict (…)` (BaseExchange.java) answers a Map or the caller's default:
+//
+//     Object value = this.safeValue (dictionaryOrList, key, defaultValue);
+//     if (value == null) return defaultValue;
+//     if (isDictionary (value)) return value;      // boolean isTrue (value instanceof Map) && !isArray
+//     return defaultValue;
+//
+// so the box is a `java.util.Map<String, Object>` (or null) on every path the accessor can
+// take EXCEPT the default handed back untouched: a call may only be typed when it carries no
+// third argument (null) or an EMPTY object literal (`{}` prints
+// `new java.util.HashMap<String, Object>() {{}}`). Any other default (string / number /
+// non-empty dict / expression) could be handed back raw, so those locals keep Object.
+//
+// The declaration carries the `(java.util.Map<String, Object>)` checkcast the Object-declared
+// accessor needs (same cast family as the structure locals above); every generated consumer
+// (Helpers.GetValue / this.safeString / Helpers.addElementToObject / this.deepExtend / a
+// receiver method) takes Object or resolves against Map, so the typed local binds them exactly
+// as the Object one did. Later writes are audited by isSafeToNarrow (D2): a write of anything
+// that is not provably a structure box keeps the local Object — `x = this.safeDict (…)` is one
+// of them (safeDict is deliberately NOT in STRUCTURE_THIS_RETURN_TYPES, whose reassignment hook
+// casts without the default guard).
+const JAVA_SAFE_DICT_TYPE = 'java.util.Map<String, Object>';
+const SAFE_DICT_ACCESSORS = new Set ([ 'safeDict' ]);
+
+// the third argument, when present, must be an empty object literal — the only default that
+// prints a Map
+function safeDictDefaultIsEmptyMap (node) {
+    const unwrapped = unwrapParens (node);
+    return unwrapped !== undefined && ts.isObjectLiteralExpression (unwrapped) && unwrapped.properties.length === 0;
+}
+
+function safeDictLocalType (printer, initializer, name) {
+    if (!SAFE_DICT_ACCESSORS.has (name)) {
+        return undefined;
+    }
+    const args = initializer.arguments;
+    if (args === undefined || args.length < 2 || args.length > 3) {
+        return undefined;
+    }
+    if (args.length === 3 && !safeDictDefaultIsEmptyMap (args[2])) {
+        return undefined;
+    }
+    if (!resolvesToMethodNamed (printer, initializer, name)) {
+        return undefined;
+    }
+    return { type: JAVA_SAFE_DICT_TYPE, cast: '(' + JAVA_SAFE_DICT_TYPE + ')' };
+}
+
 // ts sources that may hold the resolved declaration of an admitted accessor call —
 // anything else (a venue override) never classifies
 const ACCESSOR_SOURCE_FILES = [
@@ -1535,6 +1587,10 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
     const structure = STRUCTURE_THIS_RETURN_TYPES[name];
     if (structure !== undefined && resolvesToMethodNamed (printer, initializer, name)) {
         return { type: structure, cast: '(' + structure + ')' };
+    }
+    const dict = safeDictLocalType (printer, initializer, name);
+    if (dict !== undefined) {
+        return dict;
     }
     return undefined;
 }

@@ -954,7 +954,7 @@ public class Pacifica extends PacificaApi
         {
             symbol = Helpers.add((symbol + ":"), settle);
         }
-        Object fees = this.safeDict(this.fees, type, new HashMap<String, Object>() {{}});
+        Map<String, Object> fees = (Map<String, Object>) this.safeDict(this.fees, type, new HashMap<String, Object>() {{}});
         Double taker = this.safeNumber(fees, "taker");
         Double maker = this.safeNumber(fees, "maker");
         Double amountPrecision = this.safeNumber(market, "lot_size");
@@ -1090,7 +1090,7 @@ public class Pacifica extends PacificaApi
             //   "error": null,
             //   "code": null
             // }
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Map<String, Object> result = new HashMap<String, Object>() {{
                 put( "info", data );
             }};
@@ -1160,7 +1160,7 @@ public class Pacifica extends PacificaApi
                 }};
                 settings = (this.fetchAccountSettings(this.extend(request, parameters))).join();
             }
-            Object setting = this.safeDict(settings, symbol);
+            Map<String, Object> setting = (Map<String, Object>) this.safeDict(settings, symbol);
             if (java.util.Objects.equals(setting, null))
             {
                 // NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
@@ -1199,8 +1199,8 @@ public class Pacifica extends PacificaApi
 
     public Object parseLeverageFromMarket(Object market)
     {
-        Object marketLimits = this.safeDict(market, "limits", new HashMap<String, Object>() {{}});
-        Object leverageLimits = this.safeDict(marketLimits, "leverage", new HashMap<String, Object>() {{}});
+        Map<String, Object> marketLimits = (Map<String, Object>) this.safeDict(market, "limits", new HashMap<String, Object>() {{}});
+        Map<String, Object> leverageLimits = (Map<String, Object>) this.safeDict(marketLimits, "leverage", new HashMap<String, Object>() {{}});
         return new HashMap<String, Object>() {{
             put( "info", market );
             put( "symbol", Pacifica.this.safeString(market, "symbol") );
@@ -1333,7 +1333,7 @@ public class Pacifica extends PacificaApi
             //       "updated_at": 1758086074002
             //    },
             // }
-            Object setting = this.safeDict(settings, symbol);
+            Map<String, Object> setting = (Map<String, Object>) this.safeDict(settings, symbol);
             if (java.util.Objects.equals(setting, null))
             {
                 // NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
@@ -1437,7 +1437,7 @@ public class Pacifica extends PacificaApi
             //   "error": null,
             //   "code": null
             // }
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object levels = this.safeList(data, "l", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = new HashMap<String, Object>() {{
                 put( "bids", Pacifica.this.safeList(levels, 0, new ArrayList<Object>(Arrays.asList())) );
@@ -1967,7 +1967,7 @@ public class Pacifica extends PacificaApi
             {
                 status = "open";
             }
-            Object order = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> order = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String orderId = this.safeString(order, "order_id");
             final Object finalStatus = status;
             final Object finalResponse = response;
@@ -2181,7 +2181,7 @@ public class Pacifica extends PacificaApi
             String side = this.safeString(order, "side");
             String price = this.safeString(order, "price");
             String type = this.safeString(order, "type", "limit");
-            Object orderParams = this.safeDict(order, "params", new HashMap<String, Object>() {{}});
+            Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(order, "params", new HashMap<String, Object>() {{}});
             ((Map<String, Object>)orderParams).put("timestamp", timestamp);
             String amount = this.safeString(order, "amount");
             Object amountNumber = this.parseNumber(amount);
@@ -2240,7 +2240,7 @@ public class Pacifica extends PacificaApi
             //     "code": null
             // }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object results = this.safeList(data, "results", new ArrayList<Object>(Arrays.asList()));
             List<Object> ordersToReturn = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)results).size(); i++)
@@ -2319,7 +2319,7 @@ public class Pacifica extends PacificaApi
             //     "code": null
             // }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object results = this.safeList(data, "results", new ArrayList<Object>(Arrays.asList()));
             List<Object> ordersToReturn = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)results).size(); i++)
@@ -2575,7 +2575,7 @@ public class Pacifica extends PacificaApi
             //     }
             // }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String orderId = this.safeString(data, "order_id");
             return this.safeOrder(new HashMap<String, Object>() {{
                 put( "id", orderId );
@@ -3671,7 +3671,7 @@ public class Pacifica extends PacificaApi
             //   "error": null,
             //   "code": null
             // }
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseTradingFee(data, market);
         }).thenApply(TradingFeeInterface::new);
 
@@ -4096,7 +4096,7 @@ public class Pacifica extends PacificaApi
             //   "code": null
             // }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.extend(this.parseTransfer(data, currency), new HashMap<String, Object>() {{
                 put( "amount", amount );
                 put( "fromAccount", Pacifica.this.safeString(request, "account") );

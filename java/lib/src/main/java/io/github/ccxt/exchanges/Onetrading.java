@@ -626,8 +626,8 @@ public class Onetrading extends OnetradingApi
         //      "state": "ACTIVE"
         //  }
         //
-        Object baseAsset = this.safeDict(market, "base", new HashMap<String, Object>() {{}});
-        Object quoteAsset = this.safeDict(market, "quote", new HashMap<String, Object>() {{}});
+        Map<String, Object> baseAsset = (Map<String, Object>) this.safeDict(market, "base", new HashMap<String, Object>() {{}});
+        Map<String, Object> quoteAsset = (Map<String, Object>) this.safeDict(market, "quote", new HashMap<String, Object>() {{}});
         String baseId = this.safeString(baseAsset, "code");
         String quoteId = this.safeString(quoteAsset, "code");
         String id = this.safeString(market, "id");
@@ -785,21 +785,21 @@ public class Onetrading extends OnetradingApi
             //     },
             // ];
             //
-            Object spotFees = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
-            Object futuresFees = this.safeDict(response, 1, new HashMap<String, Object>() {{}});
+            Map<String, Object> spotFees = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> futuresFees = (Map<String, Object>) this.safeDict(response, 1, new HashMap<String, Object>() {{}});
             Object spotFeeTiers = this.safeList(spotFees, "fee_tiers", new ArrayList<Object>(Arrays.asList()));
             Object futuresFeeTiers = this.safeList(futuresFees, "fee_tiers", new ArrayList<Object>(Arrays.asList()));
             Object spotTiers = this.parseFeeTiers(spotFeeTiers);
             Object futuresTiers = this.parseFeeTiers(futuresFeeTiers);
-            Object firstSpotTier = this.safeDict(spotTiers, 0, new HashMap<String, Object>() {{}});
-            Object firstFuturesTier = this.safeDict(futuresTiers, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> firstSpotTier = (Map<String, Object>) this.safeDict(spotTiers, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> firstFuturesTier = (Map<String, Object>) this.safeDict(futuresTiers, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             List<Object> symbols = this.symbols;
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                Object tierObject = (((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))) ? firstSpotTier : firstFuturesTier;
+                Map<String, Object> tierObject = (((java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))) ? firstSpotTier : firstFuturesTier;
                 Helpers.addElementToObject(result, symbol, new HashMap<String, Object>() {{
         put( "info", spotFees );
         put( "symbol", symbol );
@@ -858,8 +858,8 @@ public class Onetrading extends OnetradingApi
             // }
             //
             Object activeFeeTier = this.safeList(response, "active_fee_tiers");
-            Object spotFees = this.safeDict(activeFeeTier, 0, new HashMap<String, Object>() {{}});
-            Object futuresFees = this.safeDict(activeFeeTier, 1, new HashMap<String, Object>() {{}});
+            Map<String, Object> spotFees = (Map<String, Object>) this.safeDict(activeFeeTier, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> futuresFees = (Map<String, Object>) this.safeDict(activeFeeTier, 1, new HashMap<String, Object>() {{}});
             String spotMakerFee = this.safeString(spotFees, "maker_fee");
             String spotTakerFee = this.safeString(spotFees, "taker_fee");
             spotMakerFee = Precise.stringDiv(spotMakerFee, "100");

@@ -2445,7 +2445,7 @@ public class Okx extends OkxApi
 
     public String convertToInstrumentType(Object type)
     {
-        Object exchangeTypes = this.safeDict(this.options, "exchangeType", new HashMap<String, Object>() {{}});
+        Map<String, Object> exchangeTypes = (Map<String, Object>) this.safeDict(this.options, "exchangeType", new HashMap<String, Object>() {{}});
         return this.safeString(exchangeTypes, ((String)type), type);
     }
 
@@ -2743,7 +2743,7 @@ public class Okx extends OkxApi
                 (this.loadTimeDifference()).join();
             }
             Object types = new ArrayList<Object>(Arrays.asList("spot", "future", "swap", "option"));
-            Object fetchMarketsOption = this.safeDict(this.options, "fetchMarkets");
+            Map<String, Object> fetchMarketsOption = (Map<String, Object>) this.safeDict(this.options, "fetchMarkets");
             if (!java.util.Objects.equals(fetchMarketsOption, null))
             {
                 types = this.safeList(fetchMarketsOption, "types", types);
@@ -2992,7 +2992,7 @@ public class Okx extends OkxApi
                 Object markets = new ArrayList<Object>(Arrays.asList());
                 for (var i = 0; i < ((List<?>)promisesResult).size(); i++)
                 {
-                    Object res = this.safeDict(promisesResult, i, new HashMap<String, Object>() {{}});
+                    Map<String, Object> res = (Map<String, Object>) this.safeDict(promisesResult, i, new HashMap<String, Object>() {{}});
                     Object options = this.safeList(res, "data", new ArrayList<Object>(Arrays.asList()));
                     markets = this.arrayConcat(markets, options);
                 }
@@ -3141,7 +3141,7 @@ public class Okx extends OkxApi
     {
         Object chains = currency;
         // currencies are grouped by chain entries, so there is at least one entry
-        Object firstChain = this.safeDict(chains, 0, new HashMap<String, Object>() {{}});
+        Map<String, Object> firstChain = (Map<String, Object>) this.safeDict(chains, 0, new HashMap<String, Object>() {{}});
         String currencyId = this.safeString(firstChain, "ccy");
         String code = this.safeCurrencyCode(currencyId);
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
@@ -3873,7 +3873,7 @@ public class Okx extends OkxApi
             String priceType = this.safeString(parameters, "price");
             Object isMarkOrIndex = this.inArray(priceType, new ArrayList<Object>(Arrays.asList("mark", "index")));
             parameters = this.omit(parameters, "price");
-            Object options = this.safeDict(this.options, "fetchOHLCV", new HashMap<String, Object>() {{}});
+            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchOHLCV", new HashMap<String, Object>() {{}});
             String timezone = this.safeString(options, "timezone", "UTC");
             Boolean limitIsUndefined = (java.util.Objects.equals(limit, null));
             if (java.util.Objects.equals(limit, null))
@@ -4085,7 +4085,7 @@ public class Okx extends OkxApi
             put( "info", response );
         }};
         Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-        Object first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+        Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
         Long timestamp = this.safeInteger(first, "uTime");
         Object details = this.safeList(first, "details", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)details).size(); i++)
@@ -4878,7 +4878,7 @@ public class Okx extends OkxApi
                 response = (this.privatePostTradeBatchOrders(request)).join();
             }
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             Object order = this.parseOrder(first, market);
             Helpers.addElementToObject(order, "type", type);
             Helpers.addElementToObject(order, "side", side);
@@ -4919,7 +4919,7 @@ public class Okx extends OkxApi
                 String side = this.safeString(rawOrder, "side");
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
-                Object orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
+                Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Map<String, Object> extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
                 Object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
                 ((List<Object>)ordersRequests).add(orderRequest);
@@ -5146,7 +5146,7 @@ public class Okx extends OkxApi
             //     }
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             Object order = this.parseOrder(first, market);
             Helpers.addElementToObject(order, "type", type);
             Helpers.addElementToObject(order, "side", side);
@@ -5262,7 +5262,7 @@ public class Okx extends OkxApi
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             List<Object> request = new ArrayList<Object>(Arrays.asList());
-            Object options = this.safeDict(this.options, "cancelOrders", new HashMap<String, Object>() {{}});
+            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "cancelOrders", new HashMap<String, Object>() {{}});
             String defaultMethod = this.safeString(options, "method", "privatePostTradeCancelBatchOrders");
             String method = this.safeString(parameters, "method", defaultMethod);
             Object clientOrderIds = this.parseIds(this.safeValue2(parameters, "clOrdId", "clientOrderId"));
@@ -5401,7 +5401,7 @@ public class Okx extends OkxApi
                 (this.loadMarkets()).join();
             }
             List<Object> request = new ArrayList<Object>(Arrays.asList());
-            Object options = this.safeDict(this.options, "cancelOrders", new HashMap<String, Object>() {{}});
+            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "cancelOrders", new HashMap<String, Object>() {{}});
             String defaultMethod = this.safeString(options, "method", "privatePostTradeCancelBatchOrders");
             String method = this.safeString(parameters, "method", defaultMethod);
             Object trigger = this.safeBool2(parameters, "stop", "trigger");
@@ -5884,7 +5884,7 @@ public class Okx extends OkxApi
                 put( "instId", ((Map<String, Object>)market).get("id") );
             }};
             String clientOrderId = this.safeString2(parameters, "clOrdId", "clientOrderId");
-            Object options = this.safeDict(this.options, "fetchOrder", new HashMap<String, Object>() {{}});
+            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchOrder", new HashMap<String, Object>() {{}});
             String defaultMethod = this.safeString(options, "method", "privateGetTradeOrder");
             String method = this.safeString(parameters, "method", defaultMethod);
             Object trigger = this.safeValue2(parameters, "stop", "trigger");
@@ -6071,8 +6071,8 @@ public class Okx extends OkxApi
             {
                 ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, maxLimit)); // default 100, max 100
             }
-            Object options = this.safeDict(this.options, "fetchOpenOrders", new HashMap<String, Object>() {{}});
-            Object algoOrderTypes = this.safeDict(this.options, "algoOrderTypes", new HashMap<String, Object>() {{}});
+            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchOpenOrders", new HashMap<String, Object>() {{}});
+            Map<String, Object> algoOrderTypes = (Map<String, Object>) this.safeDict(this.options, "algoOrderTypes", new HashMap<String, Object>() {{}});
             String defaultMethod = this.safeString(options, "method", "privateGetTradeOrdersPending");
             String method = this.safeString(parameters, "method", defaultMethod);
             String ordType = this.safeString(parameters, "ordType");
@@ -6248,8 +6248,8 @@ public class Okx extends OkxApi
                 ((Map<String, Object>)request).put("limit", limit); // default 100, max 100
             }
             ((Map<String, Object>)request).put("state", "canceled");
-            Object options = this.safeDict(this.options, "fetchCanceledOrders", new HashMap<String, Object>() {{}});
-            Object algoOrderTypes = this.safeDict(this.options, "algoOrderTypes", new HashMap<String, Object>() {{}});
+            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchCanceledOrders", new HashMap<String, Object>() {{}});
+            Map<String, Object> algoOrderTypes = (Map<String, Object>) this.safeDict(this.options, "algoOrderTypes", new HashMap<String, Object>() {{}});
             String defaultMethod = this.safeString(options, "method", "privateGetTradeOrdersHistory");
             String method = this.safeString(parameters, "method", defaultMethod);
             String ordType = this.safeString(parameters, "ordType");
@@ -6462,8 +6462,8 @@ public class Okx extends OkxApi
             {
                 ((Map<String, Object>)request).put("limit", Helpers.mathMin(limit, maxLimit)); // default 100, max 100
             }
-            Object options = this.safeDict(this.options, "fetchClosedOrders", new HashMap<String, Object>() {{}});
-            Object algoOrderTypes = this.safeDict(this.options, "algoOrderTypes", new HashMap<String, Object>() {{}});
+            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchClosedOrders", new HashMap<String, Object>() {{}});
+            Map<String, Object> algoOrderTypes = (Map<String, Object>) this.safeDict(this.options, "algoOrderTypes", new HashMap<String, Object>() {{}});
             String defaultMethod = this.safeString(options, "method", "privateGetTradeOrdersHistory");
             String method = this.safeString(parameters, "method", defaultMethod);
             String ordType = this.safeString(parameters, "ordType");
@@ -6764,7 +6764,7 @@ public class Okx extends OkxApi
             {
                 return (this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, parameters)).join();
             }
-            Object options = this.safeDict(this.options, "fetchLedger", new HashMap<String, Object>() {{}});
+            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchLedger", new HashMap<String, Object>() {{}});
             String method = this.safeString(options, "method");
             method = this.safeString(parameters, "method", method);
             parameters = this.omit(parameters, "method");
@@ -6997,14 +6997,14 @@ public class Okx extends OkxApi
         String tag = this.safeStringN(depositAddress, new ArrayList<Object>(Arrays.asList("tag", "pmtId", "memo")));
         if (java.util.Objects.equals(tag, null))
         {
-            Object addrEx = this.safeDict(depositAddress, "addrEx", new HashMap<String, Object>() {{}});
+            Map<String, Object> addrEx = (Map<String, Object>) this.safeDict(depositAddress, "addrEx", new HashMap<String, Object>() {{}});
             tag = this.safeString(addrEx, "comment");
         }
         String currencyId = this.safeString(depositAddress, "ccy");
         currency = this.safeCurrency(currencyId, currency);
         Object code = ((Map<String, Object>)currency).get("code");
         String chain = this.safeString(depositAddress, "chain");
-        Object networks = this.safeDict(currency, "networks", new HashMap<String, Object>() {{}});
+        Map<String, Object> networks = (Map<String, Object>) this.safeDict(currency, "networks", new HashMap<String, Object>() {{}});
         Map<String, Object> networksById = this.indexBy(networks, "id");
         Object networkData = (((java.util.Objects.equals(chain, null)))) ? null : this.safeDict(networksById, chain);
         // inconsistent naming responses from exchange
@@ -7208,7 +7208,7 @@ public class Okx extends OkxApi
             String network = this.safeString(parameters, "network"); // this line allows the user to specify either ERC20 or ETH
             if (!java.util.Objects.equals(network, null))
             {
-                Object networks = this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
+                Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
                 network = this.safeString(networks, network.toUpperCase(), network); // handle ETH>ERC20 alias
                 ((Map<String, Object>)request).put("chain", ((((Map<String, Object>)currency).get("id") + "-") + network));
                 parameters = this.omit(parameters, "network");
@@ -7878,7 +7878,7 @@ public class Okx extends OkxApi
             //     }
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object position = this.safeDict(data, 0);
+            Map<String, Object> position = (Map<String, Object>) this.safeDict(data, 0);
             if (java.util.Objects.equals(position, null))
             {
                 throw new NullResponse(((this.id + " fetchPosition() could not find a position for ") + symbol)) ;
@@ -7926,7 +7926,7 @@ public class Okx extends OkxApi
                     ((Map<String, Object>)request).put("instId", String.join(",", (List<String>)marketIds));
                 }
             }
-            Object fetchPositionsOptions = this.safeDict(this.options, "fetchPositions", new HashMap<String, Object>() {{}});
+            Map<String, Object> fetchPositionsOptions = (Map<String, Object>) this.safeDict(this.options, "fetchPositions", new HashMap<String, Object>() {{}});
             String method = this.safeString(fetchPositionsOptions, "method", "privateGetAccountPositions");
             Object response = null;
             if (java.util.Objects.equals(method, "privateGetAccountPositionsHistory"))
@@ -8235,7 +8235,7 @@ public class Okx extends OkxApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
-            Object accountsByType = this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
+            Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
             String toId = this.safeString(accountsByType, toAccount, toAccount);
             final Object finalFromId = fromId;
@@ -8344,7 +8344,7 @@ public class Okx extends OkxApi
         Object amount = this.safeNumber(transfer, "amt");
         String fromAccountId = this.safeString(transfer, "from");
         String toAccountId = this.safeString(transfer, "to");
-        Object accountsById = this.safeDict(this.options, "accountsById", new HashMap<String, Object>() {{}});
+        Map<String, Object> accountsById = (Map<String, Object>) this.safeDict(this.options, "accountsById", new HashMap<String, Object>() {{}});
         Long timestamp = this.safeInteger(transfer, "ts");
         String balanceChange = this.safeString(transfer, "sz");
         if (!java.util.Objects.equals(balanceChange, null))
@@ -8715,7 +8715,7 @@ public class Okx extends OkxApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object marketInfo = this.safeDict(market, "info", new HashMap<String, Object>() {{}});
+            Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
             String ruleType = this.safeString(marketInfo, "ruleType");
             Boolean isExtendedPerpetual = (java.util.Objects.equals(ruleType, "xperp")); // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
             if ((!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) && !Helpers.isTrue(isExtendedPerpetual))
@@ -8775,7 +8775,7 @@ public class Okx extends OkxApi
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
                     Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
-                    Object marketInfo = this.safeDict(market, "info", new HashMap<String, Object>() {{}});
+                    Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
                     String ruleType = this.safeString(marketInfo, "ruleType");
                     Boolean isExtendedPerpetual = (java.util.Objects.equals(ruleType, "xperp")); // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
                     if ((!java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) && !Helpers.isTrue(isExtendedPerpetual))
@@ -9257,7 +9257,7 @@ public class Okx extends OkxApi
             //    }
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object rate = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> rate = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseBorrowRate(rate);
         }).thenApply(CrossBorrowRate::new);
 
@@ -9880,7 +9880,7 @@ public class Okx extends OkxApi
             //     }
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object loan = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> loan = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseMarginLoan(loan, currency);
         }).thenApply(MarginLoan::new);
 
@@ -9938,7 +9938,7 @@ public class Okx extends OkxApi
             //     }
             //
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Object loan = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> loan = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseMarginLoan(loan, currency);
         }).thenApply(MarginLoan::new);
 
@@ -10127,8 +10127,8 @@ public class Okx extends OkxApi
             Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
             Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            Object options = this.safeDict(this.options, "fetchOpenInterestHistory", new HashMap<String, Object>() {{}});
-            Object timeframes = this.safeDict(options, "timeframes", new HashMap<String, Object>() {{}});
+            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchOpenInterestHistory", new HashMap<String, Object>() {{}});
+            Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(options, "timeframes", new HashMap<String, Object>() {{}});
             timeframe = this.safeString(timeframes, timeframe, timeframe);
             if (!java.util.Objects.equals(timeframe, "5m") && !java.util.Objects.equals(timeframe, "1H") && !java.util.Objects.equals(timeframe, "1D"))
             {
@@ -10386,7 +10386,7 @@ public class Okx extends OkxApi
             String code = this.safeCurrencyCode(currencyId);
             if ((!java.util.Objects.equals(code, null)) && ((java.util.Objects.equals(codes, null)) || Helpers.isTrue((this.inArray(code, codes)))))
             {
-                Object depositWithdrawFee = this.safeDict(depositWithdrawFees, code);
+                Map<String, Object> depositWithdrawFee = (Map<String, Object>) this.safeDict(depositWithdrawFees, code);
                 if (java.util.Objects.equals(depositWithdrawFee, null))
                 {
                     Helpers.addElementToObject(depositWithdrawFees, code, this.depositWithdrawFee(new HashMap<String, Object>() {{}}));

@@ -162,8 +162,8 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         //     }
         // }
         //
-        Object parameters = this.safeDict(message, "params");
-        Object data = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params");
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "instrument_name");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -285,9 +285,9 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         //     }
         // }
         //
-        Object parameters = this.safeDict(message, "params");
-        Object rawData = this.safeDict(parameters, "data");
-        Object data = this.safeDict(rawData, "instrument_ticker", new HashMap<String, Object>() {{}});
+        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params");
+        Map<String, Object> rawData = (Map<String, Object>) this.safeDict(parameters, "data");
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(rawData, "instrument_ticker", new HashMap<String, Object>() {{}});
         String topic = this.safeString(parameters, "channel");
         Object ticker = null;
         if (!java.util.Objects.equals(topic, null) && Helpers.isTrue(topic.startsWith(((String)"ticker_slim"))))
@@ -297,7 +297,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             Object parts = Helpers.split(topic, ".");
             String marketId = this.safeString(parts, 1);
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-            Object stats = this.safeDict(data, "stats", new HashMap<String, Object>() {{}});
+            Map<String, Object> stats = (Map<String, Object>) this.safeDict(data, "stats", new HashMap<String, Object>() {{}});
             ticker = this.safeTicker(new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("symbol") );
                 put( "timestamp", Derive.this.safeInteger(data, "t") );
@@ -472,8 +472,8 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         //     }
         // }
         //
-        Object result = this.safeDict(message, "result");
-        Object status = this.safeDict(result, "status");
+        Map<String, Object> result = (Map<String, Object>) this.safeDict(message, "result");
+        Map<String, Object> status = (Map<String, Object>) this.safeDict(result, "status");
         if (!java.util.Objects.equals(status, null))
         {
             Object topics = Helpers.objectKeys(status);
@@ -542,7 +542,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
     {
         //
         //
-        Object parameters = this.safeDict(message, "params");
+        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params");
         Object data = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         Object topic = this.safeValue(parameters, "channel");
         Object parsedTopic = Helpers.split(topic, ".");
@@ -726,7 +726,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         //     }
         // }
         //
-        Object parameters = this.safeDict(message, "params");
+        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params");
         String topic = this.safeString(parameters, "channel");
         Object rawOrders = this.safeList(parameters, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)rawOrders).size(); i++)
@@ -838,7 +838,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object parameters = this.safeDict(message, "params");
+        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params");
         String topic = this.safeString(parameters, "channel");
         Object rawTrades = this.safeList(parameters, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)rawTrades).size(); i++)
@@ -863,7 +863,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         {
             return false;
         }
-        Object errorMessage = this.safeDict(message, "error");
+        Map<String, Object> errorMessage = (Map<String, Object>) this.safeDict(message, "error");
         String errorCode = this.safeString(errorMessage, "code");
         try
         {
@@ -907,7 +907,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             put( "mytrades", "handleMyTrade");
         }};
         String eventVar = null;
-        Object parameters = this.safeDict(message, "params");
+        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params");
         if (!java.util.Objects.equals(parameters, null))
         {
             String channel = this.safeString(parameters, "channel");

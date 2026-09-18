@@ -170,8 +170,8 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         {
             Helpers.addElementToObject(Helpers.GetValue(request, "params"), "order_qty", this.parseToNumeric(this.costToPrecision(symbol, cost)));
         }
-        Object stopLoss = this.safeDict(parameters, "stopLoss", new HashMap<String, Object>() {{}});
-        Object takeProfit = this.safeDict(parameters, "takeProfit", new HashMap<String, Object>() {{}});
+        Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(parameters, "stopLoss", new HashMap<String, Object>() {{}});
+        Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(parameters, "takeProfit", new HashMap<String, Object>() {{}});
         String presetStopLoss = this.safeString(stopLoss, "triggerPrice");
         String presetTakeProfit = this.safeString(takeProfit, "triggerPrice");
         String presetStopLossLimit = this.safeString(stopLoss, "price");
@@ -402,7 +402,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         //         "time_out": "2025-05-14T13:54:10.855046Z"
         //     }
         //
-        Object result = this.safeDict(message, "result", new HashMap<String, Object>() {{}});
+        Map<String, Object> result = (Map<String, Object>) this.safeDict(message, "result", new HashMap<String, Object>() {{}});
         Object order = this.parseOrder(result);
         String messageHash = this.safeString2(message, "reqid", "req_id");
         client.resolve(order, messageHash);
@@ -1155,7 +1155,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         //
         String type = this.safeString(message, "type");
         Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        Object first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+        Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
         Object symbol = this.safeString(first, "symbol");
         Object a = this.safeList(first, "asks", new ArrayList<Object>(Arrays.asList()));
         Object b = this.safeValue(first, "bids", new ArrayList<Object>(Arrays.asList()));
@@ -1489,7 +1489,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             Map<String, Object> symbols = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)allTrades).size(); i++)
             {
-                Object trade = this.safeDict(allTrades, i, new HashMap<String, Object>() {{}});
+                Map<String, Object> trade = (Map<String, Object>) this.safeDict(allTrades, i, new HashMap<String, Object>() {{}});
                 Object parsed = this.parseWsTrade(trade);
                 Helpers.callDynamically(stored, "append", new Object[]{parsed});
                 Object symbol = ((String)Helpers.GetValue(parsed, "symbol"));
@@ -1542,7 +1542,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         if (Helpers.inOp(trade, "fees"))
         {
             Object fees = this.safeList(trade, "fees", new ArrayList<Object>(Arrays.asList()));
-            Object firstFee = this.safeDict(fees, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> firstFee = (Map<String, Object>) this.safeDict(fees, 0, new HashMap<String, Object>() {{}});
             fee = new HashMap<String, Object>() {{
                 put( "cost", Kraken.this.safeNumber(firstFee, "qty") );
                 put( "currency", Kraken.this.safeString(firstFee, "asset") );
@@ -1640,7 +1640,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             Map<String, Object> symbols = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)allOrders).size(); i++)
             {
-                Object order = this.safeDict(allOrders, i, new HashMap<String, Object>() {{}});
+                Map<String, Object> order = (Map<String, Object>) this.safeDict(allOrders, i, new HashMap<String, Object>() {{}});
                 String id = this.safeString(order, "order_id");
                 Object parsed = this.parseWsOrder(order);
                 String symbol = this.safeString(order, "symbol");
@@ -1980,7 +1980,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             if (java.util.Objects.equals(channel, "executions"))
             {
                 Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-                Object first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
+                Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
                 String execType = this.safeString(first, "exec_type");
                 channel = (((java.util.Objects.equals(execType, "trade")))) ? "myTrades" : "orders";
             }

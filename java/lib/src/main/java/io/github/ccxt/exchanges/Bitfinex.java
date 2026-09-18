@@ -1301,7 +1301,7 @@ public class Bitfinex extends BitfinexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object accountsByType = this.safeDict(this.options, "v2AccountsByType", new HashMap<String, Object>() {{}});
+            Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "v2AccountsByType", new HashMap<String, Object>() {{}});
             String requestedType = this.safeString(parameters, "type", "exchange");
             String accountType = this.safeString(accountsByType, requestedType, requestedType);
             if (java.util.Objects.equals(accountType, null))
@@ -1371,7 +1371,7 @@ public class Bitfinex extends BitfinexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object accountsByType = this.safeDict(this.options, "v2AccountsByType", new HashMap<String, Object>() {{}});
+            Map<String, Object> accountsByType = (Map<String, Object>) this.safeDict(this.options, "v2AccountsByType", new HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountsByType, fromAccount);
             if (java.util.Objects.equals(fromId, null))
             {
@@ -2447,7 +2447,7 @@ public class Bitfinex extends BitfinexApi
                 String side = this.safeString(rawOrder, "side");
                 Double amount = this.safeNumber(rawOrder, "amount");
                 Double price = this.safeNumber(rawOrder, "price");
-                Object orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
+                Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
                 ((List<Object>)ordersRequests).add(new ArrayList<Object>(Arrays.asList("on", orderRequest)));
             }
@@ -3437,7 +3437,7 @@ public class Bitfinex extends BitfinexApi
             //     ]
             //
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            Object fiat = this.safeDict(this.options, "fiat", new HashMap<String, Object>() {{}});
+            Map<String, Object> fiat = (Map<String, Object>) this.safeDict(this.options, "fiat", new HashMap<String, Object>() {{}});
             Object feeData = this.safeValue(response, 4, new ArrayList<Object>(Arrays.asList()));
             Object makerData = this.safeValue(feeData, 0, new ArrayList<Object>(Arrays.asList()));
             Object takerData = this.safeValue(feeData, 1, new ArrayList<Object>(Arrays.asList()));

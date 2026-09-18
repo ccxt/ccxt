@@ -80,9 +80,9 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
         {
             return;
         }
-        Object wsOptions = this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
-        Object innerOptions = this.safeDict(wsOptions, "options", new HashMap<String, Object>() {{}});
-        Object headers = this.safeDict(innerOptions, "headers", new HashMap<String, Object>() {{}});
+        Map<String, Object> wsOptions = (Map<String, Object>) this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
+        Map<String, Object> innerOptions = (Map<String, Object>) this.safeDict(wsOptions, "options", new HashMap<String, Object>() {{}});
+        Map<String, Object> headers = (Map<String, Object>) this.safeDict(innerOptions, "headers", new HashMap<String, Object>() {{}});
         ((Map<String, Object>)headers).put("Partner-Id", brokerId);
         ((Map<String, Object>)innerOptions).put("headers", headers);
         ((Map<String, Object>)wsOptions).put("options", innerOptions);
@@ -220,7 +220,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
         {
             return;
         }
-        Object error = this.safeDict(message, "error");
+        Map<String, Object> error = (Map<String, Object>) this.safeDict(message, "error");
         if (!java.util.Objects.equals(error, null))
         {
             this.handleErrorMessage(client, message);
@@ -241,7 +241,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
 
     public void handleErrorMessage(Client client, Object message)
     {
-        Object error = this.safeDict(message, "error", new HashMap<String, Object>() {{}});
+        Map<String, Object> error = (Map<String, Object>) this.safeDict(message, "error", new HashMap<String, Object>() {{}});
         String code = this.safeString(error, "code");
         String msg = this.safeString(error, "msg");
         Object feedback = Helpers.add((this.id + " "), msg);
@@ -262,7 +262,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
         Object parts = Helpers.split(stream, "@");
         String interval = (String) Helpers.GetValue(parts, 1);
         Object tf = this.findTimeframe(interval);
-        Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String s = this.safeString(data, "s");
         if (java.util.Objects.equals(s, null))
         {

@@ -375,7 +375,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         //         stream: 'bookTicker.ETH_USDC'
         //     }
         //
-        Object ticker = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> ticker = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(ticker, "s");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         String symbol = this.safeSymbol(marketId, market);
@@ -520,7 +520,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         //         },
         //         stream: 'bookTicker.ETH_USDC'
         //     }
-        Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "s");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         String symbol = this.safeSymbol(marketId, market);
@@ -732,7 +732,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         //         stream: 'kline.2h.ETH_USDC'
         //     }
         //
-        Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "s");
         Map<String, Object> market = (Map<String, Object>) this.market(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -931,7 +931,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         //         stream: 'trade.ETH_USDC_PERP'
         //     }
         //
-        Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "s");
         Map<String, Object> market = (Map<String, Object>) this.market(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -1156,7 +1156,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         //         "stream": "depth.ETH_USDC"
         //     }
         //
-        Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "s");
         String symbol = this.safeSymbol(marketId);
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
@@ -1214,7 +1214,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
     {
         //
         // {"E":"1759338824897386","T":"1759338824895616","U":1662976171,"a":[],"b":[["117357.0","0.00000"]],"e":"depth","s":"BTC_USDC_PERP","u":1662976171}
-        Object firstDelta = this.safeDict(cache, 0);
+        Map<String, Object> firstDelta = (Map<String, Object>) this.safeDict(cache, 0);
         Long nonce = this.safeInteger(orderbook, "nonce");
         Long firstDeltaStart = this.safeInteger(firstDelta, "U");
         if (java.util.Objects.equals(nonce, null))
@@ -1358,7 +1358,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         //     }
         //
         String messageHash = "orders";
-        Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "s");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -1598,7 +1598,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         //     }
         //
         String messageHash = "positions";
-        Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         if (java.util.Objects.equals(this.positions, null))
         {
             this.positions = new ArrayCache.ArrayCacheBySymbolById();
@@ -1704,7 +1704,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         {
             return;
         }
-        Object data = this.safeDict(message, "data");
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data");
         String eventVar = this.safeString(data, "e");
         if (java.util.Objects.equals(eventVar, "ticker"))
         {
@@ -1741,7 +1741,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         //         }
         //     }
         //
-        Object error = this.safeDict(message, "error", new HashMap<String, Object>() {{}});
+        Map<String, Object> error = (Map<String, Object>) this.safeDict(message, "error", new HashMap<String, Object>() {{}});
         Long code = this.safeInteger(error, "code");
         try
         {

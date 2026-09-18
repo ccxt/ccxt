@@ -1419,8 +1419,8 @@ public class Independentreserve extends IndependentreserveApi
         //    }
         //
         Object currency = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object amount = this.safeDict(transaction, "Amount");
-        Object destination = this.safeDict(transaction, "Destination");
+        Map<String, Object> amount = (Map<String, Object>) this.safeDict(transaction, "Amount");
+        Map<String, Object> destination = (Map<String, Object>) this.safeDict(transaction, "Destination");
         String currencyId = this.safeString(transaction, "PrimaryCurrencyCode");
         String datetime = this.safeString(transaction, "CreatedTimestampUtc");
         String address = this.safeString(destination, "Address");

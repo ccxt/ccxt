@@ -1027,7 +1027,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         Object data = this.safeList(message, "params", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
-            Object balanceDict = this.safeDict(data, i, new HashMap<String, Object>() {{}});
+            Map<String, Object> balanceDict = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
             Helpers.addElementToObject(this.balance, "info", balanceDict);
             if (Helpers.isTrue(isMargin))
             {
@@ -1047,7 +1047,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                 for (var j = 0; j < ((List<?>)keys).size(); j++)
                 {
                     Object currencyId = Helpers.GetValue(keys, j);
-                    Object rawBalance = this.safeDict(balanceDict, currencyId, new HashMap<String, Object>() {{}});
+                    Map<String, Object> rawBalance = (Map<String, Object>) this.safeDict(balanceDict, currencyId, new HashMap<String, Object>() {{}});
                     String code = this.safeCurrencyCode(currencyId);
                     Object account = this.account();
                     Helpers.addElementToObject(account, "free", this.safeString(rawBalance, "available"));
@@ -1132,7 +1132,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                 return (this.watch(url, messageHash, message, method, subscription)).join();
             } else
             {
-                Object subscription = this.safeDict(client.subscriptions, method, new HashMap<String, Object>() {{}});
+                Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, method, new HashMap<String, Object>() {{}});
                 Boolean hasSymbolSubscription = true;
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 Object marketId = ((Map<String, Object>)market).get("id");

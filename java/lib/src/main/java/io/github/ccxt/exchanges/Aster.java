@@ -1259,9 +1259,9 @@ public class Aster extends AsterApi
             List<Object> promises = new ArrayList<Object>(Arrays.asList(this.sapiPublicGetV3ExchangeInfo(parameters), this.fapiPublicGetV3ExchangeInfo(parameters)));
             ((List<Object>)promises).add(this.signIn());
             Object results = (Helpers.promiseAll(promises)).join();
-            Object sapiResult = this.safeDict(results, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> sapiResult = (Map<String, Object>) this.safeDict(results, 0, new HashMap<String, Object>() {{}});
             Object sapiRows = this.safeList(sapiResult, "symbols", new ArrayList<Object>(Arrays.asList()));
-            Object fapiResult = this.safeDict(results, 1, new HashMap<String, Object>() {{}});
+            Map<String, Object> fapiResult = (Map<String, Object>) this.safeDict(results, 1, new HashMap<String, Object>() {{}});
             Object fapiRows = this.safeList(fapiResult, "symbols", new ArrayList<Object>(Arrays.asList()));
             //
             // example:
@@ -1412,9 +1412,9 @@ public class Aster extends AsterApi
         Object filters = this.safeList(market, "filters", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> filtersByType = this.indexBy(filters, "filterType");
         Object filterNotional = this.safeDict2(filtersByType, "MIN_NOTIONAL", "NOTIONAL");
-        Object filterPrice = this.safeDict(filtersByType, "PRICE_FILTER");
-        Object filterLotSize = this.safeDict(filtersByType, "LOT_SIZE");
-        Object filterMarketLotSize = this.safeDict(filtersByType, "MARKET_LOT_SIZE", new HashMap<String, Object>() {{}});
+        Map<String, Object> filterPrice = (Map<String, Object>) this.safeDict(filtersByType, "PRICE_FILTER");
+        Map<String, Object> filterLotSize = (Map<String, Object>) this.safeDict(filtersByType, "LOT_SIZE");
+        Map<String, Object> filterMarketLotSize = (Map<String, Object>) this.safeDict(filtersByType, "MARKET_LOT_SIZE", new HashMap<String, Object>() {{}});
         Object pricePrecision = this.safeNumber(filterPrice, "tickSize");
         if (java.util.Objects.equals(pricePrecision, null))
         {
@@ -3375,7 +3375,7 @@ public class Aster extends AsterApi
                 String side = this.safeString(rawOrder, "side");
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
-                Object orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
+                Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
@@ -4418,7 +4418,7 @@ public class Aster extends AsterApi
         market = this.safeMarket(marketId, market, null, "contract");
         String symbol = this.safeString(market, "symbol");
         String isolatedMarginString = this.safeString(position, "isolatedMargin");
-        Object leverageBrackets = this.safeDict(this.options, "leverageBrackets", new HashMap<String, Object>() {{}});
+        Map<String, Object> leverageBrackets = (Map<String, Object>) this.safeDict(this.options, "leverageBrackets", new HashMap<String, Object>() {{}});
         Object leverageBracket = this.safeList(leverageBrackets, symbol, new ArrayList<Object>(Arrays.asList()));
         String notionalString = this.safeString2(position, "notional", "notionalValue");
         String notionalStringAbs = Precise.stringAbs(notionalString);
@@ -4462,7 +4462,7 @@ public class Aster extends AsterApi
         if (java.util.Objects.equals(marginMode, "cross"))
         {
             // calculate collateral
-            Object precision = this.safeDict(market, "precision", new HashMap<String, Object>() {{}});
+            Map<String, Object> precision = (Map<String, Object>) this.safeDict(market, "precision", new HashMap<String, Object>() {{}});
             String basePrecisionValue = this.safeString(precision, "base");
             String quotePrecisionValue = this.safeString2(precision, "quote", "price");
             Boolean precisionIsUndefined = (java.util.Objects.equals(basePrecisionValue, null)) && (java.util.Objects.equals(quotePrecisionValue, null));
@@ -4682,7 +4682,7 @@ public class Aster extends AsterApi
             parameters = ((List<Object>) defaultMethodparametersVariable).get(1);
             if (java.util.Objects.equals(defaultMethod, null))
             {
-                Object options = this.safeDict(this.options, "fetchPositions");
+                Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchPositions");
                 if (java.util.Objects.equals(options, null))
                 {
                     defaultMethod = this.safeString(this.options, "fetchPositions", "positionRisk");
@@ -4796,7 +4796,7 @@ public class Aster extends AsterApi
             contractsStringAbs = Precise.stringDiv(Precise.stringAdd(contractsString, "0.5"), "1", 0);
         }
         Object contracts = this.parseNumber(contractsStringAbs);
-        Object leverageBrackets = this.safeDict(this.options, "leverageBrackets", new HashMap<String, Object>() {{}});
+        Map<String, Object> leverageBrackets = (Map<String, Object>) this.safeDict(this.options, "leverageBrackets", new HashMap<String, Object>() {{}});
         Object leverageBracket = this.safeList(leverageBrackets, symbol, new ArrayList<Object>(Arrays.asList()));
         Object maintenanceMarginPercentageString = null;
         for (var i = 0; i < ((List<?>)leverageBracket).size(); i++)
@@ -5001,7 +5001,7 @@ public class Aster extends AsterApi
             (this.loadMarketsAndSignIn()).join();
             // by default cache the leverage bracket
             // it contains useful stuff like the maintenance margin and initial margin for positions
-            Object leverageBrackets = this.safeDict(this.options, "leverageBrackets");
+            Map<String, Object> leverageBrackets = (Map<String, Object>) this.safeDict(this.options, "leverageBrackets");
             if ((java.util.Objects.equals(leverageBrackets, null)) || Helpers.isTrue((reload)))
             {
                 List<Object> response = (this.fapiPrivateGetV3LeverageBracket(parameters)).join();
@@ -5148,12 +5148,12 @@ public class Aster extends AsterApi
             }};
             Long chainId = this.safeInteger(parameters, "chainId");
             // TODO: check how ARBI signature would work
-            Object networks = this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
+            Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
             String network = this.safeStringUpper(parameters, "network");
             network = this.safeString(networks, network, network);
             if ((java.util.Objects.equals(chainId, null)) && (!java.util.Objects.equals(network, null)))
             {
-                Object chainIds = this.safeDict(this.options, "networksToChainId", new HashMap<String, Object>() {{}});
+                Map<String, Object> chainIds = (Map<String, Object>) this.safeDict(this.options, "networksToChainId", new HashMap<String, Object>() {{}});
                 chainId = this.safeInteger(chainIds, network);
             }
             if (java.util.Objects.equals(chainId, null))
@@ -5537,7 +5537,7 @@ public class Aster extends AsterApi
             Boolean found = false;
             for (var i = 0; Helpers.isLessThan(i, length); i++)
             {
-                Object builderInfo = this.safeDict(approvedBuilders, i, new HashMap<String, Object>() {{}});
+                Map<String, Object> builderInfo = (Map<String, Object>) this.safeDict(approvedBuilders, i, new HashMap<String, Object>() {{}});
                 String builderAccountId = this.safeString(builderInfo, "builderAddress");
                 if (java.util.Objects.equals(builderAccountId, this.safeString(this.options, "builder")))
                 {

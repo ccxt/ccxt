@@ -2729,7 +2729,7 @@ public class Bullish extends BullishApi
         Long timestamp = this.parse8601(this.safeString(transaction, "createdAtDateTime"));
         Long updated = this.parse8601(this.safeString(transaction, "updatedAtDateTime"));
         String network = this.safeString(transaction, "network");
-        Object transactionDetails = this.safeDict(transaction, "transactionDetails");
+        Map<String, Object> transactionDetails = (Map<String, Object>) this.safeDict(transaction, "transactionDetails");
         String txid = this.safeString(transactionDetails, "blockchainTxId");
         String address = this.safeString(transactionDetails, "address");
         Double amount = this.safeNumber(transaction, "quantity");
@@ -2737,7 +2737,7 @@ public class Bullish extends BullishApi
         String code = this.safeCurrencyCode(currencyId, currency);
         String status = this.safeString(transaction, "status");
         Object sources = this.safeList(transactionDetails, "sources", new ArrayList<Object>(Arrays.asList()));
-        Object source = this.safeDict(sources, 0, new HashMap<String, Object>() {{}});
+        Map<String, Object> source = (Map<String, Object>) this.safeDict(sources, 0, new HashMap<String, Object>() {{}});
         String sourceAddress = this.safeString(source, "address");
         Map<String, Object> fee = new HashMap<String, Object>() {{
             put( "currency", null );
@@ -2991,7 +2991,7 @@ public class Bullish extends BullishApi
                     // find the entry that matches the network or return first entry if not found and user did not specify a network
                     for (var i = 0; i < ((List<?>)safeResponse).size(); i++)
                     {
-                        Object entry = this.safeDict(safeResponse, i, new HashMap<String, Object>() {{}});
+                        Map<String, Object> entry = (Map<String, Object>) this.safeDict(safeResponse, i, new HashMap<String, Object>() {{}});
                         String networkId = this.safeString(entry, "network");
                         Object networkCode = this.networkIdToCode(networkId, code);
                         if (java.util.Objects.equals(network, networkCode))
@@ -3345,7 +3345,7 @@ public class Bullish extends BullishApi
             //         "requestId": "633909659774222336"
             //     }
             //
-            Object transferOptions = this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
+            Map<String, Object> transferOptions = (Map<String, Object>) this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
             Object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
             Object transfer = this.parseTransfer(response, currency);
             if (java.util.Objects.equals(fillResponseFromRequest, true))

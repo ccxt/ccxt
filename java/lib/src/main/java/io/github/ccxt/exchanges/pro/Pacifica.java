@@ -200,7 +200,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             {
                 status = "open";
             }
-            Object order = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> order = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String orderId = this.safeString(order, "i");
             String clientOrderId = this.safeString(order, "I");
             final Object finalStatus = status;
@@ -280,7 +280,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             {
                 status = "open";
             }
-            Object order = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> order = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String orderId = this.safeString(order, "i");
             String clientOrderId = this.safeString(order, "I");
             final Object finalStatus = status;
@@ -357,7 +357,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             //   "type": "batch_orders"
             // }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Object results = this.safeList(data, "results", new ArrayList<Object>(Arrays.asList()));
             List<Object> ordersToReturn = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)results).size(); i++)
@@ -457,7 +457,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             {
                 status = "open";
             }
-            Object order = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> order = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String orderId = this.safeString(order, "i");
             String clientOrderId = this.safeString(order, "I");
             final Object finalStatus = status;
@@ -651,7 +651,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         //   }
         // }
         //
-        Object entry = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> entry = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(entry, "s");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -1094,7 +1094,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         // }
         //
         Object entry = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        Object first = this.safeDict(entry, 0, new HashMap<String, Object>() {{}});
+        Map<String, Object> first = (Map<String, Object>) this.safeDict(entry, 0, new HashMap<String, Object>() {{}});
         String marketId = this.safeString(first, "s");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -1107,7 +1107,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
         for (var i = 0; i < ((List<?>)entry).size(); i++)
         {
-            Object data = this.safeDict(entry, i, new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(entry, i, new HashMap<String, Object>() {{}});
             Object trade = this.parseWsTrade(data);
             Helpers.callDynamically(trades, "append", new Object[]{trade});
         }
@@ -1320,7 +1320,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         //   }
         // }
         //
-        Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "s");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -1525,7 +1525,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         //
         String error = this.safeString(message, "err", "");
         String postType = this.safeString(message, "type", "");
-        Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String id = this.safeString(message, "id");
         if (java.util.Objects.equals(id, null))
         {
@@ -1647,11 +1647,11 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         //      }
         //  }
         //
-        Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String method = this.safeString(message, "channel");
         if (java.util.Objects.equals(method, "unsubscribe"))
         {
-            Object subscription = this.safeDict(data, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> subscription = (Map<String, Object>) this.safeDict(data, "data", new HashMap<String, Object>() {{}});
             String type = this.safeString(subscription, "source");
             if (java.util.Objects.equals(type, "book"))
             {

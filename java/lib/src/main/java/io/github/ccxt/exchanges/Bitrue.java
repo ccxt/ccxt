@@ -968,7 +968,7 @@ public class Bitrue extends BitrueApi
             List<Object> promisesRaw = new ArrayList<Object>(Arrays.asList());
             Object types = null;
             List<Object> defaultTypes = new ArrayList<Object>(Arrays.asList("spot", "linear", "inverse"));
-            Object fetchMarketsOptions = this.safeDict(this.options, "fetchMarkets");
+            Map<String, Object> fetchMarketsOptions = (Map<String, Object>) this.safeDict(this.options, "fetchMarkets");
             if (!java.util.Objects.equals(fetchMarketsOptions, null))
             {
                 types = this.safeList(fetchMarketsOptions, "types", defaultTypes);
@@ -1120,8 +1120,8 @@ public class Bitrue extends BitrueApi
         Object filters = this.safeList(market, "filters", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> filtersByType = this.indexBy(filters, "filterType");
         String status = this.safeString(market, "status");
-        Object priceFilter = this.safeDict(filtersByType, "PRICE_FILTER", new HashMap<String, Object>() {{}});
-        Object amountFilter = this.safeDict(filtersByType, "LOT_SIZE", new HashMap<String, Object>() {{}});
+        Map<String, Object> priceFilter = (Map<String, Object>) this.safeDict(filtersByType, "PRICE_FILTER", new HashMap<String, Object>() {{}});
+        Map<String, Object> amountFilter = (Map<String, Object>) this.safeDict(filtersByType, "LOT_SIZE", new HashMap<String, Object>() {{}});
         String defaultPricePrecision = this.safeString(market, "pricePrecision");
         String defaultAmountPrecision = this.safeString(market, "quantityPrecision");
         String pricePrecision = this.safeString(priceFilter, "priceScale", defaultPricePrecision);
@@ -1615,12 +1615,12 @@ public class Bitrue extends BitrueApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-            Object timeframes = this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
+            Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
             Object response = null;
             Object data = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true))
             {
-                Object timeframesFuture = this.safeDict(timeframes, "future", new HashMap<String, Object>() {{}});
+                Map<String, Object> timeframesFuture = (Map<String, Object>) this.safeDict(timeframes, "future", new HashMap<String, Object>() {{}});
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "contractName", ((Map<String, Object>)market).get("id") );
                     put( "interval", Bitrue.this.safeString(timeframesFuture, timeframe, "1min") );
@@ -1639,7 +1639,7 @@ public class Bitrue extends BitrueApi
                 data = response;
             } else if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
-                Object timeframesSpot = this.safeDict(timeframes, "spot", new HashMap<String, Object>() {{}});
+                Map<String, Object> timeframesSpot = (Map<String, Object>) this.safeDict(timeframes, "spot", new HashMap<String, Object>() {{}});
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "symbol", ((Map<String, Object>)market).get("id") );
                     put( "scale", Bitrue.this.safeString(timeframesSpot, timeframe, "1m") );
@@ -1909,7 +1909,7 @@ public class Bitrue extends BitrueApi
             Map<String, Object> tickers = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
-                Object ticker = this.safeDict(data, i, new HashMap<String, Object>() {{}});
+                Map<String, Object> ticker = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
                 // skip entries without a symbol: an undefined market id would become a null
                 // dictionary key here, which crashes fetchTickers in the C# build
                 String marketId = this.safeString(ticker, "symbol");
@@ -3147,7 +3147,7 @@ public class Bitrue extends BitrueApi
                 put( "6", "canceled" );
             }} );
         }};
-        Object statuses = this.safeDict(statusesByType, type, new HashMap<String, Object>() {{}});
+        Map<String, Object> statuses = (Map<String, Object>) this.safeDict(statusesByType, type, new HashMap<String, Object>() {{}});
         return this.safeString(statuses, status, status);
     }
 
@@ -3588,7 +3588,7 @@ public class Bitrue extends BitrueApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
-            Object accountTypes = this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
+            Map<String, Object> accountTypes = (Map<String, Object>) this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountTypes, fromAccount, fromAccount);
             String toId = this.safeString(accountTypes, toAccount, toAccount);
             final Object finalFromId = fromId;
@@ -3605,7 +3605,7 @@ public class Bitrue extends BitrueApi
             //         'data': null
             //     }
             //
-            Object data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseTransfer(data, currency);
         }).thenApply(TransferEntry::new);
 

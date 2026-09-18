@@ -511,7 +511,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         String marketId = this.safeString(parts, 2);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
-        Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Object fundingRate = this.parseFundingRate(data, market);
         Helpers.addElementToObject(this.fundingRates, symbol, fundingRate);
         client.resolve(fundingRate, ("fundingRate:" + symbol));
@@ -704,7 +704,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         //     }
         //
         String channel = this.safeString(message, "channel");
-        Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Object subscription = (((java.util.Objects.equals(channel, null)))) ? null : this.safeDict(client.subscriptions, channel);
         String symbol = this.safeString(subscription, "symbol");
         if (java.util.Objects.equals(symbol, null))
@@ -807,7 +807,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         //     }
         //
         String channel = this.safeString(message, "channel");
-        Object order = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> order = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Object subscription = (((java.util.Objects.equals(channel, null)))) ? null : this.safeDict(client.subscriptions, channel);
         String symbol = this.safeString(subscription, "symbol");
         if (java.util.Objects.equals(symbol, null))
@@ -990,7 +990,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             return;
         }
         String unsubHash = ("unsubscribe:" + channel);
-        Object subscription = this.safeDict(client.subscriptions, unsubHash);
+        Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, unsubHash);
         if (java.util.Objects.equals(subscription, null))
         {
             return;

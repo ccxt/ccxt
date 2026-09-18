@@ -415,7 +415,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         //
         String type = this.safeString(message, "type");
         Boolean isSnapshot = (java.util.Objects.equals(type, "snapshot"));
-        Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "s");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -557,7 +557,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         // }
         String topic = this.safeString(message, "topic", "");
         String updateType = this.safeString(message, "type", "");
-        Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Object symbol = null;
         Object parsed = this.parseTicker(data);
         if ((java.util.Objects.equals(updateType, "snapshot")))
@@ -571,8 +571,8 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             String marketId = this.safeString(topicParts, Helpers.subtract(topicLength, 1));
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null);
             symbol = ((Map<String, Object>)market).get("symbol");
-            Object ticker = this.safeDict(this.tickers, symbol, new HashMap<String, Object>() {{}});
-            Object rawTicker = this.safeDict(ticker, "info", new HashMap<String, Object>() {{}});
+            Map<String, Object> ticker = (Map<String, Object>) this.safeDict(this.tickers, symbol, new HashMap<String, Object>() {{}});
+            Map<String, Object> rawTicker = (Map<String, Object>) this.safeDict(ticker, "info", new HashMap<String, Object>() {{}});
             Map<String, Object> merged = this.extend(rawTicker, data);
             parsed = this.parseTicker(merged);
         }
@@ -1345,7 +1345,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
 
     public void handleAccount(Client client, Object message)
     {
-        Object contents = this.safeDict(message, "contents", new HashMap<String, Object>() {{}});
+        Map<String, Object> contents = (Map<String, Object>) this.safeDict(message, "contents", new HashMap<String, Object>() {{}});
         Object fills = this.safeList(contents, "fills", new ArrayList<Object>(Arrays.asList()));
         if (!java.util.Objects.equals(fills, null))
         {

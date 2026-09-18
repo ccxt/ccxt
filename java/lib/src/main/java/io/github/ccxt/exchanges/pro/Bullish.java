@@ -225,7 +225,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         //         }
         //     }
         //
-        Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "symbol");
         String symbol = this.safeSymbol(marketId);
         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
@@ -322,15 +322,15 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         //     }
         //
         String updateType = this.safeString(message, "type", "");
-        Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "symbol");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
         Object parsed = this.parseTicker(data, market);
         if (java.util.Objects.equals(updateType, "update"))
         {
-            Object ticker = this.safeDict(this.tickers, symbol, new HashMap<String, Object>() {{}});
-            Object rawTicker = this.safeDict(ticker, "info", new HashMap<String, Object>() {{}});
+            Map<String, Object> ticker = (Map<String, Object>) this.safeDict(this.tickers, symbol, new HashMap<String, Object>() {{}});
+            Map<String, Object> rawTicker = (Map<String, Object>) this.safeDict(ticker, "info", new HashMap<String, Object>() {{}});
             Map<String, Object> merged = this.extend(rawTicker, data);
             parsed = this.parseTicker(merged, market);
         }
@@ -397,7 +397,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         //     }
         //
         // current channel is 'l2Orderbook' which returns only snapshots
-        Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String marketId = this.safeString(data, "symbol");
         String symbol = this.safeSymbol(marketId);
         String messageHash = ("orderbook::" + symbol);
@@ -545,7 +545,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         Object rawOrders = new ArrayList<Object>(Arrays.asList());
         if (java.util.Objects.equals(type, "update"))
         {
-            Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
             ((List<Object>)rawOrders).add(data); // update is a single order
         } else
         {
@@ -678,7 +678,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         Object rawTrades = new ArrayList<Object>(Arrays.asList());
         if (java.util.Objects.equals(type, "update"))
         {
-            Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
             ((List<Object>)rawTrades).add(data); // update is a single trade
         } else
         {
@@ -811,7 +811,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             Helpers.addElementToObject(this.balance, tradingAccountId, this.parseBalance(data));
         } else
         {
-            Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
             String assetId = this.safeString(data, "assetSymbol");
             Object account = this.account();
             Helpers.addElementToObject(account, "total", this.safeString(data, "availableQuantity"));
@@ -883,7 +883,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         Object rawPositions = new ArrayList<Object>(Arrays.asList());
         if (java.util.Objects.equals(messageType, "update"))
         {
-            Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
             ((List<Object>)rawPositions).add(data);
         } else
         {
@@ -931,7 +931,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         //         "type": "error"
         //     }
         //
-        Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Object feedback = ((this.id + " ") + this.json(data));
         try
         {
@@ -949,7 +949,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
     public void handleMessage(Client client, Object message)
     {
         String dataType = this.safeString(message, "dataType");
-        Object result = this.safeDict(message, "result");
+        Map<String, Object> result = (Map<String, Object>) this.safeDict(message, "result");
         if (!java.util.Objects.equals(result, null))
         {
             String response = this.safeString(result, "message");
