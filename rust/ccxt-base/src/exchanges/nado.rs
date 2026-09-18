@@ -662,7 +662,7 @@ impl NadoCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut isTriggerOrder: bool = in_op(&placeOrder, &Value::Str("trigger".to_string()));
+        let mut isTriggerOrder: bool = matches!(&placeOrder, Value::Dict(__d) if __d.contains_key("trigger"));
         let mut response: Value = Value::Null;
         if isTriggerOrder {
             response = self.trigger_private_post_execute(&[request.clone()]).await;

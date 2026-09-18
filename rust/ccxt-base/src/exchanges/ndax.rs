@@ -3107,10 +3107,10 @@ impl NdaxCore {
         let mut currencyId: Value = self.safe_string_k(transaction.clone(), "ProductId", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
         let mut type_var: Value = Value::Null;
-        if is_true(&Value::Bool(in_op(&transaction, &Value::Str("DepositId".to_string())))) {
+        if is_true(&Value::Bool(matches!(&transaction, Value::Dict(__d) if __d.contains_key("DepositId")))) {
             id = self.safe_string_k(transaction.clone(), "DepositId", &[]);
             type_var = Value::Str("deposit".to_string());
-        }  else if is_true(&Value::Bool(in_op(&transaction, &Value::Str("WithdrawId".to_string())))) {
+        }  else if is_true(&Value::Bool(matches!(&transaction, Value::Dict(__d) if __d.contains_key("WithdrawId")))) {
             id = self.safe_string_k(transaction.clone(), "WithdrawId", &[]);
             type_var = Value::Str("withdrawal".to_string());
         }

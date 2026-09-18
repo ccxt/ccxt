@@ -36,8 +36,8 @@ pub async fn testFetchTrades(mut exchange: Value, mut skippedProperties: Value, 
         //
         let mut grouped: Value = exchange.group_by(trades.clone(), Value::Str("side".to_string()), &[]);
         let mut msg: Value = Value::Str(format!("{}{}", Value::Str("Both sides of trades are not being returned, instead only one side is being returned. If this error happens consistently, then it might be an implementation issue".to_string()), crate::tests_support::shared::log_template(exchange.clone(), method.clone(), trades.clone())));
-        assert!(ccxt::runtime::is_true(&((Value::Bool(in_op(&grouped, &Value::Str("buy".to_string())))))));
-        assert!(ccxt::runtime::is_true(&((Value::Bool(in_op(&grouped, &Value::Str("sell".to_string())))))));
+        assert!(ccxt::runtime::is_true(&((Value::Bool(matches!(&grouped, Value::Dict(__d) if __d.contains_key("buy")))))));
+        assert!(ccxt::runtime::is_true(&((Value::Bool(matches!(&grouped, Value::Dict(__d) if __d.contains_key("sell")))))));
     }
     if !is_true(&(Value::Bool(in_op(&skippedProperties, &Value::Str("timestampSort".to_string()))))) {
         crate::tests_support::shared::assert_timestamp_order(exchange.clone(), &[method.clone(), symbol.clone(), trades.clone()]);

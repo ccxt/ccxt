@@ -2914,7 +2914,7 @@ impl MexcCore {
         let mut amountString: Value = Value::Null;
         let mut costString: Value = Value::Null;
         // if swap
-        if is_true(&Value::Bool(in_op(&trade, &Value::Str("v".to_string())))) {
+        if is_true(&Value::Bool(matches!(&trade, Value::Dict(__d) if __d.contains_key("v")))) {
             //
             // swap: fetchTrades
             //
@@ -2992,7 +2992,7 @@ impl MexcCore {
             priceString = self.safe_string2(trade.clone(), Value::Str("price".to_string()), Value::Str("p".to_string()), &[]);
             orderId = self.safe_string_k(trade.clone(), "orderId", &[]);
             // if swap
-            if is_true(&Value::Bool(in_op(&trade, &Value::Str("positionMode".to_string())))) {
+            if is_true(&Value::Bool(matches!(&trade, Value::Dict(__d) if __d.contains_key("positionMode")))) {
                 timestamp = self.safe_integer_k(trade.clone(), "timestamp", &[]);
                 amountString = self.safe_string_k(trade.clone(), "vol", &[]);
                 side = self.parse_order_side(self.safe_string_k(trade.clone(), "side", &[]));
@@ -3373,7 +3373,7 @@ impl MexcCore {
         let mut prevClose: Value = Value::Null;
         let mut isSwap: Value = self.safe_value_k(market.clone(), "swap", &[]);
         // if swap
-        if (is_equal(&isSwap, &Value::Bool(true))) || is_true(&(Value::Bool(in_op(&ticker, &Value::Str("timestamp".to_string()))))) {
+        if (is_equal(&isSwap, &Value::Bool(true))) || is_true(&(Value::Bool(matches!(&ticker, Value::Dict(__d) if __d.contains_key("timestamp"))))) {
             //
             //     {
             //         "symbol": "ETH_USDT",

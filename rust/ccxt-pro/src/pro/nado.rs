@@ -1394,7 +1394,7 @@ impl NadoCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        if is_true(&Value::Bool(in_op(&placeOrder, &Value::Str("trigger".to_string())))) {
+        if is_true(&Value::Bool(matches!(&placeOrder, Value::Dict(__d) if __d.contains_key("trigger")))) {
             panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrderWs() does not support trigger orders, use createOrder() instead".to_string())))));
         }
         let mut response: Value = self.watch_execute_request(requestIdString.clone(), request.clone()).await;

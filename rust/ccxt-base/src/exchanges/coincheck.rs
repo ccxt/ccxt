@@ -952,7 +952,7 @@ impl CoincheckCore {
         let mut side: Value = Value::Null;
         let mut fee: Value = Value::Null;
         let mut orderId: Value = Value::Null;
-        if is_true(&Value::Bool(in_op(&trade, &Value::Str("liquidity".to_string())))) {
+        if is_true(&Value::Bool(matches!(&trade, Value::Dict(__d) if __d.contains_key("liquidity")))) {
             if (self.safe_string_k(trade.clone(), "liquidity", &[]).as_str() == Some("T")) {
                 takerOrMaker = Value::Str("taker".to_string());
             }  else if (self.safe_string_k(trade.clone(), "liquidity", &[]).as_str() == Some("M")) {

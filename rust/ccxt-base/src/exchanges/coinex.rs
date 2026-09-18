@@ -2468,7 +2468,7 @@ impl CoinexCore {
         //         "volume_sell": "6.1249"
         //     }
         //
-        let mut marketType: Value = (if is_true(&(Value::Bool(in_op(&ticker, &Value::Str("mark_price".to_string()))))) { Value::Str("swap".to_string()) } else { Value::Str("spot".to_string()) });
+        let mut marketType: Value = (if is_true(&(Value::Bool(matches!(&ticker, Value::Dict(__d) if __d.contains_key("mark_price"))))) { Value::Str("swap".to_string()) } else { Value::Str("spot".to_string()) });
         let mut marketId: Value = self.safe_string_k(ticker.clone(), "market", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Null, marketType.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -6031,7 +6031,7 @@ impl CoinexCore {
         let mut currencyId: Value = self.safe_string_k(transaction.clone(), "ccy", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
         let mut timestamp: Value = self.safe_integer_k(transaction.clone(), "created_at", &[]);
-        let mut type_var: Value = (if is_true(&(Value::Bool(in_op(&transaction, &Value::Str("withdraw_id".to_string()))))) { Value::Str("withdrawal".to_string()) } else { Value::Str("deposit".to_string()) });
+        let mut type_var: Value = (if is_true(&(Value::Bool(matches!(&transaction, Value::Dict(__d) if __d.contains_key("withdraw_id"))))) { Value::Str("withdrawal".to_string()) } else { Value::Str("deposit".to_string()) });
         let mut networkId: Value = self.safe_string_k(transaction.clone(), "chain", &[]);
         let mut feeCost: Value = self.safe_string_k(transaction.clone(), "tx_fee", &[]);
         let mut transferMethod: Value = self.safe_string_lower2(transaction.clone(), Value::Str("withdraw_method".to_string()), Value::Str("deposit_method".to_string()), &[]);

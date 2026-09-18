@@ -1148,7 +1148,7 @@ impl IndodaxCore {
         //    }
         //
         let mut side: Value = Value::Null;
-        if is_true(&Value::Bool(in_op(&order, &Value::Str("type".to_string())))) {
+        if is_true(&Value::Bool(matches!(&order, Value::Dict(__d) if __d.contains_key("type")))) {
             side = order.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null);
         }
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "status", &[Value::Str("open".to_string())]));
@@ -1164,10 +1164,10 @@ impl IndodaxCore {
             symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut quoteId: Value = market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null);
             let mut baseId: Value = market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null);
-            if is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null).as_str() == Some("idr")))) && is_true(&(Value::Bool(in_op(&order, &Value::Str("order_rp".to_string()))))) {
+            if is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null).as_str() == Some("idr")))) && is_true(&(Value::Bool(matches!(&order, Value::Dict(__d) if __d.contains_key("order_rp"))))) {
                 quoteId = Value::Str("rp".to_string());
             }
-            if is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null).as_str() == Some("idr")))) && is_true(&(Value::Bool(in_op(&order, &Value::Str("remain_rp".to_string()))))) {
+            if is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null).as_str() == Some("idr")))) && is_true(&(Value::Bool(matches!(&order, Value::Dict(__d) if __d.contains_key("remain_rp"))))) {
                 baseId = Value::Str("rp".to_string());
             }
             cost = self.safe_string(order.clone(), add(&Value::Str("order_".to_string()), &quoteId), &[]);

@@ -6508,7 +6508,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 }
             }
             }
-            if is_true(&Value::Bool(in_op(&data, &Value::Str("status".to_string())))) {
+            if is_true(&Value::Bool(matches!(&data, Value::Dict(__d) if __d.contains_key("status")))) {
                 let mut errorStatus: Value = self.safe_dict_k(data.clone(), "status", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

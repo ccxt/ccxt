@@ -2359,7 +2359,7 @@ impl BitrueCore {
             side = (if is_true(&isBuyer) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) }); // this is a true side
         }
         let mut fee: Value = Value::Null;
-        if is_true(&Value::Bool(in_op(&trade, &Value::Str("commission".to_string())))) {
+        if is_true(&Value::Bool(matches!(&trade, Value::Dict(__d) if __d.contains_key("commission")))) {
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), self.safe_string2(trade.clone(), Value::Str("commission".to_string()), Value::Str("fee".to_string()), &[]));
@@ -2516,11 +2516,11 @@ impl BitrueCore {
         let mut filled: Value = self.safe_string_k(order.clone(), "executedQty", &[]);
         let mut timestamp: Value = Value::Null;
         let mut lastTradeTimestamp: Value = Value::Null;
-        if is_true(&Value::Bool(in_op(&order, &Value::Str("time".to_string())))) {
+        if is_true(&Value::Bool(matches!(&order, Value::Dict(__d) if __d.contains_key("time")))) {
             timestamp = self.safe_integer_k(order.clone(), "time", &[]);
-        }  else if is_true(&Value::Bool(in_op(&order, &Value::Str("transactTime".to_string())))) {
+        }  else if is_true(&Value::Bool(matches!(&order, Value::Dict(__d) if __d.contains_key("transactTime")))) {
             timestamp = self.safe_integer_k(order.clone(), "transactTime", &[]);
-        }  else if is_true(&Value::Bool(in_op(&order, &Value::Str("updateTime".to_string())))) {
+        }  else if is_true(&Value::Bool(matches!(&order, Value::Dict(__d) if __d.contains_key("updateTime")))) {
             if (status.as_str() == Some("open")) {
                 if is_true(&crate::precise::Precise::stringGt(&filled, &Value::Str("0".to_string()))) {
                     lastTradeTimestamp = self.safe_integer_k(order.clone(), "updateTime", &[]);
@@ -3350,8 +3350,8 @@ impl BitrueCore {
         let mut txid: Value = self.safe_string_k(transaction.clone(), "txid", &[]);
         let mut timestamp: Value = self.safe_integer_k(transaction.clone(), "createdAt", &[]);
         let mut updated: Value = self.safe_integer_k(transaction.clone(), "updatedAt", &[]);
-        let mut payAmount: bool = in_op(&transaction, &Value::Str("payAmount".to_string()));
-        let mut ctime: bool = in_op(&transaction, &Value::Str("ctime".to_string()));
+        let mut payAmount: bool = matches!(&transaction, Value::Dict(__d) if __d.contains_key("payAmount"));
+        let mut ctime: bool = matches!(&transaction, Value::Dict(__d) if __d.contains_key("ctime"));
         let mut type_var: Value = (if (payAmount || ctime) { Value::Str("withdrawal".to_string()) } else { Value::Str("deposit".to_string()) });
         let mut status: Value = self.parse_transaction_status_by_type(self.safe_string_k(transaction.clone(), "status", &[]), &[type_var.clone()]);
         let mut amount: Value = self.safe_number_k(transaction.clone(), "amount", &[]);

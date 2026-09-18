@@ -1457,7 +1457,7 @@ impl CoinbaseCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut isUnsub: bool = in_op(&firstEvent, &Value::Str("subscriptions".to_string()));
+        let mut isUnsub: bool = matches!(&firstEvent, Value::Dict(__d) if __d.contains_key("subscriptions"));
         let mut subKeys: Value = object_keys(&firstEvent.as_map().and_then(|__m| __m.get("subscriptions")).cloned().unwrap_or(Value::Null));
         let mut subKeysLength: Value = Value::Int(subKeys.len() as i64);
         if isUnsub && (subKeysLength.as_f64() == Some(0.0)) {

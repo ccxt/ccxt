@@ -2575,7 +2575,7 @@ impl BitstampCore {
             }
         }
         // if it is a private trade
-        if is_true(&Value::Bool(in_op(&trade, &Value::Str("id".to_string())))) {
+        if is_true(&Value::Bool(matches!(&trade, Value::Dict(__d) if __d.contains_key("id")))) {
             if (amountString != Value::Null) {
                 let mut isAmountNeg: Value = crate::precise::Precise::stringLt(&amountString, &Value::Str("0".to_string()));
                 if is_true(&isAmountNeg) {
@@ -3646,7 +3646,7 @@ impl BitstampCore {
         let mut feeCost: Value = self.safe_string_k(transaction.clone(), "fee", &[]);
         let mut feeCurrency: Value = Value::Null;
         let mut amount: Value = Value::Null;
-        if is_true(&Value::Bool(in_op(&transaction, &Value::Str("amount".to_string())))) {
+        if is_true(&Value::Bool(matches!(&transaction, Value::Dict(__d) if __d.contains_key("amount")))) {
             amount = self.safe_string_k(transaction.clone(), "amount", &[]);
         }  else if (currency != Value::Null) {
             amount = self.safe_string(transaction.clone(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &[amount.clone()]);
@@ -3660,11 +3660,11 @@ impl BitstampCore {
             amount = crate::precise::Precise::stringAbs(&amount);
         }
         let mut status: Value = Value::Str("ok".to_string());
-        if is_true(&Value::Bool(in_op(&transaction, &Value::Str("status".to_string())))) {
+        if is_true(&Value::Bool(matches!(&transaction, Value::Dict(__d) if __d.contains_key("status")))) {
             status = self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[]));
         }
         let mut type_var: Value = Value::Null;
-        if is_true(&Value::Bool(in_op(&transaction, &Value::Str("type".to_string())))) {
+        if is_true(&Value::Bool(matches!(&transaction, Value::Dict(__d) if __d.contains_key("type")))) {
             // from fetchDepositsWithdrawals
             let mut rawType: Value = self.safe_string_k(transaction.clone(), "type", &[]);
             if (rawType.as_str() == Some("0")) {
@@ -3943,7 +3943,7 @@ impl BitstampCore {
         }  else {
             let mut parsedTransaction: Value = self.parse_transaction(item.clone(), &[currency.clone()]);
             let mut direction: Value = Value::Null;
-            if is_true(&Value::Bool(in_op(&item, &Value::Str("amount".to_string())))) {
+            if is_true(&Value::Bool(matches!(&item, Value::Dict(__d) if __d.contains_key("amount")))) {
                 let mut amount: Value = self.safe_string_k(item.clone(), "amount", &[]);
                 direction = (if is_true(&crate::precise::Precise::stringGt(&amount, &Value::Str("0".to_string()))) { Value::Str("in".to_string()) } else { Value::Str("out".to_string()) });
             }  else if is_true(&(Value::Bool(matches!(&parsedTransaction, Value::Dict(__d) if __d.contains_key("currency"))))) && (parsedTransaction.as_map().and_then(|__m| __m.get("currency")).cloned().unwrap_or(Value::Null) != Value::Null) {

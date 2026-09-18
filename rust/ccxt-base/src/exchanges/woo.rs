@@ -1844,7 +1844,7 @@ impl WooCore {
         //         "isMaker": 0
         //     }
         //
-        let mut isFromFetchOrder: bool = in_op(&trade, &Value::Str("id".to_string()));
+        let mut isFromFetchOrder: bool = matches!(&trade, Value::Dict(__d) if __d.contains_key("id"));
         let mut timestampString: Value = self.safe_string2(trade.clone(), Value::Str("executed_timestamp".to_string()), Value::Str("executedTimestamp".to_string()), &[]);
         let mut timestamp: Value = Value::Null;
         if (timestampString != Value::Null) {

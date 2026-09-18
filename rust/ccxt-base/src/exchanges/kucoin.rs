@@ -4044,7 +4044,7 @@ impl KucoinCore {
  */
     pub async fn load_migration_status(&mut self, optional_args: &[Value]) -> Value {
         let mut force = get_arg(optional_args, 0, Value::Bool(false));
-        if !is_true(&(Value::Bool(in_op(&self.options, &Value::Str("hf".to_string()))))) || is_true(&(Value::Bool(self.options.as_map().and_then(|__m| __m.get("hf")).cloned().unwrap_or(Value::Null) == Value::Null))) || is_true(&force) {
+        if !is_true(&(Value::Bool(matches!(&self.options, Value::Dict(__d) if __d.contains_key("hf"))))) || is_true(&(Value::Bool(self.options.as_map().and_then(|__m| __m.get("hf")).cloned().unwrap_or(Value::Null) == Value::Null))) || is_true(&force) {
             let mut result: Value = self.private_get_hf_accounts_opened(&[]).await;
             { let __be_tmp = self.safe_bool_k(result.clone(), "data", &[]); add_element_to_object(&mut self.options, &Value::Str("hf".to_string()), __be_tmp); };
         }
@@ -8677,7 +8677,7 @@ impl KucoinCore {
         let mut tradeType: Value = self.safe_string_k(order.clone(), "tradeType", &[]);
         let mut utaTradeTypes: Value = Value::List(vec![Value::Str("SPOT".to_string()), Value::Str("CROSS".to_string()), Value::Str("ISOLATED".to_string()), Value::Str("FUTURES".to_string())]); // tradeType specific for uta endpoint
         let mut isUtaOrder: Value = self.in_array(tradeType.clone(), utaTradeTypes.clone());
-        if is_true(&Value::Bool(in_op(&order, &Value::Str("sizeUnit".to_string())))) {
+        if is_true(&Value::Bool(matches!(&order, Value::Dict(__d) if __d.contains_key("sizeUnit")))) {
             isUtaOrder = Value::Bool(true);
         }
         if is_true(&isUtaOrder) {
@@ -9735,7 +9735,7 @@ impl KucoinCore {
 
     pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        if is_true(&Value::Bool(in_op(&trade, &Value::Str("liquidityRole".to_string())))) {
+        if is_true(&Value::Bool(matches!(&trade, Value::Dict(__d) if __d.contains_key("liquidityRole")))) {
             return self.parse_my_uta_trade(trade.clone(), &[market.clone()]);
         }
         let mut marketId: Value = self.safe_string_k(trade.clone(), "symbol", &[]);
@@ -9849,7 +9849,7 @@ impl KucoinCore {
         }  else {
             timestamp = self.safe_integer_k(trade.clone(), "createdAt", &[]);
             // if it's a historical v1 trade, the exchange returns timestamp in seconds
-            if is_true(&(Value::Bool(in_op(&trade, &Value::Str("dealValue".to_string()))))) && is_true(&(Value::Bool(timestamp != Value::Null))) {
+            if is_true(&(Value::Bool(matches!(&trade, Value::Dict(__d) if __d.contains_key("dealValue"))))) && is_true(&(Value::Bool(timestamp != Value::Null))) {
                 timestamp = (match (&(timestamp), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
             }
         }
@@ -9986,7 +9986,7 @@ impl KucoinCore {
         }  else {
             timestamp = self.safe_integer_k(trade.clone(), "createdAt", &[]);
             // if it's a historical v1 trade, the exchange returns timestamp in seconds
-            if is_true(&(Value::Bool(in_op(&trade, &Value::Str("dealValue".to_string()))))) && is_true(&(Value::Bool(timestamp != Value::Null))) {
+            if is_true(&(Value::Bool(matches!(&trade, Value::Dict(__d) if __d.contains_key("dealValue"))))) && is_true(&(Value::Bool(timestamp != Value::Null))) {
                 timestamp = (match (&(timestamp), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
             }
         }
@@ -10368,10 +10368,10 @@ impl KucoinCore {
         }
         let mut timestamp: Value = self.safe_integer2(transaction.clone(), Value::Str("createdAt".to_string()), Value::Str("createAt".to_string()), &[]);
         let mut updated: Value = self.safe_integer_k(transaction.clone(), "updatedAt", &[]);
-        let mut isV1: bool = !is_true(&(Value::Bool(in_op(&transaction, &Value::Str("createdAt".to_string())))));
+        let mut isV1: bool = !is_true(&(Value::Bool(matches!(&transaction, Value::Dict(__d) if __d.contains_key("createdAt")))));
         // if it's a v1 structure
         if isV1 {
-            type_var = (if is_true(&(Value::Bool(in_op(&transaction, &Value::Str("address".to_string()))))) { Value::Str("withdrawal".to_string()) } else { Value::Str("deposit".to_string()) });
+            type_var = (if is_true(&(Value::Bool(matches!(&transaction, Value::Dict(__d) if __d.contains_key("address"))))) { Value::Str("withdrawal".to_string()) } else { Value::Str("deposit".to_string()) });
             if (timestamp != Value::Null) {
                 timestamp = (match (&(timestamp), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
             }
@@ -14012,9 +14012,9 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         }
         let mut lastUpdateTimestamp: Value = self.safe_integer_k(position.clone(), "closeTime", &[]);
         if (lastUpdateTimestamp == Value::Null) {
-            if is_true(&Value::Bool(in_op(&position, &Value::Str("closingTime".to_string())))) {
+            if is_true(&Value::Bool(matches!(&position, Value::Dict(__d) if __d.contains_key("closingTime")))) {
                 lastUpdateTimestamp = self.safe_integer_product(position.clone(), Value::Str("closingTime".to_string()), Value::Float(0.000001), &[]);
-            }  else if is_true(&Value::Bool(in_op(&position, &Value::Str("updateTime".to_string())))) {
+            }  else if is_true(&Value::Bool(matches!(&position, Value::Dict(__d) if __d.contains_key("updateTime")))) {
                 lastUpdateTimestamp = self.safe_integer_product(position.clone(), Value::Str("updateTime".to_string()), Value::Float(0.000001), &[]);
             }
         }

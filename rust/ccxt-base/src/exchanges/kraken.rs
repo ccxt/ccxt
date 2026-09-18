@@ -2193,7 +2193,7 @@ impl KrakenCore {
             }
         }  else if is_string(&trade) {
             id = trade.clone();
-        }  else if is_true(&Value::Bool(in_op(&trade, &Value::Str("ordertxid".to_string())))) {
+        }  else if is_true(&Value::Bool(matches!(&trade, Value::Dict(__d) if __d.contains_key("ordertxid")))) {
             let mut marketId: Value = self.safe_string_k(trade.clone(), "pair", &[]);
             let mut foundMarket: Value = self.find_market_by_altname_or_id(marketId.clone());
             if (foundMarket != Value::Null) {
@@ -2209,7 +2209,7 @@ impl KrakenCore {
             type_var = self.safe_string_k(trade.clone(), "ordertype", &[]);
             price = self.safe_string_k(trade.clone(), "price", &[]);
             amount = self.safe_string_k(trade.clone(), "vol", &[]);
-            if is_true(&Value::Bool(in_op(&trade, &Value::Str("fee".to_string())))) {
+            if is_true(&Value::Bool(matches!(&trade, Value::Dict(__d) if __d.contains_key("fee")))) {
                 let mut currency: Value = Value::Null;
                 if (market != Value::Null) {
                     currency = market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null);
@@ -2871,7 +2871,7 @@ impl KrakenCore {
         let mut average: Value = self.safe_number_k(order.clone(), "price", &[]);
         if (market != Value::Null) {
             symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            if is_true(&Value::Bool(in_op(&order, &Value::Str("fee".to_string())))) {
+            if is_true(&Value::Bool(matches!(&order, Value::Dict(__d) if __d.contains_key("fee")))) {
                 let mut feeCost: Value = self.safe_string_k(order.clone(), "fee", &[]);
                 fee = Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -3108,7 +3108,7 @@ impl KrakenCore {
             let mut extendedPostFlags: Value = (if is_true(&(Value::Bool(flags != Value::Null))) { Value::Str(format!("{}{}", flags, Value::Str(",post".to_string()))) } else { Value::Str("post".to_string()) });
             add_element_to_object(&mut request, &Value::Str("oflags".to_string()), extendedPostFlags.clone());
         }
-        if is_true(&(Value::Bool(flags != Value::Null))) && !is_true(&(Value::Bool(in_op(&request, &Value::Str("oflags".to_string()))))) {
+        if is_true(&(Value::Bool(flags != Value::Null))) && !is_true(&(Value::Bool(matches!(&request, Value::Dict(__d) if __d.contains_key("oflags"))))) {
             add_element_to_object(&mut request, &Value::Str("oflags".to_string()), flags.clone());
         }
         params = self.omit(params.clone(), Value::List(vec![Value::Str("timeInForce".to_string()), Value::Str("reduceOnly".to_string()), Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string()), Value::Str("trailingAmount".to_string()), Value::Str("trailingPercent".to_string()), Value::Str("trailingLimitAmount".to_string()), Value::Str("trailingLimitPercent".to_string()), Value::Str("offset".to_string())]), &[]);
@@ -4913,7 +4913,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-                    if is_true(&Value::Bool(in_op(&result, &Value::Str("orders".to_string())))) {
+                    if is_true(&Value::Bool(matches!(&result, Value::Dict(__d) if __d.contains_key("orders")))) {
                         let mut orders: Value = self.safe_list_k(result.clone(), "orders", &[Value::List(vec![])]);
                         {
                                                         let mut i: Value = Value::Int(0);

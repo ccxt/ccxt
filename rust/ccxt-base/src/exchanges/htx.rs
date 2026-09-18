@@ -4213,7 +4213,7 @@ impl HtxCore {
         // so we have to create a mapping
         // - market-id from fetchMarkts:    `BTC-USDT-240419` (linear future) or `BTC240412` (inverse future)
         // - market-id from fetchTciker[s]: `BTC-USDT-CW`     (linear future) or `BTC_CW`    (inverse future)
-        if !is_true(&(Value::Bool(in_op(&self.options, &Value::Str("futureMarketIdsForSymbols".to_string()))))) {
+        if !is_true(&(Value::Bool(matches!(&self.options, Value::Dict(__d) if __d.contains_key("futureMarketIdsForSymbols"))))) {
             add_element_to_object(&mut self.options.clone(), &Value::Str("futureMarketIdsForSymbols".to_string()), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4318,7 +4318,7 @@ impl HtxCore {
         let mut bidVolume: Value = Value::Null;
         let mut ask: Value = Value::Null;
         let mut askVolume: Value = Value::Null;
-        if is_true(&Value::Bool(in_op(&ticker, &Value::Str("bid".to_string())))) {
+        if is_true(&Value::Bool(matches!(&ticker, Value::Dict(__d) if __d.contains_key("bid")))) {
             if (ticker.as_map().and_then(|__m| __m.get("bid")).cloned().unwrap_or(Value::Null) != Value::Null) && is_true(&Value::Bool(is_array(&ticker.as_map().and_then(|__m| __m.get("bid")).cloned().unwrap_or(Value::Null)))) {
                 bid = self.safe_string(ticker.as_map().and_then(|__m| __m.get("bid")).cloned().unwrap_or(Value::Null), Value::Int(0), &[]);
                 bidVolume = self.safe_string(ticker.as_map().and_then(|__m| __m.get("bid")).cloned().unwrap_or(Value::Null), Value::Int(1), &[]);
@@ -4327,7 +4327,7 @@ impl HtxCore {
                 bidVolume = self.safe_string_k(ticker.clone(), "bidSize", &[]);
             }
         }
-        if is_true(&Value::Bool(in_op(&ticker, &Value::Str("ask".to_string())))) {
+        if is_true(&Value::Bool(matches!(&ticker, Value::Dict(__d) if __d.contains_key("ask")))) {
             if (ticker.as_map().and_then(|__m| __m.get("ask")).cloned().unwrap_or(Value::Null) != Value::Null) && is_true(&Value::Bool(is_array(&ticker.as_map().and_then(|__m| __m.get("ask")).cloned().unwrap_or(Value::Null)))) {
                 ask = self.safe_string(ticker.as_map().and_then(|__m| __m.get("ask")).cloned().unwrap_or(Value::Null), Value::Int(0), &[]);
                 askVolume = self.safe_string(ticker.as_map().and_then(|__m| __m.get("ask")).cloned().unwrap_or(Value::Null), Value::Int(1), &[]);
@@ -4753,7 +4753,7 @@ impl HtxCore {
         if (response == Value::Null) {
             panic!("{}", crate::exchange_errors::null_response(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderBook() returned empty response".to_string())))));
         }
-        if is_true(&Value::Bool(in_op(&response, &Value::Str("tick".to_string())))) {
+        if is_true(&Value::Bool(matches!(&response, Value::Dict(__d) if __d.contains_key("tick")))) {
             if is_true(&(Value::Bool(response.as_map().and_then(|__m| __m.get("tick")).cloned().unwrap_or(Value::Null) == Value::Null))) || is_true(&(Value::Bool(response.as_map().and_then(|__m| __m.get("tick")).cloned().unwrap_or(Value::Null) == Value::Null))) {
                 panic!("{}", crate::exchange_errors::bad_symbol(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderBook() returned empty response: ".to_string()))), self.json(response.clone())))));
             }
@@ -5678,13 +5678,13 @@ impl HtxCore {
 }
 
     pub fn parse_currency(&self, mut rawCurrency: Value) -> Value {
-        if !is_true(&(Value::Bool(in_op(&self.options, &Value::Str("networkNamesByChainIds".to_string()))))) {
+        if !is_true(&(Value::Bool(matches!(&self.options, Value::Dict(__d) if __d.contains_key("networkNamesByChainIds"))))) {
             add_element_to_object(&mut self.options.clone(), &Value::Str("networkNamesByChainIds".to_string()), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         }
-        if !is_true(&(Value::Bool(in_op(&self.options, &Value::Str("networkChainIdsByNames".to_string()))))) {
+        if !is_true(&(Value::Bool(matches!(&self.options, Value::Dict(__d) if __d.contains_key("networkChainIdsByNames"))))) {
             add_element_to_object(&mut self.options.clone(), &Value::Str("networkChainIdsByNames".to_string()), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

@@ -1834,7 +1834,7 @@ impl KrakenfuturesCore {
                 takerOrMaker = Value::Str("maker".to_string());
             }
         }
-        let mut isHistoricalExecution: bool = in_op(&trade, &Value::Str("takerOrder".to_string()));
+        let mut isHistoricalExecution: bool = matches!(&trade, Value::Dict(__d) if __d.contains_key("takerOrder"));
         if isHistoricalExecution {
             timestamp = self.safe_integer_k(trade.clone(), "timestamp", &[]);
             let mut taker: Value = self.safe_dict_k(trade.clone(), "takerOrder", &[Value::Map({
@@ -2228,7 +2228,7 @@ impl KrakenfuturesCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if is_true(&Value::Bool(in_op(&response, &Value::Str("cancelStatus".to_string())))) {
+        if is_true(&Value::Bool(matches!(&response, Value::Dict(__d) if __d.contains_key("cancelStatus")))) {
             order = self.parse_order(response.as_map().and_then(|__m| __m.get("cancelStatus")).cloned().unwrap_or(Value::Null), &[]);
         }
         return self.extend(Value::Map({
@@ -2688,7 +2688,7 @@ impl KrakenfuturesCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut isCancelledTriggerOrder: bool = in_op(&event, &Value::Str("OrderTriggerCancelled".to_string()));
+            let mut isCancelledTriggerOrder: bool = matches!(&event, Value::Dict(__d) if __d.contains_key("OrderTriggerCancelled"));
             let mut orderPlaced: Value = self.safe_dict2(event.clone(), Value::Str("OrderPlaced".to_string()), Value::Str("OrderTriggerCancelled".to_string()), &[]);
             if (orderPlaced != Value::Null) {
                 let mut innerOrder: Value = self.safe_dict_k(orderPlaced.clone(), "order", &[Value::Map({
@@ -3157,7 +3157,7 @@ impl KrakenfuturesCore {
         let mut orderEvents: Value = self.safe_list_k(order.clone(), "orderEvents", &[Value::List(vec![])]);
         let mut errorStatus: Value = self.safe_string_k(order.clone(), "status", &[]);
         let mut orderEventsLength: Value = Value::Int(orderEvents.len() as i64);
-        if is_true(&(Value::Bool(in_op(&order, &Value::Str("orderEvents".to_string()))))) && is_true(&(Value::Bool(errorStatus != Value::Null))) && is_true(&(Value::Bool(orderEventsLength.as_f64() == Some(0.0)))) {
+        if is_true(&(Value::Bool(matches!(&order, Value::Dict(__d) if __d.contains_key("orderEvents"))))) && is_true(&(Value::Bool(errorStatus != Value::Null))) && is_true(&(Value::Bool(orderEventsLength.as_f64() == Some(0.0)))) {
             return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());

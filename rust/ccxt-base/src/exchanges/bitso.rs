@@ -1623,7 +1623,7 @@ impl BitsoCore {
         // the don't support fetching trades starting from a date yet
         // use the `marker` extra param for that
         // this is not a typo, the variable name is 'marker' (don't confuse with 'market')
-        let mut markerInParams: bool = in_op(&params, &Value::Str("marker".to_string()));
+        let mut markerInParams: bool = matches!(&params, Value::Dict(__d) if __d.contains_key("marker"));
         // warn the user with an exception if the user wants to filter
         // starting from since timestamp, but does not set the trade id with an extra 'marker' param
         if is_true(&(Value::Bool(since != Value::Null))) && !markerInParams {
@@ -1932,7 +1932,7 @@ impl BitsoCore {
         // the don't support fetching trades starting from a date yet
         // use the `marker` extra param for that
         // this is not a typo, the variable name is 'marker' (don't confuse with 'market')
-        let mut markerInParams: bool = in_op(&params, &Value::Str("marker".to_string()));
+        let mut markerInParams: bool = matches!(&params, Value::Dict(__d) if __d.contains_key("marker"));
         // warn the user with an exception if the user wants to filter
         // starting from since timestamp, but does not set the trade id with an extra 'marker' param
         if is_true(&(Value::Bool(since != Value::Null))) && !markerInParams {

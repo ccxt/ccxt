@@ -880,7 +880,7 @@ impl LighterCore {
 }
 
     pub fn init_auth_object(&self, mut strAccountIndex: Value, mut strApiKeyIndex: Value) {
-        if !is_true(&(Value::Bool(in_op(&self.options, &Value::Str("auths".to_string()))))) {
+        if !is_true(&(Value::Bool(matches!(&self.options, Value::Dict(__d) if __d.contains_key("auths"))))) {
             add_element_to_object(&mut self.options.clone(), &Value::Str("auths".to_string()), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -905,7 +905,7 @@ impl LighterCore {
 }
 
     pub fn get_lighter_private_key(&self, mut strAccountIndex: Value, mut strApiKeyIndex: Value) -> Value {
-        if !is_true(&(Value::Bool(in_op(&self.options, &Value::Str("auths".to_string()))))) {
+        if !is_true(&(Value::Bool(matches!(&self.options, Value::Dict(__d) if __d.contains_key("auths"))))) {
             return Value::Null;
         }
         if !is_true(&(Value::Bool(in_op(&self.options.as_map().and_then(|__m| __m.get("auths")).cloned().unwrap_or(Value::Null), &strAccountIndex)))) {

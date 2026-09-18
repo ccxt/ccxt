@@ -3333,7 +3333,7 @@ impl BithumbCore {
             if is_true(&(Value::Bool(base == Value::Null))) || is_true(&(Value::Bool(quote == Value::Null))) {
                 panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a market with defined base and quote".to_string())))));
             }
-            let mut side_in_params: bool = in_op(&params, &Value::Str("side".to_string()));
+            let mut side_in_params: bool = matches!(&params, Value::Dict(__d) if __d.contains_key("side"));
             if !side_in_params {
                 panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a `side` parameter (sell or buy)".to_string())))));
             }

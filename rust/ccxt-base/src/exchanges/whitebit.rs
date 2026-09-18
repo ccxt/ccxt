@@ -1532,7 +1532,7 @@ impl WhitebitCore {
         // const name = this.safeString (currency, 'name'); // breaks down in Python due to utf8 encoding issues on the exchange side
         let mut id: Value = self.safe_string_k(rawCurrency.clone(), "_coin_id", &[]);
         let mut code: Value = self.safe_currency_code(id.clone(), &[]);
-        let mut hasProvider: bool = in_op(&rawCurrency, &Value::Str("providers".to_string()));
+        let mut hasProvider: bool = matches!(&rawCurrency, Value::Dict(__d) if __d.contains_key("providers"));
         let mut networks: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m

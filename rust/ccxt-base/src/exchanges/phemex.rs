@@ -1496,7 +1496,7 @@ impl PhemexCore {
         if (settleId.as_str() != quoteId.as_str()) {
             inverse = Value::Bool(true);
             // some unhandled cases
-            if !is_true(&(Value::Bool(in_op(&market, &Value::Str("baseCurrency".to_string()))))) && (base.as_str() == quote.as_str()) {
+            if !is_true(&(Value::Bool(matches!(&market, Value::Dict(__d) if __d.contains_key("baseCurrency"))))) && (base.as_str() == quote.as_str()) {
                 base = settle.clone();
             }
         }
@@ -3706,7 +3706,7 @@ impl PhemexCore {
     pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut isSwap: Value = self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]);
-        let mut hasPnl: bool = is_true(&(Value::Bool(in_op(&order, &Value::Str("closedPnl".to_string()))))) || is_true(&(Value::Bool(in_op(&order, &Value::Str("closedPnlRv".to_string()))))) || is_true(&(Value::Bool(in_op(&order, &Value::Str("totalPnlRv".to_string())))));
+        let mut hasPnl: bool = is_true(&(Value::Bool(matches!(&order, Value::Dict(__d) if __d.contains_key("closedPnl"))))) || is_true(&(Value::Bool(matches!(&order, Value::Dict(__d) if __d.contains_key("closedPnlRv"))))) || is_true(&(Value::Bool(matches!(&order, Value::Dict(__d) if __d.contains_key("totalPnlRv")))));
         if is_true(&(Value::Bool(isSwap.as_bool() == Some(true)))) || hasPnl {
             return self.parse_swap_order(order.clone(), &[market.clone()]);
         }

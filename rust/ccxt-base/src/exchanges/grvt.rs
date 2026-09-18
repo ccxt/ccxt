@@ -2608,7 +2608,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut addressTo: Value = self.safe_string_k(transaction.clone(), "to_account_id", &[]);
         let mut currencyId: Value = self.safe_string_k(transaction.clone(), "currency", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
-        if is_true(&Value::Bool(in_op(&transaction, &Value::Str("transfer_metadata".to_string())))) {
+        if is_true(&Value::Bool(matches!(&transaction, Value::Dict(__d) if __d.contains_key("transfer_metadata")))) {
             let mut metaData: Value = self.omit_zero(self.safe_string_k(transaction.clone(), "transfer_metadata", &[]));
             if (metaData != Value::Null) {
                 let mut parsedMeta: Value = self.parse_json_value(metaData.clone());
@@ -4183,7 +4183,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         //        "ack": true
         //    }
         //
-        if is_true(&Value::Bool(in_op(&order, &Value::Str("ack".to_string())))) {
+        if is_true(&Value::Bool(matches!(&order, Value::Dict(__d) if __d.contains_key("ack")))) {
             return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());

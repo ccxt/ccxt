@@ -1618,7 +1618,7 @@ impl LimitlessCore {
         // ticker is either a plain raw market object, or a composite dict { 'market': rawMarket, 'book': rawOrderbook }
         let mut raw: Value = ticker.clone();
         let mut book: Value = Value::Null;
-        if is_true(&Value::Bool(in_op(&ticker, &Value::Str("market".to_string())))) {
+        if is_true(&Value::Bool(matches!(&ticker, Value::Dict(__d) if __d.contains_key("market")))) {
             raw = self.safe_dict_k(ticker.clone(), "market", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

@@ -11332,7 +11332,7 @@ impl OkxCore {
         add_element_to_object(&mut self.options, &Value::Str("sandboxMode".to_string()), enable.clone());
         if is_true(&enable) {
             add_element_to_object(&mut self.headers, &Value::Str("x-simulated-trading".to_string()), Value::Str("1".to_string()));
-        }  else if is_true(&Value::Bool(in_op(&self.headers, &Value::Str("x-simulated-trading".to_string())))) {
+        }  else if is_true(&Value::Bool(matches!(&self.headers, Value::Dict(__d) if __d.contains_key("x-simulated-trading")))) {
             { let __t = self.omit(self.headers.clone(), Value::Str("x-simulated-trading".to_string()), &[]); self.headers = __t; }
         }
 }

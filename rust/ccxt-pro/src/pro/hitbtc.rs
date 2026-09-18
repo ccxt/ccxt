@@ -1955,7 +1955,7 @@ impl HitbtcCore {
                     m
                 })]);
                 let mut arrayLength: Value = Value::Int(result.len() as i64);
-                if is_true(&(Value::Bool(arrayLength.as_f64() == Some(0.0)))) || is_true(&(Value::Bool(in_op(&first, &Value::Str("client_order_id".to_string()))))) {
+                if is_true(&(Value::Bool(arrayLength.as_f64() == Some(0.0)))) || is_true(&(Value::Bool(matches!(&first, Value::Dict(__d) if __d.contains_key("client_order_id"))))) {
                     self.handle_order_request(client.clone(), message.clone());
                 }
             }

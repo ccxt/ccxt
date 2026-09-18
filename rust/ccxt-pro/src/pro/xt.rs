@@ -1527,7 +1527,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut marketId: Value = self.safe_string_k(data.clone(), "s", &[]);
         if (marketId != Value::Null) {
             let mut timeframe: Value = self.safe_string_k(data.clone(), "i", &[Value::Str("".to_string())]);
-            let mut tradeType: Value = (if is_true(&(Value::Bool(in_op(&data, &Value::Str("q".to_string()))))) { Value::Str("spot".to_string()) } else { Value::Str("contract".to_string()) });
+            let mut tradeType: Value = (if is_true(&(Value::Bool(matches!(&data, Value::Dict(__d) if __d.contains_key("q"))))) { Value::Str("spot".to_string()) } else { Value::Str("contract".to_string()) });
             let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, tradeType.clone()]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut parsed: Value = self.parse_ohlcv(data.clone(), &[market.clone()]);
@@ -1673,7 +1673,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut splitEvent: Value = split(&event, &Value::Str(",".to_string()));
             event = self.safe_string(splitEvent.clone(), Value::Int(0), &[Value::Str("".to_string())]);
             let mut tradeType: Value = Value::Str("spot".to_string());
-            if is_true(&(Value::Bool(data != Value::Null))) && is_true(&(Value::Bool(in_op(&data, &Value::Str("fu".to_string()))))) {
+            if is_true(&(Value::Bool(data != Value::Null))) && is_true(&(Value::Bool(matches!(&data, Value::Dict(__d) if __d.contains_key("fu"))))) {
                 tradeType = Value::Str("contract".to_string());
             }
             let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, tradeType.clone()]);
@@ -1775,7 +1775,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //    }
         //
         let mut marketId: Value = self.safe_string_k(trade.clone(), "s", &[]);
-        let mut tradeType: Value = (if is_true(&(Value::Bool(in_op(&trade, &Value::Str("symbol".to_string()))))) { Value::Str("contract".to_string()) } else { Value::Str("spot".to_string()) });
+        let mut tradeType: Value = (if is_true(&(Value::Bool(matches!(&trade, Value::Dict(__d) if __d.contains_key("symbol"))))) { Value::Str("contract".to_string()) } else { Value::Str("spot".to_string()) });
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Null, tradeType.clone()]);
         let mut timestamp: Value = self.safe_string_k(trade.clone(), "t", &[]);
         return self.safe_trade(Value::Map({
@@ -1850,7 +1850,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //    }
         //
         let mut marketId: Value = self.safe_string2(order.clone(), Value::Str("s".to_string()), Value::Str("symbol".to_string()), &[]);
-        let mut tradeType: Value = (if is_true(&(Value::Bool(in_op(&order, &Value::Str("symbol".to_string()))))) { Value::Str("contract".to_string()) } else { Value::Str("spot".to_string()) });
+        let mut tradeType: Value = (if is_true(&(Value::Bool(matches!(&order, Value::Dict(__d) if __d.contains_key("symbol"))))) { Value::Str("contract".to_string()) } else { Value::Str("spot".to_string()) });
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Null, tradeType.clone()]);
         let mut timestamp: Value = self.safe_integer2(order.clone(), Value::Str("ct".to_string()), Value::Str("createTime".to_string()), &[]);
         return self.safe_order(Value::Map({
@@ -1944,7 +1944,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         })]);
         let mut marketId: Value = self.safe_string2(order.clone(), Value::Str("s".to_string()), Value::Str("symbol".to_string()), &[]);
         if (marketId != Value::Null) {
-            let mut tradeType: Value = (if is_true(&(Value::Bool(in_op(&order, &Value::Str("symbol".to_string()))))) { Value::Str("contract".to_string()) } else { Value::Str("spot".to_string()) });
+            let mut tradeType: Value = (if is_true(&(Value::Bool(matches!(&order, Value::Dict(__d) if __d.contains_key("symbol"))))) { Value::Str("contract".to_string()) } else { Value::Str("spot".to_string()) });
             let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, tradeType.clone()]);
             let mut parsed: Value = self.parse_ws_order(order.clone(), &[market.clone()]);
             orders.append(parsed.clone());
@@ -2004,7 +2004,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             add_element_to_object(&mut self.balance, &code, account.clone());
         }
         { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
-        let mut tradeType: Value = (if is_true(&(Value::Bool(in_op(&data, &Value::Str("coin".to_string()))))) { Value::Str("contract".to_string()) } else { Value::Str("spot".to_string()) });
+        let mut tradeType: Value = (if is_true(&(Value::Bool(matches!(&data, Value::Dict(__d) if __d.contains_key("coin"))))) { Value::Str("contract".to_string()) } else { Value::Str("spot".to_string()) });
         client.resolve(&[self.balance.clone(), Value::Str(format!("{}{}", Value::Str("balance::".to_string()), tradeType))]);
 }
 
@@ -2088,7 +2088,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut method: Value = (if is_true(&(Value::Bool(topic == Value::Null))) { Value::Null } else { self.safe_value(methods.clone(), topic.clone(), &[]) });
             if (topic.as_str() == Some("trade")) {
                 let mut data: Value = self.safe_dict_k(message.clone(), "data", &[]);
-                if is_true(&(Value::Bool(data != Value::Null))) && (is_true(&(Value::Bool(in_op(&data, &Value::Str("oi".to_string()))))) || is_true(&(Value::Bool(in_op(&data, &Value::Str("orderId".to_string())))))) {
+                if is_true(&(Value::Bool(data != Value::Null))) && (is_true(&(Value::Bool(matches!(&data, Value::Dict(__d) if __d.contains_key("oi"))))) || is_true(&(Value::Bool(matches!(&data, Value::Dict(__d) if __d.contains_key("orderId")))))) {
                     method = Value::Str("handle_my_trades".to_string()).clone();
                 }  else {
                     method = Value::Str("handle_trade".to_string()).clone();

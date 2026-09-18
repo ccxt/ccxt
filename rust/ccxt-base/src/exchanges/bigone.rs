@@ -1309,7 +1309,7 @@ impl BigoneCore {
         //        "openInterest": 1141372.0
         //    }
         //
-        let mut marketType: Value = (if is_true(&(Value::Bool(in_op(&ticker, &Value::Str("asset_pair_name".to_string()))))) { Value::Str("spot".to_string()) } else { Value::Str("swap".to_string()) });
+        let mut marketType: Value = (if is_true(&(Value::Bool(matches!(&ticker, Value::Dict(__d) if __d.contains_key("asset_pair_name"))))) { Value::Str("spot".to_string()) } else { Value::Str("swap".to_string()) });
         let mut marketId: Value = self.safe_string2(ticker.clone(), Value::Str("asset_pair_name".to_string()), Value::Str("symbol".to_string()), &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone(), Value::Str("-".to_string()), marketType.clone()]);
         let mut close: Value = self.safe_string2(ticker.clone(), Value::Str("close".to_string()), Value::Str("latestPrice".to_string()), &[]);
@@ -2821,7 +2821,7 @@ impl BigoneCore {
         let mut txid: Value = self.safe_string_k(transaction.clone(), "txid", &[]);
         let mut address: Value = self.safe_string_k(transaction.clone(), "target_address", &[]);
         let mut tag: Value = self.safe_string_k(transaction.clone(), "memo", &[]);
-        let mut type_var: Value = (if is_true(&(Value::Bool(in_op(&transaction, &Value::Str("customer_id".to_string()))))) { Value::Str("withdrawal".to_string()) } else { Value::Str("deposit".to_string()) });
+        let mut type_var: Value = (if is_true(&(Value::Bool(matches!(&transaction, Value::Dict(__d) if __d.contains_key("customer_id"))))) { Value::Str("withdrawal".to_string()) } else { Value::Str("deposit".to_string()) });
         let mut internal: Value = self.safe_bool_k(transaction.clone(), "is_internal", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

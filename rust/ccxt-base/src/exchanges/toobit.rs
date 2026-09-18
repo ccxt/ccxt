@@ -1681,7 +1681,7 @@ impl ToobitCore {
     m
 })]);
         let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
-        let mut isContract: Value = (Value::Bool(in_op(&market, &Value::Str("contractMultiplier".to_string()))));
+        let mut isContract: Value = (Value::Bool(matches!(&market, Value::Dict(__d) if __d.contains_key("contractMultiplier"))));
         let mut inverse: Value = self.safe_bool2(market.clone(), Value::Str("isInverse".to_string()), Value::Str("inverse".to_string()), &[]);
         if is_true(&isContract) {
             symbol = Value::Str(format!("{}{}", symbol, add(&Value::Str(":".to_string()), &settle)));
@@ -3594,7 +3594,7 @@ impl ToobitCore {
         let mut tagFrom: Value = self.safe_string_k(transaction.clone(), "fromAddressTag", &[]);
         let mut addressTo: Value = self.safe_string_k(transaction.clone(), "address", &[]);
         let mut addressFrom: Value = self.safe_string_k(transaction.clone(), "fromAddress", &[]);
-        let mut isWithdraw: bool = in_op(&transaction, &Value::Str("arriveQuantity".to_string()));
+        let mut isWithdraw: bool = matches!(&transaction, Value::Dict(__d) if __d.contains_key("arriveQuantity"));
         let mut type_var: Value = (if isWithdraw { Value::Str("withdrawal".to_string()) } else { Value::Str("deposit".to_string()) });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

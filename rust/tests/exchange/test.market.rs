@@ -315,8 +315,8 @@ pub fn testMarket(mut exchange: Value, mut skippedProperties: Value, mut method:
             let mut m = indexmap::IndexMap::new();
             m
         })]); // in future, remove safeDict
-        assert!(ccxt::runtime::is_true(&(Value::Bool(in_op(&marginModes, &Value::Str("cross".to_string()))))));
-        assert!(ccxt::runtime::is_true(&(Value::Bool(in_op(&marginModes, &Value::Str("isolated".to_string()))))));
+        assert!(ccxt::runtime::is_true(&(Value::Bool(matches!(&marginModes, Value::Dict(__d) if __d.contains_key("cross"))))));
+        assert!(ccxt::runtime::is_true(&(Value::Bool(matches!(&marginModes, Value::Dict(__d) if __d.contains_key("isolated"))))));
         crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), marginModes.clone(), Value::Str("cross".to_string()).clone(), Value::List(vec![Value::Bool(true), Value::Bool(false), Value::Null]).clone()]);
         crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), marginModes.clone(), Value::Str("isolated".to_string()).clone(), Value::List(vec![Value::Bool(true), Value::Bool(false), Value::Null]).clone()]);
     }

@@ -1866,7 +1866,7 @@ impl BitmexCore {
         // why the hassle? urlencode in python is kinda broken for nested dicts.
         // E.g. self.urlencode({"filter": {"open": True}}, &[]) will return "filter={'open':+True}"
         // Bitmex doesn't like that. Hence resorting to this hack.
-        if is_true(&Value::Bool(in_op(&request, &Value::Str("filter".to_string())))) {
+        if is_true(&Value::Bool(matches!(&request, Value::Dict(__d) if __d.contains_key("filter")))) {
             { let __be_tmp = self.json(crate::value::get_value_k(&request, "filter")); add_element_to_object(&mut request, &Value::Str("filter".to_string()), __be_tmp); };
         }
         let mut response: Value = self.private_get_order(&[request.clone()]).await;
@@ -1986,7 +1986,7 @@ impl BitmexCore {
         // why the hassle? urlencode in python is kinda broken for nested dicts.
         // E.g. self.urlencode({"filter": {"open": True}}, &[]) will return "filter={'open':+True}"
         // Bitmex doesn't like that. Hence resorting to this hack.
-        if is_true(&Value::Bool(in_op(&request, &Value::Str("filter".to_string())))) {
+        if is_true(&Value::Bool(matches!(&request, Value::Dict(__d) if __d.contains_key("filter")))) {
             { let __be_tmp = self.json(crate::value::get_value_k(&request, "filter")); add_element_to_object(&mut request, &Value::Str("filter".to_string()), __be_tmp); };
         }
         let mut response: Value = self.private_get_execution_trade_history(&[request.clone()]).await;

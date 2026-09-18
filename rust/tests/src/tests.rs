@@ -460,13 +460,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // extend related skips
         // - if 'timestamp' is skipped, we should do so for 'datetime' too
         // - if 'bid' is skipped, skip 'ask' too
-        if is_true(&(Value::Bool(in_op(&finalSkips, &Value::Str("timestamp".to_string()))))) && !is_true(&(Value::Bool(in_op(&finalSkips, &Value::Str("datetime".to_string()))))) {
+        if is_true(&(Value::Bool(matches!(&finalSkips, Value::Dict(__d) if __d.contains_key("timestamp"))))) && !is_true(&(Value::Bool(matches!(&finalSkips, Value::Dict(__d) if __d.contains_key("datetime"))))) {
             { let __be_tmp = get_value(&finalSkips, &Value::Str("timestamp".to_string())); add_element_to_object(&mut finalSkips, &Value::Str("datetime".to_string()), __be_tmp); };
         }
-        if is_true(&(Value::Bool(in_op(&finalSkips, &Value::Str("bid".to_string()))))) && !is_true(&(Value::Bool(in_op(&finalSkips, &Value::Str("ask".to_string()))))) {
+        if is_true(&(Value::Bool(matches!(&finalSkips, Value::Dict(__d) if __d.contains_key("bid"))))) && !is_true(&(Value::Bool(matches!(&finalSkips, Value::Dict(__d) if __d.contains_key("ask"))))) {
             { let __be_tmp = get_value(&finalSkips, &Value::Str("bid".to_string())); add_element_to_object(&mut finalSkips, &Value::Str("ask".to_string()), __be_tmp); };
         }
-        if is_true(&(Value::Bool(in_op(&finalSkips, &Value::Str("baseVolume".to_string()))))) && !is_true(&(Value::Bool(in_op(&finalSkips, &Value::Str("quoteVolume".to_string()))))) {
+        if is_true(&(Value::Bool(matches!(&finalSkips, Value::Dict(__d) if __d.contains_key("baseVolume"))))) && !is_true(&(Value::Bool(matches!(&finalSkips, Value::Dict(__d) if __d.contains_key("quoteVolume"))))) {
             { let __be_tmp = get_value(&finalSkips, &Value::Str("baseVolume".to_string())); add_element_to_object(&mut finalSkips, &Value::Str("quoteVolume".to_string()), __be_tmp); };
         }
         return finalSkips;

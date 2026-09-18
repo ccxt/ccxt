@@ -1231,7 +1231,7 @@ impl TokocryptoCore {
                     m.insert("info".to_string(), market.clone());
                 m
             });
-            if is_true(&Value::Bool(in_op(&filtersByType, &Value::Str("PRICE_FILTER".to_string())))) {
+            if is_true(&Value::Bool(matches!(&filtersByType, Value::Dict(__d) if __d.contains_key("PRICE_FILTER")))) {
                 let mut filter: Value = self.safe_dict_k(filtersByType.clone(), "PRICE_FILTER", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1249,7 +1249,7 @@ impl TokocryptoCore {
 }));
                 add_element_to_object(get_value_mut(&mut entry, &Value::Str("precision".to_string())), &Value::Str("price".to_string()), filter.as_map().and_then(|__m| __m.get("tickSize")).cloned().unwrap_or(Value::Null));
             }
-            if is_true(&Value::Bool(in_op(&filtersByType, &Value::Str("LOT_SIZE".to_string())))) {
+            if is_true(&Value::Bool(matches!(&filtersByType, Value::Dict(__d) if __d.contains_key("LOT_SIZE")))) {
                 let mut filter: Value = self.safe_value_k(filtersByType.clone(), "LOT_SIZE", &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
@@ -1262,7 +1262,7 @@ impl TokocryptoCore {
     m
 }));
             }
-            if is_true(&Value::Bool(in_op(&filtersByType, &Value::Str("MARKET_LOT_SIZE".to_string())))) {
+            if is_true(&Value::Bool(matches!(&filtersByType, Value::Dict(__d) if __d.contains_key("MARKET_LOT_SIZE")))) {
                 let mut filter: Value = self.safe_value_k(filtersByType.clone(), "MARKET_LOT_SIZE", &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
@@ -1274,7 +1274,7 @@ impl TokocryptoCore {
     m
 }));
             }
-            if is_true(&Value::Bool(in_op(&filtersByType, &Value::Str("MIN_NOTIONAL".to_string())))) {
+            if is_true(&Value::Bool(matches!(&filtersByType, Value::Dict(__d) if __d.contains_key("MIN_NOTIONAL")))) {
                 let mut filter: Value = self.safe_value_k(filtersByType.clone(), "MIN_NOTIONAL", &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
@@ -1473,15 +1473,15 @@ impl TokocryptoCore {
         if (buyerMaker != Value::Null) {
             side = (if (is_equal(&buyerMaker, &Value::Bool(true))) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) }); // this is reversed intentionally
             takerOrMaker = Value::Str("taker".to_string());
-        }  else if is_true(&Value::Bool(in_op(&trade, &Value::Str("side".to_string())))) {
+        }  else if is_true(&Value::Bool(matches!(&trade, Value::Dict(__d) if __d.contains_key("side")))) {
             side = self.safe_string_lower(trade.clone(), Value::Str("side".to_string()), &[]);
         }  else {
-            if is_true(&Value::Bool(in_op(&trade, &Value::Str("isBuyer".to_string())))) {
+            if is_true(&Value::Bool(matches!(&trade, Value::Dict(__d) if __d.contains_key("isBuyer")))) {
                 side = (if (is_equal(&trade.as_map().and_then(|__m| __m.get("isBuyer")).cloned().unwrap_or(Value::Null), &Value::Bool(true))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) }); // this is a true side
             }
         }
         let mut fee: Value = Value::Null;
-        if is_true(&Value::Bool(in_op(&trade, &Value::Str("commission".to_string())))) {
+        if is_true(&Value::Bool(matches!(&trade, Value::Dict(__d) if __d.contains_key("commission")))) {
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), self.safe_string_k(trade.clone(), "commission", &[]));
@@ -1489,10 +1489,10 @@ impl TokocryptoCore {
                 m
             });
         }
-        if is_true(&Value::Bool(in_op(&trade, &Value::Str("isMaker".to_string())))) {
+        if is_true(&Value::Bool(matches!(&trade, Value::Dict(__d) if __d.contains_key("isMaker")))) {
             takerOrMaker = (if (is_equal(&trade.as_map().and_then(|__m| __m.get("isMaker")).cloned().unwrap_or(Value::Null), &Value::Bool(true))) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
         }
-        if is_true(&Value::Bool(in_op(&trade, &Value::Str("maker".to_string())))) {
+        if is_true(&Value::Bool(matches!(&trade, Value::Dict(__d) if __d.contains_key("maker")))) {
             takerOrMaker = (if (is_equal(&trade.as_map().and_then(|__m| __m.get("maker")).cloned().unwrap_or(Value::Null), &Value::Bool(true))) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
         }
         return self.safe_trade(Value::Map({
@@ -1695,7 +1695,7 @@ impl TokocryptoCore {
         let mut marketId: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
         let mut last: Value = self.safe_string_k(ticker.clone(), "lastPrice", &[]);
-        let mut isCoinm: bool = in_op(&ticker, &Value::Str("baseVolume".to_string()));
+        let mut isCoinm: bool = matches!(&ticker, Value::Dict(__d) if __d.contains_key("baseVolume"));
         let mut baseVolume: Value = Value::Null;
         let mut quoteVolume: Value = Value::Null;
         if isCoinm {
