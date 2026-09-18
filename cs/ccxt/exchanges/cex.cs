@@ -1367,7 +1367,7 @@ public partial class cex : Exchange
             marketId = add(add(currency1, "-"), currency2);
         }
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? status = this.parseOrderStatus(this.safeString(order, "status"));
         Dictionary<string, object> fee = new Dictionary<string, object>() {};
         double? feeAmount = this.safeNumber(order, "feeAmount");

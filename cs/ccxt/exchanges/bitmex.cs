@@ -2380,7 +2380,7 @@ public partial class bitmex : Exchange
         //
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? qty = this.safeString(order, "orderQty");
         object cost = null;
         object amount = null;
@@ -3151,7 +3151,7 @@ public partial class bitmex : Exchange
         //     }
         //
         market = this.safeMarket(this.safeString(position, "symbol"), market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? datetime = this.safeString(position, "timestamp");
         object crossMargin = this.safeValue(position, "crossMargin");
         string marginMode = (isEqual(crossMargin, true)) ? "cross" : "isolated";

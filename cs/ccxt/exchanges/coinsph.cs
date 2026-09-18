@@ -1468,7 +1468,7 @@ public partial class coinsph : Exchange
         //
         string? marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? id = this.safeString2(trade, "id", "tradeId");
         string? orderId = this.safeString(trade, "orderId");
         Int64? timestamp = this.safeInteger(trade, "time");
@@ -2168,7 +2168,7 @@ public partial class coinsph : Exchange
         //
         string? marketId = this.safeString(fee, "symbol");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         return new Dictionary<string, object>() {
             { "info", fee },
             { "symbol", symbol },

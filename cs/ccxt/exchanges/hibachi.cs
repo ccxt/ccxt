@@ -602,7 +602,7 @@ public partial class hibachi : Exchange
         //      }
         string? marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? id = this.safeString(trade, "id");
         string? price = this.safeString(trade, "price");
         string? amount = this.safeString(trade, "quantity");
@@ -1916,7 +1916,7 @@ public partial class hibachi : Exchange
         //
         string? marketId = this.safeString(position, "symbol");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? side = this.safeStringLower(position, "direction");
         string? quantity = this.safeString(position, "quantity");
         string? unrealizedFunding = this.safeString(position, "unrealizedFundingPnl", "0");

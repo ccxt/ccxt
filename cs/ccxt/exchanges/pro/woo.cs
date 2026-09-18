@@ -968,7 +968,7 @@ public partial class woo : ccxt.woo
         //
         string? marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? price = this.safeString2(trade, "executedPrice", "price");
         string? amount = this.safeString2(trade, "executedQuantity", "size");
         string? cost = Precise.stringMul(price, amount);
@@ -1240,7 +1240,7 @@ public partial class woo : ccxt.woo
         string? orderId = this.safeString2(order, "orderId", "algoOrderId");
         string? marketId = this.safeString(order, "symbol");
         market = this.market(marketId);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         Int64? timestamp = this.safeInteger(order, "timestamp");
         Dictionary<string, object> fee = new Dictionary<string, object>() {
             { "cost", this.safeString(order, "totalFee") },

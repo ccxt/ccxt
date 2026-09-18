@@ -7180,7 +7180,7 @@ public partial class binance : Exchange
         bool isSpotTrade = (inOp(trade, "isIsolated")) || (inOp(trade, "M")) || (inOp(trade, "orderListId")) || (inOp(trade, "isMaker"));
         string marketType = isSpotTrade ? "spot" : "contract";
         market = this.safeMarket(marketId, market, null, marketType);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? side = null;
         bool? buyerMaker = this.safeBool2(trade, "m", "isBuyerMaker");
         string? takerOrMaker = null;
@@ -14226,7 +14226,7 @@ public partial class binance : Exchange
         //
         string? marketId = this.safeString(position, "symbol");
         market = this.safeMarket(marketId, market, null, "swap");
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? side = this.safeStringLower(position, "side");
         string? quantity = this.safeString(position, "quantity");
         if (side != "long")

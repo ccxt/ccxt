@@ -2211,7 +2211,7 @@ public partial class whitebit : Exchange
         string? amount = this.safeString2(trade, "amount", "quote_volume");
         string? id = this.safeString2(trade, "id", "tradeID");
         string? side = this.safeString2(trade, "type", "side");
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         Int64? role = this.safeInteger(trade, "role");
         string? takerOrMaker = null;
         if (!isEqual(role, null))
@@ -3094,7 +3094,7 @@ public partial class whitebit : Exchange
         //
         string? marketId = this.safeString(order, "market");
         market = this.safeMarket(marketId, market, "_");
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? side = this.safeString(order, "side");
         string? filled = this.safeString(order, "dealStock");
         string? remaining = this.safeString(order, "left");

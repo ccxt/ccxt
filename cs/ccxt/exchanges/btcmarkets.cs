@@ -858,7 +858,7 @@ public partial class btcmarkets : Exchange
         //
         string? marketId = this.safeString(ticker, "marketId");
         market = this.safeMarket(marketId, market, "-");
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         Int64? timestamp = this.parse8601(this.safeString(ticker, "timestamp"));
         string? last = this.safeString(ticker, "lastPrice");
         string? baseVolume = this.safeString(ticker, "volume24h");

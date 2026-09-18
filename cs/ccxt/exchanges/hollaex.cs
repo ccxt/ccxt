@@ -811,7 +811,7 @@ public partial class hollaex : Exchange
         //
         string? marketId = this.safeString(ticker, "symbol");
         market = this.safeMarket(marketId, market, "-");
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         Int64? timestamp = this.parse8601(this.safeString2(ticker, "time", "timestamp"));
         string? close = this.safeString(ticker, "close");
         return this.safeTicker(new Dictionary<string, object>() {
@@ -904,7 +904,7 @@ public partial class hollaex : Exchange
         //
         string? marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market, "-");
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? datetime = this.safeString(trade, "timestamp");
         Int64? timestamp = this.parse8601(datetime);
         string? side = this.safeString(trade, "side");

@@ -582,7 +582,7 @@ public partial class cryptomus : Exchange
         //
         string? marketId = this.safeString(ticker, "currency_pair");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? last = this.safeString(ticker, "last_price");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },

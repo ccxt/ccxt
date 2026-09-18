@@ -2185,7 +2185,7 @@ public partial class bitteam : Exchange
         //
         string? marketId = this.safeString(trade, "pair");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? id = this.safeString2(trade, "id", "trade_id");
         string? price = this.safeString(trade, "price");
         string? amount = this.safeString2(trade, "quantity", "base_volume");

@@ -1318,7 +1318,7 @@ public partial class apex : Exchange
         string? clientOrderId = this.safeString(order, "clientId");
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? price = this.safeString(order, "price");
         string? amount = this.safeString(order, "size");
         string? orderType = this.safeString(order, "type");
@@ -2167,7 +2167,7 @@ public partial class apex : Exchange
         // }
         string? marketId = this.safeString(position, "symbol");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? side = this.safeStringLower(position, "side");
         string? quantity = this.safeString(position, "size");
         Int64? timestamp = this.safeInteger(position, "updatedTime");

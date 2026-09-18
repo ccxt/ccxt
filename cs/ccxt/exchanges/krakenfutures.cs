@@ -844,7 +844,7 @@ public partial class krakenfutures : Exchange
         //
         string? marketId = this.safeString(ticker, "symbol");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         Int64? timestamp = this.parse8601(this.safeString(ticker, "lastTime"));
         string? open = this.safeString(ticker, "open24h");
         string? last = this.safeString(ticker, "last");

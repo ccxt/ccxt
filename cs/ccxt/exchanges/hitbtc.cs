@@ -1546,7 +1546,7 @@ public partial class hitbtc : Exchange
         Int64? timestamp = this.parse8601(getValue(trade, "timestamp"));
         string? marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         Dictionary<string, object> fee = null;
         string? feeCostString = this.safeString(trade, "fee");
         object taker = this.safeValue(trade, "taker");
@@ -2924,7 +2924,7 @@ public partial class hitbtc : Exchange
         string? status = this.parseOrderStatus(this.safeString(order, "status"));
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         object postOnly = this.safeValue(order, "post_only");
         string? timeInForce = this.safeString(order, "time_in_force");
         object rawTrades = this.safeValue(order, "trades");
@@ -3565,7 +3565,7 @@ public partial class hitbtc : Exchange
         }
         string? marketId = this.safeString(position, "symbol");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },

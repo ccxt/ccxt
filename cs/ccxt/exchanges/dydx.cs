@@ -1257,7 +1257,7 @@ public partial class dydx : Exchange
         //
         string? marketId = this.safeString(position, "market");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? side = this.safeStringLower(position, "side");
         string? quantity = this.safeString(position, "size");
         if (side != "long")

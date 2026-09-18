@@ -1207,7 +1207,7 @@ public partial class woo : Exchange
         }
         string? marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? price = this.safeString2(trade, "executed_price", "executedPrice");
         string? amount = this.safeString2(trade, "executed_quantity", "executedQuantity");
         string? order_id = this.safeString2(trade, "order_id", "orderId");
@@ -2449,7 +2449,7 @@ public partial class woo : Exchange
         string? clientOrderId = this.omitZero(this.safeString2(order, "clientOrderId", "clientAlgoOrderId")); // Somehow, this always returns 0 for limit order
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? price = this.safeString(order, "price");
         string? amount = this.safeString(order, "quantity"); // This is base amount
         string? cost = this.safeString(order, "amount"); // This is quote amount

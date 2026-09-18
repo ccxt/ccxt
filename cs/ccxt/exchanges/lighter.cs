@@ -1747,7 +1747,7 @@ public partial class lighter : Exchange
         //
         string? marketId = this.safeString(ticker, "market_id");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? last = this.safeString(ticker, "last_trade_price");
         string? high = this.safeString(ticker, "daily_price_high");
         string? low = this.safeString(ticker, "daily_price_low");

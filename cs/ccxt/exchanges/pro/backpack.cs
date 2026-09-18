@@ -1255,7 +1255,7 @@ public partial class backpack : ccxt.backpack
         string? status = this.parseWsOrderStatus(this.safeString(order, "X"), market);
         string? marketId = this.safeString(order, "s");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? type = this.safeStringLower(order, "o");
         string? timeInForce = this.safeString(order, "f");
         string? side = this.parseWsOrderSide(this.safeString(order, "S"));

@@ -1161,7 +1161,7 @@ public partial class woofipro : Exchange
         Int64? timestamp = this.safeInteger(trade, "executed_timestamp");
         string? marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? price = this.safeString(trade, "executed_price");
         string? amount = this.safeString(trade, "executed_quantity");
         string? order_id = this.safeString(trade, "order_id");
@@ -2097,7 +2097,7 @@ public partial class woofipro : Exchange
         string? clientOrderId = this.omitZero(this.safeString2(order, "client_order_id", "clientOrderId")); // Somehow, this always returns 0 for limit order
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? price = this.safeString2(order, "order_price", "price");
         string? amount = this.safeString2(order, "order_quantity", "quantity"); // This is base amount
         string? cost = this.safeString2(order, "order_amount", "amount"); // This is quote amount

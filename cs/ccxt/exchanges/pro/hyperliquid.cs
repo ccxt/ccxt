@@ -902,7 +902,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         string? coin = this.safeString(trade, "coin");
         string? marketId = this.coinToMarketId(coin);
         market = this.safeMarket(marketId);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? id = this.safeString(trade, "tid");
         string? side = this.safeString(trade, "side");
         if ((side != null))

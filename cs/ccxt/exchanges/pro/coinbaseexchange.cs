@@ -597,7 +597,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         string idKey = isMaker ? "maker_order_id" : "taker_order_id";
         ((IDictionary<string,object>)parsed)["order"] = this.safeString(trade, idKey);
         market = this.market(getValue(parsed, "symbol"));
-        object feeCurrency = getValue(market, "quote");
+        string? feeCurrency = ((string)getValue(market, "quote"));
         string? feeCost = null;
         if ((!isEqual(getValue(parsed, "cost"), null)) && ((feeRate != null)))
         {

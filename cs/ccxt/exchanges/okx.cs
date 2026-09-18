@@ -3224,7 +3224,7 @@ public partial class okx : Exchange
         Int64? timestamp = this.safeInteger(ticker, "ts");
         string? marketId = this.safeString(ticker, "instId");
         market = this.safeMarket(marketId, market, "-", marketType);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? last = this.safeString(ticker, "last");
         string? open = this.safeString(ticker, "open24h");
         bool? spot = this.safeBool(market, "spot", false);
@@ -3513,7 +3513,7 @@ public partial class okx : Exchange
         string? id = this.safeString(trade, "tradeId");
         string? marketId = this.safeString(trade, "instId");
         market = this.safeMarket(marketId, market, "-");
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         Int64? timestamp = this.safeInteger(trade, "ts");
         string? price = this.safeString2(trade, "fillPx", "px");
         string? amount = this.safeString2(trade, "fillSz", "sz");
@@ -7694,7 +7694,7 @@ public partial class okx : Exchange
         //
         string? marketId = this.safeString(position, "instId");
         market = this.safeMarket(marketId, market, null, "contract");
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? pos = this.safeString(position, "pos"); // 'pos' field: One way mode: 0 if position is not open, 1 if open | Two way (hedge) mode: -1 if short, 1 if long, 0 if position is not open
         string? contractsAbs = Precise.stringAbs(pos);
         string? side = this.safeString2(position, "posSide", "direction");

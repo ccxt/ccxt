@@ -2816,7 +2816,7 @@ public partial class kucoin : ccxt.kucoin
         //
         string? marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market, "-");
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? type = this.safeString(trade, "orderType");
         string? side = this.safeString(trade, "side");
         string? tradeId = this.safeString(trade, "tradeId");
@@ -2830,7 +2830,7 @@ public partial class kucoin : ccxt.kucoin
         }
         string? order = this.safeString(trade, "orderId");
         Int64? timestamp = this.safeIntegerProduct2(trade, "ts", "time", 0.000001);
-        object feeCurrency = getValue(market, "quote");
+        string? feeCurrency = ((string)getValue(market, "quote"));
         string? feeRate = this.safeString(trade, "feeRate");
         string? feeCost = this.safeString(trade, "fee");
         return this.safeTrade(new Dictionary<string, object>() {
@@ -3511,7 +3511,7 @@ public partial class kucoin : ccxt.kucoin
         //
         string? marketId = this.safeString(position, "s");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         Int64? timestamp = this.safeIntegerProduct(position, "O", 0.000001);
         string? amountString = this.safeString(position, "q");
         string? size = Precise.stringAbs(amountString);

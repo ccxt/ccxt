@@ -1819,7 +1819,7 @@ public partial class phemex : Exchange
         //
         string? marketId = this.safeString(ticker, "symbol");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         Int64? timestamp = this.safeIntegerProduct(ticker, "timestamp", 0.000001);
         object last = this.fromEp(this.safeString2(ticker, "lastEp", "closeRp"), market);
         object quoteVolume = this.fromEr(this.safeString2(ticker, "turnoverEv", "turnoverRv"), market);
@@ -2231,7 +2231,7 @@ public partial class phemex : Exchange
         string? feeCurrencyCode = null;
         string? marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? orderId = null;
         string? takerOrMaker = null;
         if (((trade is IList<object>) || (trade.GetType().IsGenericType && trade.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
@@ -2778,7 +2778,7 @@ public partial class phemex : Exchange
         }
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         object price = this.fromEp(this.safeString(order, "priceEp"), market);
         object amount = this.fromEv(this.safeString(order, "baseQtyEv"), market);
         object remaining = this.omitZero(this.fromEv(this.safeString(order, "leavesBaseQtyEv"), market));
@@ -4678,7 +4678,7 @@ public partial class phemex : Exchange
         //
         string? marketId = this.safeString(position, "symbol");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? collateral = this.safeString2(position, "positionMargin", "positionMarginRv");
         string? notionalString = this.safeString2(position, "value", "valueRv");
         string? maintenanceMarginPercentageString = this.safeString2(position, "maintMarginReq", "maintMarginReqRr");

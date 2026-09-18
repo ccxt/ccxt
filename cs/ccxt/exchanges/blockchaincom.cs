@@ -923,12 +923,12 @@ public partial class blockchaincom : Exchange
         Int64? timestamp = this.safeInteger(trade, "timestamp");
         string? datetime = this.iso8601(timestamp);
         market = this.safeMarket(marketId, market, "-");
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         Dictionary<string, object> fee = null;
         string? feeCostString = this.safeString(trade, "fee");
         if ((feeCostString != null))
         {
-            object feeCurrency = getValue(market, "quote");
+            string? feeCurrency = ((string)getValue(market, "quote"));
             fee = new Dictionary<string, object>() {
                 { "cost", feeCostString },
                 { "currency", feeCurrency },

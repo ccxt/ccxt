@@ -1288,7 +1288,7 @@ public partial class paradex : Exchange
         string? last = this.safeString(ticker, "last_traded_price");
         string? marketId = this.safeString(ticker, "symbol");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         Int64? timestamp = this.safeInteger(ticker, "created_at");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
@@ -1696,7 +1696,7 @@ public partial class paradex : Exchange
         Int64? timestamp = this.safeInteger(interest, "created_at");
         string? marketId = this.safeString(interest, "symbol");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         return this.safeOpenInterest(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "openInterestAmount", this.safeString(interest, "open_interest") },
@@ -1935,7 +1935,7 @@ public partial class paradex : Exchange
         string? clientOrderId = this.omitZero(this.safeString(order, "client_id"));
         string? marketId = this.safeString(order, "market");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? price = this.safeString(order, "price");
         string? amount = this.safeString(order, "size");
         string? orderType = this.safeString(order, "type");
@@ -3022,7 +3022,7 @@ public partial class paradex : Exchange
         //
         string? marketId = this.safeString(position, "market");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? side = this.safeStringLower(position, "side");
         string? quantity = this.safeString(position, "size");
         if (side != "long")
@@ -3796,7 +3796,7 @@ public partial class paradex : Exchange
         //
         string? marketId = this.safeString(greeks, "symbol");
         market = this.safeMarket(marketId, market, null, "option");
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         Int64? timestamp = this.safeInteger(greeks, "created_at");
         IDictionary<string, object> greeksData = this.safeDict(greeks, "greeks", new Dictionary<string, object>() {});
         return new Dictionary<string, object>() {

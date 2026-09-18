@@ -2542,7 +2542,7 @@ public partial class backpack : Exchange
         string? id = this.safeString(position, "positionId");
         string? marketId = this.safeString(position, "symbol");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? entryPrice = this.safeString(position, "entryPrice");
         string? markPrice = this.safeString(position, "markPrice");
         string? netCost = this.safeString(position, "netCost");

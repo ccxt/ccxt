@@ -811,7 +811,7 @@ public partial class mercado : Exchange
         string? filled = this.safeString(order, "executed_quantity");
         Int64? lastTradeTimestamp = this.safeTimestamp(order, "updated_timestamp");
         object rawTrades = this.safeValue(order, "operations", new List<object>() {});
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },

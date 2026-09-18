@@ -3875,7 +3875,7 @@ public partial class hyperliquid : Exchange
         {
             market = this.safeMarket(marketId, market);
         }
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         Int64? timestamp = this.safeInteger(entry, "timestamp");
         string? status = this.safeString2(order, "status", "ccxtStatus");
         order = this.omit(order, new List<object>() {"ccxtStatus"});
@@ -4075,7 +4075,7 @@ public partial class hyperliquid : Exchange
         string? coin = this.safeString(trade, "coin");
         string? marketId = this.coinToMarketId(coin);
         market = this.safeMarket(marketId);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? id = this.safeString(trade, "tid");
         string? side = this.safeString(trade, "side");
         if ((side != null))
@@ -4283,7 +4283,7 @@ public partial class hyperliquid : Exchange
         string? coin = this.safeString(entry, "coin");
         string? marketId = this.coinToMarketId(coin);
         market = this.safeMarket(marketId);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         IDictionary<string, object> leverage = this.safeDict(entry, "leverage", new Dictionary<string, object>() {});
         string? marginMode = this.safeString(leverage, "type");
         bool isIsolated = (marginMode == "isolated");

@@ -1374,7 +1374,7 @@ public partial class bybit : ccxt.bybit
         }
         string? marketId = this.safeString(trade, "s");
         market = this.safeMarket(marketId, market, null, marketType);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         Int64? timestamp = this.safeInteger2(trade, "t", "T");
         string? side = this.safeStringLower(trade, "S");
         object takerOrMaker = null;

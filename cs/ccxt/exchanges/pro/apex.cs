@@ -181,7 +181,7 @@ public partial class apex : ccxt.apex
         string? id = this.safeStringN(trade, new List<object>() {"i", "id", "v"});
         string? marketId = this.safeString2(trade, "s", "symbol");
         market = this.safeMarket(marketId, market, null);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         Int64? timestamp = this.safeIntegerN(trade, new List<object>() {"t", "T", "createdAt"});
         string? side = this.safeStringLower2(trade, "S", "side");
         string? price = this.safeString2(trade, "p", "price");
