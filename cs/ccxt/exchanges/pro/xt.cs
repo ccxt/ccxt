@@ -740,8 +740,8 @@ public partial class xt : ccxt.xt
         object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "contract"), "/"), "user");
         var client = this.client(url);
         this.setPositionsCache(client);
-        object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
-        object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
+        bool fetchPositionsSnapshot = ((bool)this.handleOption("watchPositions", "fetchPositionsSnapshot", true));
+        bool awaitPositionsSnapshot = ((bool)this.handleOption("watchPositions", "awaitPositionsSnapshot", true));
         object cache = this.positions;
         if ((isEqual(fetchPositionsSnapshot, true)) && (isEqual(awaitPositionsSnapshot, true)) && isTrue(this.isEmpty(cache)))
         {

@@ -4954,7 +4954,7 @@ public partial class binance : Exchange
             // for backward-compatibility
             rawFetchMarkets = this.safeList(this.options, "fetchMarkets", defaultTypes);
         }
-        object loadAllOptions = this.handleOption("fetchMarkets", "loadAllOptions", false);
+        bool loadAllOptions = ((bool)this.handleOption("fetchMarkets", "loadAllOptions", false));
         if (isEqual(loadAllOptions, true))
         {
             if (!this.inArray("option", rawFetchMarkets))
@@ -7615,7 +7615,7 @@ public partial class binance : Exchange
         bool quantityIsRequired = false;
         if (uppercaseType == "MARKET")
         {
-            object quoteOrderQty = this.handleOption("createOrder", "quoteOrderQty", true);
+            bool quoteOrderQty = ((bool)this.handleOption("createOrder", "quoteOrderQty", true));
             if (isEqual(quoteOrderQty, true))
             {
                 object quoteOrderQtyNew = this.safeValue2(parameters, "quoteOrderQty", "cost");
@@ -9251,7 +9251,7 @@ public partial class binance : Exchange
                 }
             } else if (isEqual(GetValue(market, "spot"), true))
             {
-                object quoteOrderQty = this.handleOption("createOrder", "quoteOrderQty", true);
+                bool quoteOrderQty = ((bool)this.handleOption("createOrder", "quoteOrderQty", true));
                 if (isEqual(quoteOrderQty, true))
                 {
                     string? quoteOrderQtyNew = this.safeString2(parameters, "quoteOrderQty", "cost");
@@ -14799,7 +14799,7 @@ public partial class binance : Exchange
             // binanceusdm
             if (isTrue(e is MarginModeAlreadySet))
             {
-                object throwMarginModeAlreadySet = this.handleOption("setMarginMode", "throwMarginModeAlreadySet", false);
+                bool throwMarginModeAlreadySet = ((bool)this.handleOption("setMarginMode", "throwMarginModeAlreadySet", false));
                 if (isEqual(throwMarginModeAlreadySet, true))
                 {
                     throw e;

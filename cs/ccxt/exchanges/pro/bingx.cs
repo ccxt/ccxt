@@ -1432,7 +1432,7 @@ public partial class bingx : ccxt.bingx
         {
             return;
         }
-        object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
+        bool fetchPositionsSnapshot = ((bool)this.handleOption("watchPositions", "fetchPositionsSnapshot", true));
         if (isEqual(fetchPositionsSnapshot, true))
         {
             object messageHash = add(type, ":fetchPositionsSnapshot");

@@ -753,7 +753,7 @@ public partial class gate : ccxt.gate
         {
             ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
             ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
-            object checksum = this.handleOption("watchOrderBook", "checksum", true);
+            bool checksum = ((bool)this.handleOption("watchOrderBook", "checksum", true));
             if (isEqual(checksum, true))
             {
                 var error = new ChecksumError(add(add(this.id, " "), this.orderbookChecksumMessage(symbol)));
@@ -1587,8 +1587,8 @@ public partial class gate : ccxt.gate
         object url = this.getUrlByMarketType(type, isInverse);
         var client = this.client(url);
         this.setPositionsCache(client, type, symbols);
-        object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
-        object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
+        bool fetchPositionsSnapshot = ((bool)this.handleOption("watchPositions", "fetchPositionsSnapshot", true));
+        bool awaitPositionsSnapshot = ((bool)this.handleOption("watchPositions", "awaitPositionsSnapshot", true));
         object cache = this.safeValue(this.positions, type);
         if ((isEqual(fetchPositionsSnapshot, true)) && (isEqual(awaitPositionsSnapshot, true)) && ((cache == null)))
         {
@@ -1612,7 +1612,7 @@ public partial class gate : ccxt.gate
         {
             return;
         }
-        object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", false);
+        bool fetchPositionsSnapshot = ((bool)this.handleOption("watchPositions", "fetchPositionsSnapshot", false));
         if (isEqual(fetchPositionsSnapshot, true))
         {
             object messageHash = add(type, ":fetchPositionsSnapshot");

@@ -5467,6 +5467,155 @@ function urlsDescribeStringProducer (initializer) {
     return true;
 }
 
+// ---- `this.handleOption (method, key, <literal>)` / `this.safeValue (this.options, key,
+//      <literal>)` with a per-key writer census (U41) ---------------------------------------
+// `handleOption` (Exchange.BaseMethods.cs) resolves through handleOptionAndParams with an EMPTY
+// params dict, so no caller input can reach the value: it is `options[method][key]`, else
+// `options[method]['default'+Key]`, else `options[key]`, else `options['default'+Key]`, else the
+// call's own defaultValue — and `safeValue (this.options, key, default)` is that read at the
+// top-level path. The box is therefore the value some writer stored at one of those paths, or the
+// default literal, which is a type token the site already spells.
+//
+// Census (whole ts/src corpus, writers of the four lookup paths of every path in the table):
+//   bool   watchOrderBook/checksum (7 describe literals), watchPositions/fetchPositionsSnapshot
+//          (12), watchPositions/awaitPositionsSnapshot (12), watchPosition/fetchPositionSnapshot,
+//          watchPosition/awaitPositionSnapshot, watchBalance/fetchBalanceSnapshot (7),
+//          createOrder/quoteOrderQty (5), fetchMarkets/loadAllOptions (2),
+//          fetchMarkets/loadExpiredOptions, fetchMarkets/usePrivateInstrumentsInfo,
+//          createOrder/warnOnSTPForInverse, setMarginMode/throwMarginModeAlreadySet,
+//          transfer/fillResponseFromRequest (6), postActionRequest/builderFee (15 incl. the
+//          `this.options['builderFee'] = false` writes of aster/grvt/hyperliquid/lighter)
+//   string fetchMarkets|fetchBalance|fetchOrdersByStates|createOrder|cancelOrders/method (44
+//          describe literals), fetchOrderBook/precision, code (5), fetchMarketsMethod,
+//          fetchTickerMethod
+// Every writer is a literal of ONE kind (no `null`/`undefined`/expression writer), no writer
+// takes the value from user params (`params` / `parameters` / `omit` / `setOptions`), and the only
+// DYNAMIC `this.options[<expr>] =` shapes in ts/src cannot produce these keys: `options[cacheKey]
+// = cached` with cacheKey = 'tradeMarketsById' (ts/src/prediction/opinion.ts), `options[helper] =
+// sourceExchange.options[helper]` with helper from a `marketHelperProps` list (the corpus defines
+// exactly three such lists: hyperliquid / kraken / pacifica), `options[marketType|type] = this.extend
+// (options, {...})` in ts/src/pro/binance.ts (market-type names only). The hand-written C# base
+// writes options only from describe() and the user config (Exchange.Options.cs#initializeProperties
+// / extendExchangeOptions), and the only test-tree write of one of these keys is
+// `exchange.options['checksum'] = false` (ts/src/test/tests.ts#testMethod, the branch the C# driver
+// takes; cs/tests/Generated/TestMethods.cs carries the same bool write).
+//
+// Rejected with that census: an `int` default (the C# literal boxes as Int32, so an Int64 cast
+// throws — 10 sites, mostly watchOrderBook/snapshotDelay), a default whose key has no writer or
+// disagreeing writers (pacifica defaultSlippage: hyperliquid writes a double at the same key), a
+// collection default (another family's box), and every no-default call (the absent value is a
+// null the site never spells).
+const OPTIONS_LITERAL_DEFAULT_CAST_KINDS = {
+    // this.handleOption (method, key, <literal>)
+    'cancelOrders/method': 'string',
+    'createOrder/method': 'string',
+    'createOrder/quoteOrderQty': 'bool',
+    'createOrder/warnOnSTPForInverse': 'bool',
+    'fetchBalance/method': 'string',
+    'fetchMarkets/loadAllOptions': 'bool',
+    'fetchMarkets/loadExpiredOptions': 'bool',
+    'fetchMarkets/method': 'string',
+    'fetchMarkets/usePrivateInstrumentsInfo': 'bool',
+    'fetchOrderBook/precision': 'string',
+    'fetchOrdersByStates/method': 'string',
+    'postActionRequest/builderFee': 'bool',
+    'setMarginMode/throwMarginModeAlreadySet': 'bool',
+    'transfer/fillResponseFromRequest': 'bool',
+    'watchBalance/fetchBalanceSnapshot': 'bool',
+    'watchOrderBook/checksum': 'bool',
+    'watchPosition/awaitPositionSnapshot': 'bool',
+    'watchPosition/fetchPositionSnapshot': 'bool',
+    'watchPositions/awaitPositionsSnapshot': 'bool',
+    'watchPositions/fetchPositionsSnapshot': 'bool',
+    // this.safeValue (this.options, key, <literal>)
+    'code': 'string',
+    'fetchMarketsMethod': 'string',
+    'fetchTickerMethod': 'string',
+};
+
+// ast-transpiler's printAsExpression casts only `as any` -> `((object)x)`, `as string` ->
+// `((string)x)` and `as any[]` -> `(IList<object>)(x)`; every other asserted type prints the
+// bare operand (ts/src/binance.ts#createOrder's `… as Bool` emits the plain call)
+function optionsLiteralAsPrintsBare (node) {
+    const type = node.type;
+    if (type === undefined) {
+        return false;
+    }
+    if (type.kind === ts.SyntaxKind.AnyKeyword || type.kind === ts.SyntaxKind.StringKeyword) {
+        return false;
+    }
+    if (type.kind === ts.SyntaxKind.ArrayType && type.elementType?.kind === ts.SyntaxKind.AnyKeyword) {
+        return false;
+    }
+    return true;
+}
+
+// the option key path a `this.handleOption (method, key, default)` /
+// `this.safeValue (this.options, key, default)` call reads, or undefined for every other shape
+// (a non-literal method / key, a copied receiver, a different arity, an assertion that prints a cast)
+function optionsLiteralDefaultParts (initializer) {
+    let node = initializer;
+    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression
+            || (node?.kind === ts.SyntaxKind.AsExpression && optionsLiteralAsPrintsBare (node))) {
+        node = node.expression;
+    }
+    if (node?.kind !== ts.SyntaxKind.CallExpression) {
+        return undefined;
+    }
+    const callee = node.expression;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        return undefined;
+    }
+    const args = node.arguments ?? [];
+    if (args.length !== 3) {
+        return undefined;
+    }
+    const key = args[1]?.kind === ts.SyntaxKind.StringLiteral ? args[1].text : undefined;
+    if (key === undefined) {
+        return undefined;
+    }
+    if (callee.name?.escapedText === 'handleOption') {
+        const method = args[0]?.kind === ts.SyntaxKind.StringLiteral ? args[0].text : undefined;
+        return (method === undefined) ? undefined : { path: method + '/' + key, defaultValue: args[2] };
+    }
+    if (callee.name?.escapedText === 'safeValue') {
+        const receiver = args[0];
+        if (receiver?.kind !== ts.SyntaxKind.PropertyAccessExpression
+            || receiver.expression?.kind !== ts.SyntaxKind.ThisKeyword
+            || receiver.name?.escapedText !== 'options') {
+            return undefined;
+        }
+        return { path: key, defaultValue: args[2] };
+    }
+    return undefined;
+}
+
+// the default literal's kind as the census table spells it: `true`/`false` -> bool, a NON-EMPTY
+// string literal -> string (the empty string is the "absent" value safeValueN skips)
+function optionsLiteralDefaultKind (node) {
+    if (node?.kind === ts.SyntaxKind.TrueKeyword || node?.kind === ts.SyntaxKind.FalseKeyword) {
+        return 'bool';
+    }
+    if (node?.kind === ts.SyntaxKind.StringLiteral && node.text.length > 0) {
+        return 'string';
+    }
+    return undefined;
+}
+
+// the C# box of a call whose option key's whole-corpus writer census equals the site's own
+// default literal kind — named behind the exact cast back (the call's C# type is `object`)
+function optionsLiteralDefaultCastType (initializer) {
+    const parts = optionsLiteralDefaultParts (initializer);
+    if (parts === undefined) {
+        return undefined;
+    }
+    const expected = OPTIONS_LITERAL_DEFAULT_CAST_KINDS[parts.path];
+    if (expected === undefined || optionsLiteralDefaultKind (parts.defaultValue) !== expected) {
+        return undefined;
+    }
+    return expected;
+}
+
 // `this.omit (recv, keys)` with exactly two arguments — the only shape that binds one of the
 // dict-receiver overloads of cs/ccxt/base/Exchange.Functions.cs. The `params object[]` overload
 // owns the 1-argument and 3+-argument calls and still boxes `object`.
@@ -5694,6 +5843,9 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         // is `object`, so the declaration needs the cast the printer does not emit by itself.
         // Nullable when the box is a string (it is null off the end of the list).
         const elementType = (integerBox === undefined) ? elementAccessElementType (csharp, declaration.initializer, ctx) : undefined;
+        // `this.handleOption (method, key, <literal>)` / `this.safeValue (this.options, key,
+        // <literal>)` whose option key's writer census is the default literal's own kind
+        const optionsDefaultType = optionsLiteralDefaultCastType (declaration.initializer);
         if (modTwin !== undefined) {
             csharpType = modTwin;
         } else if (integerBox !== undefined) {
@@ -5718,6 +5870,12 @@ function csharpLocalTypeOf (csharp, declaration, context) {
             // string, so the getValue chain's box is a string or null — same cast as above
             csharpType = 'string?';
             cast = 'string';
+        } else if (optionsDefaultType !== undefined) {
+            // `const method = this.handleOption ('fetchMarkets', 'method', 'publicGetCommonSymbols')`:
+            // the option key's whole-corpus writer census equals the site's own default literal kind
+            // (see the family comment above), so the value the call hands back already is that box
+            csharpType = optionsDefaultType;
+            cast = optionsDefaultType;
         } else if (omitDictionaryProducer (csharp, declaration.initializer, ctx)) {
             // `const x = this.omit (<Dictionary box>, keys)`: the call binds a dict-receiver
             // overload (see the family comment above), so the call's own C# type IS the

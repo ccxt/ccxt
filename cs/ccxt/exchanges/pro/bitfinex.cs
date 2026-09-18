@@ -887,7 +887,7 @@ public partial class bitfinex : ccxt.bitfinex
         {
             ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
             ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
-            object checksum = this.handleOption("watchOrderBook", "checksum", true);
+            bool checksum = ((bool)this.handleOption("watchOrderBook", "checksum", true));
             if (isEqual(checksum, true))
             {
                 var error = new ChecksumError(add(add(this.id, " "), this.orderbookChecksumMessage(symbol)));

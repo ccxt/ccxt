@@ -864,7 +864,7 @@ public partial class whitebit : ccxt.whitebit
         {
             return;
         }
-        object fetchBalanceSnapshot = this.handleOption("watchBalance", "fetchBalanceSnapshot", true);
+        bool fetchBalanceSnapshot = ((bool)this.handleOption("watchBalance", "fetchBalanceSnapshot", true));
         if (isEqual(fetchBalanceSnapshot, true))
         {
             object messageHash = add(type, ":fetchBalanceSnapshot");

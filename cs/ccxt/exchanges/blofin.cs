@@ -2736,7 +2736,7 @@ public partial class blofin : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         List<object> request = new List<object>() {};
-        object method = this.handleOption("cancelOrders", "method", "privatePostTradeCancelBatchOrders");
+        string method = ((string)this.handleOption("cancelOrders", "method", "privatePostTradeCancelBatchOrders"));
         object clientOrderIds = this.parseIds(this.safeValue(parameters, "clientOrderId"));
         object tpslIds = this.parseIds(this.safeValue(parameters, "tpslId"));
         bool? trigger = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "tpsl"});
@@ -2784,7 +2784,7 @@ public partial class blofin : Exchange
             }
         }
         Dictionary<string, object> response = null;
-        if (isEqual(method, "privatePostTradeCancelTpsl"))
+        if (method == "privatePostTradeCancelTpsl")
         {
             response = await this.privatePostTradeCancelTpsl(request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
         } else

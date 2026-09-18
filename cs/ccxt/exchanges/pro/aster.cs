@@ -1732,8 +1732,8 @@ public partial class aster : ccxt.aster
                 ((IList<object>)messageHashes).Add(add(add(messageHash, "::"), symbol));
             }
         }
-        object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
-        object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
+        bool fetchPositionsSnapshot = ((bool)this.handleOption("watchPositions", "fetchPositionsSnapshot", true));
+        bool awaitPositionsSnapshot = ((bool)this.handleOption("watchPositions", "awaitPositionsSnapshot", true));
         object cache = this.positions;
         if ((isEqual(fetchPositionsSnapshot, true)) && (isEqual(awaitPositionsSnapshot, true)) && ((cache == null)))
         {
@@ -1754,7 +1754,7 @@ public partial class aster : ccxt.aster
         {
             return;
         }
-        object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", false);
+        bool fetchPositionsSnapshot = ((bool)this.handleOption("watchPositions", "fetchPositionsSnapshot", false));
         if (isEqual(fetchPositionsSnapshot, true))
         {
             string messageHash = "fetchPositionsSnapshot";

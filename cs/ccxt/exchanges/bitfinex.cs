@@ -1448,7 +1448,7 @@ public partial class bitfinex : Exchange
         {
             await this.loadMarkets();
         }
-        object precision = this.handleOption("fetchOrderBook", "precision", "R0");
+        string precision = ((string)this.handleOption("fetchOrderBook", "precision", "R0"));
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },

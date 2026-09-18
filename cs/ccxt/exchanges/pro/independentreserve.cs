@@ -233,7 +233,7 @@ public partial class independentreserve : ccxt.independentreserve
             ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
             ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
         }
-        object checksum = this.handleOption("watchOrderBook", "checksum", true);
+        bool checksum = ((bool)this.handleOption("watchOrderBook", "checksum", true));
         if ((isEqual(checksum, true)) && ((receivedSnapshot == true)))
         {
             object storedAsks = getValue(orderbook, "asks");

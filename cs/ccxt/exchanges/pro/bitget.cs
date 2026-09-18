@@ -1029,7 +1029,7 @@ public partial class bitget : ccxt.bitget
             this.handleDeltas(getValue(storedOrderBook, "bids"), bids);
             ((IDictionary<string,object>)storedOrderBook)["timestamp"] = timestamp;
             ((IDictionary<string,object>)storedOrderBook)["datetime"] = this.iso8601(timestamp);
-            object checksum = this.handleOption("watchOrderBook", "checksum", true);
+            bool checksum = ((bool)this.handleOption("watchOrderBook", "checksum", true));
             bool isSnapshot = (this.safeString(message, "action") == "snapshot"); // snapshot does not have a checksum
             // UTA order books do not provide a crc32 checksum (they rely on seq/pseq for integrity),
             // so only validate the checksum when the exchange actually sends one

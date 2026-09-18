@@ -829,7 +829,7 @@ public partial class htx : ccxt.htx
         }
         if ((!isEqual(prevSeqNum, null)) && isGreaterThan(prevSeqNum, this.safeInteger(orderbook, "nonce", 0)))
         {
-            object checksum = this.handleOption("watchOrderBook", "checksum", true);
+            bool checksum = ((bool)this.handleOption("watchOrderBook", "checksum", true));
             if (isEqual(checksum, true))
             {
                 throw new ChecksumError (add(add(this.id, " "), this.orderbookChecksumMessage(symbol))) ;

@@ -2860,7 +2860,7 @@ public partial class bybit : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "category", "spot" },
         };
-        object usePrivateInstrumentsInfo = this.handleOption("fetchMarkets", "usePrivateInstrumentsInfo", false);
+        bool usePrivateInstrumentsInfo = ((bool)this.handleOption("fetchMarkets", "usePrivateInstrumentsInfo", false));
         Dictionary<string, object> response = null;
         if (isEqual(usePrivateInstrumentsInfo, true))
         {
@@ -2983,7 +2983,7 @@ public partial class bybit : Exchange
         parameters = this.extend(parameters, new Dictionary<string, object>() {});
         ((IDictionary<string,object>)parameters)["limit"] = 1000; // minimize number of requests
         object preLaunchMarkets = new List<object>() {};
-        object usePrivateInstrumentsInfo = this.handleOption("fetchMarkets", "usePrivateInstrumentsInfo", false);
+        bool usePrivateInstrumentsInfo = ((bool)this.handleOption("fetchMarkets", "usePrivateInstrumentsInfo", false));
         IDictionary<string, object> response = null;
         if (isEqual(usePrivateInstrumentsInfo, true))
         {
@@ -3195,7 +3195,7 @@ public partial class bybit : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "category", "option" },
         };
-        object usePrivateInstrumentsInfo = this.handleOption("fetchMarkets", "usePrivateInstrumentsInfo", false);
+        bool usePrivateInstrumentsInfo = ((bool)this.handleOption("fetchMarkets", "usePrivateInstrumentsInfo", false));
         Dictionary<string, object> response = null;
         if (isEqual(usePrivateInstrumentsInfo, true))
         {

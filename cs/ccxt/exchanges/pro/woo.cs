@@ -1473,8 +1473,8 @@ public partial class woo : ccxt.woo
         object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "/"), this.uid);
         var client = this.client(url);
         this.setPositionsCache(client, symbols);
-        object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
-        object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
+        bool fetchPositionsSnapshot = ((bool)this.handleOption("watchPositions", "fetchPositionsSnapshot", true));
+        bool awaitPositionsSnapshot = ((bool)this.handleOption("watchPositions", "awaitPositionsSnapshot", true));
         if ((isEqual(fetchPositionsSnapshot, true)) && (isEqual(awaitPositionsSnapshot, true)) && (isEqual(this.positions, null)))
         {
             object snapshot = await client.future("fetchPositionsSnapshot");
@@ -1494,7 +1494,7 @@ public partial class woo : ccxt.woo
 
     public virtual void setPositionsCache(WebSocketClient client, object type, object symbols = null)
     {
-        object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", false);
+        bool fetchPositionsSnapshot = ((bool)this.handleOption("watchPositions", "fetchPositionsSnapshot", false));
         if (isEqual(fetchPositionsSnapshot, true))
         {
             string messageHash = "fetchPositionsSnapshot";

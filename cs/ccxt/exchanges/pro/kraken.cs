@@ -1082,7 +1082,7 @@ public partial class kraken : ccxt.kraken
         }
         (orderbook as IOrderBook).limit();
         // checksum temporarily disabled because the exchange checksum was not reliable
-        object checksum = this.handleOption("watchOrderBook", "checksum", false);
+        bool checksum = ((bool)this.handleOption("watchOrderBook", "checksum", false));
         if (isEqual(checksum, true))
         {
             List<object> payloadArray = new List<object>() {};
